@@ -24,6 +24,9 @@ type PresenceProps = {
     /** Whether the content should be present; flipping to `false` runs the exit animation before unmounting */
     present: boolean;
 
+    /** Exit animation duration in ms; the force-unmount fallback waits this plus a safety margin (omit → 2s default) */
+    exitDurationMs?: number;
+
     /** Called once the exit animation completes and the content is removed */
     onExitComplete?: () => void;
 
@@ -60,8 +63,9 @@ function usePresence(consumerName: string): PresenceContextValue {
 
 // Fallback in case onAnimationEnd never fires — avoids stuck 'unmountSuspended'.
 const MAX_PRESENCE_EXIT_MS = 2000;
+const PRESENCE_EXIT_SAFETY_MS = 1000;
 
-function Presence({present, onExitComplete, children}: PresenceProps) {
+function Presence({present, exitDurationMs, onExitComplete, children}: PresenceProps) {
     const [internal, dispatch] = useReducer(presenceReducer, present ? 'mounted' : 'unmounted');
 
     useEffect(() => {
@@ -92,9 +96,10 @@ function Presence({present, onExitComplete, children}: PresenceProps) {
             return undefined;
         }
         owedRef.current = true;
-        const timeoutId = setTimeout(handleAnimationEnd, MAX_PRESENCE_EXIT_MS);
+        const fallbackMs = exitDurationMs != null ? exitDurationMs + PRESENCE_EXIT_SAFETY_MS : MAX_PRESENCE_EXIT_MS;
+        const timeoutId = setTimeout(handleAnimationEnd, fallbackMs);
         return () => clearTimeout(timeoutId);
-    }, [publishedState, handleAnimationEnd, onExitCompleteRef]);
+    }, [publishedState, handleAnimationEnd, onExitCompleteRef, exitDurationMs]);
 
     useEffect(
         () => () => {

@@ -28,8 +28,8 @@ type AnimatedSurfaceProps = AnimatedViewPropsPassthrough & {
     /** Start/end frames for the enter transition */
     enterSpec: AnimationSpec;
 
-    /** Start/end frames for the exit transition */
-    exitSpec: AnimationSpec;
+    /** Target frame for the exit transition; the surface animates to it from its current value (exit is target-only) */
+    exitTo: AnimationFrame;
 
     /** Enter animation duration, in milliseconds */
     enterTiming: number;
@@ -50,7 +50,7 @@ type AnimatedSurfaceProps = AnimatedViewPropsPassthrough & {
     children: ReactNode;
 };
 
-function AnimatedSurface({enterSpec, exitSpec, enterTiming, exitTiming, easing, enterEnabled, style, children, ...passthrough}: AnimatedSurfaceProps) {
+function AnimatedSurface({enterSpec, exitTo, enterTiming, exitTiming, easing, enterEnabled, style, children, ...passthrough}: AnimatedSurfaceProps) {
     const presence = usePresence('<Overlay.AnimatedSurface>');
     const {state: presenceState} = presence.state;
     const {onAnimationEnd} = presence.actions;
@@ -60,7 +60,7 @@ function AnimatedSurface({enterSpec, exitSpec, enterTiming, exitTiming, easing, 
     const translateY = useSharedValue<TranslateValue>(enterSpec.from.translateY);
 
     const {opacity: enterOpacity, translateX: enterTranslateX, translateY: enterTranslateY} = enterSpec.to;
-    const {opacity: exitOpacity, translateX: exitTranslateX, translateY: exitTranslateY} = exitSpec.to;
+    const {opacity: exitOpacity, translateX: exitTranslateX, translateY: exitTranslateY} = exitTo;
 
     // Split per-state so an enter-spec change can't restart an in-flight exit (and vice-versa).
     useEffect(() => {
@@ -110,11 +110,8 @@ const FADE_ONLY_ENTER_SPEC: AnimationSpec = {
     to: {opacity: 1, translateX: 0, translateY: 0},
 };
 
-const FADE_ONLY_EXIT_SPEC: AnimationSpec = {
-    from: {opacity: 1, translateX: 0, translateY: 0},
-    to: {opacity: 0, translateX: 0, translateY: 0},
-};
+const FADE_ONLY_EXIT: AnimationFrame = {opacity: 0, translateX: 0, translateY: 0};
 
 export default AnimatedSurface;
-export {FADE_ONLY_ENTER_SPEC, FADE_ONLY_EXIT_SPEC};
+export {FADE_ONLY_ENTER_SPEC, FADE_ONLY_EXIT};
 export type {AnimatedSurfaceProps, AnimationFrame, AnimationSpec, TranslateValue};

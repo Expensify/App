@@ -12,7 +12,7 @@ import {StyleSheet, View} from 'react-native';
 import type {AnchorNode, AnchorRect} from './libs/measureAnchor';
 import type {PopoverOverlayEntry} from './libs/overlayStore';
 
-import AnimatedSurface, {FADE_ONLY_ENTER_SPEC, FADE_ONLY_EXIT_SPEC} from './AnimatedSurface';
+import AnimatedSurface, {FADE_ONLY_ENTER_SPEC, FADE_ONLY_EXIT} from './AnimatedSurface';
 import DismissableLayer from './DismissableLayer';
 import useAnchoredPosition from './hooks/useAnchoredPosition';
 import useDismissOnAnchorMove from './hooks/useDismissOnAnchorMove';
@@ -131,7 +131,7 @@ function FloatingHost({isOpen, anchor, anchorRect, alignment, offsetPx, fadeDura
                 >
                     <AnimatedSurface
                         enterSpec={FADE_ONLY_ENTER_SPEC}
-                        exitSpec={FADE_ONLY_EXIT_SPEC}
+                        exitTo={FADE_ONLY_EXIT}
                         enterTiming={enterTiming}
                         exitTiming={exitTiming}
                         // Hold the entrance fade until measured so it can't elapse behind the opacity gate above.
@@ -148,6 +148,7 @@ function FloatingHost({isOpen, anchor, anchorRect, alignment, offsetPx, fadeDura
     return (
         <Presence
             present={isOpen}
+            exitDurationMs={exitTiming}
             onExitComplete={onExitComplete}
         >
             <Portal>{containFocus ? <FocusTrapForModal active={isOpen}>{inner}</FocusTrapForModal> : inner}</Portal>

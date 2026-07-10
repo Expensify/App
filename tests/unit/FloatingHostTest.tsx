@@ -36,7 +36,7 @@ jest.mock('@components/Overlay/AnimatedSurface', () => {
         __esModule: true,
         default: Mock,
         FADE_ONLY_ENTER_SPEC: {},
-        FADE_ONLY_EXIT_SPEC: {},
+        FADE_ONLY_EXIT: {},
     };
 });
 jest.mock('@components/Overlay/DismissableLayer', () => {

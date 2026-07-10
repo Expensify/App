@@ -30,9 +30,24 @@ function useDismissOnAnchorMove(anchor: AnchorNode | null, onDismiss: () => void
         const onResize = () => stableDismiss();
         window.addEventListener('scroll', onScroll, {capture: true, passive: true});
         window.addEventListener('resize', onResize);
+
+        const observer =
+            typeof IntersectionObserver === 'function'
+                ? new IntersectionObserver(
+                      (entries) => {
+                          if (entries.every((entry) => entry.isIntersecting)) {
+                              return;
+                          }
+                          stableDismiss();
+                      },
+                      {threshold: 0},
+                  )
+                : null;
+        observer?.observe(anchorHost);
         return () => {
             window.removeEventListener('scroll', onScroll, {capture: true});
             window.removeEventListener('resize', onResize);
+            observer?.disconnect();
         };
     }, [anchor, isActive, stableDismiss]);
 }

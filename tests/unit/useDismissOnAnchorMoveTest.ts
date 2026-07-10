@@ -117,3 +117,39 @@ describe('useDismissOnAnchorMove (web)', () => {
         cleanup();
     });
 });
+
+describe('useDismissOnAnchorMove (web) — anchor leaves viewport / is removed', () => {
+    it('dismisses via IntersectionObserver when the anchor stops intersecting the viewport', () => {
+        let ioCallback: ((entries: Array<{isIntersecting: boolean}>) => void) | undefined;
+        const observe = jest.fn();
+        const disconnect = jest.fn();
+        const originalIO = globalThis.IntersectionObserver;
+
+        class MockIntersectionObserver {
+            observe = observe;
+
+            disconnect = disconnect;
+
+            constructor(callback: (entries: Array<{isIntersecting: boolean}>) => void) {
+                ioCallback = callback;
+            }
+        }
+        Object.defineProperty(globalThis, 'IntersectionObserver', {value: MockIntersectionObserver, configurable: true, writable: true});
+
+        const {anchor, cleanup} = setupAnchor();
+        const onDismiss = jest.fn();
+        const {unmount} = renderHook(() => useDismissOnAnchorMove(anchor, onDismiss, true));
+        expect(observe).toHaveBeenCalledWith(anchor);
+
+        act(() => ioCallback?.([{isIntersecting: true}]));
+        expect(onDismiss).not.toHaveBeenCalled();
+
+        act(() => ioCallback?.([{isIntersecting: false}]));
+        expect(onDismiss).toHaveBeenCalledTimes(1);
+
+        unmount();
+        expect(disconnect).toHaveBeenCalled();
+        Object.defineProperty(globalThis, 'IntersectionObserver', {value: originalIO, configurable: true, writable: true});
+        cleanup();
+    });
+});
