@@ -1,6 +1,8 @@
 import useActivePolicy from '@hooks/useActivePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
@@ -212,6 +214,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // Policy-scoped Onyx data
     const policyID = policy?.id;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const isIouReport = isMoneyRequestReportReportUtils(report);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const [policyRecentlyUsedCurrenciesOnyx] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -231,6 +234,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`);
     const selectedParticipants = participants.filter((participant) => participant.selected);
+    const policyTagsForRequestMoney = useMoneyRequestPolicyTags({
+        moneyRequestReportID: isIouReport ? report?.reportID : undefined,
+        parentChatReportPolicyID: isMovingTransactionFromTrackExpense ? undefined : report?.policyID,
+        participantReportID: selectedParticipants?.at(0)?.reportID,
+    });
     // Filter out participants with an amount equal to O
     let splitParticipants = selectedParticipants;
     if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.splitShares) {
@@ -269,6 +277,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
+    const delegateAccountID = useDelegateAccountID();
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     // Onboarding task data
     const {
@@ -429,7 +438,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 },
                 policyParams: {
                     policy,
-                    policyTagList: policyTags,
+                    policyTagList: policyTagsForRequestMoney,
                     policyCategories,
                     policyRecentlyUsedCategories,
                     policyRecentlyUsedTags,
@@ -487,6 +496,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                delegateAccountID,
             });
             existingIOUReport = iouReport;
             if (!iouReport) {
@@ -700,6 +710,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 reportActionsList: policyExpenseChatReportActions,
                 personalDetailsList: personalDetails,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                delegateAccountID,
             });
         }
         performPostBatchCleanup({
@@ -768,6 +779,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             recentWaypoints,
             betas,
             previousOdometerDraft: odometerDraft,
+            delegateAccountID,
         });
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);

@@ -84,22 +84,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
     const hash = queryJSON?.hash;
 
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
-
-    // The Search snapshot omits each transaction's `inserted` timestamp, so recency ordering must come from the
-    // local `transactions_` collection, which carries `inserted` for expenses the user has recently added.
     const [localTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-
-    // Maps transactionID -> local `inserted` timestamp, used as the recency key the snapshot can't provide.
-    const insertedByTransactionID = useMemo(() => {
-        const map = new Map<string, string>();
-        for (const [key, transaction] of Object.entries(localTransactions ?? {})) {
-            const transactionID = transaction?.transactionID ?? key.slice(ONYXKEYS.COLLECTION.TRANSACTION.length);
-            if (transaction?.inserted) {
-                map.set(transactionID, transaction.inserted);
-            }
-        }
-        return map;
-    }, [localTransactions]);
 
     // Maps transactionID -> local `transactions_` copy. When present it carries the freshest optimistic state
     // (edited values and `pendingFields`) for an offline edit, which the server-backed snapshot doesn't yet reflect.
@@ -199,19 +184,15 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             // only the splits. Prefer the local copy's reportID, which reflects the split even before the snapshot refreshes.
             .filter((transaction) => (localTransactionByID.get(transaction.transactionID)?.reportID ?? transaction.reportID) !== CONST.REPORT.SPLIT_REPORT_ID);
 
-        // Recency key: prefer the local `inserted` timestamp (full precision, present for recently added expenses),
-        // then any snapshot `inserted`, then fall back to the expense date. Newest first.
-        const getRecencyKey = (transaction: Transaction & {reportID: string}) =>
-            insertedByTransactionID.get(transaction.transactionID) ?? transaction.inserted ?? getCreated(transaction) ?? '';
-
+        // Order by the transaction's `inserted` timestamp (the immutable insertion time), most recent first.
         const transactionsList = combined
             .sort((firstTransaction, secondTransaction) => {
-                const firstKey = getRecencyKey(firstTransaction);
-                const secondKey = getRecencyKey(secondTransaction);
-                if (firstKey === secondKey) {
-                    return 0;
+                const firstInserted = firstTransaction.inserted ?? '';
+                const secondInserted = secondTransaction.inserted ?? '';
+                if (firstInserted !== secondInserted) {
+                    return firstInserted < secondInserted ? 1 : -1;
                 }
-                return firstKey < secondKey ? 1 : -1;
+                return firstTransaction.transactionID < secondTransaction.transactionID ? 1 : -1;
             })
             .slice(0, CONST.HOME.SECTION_VISIBLE_LIMIT)
             .map((transaction) => {
@@ -245,7 +226,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             });
 
         return {transactions: transactionsList, nextUnconfirmedTransactionIDs: nextUnconfirmed};
-    }, [snapshotData, unconfirmedTransactionIDs, accountID, insertedByTransactionID, localTransactions, localTransactionByID, translate]);
+    }, [snapshotData, unconfirmedTransactionIDs, accountID, localTransactions, localTransactionByID, translate]);
 
     if (!deepEqual(nextUnconfirmedTransactionIDs, unconfirmedTransactionIDs)) {
         setUnconfirmedTransactionIDs(nextUnconfirmedTransactionIDs);
