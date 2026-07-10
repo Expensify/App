@@ -19,10 +19,10 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-// Sentinel value persisted to defaultContact when the admin wants to disable the fallback
+// Sentinel value persisted to defaultVendor when the admin wants to disable the fallback
 // supplier altogether — gives them a way out when a previously chosen Xero contact was deleted
 // or the workspace no longer wants any default applied to card transactions on export.
-const CLEAR_DEFAULT_CONTACT_VALUE = '';
+const CLEAR_DEFAULT_VENDOR_VALUE = '';
 
 function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -32,13 +32,13 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
 
     const policyID = policy?.id;
     const xeroConfig = policy?.connections?.xero?.config;
-    const currentContactID = xeroConfig?.defaultContact;
+    const currentContactID = xeroConfig?.defaultVendor;
     // Match the parent page's gate so direct deep-links (or stale-open tabs after the beta is
     // revoked) cannot reach the supplier updater. The parent page hides the row when the feature
     // is off, but the route remains addressable on its own. Gated on Xero specifically being
     // configured — not the global hasVendorFeature predicate — so dual-connected workspaces mid
     // Xero tenant switch (config.isConfigured=false with stale data.contacts) cannot persist a
-    // defaultContact from the prior tenant.
+    // defaultVendor from the prior tenant.
     const isFeatureAvailable = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) && isXeroVendorMatchingActive(policy);
 
     const suppliers = useMemo(() => getXeroSuppliers(policy), [policy]);
@@ -48,9 +48,9 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
     // no way to remove a stale or deleted supplier and the optional setting becomes sticky.
     const clearOption: SelectorType = useMemo(
         () => ({
-            value: CLEAR_DEFAULT_CONTACT_VALUE,
+            value: CLEAR_DEFAULT_VENDOR_VALUE,
             text: translate('common.none'),
-            keyForList: CLEAR_DEFAULT_CONTACT_VALUE,
+            keyForList: CLEAR_DEFAULT_VENDOR_VALUE,
             isSelected: !currentContactID,
         }),
         [translate, currentContactID],
@@ -78,7 +78,7 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
     );
 
     // Only prepend the clear row when there's a default to clear or there are suppliers to choose
-    // between. Without this guard, an unsynced workspace with no defaultContact set would render
+    // between. Without this guard, an unsynced workspace with no defaultVendor set would render
     // `[None]` and never show the noSuppliersFound BlockingView (SelectionScreen only renders
     // listEmptyContent when data is empty). The clear row stays visible regardless of the search
     // term so it's always reachable for clearing an existing default.
@@ -107,8 +107,8 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
                 updateManyPolicyConnectionConfigs(
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.XERO,
-                    {[CONST.XERO_CONFIG.DEFAULT_CONTACT]: value},
-                    {[CONST.XERO_CONFIG.DEFAULT_CONTACT]: currentContactID},
+                    {[CONST.XERO_CONFIG.DEFAULT_VENDOR]: value},
+                    {[CONST.XERO_CONFIG.DEFAULT_VENDOR]: currentContactID},
                 );
             }
             goBack();
@@ -151,10 +151,10 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             onBackButtonPress={goBack}
-            pendingAction={settingsPendingAction([CONST.XERO_CONFIG.DEFAULT_CONTACT], xeroConfig?.pendingFields)}
-            errors={getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.DEFAULT_CONTACT)}
+            pendingAction={settingsPendingAction([CONST.XERO_CONFIG.DEFAULT_VENDOR], xeroConfig?.pendingFields)}
+            errors={getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.DEFAULT_VENDOR)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearXeroErrorField(policyID, CONST.XERO_CONFIG.DEFAULT_CONTACT)}
+            onClose={() => clearXeroErrorField(policyID, CONST.XERO_CONFIG.DEFAULT_VENDOR)}
         />
     );
 }

@@ -806,7 +806,7 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         tenantID: string;
 
         /** Default supplier contact used as a fallback when a non-reimbursable card transaction has no contact set. */
-        defaultContact?: string;
+        defaultVendor?: string;
 
         /** TODO: Will be handled in another issue */
         errors?: OnyxCommon.Errors;

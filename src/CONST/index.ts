@@ -2879,7 +2879,7 @@ const CONST = {
         },
         ACCOUNTING_METHOD: 'accountingMethod',
         TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
-        DEFAULT_CONTACT: 'defaultContact',
+        DEFAULT_VENDOR: 'defaultVendor',
     },
 
     SAGE_INTACCT_MAPPING_VALUE: {

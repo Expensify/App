@@ -31,17 +31,17 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
     const policyOwner = policy?.owner ?? '';
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path);
 
-    const {export: exportConfiguration, errorFields, pendingFields, defaultContact} = policy?.connections?.xero?.config ?? {};
+    const {export: exportConfiguration, errorFields, pendingFields, defaultVendor} = policy?.connections?.xero?.config ?? {};
 
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     // Gate the Xero default-supplier row on Xero specifically being configured, not on the global
     // hasVendorFeature predicate. hasVendorFeature OR's all integrations, so on a dual-connected
     // workspace where QBO/Intacct is the active vendor-matching source it would still expose the
     // row even when Xero is mid tenant-switch (config.isConfigured=false) and data.contacts is
-    // stale from the prior tenant — allowing the admin to persist a defaultContact that flips
+    // stale from the prior tenant — allowing the admin to persist a defaultVendor that flips
     // invalid the moment the new sync completes.
     const isVendorFeatureAvailable = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) && isXeroVendorMatchingActive(policy);
-    const defaultSupplierName = getXeroSupplierByID(policy, defaultContact)?.name ?? '';
+    const defaultSupplierName = getXeroSupplierByID(policy, defaultVendor)?.name ?? '';
     const exportPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path}` : undefined;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
@@ -117,7 +117,7 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
                       description: translate('workspace.xero.defaultSupplier'),
                       onPress: () => (!policyID ? undefined : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT.path))),
                       title: defaultSupplierName,
-                      subscribedSettings: [CONST.XERO_CONFIG.DEFAULT_CONTACT],
+                      subscribedSettings: [CONST.XERO_CONFIG.DEFAULT_VENDOR],
                   },
               ]
             : []),

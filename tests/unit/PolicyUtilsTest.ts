@@ -3817,7 +3817,7 @@ describe('PolicyUtils', () => {
             it('returns false when Xero is connected but isConfigured=false (mid tenant-switch)', () => {
                 // Integration-Server clears isConfigured during a Xero tenant switch while the old
                 // tenant's data.contacts still lingers; the Xero-specific UI surfaces (default
-                // supplier row + picker) must hide so an admin can't persist a defaultContact from
+                // supplier row + picker) must hide so an admin can't persist a defaultVendor from
                 // the prior tenant that flips invalid the moment the new sync completes.
                 expect(isXeroVendorMatchingActive(buildXeroPolicy(undefined, {isConfigured: false}))).toBe(false);
             });
