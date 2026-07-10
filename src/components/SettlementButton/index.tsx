@@ -61,7 +61,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import truncate from 'lodash/truncate';
-import React, {useCallback, useContext} from 'react';
+import React, {useContext} from 'react';
 import {View} from 'react-native';
 
 import type SettlementButtonProps from './types';
@@ -200,7 +200,7 @@ function SettlementButton({
 
     // The guards checked after the account-validation gate. Also re-checked when a payment
     // interrupted by account validation resumes, since the validation gate skipped them.
-    const checkForPostValidationBlockers = useCallback(() => {
+    const checkForPostValidationBlockers = () => {
         if (isBankAccountLocked) {
             showConfirmModal({
                 title: translate('bankAccount.lockedBankAccount'),
@@ -230,23 +230,7 @@ function SettlementButton({
         }
 
         return false;
-    }, [
-        isBankAccountLocked,
-        policy,
-        userBillingGracePeriodEnds,
-        ownerBillingGracePeriodEnd,
-        showConfirmModal,
-        translate,
-        styles.renderHTML,
-        styles.flexRow,
-        conciergeReportID,
-        introSelected,
-        currentUserAccountID,
-        isSelfTourViewed,
-        betas,
-        amountOwed,
-        delegateAccountID,
-    ]);
+    };
 
     const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry?: () => void) => {
         // The validation gate returned before these guards could run, so apply them to the resumed.
@@ -256,27 +240,24 @@ function SettlementButton({
         retry?.();
     });
 
-    const checkForNecessaryAction = useCallback(
-        (paymentMethodType?: PaymentMethodType, retry?: () => void) => {
-            if (isDelegateAccessRestricted) {
-                showDelegateNoAccessModal();
-                return true;
-            }
+    const checkForNecessaryAction = (paymentMethodType?: PaymentMethodType, retry?: () => void) => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return true;
+        }
 
-            if (isAccountLocked) {
-                showLockedAccountModal();
-                return true;
-            }
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return true;
+        }
 
-            if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                verifyAccountAndResume(retry);
-                return true;
-            }
+        if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            verifyAccountAndResume(retry);
+            return true;
+        }
 
-            return checkForPostValidationBlockers();
-        },
-        [isDelegateAccessRestricted, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal, isUserValidated, verifyAccountAndResume, checkForPostValidationBlockers],
-    );
+        return checkForPostValidationBlockers();
+    };
 
     const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void) => {
         if (checkForNecessaryAction(paymentMethodType, action)) {
