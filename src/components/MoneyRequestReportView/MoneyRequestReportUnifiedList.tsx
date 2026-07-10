@@ -1,6 +1,8 @@
 import FlashList from '@components/FlashList';
 import type FlatListRefType from '@components/FlashList/types';
 
+import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
@@ -140,7 +142,10 @@ function MoneyRequestReportUnifiedList({
 
     // Viewport height + table offset fed to the nested table so it can window its rows against this list's scroll.
     // tableOffsetTop is the height of everything above the table region (the report-fields header).
-    const [viewportHeight, setViewportHeight] = useState(0);
+    // Seed with the window height (a safe over-estimate) so the nested list windows against a non-zero viewport on the
+    // first paint — otherwise a height of 0 renders the transactions area blank until onLayout corrects it next frame.
+    const {windowHeight} = useWindowDimensions();
+    const [viewportHeight, setViewportHeight] = useState(windowHeight);
     const [tableOffsetTop, setTableOffsetTop] = useState(0);
 
     // A subscribe/notify store carries the scroll offset to the nested table FlashList with zero parent re-renders.
