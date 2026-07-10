@@ -9,22 +9,15 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 
+import useChangeBankAccount from '@hooks/useChangeBankAccount';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
+import {requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
 
-import Navigation from '@navigation/Navigation';
-
-import {navigateToBankAccountRoute, prepareNewBankAccountSetup, requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
-
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -72,23 +65,8 @@ function ConnectedVerifiedBankAccount({
     const icons = useMemoizedLazyExpensifyIcons(['Bank', 'Close']);
     const policyID = reimbursementAccount?.achData?.policyID;
     const currency = reimbursementAccount?.achData?.currency;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const hasOtherEligibleAccountsToConnect = getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true, reimbursementAccount?.achData?.bankAccountID).length > 0;
     const shouldShowChangeBankAccount = !!policyID && !!currency;
-
-    const handleChangeBankAccount = () => {
-        if (!policyID || !currency) {
-            return;
-        }
-
-        if (hasOtherEligibleAccountsToConnect) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID, undefined, CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE.CHANGE_BANK_ACCOUNT));
-            return;
-        }
-
-        prepareNewBankAccountSetup(currency);
-        navigateToBankAccountRoute({policyID});
-    };
+    const handleChangeBankAccount = useChangeBankAccount(policyID, currency, reimbursementAccount?.achData?.bankAccountID);
 
     useResetBankAccountModal({
         reimbursementAccount,

@@ -10,6 +10,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useChangeBankAccount from '@hooks/useChangeBankAccount';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -22,20 +23,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
-import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
 import {goToWithdrawalAccountSetupStep, openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import {openExternalLink} from '@userActions/Link';
-import {
-    navigateToBankAccountRoute,
-    prepareNewBankAccountSetup,
-    requestResetBankAccount,
-    resetReimbursementAccount,
-    setBankAccountSubStep,
-    setReimbursementAccountOptionPressed,
-    updateReimbursementAccount,
-} from '@userActions/ReimbursementAccount';
+import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed, updateReimbursementAccount} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -122,21 +114,7 @@ function VerifiedBankAccountFlowEntryPoint({
     // The "Change bank account" option is only offered when opening a partially setup account from the Workflows > Payments section
     const isComingFromWorkflowsPayments = !!policyID && backTo === ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID);
     const shouldShowChangeBankAccount = shouldShowContinueSetupButton === true && isComingFromWorkflowsPayments;
-    const hasOtherEligibleAccountsToConnect = getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true, reimbursementAccount?.achData?.bankAccountID).length > 0;
-
-    const handleChangeBankAccount = () => {
-        if (!policyID || !currency) {
-            return;
-        }
-
-        if (hasOtherEligibleAccountsToConnect) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID, undefined, CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE.CHANGE_BANK_ACCOUNT));
-            return;
-        }
-
-        prepareNewBankAccountSetup(currency);
-        navigateToBankAccountRoute({policyID});
-    };
+    const handleChangeBankAccount = useChangeBankAccount(policyID, currency, reimbursementAccount?.achData?.bankAccountID);
 
     const removeExistingBankAccountDetails = useCallback(() => {
         const bankAccountData: Partial<ReimbursementAccountForm> = {
