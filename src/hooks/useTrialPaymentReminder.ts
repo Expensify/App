@@ -205,14 +205,14 @@ function useTrialPaymentReminder() {
                 return isSameVariation(prev, next) ? prev : next;
             });
 
-        if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial) || doesUserHavePaymentCardAdded(billingFundID) || currentVariation?.variant === CONST.TRIAL_REMINDER_VARIANT.COUNTDOWN) {
+        if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial) || doesUserHavePaymentCardAdded(billingFundID)) {
             return;
         }
 
         recompute();
         const interval = setInterval(recompute, ONE_MINUTE_MS);
         return () => clearInterval(interval);
-    }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, currentVariation?.variant]);
+    }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID]);
 
     const isEligibleToShow = useMemo(() => {
         if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
