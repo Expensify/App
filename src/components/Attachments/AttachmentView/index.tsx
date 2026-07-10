@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 
+import useCachedAttachmentSource from '@hooks/useCachedAttachmentSource';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -167,7 +168,11 @@ function AttachmentView({
     const isInFocusedModal = firstRenderRoute.isFocused && isFocused === undefined;
 
     useEffect(() => {
-        if (!isFocused && !isInFocusedModal && !(file && isUsedInAttachmentModal)) {
+        // When isFocused is provided (carousel items), it alone decides whether this attachment owns
+        // the current URL, so unfocused pages never clobber it. The modal escape hatch only applies
+        // to usages that don't track focus (e.g. the single-attachment modal).
+        const shouldUpdateCurrentURL = isFocused ?? (isInFocusedModal || !!(file && isUsedInAttachmentModal));
+        if (!shouldUpdateCurrentURL) {
             return;
         }
         const videoSource = isVideo && typeof source === 'string' ? source : undefined;
@@ -175,6 +180,14 @@ function AttachmentView({
     }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID, report]);
 
     const [imageError, setImageError] = useState(false);
+
+    const cachedSource = useCachedAttachmentSource(attachmentID, typeof source === 'string' ? source : undefined);
+
+    const [prevCachedSource, setPrevCachedSource] = useState(cachedSource);
+    if (cachedSource !== prevCachedSource) {
+        setPrevCachedSource(cachedSource);
+        setImageError(false);
+    }
 
     const {isOffline} = useNetwork({onReconnect: () => setImageError(false)});
 
@@ -265,6 +278,7 @@ function AttachmentView({
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={onPDFLoadComplete}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
+                    isUsedInAttachmentModal={isUsedInAttachmentModal}
                     isUsedAsChatAttachment={isUsedAsChatAttachment}
                     onLoadError={onPDFLoadError}
                     rotation={rotation}
@@ -319,7 +333,7 @@ function AttachmentView({
             );
         }
 
-        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string);
+        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (cachedSource ?? (source as string));
 
         if (isHighResolution) {
             if (!isUploaded) {

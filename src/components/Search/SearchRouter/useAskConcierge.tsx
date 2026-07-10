@@ -43,6 +43,7 @@ function useAskConcierge() {
             shouldPlaySound: true,
             isInSidePanel,
             delegateAccountID,
+            conciergeReportID,
         });
     };
 
