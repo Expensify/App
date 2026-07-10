@@ -4,19 +4,26 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+
 import IOURequestStepDistance from '@pages/iou/request/step/IOURequestStepDistance';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import type * as IOU from '../../src/libs/actions/IOU';
+
 import createRandomTransaction from '../utils/collections/transaction';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -70,6 +77,7 @@ jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     handleMoneyRequestStepDistanceNavigation: jest.fn(),
+    getMoneyRequestParticipantsFromReport: jest.fn(() => []),
 }));
 
 jest.mock('@libs/actions/MapboxToken', () => ({
@@ -158,7 +166,7 @@ jest.mock('@react-navigation/native', () => {
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
         useFocusEffect: jest.fn(),
         usePreventRemove: jest.fn(),
-        useRoute: jest.fn(),
+        useRoute: jest.fn(() => ({name: 'Money_Request_Step_Distance'})),
     };
 });
 
