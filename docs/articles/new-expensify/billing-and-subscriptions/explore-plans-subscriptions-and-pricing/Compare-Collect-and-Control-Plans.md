@@ -6,6 +6,7 @@ internalScope: Audience is anyone evaluating Expensify plans. Covers the high-le
 retrievalIntent: Which plan should I choose
 contentType: topic
 platform: new
+order: 2
 ---
 
 # Compare Collect and Control Plans
