@@ -1,5 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
 
@@ -145,6 +146,7 @@ function useDistanceNavigation({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
+    const delegateAccountID = useDelegateAccountID();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
     return () => {
         const optimisticTransactionID = rand64();
@@ -191,6 +193,7 @@ function useDistanceNavigation({
             optimisticTransactionID,
             optimisticChatReportID,
             reportDraft,
+            delegateAccountID,
             policyTagList,
         });
     };

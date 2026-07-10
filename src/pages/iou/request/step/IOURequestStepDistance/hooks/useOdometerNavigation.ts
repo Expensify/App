@@ -1,5 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
 
@@ -150,6 +151,8 @@ function useOdometerNavigation({
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
+    const delegateAccountID = useDelegateAccountID();
+
     return ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
@@ -198,6 +201,7 @@ function useOdometerNavigation({
             optimisticTransactionID,
             optimisticChatReportID,
             reportDraft,
+            delegateAccountID,
             policyTagList,
         });
     };
