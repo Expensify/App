@@ -39,6 +39,10 @@ export type {default as UpdateRilletSubsidiaryParams} from './UpdateRilletSubsid
 export type {default as UpdateRilletEnableNewCategoriesParams} from './UpdateRilletEnableNewCategoriesParams';
 export type {default as UpdateRilletSyncTaxRatesParams} from './UpdateRilletSyncTaxRatesParams';
 export type {default as UpdateRilletFieldMappingParams} from './UpdateRilletFieldMappingParams';
+export type {default as UpdateRilletCreditCardAccountParams} from './UpdateRilletCreditCardAccountParams';
+export type {default as UpdateRilletDefaultVendorParams} from './UpdateRilletDefaultVendorParams';
+export type {default as UpdateRilletExportDateParams} from './UpdateRilletExportDateParams';
+export type {default as UpdateRilletExporterParams} from './UpdateRilletExporterParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';

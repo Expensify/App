@@ -34,7 +34,7 @@ If you don't see **Agents** in your **Account** settings, the Beta isn't enabled
 3. Click **New agent**.
 4. Review the auto-generated profile image and display name. If needed, you can edit these later.
 5. Click **Write custom instructions** and describe what you want the agent to do.
-6. Review the note above the **Create agent** button, which explains that the agent will be added as a full copilot of your account so it can act on your behalf.
+6. Review the note above the **Create agent** button, which explains that the agent will be added as a full-access Copilot of your account so it can act on your behalf.
 7. Click **Create agent**.
 
 After saving, the new agent appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** buttons.
@@ -174,7 +174,7 @@ On Collect plans, workspaces support a single approver. An agent can be used as 
 
 ## Is an agent added as a Copilot on my own account?
 
-Yes. When you create an agent, it's automatically added as a full-access Copilot on your own account, giving it delegated access to your personal context so it can manage your expenses and reports on your behalf. You can review or remove this access at any time in the **Copilot: Delegated Access** section under **Account > Security**. [Learn how to manage Copilot access](/articles/new-expensify/settings/Manage-Copilot-Access).
+Yes. When you create an agent, it's automatically added as a full-access Copilot on your own account, giving it delegated access to your personal context so it can manage your expenses and reports on your behalf. You don't need to add it by hand. You can review or remove this access at any time in the **Copilot: Delegated Access** section under **Account > Security**. [Learn how to manage Copilot access](/articles/new-expensify/settings/Manage-Copilot-Access).
 
 ## Can an agent make mistakes?
 
