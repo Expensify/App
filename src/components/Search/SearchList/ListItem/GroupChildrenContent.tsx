@@ -8,8 +8,9 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getSections} from '@libs/SearchUIUtils';
-import {mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -186,8 +187,14 @@ function GroupChildrenContent({
             if (report && policy) {
                 const transactionViolations = groupViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${snapshotTransaction.transactionID}`];
                 if (transactionViolations) {
-                    const merged = mergeProhibitedViolations(
-                        transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails?.email ?? '', true, snapshotTransaction)),
+                    const merged = getVisibleTransactionViolations(
+                        snapshotTransaction,
+                        transactionViolations,
+                        currentUserDetails?.email ?? '',
+                        currentUserDetails.accountID,
+                        report,
+                        getLoginByAccountID(report.ownerAccountID, transactionsSnapshot.data.personalDetailsList),
+                        policy,
                     );
                     if (merged.length > 0) {
                         result[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${snapshotTransaction.transactionID}`] = merged;

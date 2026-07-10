@@ -239,7 +239,7 @@ function isSubmitAction({
     }
 
     if (violations && currentUserLogin && currentUserAccountID !== undefined) {
-        if (reportTransactions.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserLogin, currentUserAccountID, report, policy))) {
+        if (reportTransactions.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserLogin, currentUserAccountID, report, ownerLogin, policy))) {
             return false;
         }
     }
@@ -348,7 +348,7 @@ function isApproveAction(
         return false;
     }
 
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserLogin, currentUserAccountID, report, policy);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserLogin, currentUserAccountID, report, ownerLogin, policy);
 
     if (hasAllPendingRTERViolations) {
         return true;

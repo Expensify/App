@@ -353,14 +353,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     policyCategories={getPolicyCategoriesForTransaction(transaction)}
                                     policyTagLists={getPolicyTagListsForTransaction(transaction)}
                                     transactionItem={transaction}
-                                    violations={getTransactionViolations(
-                                        transaction,
-                                        violations,
-                                        currentUserDetails.email ?? '',
-                                        currentUserDetails.accountID,
-                                        transaction.report,
-                                        transaction.policy,
-                                    )}
+                                    violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
                                     isSelected={!!transaction.isSelected}
                                     isDisabled={isTransactionPendingDelete(transaction)}
                                     dateColumnSize={dateColumnSize}
