@@ -4070,13 +4070,7 @@ function getSortedTransactionData(
         }
 
         // Values are present but equal (e.g. the boolean Reimbursable/Billable columns), so we add tiebreakers on
-        // created, inserted, and transactionID as a last resort to make the sort deterministic.
-        const createdComparison = compareValues(a.created, b.created, sortOrder, 'created', localeCompare);
-
-        if (createdComparison !== 0) {
-            return createdComparison;
-        }
-
+        // inserted and transactionID as a last resort to make the sort deterministic.
         const insertedComparison = compareValues(a.inserted, b.inserted, sortOrder, 'inserted', localeCompare);
 
         if (insertedComparison !== 0) {
