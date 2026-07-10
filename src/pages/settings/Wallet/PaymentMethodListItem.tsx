@@ -262,8 +262,6 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                 iconFill={item.iconFill}
                                 badgeText={badgeText}
                                 badgeIcon={badgeIcon}
-                                isBadgeSuccess={!connectionStatus && isNeedingAction ? true : undefined}
-                                isBadgeError={!connectionStatus && isInLockedState}
                                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                                 iconRight={isNeedingAction ? undefined : item.iconRight}
                                 shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}

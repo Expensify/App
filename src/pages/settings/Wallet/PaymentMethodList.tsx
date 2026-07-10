@@ -321,8 +321,6 @@ function PaymentMethodList({
                     let cardStatusTone: NonNullable<PaymentMethodItem['connectionStatus']>['statusTone'] = 'success';
                     if (shouldShowCardConnectionMessage) {
                         cardStatusTone = 'danger';
-                    } else if (isCardInactiveState) {
-                        cardStatusTone = 'default';
                     }
 
                     let cardConnectionMessage: string | undefined;
