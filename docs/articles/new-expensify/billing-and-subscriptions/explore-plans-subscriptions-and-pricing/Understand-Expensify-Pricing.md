@@ -147,7 +147,7 @@ To learn about the difference between active members and unique members, see [Le
 
 # FAQ
 
-## Are localized prices converted from USD?
+## Are GBP, EUR, AUD, and NZD prices converted from USD?
 
 No. Expensify uses fixed regional pricing rather than converting prices based on daily exchange rates.
 
@@ -166,6 +166,3 @@ Yes. If you increase your subscription size or exceed it during an Annual subscr
 ## Which currencies does Expensify support for localized pricing?
 
 Expensify offers localized pricing for USD, GBP, EUR, AUD, and NZD billing.
-
-
-
