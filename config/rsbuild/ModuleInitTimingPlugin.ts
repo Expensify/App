@@ -34,9 +34,6 @@ function createTimingRuntimeModule(): InstanceType<typeof rspack.RuntimeModule> 
  * Rspack plugin that times each module factory and populates self.__moduleInitTimes
  * (moduleId → ms). In development builds, moduleId is the relative file path;
  * in production it is a deterministic numeric ID.
- *
- * Uses the same interceptModuleExecution mechanism webpack 5 exposes — Rspack mirrors
- * this part of the webpack JS API — no post-processing of compiled assets needed.
  */
 class ModuleInitTimingPlugin {
     apply(compiler: Compiler): void {
