@@ -81,6 +81,8 @@
 	<string>Your location is used to determine your default currency and timezone.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Required for video capture</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Motion data is used to detect your device's orientation when capturing photos and receipts.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Your camera roll is used to store chat attachments.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
