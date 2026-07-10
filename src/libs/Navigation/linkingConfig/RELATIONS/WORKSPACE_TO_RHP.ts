@@ -25,7 +25,11 @@ const WORKSPACE_TO_RHP: Partial<Record<keyof WorkspaceSplitNavigatorParamList, s
         SCREENS.WORKSPACE.MEMBERS_IMPORT,
         SCREENS.WORKSPACE.MEMBERS_IMPORTED,
         SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION,
-        SCREENS.WORKSPACE.DYNAMIC_IMPORTED_MEMBERS_ROLE,
+        // DYNAMIC_IMPORTED_MEMBERS_ROLE (the imported-members role picker) is deliberately NOT listed here.
+        // It is a dynamic route shared by the Members and Workflows importers, so it must render under Members
+        // OR Workflows depending on the confirmation screen it was opened from. Pinning it to a central pane here
+        // would make getMatchingFullScreenRoute resolve that pane before reaching the dynamic base-path branch,
+        // forcing Members underneath even when opened from Workflows. Leaving it out lets the base path decide.
         SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
     ],
     [SCREENS.WORKSPACE.ROOMS]: [SCREENS.WORKSPACE.ROOM_CREATE],
