@@ -7,7 +7,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import AddAgentPage from '@pages/settings/Agents/AddAgentPage';
-import {setInitialPresetID, setNavigationToken} from '@pages/settings/Agents/pendingAgentAvatarStore';
+import {setInitialPresetID} from '@pages/settings/Agents/pendingAgentAvatarStore';
 
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -105,14 +105,12 @@ jest.mock('@components/AvatarButtonWithIcon', () => {
 
 jest.mock('@pages/settings/Agents/pendingAgentAvatarStore', () => ({
     setInitialPresetID: jest.fn(),
-    setNavigationToken: jest.fn(),
     setReturnRoute: jest.fn(),
     getPendingAvatar: jest.fn(() => null),
     clearPendingAvatar: jest.fn(),
 }));
 
 const mockSetInitialPresetID = jest.mocked(setInitialPresetID);
-const mockSetNavigationToken = jest.mocked(setNavigationToken);
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockGoBack = jest.mocked(Navigation.goBack);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
@@ -216,7 +214,7 @@ describe('AddAgentPage', () => {
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD_AVATAR);
     });
 
-    it('sets navigation token and initial preset ID when avatar button is pressed', () => {
+    it('sets initial preset ID when avatar button is pressed', () => {
         render(
             <AddAgentPage
                 route={makeRoute()}
@@ -226,7 +224,6 @@ describe('AddAgentPage', () => {
 
         mockAvatarOnPress?.();
 
-        expect(mockSetNavigationToken).toHaveBeenCalledTimes(1);
         expect(mockSetInitialPresetID).toHaveBeenCalledTimes(1);
     });
 

@@ -36,7 +36,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken, setReturnRoute} from './pendingAgentAvatarStore';
+import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setReturnRoute} from './pendingAgentAvatarStore';
 
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
@@ -79,7 +79,6 @@ function AddAgentPage({route}: AddAgentPageProps) {
 
     const handleAvatarPress = () => {
         setInitialPresetID(selectedPresetID ?? undefined);
-        setNavigationToken();
         setReturnRoute(ROUTES.SETTINGS_AGENTS_ADD.getRoute());
         Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR);
     };

@@ -9,13 +9,11 @@ import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
-const mockConsumeNavigationToken = jest.fn<boolean, []>();
 const mockGetInitialPresetID = jest.fn<string | undefined, []>(() => undefined);
 const mockSetPendingAvatar = jest.fn<void, unknown[]>();
 const mockGetReturnRoute = jest.fn<string | undefined, []>(() => undefined);
 
 jest.mock('@pages/settings/Agents/pendingAgentAvatarStore', () => ({
-    consumeNavigationToken: () => mockConsumeNavigationToken(),
     getInitialPresetID: () => mockGetInitialPresetID(),
     getReturnRoute: () => mockGetReturnRoute(),
     setPendingAvatar: (...args: unknown[]) => mockSetPendingAvatar(...args),
@@ -35,7 +33,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-const mockNavigate = jest.mocked(Navigation.navigate);
 const mockGoBack = jest.mocked(Navigation.goBack);
 
 describe('AddAgentAvatarPage', () => {
@@ -44,25 +41,7 @@ describe('AddAgentAvatarPage', () => {
         mockEditAgentAvatarOnSave = undefined;
     });
 
-    it('redirects to the add agent route when navigation token is absent', () => {
-        mockConsumeNavigationToken.mockReturnValue(false);
-
-        render(<AddAgentAvatarPage />);
-
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD.getRoute());
-    });
-
-    it('does not redirect when navigation token is present', () => {
-        mockConsumeNavigationToken.mockReturnValue(true);
-
-        render(<AddAgentAvatarPage />);
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
     it('stores preset avatar and navigates back when save is called with a preset ID', () => {
-        mockConsumeNavigationToken.mockReturnValue(true);
-
         render(<AddAgentAvatarPage />);
 
         mockEditAgentAvatarOnSave?.({customExpensifyAvatarID: 'bot-avatar--blue'});
@@ -72,7 +51,6 @@ describe('AddAgentAvatarPage', () => {
     });
 
     it('stores file avatar and navigates back when save is called with a file', () => {
-        mockConsumeNavigationToken.mockReturnValue(true);
         const mockFile = {uri: 'file://photo.jpg', name: 'photo.jpg'} as unknown as File;
 
         render(<AddAgentAvatarPage />);

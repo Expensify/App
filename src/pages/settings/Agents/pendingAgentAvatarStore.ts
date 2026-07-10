@@ -8,7 +8,6 @@ type PendingAvatar = PendingPresetAvatar | PendingFileAvatar | null;
 
 let pendingAvatar: PendingAvatar = null;
 let initialPresetID: string | undefined;
-let navigationToken = false;
 let returnRoute: Route | undefined;
 
 function setInitialPresetID(id: string | undefined) {
@@ -31,16 +30,6 @@ function clearPendingAvatar() {
     pendingAvatar = null;
 }
 
-function setNavigationToken() {
-    navigationToken = true;
-}
-
-function consumeNavigationToken(): boolean {
-    const token = navigationToken;
-    navigationToken = false;
-    return token;
-}
-
 function setReturnRoute(route: Route | undefined) {
     returnRoute = route;
 }
@@ -49,4 +38,4 @@ function getReturnRoute(): Route | undefined {
     return returnRoute;
 }
 
-export {setInitialPresetID, getInitialPresetID, setPendingAvatar, getPendingAvatar, clearPendingAvatar, setNavigationToken, consumeNavigationToken, setReturnRoute, getReturnRoute};
+export {setInitialPresetID, getInitialPresetID, setPendingAvatar, getPendingAvatar, clearPendingAvatar, setReturnRoute, getReturnRoute};

@@ -1,31 +1,17 @@
 import Navigation from '@libs/Navigation/Navigation';
 
-import {consumeNavigationToken, getInitialPresetID, getReturnRoute, setPendingAvatar} from '@pages/settings/Agents/pendingAgentAvatarStore';
+import {getInitialPresetID, getReturnRoute, setPendingAvatar} from '@pages/settings/Agents/pendingAgentAvatarStore';
 
 import ROUTES from '@src/ROUTES';
 
-import React, {useEffect, useRef} from 'react';
+import React from 'react';
 
 import type {OnSaveParams} from './EditAgentAvatarPage';
 
 import {EditAgentAvatarContent} from './EditAgentAvatarPage';
 
 function AddAgentAvatarPage() {
-    const didInitRef = useRef(false);
     const returnRoute = getReturnRoute() ?? ROUTES.SETTINGS_AGENTS_ADD.getRoute();
-
-    useEffect(() => {
-        if (didInitRef.current) {
-            return;
-        }
-        didInitRef.current = true;
-
-        if (consumeNavigationToken()) {
-            return;
-        }
-        Navigation.navigate(returnRoute);
-    }, [returnRoute]);
-
     const initialPresetID = getInitialPresetID();
 
     const handleSave = (params: OnSaveParams) => {
