@@ -286,8 +286,9 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
     ];
 
     // We need to access the authToken directly from the response to update the session
+    // The promise is returned so callers can run follow-up work (e.g. deleting the agent) once the original session is restored.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {optimisticData, successData, failureData})
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {optimisticData, successData, failureData})
         .then((response) => {
             if (!response?.authToken || !response?.encryptedAuthToken) {
                 Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');

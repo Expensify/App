@@ -195,8 +195,12 @@ function SecuritySettingsPage() {
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    deleteAgent(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, undefined, undefined, false);
-                    disconnect({stashedCredentials, stashedSession});
+                    // The DeleteAgent command must be issued by the agent's owner, but while copiloting the session is
+                    // authenticated as the agent itself. So end the copilot session first (which restores the owner's
+                    // session) and only then delete the agent, now that we're acting as the owner.
+                    const agentAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+                    await disconnect({stashedCredentials, stashedSession});
+                    deleteAgent(agentAccountID, undefined, undefined, false);
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_CLOSE);

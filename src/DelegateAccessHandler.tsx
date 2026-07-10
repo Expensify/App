@@ -35,7 +35,7 @@ function DelegateAccessHandler() {
         if (account?.delegatedAccess?.delegates?.some((d) => d.email === account?.delegatedAccess?.delegate)) {
             return;
         }
-        disconnect({stashedCredentials, stashedSession});
+        void disconnect({stashedCredentials, stashedSession});
     }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate, stashedCredentials, stashedSession]);
 
     // Log delegate mismatch after the app has loaded
