@@ -397,6 +397,7 @@ function BaseReportActionContextMenu({
                             const closePopup = !isMini;
                             const payload: ContextMenuActionPayload = {
                                 reportActions,
+                                childReportActions,
                                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                                 reportAction: (reportAction ?? null) as ReportAction,
                                 reportID,
