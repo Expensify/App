@@ -153,13 +153,12 @@ function canApproveIOU(
 
     // On a Submit workspace the submitter is also the report manager, so hide Approve for reports they submitted.
     // Mark as paid stays available via the pay flow. This is checked before the paid-group gate so it keeps hiding
-    // Approve even once Submit workspaces start showing Approve (redirecting to the upgrade modal) for other users.
+    // Approve for the submitter even though Submit workspaces now show Approve (which routes to the upgrade modal) for other users.
     if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, iouReport?.ownerAccountID, currentUserAccountID)) {
         return false;
     }
 
-    // TODO: Submit workspaces should show the APPROVE button and redirect to an upgrade modal instead of hiding it.
-    // This will be addressed as part of the Wave 3 "Upgrade on Approval" feature.
+    // Submit workspaces allow Approve (approving routes through the upgrade flow in approveMoneyRequest).
     const isSubmitWorkspace = isSubmitPolicy(policy);
     if (!policy || !(isPaidGroupPolicy(policy) || isSubmitWorkspace)) {
         return false;
