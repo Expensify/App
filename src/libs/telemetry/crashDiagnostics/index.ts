@@ -493,6 +493,7 @@ function initializeCrashDiagnostics() {
 
     reportsConnection = Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.REPORT,
+        waitForCollectionCallback: true,
         callback: (value: OnyxCollection<Report>) => {
             reportsCount = value ? Object.keys(value).length : 0;
         },
