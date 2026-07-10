@@ -1,4 +1,4 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -31,6 +31,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type ConnectExistingBusinessBankAccountPageProps = PlatformStackScreenProps<ConnectExistingBankAccountNavigatorParamList, typeof SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT>;
 
@@ -123,10 +124,12 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                 onBackButtonPress={Navigation.goBack}
             />
             {isSelectingBankAccount ? (
-                <FullScreenLoadingIndicator
-                    style={[styles.flex1, styles.pRelative]}
-                    reasonAttributes={{context: 'ConnectExistingBusinessBankAccountPage'}}
-                />
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{context: 'ConnectExistingBusinessBankAccountPage'}}
+                    />
+                </View>
             ) : (
                 <ScrollView style={[styles.w100, shouldUseNarrowLayout ? [styles.pt3, styles.ph5, styles.pb5] : [styles.pt5, styles.ph8, styles.pb8]]}>
                     <Text>{translate('workspace.bankAccount.chooseAnExisting')}</Text>

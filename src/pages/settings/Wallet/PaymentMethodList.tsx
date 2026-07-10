@@ -133,7 +133,7 @@ type PaymentMethodListProps = {
     /** Account states to exclude from the list */
     excludeStates?: Array<ValueOf<typeof CONST.BANK_ACCOUNT.STATE>>;
 
-    /* bank account ID of account that we do not want to show (ie: it's already connected) */
+    /** Bank account ID of an account that we do not want to show (i.e. it's already connected) */
     excludeBankAccountID?: number;
 
     /** Whether to show the default badge for the payment method */
