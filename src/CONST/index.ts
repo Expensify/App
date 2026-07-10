@@ -2277,19 +2277,16 @@ const CONST = {
             CONCIERGE_SIDE_PANEL: 'concierge_side_panel',
             // Side Panel hosting the workspace admins chat (admin onboarding), not Concierge.
             SIDE_PANEL: 'side_panel',
-            // Expense report, split single- vs multi-expense (only multi has a heavy transactions table).
-            // Central pane is bare; every RHP report route (e/:id, search/r/:id, search/view/:id) adds `_rhp`
-            // (e.g. `home_expense_report_multi_rhp`). e/:id and search/r/:id render the same component, so they
-            // share this base rather than one owning a separate `_search` value.
+            // Expense report, split single- vs multi-expense (only multi has a heavy transactions table). e/:id and
+            // search/r/:id render the same component, so they share this base rather than owning a `_search` value.
             EXPENSE_REPORT_SINGLE: 'expense_report_single',
             EXPENSE_REPORT_MULTI: 'expense_report_multi',
-            // Single-transaction expense thread (chat-type, expense parent). Central pane bare; RHP adds `_rhp`.
+            // Single-transaction expense thread (chat-type, expense parent).
             EXPENSE_TRANSACTION_THREAD: 'expense_transaction_thread',
             CONCIERGE: 'concierge',
             REPORT_THREAD: 'report_thread',
             INVOICE_ROOM: 'invoice_room',
             WORKSPACE_ROOM: 'workspace_room',
-            // policyExpenseChat isn't a "room", so it needs its own bucket.
             POLICY_EXPENSE_CHAT: 'policy_expense_chat',
             TASK_REPORT: 'task_report',
             GROUP_CHAT: 'group_chat',
@@ -2309,6 +2306,11 @@ const CONST = {
         // `inbox_report_thread_rhp`. Central pane has no suffix; the Side Panel lives in the base.
         SEND_MESSAGE_SOURCE_SURFACE: {
             RHP: 'rhp',
+        },
+        // Extra suffix (alongside `_rhp`) marking that the RHP screen was drilled into from its parent expense
+        // report vs opened directly from a list, e.g. `spend_expense_transaction_thread_rhp_from_report`.
+        SEND_MESSAGE_SOURCE_RHP_ORIGIN: {
+            FROM_REPORT: 'from_report',
         },
         // Start type stamped on the navigate-to-reports spans: cold, warm on the first render (warm_first),
         // or warm on a cached re-visit (warm_subsequent). UNKNOWN is a fallback that signals a bug.

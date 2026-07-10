@@ -1,3 +1,5 @@
+import getCentralPaneReportID from '@libs/Navigation/helpers/getCentralPaneReportID';
+import getRouteBeneathTopmostRHP from '@libs/Navigation/helpers/getRouteBeneathTopmostRHP';
 import getTopmostFullScreenRoute from '@libs/Navigation/helpers/getTopmostFullScreenRoute';
 import {
     isChatRoom,
@@ -44,6 +46,14 @@ jest.mock('@libs/ReportUtils', () => ({
 // Every value is prefixed with the tab the send is on; mock the topmost tab route so each test controls it.
 jest.mock('@libs/Navigation/helpers/getTopmostFullScreenRoute', () => jest.fn(() => undefined));
 
+// The route beneath the top RHP screen decides the `_from_report` drill-down suffix; default to none (opened
+// directly), each RHP-drill test overrides it.
+jest.mock('@libs/Navigation/helpers/getRouteBeneathTopmostRHP', () => jest.fn(() => undefined));
+
+// The central-pane report id (behind the RHP overlay) is the other drill-down signal: it marks `_from_report`
+// when it matches a transaction thread's parent. Default to none; the central-pane test overrides it.
+jest.mock('@libs/Navigation/helpers/getCentralPaneReportID', () => jest.fn(() => undefined));
+
 const PREDICATES = [
     isChatRoom,
     isChatThread,
@@ -60,14 +70,22 @@ const PREDICATES = [
     isTaskReport,
 ];
 
-const {SEND_MESSAGE_SOURCE, SEND_MESSAGE_SOURCE_TAB, SEND_MESSAGE_SOURCE_SURFACE} = CONST.TELEMETRY;
+const {SEND_MESSAGE_SOURCE, SEND_MESSAGE_SOURCE_TAB, SEND_MESSAGE_SOURCE_SURFACE, SEND_MESSAGE_SOURCE_RHP_ORIGIN} = CONST.TELEMETRY;
 const report = {reportID: '1'} as Report;
+const threadWithParent = {reportID: '2', parentReportID: 'parent-1'} as Report;
 
 /** Prefix a scenario base with a tab, mirroring how getSendMessageSource stamps a central-pane value. */
 const withTab = (tab: ValueOf<typeof SEND_MESSAGE_SOURCE_TAB>, base: ValueOf<typeof SEND_MESSAGE_SOURCE>) => `${tab}_${base}` as const;
 
 /** Same, plus the generic-RHP `_rhp` surface suffix. */
 const withRhp = (tab: ValueOf<typeof SEND_MESSAGE_SOURCE_TAB>, base: ValueOf<typeof SEND_MESSAGE_SOURCE>) => `${tab}_${base}_${SEND_MESSAGE_SOURCE_SURFACE.RHP}` as const;
+
+/** Same as withRhp, plus the `_from_report` suffix for a screen drilled into from a report behind it. */
+const withRhpFromReport = (tab: ValueOf<typeof SEND_MESSAGE_SOURCE_TAB>, base: ValueOf<typeof SEND_MESSAGE_SOURCE>) =>
+    `${withRhp(tab, base)}_${SEND_MESSAGE_SOURCE_RHP_ORIGIN.FROM_REPORT}` as const;
+
+/** Fake the route sitting beneath the top RHP screen (the drill-down parent). */
+const rhpRoute = (name: string) => ({key: 'k', name}) as ReturnType<typeof getRouteBeneathTopmostRHP>;
 
 /** Build the params with sane defaults; override per test. SCREENS.REPORT is a non-expense-report route. */
 function params(overrides: Partial<Parameters<typeof getSendMessageSource>[0]> = {}) {
@@ -85,6 +103,8 @@ beforeEach(() => {
         jest.mocked(predicate).mockReturnValue(false);
     }
     jest.mocked(getTopmostFullScreenRoute).mockReturnValue(tabRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
+    jest.mocked(getRouteBeneathTopmostRHP).mockReturnValue(undefined);
+    jest.mocked(getCentralPaneReportID).mockReturnValue(undefined);
 });
 
 describe('getSendMessageSource', () => {
@@ -157,6 +177,70 @@ describe('getSendMessageSource', () => {
 
             jest.mocked(getTopmostFullScreenRoute).mockReturnValue(tabRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR));
             expect(getSendMessageSource(rhpReport)).toBe(withRhp(SEND_MESSAGE_SOURCE_TAB.SPEND, SEND_MESSAGE_SOURCE.EXPENSE_TRANSACTION_THREAD));
+        });
+
+        it('appends _from_report when an expense report sits beneath the RHP screen (drilled in, not opened directly)', () => {
+            jest.mocked(isReportTransactionThread).mockReturnValue(true);
+            jest.mocked(getTopmostFullScreenRoute).mockReturnValue(tabRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR));
+            const rhpThread = params({routeName: SCREENS.RIGHT_MODAL.SEARCH_REPORT});
+
+            // Drilled from an e/:id expense report beneath it.
+            jest.mocked(getRouteBeneathTopmostRHP).mockReturnValue(rhpRoute(SCREENS.RIGHT_MODAL.EXPENSE_REPORT));
+            expect(getSendMessageSource(rhpThread)).toBe(withRhpFromReport(SEND_MESSAGE_SOURCE_TAB.SPEND, SEND_MESSAGE_SOURCE.EXPENSE_TRANSACTION_THREAD));
+
+            // Drilled from a search/r/:id expense report beneath it.
+            jest.mocked(getRouteBeneathTopmostRHP).mockReturnValue(rhpRoute(SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT));
+            expect(getSendMessageSource(rhpThread)).toBe(withRhpFromReport(SEND_MESSAGE_SOURCE_TAB.SPEND, SEND_MESSAGE_SOURCE.EXPENSE_TRANSACTION_THREAD));
+        });
+
+        it('omits _from_report when the RHP screen was opened directly (nothing / a non-report screen beneath it)', () => {
+            jest.mocked(isReportTransactionThread).mockReturnValue(true);
+            jest.mocked(getTopmostFullScreenRoute).mockReturnValue(tabRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR));
+            const rhpThread = params({routeName: SCREENS.RIGHT_MODAL.SEARCH_REPORT});
+
+            // Bottom of the RHP stack — opened straight from a list.
+            jest.mocked(getRouteBeneathTopmostRHP).mockReturnValue(undefined);
+            expect(getSendMessageSource(rhpThread)).toBe(withRhp(SEND_MESSAGE_SOURCE_TAB.SPEND, SEND_MESSAGE_SOURCE.EXPENSE_TRANSACTION_THREAD));
+
+            // A non-expense-report screen beneath it is not a drill-down from a report.
+            jest.mocked(getRouteBeneathTopmostRHP).mockReturnValue(rhpRoute(SCREENS.RIGHT_MODAL.REPORT_DETAILS));
+            expect(getSendMessageSource(rhpThread)).toBe(withRhp(SEND_MESSAGE_SOURCE_TAB.SPEND, SEND_MESSAGE_SOURCE.EXPENSE_TRANSACTION_THREAD));
+        });
+
+        it('appends _from_report when the transaction thread parent report is shown in the central pane behind the RHP', () => {
+            jest.mocked(isReportTransactionThread).mockReturnValue(true);
+            // RHP stack has only the thread (nothing beneath), but its parent expense report is in the central pane.
+            jest.mocked(getRouteBeneathTopmostRHP).mockReturnValue(undefined);
+            jest.mocked(getCentralPaneReportID).mockReturnValue('parent-1');
+            expect(getSendMessageSource(params({report: threadWithParent, routeName: SCREENS.RIGHT_MODAL.SEARCH_REPORT}))).toBe(
+                withRhpFromReport(SEND_MESSAGE_SOURCE_TAB.INBOX, SEND_MESSAGE_SOURCE.EXPENSE_TRANSACTION_THREAD),
+            );
+        });
+
+        it('omits _from_report when the central-pane report is not the thread parent (opened directly)', () => {
+            jest.mocked(isReportTransactionThread).mockReturnValue(true);
+            jest.mocked(getRouteBeneathTopmostRHP).mockReturnValue(undefined);
+            // A different report sits in the central pane — the thread was not drilled from it.
+            jest.mocked(getCentralPaneReportID).mockReturnValue('some-other-report');
+            expect(getSendMessageSource(params({report: threadWithParent, routeName: SCREENS.RIGHT_MODAL.SEARCH_REPORT}))).toBe(
+                withRhp(SEND_MESSAGE_SOURCE_TAB.INBOX, SEND_MESSAGE_SOURCE.EXPENSE_TRANSACTION_THREAD),
+            );
+        });
+
+        it('does not use the central-pane parent match for a non-transaction-thread report (e.g. a chat thread)', () => {
+            jest.mocked(isChatThread).mockReturnValue(true);
+            // The central pane holds the parent chat, but a chat thread is not a drill-down from an expense report.
+            jest.mocked(getCentralPaneReportID).mockReturnValue('parent-1');
+            expect(getSendMessageSource(params({report: threadWithParent, routeName: SCREENS.RIGHT_MODAL.SEARCH_REPORT}))).toBe(
+                withRhp(SEND_MESSAGE_SOURCE_TAB.INBOX, SEND_MESSAGE_SOURCE.REPORT_THREAD),
+            );
+        });
+
+        it('does not append _from_report to a central-pane value even if the RHP stack has a report beneath', () => {
+            jest.mocked(isReportTransactionThread).mockReturnValue(true);
+            jest.mocked(getRouteBeneathTopmostRHP).mockReturnValue(rhpRoute(SCREENS.RIGHT_MODAL.EXPENSE_REPORT));
+            // Central-pane route (not an RHP route) never gets the surface or origin suffix.
+            expect(getSendMessageSource(params({routeName: SCREENS.REPORT}))).toBe(withTab(SEND_MESSAGE_SOURCE_TAB.INBOX, SEND_MESSAGE_SOURCE.EXPENSE_TRANSACTION_THREAD));
         });
 
         it('derives a non-expense report type + _rhp on the RHP ReportScreen route (e.g. a DM)', () => {

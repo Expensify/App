@@ -1,3 +1,5 @@
+import getCentralPaneReportID from '@libs/Navigation/helpers/getCentralPaneReportID';
+import getRouteBeneathTopmostRHP from '@libs/Navigation/helpers/getRouteBeneathTopmostRHP';
 import getTopmostFullScreenRoute from '@libs/Navigation/helpers/getTopmostFullScreenRoute';
 import {
     isChatRoom,
@@ -26,12 +28,16 @@ import type {ValueOf} from 'type-fest';
 type SendMessageSourceBase = ValueOf<typeof CONST.TELEMETRY.SEND_MESSAGE_SOURCE>;
 type SendMessageSourceTab = ValueOf<typeof CONST.TELEMETRY.SEND_MESSAGE_SOURCE_TAB>;
 type SendMessageSourceSurface = ValueOf<typeof CONST.TELEMETRY.SEND_MESSAGE_SOURCE_SURFACE>;
+type SendMessageSourceRhpOrigin = ValueOf<typeof CONST.TELEMETRY.SEND_MESSAGE_SOURCE_RHP_ORIGIN>;
 
 /**
- * A stamped value: the tab prefix + scenario base, plus an optional surface suffix for the generic RHP
- * (e.g. `inbox_direct_message`, `home_expense_report_rhp`, `spend_expense_transaction_thread_rhp`).
+ * The stamped value: `<tab>_<scenario>`, optionally `_rhp`, optionally `_from_report`. E.g.
+ * `inbox_direct_message`, `home_expense_report_rhp`, `spend_expense_transaction_thread_rhp_from_report`.
  */
-type SendMessageSource = `${SendMessageSourceTab}_${SendMessageSourceBase}` | `${SendMessageSourceTab}_${SendMessageSourceBase}_${SendMessageSourceSurface}`;
+type SendMessageSource =
+    | `${SendMessageSourceTab}_${SendMessageSourceBase}`
+    | `${SendMessageSourceTab}_${SendMessageSourceBase}_${SendMessageSourceSurface}`
+    | `${SendMessageSourceTab}_${SendMessageSourceBase}_${SendMessageSourceSurface}_${SendMessageSourceRhpOrigin}`;
 
 function getOriginTab(): SendMessageSourceTab {
     const {SEND_MESSAGE_SOURCE_TAB} = CONST.TELEMETRY;
@@ -67,21 +73,15 @@ function getSendMessageSourceBase({report, conciergeReportID, isInSidePanel}: Om
     if (isInSidePanel) {
         return isConciergeChatReport(report, conciergeReportID) ? SEND_MESSAGE_SOURCE.CONCIERGE_SIDE_PANEL : SEND_MESSAGE_SOURCE.SIDE_PANEL;
     }
-    // Split single- vs multi-expense reports (only multi has a heavy transactions table), via
-    // isOneTransactionReport (report.transactionCount === 1). Serves both the central pane and the RHP report
-    // routes — e/:id and search/r/:id render the same money-request-report component, so they fall through here
-    // and pick up `_rhp` in getSendMessageSource rather than owning a separate base.
     if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
         return isOneTransactionReport(report) ? SEND_MESSAGE_SOURCE.EXPENSE_REPORT_SINGLE : SEND_MESSAGE_SOURCE.EXPENSE_REPORT_MULTI;
     }
-    // A single-transaction expense opens as a transaction thread (chat-type with an expense parent), so this
-    // must run before the generic chat-thread check below or it would be mislabeled report_thread. The `_rhp`
-    // surface suffix (added later) keeps the RHP variant distinct from this central-pane one.
+    // A transaction thread is a chat-type report, so it must run before the generic chat-thread check below or
+    // it would be mislabeled report_thread.
     if (isReportTransactionThread(report)) {
         return SEND_MESSAGE_SOURCE.EXPENSE_TRANSACTION_THREAD;
     }
 
-    // Classify by report type — for both the central pane and the generic RHP routes (the latter get `_rhp`).
     if (isConciergeChatReport(report, conciergeReportID)) {
         return SEND_MESSAGE_SOURCE.CONCIERGE;
     }
@@ -118,16 +118,36 @@ function getSendMessageSourceBase({report, conciergeReportID, isInSidePanel}: Om
 // report routes here; a new RHP report route is covered automatically.
 const RHP_SCREEN_NAMES = new Set<string>(Object.values(SCREENS.RIGHT_MODAL));
 
+// The RHP screens that render an expense report (both use the money-request-report component).
+const RHP_EXPENSE_REPORT_SCREEN_NAMES = new Set<string>([SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT]);
+
+// A parent expense report behind an RHP screen means the user drilled in (vs opening directly, e.g. off a Search
+// list, where neither holds). It can sit in two places:
+//   1. stacked directly beneath the screen in the RHP, or
+//   2. shown in the central pane behind the overlay, matched via the thread's parentReportID.
+// Case 2 is gated on isReportTransactionThread so parentReportID is by definition the expense report.
+function isDrilledFromExpenseReport(report: OnyxEntry<Report>): boolean {
+    if (RHP_EXPENSE_REPORT_SCREEN_NAMES.has(getRouteBeneathTopmostRHP()?.name ?? '')) {
+        return true;
+    }
+    return isReportTransactionThread(report) && !!report?.parentReportID && getCentralPaneReportID() === report.parentReportID;
+}
+
 /**
- * The `send_message_source` span attribute: tab prefix + scenario base (+ `_rhp` when the report is in the RHP).
- * Tab and surface are uniform affixes, so Sentry can slice by tab, scenario, or surface across every send path.
+ * The `send_message_source` span attribute: tab prefix + scenario base (+ `_rhp` in the RHP, + `_from_report`
+ * when drilled in from a report behind it). The affixes are uniform, so Sentry can slice by tab, scenario,
+ * surface, or drill-down path across every send path.
  */
 function getSendMessageSource(params: GetSendMessageSourceParams): SendMessageSource {
-    const {SEND_MESSAGE_SOURCE_SURFACE} = CONST.TELEMETRY;
+    const {SEND_MESSAGE_SOURCE_SURFACE, SEND_MESSAGE_SOURCE_RHP_ORIGIN} = CONST.TELEMETRY;
     const value = `${getOriginTab()}_${getSendMessageSourceBase(params)}` as const;
     // The Side Panel owns its own bases and can't be on an RHP route, so never suffix it (defensive — a stray
     // RHP routeName in the panel would otherwise produce a nonsensical `..._side_panel_rhp`).
-    return RHP_SCREEN_NAMES.has(params.routeName) && !params.isInSidePanel ? `${value}_${SEND_MESSAGE_SOURCE_SURFACE.RHP}` : value;
+    if (!RHP_SCREEN_NAMES.has(params.routeName) || params.isInSidePanel) {
+        return value;
+    }
+    const rhpValue = `${value}_${SEND_MESSAGE_SOURCE_SURFACE.RHP}` as const;
+    return isDrilledFromExpenseReport(params.report) ? `${rhpValue}_${SEND_MESSAGE_SOURCE_RHP_ORIGIN.FROM_REPORT}` : rhpValue;
 }
 
 export default getSendMessageSource;
