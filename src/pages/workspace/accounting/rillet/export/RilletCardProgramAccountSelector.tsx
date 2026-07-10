@@ -3,12 +3,13 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
+import useCardFeeds from '@hooks/useCardFeeds';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletCardProgramAccount} from '@libs/actions/connections/Rillet';
-import {splitCardFeedWithDomainID} from '@libs/CardUtils';
+import {getCustomOrFormattedFeedName, splitCardFeedWithDomainID} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -53,6 +54,10 @@ function RilletCardProgramAccountSelector({
     const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
     const cardProgramAccountCode = cardProgramsUsingCustomAccounts?.[feedKey] ?? creditCardAccountCode;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.getRoute(policyID) : undefined;
+
+    const [cardFeeds] = useCardFeeds(policyID);
+    const cardFeed = cardFeeds?.[feedWithDomainID];
+    const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
 
     const data: AccountListItem[] =
         rilletData?.accounts
@@ -102,7 +107,7 @@ function RilletCardProgramAccountSelector({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="RilletCardProgramAccountSelector"
-            title="workspace.rillet.cardProgramAccount.label"
+            headerTitleAlreadyTranslated={title}
             data={data}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
