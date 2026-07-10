@@ -10,7 +10,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 
-import React, {memo, useEffect, useState} from 'react';
+import React, {memo, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {MoneyRequestReportTransactionListController, TransactionListItemData} from './MoneyRequestReportTransactionList';
@@ -196,6 +196,27 @@ function MoneyRequestReportUnifiedList({
 
     const linkedActionLocalIndex = linkedReportActionID ? visibleReportActions.findIndex((action) => action.reportActionID === linkedReportActionID) : -1;
     const initialScrollIndex = linkedActionLocalIndex >= 0 ? linkedActionLocalIndex + reportActionIndexOffset : undefined;
+
+    // FlashList's `initialScrollIndex` is captured once at mount. On a cold deep-link open the linked action is
+    // often not in `visibleReportActions` yet (it paginates in after mount), so the mount-only hint resolves to
+    // undefined and the list never anchors on the linked message. Re-anchor imperatively once the linked action is
+    // present. Guarded so it fires exactly once per linked target and never yanks the user after they've scrolled.
+    const hasAnchoredLinkedActionRef = useRef(false);
+    useEffect(() => {
+        hasAnchoredLinkedActionRef.current = false;
+    }, [linkedReportActionID]);
+
+    useEffect(() => {
+        if (!linkedReportActionID || initialScrollIndex === undefined || hasAnchoredLinkedActionRef.current) {
+            return;
+        }
+        hasAnchoredLinkedActionRef.current = true;
+        // Defer to the next frame so the newly paginated-in rows are laid out before we scroll to the target.
+        const rafId = requestAnimationFrame(() => {
+            listRef?.current?.scrollToIndex({index: initialScrollIndex, animated: false});
+        });
+        return () => cancelAnimationFrame(rafId);
+    }, [linkedReportActionID, initialScrollIndex, listRef]);
 
     const reportFieldsHeader = (
         <MoneyRequestViewReportFields
