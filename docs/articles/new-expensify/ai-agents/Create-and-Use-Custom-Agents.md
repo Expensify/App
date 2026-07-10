@@ -11,7 +11,7 @@ Agents are AI-powered virtual members that can take actions in Expensify based o
 
 Every agent has its own Expensify account. You can Copilot into the agent's account to review its activity, update its instructions, and see the actions it has taken.
 
-You can also add an agent as a Copilot on your own account. When you do, the agent receives delegated access to your account so it can use your personal context and manage expenses and reports on your behalf, while continuing to operate from its own account.
+When you create an agent, it's automatically added as a full Copilot on your own account. This gives the agent delegated access to your account so it can use your personal context and manage expenses and reports on your behalf, while continuing to operate from its own account.
 
 Expensify also supports Agent rules, which are workspace-level AI automations enforced by RuleBot. [Learn how to Create Agent Rules](/articles/new-expensify/ai-agents/Create-Agent-Rules). 
 
@@ -34,7 +34,8 @@ If you don't see **Agents** in your **Account** settings, the Beta isn't enabled
 3. Click **New agent**.
 4. Review the auto-generated profile image and display name. If needed, you can edit these later.
 5. Click **Write custom instructions** and describe what you want the agent to do.
-6. Click **Create agent**.
+6. Review the note above the button, which explains that the agent will be added as a full Copilot of your account so it can act on your behalf.
+7. Click **Create agent**.
 
 After saving, the new agent appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** buttons.
 
@@ -49,11 +50,11 @@ After you create an agent:
 - A new Expensify account is created for the agent.
 - You become the agent's owner.
 - You're automatically added as a full-access Copilot on the agent's account.
-- You can optionally add the agent as a Copilot on your own account so it can use your personal context and act on your behalf.
+- The agent is automatically added as a full Copilot on your own account so it can use your personal context and act on your behalf.
 - The agent appears in your **Agents** list, where you can chat with it, edit its instructions, or Copilot into its account.
 - The agent can be added to workspaces as a member and selected anywhere a workspace member can be chosen, such as approval workflows.
 
-The agent follows the instructions you provide and operates from its own Expensify account. If you add the agent as a Copilot on your account, it can also use your personal context and take actions on your behalf based on the permissions you've granted. 
+The agent follows the instructions you provide and operates from its own Expensify account. Because it's also a Copilot on your account, it can use your personal context and take actions on your behalf. You can review this delegated access under **Account > Security** in the **Copilot: Delegated access** section.
 
 ---
 
@@ -171,9 +172,9 @@ Yes. On Control plans, agents can be used anywhere an approver can be selected, 
 
 On Collect plans, workspaces support a single approver. An agent can be used as that approver.
 
-## Can I add an agent as a Copilot on my own account?
+## Is an agent added as a Copilot on my own account?
 
-Yes. You can add an agent as a Copilot on your own account to give it delegated access to your personal context. Once added, the agent can manage your expenses and reports on your behalf within the permissions you've granted. [Learn how to add a Copilot](/articles/new-expensify/settings/Manage-Copilot-Access).
+Yes. When you create an agent, it's automatically added as a full Copilot on your own account, giving it delegated access to your personal context so it can manage your expenses and reports on your behalf. You don't need to add it by hand. You can review this access under **Account > Security** in the **Copilot: Delegated access** section. [Learn more about Copilot](/articles/new-expensify/settings/Manage-Copilot-Access).
 
 ## Can an agent make mistakes?
 

@@ -8,7 +8,6 @@ import {
     allHavePendingRTERViolation,
     hasDuplicateTransactions,
     hasReceipt,
-    isExpensifyCardTransaction,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
     isScanning,
@@ -77,7 +76,7 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
     const hasScanningReceipt = transactions.filter((t) => hasReceipt(t)).some(isScanning);
-    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, policy);
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '', accountID);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
