@@ -156,6 +156,11 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
             attribute = CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT;
             break;
 
+        case 'updatedtag':
+        case 'newtag':
+            attribute = CONST.CSV_IMPORT_COLUMNS.TAG;
+            break;
+
         case 'reimbursable':
         case 'reimburseable':
             attribute = CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE;
@@ -209,7 +214,9 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
             if (attribute === CONST.CSV_IMPORT_COLUMNS.MERCHANT && columnRoles.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT)) {
                 return CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT;
             }
-            if (attribute === CONST.CSV_IMPORT_COLUMNS.NAME && columnRoles.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.TAG)) {
+            // Only tag-like headers remap from NAME to TAG, so headers like "Name" or "Customer" stay
+            // unmapped in contexts without a NAME role instead of silently becoming a tag column.
+            if (attribute === CONST.CSV_IMPORT_COLUMNS.NAME && ['tag', 'tags'].includes(formattedHeader) && columnRoles.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.TAG)) {
                 return CONST.CSV_IMPORT_COLUMNS.TAG;
             }
             return '';

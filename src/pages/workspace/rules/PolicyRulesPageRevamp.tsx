@@ -272,6 +272,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 {addRuleButton}
                 <ButtonWithDropdownMenu
                     success={false}
+                    // onPress is required by ButtonWithDropdownMenu but never fires for a non-split button, where pressing only opens the dropdown menu
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}

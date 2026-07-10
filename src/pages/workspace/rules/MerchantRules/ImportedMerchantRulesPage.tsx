@@ -27,7 +27,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 
 /** Column roles that update the matched expense; at least one must be mapped alongside a merchant filter */
 const ACTION_COLUMNS: string[] = [
@@ -78,7 +78,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         {text: translate('common.billable'), value: CONST.CSV_IMPORT_COLUMNS.BILLABLE},
     ];
 
-    const validate = useCallback(() => {
+    const validate = () => {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Errors = {};
 
@@ -98,7 +98,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
             }
         }
         return errors;
-    }, [spreadsheet?.columns, translate, columnRoles]);
+    };
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);
@@ -180,7 +180,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return;
+        return null;
     }
 
     const spreadsheetColumns = spreadsheet?.data;
