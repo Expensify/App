@@ -2,13 +2,14 @@
 title: Understand ExpensifyApproved! Billing
 description: Learn how Expensify bills partners and their clients, including exclusive pricing, and client ID management.
 keywords: [Expensify Classic, ExpensifyApproved, partner billing, client ID, Expensify Card]
+internalScope: Covers ExpensifyApproved! billing, including partner pricing and best practices for managing client billing. Does not include Approved! enrollment details or troubleshooting. 
 ---
 
 # Understand ExpensifyApproved! Billing
 
-The ExpensifyApproved! accountants program is designed for accountants, bookkeepers, and consultants who manage multiple clients. Whether you're onboarding your first client or overseeing hundreds of Workspaces, ExpensifyApproved! billing helps simplify administration with exclusive pricing, revenue share opportunities, and tools that make client management more efficient.
+The ExpensifyApproved! accountants program is designed for accountants, bookkeepers, and consultants who manage multiple clients. Whether you're onboarding your first client or overseeing hundreds of workspaces, ExpensifyApproved! billing helps simplify administration with exclusive pricing, revenue share opportunities, and tools that make client management more efficient.
 
-Once you're enrolled in the ExpensifyApproved! accountants program, eligible client Workspaces automatically receive ExpensifyApproved! pricing. No additional setup is required.
+Once you're enrolled in the ExpensifyApproved! accountants program, eligible client workspaces automatically receive ExpensifyApproved! pricing. No additional setup is required.
 
 As an ExpensifyApproved! partner, you can:
 
@@ -27,8 +28,6 @@ As an ExpensifyApproved! partner, you can:
 ExpensifyApproved! billing is available to accountants, bookkeepers, and consultants enrolled in the ExpensifyApproved! accountants program.
 
 It's designed for professionals who manage client Workspaces and want a simpler way to handle billing while maintaining visibility across their client portfolio.
-
-Any client Workspace where you're a Workspace Admin automatically receives ExpensifyApproved! pricing.
 
 ---
 
@@ -118,19 +117,11 @@ Select the billing receipt you want to view or download. [Learn how to download 
 
 ## Do I automatically receive ExpensifyApproved! pricing?
 
-Yes, once you enroll in the ExpensifyApproved! accountants program, all woryou'll automatically receive partner pricing for all w
-
-## Who receives the monthly invoice?
-
-The **Workspace Owner** receives the monthly invoice.
-
-If you want your firm to pay the bill and invoice your clients separately, make sure you're the Workspace Owner.
+Yes. Once you enroll in the ExpensifyApproved! accountants program, all client Workspace where you're a Workspace Admin will automatically receive ExpensifyApproved! pricing. 
 
 ## Why isn't my client receiving ExpensifyApproved! pricing?
 
-ExpensifyApproved! pricing is automatically applied to any Workspace where you're a **Workspace Admin**.
-
-If a client Workspace isn't receiving partner pricing, verify that you're listed as a Workspace Admin.
+ExpensifyApproved! pricing is automatically applied to any Workspace where you're a Workspace Admin. If a client workspace isn't receiving partner pricing, verify that you're listed as a Workspace Admin.
 
 ## What if my clients don't use the Expensify Card?
 
