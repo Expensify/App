@@ -124,7 +124,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [accountGuideDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountGuideDetailsSelector});
-    const [accountManagerDetails] = useOnyx(ONYXKEYS.ACCOUNT, {
+    const [accountManagerBookingDetails] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (account) => ({
             accountManagerAccountID: account?.accountManagerAccountID,
             accountManagerCalendarLink: account?.accountManagerCalendarLink,
@@ -217,18 +217,16 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
-    // Show a "Book a call" button linking to the account manager's calendar in the 1:1 DM with the account manager
-    const accountManagerAccountID = accountManagerDetails?.accountManagerAccountID;
+    const accountManagerAccountID = accountManagerBookingDetails?.accountManagerAccountID;
     const shouldShowAccountManagerBookCallInDM =
         !!accountManagerAccountID &&
-        !!accountManagerDetails?.accountManagerCalendarLink &&
+        !!accountManagerBookingDetails?.accountManagerCalendarLink &&
         isOneOnOneChat(report) &&
         !!report?.participants?.[Number(accountManagerAccountID)] &&
         !!canUserPerformWriteAction(report, isReportArchived) &&
         !isChatThread;
 
-    // Show a "Book a call" button linking to the account manager's calendar in Concierge when the user has an assigned account manager
-    const shouldShowAccountManagerBookCallInConcierge = isConciergeChat && !!accountManagerAccountID && !!accountManagerDetails?.accountManagerCalendarLink;
+    const shouldShowAccountManagerBookCallInConcierge = isConciergeChat && !!accountManagerAccountID && !!accountManagerBookingDetails?.accountManagerCalendarLink;
 
     const shouldShowAccountManagerBookCall = shouldShowAccountManagerBookCallInDM || shouldShowAccountManagerBookCallInConcierge;
 
@@ -237,8 +235,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const accountManagerBookCallButton = (
         <AccountManagerBookCallButton
-            calendarLink={accountManagerDetails?.accountManagerCalendarLink ?? ''}
-            accountManagerAccountID={shouldShowAccountManagerBookCallInConcierge ? accountManagerDetails?.accountManagerAccountID : undefined}
+            calendarLink={accountManagerBookingDetails?.accountManagerCalendarLink ?? ''}
+            accountManagerAccountID={shouldShowAccountManagerBookCallInConcierge ? accountManagerBookingDetails?.accountManagerAccountID : undefined}
         />
     );
 
