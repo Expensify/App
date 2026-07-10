@@ -288,7 +288,19 @@ function IOURequestStepConfirmation({
                           currentUserPersonalDetails.accountID,
                       );
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, participantsPolicies, policy, conciergeReportID, reportDrafts, translate],
+        [
+            transaction?.participants,
+            iouType,
+            personalDetails,
+            reportAttributesDerived,
+            privateIsArchivedMap,
+            participantsPolicies,
+            policy,
+            conciergeReportID,
+            reportDrafts,
+            translate,
+            currentUserPersonalDetails.accountID,
+        ],
     );
 
     const sourceReportID = transaction?.reportID ?? reportID;
