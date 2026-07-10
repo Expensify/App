@@ -14,12 +14,34 @@ import type {Policy} from '@src/types/onyx';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
-import type {OnyxCollection, OnyxCollectionInputValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
 function openAgentsPage() {
-    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENTS,
+            value: true,
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENTS,
+            value: false,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENTS,
+            value: false,
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {optimisticData, successData, failureData});
 }
 
 function openProfilePage() {
