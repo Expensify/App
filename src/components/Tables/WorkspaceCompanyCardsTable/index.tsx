@@ -350,10 +350,7 @@ function WorkspaceCompanyCardsTable({
         >
             {headerButtonsComponent}
 
-            <Table.LoadingState
-                isLoading={isLoading}
-                context="WorkspaceCompanyCardsTable"
-            />
+            {isLoading && <Table.LoadingState context="WorkspaceCompanyCardsTable" />}
 
             {!isLoading && isFeedPending && !feedErrorKey && (
                 <ScrollView addBottomSafeAreaPadding>

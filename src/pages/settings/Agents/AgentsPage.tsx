@@ -45,7 +45,7 @@ function AgentsPage() {
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     useDocumentTitle(translate('agentsPage.title'));
 
-    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
+    const [agentPrompts, meta] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
     const personalDetailsList = usePersonalDetails();
 
     useEffect(() => {
@@ -145,7 +145,10 @@ function AgentsPage() {
                 <RenderHTML html={translate('agentsPage.subtitle')} />
             </View>
 
-            <AgentsTable agents={agents} />
+            <AgentsTable
+                agents={agents}
+                isLoading={meta.status === 'loading'}
+            />
         </ScreenWrapper>
     );
 }

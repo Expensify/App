@@ -36,9 +36,10 @@ type AgentRowData = TableData & {
 
 type AgentsTableProps = {
     agents: AgentRowData[];
+    isLoading: boolean;
 };
 
-export default function AgentsTable({agents}: AgentsTableProps) {
+export default function AgentsTable({agents, isLoading}: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -77,6 +78,10 @@ export default function AgentsTable({agents}: AgentsTableProps) {
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
+
+    if (isLoading) {
+        return <Table.LoadingState context="AgentsTable" />;
+    }
 
     return (
         <Table

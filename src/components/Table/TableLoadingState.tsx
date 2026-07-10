@@ -9,24 +9,19 @@ import React from 'react';
 import {View} from 'react-native';
 
 type TableLoadingStateProps = {
-    isLoading: boolean;
     context: string;
 };
 
-export default function TableLoadingState({context, isLoading}: TableLoadingStateProps) {
+export default function TableLoadingState({context}: TableLoadingStateProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-
-    if (!isLoading) {
-        return null;
-    }
 
     return (
         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
             <ActivityIndicator
                 color={theme.spinner}
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={{context, isLoading}}
+                reasonAttributes={{context, isLoading: true}}
             />
         </View>
     );
