@@ -1,3 +1,4 @@
+import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 
@@ -43,8 +44,9 @@ type WorkspaceCategoriesTableProps = {
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
     selectedKeys: string[];
+    emptyStateSubtitleText: React.ReactNode;
+    emptyStateButtons: EmptyStateButton[] | undefined;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    EmptyStateComponent: React.ReactElement;
 };
 
 export default function WorkspaceCategoriesTable({
@@ -54,8 +56,9 @@ export default function WorkspaceCategoriesTable({
     selectionEnabled,
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
+    emptyStateSubtitleText,
+    emptyStateButtons,
     onRowSelectionChange,
-    EmptyStateComponent,
 }: WorkspaceCategoriesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -142,8 +145,6 @@ export default function WorkspaceCategoriesTable({
         />
     );
 
-    const isEmpty = categories.length === 0;
-
     return (
         <Table
             ref={ref}
@@ -159,14 +160,16 @@ export default function WorkspaceCategoriesTable({
             keyExtractor={(category) => category.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {isEmpty && EmptyStateComponent}
-            {!isEmpty && (
-                <>
-                    <Table.FilterBar label={translate('workspace.categories.findCategory')} />
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.FilterBar label={translate('workspace.categories.findCategory')} />
+            <Table.EmptyState
+                title={translate('workspace.categories.emptyCategories.title')}
+                subtitleText={emptyStateSubtitleText}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                buttons={emptyStateButtons}
+            />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }
