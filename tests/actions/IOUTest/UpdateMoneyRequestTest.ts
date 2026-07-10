@@ -1489,6 +1489,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updating reimbursable to the new value
             updateMoneyRequestReimbursable({
                 transactionID,
+                reportPolicyTags: undefined,
                 transactionThreadReport,
                 parentReport,
                 value: newValue,
@@ -1523,6 +1524,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updateMoneyRequestReimbursable is called with an undefined transactionID
             updateMoneyRequestReimbursable({
                 transactionID: undefined,
+                reportPolicyTags: undefined,
                 transactionThreadReport: {reportID: '1'},
                 parentReport: undefined,
                 value: true,
