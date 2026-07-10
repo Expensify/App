@@ -777,6 +777,7 @@ describe('MoneyRequest', () => {
             reportDraft: undefined,
             currentUserLocalCurrency: undefined,
             policyTagList: {},
+            delegateAccountID: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {

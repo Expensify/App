@@ -129,6 +129,7 @@ describe('actions/IOU/createExpenseByType', () => {
             isSelfTourViewed: false,
             betas: undefined,
             personalDetails: {},
+            delegateAccountID: undefined,
         };
 
         return {transaction, transactionDetails, params};
@@ -144,6 +145,7 @@ describe('actions/IOU/createExpenseByType', () => {
             quickAction: undefined,
             personalDetails: {},
             recentWaypoints: undefined,
+            policyTagList: {},
             ...overrides,
         });
     }
