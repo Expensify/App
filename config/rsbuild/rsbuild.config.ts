@@ -66,6 +66,9 @@ export default defineConfig(async ({command}) => {
             proxy,
             port,
             host: 'dev.new.expensify.com',
+            // Rsbuild's --open flag defaults to the first entry's route, e.g. "/main" for our "main" entry key,
+            // which 404s since the app has no route by that name. Open the actual app root instead.
+            open: '/',
             https: {
                 key: fs.readFileSync(path.join(dirname, 'key.pem')),
                 cert: fs.readFileSync(path.join(dirname, 'certificate.pem')),
