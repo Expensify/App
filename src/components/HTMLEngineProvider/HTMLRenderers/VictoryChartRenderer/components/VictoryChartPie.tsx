@@ -52,7 +52,6 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const {xShift: labelIndicatorXShift, yShift: labelIndicatorYShift, strokeWidth: labelIndicatorStrokeWidth} = labelIndicatorStyles ?? {};
     const labelIndicatorStroke = resolveChartThemeColor(labelIndicatorStyles?.stroke, theme);
     const labelIndicatorInnerOffset = parseAttributeAsNumber(tnode.attributes.labelindicatorinneroffset);
-    const labelIndicatorOuterOffset = parseAttributeAsNumber(tnode.attributes.labelindicatorouteroffset);
 
     const customLabelByDataLabel: Record<string, string | undefined> = {};
     const sliceValues: PieSliceValue[] = [];
@@ -102,7 +101,6 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
                                     slice={slice}
                                     baseLabelItem={baseLabelItem}
                                     label={customLabelByDataLabel[slice.label] ?? slice.label}
-                                    labelRadius={labelRadius}
                                     resolvedLabel={{
                                         x: slice.center.x + resolvedLabel.relativeX,
                                         y: slice.center.y + resolvedLabel.relativeY,
@@ -113,7 +111,6 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
                                     labelIndicatorStroke={labelIndicatorStroke}
                                     labelIndicatorStrokeWidth={labelIndicatorStrokeWidth}
                                     labelIndicatorInnerOffset={labelIndicatorInnerOffset}
-                                    labelIndicatorOuterOffset={labelIndicatorOuterOffset}
                                 />
                             )}
                         </Pie.Slice>

@@ -15,41 +15,36 @@ type ResolvedPieLabel = {
 
 type VictoryChartPieLabelIndicatorProps = {
     slice: PieSliceData;
-    labelRadius: number;
     resolvedLabel: ResolvedPieLabel;
     labelIndicatorXShift: number | undefined;
     labelIndicatorYShift: number | undefined;
     labelIndicatorStroke: Color | undefined;
     labelIndicatorStrokeWidth: number;
     labelIndicatorInnerOffset: number | undefined;
-    labelIndicatorOuterOffset: number | undefined;
 };
 
 function VictoryChartPieLabelIndicator({
     slice,
-    labelRadius,
     resolvedLabel,
     labelIndicatorXShift,
     labelIndicatorYShift,
     labelIndicatorStroke,
     labelIndicatorStrokeWidth,
     labelIndicatorInnerOffset,
-    labelIndicatorOuterOffset,
 }: VictoryChartPieLabelIndicatorProps) {
     const midAngle = convertDegreeToRadian((slice.startAngle + slice.endAngle) / 2);
     const midRadius = (slice.radius + slice.innerRadius) / 2;
     const labelIndicatorInnerRadius = midRadius + (labelIndicatorInnerOffset ?? 0);
-    const labelIndicatorOuterRadius = labelRadius - (labelIndicatorOuterOffset ?? 0);
 
     const x1 = Math.round(slice.center.x + labelIndicatorInnerRadius * Math.cos(midAngle) + (labelIndicatorXShift ?? 0));
     const y1 = Math.round(slice.center.y + labelIndicatorInnerRadius * Math.sin(midAngle) + (labelIndicatorYShift ?? 0));
 
-    const x2 = Math.round(slice.center.x + labelIndicatorOuterRadius * Math.cos(midAngle) + (labelIndicatorXShift ?? 0));
-    const y2 = Math.round(slice.center.y + labelIndicatorOuterRadius * Math.sin(midAngle) + (labelIndicatorYShift ?? 0));
-
+    // Run horizontal first (away from the ring, at the slice's own natural height) then bend vertically
+    // into the resolved row — never radial-then-diagonal, which could visually double back on itself
+    // once collision resolution has pushed a label far from its slice's natural angle.
     const path = Skia.Path.Make();
     path.moveTo(x1, y1);
-    path.lineTo(x2, y2);
+    path.lineTo(resolvedLabel.x, y1);
     path.lineTo(resolvedLabel.x, resolvedLabel.y);
 
     return (

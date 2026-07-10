@@ -19,13 +19,11 @@ type VictoryChartPieLabelProps = {
     baseLabelItem: LabelItem;
     label: string;
     resolvedLabel: ResolvedPieLabel;
-    labelRadius: number | undefined;
     labelIndicatorXShift: number | undefined;
     labelIndicatorYShift: number | undefined;
     labelIndicatorStroke: Color | undefined;
     labelIndicatorStrokeWidth: number | undefined;
     labelIndicatorInnerOffset: number | undefined;
-    labelIndicatorOuterOffset: number | undefined;
 };
 
 function VictoryChartPieLabel({
@@ -33,13 +31,11 @@ function VictoryChartPieLabel({
     baseLabelItem,
     label,
     resolvedLabel,
-    labelRadius,
     labelIndicatorXShift,
     labelIndicatorYShift,
     labelIndicatorStroke,
     labelIndicatorStrokeWidth,
     labelIndicatorInnerOffset,
-    labelIndicatorOuterOffset,
 }: VictoryChartPieLabelProps) {
     const labelItem: LabelItem = {
         ...baseLabelItem,
@@ -55,14 +51,12 @@ function VictoryChartPieLabel({
             {!!labelIndicatorStrokeWidth && (
                 <VictoryChartPieLabelIndicator
                     slice={slice}
-                    labelRadius={labelRadius ?? slice.radius}
                     resolvedLabel={resolvedLabel}
                     labelIndicatorXShift={labelIndicatorXShift}
                     labelIndicatorYShift={labelIndicatorYShift}
                     labelIndicatorStroke={labelIndicatorStroke}
                     labelIndicatorStrokeWidth={labelIndicatorStrokeWidth}
                     labelIndicatorInnerOffset={labelIndicatorInnerOffset}
-                    labelIndicatorOuterOffset={labelIndicatorOuterOffset}
                 />
             )}
             <VictoryChartLabel {...labelItem} />
