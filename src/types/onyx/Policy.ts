@@ -321,6 +321,9 @@ type MergeHRConnectionLastSync = ConnectionLastSync & {
 
     /** Status of the sync */
     syncStatus?: ValueOf<typeof CONST.MERGE_HR.SYNC_STATUS>;
+
+    /** Timestamps of the last few manual ("Sync now") syncs, used for blocking manual syncs client-side once the daily limit is reached */
+    manualSyncTimestamps?: string[];
 };
 
 /**
@@ -1804,7 +1807,7 @@ type RilletExport = {
     cardProgramAccounts: Record<string, string>;
 
     /** Accounting method used during export. */
-    accountingMethod: string;
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 /**
@@ -2878,4 +2881,7 @@ export type {
     RilletCoding,
     RilletConnectionsConfig,
     RilletExport,
+    RilletBankAccount,
+    RilletAutoSync,
+    RilletSync,
 };

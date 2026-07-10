@@ -15,15 +15,15 @@
 {% assign hubSections = hub.sections | default: emptyItems %}
 
 {% if hub.articles %}
-    {% assign sortedSectionsAndArticles = hubSections | concat: hubArticles | sort: 'order' %}
+    {% assign sortedSectionsAndArticles = hubSections | concat: hubArticles | sort: 'title' %}
 {% else %}
-    {% assign sortedSectionsAndArticles = hubSections | sort: 'order' %}
+    {% assign sortedSectionsAndArticles = hubSections | sort: 'title' %}
 {% endif%}
 
 <section>
     <div class="cards-group">
         {% for item in sortedSectionsAndArticles %}
-            {% if item.articles or item.sections %}
+            {% if item.articles %}
                 {% include section-card.html platform=activePlatform hub=hub.href section=item.href title=item.title %}
             {% else %}
                 {% include article-card.html hub=hub.href href=item.href title=item.title platform=activePlatform %}
