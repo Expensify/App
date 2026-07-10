@@ -100,6 +100,31 @@ describe('getPathFromState', () => {
         expect(mockRNGetPathFromState).toHaveBeenCalledWith(state, expect.anything());
     });
 
+    it('should return embedded path when focused route params are unresolved NavigatorScreenParams', () => {
+        const embeddedPath = '/search/r/4578119764473728?backTo=/search?q=type%3Aexpense-report%20sortBy%3Adate%20sortOrder%3Adesc';
+        const state = buildState([
+            {
+                name: 'TabNavigator',
+                state: buildState([
+                    {
+                        name: 'ReportsSplitNavigator',
+                        params: {
+                            initial: 'true',
+                            screen: 'SearchMoneyRequestReport',
+                            params: '[object Object]',
+                            path: embeddedPath,
+                        },
+                    },
+                ]),
+            },
+        ]);
+
+        const result = getPathFromState(state as PartialState<NavigationState>);
+
+        expect(result).toBe(embeddedPath);
+        expect(mockRNGetPathFromState).not.toHaveBeenCalled();
+    });
+
     it('should handle state where no route is focused', () => {
         mockRNGetPathFromState.mockReturnValue('/fallback');
 

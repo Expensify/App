@@ -166,8 +166,23 @@ function getPathFromStateWithDynamicRoute(state: State): string {
     return `${basePathWithoutQuery}/${suffixPath}${queryString ? `?${queryString}` : ''}`;
 }
 
+/** An unresolved NavigatorScreenParams route that React Navigation stored verbatim instead of resolving to a path. */
+type UnresolvedNavigatorScreenParams = {screen: string; path: string};
+
+/** Detects unresolved NavigatorScreenParams, whose real target lives in `params.path` (RN would otherwise emit `/?params=[object Object]`). */
+function hasUnresolvedNavigatorScreenParams(params: unknown): params is UnresolvedNavigatorScreenParams {
+    return (
+        typeof params === 'object' && params !== null && 'screen' in params && typeof params.screen === 'string' && 'path' in params && typeof params.path === 'string' && params.path !== ''
+    );
+}
+
 function getPathFromState(state: State): string {
     const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
+
+    if (hasUnresolvedNavigatorScreenParams(focusedRoute?.params)) {
+        return focusedRoute.params.path;
+    }
+
     const screenName = focusedRoute?.name ?? '';
 
     if (isDynamicRouteScreen(screenName as Screen)) {
