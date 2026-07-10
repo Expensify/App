@@ -134,9 +134,9 @@ If your organization's first Workspace was created before April 1, 2025, your Wo
 
 Legacy Collect pricing is:
 
-| Subscription |                 Price (USD) |
-| ------------ | --------------------------: |
-| Annual       |  $5 per active member/month |
+| Subscription |                Standard price (USD) | 
+| ------------ | -------------------------- |
+| Annual       |  $5 per member included in your subscription size/month, plus $10 per active member above your subscription size/month |
 | Pay-per-use  | $10 per active member/month |
 
 Legacy Collect subscriptions use active members for billing instead of unique members.
