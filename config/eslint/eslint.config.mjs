@@ -46,6 +46,16 @@ rulesdir.RULES_DIR = [expensifyRulesDir, localRulesDir];
 
 const restrictedImportPaths = [
     {
+        name: '@components/Button',
+        importNames: ['default'],
+        message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
+    },
+    {
+        name: '@src/components/Button',
+        importNames: ['default'],
+        message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
+    },
+    {
         name: 'react-native',
         importNames: [
             'useWindowDimensions',
@@ -324,6 +334,7 @@ const config = defineConfig([
             'rulesdir/no-beta-handler': 'error',
             'rulesdir/require-live-region-for-status-updates': 'error',
             'rulesdir/require-a11y-disable-justification': 'error',
+            'rulesdir/no-useOnyx-dependencies-arg': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
