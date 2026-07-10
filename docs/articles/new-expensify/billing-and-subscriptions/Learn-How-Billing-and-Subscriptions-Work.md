@@ -29,7 +29,7 @@ A subscription determines how your Workspace is billed.
 
 Depending on your Workspace plan, you may have an Annual subscription or a Pay-per-use subscription. Your subscription affects your billing rate and may determine whether you qualify for reduced pricing.
 
-To learn more see [How Subscription Pricing Works](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Learn-About-Subscriptions#how-annual-subscription-pricing-works).
+To learn more see [How Subscription Pricing Works](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing#how-annual-subscription-pricing-works).
 
 ## How the Expensify Card can reduce your bill
 
@@ -48,7 +48,7 @@ Your monthly Expensify bill is calculated based on:
  - The number of billable members
  - Whether your organization qualifies for reduced pricing through the Expensify Card
 
-To learn more, see [How the Expensify Card Discount Works](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing#find-your-subscription-price)
+To learn more, see [How the Expensify Card Discount Works](/docs/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing#how-the-expensify-card-discount-works).
 
 ## Who pays the monthly bill 
 
