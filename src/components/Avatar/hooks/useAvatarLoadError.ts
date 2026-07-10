@@ -6,13 +6,13 @@ import {useState} from 'react';
 
 /** Tracks whether the avatar's remote image failed to load, resetting the error state on network reconnect. */
 function useAvatarLoadError(originalSource?: AvatarSource) {
-    const [errorSource, setErrorSource] = useState<string | undefined>();
-    const hasImageError = errorSource !== undefined && errorSource === originalSource;
+    const [errorSource, setErrorSource] = useState<AvatarSource | undefined>();
+    const hasImageError = errorSource !== undefined;
 
     useNetwork({onReconnect: () => setErrorSource(undefined)});
 
     const onImageError = () => {
-        setErrorSource(typeof originalSource === 'string' ? originalSource : undefined);
+        setErrorSource(originalSource);
     };
 
     return {hasImageError, onImageError};

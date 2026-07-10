@@ -10,14 +10,21 @@ import {getAvatar, optimizeAvatarSource, parseLetterAvatarURL} from '@libs/UserA
 import useAvatarLoadError from './useAvatarLoadError';
 
 type UseUserAvatarSourceParams = {
+    /** Avatar to render: an image URL or an SVG icon. Falls back to `fallbackIcon` when missing or it fails to load. */
     source?: AvatarSource;
+
+    /** Owning account/policy ID. Complements `source` — picks the default avatar when `source` is a default or absent. */
     avatarID?: number | string;
+
+    /** Icon rendered when `source` is missing or fails to load. Defaults to the shared fallback avatar. */
     fallbackIcon?: AvatarSource;
-    fallbackIconTestID?: string;
+
+    /** Test ID applied to the fallback icon so end-to-end tests can locate it. */
+    fallbackIconTestID: string;
 };
 
 /** Resolves a user avatar source into a renderable model: locally drawn initials, a remote image, or an SVG icon. */
-function useUserAvatarSource({source: originalSource, avatarID, fallbackIcon, fallbackIconTestID = ''}: UseUserAvatarSourceParams): ResolvedAvatar {
+function useUserAvatarSource({source: originalSource, avatarID, fallbackIcon, fallbackIconTestID}: UseUserAvatarSourceParams): ResolvedAvatar {
     const defaultAvatars = useDefaultAvatars();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();

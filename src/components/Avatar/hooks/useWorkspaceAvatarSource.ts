@@ -10,23 +10,27 @@ import {optimizeAvatarSource} from '@libs/UserAvatarUtils';
 import useAvatarLoadError from './useAvatarLoadError';
 
 type UseWorkspaceAvatarSourceParams = {
+    /** Avatar to render: an image URL or an SVG icon. Falls back to the default workspace avatar when missing or it fails to load. */
     source?: AvatarSource;
-    name?: string;
+
+    /** Workspace name. Seeds the default workspace avatar (icon + test ID) used when `source` is missing. */
+    name: string;
+
+    /** Workspace/policy ID. Picks the background color of the default workspace avatar. */
     avatarID?: number | string;
 };
 
 /** Resolves a workspace avatar source into a renderable model: a remote image or an SVG icon, never initials. */
-function useWorkspaceAvatarSource({source: originalSource, name = '', avatarID}: UseWorkspaceAvatarSourceParams): ResolvedImageAvatar | ResolvedIconAvatar {
+function useWorkspaceAvatarSource({source, name, avatarID}: UseWorkspaceAvatarSourceParams): ResolvedImageAvatar | ResolvedIconAvatar {
     const StyleUtils = useStyleUtils();
     const defaultAvatars = useDefaultAvatars();
-    const {hasImageError, onImageError} = useAvatarLoadError(originalSource);
+    const {hasImageError, onImageError} = useAvatarLoadError(source);
 
-    const source = originalSource;
     const optimizedSource = optimizeAvatarSource(source);
-    const useFallBackAvatar = hasImageError || !source || source === defaultAvatars.FallbackAvatar;
+    const shouldUseFallBackAvatar = hasImageError || !source || source === defaultAvatars.FallbackAvatar;
     const fallbackAvatar = getDefaultWorkspaceAvatar(name);
     const fallbackAvatarTestID = getDefaultWorkspaceAvatarTestID(name);
-    const avatarSource = useFallBackAvatar ? fallbackAvatar : (optimizedSource ?? fallbackAvatar);
+    const avatarSource = shouldUseFallBackAvatar ? fallbackAvatar : (optimizedSource ?? fallbackAvatar);
     const iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(avatarID?.toString() ?? '');
 
     if (typeof avatarSource === 'string') {
