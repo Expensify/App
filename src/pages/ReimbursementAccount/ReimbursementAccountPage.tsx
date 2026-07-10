@@ -266,7 +266,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
         fetchData();
-    }, [isLoadingWorkspaceReimbursement, prevIsLoadingWorkspaceReimbursement, fetchData]);
+        // Run only on the loading transition, not when fetchData's identity changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoadingWorkspaceReimbursement, prevIsLoadingWorkspaceReimbursement]);
 
     useEffect(() => {
         // Consume this route intent only once so the response changing isPreviousPolicy does not trigger another request.
