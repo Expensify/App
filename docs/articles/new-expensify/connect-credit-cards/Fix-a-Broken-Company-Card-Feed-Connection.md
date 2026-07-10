@@ -94,3 +94,7 @@ After fixing the feed, you can update an assigned company card manually from the
 
 Double-check your bank credentials by logging into your bank, and complete any required steps in your bank portal. If the issue continues, contact Concierge with the cardholder email and last four digits of the card.
 
+## What happens if a company card connection stays broken for a long time?
+
+If a company card feed stays broken and unresolved for 90 days, Expensify stops actively prompting you about it: the notification in the **Time Sensitive** section on **Home**, the “Card feed connection is broken” banner, and the related red dots are removed. The connection is still broken and can still be fixed — from the **Company cards** list, select the affected card, choose **Update card**, and follow the prompts to reconnect.
+

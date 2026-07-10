@@ -137,3 +137,7 @@ The broken connection error is automatically removed when any of the following o
 - Logging into your bank successfully re-authenticates the connection.
 - Tapping Update card successfully refreshes the card.
 - Expensify's daily automatic card refresh succeeds.
+
+## What happens if a personal card connection stays broken for a long time?
+
+If a personal card connection stays broken and unresolved for 90 days, Expensify stops actively prompting you about it: the notification in the **Time Sensitive** section on **Home** and the red dots on **Wallet** are removed. The card connection is still broken and can still be fixed — go to **Account > Wallet**, select the card, and choose **Fix card** (or **Update card**) to reconnect.
