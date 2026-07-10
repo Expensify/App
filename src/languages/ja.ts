@@ -5520,6 +5520,28 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             exportCompanyCard: {label: '会社カード経費のエクスポート形式', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'クレジットカード'}}},
             defaultCompanyCardVendor: {label: 'デフォルトの会社カードベンダー', description: '自動的に一致しない経費に使用する既定の Rillet ベンダーを選択してください。'},
             companyCardAccount: {label: '会社カード口座', description: '会社カード取引のエクスポート先を選択してください。'},
+            noBankAccountsFound: '銀行口座が見つかりません',
+            noBankAccountsFoundDescription: 'Rillet に銀行口座を追加して、もう一度接続を同期してください',
+            autoSyncDescription: 'Rillet と Expensify を毎日自動で同期します。レポートはリアルタイムで同期されます。',
+            accountingMethods: {
+                label: 'エクスポート方法',
+                description: '経費をいつエクスポートするかを選択します。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '立替経費は最終承認後にエクスポートされます',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '立替経費は支払われるとエクスポートされます',
+                },
+            },
+            syncReimbursedReports: '精算済みレポートを同期',
+            syncReimbursedReportsDescription: 'レポートがACHで支払われると、この勘定科目に買掛金支払が生成されます。',
+            billPaymentAccount: {label: '請求支払用口座', description: '請求書の支払い元を選択すると、Rillet 内に支払いを作成します。'},
+            syncExpensifyCardSettlements: 'Expensify カードの清算を同期する',
+            settlementAccount: {label: 'Expensify カードの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
+            syncTravelInvoicingSettlements: '出張請求の精算を同期',
+            travelInvoicingSettlementAccount: {label: '出張請求の精算口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
         },
         type: {
             free: '無料',

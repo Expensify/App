@@ -1804,7 +1804,7 @@ type RilletExport = {
     cardProgramAccounts: Record<string, string>;
 
     /** Accounting method used during export. */
-    accountingMethod: string;
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 /**
@@ -2878,4 +2878,7 @@ export type {
     RilletCoding,
     RilletConnectionsConfig,
     RilletExport,
+    RilletBankAccount,
+    RilletAutoSync,
+    RilletSync,
 };
