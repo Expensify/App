@@ -1,5 +1,3 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -14,6 +12,10 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
@@ -84,6 +86,7 @@ import {
 import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
+    hasOnlyPendingCardTransactions,
     hasReceipt as hasReceiptTransactionUtils,
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
@@ -231,6 +234,10 @@ function isSubmitAction({
         return false;
     }
 
+    if (hasOnlyPendingCardTransactions(reportTransactions ?? [])) {
+        return false;
+    }
+
     if (violations && currentUserLogin && currentUserAccountID !== undefined) {
         if (reportTransactions.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserLogin, currentUserAccountID, report, policy))) {
             return false;
@@ -291,6 +298,7 @@ function isApproveAction(
     currentUserLogin: string,
     currentUserAccountID: number,
     report: Report,
+    ownerLogin: string | undefined,
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
     reportMetadata: OnyxEntry<ReportMetadata>,
@@ -329,7 +337,7 @@ function isApproveAction(
     }
     const isExpenseReport = isExpenseReportUtils(report);
     const reportHasDuplicatedTransactions = reportTransactions.some((transaction) =>
-        isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, policy, violations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]),
+        isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, ownerLogin, policy, violations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]),
     );
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
@@ -1002,7 +1010,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
-    if (isApproveAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, reportMetadata, policy)) {
+    if (isApproveAction(currentUserLogin, currentUserAccountID, report, submitterLogin, reportTransactions, violations, reportMetadata, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     }
 

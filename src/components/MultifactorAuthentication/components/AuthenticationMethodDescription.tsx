@@ -1,11 +1,15 @@
-import React from 'react';
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationStateContext';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import NATIVE_BIOMETRICS_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
 import type {AuthTypeName} from '@libs/MultifactorAuthentication/shared/types';
+
 import type {TranslationPaths} from '@src/languages/types';
+
+import React from 'react';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 const AUTH_TYPE_TRANSLATION_KEY = {

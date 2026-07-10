@@ -1,8 +1,11 @@
-import Onyx from 'react-native-onyx';
 import createTodosReportsAndTransactions, {buildTransactionsByReportID, getTodoReportsForSearchKey} from '@libs/TodosUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -248,6 +251,25 @@ describe('TodosUtils', () => {
             expect(result.reportsToSubmit).toEqual([]);
         });
 
+        it('excludes a report whose expenses are all pending card transactions', () => {
+            const pendingOverride: Partial<Transaction> = {status: CONST.TRANSACTION.STATUS.PENDING, bank: CONST.EXPENSIFY_CARD.BANK};
+            const submitReport = createMockReport('pending_submit', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                allReports: toReportsCollection([submitReport]),
+                allTransactions: toTransactionsCollection([createMockTransaction('trans_pending', 'pending_submit', pendingOverride)]),
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit).toEqual([]);
+        });
+
         it('ignores non-expense reports', () => {
             const chatReport = createMockReport('chat_report', {type: CONST.REPORT.TYPE.CHAT, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
             const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
@@ -314,6 +336,25 @@ describe('TodosUtils', () => {
                 ...baseParams,
                 allReports: toReportsCollection([submitReport]),
                 allTransactions: toTransactionsCollection([createMockTransaction('trans_held', 'held_submit', heldOverride)]),
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reports).toEqual([]);
+        });
+
+        it('excludes a report whose expenses are all pending card transactions from its bucket', () => {
+            const pendingOverride: Partial<Transaction> = {status: CONST.TRANSACTION.STATUS.PENDING, bank: CONST.EXPENSIFY_CARD.BANK};
+            const submitReport = createMockReport('pending_submit', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = getTodoReportsForSearchKey(CONST.SEARCH.SEARCH_KEYS.SUBMIT, {
+                ...baseParams,
+                allReports: toReportsCollection([submitReport]),
+                allTransactions: toTransactionsCollection([createMockTransaction('trans_pending', 'pending_submit', pendingOverride)]),
                 allPolicies: toPoliciesCollection([policy]),
             });
 

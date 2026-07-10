@@ -1,5 +1,3 @@
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
 import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
@@ -21,10 +19,16 @@ import Log from '@libs/Log';
 import {getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
+import {logReceiptEnqueued, RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Request';
+
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 let shouldFailAllRequests: boolean;
 // Use connectWithoutView since this is for network data and don't affect to any UI
@@ -552,6 +556,26 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
         isSequentialQueueRunning,
     });
 
+    if (RECEIPT_BEARING_COMMANDS.has(newRequest.command)) {
+        const data = (newRequest.data ?? {}) as {
+            transactionID?: string;
+            receipt?: {receiptTraceId?: string};
+        };
+        // Only log when there is a receipt at data.receipt. SplitBill nests it in the splits JSON, and SendMoney and
+        // friends can run without one. A row without a trace id cannot be joined to the capture log, so it is just noise.
+        if (data.receipt) {
+            logReceiptEnqueued({
+                receiptTraceId: data.receipt.receiptTraceId,
+                transactionID: data.transactionID,
+                command: newRequest.command,
+                persistedQueueLength: currentRequests.length,
+            });
+        }
+    }
+
+    // Save the request to the persisted queue. The in-memory update inside save()
+    // happens synchronously, so flush() below will see the new request immediately.
+    // The returned promise resolves when disk persistence completes.
     let persistencePromise: Promise<void>;
 
     if (newRequest.checkAndFixConflictingRequest) {
