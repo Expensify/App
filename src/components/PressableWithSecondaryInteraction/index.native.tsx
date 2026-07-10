@@ -1,9 +1,12 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import type {GestureResponderEvent, TextProps} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import usePressResponderProps from '@components/Pressable/PressResponder/usePressResponderProps';
 import Text from '@components/Text';
+
+import type {ReactNode} from 'react';
+import type {GestureResponderEvent, TextProps} from 'react-native';
+
+import React from 'react';
+
 import type PressableWithSecondaryInteractionProps from './types';
 
 /** This is a special Pressable that calls onSecondaryInteraction when LongPressed. */
