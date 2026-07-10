@@ -3,7 +3,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getAgentRuleDisplayTitle, type AgentRuleWithID} from '@libs/AgentRulesUtils';
+import {getAgentRuleDisplayTitle} from '@libs/AgentRulesUtils';
+import type {AgentRuleWithID} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {clearPolicyAgentRuleErrors} from '@userActions/Policy/Rules';
