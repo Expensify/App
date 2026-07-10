@@ -129,9 +129,6 @@ type MoneyRequestReportTransactionListController = {
     /** Pixel width of the table at full column visibility — passed to the horizontal scroll wrapper as `contentWidth`. */
     tableMinWidth: number;
 
-    /** Token that changes when the rendered list content changes; the horizontal scroll wrapper uses it to restore the previous offset. */
-    horizontalScrollRestorationKey: unknown;
-
     /** True when this report has no transactions; the parent should still render report actions but skip the transactions section. */
     isEmptyTransactions: boolean;
 };
@@ -1085,7 +1082,6 @@ function MoneyRequestReportTransactionList({
         afterListContent,
         shouldScrollHorizontally,
         tableMinWidth: minTableWidth,
-        horizontalScrollRestorationKey: sortedTransactions,
         isEmptyTransactions,
     };
 
