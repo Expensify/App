@@ -140,16 +140,19 @@ function WorkspaceCompanyCardsTable({
 
     // If we already have fetched cards, then do not show a loading spinner (let the remaining updates refresh in the background), else show it
     const hasCards = (companyCardEntries ?? []).length > 0;
+
     // When the last feed is removed, card data already implies no feed (isNoFeed); lastSelectedFeed Onyx metadata can still report loading after optimistic clear.
-    const isLoadingFeed =
-        !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || (!isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata)) || !!selectedFeedStatus?.isLoading);
-    const isLoadingCards = !hasCards && isLoadingOnyxValue(cardListMetadata);
-    const isLoadingPage = !isOffline && !hasCards && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
+    const isLoadingOnyxCardList = !hasCards && isLoadingOnyxValue(cardListMetadata);
+    const isLoadingOnyxPersonalDetails = isLoadingOnyxValue(personalDetailsMetadata);
+    const isLoadingOnyxFeed = !isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata);
+
+    const isLoadingPage = !isOffline && !hasCards && (isLoadingOnyxPersonalDetails || areWorkspaceCardFeedsLoading);
+    const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxFeed || !!selectedFeedStatus?.isLoading);
 
     const isLoading = isLoadingPage || isLoadingFeed;
 
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoading && !hasFeedErrors;
-    const showTableControls = showCards && !!selectedFeed && !isLoadingCards && !hasFeedErrors;
+    const showTableControls = showCards && !!selectedFeed && !isLoadingOnyxCardList && !hasFeedErrors;
     const showTableHeaderButtons = (showTableControls || isLoadingPage || isFeedPending || feedErrorKey === CONST.COMPANY_CARDS.FEED_LOAD_ERROR) && !!feedName;
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
@@ -185,7 +188,7 @@ function WorkspaceCompanyCardsTable({
         },
     ];
 
-    const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
+    const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingOnyxCardList
         ? []
         : (companyCardEntries ?? [])
               .map(({cardName, encryptedCardNumber, isAssigned, assignedCard}) => {
@@ -353,8 +356,8 @@ function WorkspaceCompanyCardsTable({
             {headerButtonsComponent}
 
             <Table.LoadingState
+                isLoading={isLoadingOnyxCardList}
                 context="WorkspaceCompanyCardsTable"
-                isLoading={isLoadingCards}
             />
 
             {!isLoading && isFeedPending && !feedErrorKey && (

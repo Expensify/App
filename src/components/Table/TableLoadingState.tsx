@@ -25,7 +25,6 @@ export default function TableLoadingState({context, isLoading}: TableLoadingStat
         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
             <ActivityIndicator
                 color={theme.spinner}
-                style={[styles.pl3]}
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                 reasonAttributes={{context, isLoading}}
             />
