@@ -1,11 +1,9 @@
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import DomainMembersTable from '@components/Tables/DomainMembersTable';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
 
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -59,12 +57,6 @@ type BaseDomainMembersPageProps = {
 
     /** Whether the group column should be shown in the table */
     shouldShowGroupColumn: boolean;
-
-    /** Title to show in the empty state when the list has no items */
-    emptyStateTitle?: string;
-
-    /** Subtitle to show in the empty state when the list has no items */
-    emptyStateSubtitle?: string;
 };
 
 function BaseDomainMembersPage({
@@ -81,24 +73,11 @@ function BaseDomainMembersPage({
     isItemInFilter,
     shouldShowGroupFilter,
     shouldShowGroupColumn,
-    emptyStateTitle,
-    emptyStateSubtitle,
 }: BaseDomainMembersPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-
-    const emptyStateComponent = (
-        <GenericEmptyStateComponent
-            headerMedia={illustrations.EmptyShelves}
-            headerContentStyles={styles.emptyShelvesIllustration}
-            title={emptyStateTitle ?? ''}
-            subtitle={emptyStateSubtitle}
-            headerStyles={styles.emptyStateCardIllustrationContainer}
-        />
-    );
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -127,7 +106,6 @@ function BaseDomainMembersPage({
                     shouldShowGroupColumn={shouldShowGroupColumn}
                     filterConfig={shouldShowGroupFilter ? filterConfig : undefined}
                     isItemInFilter={shouldShowGroupFilter ? isItemInFilter : undefined}
-                    EmptyStateComponent={emptyStateComponent}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

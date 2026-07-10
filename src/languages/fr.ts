@@ -520,6 +520,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Restrictions',
         tagGLCode: 'Taguer le code GL',
         off: 'Désactivé',
+        noResultsFoundSubtitle: 'Aucun résultat. Veuillez essayer de modifier vos filtres ou votre requête de recherche',
         unableToDisplayChart: 'Impossible d’afficher le graphique',
         webGLNotSupported: 'Votre navigateur ne prend pas en charge WebGL. Veuillez l’activer ou changer de navigateur.',
         apiKey: 'Clé API',
@@ -1079,6 +1080,18 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Personnalisez les contrôles et simplifiez les dépenses',
             setupRules: 'Configurer les règles de dépense',
             inviteAccountant: 'Inviter votre comptable',
+            begin: 'Commencer',
+            done: 'Terminé',
+            createWorkspaceSubText: 'Espace de travail prêt pour la configuration',
+            connectAccountingSubText: 'Synchronisez votre plan comptable et plus encore',
+            customizeCategoriesSubText: 'Ajoutez votre plan comptable',
+            inviteAccountantSubText: 'Accélérez la comptabilité de fin de mois',
+            linkCompanyCardsSubText: 'Importer automatiquement les dépenses',
+            setupRulesSubText: 'Exiger des reçus, signaler les dépenses élevées, et plus encore',
+            needHelp: 'Besoin d’aide ?',
+            talkToConcierge: 'Parler à Concierge',
+            talkToAccountExecutive: 'Parlez à votre chargé de compte',
+            forGuidedSetup: 'pour la configuration guidée.',
         },
         yourSpend: {
             title: 'Vos dépenses',
@@ -2212,6 +2225,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Se déconnecter',
         restoreStashed: 'Restaurer la connexion mise de côté',
         signOutConfirmationText: 'Vous perdrez toutes les modifications hors ligne si vous vous déconnectez.',
+        saveReceiptsConfirmation: {
+            title: 'Enregistrer vos reçus ?',
+            prompt: ({count}: {count: number}) =>
+                `${count} ${count === 1 ? 'reçu est' : 'reçus sont'} encore en cours de téléchargement. Si vous vous déconnectez maintenant, nous ${count === 1 ? "l'enregistrerons" : 'les enregistrerons'} dans vos photos pour que vous puissiez ${count === 1 ? "l'ajouter" : 'les ajouter'} à une nouvelle dépense plus tard.`,
+            confirm: 'Enregistrer et se déconnecter',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: 'Enregistrer vos reçus ?',
+            prompt: ({count}: {count: number}) =>
+                `${count} ${count === 1 ? 'reçu est' : 'reçus sont'} encore en cours de téléchargement. Si vous vous déconnectez maintenant, nous ${count === 1 ? "l'enregistrerons" : 'les enregistrerons'} dans vos photos pour que vous puissiez ${count === 1 ? "l'ajouter" : 'les ajouter'} à une nouvelle dépense plus tard. Vous perdrez toutes les autres modifications hors ligne.`,
+            confirm: 'Enregistrer et se déconnecter',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Lisez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation</a> et la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politique de confidentialité</a>.`,
         help: 'Aide',
@@ -4530,7 +4555,7 @@ ${amount} pour ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Responsable';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Administrateur d’espace de travail';
+                        return 'Administrateur de l’espace de travail';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditeur';
                     case CONST.POLICY.ROLE.EDITOR:
@@ -10044,7 +10069,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renommez vos recherches enregistrées</strong> ici !</tooltip>',
-        accountSwitcher: '<tooltip>Vous pouvez désormais copiloter un autre compte&nbsp;!</tooltip>',
+        accountSwitcher: '<tooltip>Accédez à vos <strong>comptes Copilot</strong> ici</tooltip>',
         outstandingFilter: '<tooltip>Filtrer les dépenses\nqui <strong>doivent être approuvées</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',

@@ -196,6 +196,7 @@ export default function WorkspaceExpensifyCardsTable({
                 )}
             </View>
             <Table.FilterBar label={translate('workspace.expensifyCard.findCard')} />
+            <Table.NoResultsState />
             <Table.Header />
         </>
     );
