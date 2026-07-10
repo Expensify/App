@@ -1244,7 +1244,9 @@ function importCSVCompanyCards({
 }: ImportCSVCompanyCardsData): Promise<ImportFinalModal> {
     const feedName = layoutType as CompanyCardFeed;
     const {csvDataWithGeneratedIDs, normalizedColumnMappings, transactions} = buildOptimisticCompanyCardCSVTransactions(csvData, columnMappings, feedName);
-    const instanceID = existingInstanceID ?? Date.now().toString();
+    // `existingInstanceID` is typed as a string, but for legacy feeds Onyx/NVP can store it as a number.
+    // The backend rejects a non-string `instanceID` before parsing the CSV, so coerce it to a string here.
+    const instanceID = existingInstanceID ? String(existingInstanceID) : Date.now().toString();
 
     const parameters: ImportCSVCompanyCardsParams = {
         policyID,
