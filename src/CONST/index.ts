@@ -4725,9 +4725,14 @@ const CONST = {
             NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT: 'quickbooks_desktop_export_account_credit',
 
             /**
-             * Name of Card NVP for QuickBooks Desktop custom export accounts
+             * Name of Card NVP for Certinia custom export vendors
              */
             NVP_FINANCIALFORCE_EXPORT_VENDOR: 'financialforce_export_vendor',
+
+            /**
+             * Name of Card NVP for Rillet custom export accounts
+             */
+            NVP_RILLET_EXPORT_ACCOUNT: 'rillet_export_account',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -4767,9 +4772,14 @@ const CONST = {
             NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT_POLICY_ID: 'quickbooks_desktop_export_account_credit_policy_id',
 
             /**
-             * Name of Card NVP for QuickBooks Desktop custom export accounts
+             * Name of Card NVP for Certinia custom export vendors
              */
             NVP_FINANCIALFORCE_EXPORT_VENDOR_POLICY_ID: 'financialforce_export_vendor_policy_id',
+
+            /**
+             * Name of Card NVP for Rillet custom export accounts
+             */
+            NVP_RILLET_EXPORT_ACCOUNT_POLICY_ID: 'rillet_export_account_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
