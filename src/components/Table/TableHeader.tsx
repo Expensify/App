@@ -147,15 +147,28 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
 
             {!shouldUseNarrowTableLayout && (
                 <>
-                    {!!selectionEnabled && (
-                        <Checkbox
-                            disabled={!hasSelectableRows}
-                            isChecked={isEverySelectableRowSelected}
-                            isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
-                            onPress={tableMethods.handleSelectAll}
-                            accessibilityLabel={translate('workspace.common.selectAll')}
-                        />
-                    )}
+                    {!!selectionEnabled &&
+                        (isTableSemanticsEnabled ? (
+                            // Exposed as a (non-sortable) column header so the header column count matches the data rows,
+                            // which now include the selection checkbox cell.
+                            <View {...getColumnHeaderAccessibilityProps(true, false, false)}>
+                                <Checkbox
+                                    disabled={!hasSelectableRows}
+                                    isChecked={isEverySelectableRowSelected}
+                                    isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
+                                    onPress={tableMethods.handleSelectAll}
+                                    accessibilityLabel={translate('workspace.common.selectAll')}
+                                />
+                            </View>
+                        ) : (
+                            <Checkbox
+                                disabled={!hasSelectableRows}
+                                isChecked={isEverySelectableRowSelected}
+                                isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
+                                onPress={tableMethods.handleSelectAll}
+                                accessibilityLabel={translate('workspace.common.selectAll')}
+                            />
+                        ))}
 
                     {columns.map((column) => {
                         return (

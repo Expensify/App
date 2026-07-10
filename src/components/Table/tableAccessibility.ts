@@ -85,8 +85,11 @@ function getRowAccessibilityProps(isEnabled: boolean, rowIndex: number, isHeader
     };
 }
 
-/** Props for a column header, including the direction the column is currently sorted in. */
-function getColumnHeaderAccessibilityProps(isEnabled: boolean, isSortable: boolean, isActiveSortColumn: boolean, sortOrder: SortOrder): TableAccessibilityProps {
+/**
+ * Props for a column header, including the direction the column is currently sorted in. `sortOrder` is only read for
+ * sortable columns, so non-sortable headers (e.g. the select-all corner) can omit it.
+ */
+function getColumnHeaderAccessibilityProps(isEnabled: boolean, isSortable: boolean, isActiveSortColumn: boolean, sortOrder?: SortOrder): TableAccessibilityProps {
     if (!isEnabled) {
         return {};
     }

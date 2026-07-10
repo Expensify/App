@@ -21,7 +21,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
-import {getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
+import {getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
 
 type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'> & {
@@ -158,6 +158,29 @@ export default function TableRow({
         tableMethods.handleSingleRowSelection(item.keyForList);
     };
 
+    const renderSelectionCheckbox = () => {
+        const checkbox = checkboxReplacementElement ?? (
+            <Checkbox
+                shouldStopMouseDownPropagation
+                containerStyle={styles.m0}
+                style={styles.flex1}
+                isChecked={!!item.selected}
+                disabled={!!item.disabled || !!item.isSelectionDisabled}
+                accessibilityLabel={translate('common.select')}
+                onPress={(event) => handleCheckboxPress(event)}
+            />
+        );
+
+        // When table semantics apply, the checkbox occupies the leading grid column, so it is exposed as a table cell to
+        // keep the row's cell count aligned with `aria-colcount` (which counts the selection column). The wrapper is only
+        // added in that case to avoid changing the checkbox's grid layout on native and in the narrow card layout.
+        if (!isTableSemanticsEnabled) {
+            return checkbox;
+        }
+
+        return <View {...getCellAccessibilityProps(true)}>{checkbox}</View>;
+    };
+
     const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
         if (isDisabled || !interactive) {
             return;
@@ -227,18 +250,7 @@ export default function TableRow({
                 {(state) => (
                     <Animated.View style={tableRowContentContainerStyles}>
                         <View style={tableRowContentStyles}>
-                            {!!isSelectionCheckboxVisible &&
-                                (checkboxReplacementElement ?? (
-                                    <Checkbox
-                                        shouldStopMouseDownPropagation
-                                        containerStyle={styles.m0}
-                                        style={styles.flex1}
-                                        isChecked={!!item.selected}
-                                        disabled={!!item.disabled || !!item.isSelectionDisabled}
-                                        accessibilityLabel={translate('common.select')}
-                                        onPress={(event) => handleCheckboxPress(event)}
-                                    />
-                                ))}
+                            {!!isSelectionCheckboxVisible && renderSelectionCheckbox()}
                             {renderChildren(state)}
                         </View>
 

@@ -106,6 +106,10 @@ describe('tableAccessibility', () => {
             expect(getColumnHeaderAccessibilityProps(true, false, false, 'asc')).toEqual({role: CONST.ROLE.COLUMNHEADER});
         });
 
+        it('allows omitting the sort order for non-sortable headers (e.g. the select-all corner)', () => {
+            expect(getColumnHeaderAccessibilityProps(true, false, false)).toEqual({role: CONST.ROLE.COLUMNHEADER});
+        });
+
         it('reports a sortable but inactive column as unsorted', () => {
             expect(getColumnHeaderAccessibilityProps(true, true, false, 'asc')).toEqual({
                 role: CONST.ROLE.COLUMNHEADER,
