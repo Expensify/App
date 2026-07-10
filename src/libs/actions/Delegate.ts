@@ -286,20 +286,21 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
     ];
 
     // We need to access the authToken directly from the response to update the session
-    // The promise is returned so callers can run follow-up work (e.g. deleting the agent) once the original session is restored.
+    // The promise resolves to true only once the original session is fully restored, so callers can gate
+    // follow-up work that must run under the original user's identity (e.g. deleting the agent).
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {optimisticData, successData, failureData})
         .then((response) => {
             if (!response?.authToken || !response?.encryptedAuthToken) {
                 Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
                 restoreDelegateSession(stashedSession ?? {});
-                return;
+                return false;
             }
 
             if (!response?.requesterID || !response?.requesterEmail) {
                 Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
                 restoreDelegateSession(stashedSession ?? {});
-                return;
+                return false;
             }
 
             clearPreservedSearchNavigatorStates();
@@ -346,10 +347,12 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                                 accountID: '',
                             });
                         });
+                    return true;
                 });
         })
         .catch((error) => {
             Log.alert('[Delegate] Error disconnecting as a delegate', {error});
+            return false;
         });
 }
 

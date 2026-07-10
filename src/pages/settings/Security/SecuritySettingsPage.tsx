@@ -13,6 +13,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,7 +24,6 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {deleteAgent} from '@libs/actions/Agent';
 import {disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
-import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import {hasDeviceManagementError} from '@libs/UserUtils';
 
@@ -67,6 +67,8 @@ function SecuritySettingsPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
@@ -186,6 +188,18 @@ function SecuritySettingsPage() {
                 // When copiloting into an agent, "close account" deletes the agent and ends the copilot session
                 // instead of running the usual close-account flow (which targets a real user's account).
                 if (isCopilotingIntoAgent) {
+                    // Ending the copilot session is a network side-effect request (DisconnectAsDelegate) that isn't
+                    // persisted to the SequentialQueue, so it can't be queued and retried while offline. Require a
+                    // connection before starting the flow instead of letting it stall.
+                    if (isOffline) {
+                        showConfirmModal({
+                            title: translate('common.youAppearToBeOffline'),
+                            prompt: translate('common.thisFeatureRequiresInternet'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
+                        return;
+                    }
                     const result = await showConfirmModal({
                         title: translate('editAgentPage.deleteAgentTitle'),
                         prompt: translate('editAgentPage.deleteAgentMessage'),
@@ -196,13 +210,17 @@ function SecuritySettingsPage() {
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    // Delete the agent from within the copilot session (the backend authorizes the owner via the
-                    // delegate token), then end the copilot session. We wait for the DELETE_AGENT request to flush
-                    // before disconnecting: disconnect() swaps the auth token back to the owner and clears the request
-                    // queue, so firing them in parallel would drop the still-in-flight delete.
-                    deleteAgent(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, undefined, undefined, false);
-                    await waitForIdle();
-                    disconnect({stashedCredentials, stashedSession});
+                    // The DeleteAgent command must be issued by the agent's owner, but while copiloting the session is
+                    // authenticated as the agent itself. So capture the agent's identity, end the copilot session
+                    // (which restores the owner's session and auth token), and only then delete the agent as the
+                    // owner. If the disconnect fails the owner's session was never restored, so skip the delete.
+                    const agentAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+                    const agentLogin = currentUserPersonalDetails.login;
+                    const didDisconnect = await disconnect({stashedCredentials, stashedSession});
+                    if (!didDisconnect) {
+                        return;
+                    }
+                    deleteAgent(agentAccountID, agentLogin, allPolicies, false);
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_CLOSE);
@@ -237,6 +255,8 @@ function SecuritySettingsPage() {
         session?.accountID,
         stashedCredentials,
         stashedSession,
+        allPolicies,
+        isOffline,
         privateSubscription?.type,
         currentUserPersonalDetails.login,
         waitForNavigate,
