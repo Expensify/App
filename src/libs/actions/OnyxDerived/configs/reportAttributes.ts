@@ -322,6 +322,7 @@ export default createOnyxDerivedValueConfig({
                     isReportArchived,
                     allTransactions: transactions,
                     reports,
+                    policies,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserLogin: session?.email ?? '',
                 });
