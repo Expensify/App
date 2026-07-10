@@ -145,7 +145,8 @@ describe('getBestMatchingPath', () => {
 
     it('redirects old settings tag routes to the new dynamic suffix shape', () => {
         expect(getMatchingNewRoute('/settings/p123/tags/10/edit')).toBe('/settings/p123/tags/settings-tags-edit/10');
-        expect(getMatchingNewRoute('/settings/p123/tags/settings/edit/10')).toBe('/settings/p123/tags/settings/settings-tags-edit/10');
+        expect(getMatchingNewRoute('/settings/p123/tags/settings')).toBe('/settings/p123/tags/settings-tags-settings');
+        expect(getMatchingNewRoute('/settings/p123/tags/settings/edit/10')).toBe('/settings/p123/tags/settings-tags-settings/settings-tags-edit/10');
         expect(getMatchingNewRoute('/settings/p123/tags/tag-list/0/edit/0')).toBe('/settings/p123/tags/tag-list/0/settings-tags-edit/0');
         expect(getMatchingNewRoute('/settings/p123/tags/new')).toBe('/settings/p123/tags/tag-new');
         expect(getMatchingNewRoute('/settings/p123/tag/10/Meals')).toBe('/settings/p123/tags/tag-settings/10/Meals');
@@ -155,12 +156,16 @@ describe('getBestMatchingPath', () => {
 
     it('preserves query params when redirecting old settings tag routes', () => {
         expect(getMatchingNewRoute('/settings/p123/tags/10/edit?backTo=/home')).toBe('/settings/p123/tags/settings-tags-edit/10?backTo=/home');
+        expect(getMatchingNewRoute('/settings/p123/tags/settings?backTo=/home')).toBe('/settings/p123/tags/settings-tags-settings?backTo=/home');
         expect(getMatchingNewRoute('/settings/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/settings/p123/tags/tag-settings/10/Meals?parentTagsFilter=Food');
     });
 
     it('redirects old workspace tag routes to the new dynamic suffix shape', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings')).toBe('/workspaces/p123/tags/tags-settings');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/workspaces/p123/tags/tag-create');
+        expect(getMatchingNewRoute('/workspaces/p123/tag-list/0')).toBe('/workspaces/p123/tags/workspace-tag-list/0');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/import')).toBe('/workspaces/p123/tags/workspace-tags-import');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/imported')).toBe('/workspaces/p123/tags/workspace-tags-imported');
         expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit')).toBe('/workspaces/p123/tags/tags-settings/workspace-edit-tags/10');
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals')).toBe('/workspaces/p123/tags/workspace-tag-settings/10/Meals');
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/edit')).toBe('/workspaces/p123/tags/workspace-tag-settings/10/Meals/workspace-tag-edit');
@@ -171,6 +176,9 @@ describe('getBestMatchingPath', () => {
     it('preserves query params when redirecting old workspace tag routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings?backTo=/home')).toBe('/workspaces/p123/tags/tags-settings?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new?backTo=/home')).toBe('/workspaces/p123/tags/tag-create?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tag-list/0?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tag-list/0?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/import?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tags-import?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/imported?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tags-imported?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit?backTo=/home')).toBe('/workspaces/p123/tags/tags-settings/workspace-edit-tags/10?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/workspaces/p123/tags/workspace-tag-settings/10/Meals?parentTagsFilter=Food');
     });
@@ -178,12 +186,16 @@ describe('getBestMatchingPath', () => {
     it('does not redirect the new workspace tag dynamic routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/tag-create')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tag-list/0')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tags-import')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tags-imported')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings/workspace-edit-tags/10')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tag-settings/10/Meals')).toBe(undefined);
     });
 
     it('does not redirect the new settings tag dynamic routes', () => {
         expect(getMatchingNewRoute('/settings/p123/tags/settings-tags-edit/10')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/p123/tags/settings-tags-settings')).toBe(undefined);
         expect(getMatchingNewRoute('/settings/p123/tags/tag-list/0/settings-tags-edit/0')).toBe(undefined);
     });
 
@@ -203,6 +215,23 @@ describe('getBestMatchingPath', () => {
     it('redirects old travel upgrade path to dynamic route', () => {
         expect(getMatchingNewRoute('/travel/upgrade')).toBe('/travel/travel-upgrade');
         expect(getMatchingNewRoute('/travel/upgrade?backTo=/home')).toBe('/travel/travel-upgrade?backTo=/home');
+    });
+
+    it('redirects legacy new task flat routes to the new nested dynamic routes', () => {
+        expect(getMatchingNewRoute('/new/task/details')).toBe('/task-details');
+        expect(getMatchingNewRoute('/new/task')).toBe('/task-details/task-confirm');
+        expect(getMatchingNewRoute('/new/task/title')).toBe('/task-details/task-confirm/task-title');
+        expect(getMatchingNewRoute('/new/task/description')).toBe('/task-details/task-confirm/task-description');
+        expect(getMatchingNewRoute('/new/task/assignee')).toBe('/task-details/task-confirm/task-assignee');
+    });
+
+    it('preserves query params when redirecting legacy new task routes', () => {
+        expect(getMatchingNewRoute('/new/task?backTo=/home')).toBe('/task-details/task-confirm?backTo=/home');
+        expect(getMatchingNewRoute('/new/task/title?backTo=/home')).toBe('/task-details/task-confirm/task-title?backTo=/home');
+    });
+
+    it('does not redirect the unchanged new task share destination route', () => {
+        expect(getMatchingNewRoute('/new/task/share-destination')).toBe(undefined);
     });
 
     it('redirects legacy profile avatar path to new avatar route', () => {
@@ -302,6 +331,21 @@ describe('getBestMatchingPath', () => {
         );
     });
 
+    it('does not rewrite workspace company card settings sub-pages', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/settings/feed-name')).toBe('/workspaces/p123/company-cards/settings/feed-name');
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/settings/statement-close-date')).toBe('/workspaces/p123/company-cards/settings/statement-close-date');
+    });
+
+    it('does not rewrite workspace company card add-card-feed sub-pages', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/add-card-feed/import')).toBe('/workspaces/p123/company-cards/add-card-feed/import');
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/add-card-feed/import/mapping')).toBe('/workspaces/p123/company-cards/add-card-feed/import/mapping');
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/add-card-feed/layout-name')).toBe('/workspaces/p123/company-cards/add-card-feed/layout-name');
+    });
+
+    it('does not rewrite the add-card-feed flow opened from the select-feed screen', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/select-feed/add-card-feed')).toBe('/workspaces/p123/company-cards/select-feed/add-card-feed');
+    });
+
     it('does not rewrite dynamic assign-card assignee paths', () => {
         expect(getMatchingNewRoute('/workspaces/D56D50B841F69B0E/company-cards/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee')).toBe(
             '/workspaces/D56D50B841F69B0E/company-cards/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee',
@@ -312,5 +356,39 @@ describe('getBestMatchingPath', () => {
         expect(
             getMatchingNewRoute('/workspaces/D56D50B841F69B0E/company-cards/company-card-details/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee'),
         ).toBe('/workspaces/D56D50B841F69B0E/company-cards/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee');
+    });
+
+    it('redirects legacy Expensify Card details paths to the new card-details dynamic route', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456')).toBe('/workspaces/p123/expensify-card/card-details/456');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456?backTo=/home')).toBe('/workspaces/p123/expensify-card/card-details/456?backTo=/home');
+    });
+
+    it('redirects legacy Expensify Card details nested edit paths to the new card-details dynamic route', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456/edit/limit-type')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/limit-type');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456/edit/limit')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/limit');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456/edit/name')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/name');
+    });
+
+    it('does not rewrite Expensify Card keyword sibling routes that share the single-segment shape', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/settings')).toBe('/workspaces/p123/expensify-card/settings');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/choose-bank-account')).toBe('/workspaces/p123/expensify-card/choose-bank-account');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/select-feed')).toBe('/workspaces/p123/expensify-card/select-feed');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/issue-new')).toBe('/workspaces/p123/expensify-card/issue-new');
+    });
+
+    it('does not rewrite Expensify Card sibling subtrees', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/settings/frequency')).toBe('/workspaces/p123/expensify-card/settings/frequency');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/settings/account')).toBe('/workspaces/p123/expensify-card/settings/account');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/issue-new/rules/max-amount')).toBe('/workspaces/p123/expensify-card/issue-new/rules/max-amount');
+    });
+
+    it('does not rewrite Expensify Card numeric fundID work-email paths', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/work-email')).toBe('/workspaces/p123/expensify-card/789/work-email');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/verify-work-email')).toBe('/workspaces/p123/expensify-card/789/verify-work-email');
+    });
+
+    it('does not rewrite the already-migrated Expensify Card details paths', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/card-details/456')).toBe('/workspaces/p123/expensify-card/card-details/456');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/card-details/456/edit/limit')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/limit');
     });
 });
