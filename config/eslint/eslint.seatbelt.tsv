@@ -20,7 +20,6 @@
 "../../.github/libs/GithubUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../.github/libs/sanitizeJSONStringValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/scripts/createDocsRoutes.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../.storybook/webpack.config.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../__mocks__/@pusher/pusher-websocket-react-native/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../__mocks__/@react-native-camera-roll/camera-roll.ts"	"@typescript-eslint/no-deprecated/CameraRoll.save"	1
 "../../__mocks__/@react-native-community/netinfo.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -359,10 +358,13 @@
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	2
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/ApproveActionButton.tsx"	"no-restricted-imports"	1
+"../../src/components/ReportActionItem/MoneyRequestReportPreview/ApproveActionButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewProvider.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
+"../../src/components/ReportActionItem/MoneyRequestReportPreview/PayActionButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton.tsx"	"no-restricted-imports"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/SubmitActionButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
+"../../src/components/ReportActionItem/MoneyRequestReportPreview/useReportPreviewActionDecision.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/ReportActionItem/TaskPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TaskView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TransactionPreview/TransactionPreviewContent.tsx"	"no-restricted-imports"	1
@@ -620,6 +622,7 @@
 "../../src/hooks/useReceiptScanDrop.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useReportPrimaryAction.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useReportScrollManager/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/hooks/useReportTransactionViolations.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useReportTransactions.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResetBankAccountModal.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
@@ -2318,6 +2321,7 @@
 "../../tests/utils/createMock.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/utils/createSharedValueMock.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/utils/getIsUsingFakeTimers.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../webpack/CustomVersionFilePlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../webpack/ModuleInitTimingPlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../webpack/webpack.common.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../rsbuild/CustomVersionFilePlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../rsbuild/ModuleInitTimingPlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../rspack/RspackPreloadPlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../rsbuild/rsbuild.common.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
