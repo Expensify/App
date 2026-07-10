@@ -28,13 +28,12 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
     const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
     const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
-
-    const [cardFeeds] = useCardFeeds(policyID);
-    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const cardsUsingCustomAccountsCount = getCardsUsingCustomExportAccountsCount(cardFeeds ?? {}, cardList ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
 
     return (

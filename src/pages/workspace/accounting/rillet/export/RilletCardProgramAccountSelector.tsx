@@ -47,17 +47,16 @@ function RilletCardProgramAccountSelector({
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
+    const [cardFeeds] = useCardFeeds(policyID);
+    const cardFeed = cardFeeds?.[feedWithDomainID];
     const feedKey = splitCardFeedWithDomainID(feedWithDomainID)?.feedName as CardFeed;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
     const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
     const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
     const cardProgramAccountCode = cardProgramsUsingCustomAccounts?.[feedKey] ?? creditCardAccountCode;
-    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.getRoute(policyID) : undefined;
-
-    const [cardFeeds] = useCardFeeds(policyID);
-    const cardFeed = cardFeeds?.[feedWithDomainID];
     const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.getRoute(policyID) : undefined;
 
     const data: AccountListItem[] =
         rilletData?.accounts

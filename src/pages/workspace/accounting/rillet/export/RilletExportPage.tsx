@@ -32,6 +32,8 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const policyOwner = policy?.owner;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
@@ -46,9 +48,6 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
     const cardProgramsOfflineFeedbackKeys = [CONST.EXPENSIFY_CARD.BANK, ...Object.values(CONST.COMPANY_CARD.FEED_BANK_NAME)].map(
         (program) => `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program}`,
     );
-
-    const [cardFeeds] = useCardFeeds(policyID);
-    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const cardsUsingCustomAccountsCount = getCardsUsingCustomExportAccountsCount(cardFeeds ?? {}, cardList ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
 
     const {isAccordionExpanded: isExportToMultipleAccountsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateExportToMultipleAccountsAccordionSection} =
