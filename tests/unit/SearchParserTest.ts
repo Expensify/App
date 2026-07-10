@@ -1112,7 +1112,7 @@ const keywordTests = [
         },
     },
     {
-        query: 'columns:original-amount,tax,report-id',
+        query: 'columns:purchase-amount,tax,report-id',
         expected: {
             type: 'expense',
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
