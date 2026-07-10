@@ -53,8 +53,11 @@ function VictoryChartPieLabelIndicator({
     // inside it if they sit at sufficiently different angles (the chord bows toward center) — visible as
     // the leader line cutting across a neighboring slice when several tiny slices sit close together with
     // very different resolved rows. Find the closest point on the ring-to-bend segment to the center; if
-    // it would dip inside the safe radius, push that point outward onto the safe circle instead of
-    // connecting the two directly.
+    // it would dip inside the ring, push that point outward onto the ring attachment point's own radius
+    // instead of connecting the two directly. This must be checked against innerRadius, not the more
+    // generous safeRadius above — the ring attachment point itself always sits at exactly innerRadius by
+    // construction, so checking against safeRadius would flag its own neighborhood as unsafe and bulge
+    // every single line.
     const segmentDx = bendX - x1;
     const segmentDy = resolvedLabel.y - y1;
     const segmentLengthSquared = segmentDx ** 2 + segmentDy ** 2;
@@ -63,8 +66,8 @@ function VictoryChartPieLabelIndicator({
     const closestY = y1 + closestT * segmentDy - slice.center.y;
     const closestDistance = Math.sqrt(closestX ** 2 + closestY ** 2);
     const bulgePoint =
-        closestDistance > 0 && closestDistance < safeRadius
-            ? {x: slice.center.x + (closestX * safeRadius) / closestDistance, y: slice.center.y + (closestY * safeRadius) / closestDistance}
+        closestDistance > 0 && closestDistance < innerRadius
+            ? {x: slice.center.x + (closestX * innerRadius) / closestDistance, y: slice.center.y + (closestY * innerRadius) / closestDistance}
             : undefined;
 
     const path = Skia.Path.Make();
