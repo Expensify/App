@@ -50,7 +50,7 @@ function InfoPopover() {
 
 ```tsx
 import type {ReactNode} from 'react';
-import AnimatedSurface, {FADE_ONLY_ENTER_SPEC, FADE_ONLY_EXIT_SPEC} from '@components/Overlay/AnimatedSurface';
+import AnimatedSurface, {FADE_ONLY_ENTER_SPEC, FADE_ONLY_EXIT} from '@components/Overlay/AnimatedSurface';
 import DismissableLayer from '@components/Overlay/DismissableLayer';
 import Portal from '@components/Overlay/Portal';
 import Presence from '@components/Overlay/Presence';
@@ -63,7 +63,7 @@ function CustomModal({isOpen, onClose, children}: {isOpen: boolean; onClose: () 
                 <DismissableLayer.Modal onDismiss={onClose}>
                     <AnimatedSurface
                         enterSpec={FADE_ONLY_ENTER_SPEC}
-                        exitSpec={FADE_ONLY_EXIT_SPEC}
+                        exitTo={FADE_ONLY_EXIT}
                         enterTiming={CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN}
                         exitTiming={CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT}
                         style={cardChrome}
@@ -146,7 +146,7 @@ Escape (web) / hardware-back (native) / outside-click, with topmost-layer gating
 ### Other primitives
 
 - **`<Presence>`** — keeps children mounted through their exit animation (`mounted` → `unmountSuspended` → `unmounted`). `onExitComplete` fires when it's gone, and a custom (non-`AnimatedSurface`) child reads the phase with `usePresence()`.
-- **`<AnimatedSurface>`** — Reanimated enter/exit, inside a `<Presence>` parent. `FADE_ONLY_ENTER_SPEC` / `FADE_ONLY_EXIT_SPEC` cover the fade case.
+- **`<AnimatedSurface>`** — Reanimated enter/exit, inside a `<Presence>` parent. `FADE_ONLY_ENTER_SPEC` / `FADE_ONLY_EXIT` cover the fade case (exit is target-only, so it's an `AnimationFrame`, not a spec).
 - **`<Portal>`** — renders into `document.body` (web) / an `RNModal` (native).
 - **`createHeadingSystem(name)`** — dialog naming, wired as in the example above. `useRegisteredTitle` / `useRegisteredDescription` let a custom node own the id instead of `<Title>` / `<Description>`.
 
