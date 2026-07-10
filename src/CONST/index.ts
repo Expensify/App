@@ -980,7 +980,6 @@ const CONST = {
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         CERTINIA: 'financialForceNewDot',
-        MERGE_HR: 'mergeHRConnections',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
@@ -1781,6 +1780,7 @@ const CONST = {
             THREAD_DISABLED: ['CREATED'],
             LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
+            LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
         },
         CANCEL_PAYMENT_REASONS: {
@@ -2204,6 +2204,12 @@ const CONST = {
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         ATTRIBUTE_IS_WARM: 'is_warm',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
+        // Stamped on the navigate-to-inbox-tab span: wide-layout navigations mount the central report
+        // pane in the same commit as the sidebar, so they measure a much bigger workload than narrow ones.
+        ATTRIBUTE_WIDE_LAYOUT: 'wide_layout',
+        // Stamped on the navigate-to-inbox-tab span when the app-loading skeleton was shown instead of the
+        // report list, so durations that include the openApp wait can be excluded from render measurements.
+        ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
@@ -2445,6 +2451,7 @@ const CONST = {
         SUSTAINED_FAILURE_THRESHOLD_COUNT: 3,
         SUSTAINED_FAILURE_WINDOW_MS: 10 * 1000,
         RECONNECT_STAMPEDE_JITTER_MS: 5000,
+        STALLED_UPDATES_FETCH_BACKOFF_TIME_MS: 60 * 1000,
     },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
@@ -2816,6 +2823,7 @@ const CONST = {
         SYNC_CLASSES: 'syncClasses',
         SYNC_CUSTOMERS: 'syncCustomers',
         SYNC_LOCATIONS: 'syncLocations',
+        SYNC_ITEMS: 'syncItems',
         SYNC_TAX: 'syncTax',
         EXPORT: 'export',
         EXPORTER: 'exporter',
@@ -2894,6 +2902,7 @@ const CONST = {
     },
     CERTINIA_FFA_BUNDLE_INSTALL_URL: {
         PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
+        SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
     },
 
     CERTINIA_PSA_BUNDLE_VERSION: '1.3',
@@ -3390,6 +3399,37 @@ const CONST = {
     RILLET_MAPPING_VALUE: {
         NONE: 'NONE',
         TAG: 'TAG',
+    },
+
+    RILLET_EXPORT_REIMBURSABLE: {
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
+    RILLET_EXPORT_COMPANY_CARD: {
+        CREDIT_CARD: 'CREDIT_CARD',
+    },
+
+    RILLET_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    RILLET_ACCOUNT_STATUS: {
+        ACTIVE: 'ACTIVE',
+        INACTIVE: 'INACTIVE',
+    },
+
+    RILLET_ACCOUNT_TYPE: {
+        ASSET: 'ASSET',
+        LIABILITY: 'LIABILITY',
+        EQUITY: 'EQUITY',
+        EXPENSE: 'EXPENSE',
+        INCOME: 'INCOME',
+    },
+
+    RILLET_ACCOUNT_SUBTYPE: {
+        CREDIT_CARD: 'Credit Card',
     },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
@@ -3939,6 +3979,7 @@ const CONST = {
             MAKE_AUDITOR: 'makeAuditor',
             MAKE_CARD_ADMIN: 'makeCardAdmin',
             MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
+            MAKE_PAYMENTS_ADMIN: 'makePaymentsAdmin',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -4404,6 +4445,7 @@ const CONST = {
             COMPANY_CARD: 'CompanyCard',
             EXPENSIFY_CARD: 'ExpensifyCard',
         },
+        CARD_LIST: 'cardList',
         FEED_KEY_SEPARATOR: '#',
         CARD_NUMBER_MASK_CHAR: 'X',
         STEP_NAMES: ['1', '2', '3', '4'],
@@ -5955,6 +5997,13 @@ const CONST = {
         SMALL: 'small',
     },
 
+    ICON_SIZE: {
+        EXTRA_SMALL: 'extra-small',
+        SMALL: 'small',
+        MEDIUM: 'medium',
+        LARGE: 'large',
+    },
+
     NAVIGATION: {
         CUSTOM_HISTORY_ENTRY_SIDE_PANEL: 'CUSTOM_HISTORY-SIDE_PANEL',
         CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR: 'CUSTOM_HISTORY-MFA_MODAL_NAVIGATOR',
@@ -6520,6 +6569,7 @@ const CONST = {
             PENDING: 'pending',
             CLEARED: 'cleared',
             FAILED: 'failed',
+            NEVER: 'never',
         },
         PAID_STATUS: {
             MARKED_AS_PAID: 'markedAsPaid',
@@ -6623,6 +6673,7 @@ const CONST = {
                     FIRST_APPROVED: this.TABLE_COLUMNS.FIRST_APPROVED,
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
+                    PAID_STATUS: this.TABLE_COLUMNS.PAID_STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
@@ -6850,6 +6901,7 @@ const CONST = {
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
             AVATAR: 'avatar',
             STATUS: 'status',
+            PAID_STATUS: 'paidstatus',
             EXPENSES: 'expenses',
             FEED: 'feed',
             WITHDRAWN: 'withdrawn',
@@ -7048,7 +7100,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.TO]: 'to',
                 [this.TABLE_COLUMNS.CATEGORY]: 'category',
                 [this.TABLE_COLUMNS.TAG]: 'tag',
-                [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'original-amount',
+                [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'purchase-amount',
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
                 [this.TABLE_COLUMNS.TAX_RATE]: 'tax-rate',
@@ -7441,6 +7493,7 @@ const CONST = {
                 title: 'workspace.upgrade.controlPolicyRoles.title' as const,
                 description: 'workspace.upgrade.controlPolicyRoles.description' as const,
                 icon: 'BlueShield',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             reports: {
                 id: 'reports' as const,
@@ -8264,6 +8317,7 @@ const CONST = {
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
+            GETTING_STARTED_FOOTER_HELP: 'HomePage-GettingStartedFooterHelp',
         },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
@@ -8743,6 +8797,12 @@ const CONST = {
         MFA_OVERLAY: {
             BACKDROP: 'MfaOverlay-Backdrop',
         },
+        AGENTS: {
+            TABLE_ROW: 'Agents-TableRow',
+            CHAT: 'Agents-Chat',
+            COPILOT: 'Agents-Copilot',
+            EDIT: 'Agents-Edit',
+        },
         DOMAIN: {
             ADMINS: {
                 ROW: 'DomainAdmins-Row',
@@ -8788,7 +8848,16 @@ const CONST = {
     HOME: {
         // Maximum number of items in TimeSensitiveSection and YourSpendSection. Any extra items are revealed via the expand toggle button.
         SECTION_VISIBLE_LIMIT: 5,
+
+        // Cutoff for the "For You" new-vs-old segment: users whose free trial started on/after this date have the empty section hidden.
+        FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
         ANNOUNCEMENTS: [
+            {
+                title: 'More Concierge AI upgrades, plus agent beta',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260701645763/en/Expensifys-AI-Expands-to-Expense-Automation-Spend-Insights-and-Agents',
+                publishedDate: '2026-07-01',
+            },
             {
                 title: 'Ask Concierge AI: charts, insights & more',
                 subtitle: 'Newsletter',
@@ -8800,12 +8869,6 @@ const CONST = {
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-june-2026-product-update',
                 publishedDate: '2026-06-24',
-            },
-            {
-                title: 'Connect Expensify to ChatGPT, Claude, Cursor',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260608727624/en/Expensify-Launches-MCP-for-AI-powered-Expense-Management',
-                publishedDate: '2026-06-08',
             },
         ],
     },

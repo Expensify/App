@@ -100,7 +100,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const cardFeedIcon = (
         <CardFeedIcon
             isExpensifyCardFeed
-            iconProps={{height: variables.cardIconHeight, width: variables.cardIconWidth, additionalStyles: styles.cardIcon}}
+            iconProps={{
+                height: variables.cardIconHeight,
+                width: variables.cardIconWidth,
+                additionalStyles: styles.cardIcon,
+            }}
         />
     );
 
@@ -151,11 +155,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     frozenDate: card.nameValuePairs?.frozen?.date,
                     errors: card.errors,
                     pendingAction: card.pendingAction,
-                    action: () => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, card.cardID.toString())),
+                    action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(card.cardID.toString()))),
                     onClose: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),
                 };
             }),
-        [allCards, defaultFundID, personalDetails, policyID, settlementCurrency, translate],
+        [allCards, defaultFundID, personalDetails, settlementCurrency, translate],
     );
 
     const bulkExportOptions: Array<DropdownOption<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>> = [
@@ -219,7 +223,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     <ButtonWithDropdownMenu<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>
                         success
                         onPress={() => {}}
-                        customText={translate('workspace.common.selected', {count: selectedCardIDs.length})}
+                        customText={translate('workspace.common.selected', {
+                            count: selectedCardIDs.length,
+                        })}
                         options={bulkExportOptions}
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu
