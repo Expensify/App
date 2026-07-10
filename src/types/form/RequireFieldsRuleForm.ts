@@ -29,5 +29,5 @@ type RequireFieldsRuleForm = Form<
 
 type RequireFieldsRuleSettingFieldKey = Exclude<InputID, typeof INPUT_IDS.CATEGORY>;
 
-export type {FieldRequirementSetting, RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey};
+export type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey};
 export default INPUT_IDS;
