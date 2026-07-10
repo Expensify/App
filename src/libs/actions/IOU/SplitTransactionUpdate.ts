@@ -69,7 +69,7 @@ import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams} fr
 import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
 
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
-import {getAllReports, getPolicyTagsData} from './index';
+import {getAllReports} from './index';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewAction} from './MoneyRequestBuilder';
 import {addPendingNewTransactionIDs} from './PendingNewTransactions';
@@ -788,8 +788,7 @@ function updateSplitTransactions({
                     transactionChanges,
                     policy,
                     policyTagList: policyTags ?? null,
-                    // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-                    reportPolicyTags: getPolicyTagsData(transactionIOUReport?.policyID),
+                    reportPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionIOUReport?.policyID}`],
                     policyCategories: policyCategories ?? null,
                     newTransactionReportID,
                     policyRecentlyUsedCategories,
