@@ -26,11 +26,11 @@ const ADMIN_ACCOUNT_ID = 1;
 const IMPORT_BUTTON_TEXT = 'Import';
 
 jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     // jest.requireActual returns `any` for the untyped React Navigation module
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actualNav = jest.requireActual('@react-navigation/native');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     // Spreading the untyped requireActual result is intentional for this navigation mock
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actualNav,
         useNavigation: () => ({
