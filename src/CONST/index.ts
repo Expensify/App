@@ -980,7 +980,6 @@ const CONST = {
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         CERTINIA: 'financialForceNewDot',
-        MERGE_HR: 'mergeHRConnections',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
