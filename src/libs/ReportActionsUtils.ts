@@ -1338,6 +1338,7 @@ function isReportActionVisible(
     reportID: string | undefined,
     canUserPerformWriteAction?: boolean,
     visibleReportActions?: VisibleReportActionsDerivedValue,
+    currentUserAccountID?: number,
 ): boolean {
     if (!reportAction?.reportActionID) {
         return false;
@@ -1347,18 +1348,18 @@ function isReportActionVisible(
     // from what's cached in visibleReportActions (which reflects persisted Onyx data).
     // We must recalculate visibility at runtime to ensure accuracy for these transient states.
     if (reportAction.pendingAction) {
-        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
+        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
     }
 
     if (visibleReportActions && reportID) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
         }
         const staticVisibility = reportCache[reportAction.reportActionID];
         // If action is not in derived value cache, fall back to runtime calculation
         if (staticVisibility === undefined) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
         }
         if (!staticVisibility) {
             return false;
@@ -1368,7 +1369,7 @@ function isReportActionVisible(
         }
         return true;
     }
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
 }
 
 /**
@@ -1380,6 +1381,7 @@ function isReportActionVisibleAsLastAction(
     canUserPerformWriteAction?: boolean,
     visibleReportActions?: VisibleReportActionsDerivedValue,
     reportID?: string,
+    currentUserAccountID?: number,
 ): boolean {
     if (!reportAction) {
         return false;
@@ -1397,7 +1399,7 @@ function isReportActionVisibleAsLastAction(
     return (
         (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction) && !isModifiedExpenseAction(reportAction)) ||
             isActionableMentionWhisper(reportAction)) &&
-        isReportActionVisible(reportAction, actionReportID, canUserPerformWriteAction, visibleReportActions) &&
+        isReportActionVisible(reportAction, actionReportID, canUserPerformWriteAction, visibleReportActions, currentUserAccountID) &&
         reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
     );
@@ -1435,6 +1437,7 @@ function getLastVisibleAction(
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportActionsParam: OnyxCollection<ReportActions> = allReportActions,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
+    currentUserAccountID?: number,
 ): OnyxEntry<ReportAction> {
     let reportActions: Array<ReportAction | null | undefined> = [];
     if (!isEmpty(actionsToMerge)) {
@@ -1448,7 +1451,7 @@ function getLastVisibleAction(
     // O(n) scan to find the newest visible action, avoiding O(n log n) sort
     let newest: ReportAction | undefined;
     for (const action of reportActions) {
-        if (!action || !isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData, reportID)) {
+        if (!action || !isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData, reportID, currentUserAccountID)) {
             continue;
         }
         if (!newest || isNewerReportAction(action, newest)) {
@@ -1468,14 +1471,15 @@ function getLastVisibleActionIncludingTransactionThread(
     reportActionsParam: OnyxCollection<ReportActions> = allReportActions,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
     transactionThreadReportID?: string,
+    currentUserAccountID?: number,
 ): OnyxEntry<ReportAction> {
-    const parentLastAction = getLastVisibleAction(reportID, canUserPerformWriteAction, {}, reportActionsParam, visibleReportActionsData);
+    const parentLastAction = getLastVisibleAction(reportID, canUserPerformWriteAction, {}, reportActionsParam, visibleReportActionsData, currentUserAccountID);
 
     if (!transactionThreadReportID) {
         return parentLastAction;
     }
 
-    const childLastAction = getLastVisibleAction(transactionThreadReportID, canUserPerformWriteAction, {}, reportActionsParam, visibleReportActionsData);
+    const childLastAction = getLastVisibleAction(transactionThreadReportID, canUserPerformWriteAction, {}, reportActionsParam, visibleReportActionsData, currentUserAccountID);
 
     if (
         childLastAction &&
@@ -1511,8 +1515,9 @@ function getLastVisibleMessage(
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportAction: OnyxInputOrEntry<ReportAction> | undefined = undefined,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
+    currentUserAccountID?: number,
 ): LastVisibleMessage {
-    const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge, undefined, visibleReportActionsData);
+    const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge, undefined, visibleReportActionsData, currentUserAccountID);
     const message = getReportActionMessage(lastVisibleAction);
 
     if (message && isReportMessageAttachment(message)) {
