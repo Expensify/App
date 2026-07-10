@@ -37,7 +37,7 @@ If you don't see **Agents** in your **Account** settings, the Beta isn't enabled
 6. Review the note above the **Create agent** button, which explains that the agent will be added as a full-access Copilot of your account so it can act on your behalf.
 7. Click **Create agent**.
 
-After saving, the new agent appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** buttons.
+After saving, the new agent appears in your **Agents** list. Click or tap the agent's row to open **Edit agent**, where you can chat with the agent, Copilot into its account, update its instructions, or delete it.
 
 ![The Agents page in Account settings, showing the New agent button and a list of created agents]({{site.url}}/assets/images/ExpensiHelp-CustomAgents-1.png){:width="100%"}
 
@@ -74,7 +74,8 @@ To open a direct conversation with an agent:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
 2. Click **Agents**.
-3. Find the agent you want to message, then click the chat icon on the agent's row.
+3. Click or tap the agent's row to open **Edit agent**.
+4. Click **Chat with agent**.
 
 ---
 
@@ -86,7 +87,8 @@ Use Copilot to see what the agent has done, review its activity, and inspect any
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
 2. Click **Agents**.
-3. Find the agent in the list and click **Copilot**.
+3. Click or tap the agent's row to open **Edit agent**.
+4. Click **Copilot into account**.
 
 [Learn more about Copilot](/articles/new-expensify/settings/Act-as-a-Copilot).
 
@@ -98,8 +100,8 @@ You can edit an agent's instructions at any time.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
 2. Click **Agents**.
-3. Find the agent you want to change, then click **Edit**.
-4. Click the **Write custom instructions** section.
+3. Click or tap the agent's row to open **Edit agent**.
+4. Click **Write custom instructions**.
 5. Enter the new instructions you want the agent to follow.
 6. Click **Save**.
 
@@ -111,7 +113,7 @@ Deleting an agent closes its Expensify account.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
 2. Click **Agents**.
-3. Find the agent you want to remove, then click **Edit**.
+3. Click or tap the agent's row to open **Edit agent**.
 4. Click **Delete agent**.
 5. Confirm the deletion.
 
