@@ -7,16 +7,17 @@ import type {Policy, Session} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useIsFocused} from '@react-navigation/native';
 import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
+import useHasReportAwaitingApproval from './useHasReportAwaitingApproval';
 import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
-import useTodoCounts from './useTodoCounts';
 
 const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -75,9 +76,10 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // A report awaiting the current user's approval makes the "Needs approval" suggested search relevant even when they
-    // are not part of the policy's approval workflow (e.g. an approver chosen manually on a single report).
-    const {counts: todoCounts} = useTodoCounts();
-    const hasReportAwaitingApproval = todoCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE] > 0;
+    // are not part of the policy's approval workflow (e.g. an approver chosen manually on a single report). Gate it on
+    // focus so it doesn't recompute off-screen on background Onyx writes.
+    const isFocused = useIsFocused();
+    const hasReportAwaitingApproval = useHasReportAwaitingApproval(isFocused);
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
