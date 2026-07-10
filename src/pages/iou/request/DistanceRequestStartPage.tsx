@@ -51,12 +51,7 @@ function DistanceRequestStartPage({
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
-    const {policy} = usePolicyForTransaction({
-        transaction,
-        reportPolicyID: report?.policyID,
-        action,
-        iouType,
-    });
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
