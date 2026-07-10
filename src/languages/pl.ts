@@ -5554,6 +5554,28 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             exportCompanyCard: {label: 'Eksportuj wydatki z firmowej karty jako', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'Karty kredytowe'}}},
             defaultCompanyCardVendor: {label: 'Domyślny dostawca karty firmowej', description: 'Wybierz domyślnego dostawcę Rillet dla wydatków, które nie dopasują się automatycznie.'},
             companyCardAccount: {label: 'Konto karty firmowej', description: 'Wybierz miejsce eksportu transakcji z kart firmowych.'},
+            noBankAccountsFound: 'Nie znaleziono żadnych kont bankowych',
+            noBankAccountsFoundDescription: 'Dodaj proszę konta bankowe w Rillet i zsynchronizuj połączenie ponownie',
+            autoSyncDescription: 'Synchronizuj Rillet i Expensify automatycznie, każdego dnia. Raporty synchronizują się w czasie rzeczywistym.',
+            accountingMethods: {
+                label: 'Metoda eksportu',
+                description: 'Wybierz, kiedy eksportować wydatki.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Memoriał',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Gotówka',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po ostatecznym zatwierdzeniu',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po ich opłaceniu',
+                },
+            },
+            syncReimbursedReports: 'Synchronizuj rozliczone raporty',
+            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, na tym koncie zostanie wygenerowana płatność rachunku.',
+            billPaymentAccount: {label: 'Konto do opłacania rachunków', description: 'Wybierz, z którego konta chcesz opłacać rachunki, a my utworzymy płatność w Rillet.'},
+            syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
+            settlementAccount: {label: 'Rachunek rozliczeniowy Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Rillet.'},
+            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia fakturowania podróży',
+            travelInvoicingSettlementAccount: {label: 'Konto rozliczeniowe fakturowania podróży', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Rillet.'},
         },
         type: {
             free: 'Darmowy',
