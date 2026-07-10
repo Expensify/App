@@ -10,7 +10,7 @@ import {openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuc
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU/PayMoneyRequest';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
-import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
@@ -175,7 +175,7 @@ function KYCWall({
                         if (inviteResult?.policyExpenseChatReportID) {
                             setNavigationActionToMicrotaskQueue(() => {
                                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(inviteResult.policyExpenseChatReportID));
-                                if (adminPolicy?.achAccount) {
+                                if (adminPolicy?.achAccount?.bankAccountID) {
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: adminPolicy.id}));
@@ -187,7 +187,7 @@ function KYCWall({
                             if (moveResult?.policyExpenseChatReportID && !moveResult.useTemporaryOptimisticExpenseChatReportID) {
                                 setNavigationActionToMicrotaskQueue(() => {
                                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(moveResult.policyExpenseChatReportID));
-                                    if (adminPolicy?.achAccount) {
+                                    if (adminPolicy?.achAccount?.bankAccountID) {
                                         return;
                                     }
                                     Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: adminPolicy.id}));
@@ -199,17 +199,18 @@ function KYCWall({
 
                     const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, currentUserEmail);
                     const {policyID, workspaceChatReportID, adminsChatReportID} =
-                        createWorkspaceFromIOUPayment(
+                        createWorkspaceFromIOUPayment({
                             iouReport,
                             reportPreviewAction,
                             currentUserAccountID,
                             currentUserEmail,
-                            employeeLogin ?? '',
-                            localCurrency,
+                            iouReportOwnerEmail: employeeLogin ?? '',
+                            currentUserLocalCurrency: localCurrency,
                             lastWorkspaceNumber,
-                            translate,
-                            filteredReportActions,
-                        ) ?? {};
+                            localeTranslate: translate,
+                            reportActionsList: filteredReportActions,
+                            doesEmployeePersonalDetailExist: doesSubmitterPersonalDetailExist ?? false,
+                        }) ?? {};
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
@@ -227,9 +228,12 @@ function KYCWall({
                     return;
                 }
 
-                if (policy?.id !== undefined && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy.id)) {
-                    navigateToBankAccountRoute({policyID: policy.id});
-                    return;
+                if (policy?.id !== undefined) {
+                    const bankAccount = Object.values(bankAccountList).find((account) => account.accountData?.policyIDs?.includes(policy.id));
+                    if (isBankAccountPartiallySetup(bankAccount?.accountData?.state)) {
+                        navigateToBankAccountRoute({policyID: policy.id, policyCurrency: policy.outputCurrency, bankAccountState: bankAccount?.accountData?.state});
+                        return;
+                    }
                 }
 
                 // If user has existing bank accounts that he can connect we show the list of these accounts

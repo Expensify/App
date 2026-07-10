@@ -334,6 +334,7 @@ const config = defineConfig([
             'rulesdir/no-beta-handler': 'error',
             'rulesdir/require-live-region-for-status-updates': 'error',
             'rulesdir/require-a11y-disable-justification': 'error',
+            'rulesdir/no-useOnyx-dependencies-arg': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {

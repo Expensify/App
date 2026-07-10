@@ -42,7 +42,7 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     filterConfig: FilterConfig<FilterKey> | undefined;
 
     /** Currently active filter values. */
-    activeFilters: Record<FilterKey, unknown>;
+    activeFilters: Partial<Record<FilterKey, string[]>>;
 
     /** Currently active sorting configuration. */
     activeSorting: ActiveSorting<ColumnKey>;

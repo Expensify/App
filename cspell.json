@@ -405,8 +405,10 @@
         "VBBA",
         "VENDORID",
         "VMPD",
+        "VPAT",
         "Valuska",
         "Venmo",
+        "WCAG",
         "WDYR",
         "Wallester",
         "Warchoł",
@@ -969,6 +971,7 @@
         "unflushed",
         "unheld",
         "unhold",
+        "unimodules",
         "uninstallations",
         "unminified",
         "unmuting",
@@ -1053,7 +1056,8 @@
         "Prefetch",
         "Prefetcher",
         "knip",
-        "lottiefiles"
+        "lottiefiles",
+        "jsitooling"
     ],
     "ignorePaths": [
         ".gitignore",
