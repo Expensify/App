@@ -2,6 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import CardFeedIcon from '@components/CardFeedIcon';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScrollView from '@components/ScrollView';
 import Table from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
@@ -34,6 +35,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
+import F from 'lodash/fp/F';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
@@ -339,21 +341,6 @@ function WorkspaceCompanyCardsTable({
         </View>
     ) : undefined;
 
-    const LoadingComponent = (
-        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
-            <ActivityIndicator
-                color={theme.spinner}
-                style={[styles.pl3]}
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={{
-                    context: 'WorkspaceCompanyCardsTable',
-                    isLoading,
-                    isLoadingCards,
-                }}
-            />
-        </View>
-    );
-
     return (
         <Table
             ref={tableRef}
@@ -370,7 +357,17 @@ function WorkspaceCompanyCardsTable({
         >
             {headerButtonsComponent}
 
-            {isLoadingCards && <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>}
+            {isLoadingCards && (
+                <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>
+                    <FullScreenLoadingIndicator
+                        reasonAttributes={{
+                            context: 'WorkspaceCompanyCardsTable',
+                            isLoading,
+                            isLoadingCards,
+                        }}
+                    />
+                </View>
+            )}
 
             {!isLoading && isFeedPending && !feedErrorKey && (
                 <ScrollView addBottomSafeAreaPadding>
