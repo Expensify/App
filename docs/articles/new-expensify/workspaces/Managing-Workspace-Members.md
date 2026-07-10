@@ -1,7 +1,7 @@
 ---
 title: Managing Workspace Members in New Expensify
 description: Learn how to add, remove, filter, and manage user roles in a New Expensify workspace.
-keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, invite users, filter members, role filter]
+keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, invite users, filter members, role filter]
 ---
 
 
@@ -13,6 +13,7 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 - **Workspace admin** – Can manage members, roles, workflows, and settings.
 - **Card admin** – Can manage the Expensify Card and Company cards, including issuing cards, setting limits, and assigning company cards. Has read-only access to Overview and Members, and all other workspace settings pages are hidden. (Control workspaces only)
 - **People admin** – Can manage workspace membership and configure approval workflows. People admins can add and remove Members and Auditors only, and cannot add or remove Admins or other scoped admin roles. They have read-only access to the workspace overview and edit access to Members and the Approvals section of Workflows. All other workspace editor pages are hidden. (Control workspaces only)
+- **Payments admin** – Can manage workspace payment settings in the **Payments** section of **Workflows**, including business bank accounts, the authorized expense payer, and payment methods. Payment permissions are otherwise unchanged, so paying a report still depends on the relevant bank account being shared with the payer. Has read-only access to the workspace overview and Members, and all other workspace editor pages are hidden. (Control workspaces only)
 - **Auditor** – Can view and comment on reports and has read-only access to all workspace editor pages (such as Categories, Tags, Rules, Workflows, and Accounting). Auditors cannot change any workspace settings or take workflow actions such as approving, paying, or taking control. (Control workspaces only)
 - **Editor** – Can edit workspace settings, but cannot see all expenses associated with the workspace. They cannot add Admins to the workspace or change other users’ roles. (Submit workspaces only)
 
@@ -46,6 +47,7 @@ You can filter the member list by role to quickly find specific groups of member
    - **Approvers** – Shows only members who are designated approvers.
    - **Workspace admins** – Shows only members with the Admin role (not available on Submit workspaces).
    - **Card admins** – Shows only members with the Card admin role (Control workspaces only).
+   - **Payments admins** – Shows only members with the Payments admin role (Control workspaces only).
    - **Auditors** – Shows only members with the Auditor role (Control workspaces only).
    - **Editors** – Shows only members with the Editor role (Submit workspaces only).
 

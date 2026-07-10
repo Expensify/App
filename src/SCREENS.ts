@@ -453,12 +453,12 @@ const SCREENS = {
     },
 
     NEW_TASK: {
-        ROOT: 'NewTask_Root',
-        TASK_ASSIGNEE_SELECTOR: 'NewTask_TaskAssigneeSelector',
+        DYNAMIC_ROOT: 'Dynamic_NewTask_Root',
+        DYNAMIC_TASK_ASSIGNEE: 'Dynamic_NewTask_TaskAssigneeSelector',
+        DYNAMIC_TASK_TITLE: 'Dynamic_NewTask_Title',
+        DYNAMIC_TASK_DESCRIPTION: 'Dynamic_NewTask_Description',
+        DYNAMIC_TASK_DETAILS: 'Dynamic_NewTask_Details',
         TASK_SHARE_DESTINATION_SELECTOR: 'NewTask_TaskShareDestinationSelector',
-        DETAILS: 'NewTask_Details',
-        TITLE: 'NewTask_Title',
-        DESCRIPTION: 'NewTask_Description',
     },
 
     TASK: {
@@ -673,6 +673,11 @@ const SCREENS = {
             RILLET_VENDOR_BILL_DATE: 'Policy_Accounting_Rillet_Vendor_Bill_Date',
             RILLET_COMPANY_CARD_ACCOUNT: 'Policy_Accounting_Rillet_Company_Card_Account',
             RILLET_DEFAULT_COMPANY_CARD_VENDOR: 'Policy_Accounting_Rillet_Default_Company_Card_Vendor',
+            RILLET_ADVANCED: 'Policy_Accounting_Rillet_Advanced',
+            RILLET_EXPORT_METHOD: 'Policy_Accounting_Rillet_Export_Method',
+            RILLET_BILL_PAYMENT_ACCOUNT: 'Policy_Accounting_Rillet_Bill_Payment_Account',
+            RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: 'Policy_Accounting_Rillet_Expensify_Card_Settlement_Account',
+            RILLET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: 'Policy_Accounting_Rillet_Travel_Invoicing_Settlement_Account',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS: 'Dynamic_Policy_Accounting_Reconciliation_Account_Settings',
@@ -718,7 +723,7 @@ const SCREENS = {
         COMPANY_CARD_EDIT_TRANSACTION_START_DATE: 'Workspace_CompanyCard_Edit_Transaction_Start_Date',
         DYNAMIC_COMPANY_CARD_EXPORT: 'Dynamic_Workspace_CompanyCard_Export',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
-        EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
+        DYNAMIC_EXPENSIFY_CARD_DETAILS: 'Dynamic_Workspace_ExpensifyCard_Details',
         EXPENSIFY_CARD_ADD_WORK_EMAIL: 'Workspace_ExpensifyCard_Add_Work_Email',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: 'Dynamic_Workspace_ExpensifyCard_New',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE: 'Dynamic_Workspace_ExpensifyCard_IssueNew_ConfirmMagicCode',
@@ -854,8 +859,8 @@ const SCREENS = {
         DOWNGRADE: 'Workspace_Downgrade',
         PAY_AND_DOWNGRADE: 'Workspace_Pay_And_Downgrade',
         RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
-        RECEIPT_PARTNERS_INVITE: 'Workspace_Receipt_Partners_Invite',
-        RECEIPT_PARTNERS_INVITE_EDIT: 'Workspace_Receipt_Partners_Invite_Edit',
+        DYNAMIC_RECEIPT_PARTNERS_INVITE: 'Dynamic_Workspace_Receipt_Partners_Invite',
+        DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT: 'Dynamic_Workspace_Receipt_Partners_Invite_Edit',
         RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT: 'Workspace_Receipt_Partners_Change_Billing_Account',
         RULES: 'Policy_Rules',
         REPORTS_DEFAULT_TITLE: 'Reports_Default_Title',
@@ -960,6 +965,10 @@ const SCREENS = {
 
     MIGRATED_USER_WELCOME_MODAL: {
         DYNAMIC_ROOT: 'Dynamic_MigratedUserWelcomeModal_Root',
+    },
+
+    AI_FEATURES_PROMO_MODAL: {
+        DYNAMIC_ROOT: 'Dynamic_AIFeaturesPromoModal_Root',
     },
 
     TEST_DRIVE_DEMO: {
