@@ -159,10 +159,11 @@ function MoneyRequestReportUnifiedList({
     }, [report.reportID, scrollOffsetStore]);
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        if (isHorizontalTable) {
-            // Emitter, not state: the nested FlashList updates its own render stack without re-rendering the parent.
-            scrollOffsetStore.setOffset(event.nativeEvent.contentOffset.y);
-        }
+        // Always feed the offset store (emitter, not state: the nested FlashList updates its own render stack without
+        // re-rendering the parent). Feed it even in inline mode — the store has no subscribers then, so this is a cheap
+        // write — so that if the layout flips to the horizontal table, the nested list windows against the real scroll
+        // offset instead of a stale 0.
+        scrollOffsetStore.setOffset(event.nativeEvent.contentOffset.y);
         onScroll(event);
     };
 
