@@ -600,6 +600,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         );
     }
 
+    // Once fresh data has loaded, trust the live value to avoid a one-frame flash from the effect-synced state lagging achData.
+    const shouldShowContinueSetupButtonToDisplay = hasLoadedData ? shouldShowContinueSetupButtonValue : shouldShowContinueSetupButton;
+
     return (
         <VerifiedBankAccountFlowEntryPoint
             setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
@@ -607,7 +610,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             onContinuePress={isNonUSDSetup ? continueNonUSDVBBASetup : continueUSDVBBASetup}
             policyName={policyName}
             backTo={backTo}
-            shouldShowContinueSetupButton={shouldShowContinueSetupButton}
+            shouldShowContinueSetupButton={shouldShowContinueSetupButtonToDisplay}
             isNonUSDWorkspace={isNonUSDSetup}
             setUSDBankAccountStep={setUSDBankAccountStep}
             policyID={policyIDParam}
