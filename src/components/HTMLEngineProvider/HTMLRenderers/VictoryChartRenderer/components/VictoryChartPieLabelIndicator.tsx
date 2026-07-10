@@ -33,21 +33,25 @@ function VictoryChartPieLabelIndicator({
     // always-safe spot instead of that circle's arbitrary "midpoint".
     const {midAngle} = resolvedLabel;
     const midRadius = (slice.radius + slice.innerRadius) / 2;
-    const labelIndicatorInnerRadius = midRadius + (labelIndicatorInnerOffset ?? 0);
+    const innerRadius = midRadius + (labelIndicatorInnerOffset ?? 0);
 
-    const x1 = Math.round(slice.center.x + labelIndicatorInnerRadius * Math.cos(midAngle) + (labelIndicatorXShift ?? 0));
-    const y1 = Math.round(slice.center.y + labelIndicatorInnerRadius * Math.sin(midAngle) + (labelIndicatorYShift ?? 0));
+    const x1 = Math.round(slice.center.x + innerRadius * Math.cos(midAngle) + (labelIndicatorXShift ?? 0));
+    const y1 = Math.round(slice.center.y + innerRadius * Math.sin(midAngle) + (labelIndicatorYShift ?? 0));
 
-    // Bend near the ring first — a diagonal that covers both the x and y offset toward the resolved
-    // row — then run flat into the label (x only) so the line meets the text at its own height instead
-    // of approaching it at an angle. The diagonal's horizontal reach must grow with how far the row was
-    // pushed vertically (at least 1:1, i.e. never steeper than 45°): a fixed reach regardless of the
-    // vertical distance would turn into a near-vertical stroke hugging the ring once a label is pushed
-    // any real distance from its natural position, reading as a line cutting through the chart itself.
-    const verticalRun = resolvedLabel.y - y1;
-    const availableRun = resolvedLabel.x - x1;
-    const diagonalRunX = Math.sign(availableRun) * Math.min(Math.abs(availableRun), Math.max(Math.abs(labelIndicatorOuterOffset ?? 0), Math.abs(verticalRun)));
-    const bendX = x1 + diagonalRunX;
+    // The final segment must be purely horizontal, at the resolved row's height, so the line meets the
+    // label text at that height instead of approaching it at an angle — which fixes the bend point's Y
+    // to resolvedLabel.y. Rather than reaching that Y by extending along the slice's own angle (which
+    // can overshoot well past the row for slices near the top/bottom seam, or land back inside the ring
+    // when the row differs enough from the slice's natural position and there isn't room left before the
+    // column), solve directly for how far out in X the bend must sit at that exact Y to clear the ring,
+    // clamped between the ring touchpoint and the label itself.
+    const safeRadius = slice.radius + (labelIndicatorOuterOffset ?? 0);
+    const verticalOffsetFromCenter = resolvedLabel.y - slice.center.y;
+    const requiredHorizontalOffset = Math.sqrt(Math.max(0, safeRadius ** 2 - verticalOffsetFromCenter ** 2));
+    const ringHorizontalOffset = x1 - slice.center.x;
+    const labelHorizontalOffset = resolvedLabel.x - slice.center.x;
+    const bendHorizontalOffset = Math.min(Math.max(requiredHorizontalOffset, Math.abs(ringHorizontalOffset)), Math.abs(labelHorizontalOffset));
+    const bendX = slice.center.x + Math.sign(labelHorizontalOffset) * bendHorizontalOffset;
 
     const path = Skia.Path.Make();
     path.moveTo(x1, y1);
