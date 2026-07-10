@@ -1,13 +1,16 @@
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
+import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
+import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
@@ -25,15 +28,18 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
+import {getSaveablePendingReceiptRequests, saveReceiptsToGallery} from '@libs/savePendingReceiptsToGallery';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -44,6 +50,8 @@ import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_T
 
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
+
+import variables from '@styles/variables';
 
 import {openExternalLink, openOldDotLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
@@ -104,7 +112,11 @@ type MenuData = WithSentryLabel & {
     isBadgeCondensed?: boolean;
 };
 
-type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
+type Menu = {
+    sectionStyle: StyleProp<ViewStyle>;
+    sectionTranslationKey: TranslationPaths;
+    items: MenuData[];
+};
 
 export type {MenuData};
 
@@ -124,6 +136,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'Lightbulb',
         'Lock',
         'Users',
+        'Emoji',
         'CreditCard',
         'Wallet',
         'Bolt',
@@ -132,8 +145,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
-    const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: expensifyLoginsSelector,
+    });
+    const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: hasDeviceManagementError,
+    });
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const allCards = useNonPersonalCardList();
@@ -150,15 +167,19 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
     const network = useNetwork();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
+    const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasLockedBankAccount = bankAccountList ? Object.values(bankAccountList).some((bankAccount) => bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) : false;
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
-    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {
+        selector: isTrackingSelector,
+    });
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
@@ -180,7 +201,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         personalCard: {shouldShowRBR: shouldShowRBRForPersonalCard},
     } = useCardFeedErrors();
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: isActingAsDelegateSelector,
+    });
     const hasVirtualCardMissingDetails = hasVirtualExpensifyCardMissingPersonalDetails(allCards, privatePersonalDetails, isActingAsDelegate);
     let walletBrickRoadIndicator;
     if (
@@ -226,16 +249,81 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         });
     };
 
+    const showSaveReceiptsModal = (pendingReceiptCount: number) => {
+        return showConfirmModal({
+            title: translate('initialSettingsPage.saveReceiptsConfirmation.title'),
+            prompt: translate('initialSettingsPage.saveReceiptsConfirmation.prompt', {
+                count: pendingReceiptCount,
+            }),
+            confirmText: translate('initialSettingsPage.saveReceiptsConfirmation.confirm'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+        });
+    };
+
+    // Combined modal for the offline case: warns about losing offline changes and offers to save the pending receipts, so the user is not shown two back-to-back prompts.
+    const showSaveReceiptsAndSignOutModal = (pendingReceiptCount: number) => {
+        return showConfirmModal({
+            title: translate('initialSettingsPage.saveReceiptsAndSignOutConfirmation.title'),
+            prompt: translate('initialSettingsPage.saveReceiptsAndSignOutConfirmation.prompt', {
+                count: pendingReceiptCount,
+            }),
+            confirmText: translate('initialSettingsPage.saveReceiptsAndSignOutConfirmation.confirm'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+    };
+
+    // Save must complete before the forced-signout branch dispatches `Onyx.clear`, which wipes the persisted queue that holds these local file paths.
+    const saveReceipts = async (saveableReceipts: ReturnType<typeof getSaveablePendingReceiptRequests>) => {
+        try {
+            const {savedCount, failedCount} = await saveReceiptsToGallery(saveableReceipts);
+            Log.info('[Receipt] Saved pending receipts to gallery before sign-out', false, {savedCount, failedCount});
+        } catch (error) {
+            Log.alert('[Receipt] Unexpected rejection from saveReceiptsToGallery; sign-out continued', {error});
+        }
+    };
+
     const signOut = async (shouldForceSignout = false) => {
-        if ((!network.isOffline && !isTrackingGPS) || shouldForceSignout) {
+        // Forced sign-out (expired session, SAML re-auth) must be non-interactive: it must not touch the gallery flow, which can trigger OS permission prompts and delay the redirect.
+        if (shouldForceSignout) {
             return signOutAndRedirectToSignIn();
         }
 
-        // When offline, warn the user that any actions they took while offline will be lost if they sign out
-        const result = await showSignOutModal();
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
+        // `getSaveablePendingReceiptRequests` is platform-split (web returns `[]`) and image-filtered so we do not promise a save the native gallery API can not deliver.
+        const saveableReceipts = getSaveablePendingReceiptRequests();
+        const shouldWarnBeforeSignOut = network.isOffline || isTrackingGPS;
+        // Offline + receipts is the common case; merge the offline warning and the save-receipts prompt into a single modal. GPS keeps its own warning, so it falls through to the two-step path below.
+        const isOfflineReceiptsCase = network.isOffline && !isTrackingGPS && saveableReceipts.length > 0;
+
+        if (!shouldWarnBeforeSignOut && saveableReceipts.length === 0) {
+            return signOutAndRedirectToSignIn();
         }
+
+        if (isOfflineReceiptsCase) {
+            const result = await showSaveReceiptsAndSignOutModal(saveableReceipts.length);
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            await saveReceipts(saveableReceipts);
+        } else {
+            if (shouldWarnBeforeSignOut) {
+                const result = await showSignOutModal();
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+            }
+
+            if (saveableReceipts.length > 0) {
+                const result = await showSaveReceiptsModal(saveableReceipts.length);
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                await saveReceipts(saveableReceipts);
+            }
+        }
+
         if (isTrackingGPS) {
             stopGpsTripNotification();
             stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
@@ -496,8 +584,32 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     reasonAttributes={skeletonReasonAttributes}
                 />
             ) : (
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
                     <AccountSwitcher isScreenFocused={isScreenFocused} />
+                    <Tooltip text={translate('statusPage.status')}>
+                        <PressableWithFeedback
+                            accessibilityLabel={
+                                emojiCode ? `${translate('statusPage.status')}: ${emojiCode}` : `${translate('statusPage.status')}, ${translate('emojiPicker.emojiNotSelected')}`
+                            }
+                            accessibilityRole="button"
+                            accessible
+                            sentryLabel={CONST.SENTRY_LABEL.ACCOUNT.STATUS_PICKER}
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
+                        >
+                            <View style={styles.primaryMediumIcon}>
+                                {emojiCode ? (
+                                    <Text style={styles.primaryMediumText}>{emojiCode}</Text>
+                                ) : (
+                                    <Icon
+                                        src={icons.Emoji}
+                                        width={variables.iconSizeNormal}
+                                        height={variables.iconSizeNormal}
+                                        fill={theme.icon}
+                                    />
+                                )}
+                            </View>
+                        </PressableWithFeedback>
+                    </Tooltip>
                 </View>
             )}
         </View>
