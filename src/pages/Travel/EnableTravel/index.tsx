@@ -26,7 +26,8 @@ function EnableTravel({route}: EnableTravelProps) {
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     // Deliberately not blocking on travelProvisioning's own loading metadata here (unlike the two above) — it's
     // a plain optional session key with no guaranteed write on account creation, so gating the whole screen on
-    // it hydrating can leave this stuck on the loading indicator.
+    // it hydrating can leave this stuck on the loading indicator. EnableTravelContent already treats "not loaded
+    // yet" and "genuinely has no persisted enabledSteps" the same way (compute fresh), which is an acceptable
     // trade-off given a real step transition only happens well after the previous step's write has settled.
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
 

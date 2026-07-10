@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {setTravelProvisioningEnabledSteps} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getAdminsPrivateEmailDomains, isNonUSDPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
@@ -19,7 +20,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo, useState} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import type {EnableTravelSubPageProps} from './types';
@@ -51,6 +53,7 @@ type EnableTravelContentProps = {
 function EnableTravelContent({policy, policyID, account, privatePersonalDetails, travelProvisioning}: EnableTravelContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const route = useRoute();
 
     const isProvisioned = isWorkspaceProvisionedForTravel(policy?.travelSettings);
     const adminDomains = getAdminsPrivateEmailDomains(policy);
@@ -74,48 +77,48 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
     // Each step of this flow is a separate navigation push (a fresh mount of this component, not an in-place
     // update), and completing a step (e.g. saving the legal name) flips the very Onyx flag that decided whether
     // that step was included. So the step list can't just be frozen in local component state — it has to be
-    // computed once per flow session and persisted to TRAVEL_PROVISIONING (cleared by BookTravelButton at the
-    // start of every fresh session), or the total step count would shrink out from under the user as they
-    // move between steps, and going back would land on a mount with a mismatched step list.
-
-    const [pages] = useState(() => {
-        const stepNames = [];
+    // computed once per flow session and persisted to TRAVEL_PROVISIONING, or the total step count would shrink
+    // out from under the user as they move between steps, and going back would land on a mount with a mismatched
+    // step list. The flow-entry mount (no subPage param in the URL yet — the one that redirects to the first
+    // step) always recomputes and overwrites whatever is persisted, so a stale list left behind by an abandoned
+    // session is never trusted; mid-flow mounts reuse the persisted list.
+    const isFlowEntryMount = !(route.params as {subPage?: string} | undefined)?.subPage;
+    const persistedEnabledSteps = travelProvisioning?.enabledSteps;
+    const [enabledStepNames] = useState<string[]>(() => {
+        if (!isFlowEntryMount && persistedEnabledSteps) {
+            return persistedEnabledSteps;
+        }
+        const nextEnabledStepNames: string[] = [];
         if (legalNameMissing) {
-            stepNames.push({
-                pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME,
-                component: LegalNameStep,
-            });
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME);
         }
         if (needsVerify) {
-            stepNames.push({
-                pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.VERIFY_ACCOUNT,
-                component: VerifyAccountStep,
-            });
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.VERIFY_ACCOUNT);
         }
         if (needsDomainSelector) {
-            stepNames.push({
-                pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR,
-                component: DomainSelectorStep,
-            });
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR);
         }
         if (needsAddress) {
-            stepNames.push({
-                pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS,
-                component: WorkspaceAddressStep,
-            });
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS);
         }
         if (needsTaxID) {
-            stepNames.push({
-                pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID,
-                component: TaxIDStep,
-            });
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID);
         }
-        stepNames.push({
-            pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS,
-            component: TermsStep,
-        });
-        return stepNames;
+        nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS);
+        return nextEnabledStepNames;
     });
+
+    useEffect(() => {
+        if (!isFlowEntryMount && persistedEnabledSteps) {
+            return;
+        }
+        setTravelProvisioningEnabledSteps(enabledStepNames);
+        // Persist once for this mount only — later flag changes (e.g. legal name getting saved) shouldn't
+        // re-trigger this, since enabledStepNames is already frozen for the rest of this flow session.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const pages = useMemo(() => enabledStepNames.map((pageName) => ({pageName, component: STEP_COMPONENT_BY_PAGE_NAME[pageName] ?? TermsStep})), [enabledStepNames]);
 
     const startFrom = account === undefined ? -1 : 0;
 
@@ -152,13 +155,18 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
                 title={translate('travel.bookTravel')}
                 onBackButtonPress={handleBackButtonPress}
             />
-            {pages.length >= 2 && (
+            {enabledStepNames.length >= 2 && (
                 <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
                     <InteractiveStepSubPageHeader
-                        stepNames={pages.map((step) => step.pageName)}
+                        stepNames={enabledStepNames}
                         currentStepIndex={pageIndex}
                         currentStepAccessibilityDescription={translate('travel.bookTravel')}
-                        onStepSelected={moveTo}
+                        // Edit mode (where Next jumps straight to the last step instead of continuing sequentially)
+                        // is only safe when the jump-back originates from the last step, since reaching it means every
+                        // step before it was completed. From any earlier step, a dot press must be plain navigation —
+                        // otherwise Next would skip steps the user hasn't filled in yet (e.g. going back to legal name
+                        // from address and pressing Next would land on terms without ever collecting the address).
+                        onStepSelected={(step) => moveTo(step, pageIndex === pages.length - 1)}
                     />
                 </View>
             )}
