@@ -46,7 +46,7 @@ function RilletTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnecti
             ?.filter((bankAccountItem) => bankAccountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE)
             .map((bankAccountItem) => ({
                 value: bankAccountItem.id,
-                text: bankAccountItem.name,
+                text: `${bankAccountItem.accountCode} ${bankAccountItem.name}`,
                 keyForList: bankAccountItem.id,
                 isSelected: travelInvoicingSettlementsBankAccountID === bankAccountItem.id,
             })) ?? [];

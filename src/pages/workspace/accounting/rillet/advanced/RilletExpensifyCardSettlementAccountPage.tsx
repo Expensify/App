@@ -46,7 +46,7 @@ function RilletExpensifyCardSettlementAccountPage({policy}: WithPolicyConnection
             ?.filter((bankAccountItem) => bankAccountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE)
             .map((bankAccountItem) => ({
                 value: bankAccountItem.id,
-                text: bankAccountItem.name,
+                text: `${bankAccountItem.accountCode} ${bankAccountItem.name}`,
                 keyForList: bankAccountItem.id,
                 isSelected: settlementsBankAccountID === bankAccountItem.id,
             })) ?? [];

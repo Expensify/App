@@ -111,7 +111,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE], rilletConfig?.pendingFields)}>
                 <MenuItemWithTopDescription
-                    title={companyCardAccount?.name}
+                    title={companyCardAccount ? `${companyCardAccount?.code} ${companyCardAccount?.name}` : undefined}
                     description={translate('workspace.rillet.companyCardAccount.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_COMPANY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
                     shouldShowRightIcon
