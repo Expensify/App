@@ -8,13 +8,13 @@ contentType: task
 platform: new
 ---
 
-# Cancel an Annual subscription 
+# Cancel an Annual Subscription 
 
 If you're a Workspace owner, you can ask Expensify to end your workspace's Annual subscription and continue on Pay-per-use billing instead. Canceling the Annual subscription ends the 12-month commitment but doesn't delete your workspace or interrupt access. Your workspace continues on Pay-per-use billing.
 
 Selecting **Cancel subscription** submits a *request* to cancel. It does not cancel your subscription on its own. Because an Annual subscription is a 12-month commitment, requests are reviewed to determine whether they qualify for cancellation, and not all requests are approved.
 
-For more details, see, [When You Can Change Your Subscription](docs/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Learn-About-Plan-and-Subscription-Management#when-you-can-change-your-subscription).
+For more details, see, [When You Can Change Your Subscription](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Learn-About-Plan-and-Subscription-Management#when-you-can-change-your-subscription).
 
 ---
 
