@@ -1,6 +1,7 @@
-import type {StyleProp, TextStyle} from 'react-native';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
+import type {StyleProp, TextStyle} from 'react-native';
 
 type DisplayNameWithTooltip = {
     /** The name to display in bold */

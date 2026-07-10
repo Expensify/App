@@ -1,13 +1,16 @@
-import {FlashList} from '@shopify/flash-list';
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
-import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
+
+import {FlashList} from '@shopify/flash-list';
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type {TableData} from '.';
+
 import {useTableContext} from './TableContext';
 
 /**
@@ -58,14 +61,17 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         hasActiveFilters,
         hasSearchString,
         isEmptyResult,
+        originalDataLength,
     } = useTableContext<DataType>();
-    const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
+    const {contentContainerStyle: listContentContainerStyle, ListEmptyComponent, ...restListProps} = listProps ?? {};
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
         addOfflineIndicatorBottomSafeAreaPadding: true,
         style: shouldUseNarrowTableLayout ? styles.pb20 : styles.pb4,
     });
+    const {minHeight: contentMinHeight} = StyleSheet.flatten(contentContainerStyle) ?? {};
+    const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
 
     // Determine the message based on what caused the empty result
     const getEmptyMessage = () => {
@@ -82,16 +88,9 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
-    const EmptyResultComponent = (
-        <View style={[styles.ph5, styles.pt3, styles.pb5]}>
-            <Text
-                style={[styles.textNormal, styles.colorMuted]}
-                aria-hidden
-            >
-                {message}
-            </Text>
-        </View>
-    );
+    if (isEmptyResult || (!originalDataLength && !ListEmptyComponent)) {
+        return null;
+    }
 
     return (
         <View
@@ -104,9 +103,17 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                 style={[styles.flex1, styles.mnh0]}
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
-                ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
-                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flexGrow1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
+                contentContainerStyle={[
+                    filteredAndSortedData.length === 0 && styles.flexGrow1,
+                    listContentContainerStyle,
+                    tableBodyContentContainerStyle,
+                    contentContainerStyle,
+                    shouldUseNarrowTableLayout &&
+                        typeof contentMinHeight === 'number' &&
+                        typeof tableBodyBottomPadding === 'number' && {minHeight: contentMinHeight + tableBodyBottomPadding},
+                ]}
                 keyboardShouldPersistTaps="handled"
+                ListEmptyComponent={ListEmptyComponent}
                 {...restListProps}
             />
         </View>

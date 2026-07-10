@@ -1,6 +1,3 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
@@ -8,19 +5,27 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 function AmexCustomFeed() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [localTypeSelected, setLocalTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>();
-    const typeSelected = localTypeSelected ?? addNewCard?.data.selectedAmexCustomFeed;
+    const typeSelected = localTypeSelected ?? addNewCard?.data?.selectedAmexCustomFeed;
     const [hasError, setHasError] = useState(false);
 
     const submit = () => {
@@ -96,7 +101,7 @@ function AmexCustomFeed() {
                 confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
                 alternateNumberOfSupportedLines={3}
-                initiallyFocusedItemKey={addNewCard?.data.selectedAmexCustomFeed ?? undefined}
+                initiallyFocusedItemKey={addNewCard?.data?.selectedAmexCustomFeed ?? undefined}
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding
             >
