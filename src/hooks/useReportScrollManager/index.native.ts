@@ -6,7 +6,7 @@ import type {ScrollView} from 'react-native';
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
-    const {getListRef, scrollPositionRef} = useActionListContext();
+    const {getListRef} = useActionListContext();
 
     /**
      * Scroll to the provided index. `isEditing` is accepted for signature parity with the web
@@ -31,7 +31,6 @@ function useReportScrollManager(): ReportScrollManagerData {
             return;
         }
 
-        scrollPositionRef.current = {offset: 0};
         listRef.current.scrollToIndex({animated: false, index: 0});
     };
 

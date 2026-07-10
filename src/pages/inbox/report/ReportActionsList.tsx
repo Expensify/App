@@ -21,6 +21,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
+    getReportActionHtml,
     getReportActionMessage,
     isConsecutiveActionMadeByPreviousActor,
     isDeletedParentAction,
@@ -44,7 +45,7 @@ import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
-import {useActionListContext} from '@pages/inbox/ActionListContext';
+import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
@@ -55,12 +56,12 @@ import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import type {FlatList, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
@@ -166,19 +167,11 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const linkedReportActionID = reportActionIDFromRoute;
 
-    const {registerListRef, getScrollOffset} = useActionListContext();
-
-    // Own the list ref locally and publish it so handlers resolve it via `getListRef()`. Use a
-    // layout effect so the ref is registered at commit — before the list's `onLayout` fires and
-    // calls into `getListRef()` — rather than after paint, which could leave handlers reading null.
-    const listRef = useRef<FlatList>(null);
-    useLayoutEffect(() => {
-        registerListRef(listRef);
-        return () => registerListRef(null);
-    }, [registerListRef]);
+    const {getScrollOffset} = useActionListContext();
+    const listRef = useActionListRef();
 
     const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
-    const {clearDraft} = useConciergeDraftActions();
+    const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
     const onShowPreviousMessages = handleShowPreviousMessages;
@@ -203,6 +196,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         hasNewerActions,
     });
 
+    const persistedDraftReportAction = draftReportAction ? sortedVisibleReportActions.find((action) => action.reportActionID === draftReportAction.reportActionID) : undefined;
+
     const renderedVisibleReportActions = (() => {
         if (!draftReportAction) {
             return sortedVisibleReportActions;
@@ -215,7 +210,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
         for (const [index, action] of sortedVisibleReportActions.entries()) {
             if (action.reportActionID === draftReportAction.reportActionID) {
-                if (!isDraftPendingCompletion) {
+                const isDraftStillRevealingPersistedAction = getReportActionHtml(action) !== getReportActionHtml(draftReportAction);
+                if (!isDraftPendingCompletion && !isDraftStillRevealingPersistedAction) {
                     return sortedVisibleReportActions;
                 }
 
@@ -248,6 +244,14 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         clearDraft();
     }, [clearDraft, draftReportAction, isSyntheticDraftVisible]);
 
+    useEffect(() => {
+        if (!draftReportAction || !persistedDraftReportAction || getReportActionHtml(draftReportAction) === getReportActionHtml(persistedDraftReportAction)) {
+            return;
+        }
+
+        revealDraftFromReportAction(persistedDraftReportAction);
+    }, [draftReportAction, persistedDraftReportAction, revealDraftFromReportAction]);
+
     // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
     const actionBadgeTargetID = reportAttributes?.actionTargetReportActionID;
     const actionBadgeTargetIndex = actionBadgeTargetID ? renderedVisibleReportActions.findIndex((action) => action.reportActionID === actionBadgeTargetID) : -1;
@@ -262,8 +266,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         flushPendingScrollToBottom,
         shouldBeAlignedToTop,
         shouldFocusToTopOnMount,
-        initialScrollKey,
-        shouldAutoscrollToBottom,
+        initialScrollIndex,
+        initialScrollIndexParams,
+        maintainVisibleContentPosition,
         onLoad,
     } = useReportActionsScroll({
         reportID,
@@ -271,6 +276,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         transactionThreadReport,
         parentReportAction,
         sortedVisibleReportActions,
+        renderedVisibleReportActions,
+        keyExtractor,
+        hasScrolledOverThreshold,
         markNewestActionAsRead,
         completeSkippedMarkAsRead,
         unreadMarkerReportActionID,
@@ -308,8 +316,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         });
     };
 
-    const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
-
     const firstVisibleReportActionID = getFirstVisibleReportActionID(sortedReportActions, isOffline);
 
     /**
@@ -336,21 +342,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     })();
 
-    // Precompute a reportActionID -> index map so renderItem can resolve the real index in O(1)
-    // instead of scanning renderedVisibleReportActions with indexOf on every render.
-    const actionIndexMap = (() => {
-        const map = new Map<string, number>();
-        for (const [i, action] of renderedVisibleReportActions.entries()) {
-            map.set(action.reportActionID, i);
-        }
-        return map;
-    })();
-
     const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-        // Use the action's actual index in sortedVisibleReportActions rather than the FlashList-provided index,
-        // because useFlashListScrollKey may slice the data for deep-link scroll positioning, making the
-        // FlashList index offset from the full array and causing wrong displayAsGroup computation.
-        const safeIndex = actionIndexMap.get(reportAction.reportActionID) ?? index;
         const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
 
         return (
@@ -364,8 +356,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                     chatReport={chatReportStable}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
-                        !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, safeIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                        isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, safeIndex, isOffline)
+                        !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                        isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, index, isOffline)
                     }
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
@@ -479,14 +471,10 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                         contentOffset: shouldFocusToTopOnMount ? {x: 0, y: windowHeight} : undefined,
                     }}
                     getItemType={(item) => item.actionName}
-                    shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition}
-                    initialScrollIndex={shouldFocusToTopOnMount ? renderedVisibleReportActions.length - 1 : undefined}
-                    initialScrollIndexParams={shouldFocusToTopOnMount ? {viewOffset: windowHeight} : undefined}
-                    maintainVisibleContentPosition={
-                        shouldAutoscrollToBottom ? {autoscrollToBottomThreshold: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD, animateAutoScrollToBottom: false} : undefined
-                    }
+                    initialScrollIndex={initialScrollIndex}
+                    initialScrollIndexParams={initialScrollIndexParams}
+                    maintainVisibleContentPosition={maintainVisibleContentPosition}
                     onLoad={onLoad}
-                    initialScrollKey={initialScrollKey}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}

@@ -1,13 +1,11 @@
 import type FlatListRefType from '@components/FlashList/types';
 
 import type {ReactNode, RefObject} from 'react';
+import type {FlatList} from 'react-native';
 
-import React, {createContext, useContext, useRef} from 'react';
-
-type ScrollPosition = {offset?: number};
+import React, {createContext, useContext, useLayoutEffect, useRef} from 'react';
 
 type ActionListContextType = {
-    scrollPositionRef: RefObject<ScrollPosition>;
     scrollOffsetRef: RefObject<number>;
 
     /** Snapshot of the persisted scroll offset. Safe to call during render (e.g. a useState initializer) to restore mount-time scroll state. */
@@ -21,7 +19,6 @@ type ActionListContextType = {
 };
 
 const ActionListContext = createContext<ActionListContextType>({
-    scrollPositionRef: {current: {}},
     scrollOffsetRef: {current: 0},
     getScrollOffset: () => 0,
     registerListRef: () => {},
@@ -32,16 +29,30 @@ function useActionListContext() {
     return useContext(ActionListContext);
 }
 
+/**
+ * Owns a list ref and publishes it to the context (cleared on unmount). Layout effect so it's registered
+ * at commit, before any layout-time handler reads it via `getListRef()`. Returns the ref to attach.
+ */
+function useActionListRef() {
+    const {registerListRef} = useActionListContext();
+    const listRef = useRef<FlatList>(null);
+
+    useLayoutEffect(() => {
+        registerListRef(listRef);
+        return () => registerListRef(null);
+    }, [registerListRef]);
+
+    return listRef;
+}
+
 /** Owns the action-list context value so screens don't wire it up themselves. */
 function ActionListContextProvider({children}: {children: ReactNode}) {
     // Each list owns its own ref locally and publishes it here on mount; only the register/get
     // callbacks live in context, so attaching `ref={}` stays local to each list.
     const listRefHolder = useRef<FlatListRefType>(null);
-    const scrollPositionRef = useRef<ScrollPosition>({});
     const scrollOffsetRef = useRef(0);
 
     const value: ActionListContextType = {
-        scrollPositionRef,
         scrollOffsetRef,
         getScrollOffset: () => scrollOffsetRef.current,
         registerListRef: (ref) => {
@@ -57,4 +68,4 @@ function ActionListContextProvider({children}: {children: ReactNode}) {
     return <ActionListContext.Provider value={value}>{children}</ActionListContext.Provider>;
 }
 
-export {ActionListContext, ActionListContextProvider, useActionListContext};
+export {ActionListContext, ActionListContextProvider, useActionListContext, useActionListRef};
