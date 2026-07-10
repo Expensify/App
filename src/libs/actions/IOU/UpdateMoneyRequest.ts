@@ -336,6 +336,7 @@ function updateMoneyRequestBillable({
     parentReportNextStep,
     isOffline,
     delegateAccountID,
+    reportPolicyTags,
 }: {
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -350,6 +351,7 @@ function updateMoneyRequestBillable({
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
@@ -364,8 +366,7 @@ function updateMoneyRequestBillable({
         transactionChanges,
         policy,
         policyTagList,
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+        reportPolicyTags,
         policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,

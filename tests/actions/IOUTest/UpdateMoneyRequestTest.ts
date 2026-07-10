@@ -966,6 +966,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updating billable to true
             updateMoneyRequestBillable({
                 transactionID,
+                reportPolicyTags: undefined,
                 transactionThreadReport,
                 parentReport,
                 value: true,
@@ -1000,6 +1001,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updateMoneyRequestBillable is called with an undefined transactionID
             updateMoneyRequestBillable({
                 transactionID: undefined,
+                reportPolicyTags: undefined,
                 transactionThreadReport: {reportID: '1'},
                 parentReport: undefined,
                 value: true,
