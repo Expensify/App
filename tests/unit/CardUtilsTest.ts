@@ -50,6 +50,7 @@ import {
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     getSelectedFeed,
+    getTranslationKeyForCardStatus,
     getYearFromExpirationDateString,
     hasAssignedCardMatching,
     hasIssuedExpensifyCard,
@@ -66,6 +67,7 @@ import {
     isExpiredCard,
     isMatchingCard,
     isPersonalCard,
+    isTravelCardTransaction,
     isUkEuExpensifyCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
@@ -2081,6 +2083,33 @@ describe('CardUtils', () => {
         });
     });
 
+    describe('getTranslationKeyForCardStatus', () => {
+        it('maps STATE_NOT_ISSUED to pending order for physical cards', () => {
+            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED, false)).toBe('workspace.expensifyCard.statusPendingOrder');
+        });
+
+        it('maps NOT_ACTIVATED to shipped for physical cards', () => {
+            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED, false)).toBe('workspace.expensifyCard.statusShipped');
+        });
+
+        it('maps OPEN to active', () => {
+            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.OPEN, false)).toBe('workspace.expensifyCard.statusActive');
+        });
+
+        it('maps STATE_SUSPENDED to inactive', () => {
+            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED, false)).toBe('workspace.expensifyCard.statusInactive');
+        });
+
+        it('reports no status for a virtual card in a physical-only state', () => {
+            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED, true)).toBeUndefined();
+            expect(getTranslationKeyForCardStatus(CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED, true)).toBeUndefined();
+        });
+
+        it('reports no status for an undefined or unrecognized state', () => {
+            expect(getTranslationKeyForCardStatus(undefined, false)).toBeUndefined();
+        });
+    });
+
     describe('getDefaultExpensifyCardLimitType', () => {
         it('returns SMART when policy has approvals configured (approvalMode is ADVANCED)', () => {
             const policy = createMock<Policy>({
@@ -3357,6 +3386,34 @@ describe('CardUtils', () => {
             });
             const description = getCompanyCardDescription(mockTranslate, 'Expensify Card - 6909', 99999, travelCardList);
             expect(description).toBe('Travel invoicing');
+        });
+
+        it("should return 'Travel invoicing' for another member's travel card that isn't in the viewer's card list", () => {
+            const description = getCompanyCardDescription(mockTranslate, 'Expensify Card - 6909', 99999, undefined, CONST.TRAVEL.PROGRAM_TRAVEL_US);
+            expect(description).toBe('Travel invoicing');
+        });
+    });
+
+    describe('isTravelCardTransaction', () => {
+        it("returns true from the transaction's feedCountry even when the card isn't in the viewer's list", () => {
+            expect(isTravelCardTransaction(CONST.TRAVEL.PROGRAM_TRAVEL_US, undefined)).toBe(true);
+        });
+
+        it('falls back to the card when the transaction has no feedCountry', () => {
+            const travelCardList = createMock<CardList>({
+                '99999': {
+                    cardID: 99999,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    nameValuePairs: {
+                        feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
+                    },
+                },
+            });
+            expect(isTravelCardTransaction(undefined, travelCardList['99999'])).toBe(true);
+        });
+
+        it('returns false for a non-travel transaction with no card', () => {
+            expect(isTravelCardTransaction(CONST.COUNTRY.US, undefined)).toBe(false);
         });
     });
 
