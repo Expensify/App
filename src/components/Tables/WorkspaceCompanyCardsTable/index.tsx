@@ -1,4 +1,3 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import CardFeedIcon from '@components/CardFeedIcon';
@@ -15,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
@@ -84,7 +82,6 @@ function WorkspaceCompanyCardsTable({
     onReloadPage,
     onReloadFeed,
 }: WorkspaceCompanyCardsTableProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
@@ -339,17 +336,6 @@ function WorkspaceCompanyCardsTable({
         </View>
     ) : undefined;
 
-    const LoadingComponent = (
-        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
-            <ActivityIndicator
-                color={theme.spinner}
-                style={[styles.pl3]}
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={{context: 'WorkspaceCompanyCardsTable', isLoading, isLoadingCards}}
-            />
-        </View>
-    );
-
     return (
         <Table
             ref={tableRef}
@@ -366,7 +352,10 @@ function WorkspaceCompanyCardsTable({
         >
             {headerButtonsComponent}
 
-            {isLoadingCards && <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>}
+            <Table.LoadingState
+                context="WorkspaceCompanyCardsTable"
+                isLoading={isLoadingCards}
+            />
 
             {!isLoading && isFeedPending && !feedErrorKey && (
                 <ScrollView addBottomSafeAreaPadding>
