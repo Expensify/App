@@ -575,7 +575,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
  * additionally gating this on the SUBMIT_2026 beta and on Submit already being the primary action.
  */
 function isSubmitViaPDFAction(report: Report, currentUserAccountID: number, policy?: Policy): boolean {
-    return isSubmitPolicy(policy) && isCurrentUserSubmitter(report) && report.ownerAccountID === currentUserAccountID;
+    return isSubmitPolicy(policy) && isCurrentUserSubmitter(report, currentUserAccountID);
 }
 
 function isMarkAsCashActionForTransaction(currentUserLogin: string, parentReport: Report, violations: TransactionViolation[], policy?: Policy): boolean {
