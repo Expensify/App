@@ -58,7 +58,10 @@ type FloatingHostProps = {
     children: ReactNode;
 };
 
-type Placement = {style: ViewStyle; available: {height: number; width: number}};
+type Placement = {
+    style: ViewStyle;
+    available: {height: number; width: number};
+};
 
 function placementsEqual(a: Placement | null, b: Placement): boolean {
     if (!a) {
@@ -78,7 +81,10 @@ function FloatingHost({isOpen, anchor, anchorRect, alignment, offsetPx, fadeDura
     const {style: livePositionStyle, available: liveAvailable, isPositioned: liveIsPositioned, onContentLayout} = useAnchoredPosition({anchorRect, alignment, offsetPx});
 
     const [placement, setPlacement] = useState<Placement | null>(null);
-    const livePlacement: Placement = {style: livePositionStyle, available: liveAvailable};
+    const livePlacement: Placement = {
+        style: livePositionStyle,
+        available: liveAvailable,
+    };
     if (isOpen && liveIsPositioned && !placementsEqual(placement, livePlacement)) {
         setPlacement(livePlacement);
     }
@@ -114,7 +120,14 @@ function FloatingHost({isOpen, anchor, anchorRect, alignment, offsetPx, fadeDura
                 <View
                     onLayout={onContentLayout}
                     // Measuring with the caps would trap the flip logic at the capped size, so they apply only post-measure.
-                    style={[positionStyle, {maxHeight: isPositioned ? available.height : undefined, maxWidth: isPositioned ? available.width : undefined, opacity: isPositioned ? 1 : 0}]}
+                    style={[
+                        positionStyle,
+                        {
+                            maxHeight: isPositioned ? available.height : undefined,
+                            maxWidth: isPositioned ? available.width : undefined,
+                            opacity: isPositioned ? 1 : 0,
+                        },
+                    ]}
                 >
                     <AnimatedSurface
                         enterSpec={FADE_ONLY_ENTER_SPEC}
@@ -137,7 +150,7 @@ function FloatingHost({isOpen, anchor, anchorRect, alignment, offsetPx, fadeDura
             present={isOpen}
             onExitComplete={onExitComplete}
         >
-            <Portal>{containFocus ? <FocusTrapForModal active>{inner}</FocusTrapForModal> : inner}</Portal>
+            <Portal>{containFocus ? <FocusTrapForModal active={isOpen}>{inner}</FocusTrapForModal> : inner}</Portal>
         </Presence>
     );
 }

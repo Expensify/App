@@ -25,6 +25,7 @@ const mockPositionState: {current: PositionState} = {
 };
 
 const mockPresenceExiting = {current: false};
+const mockFocusTrapActive = {current: undefined as boolean | undefined};
 
 jest.mock('@components/Overlay/hooks/useAnchoredPosition', () => () => mockPositionState.current);
 jest.mock('@components/Overlay/hooks/useOverlayEntry', () => () => {});
@@ -56,12 +57,10 @@ jest.mock(
         ({children, present}: {children: React.ReactNode; present: boolean}) =>
             present || mockPresenceExiting.current ? children : null,
 );
-jest.mock(
-    '@components/FocusTrap/FocusTrapForModal',
-    () =>
-        ({children}: {children: React.ReactNode}) =>
-            children,
-);
+jest.mock('@components/FocusTrap/FocusTrapForModal', () => ({active, children}: {active: boolean; children: React.ReactNode}) => {
+    mockFocusTrapActive.current = active;
+    return children;
+});
 
 type TestInstance = ReturnType<typeof render>['root'];
 
@@ -91,6 +90,7 @@ beforeEach(() => {
         onContentLayout: jest.fn(),
     };
     mockPresenceExiting.current = false;
+    mockFocusTrapActive.current = undefined;
 });
 
 describe('FloatingHost — maxHeight/maxWidth gating', () => {
@@ -99,8 +99,18 @@ describe('FloatingHost — maxHeight/maxWidth gating', () => {
             <FloatingHost
                 isOpen
                 anchor={null}
-                anchorRect={{top: 0, bottom: 40, left: 0, right: 100, width: 100, height: 40}}
-                alignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                anchorRect={{
+                    top: 0,
+                    bottom: 40,
+                    left: 0,
+                    right: 100,
+                    width: 100,
+                    height: 40,
+                }}
+                alignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
                 onDismiss={jest.fn()}
                 stackId="test-host"
             >
@@ -125,8 +135,18 @@ describe('FloatingHost — maxHeight/maxWidth gating', () => {
             <FloatingHost
                 isOpen
                 anchor={null}
-                anchorRect={{top: 0, bottom: 40, left: 0, right: 100, width: 100, height: 40}}
-                alignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                anchorRect={{
+                    top: 0,
+                    bottom: 40,
+                    left: 0,
+                    right: 100,
+                    width: 100,
+                    height: 40,
+                }}
+                alignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
                 onDismiss={jest.fn()}
                 stackId="test-host"
             >
@@ -155,8 +175,18 @@ describe('FloatingHost — exit placement retention', () => {
             <FloatingHost
                 isOpen
                 anchor={null}
-                anchorRect={{top: 0, bottom: 40, left: 0, right: 100, width: 100, height: 40}}
-                alignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                anchorRect={{
+                    top: 0,
+                    bottom: 40,
+                    left: 0,
+                    right: 100,
+                    width: 100,
+                    height: 40,
+                }}
+                alignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
                 onDismiss={jest.fn()}
                 stackId="test-host"
             >
@@ -177,7 +207,10 @@ describe('FloatingHost — exit placement retention', () => {
                 isOpen={false}
                 anchor={null}
                 anchorRect={null}
-                alignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                alignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
                 onDismiss={jest.fn()}
                 stackId="test-host"
             >
@@ -205,8 +238,18 @@ describe('FloatingHost — exit placement retention', () => {
             <FloatingHost
                 isOpen
                 anchor={null}
-                anchorRect={{top: 0, bottom: 40, left: 0, right: 100, width: 100, height: 40}}
-                alignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                anchorRect={{
+                    top: 0,
+                    bottom: 40,
+                    left: 0,
+                    right: 100,
+                    width: 100,
+                    height: 40,
+                }}
+                alignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
                 onDismiss={jest.fn()}
                 stackId="test-host"
             >
@@ -224,8 +267,18 @@ describe('FloatingHost — exit placement retention', () => {
             <FloatingHost
                 isOpen
                 anchor={null}
-                anchorRect={{top: 0, bottom: 40, left: 0, right: 100, width: 100, height: 40}}
-                alignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                anchorRect={{
+                    top: 0,
+                    bottom: 40,
+                    left: 0,
+                    right: 100,
+                    width: 100,
+                    height: 40,
+                }}
+                alignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
                 onDismiss={jest.fn()}
                 stackId="test-host"
             >
@@ -237,5 +290,60 @@ describe('FloatingHost — exit placement retention', () => {
         expect(style.opacity).toBe(0);
         expect(style.maxHeight).toBeUndefined();
         expect(style.maxWidth).toBeUndefined();
+    });
+});
+
+describe('FloatingHost — focus trap gating', () => {
+    it('activates the focus trap only while open and deactivates it during the exit phase', () => {
+        mockPositionState.current = {
+            style: {top: 100, left: 100},
+            available: {height: 500, width: 300},
+            isPositioned: true,
+            onContentLayout: jest.fn(),
+        };
+        mockPresenceExiting.current = true;
+
+        const {rerender} = render(
+            <FloatingHost
+                isOpen
+                containFocus
+                anchor={null}
+                anchorRect={{
+                    top: 0,
+                    bottom: 40,
+                    left: 0,
+                    right: 100,
+                    width: 100,
+                    height: 40,
+                }}
+                alignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+                onDismiss={jest.fn()}
+                stackId="test-host"
+            >
+                <Text>menu</Text>
+            </FloatingHost>,
+        );
+        expect(mockFocusTrapActive.current).toBe(true);
+
+        rerender(
+            <FloatingHost
+                isOpen={false}
+                containFocus
+                anchor={null}
+                anchorRect={null}
+                alignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+                onDismiss={jest.fn()}
+                stackId="test-host"
+            >
+                <Text>menu</Text>
+            </FloatingHost>,
+        );
+        expect(mockFocusTrapActive.current).toBe(false);
     });
 });
