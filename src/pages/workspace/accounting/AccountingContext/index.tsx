@@ -1,8 +1,10 @@
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 
+import useCardFeeds from '@hooks/useCardFeeds';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
@@ -11,6 +13,7 @@ import {isControlPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/Policy
 import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -42,6 +45,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
     const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
     const hasReusablePoliciesConnectedToRillet = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policyID);
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
 
     const startIntegrationFlow = useCallback(
         (newActiveIntegration: ActiveIntegration) => {
@@ -69,6 +74,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
                 undefined,
                 accountingIcons,
+                cardFeeds,
+                cardList,
             );
 
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
@@ -144,6 +151,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             undefined,
             undefined,
             accountingIcons,
+            cardFeeds,
+            cardList,
         )?.setupConnectionFlow;
     };
 

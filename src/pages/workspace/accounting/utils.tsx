@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import {isAuthenticationError} from '@libs/actions/connections';
+import {getCardsCustomExportAccountsPendingAction, areCardsCustomExportAccountsInErrorFields} from '@libs/CardFeedUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 
@@ -21,7 +22,7 @@ import {getTrackingCategories} from '@userActions/connections/Xero';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {CombinedCardFeeds, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {Account, ConnectionName, Connections, PolicyConnectionName, QBDNonReimbursableExportAccountType, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -62,6 +63,8 @@ function getAccountingIntegrationData(
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
     expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare', IconAsset>,
+    cardFeeds?: CombinedCardFeeds,
+    cardList?: Record<string, WorkspaceCardsList | undefined>,
 ): AccountingIntegration | undefined {
     const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -425,8 +428,17 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE,
                     CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
                     ...[CONST.EXPENSIFY_CARD.BANK, ...Object.values(CONST.COMPANY_CARD.FEED_BANK_NAME)].map((program) => `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program}`),
-                    // s77rt handle card accounts
                 ],
+                externalSubscribedExportSettingsPendingAction: getCardsCustomExportAccountsPendingAction(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
+                ),
+                externalSubscribedExportSettingsHasErrorFields: areCardsCustomExportAccountsInErrorFields(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
+                ),
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.RILLET)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
