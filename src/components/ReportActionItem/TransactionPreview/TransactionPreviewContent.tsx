@@ -93,7 +93,7 @@ function TransactionPreviewContent({
     const filteredViolations = filterReceiptViolations(violations);
     const firstViolation = filteredViolations.at(0);
     const cardID = firstViolation?.data?.cardID;
-    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID ?? ''))}, [cardID]);
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))}, [cardID]);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {selector: getStableReportSelector});
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
