@@ -18,11 +18,11 @@ import Onyx from 'react-native-onyx';
 
 // The page renders ColumnsSettingsList and hands it applyChanges as onSave; the list itself is
 // irrelevant here, so it is stubbed to capture that callback.
-const mockColumnsSettingsList = jest.fn();
+let mockCapturedOnSave: ((selectedColumnIds: SearchCustomColumnIds[]) => void) | undefined;
 jest.mock('@components/ColumnsSettingsList', () => ({
     __esModule: true,
-    default: (props: unknown) => {
-        mockColumnsSettingsList(props);
+    default: (props: {onSave: (selectedColumnIds: SearchCustomColumnIds[]) => void}) => {
+        mockCapturedOnSave = props.onSave;
         return null;
     },
 }));
@@ -60,7 +60,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     isSearchDataLoaded: (...args: unknown[]) => mockIsSearchDataLoaded(...args),
 }));
 
-const mockNavigate = Navigation.navigate as jest.Mock;
+const mockNavigate = jest.mocked(Navigation.navigate);
 
 // SearchQueryUtils is intentionally NOT mocked: the offline pre-seed only fires when the rebuilt
 // query differs from the current one by nothing but `columns`, and that equivalence check is the
@@ -90,17 +90,19 @@ function makeSearchResults(): SearchResults {
 }
 
 function renderPageAndGetOnSave() {
+    mockCapturedOnSave = undefined;
     render(<SearchColumnsPage />);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- narrowing the captured stub props to the onSave callback under test
-    const props = mockColumnsSettingsList.mock.calls.at(-1)?.[0] as {onSave: (selectedColumnIds: SearchCustomColumnIds[]) => void};
-    return props.onSave;
+    if (!mockCapturedOnSave) {
+        throw new Error('ColumnsSettingsList did not receive an onSave callback');
+    }
+    return mockCapturedOnSave;
 }
 
 describe('SearchColumnsPage', () => {
     let setSpy: jest.SpyInstance;
 
     beforeEach(() => {
-        mockColumnsSettingsList.mockClear();
+        mockCapturedOnSave = undefined;
         mockNavigate.mockClear();
         mockIsSearchDataLoaded.mockReset().mockReturnValue(true);
         setSpy = jest.spyOn(Onyx, 'set').mockImplementation(() => Promise.resolve());
@@ -208,14 +210,14 @@ describe('SearchColumnsPage', () => {
         onSave(newColumns);
 
         expect(setSpy).toHaveBeenCalledTimes(1);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- narrowing the captured spy payload to the copied snapshot under test
-        const copiedSnapshot = setSpy.mock.calls.at(0)?.[1] as SearchResults;
-        // No request ever runs against the destination hash, so stale flags would never clear there.
-        expect(copiedSnapshot.errors).toBeUndefined();
-        // Everything else in `search` (type, status, hasMoreResults, ...) must survive the copy, or the
-        // destination snapshot would fail isSearchDataLoaded and re-break the offline flow.
-        expect(copiedSnapshot.search).toEqual({...mockCurrentSearchResults.search, isLoading: false});
-        expect(copiedSnapshot.data).toEqual(mockCurrentSearchResults.data);
+        // Stale flags must be dropped from the copy (no request ever runs against the destination hash to
+        // clear them), while everything else — data, and the search type/status/hasMoreResults — must
+        // survive it, or the destination snapshot would fail isSearchDataLoaded and re-break the offline flow.
+        expect(setSpy).toHaveBeenCalledWith(expect.stringContaining(ONYXKEYS.COLLECTION.SNAPSHOT), {
+            data: mockCurrentSearchResults.data,
+            search: {...mockCurrentSearchResults.search, isLoading: false},
+            errors: undefined,
+        });
     });
 
     it('pre-seeds the destination snapshot for a grouped query when offline and only columns changed', async () => {

@@ -79,6 +79,7 @@ import type {
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
+import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 
@@ -1539,6 +1540,23 @@ function setSearchContext(shouldShowSearchQuery: boolean) {
 }
 
 /**
+ * Copies an already-loaded search snapshot to another query hash's snapshot key, so that a query which
+ * differs from the loaded one only by `columns` can render offline instead of hitting the full-page
+ * offline blocker (the destination hash has no snapshot and `search()` is intentionally skipped offline).
+ * Transient request state is dropped from the copy: no request ever runs against the destination hash,
+ * so a copied stale `errors` or `search.isLoading: true` would never be cleared and would block the
+ * post-reconnect refetch for that hash.
+ * `onComplete` fires once the write settles — also on failure, so callers can fall back to plain navigation.
+ */
+function copySnapshotForColumnsOnlyQueryChange(searchResults: SearchResults, updatedQueryHash: number, onComplete: () => void) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${updatedQueryHash}`, {
+        ...searchResults,
+        errors: undefined,
+        search: {...searchResults.search, isLoading: false},
+    }).then(onComplete, onComplete);
+}
+
+/**
  * For Expense reports, user can choose both expense and transaction, in this case we need to check for both selected reports and transactions
  * This function checks if all remaining selected transactions (not included in selectedReports) are eligible for bulk pay
  */
@@ -1812,6 +1830,7 @@ export {
     queueExportSearchWithTemplate,
     updateAdvancedFilters,
     setSearchContext,
+    copySnapshotForColumnsOnlyQueryChange,
     deleteSavedSearch,
     getSearchPayOnyxData,
     getSearchApproveOnyxData,

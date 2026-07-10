@@ -5,6 +5,7 @@ import type {SearchCustomColumnIds, SearchQueryJSON} from '@components/Search/ty
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
+import {copySnapshotForColumnsOnlyQueryChange} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getCustomColumnDefault, getCustomColumns, isSearchDataLoaded} from '@libs/SearchUIUtils';
@@ -15,7 +16,6 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 import React from 'react';
-import Onyx from 'react-native-onyx';
 
 // Compares two parsed queries while ignoring the fields that legitimately differ on a columns-only change:
 // `columns` is the delta being saved, `hash` embeds the columns, and `inputQuery`, `rawFilterList`, and
@@ -96,14 +96,9 @@ function SearchColumnsPage() {
             isSearchDataLoaded(currentSearchResults, currentSearchQueryJSON) &&
             areSearchQueriesEqualExceptColumns(currentSearchQueryJSON, updatedQueryJSON)
         ) {
-            const updatedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${updatedQueryJSON.hash}` as const;
-            // Transient request state is dropped from the copy: no request ever runs against the destination
-            // hash, so a copied stale `errors` or `search.isLoading: true` would never be cleared and would
-            // block the post-reconnect refetch for that hash.
-            const copiedSearchResults = {...currentSearchResults, errors: undefined, search: {...currentSearchResults.search, isLoading: false}};
-            // Navigate only after the copy settles so the destination hash has data the moment Search reads
-            // it; if the write fails, still navigate to preserve the previous behavior.
-            void Onyx.set(updatedSnapshotKey, copiedSearchResults).then(navigateToUpdatedQuery, navigateToUpdatedQuery);
+            // The action navigates only after the copy settles so the destination hash has data the moment
+            // Search reads it; if the write fails, it still navigates to preserve the previous behavior.
+            copySnapshotForColumnsOnlyQueryChange(currentSearchResults, updatedQueryJSON.hash, navigateToUpdatedQuery);
             return;
         }
 
