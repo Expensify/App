@@ -1007,6 +1007,7 @@ function getOptionData({
             currentUserLogin,
             lastAction,
             isTrackIntentUser,
+            currentUserAccountID,
         });
     }
 
