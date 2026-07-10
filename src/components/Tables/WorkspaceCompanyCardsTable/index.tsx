@@ -378,7 +378,7 @@ function WorkspaceCompanyCardsTable({
         >
             {headerButtonsComponent}
 
-            {isLoadingCards && <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>}
+            {isLoading && <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>}
 
             {!isLoading && isFeedPending && !feedErrorKey && (
                 <ScrollView addBottomSafeAreaPadding>

@@ -57,12 +57,6 @@ jest.mock('@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState', ()
     return () => <View testID="WorkspaceCompanyCardPageEmptyState" />;
 });
 
-jest.mock('@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {View} = require('react-native');
-    return () => <View testID="WorkspaceCompanyCardsFeedAddedEmptyPage" />;
-});
-
 jest.mock('@components/Table', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const ReactMock = require('react');
@@ -78,7 +72,10 @@ jest.mock('@components/Table', () => {
     MockTable.Header = () => <View testID="WorkspaceCompanyCardsTableHeader" />;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.Body = () => <View testID="WorkspaceCompanyCardsTableBody" />;
-
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    MockTable.EmptyState = () => <View testID="WorkspaceCompanyCardsTableEmptyState" />;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    MockTable.NoResultsState = () => <View testID="WorkspaceCompanyCardsTableNoResultsState" />;
     return {
         __esModule: true,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
