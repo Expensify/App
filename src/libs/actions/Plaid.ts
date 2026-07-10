@@ -3,6 +3,7 @@ import type {AddPersonalPlaidCardParams, ImportPlaidAccountsParams, OpenPlaidBan
 import type OpenPlaidCompanyCardLoginParams from '@libs/API/parameters/OpenPlaidCompanyCardLoginParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCompanyCardFeed} from '@libs/CardUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
 
 import CONST from '@src/CONST';
@@ -189,7 +190,17 @@ function addPersonalPlaidCard(publicToken: string, feed: string, country: string
         plaidAccounts,
     };
 
-    API.write(WRITE_COMMANDS.ADD_PERSONAL_PLAID_CARD, parameters);
+    const onyxData = {
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ADD_NEW_PERSONAL_CARD,
+                value: {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.ADD_PERSONAL_PLAID_CARD, parameters, onyxData);
 }
 
 export {openPlaidBankAccountSelector, openPlaidBankLogin, openPlaidCompanyCardLogin, importPlaidAccounts, addPersonalPlaidCard};
