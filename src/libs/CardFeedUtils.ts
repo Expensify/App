@@ -10,6 +10,7 @@ import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, Domain, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CardFeed, CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -475,12 +476,15 @@ function getCardsUsingCustomExportAccountsCount(
     cardFeeds: CombinedCardFeeds,
     cardLists: Record<string, WorkspaceCardsList | undefined>,
     exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
-) {
+): {
+    perFeedCount: Partial<Record<CardFeed, number>>;
+    totalCount: number;
+} {
     const feedKeys = Object.values(cardFeeds).map((cardFeed) => cardFeed.feed as CardFeed);
     const perFeedCount: Partial<Record<CardFeed, number>> = {};
     let totalCount = 0;
-    for (const workspaceCardList of Object.values(cardLists)) {
-        for (const card of Object.values(workspaceCardList ?? {})) {
+    for (const cardList of Object.values(cardLists)) {
+        for (const card of Object.values(cardList ?? {})) {
             const feedKey = card.bank as CardFeed;
             if (!feedKeys.some((key) => key === feedKey)) {
                 continue;
@@ -498,6 +502,70 @@ function getCardsUsingCustomExportAccountsCount(
     return {perFeedCount, totalCount};
 }
 
+function getCardsCustomExportAccountsPendingAction(
+    cardFeeds: CombinedCardFeeds,
+    cardLists: Record<string, WorkspaceCardsList | undefined>,
+    exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
+    cardFeed?: CardFeed,
+    cardID?: number,
+): PendingAction | undefined {
+    const feedKeys = Object.values(cardFeeds).map((cardFeed) => cardFeed.feed as CardFeed);
+    for (const cardList of Object.values(cardLists)) {
+        for (const card of Object.values(cardList ?? {})) {
+            const feedKey = card.bank as CardFeed;
+            if (!feedKeys.some((key) => key === feedKey)) {
+                continue;
+            }
+            if (cardFeed && cardFeed !== feedKey) {
+                continue;
+            }
+            if (cardID && cardID !== card.cardID) {
+                continue;
+            }
+            if (typeof card.nameValuePairs !== 'object') {
+                continue;
+            }
+            if (!(exportType in (card.nameValuePairs.pendingFields ?? {}))) {
+                continue;
+            }
+            return card.nameValuePairs.pendingFields?.[exportType];
+        }
+    }
+    return undefined;
+}
+
+function areCardsCustomExportAccountsInErrorFields(
+    cardFeeds: CombinedCardFeeds,
+    cardLists: Record<string, WorkspaceCardsList | undefined>,
+    exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
+    cardFeed?: CardFeed,
+    cardID?: number,
+): boolean {
+    const feedKeys = Object.values(cardFeeds).map((cardFeed) => cardFeed.feed as CardFeed);
+    for (const cardList of Object.values(cardLists)) {
+        for (const card of Object.values(cardList ?? {})) {
+            const feedKey = card.bank as CardFeed;
+            if (!feedKeys.some((key) => key === feedKey)) {
+                continue;
+            }
+            if (cardFeed && cardFeed !== feedKey) {
+                continue;
+            }
+            if (cardID && cardID !== card.cardID) {
+                continue;
+            }
+            if (typeof card.nameValuePairs !== 'object') {
+                continue;
+            }
+            if (!(exportType in (card.nameValuePairs.errorFields ?? {}))) {
+                continue;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
 export type {CardFilterItem, CardFeedForDisplay};
 export {
     buildCardsData,
@@ -510,4 +578,6 @@ export {
     getCombinedCardFeedsFromAllFeeds,
     getWorkspaceCardFeedsStatus,
     getCardsUsingCustomExportAccountsCount,
+    getCardsCustomExportAccountsPendingAction,
+    areCardsCustomExportAccountsInErrorFields,
 };
