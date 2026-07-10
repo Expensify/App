@@ -6,6 +6,7 @@ import {
     getTravelSettlementAccount,
     getTravelSettlementFrequency,
     getTravelSpend,
+    hasOutstandingTravelBalance,
     hasTravelInvoicingSettlementAccount,
     isTravelCVVEligible,
 } from '@src/libs/TravelInvoicingUtils';
@@ -116,6 +117,27 @@ describe('TravelInvoicingUtils', () => {
             const travelSettings = {currentBalance: 25000} as ExpensifyCardSettingsBase;
             const result = getTravelSpend(travelSettings);
             expect(result).toBe(25000);
+        });
+    });
+
+    describe('hasOutstandingTravelBalance', () => {
+        it('Should return false when travelSettings is undefined', () => {
+            expect(hasOutstandingTravelBalance(undefined)).toBe(false);
+        });
+
+        it('Should return false when balance and pending settlement are both zero', () => {
+            const travelSettings = {currentBalance: 0, pendingSettlementAmount: 0} as ExpensifyCardSettingsBase;
+            expect(hasOutstandingTravelBalance(travelSettings)).toBe(false);
+        });
+
+        it('Should return true when there is a positive current balance', () => {
+            const travelSettings = {currentBalance: 15000} as ExpensifyCardSettingsBase;
+            expect(hasOutstandingTravelBalance(travelSettings)).toBe(true);
+        });
+
+        it('Should return true when there is a pending settlement amount but no current balance', () => {
+            const travelSettings = {currentBalance: 0, pendingSettlementAmount: 5000} as ExpensifyCardSettingsBase;
+            expect(hasOutstandingTravelBalance(travelSettings)).toBe(true);
         });
     });
 
