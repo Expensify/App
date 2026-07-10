@@ -90,12 +90,12 @@ function makeSearchResults(): SearchResults {
 }
 
 function renderPageAndGetOnSave() {
-    mockCapturedOnSave = undefined;
     render(<SearchColumnsPage />);
-    if (!mockCapturedOnSave) {
+    const onSave = mockCapturedOnSave;
+    if (!onSave) {
         throw new Error('ColumnsSettingsList did not receive an onSave callback');
     }
-    return mockCapturedOnSave;
+    return onSave;
 }
 
 describe('SearchColumnsPage', () => {
