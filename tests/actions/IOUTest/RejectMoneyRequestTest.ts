@@ -425,19 +425,21 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         let transaction: OnyxEntry<Transaction>;
         let iouReport: OnyxEntry<Report>;
 
+        const rejectViolations = [
+            {
+                name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                type: CONST.VIOLATION_TYPES.WARNING,
+                data: {comment: 'Test reject reason'},
+            },
+        ];
+
         beforeEach(async () => {
             transaction = createRandomTransaction(1);
             iouReport = createRandomReport(1, undefined);
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, transaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, iouReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`, [
-                {
-                    name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
-                    type: CONST.VIOLATION_TYPES.WARNING,
-                    data: {comment: 'Test reject reason'},
-                },
-            ]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`, rejectViolations);
             await waitForBatchedUpdates();
         });
 
@@ -451,7 +453,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is removed
@@ -470,7 +472,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            markRejectViolationAsResolved(transaction.transactionID, true, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, true, rejectViolations, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is removed
@@ -493,7 +495,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
 
             // When: Mark violation as resolved
-            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: API.write should be called with the correct command and transactionID
@@ -515,7 +517,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
 
             // When: Mark violation as resolved while online
-            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: notifyNewAction should be called
@@ -533,7 +535,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
 
             // When: Mark violation as resolved without reportID
-            markRejectViolationAsResolved(transaction.transactionID, false, undefined);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, undefined);
             await waitForBatchedUpdates();
 
             // Then: API.write should not be called
