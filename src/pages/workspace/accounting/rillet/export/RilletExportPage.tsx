@@ -7,9 +7,11 @@ import Text from '@components/Text';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletExportToMultipleAccounts} from '@libs/actions/connections/Rillet';
+import {getCardsUsingCustomExportAccountsCount} from '@libs/CardFeedUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -19,7 +21,9 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {CardFeed} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -44,6 +48,10 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
     );
 
     const [cardFeeds] = useCardFeeds(policyID);
+    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const cardsUsingCustomAccountsCount = getCardsUsingCustomExportAccountsCount(cardFeeds ?? {}, cardList ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
+    const cardsOfflineFeedbackKeys = ['']; // s77rt TOOD
+
     const {isAccordionExpanded: isExportToMultipleAccountsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateExportToMultipleAccountsAccordionSection} =
         useAccordionAnimation(exportToMultipleAccounts);
 
@@ -146,6 +154,15 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                                 brickRoadIndicator={
                                     areSettingsInErrorFields(cardProgramsOfflineFeedbackKeys, rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
                                 }
+                            />
+                        </OfflineWithFeedback>
+                        <OfflineWithFeedback pendingAction={settingsPendingAction(cardsOfflineFeedbackKeys, rilletConfig?.pendingFields)}>
+                            <MenuItemWithTopDescription
+                                title={translate('workspace.rillet.cardAccount.countInfo', cardsUsingCustomAccountsCount.totalCount)}
+                                description={translate('workspace.rillet.cardAccount.label')}
+                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
+                                shouldShowRightIcon
+                                brickRoadIndicator={areSettingsInErrorFields(cardsOfflineFeedbackKeys, rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                         </OfflineWithFeedback>
                     </Accordion>

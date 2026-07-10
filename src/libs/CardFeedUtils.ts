@@ -471,24 +471,31 @@ function getCombinedCardFeedsFromAllFeeds(
     }, {});
 }
 
-function getCardsUsingCustomExportAccountsPerFeedCount(
-    workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>,
+function getCardsUsingCustomExportAccountsCount(
+    cardFeeds: CombinedCardFeeds,
+    cardLists: Record<string, WorkspaceCardsList | undefined>,
     exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
 ) {
-    const cardsUsingCustomAccountsPerFeedCount: Partial<Record<CardFeed, number>> = {};
-    for (const workspaceCardList of Object.values(workspaceCardFeeds)) {
+    const feedKeys = Object.values(cardFeeds).map((cardFeed) => cardFeed.feed as CardFeed);
+    const perFeedCount: Partial<Record<CardFeed, number>> = {};
+    let totalCount = 0;
+    for (const workspaceCardList of Object.values(cardLists)) {
         for (const card of Object.values(workspaceCardList ?? {})) {
+            const feedKey = card.bank as CardFeed;
+            if (!feedKeys.some((key) => key === feedKey)) {
+                continue;
+            }
             if (typeof card.nameValuePairs !== 'object') {
                 continue;
             }
             if (!(exportType in card.nameValuePairs)) {
                 continue;
             }
-            const feedKey = card.bank as CardFeed;
-            cardsUsingCustomAccountsPerFeedCount[feedKey] = (cardsUsingCustomAccountsPerFeedCount[feedKey] ?? 0) + 1;
+            perFeedCount[feedKey] = (perFeedCount[feedKey] ?? 0) + 1;
+            totalCount += 1;
         }
     }
-    return cardsUsingCustomAccountsPerFeedCount;
+    return {perFeedCount, totalCount};
 }
 
 export type {CardFilterItem, CardFeedForDisplay};
@@ -502,5 +509,5 @@ export {
     getVisibleCompanyCardFeedsForSelector,
     getCombinedCardFeedsFromAllFeeds,
     getWorkspaceCardFeedsStatus,
-    getCardsUsingCustomExportAccountsPerFeedCount,
+    getCardsUsingCustomExportAccountsCount,
 };

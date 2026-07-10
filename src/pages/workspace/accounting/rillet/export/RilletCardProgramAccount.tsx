@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCardsUsingCustomExportAccountsPerFeedCount} from '@libs/CardFeedUtils';
+import {getCardsUsingCustomExportAccountsCount} from '@libs/CardFeedUtils';
 import {getCustomOrFormattedFeedName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -35,8 +35,7 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
 
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
-
-    const cardsUsingCustomAccountsPerFeedCount = getCardsUsingCustomExportAccountsPerFeedCount(cardList ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
+    const cardsUsingCustomAccountsCount = getCardsUsingCustomExportAccountsCount(cardFeeds ?? {}, cardList ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
 
     return (
         <ConnectionLayout
@@ -62,7 +61,6 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
                 const cardProgramAccountDisplayName = cardProgramAccount
                     ? `${cardProgramAccount.code} ${cardProgramAccount.name}${isUsingDefaultAccount ? ` (${translate('common.default').toLocaleLowerCase()})` : ''}`
                     : '';
-                const cardsUsingCustomAccountsCount = cardsUsingCustomAccountsPerFeedCount[feedKey];
                 return (
                     <OfflineWithFeedback
                         key={feedKey}
@@ -71,7 +69,11 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
                         <MenuItemWithTopDescription
                             title={cardProgramAccountDisplayName}
                             description={feedName}
-                            hintText={cardsUsingCustomAccountsCount ? translate('workspace.rillet.cardAccount.countInfo', cardsUsingCustomAccountsCount) : undefined}
+                            hintText={
+                                cardsUsingCustomAccountsCount.perFeedCount[feedKey]
+                                    ? translate('workspace.rillet.cardAccount.countInfo', cardsUsingCustomAccountsCount.perFeedCount[feedKey])
+                                    : undefined
+                            }
                             onPress={() =>
                                 policyID
                                     ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID as CardFeedWithDomainID))
