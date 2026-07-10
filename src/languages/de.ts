@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -7599,7 +7598,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 general: 'Allgemein',
                 cardRestrictions: 'Karteneinschränkungen',
                 expenseDefaults: 'Standardausgaben',
-                requireFields: 'Felder erforderlich',
+                requireFields: 'Feldanforderungen',
                 flagForReview: 'Zur Überprüfung markieren',
             },
             bulkActions: {
@@ -7660,8 +7659,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 applyExpenseDefaultsDescription: 'Felder aktualisieren, ohne dass die einreichende Person etwas tun muss',
                 flagForReview: 'Zur Überprüfung markieren',
                 flagForReviewDescription: 'Genehmigende benachrichtigen, wenn Ausgaben Kategorienlimits überschreiten',
-                requireFields: 'Felder erforderlich',
-                requireFieldsDescription: 'Stellen Sie sicher, dass die wichtigsten Felder ausgefüllt sind, bevor Ausgaben eingereicht werden',
+                requireFields: 'Feldanforderungen',
+                requireFieldsDescription: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',
@@ -7687,20 +7686,31 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 requireItemizedReceiptOver: (amount: string) => `Artikelisierte Quittung über ${amount} erforderlich`,
                 alwaysRequireReceipt: 'Beleg immer erforderlich',
                 requireReceiptOver: (amount: string) => `Beleg ab einem Betrag von ${amount} erforderlich`,
+                typeLabelRequire: 'Erforderlich',
+                typeLabelDoNotRequire: 'Nicht erforderlich',
+                requireReceipt: 'Beleg erforderlich',
+                doNotRequireReceipt: 'Beleg nicht erforderlich',
+                doNotRequireItemizedReceipt: 'Keine detaillierte Quittung erforderlich',
             },
             requireFieldsEmptyState: {
                 title: 'Fehlende Details frühzeitig erfassen',
-                subtitle: 'Stellen Sie sicher, dass die wichtigsten Felder ausgefüllt sind, bevor Ausgaben eingereicht werden.',
-                cta: 'Erforderlich-Regel erstellen',
+                subtitle: 'Spesenfelder für bestimmte Kategorien vorschreiben oder darauf verzichten.',
+                cta: 'Feldanforderungsregel erstellen',
             },
             requireFieldsRule: {
-                title: 'Felder erforderlich',
-                subtitle: 'Belege, Kategorien usw. beim Einreichen erforderlich machen.',
+                title: 'Feldanforderungen',
+                subtitle: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
                 thenWarnMember: 'Dann Mitglied warnen, wenn Felder fehlen:',
                 itemizedReceipt: 'Aufgeschlüsselte Quittung',
                 saveRule: 'Regel speichern',
                 confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.',
                 confirmErrorField: 'Bitte wählen Sie mindestens ein erforderliches Feld aus.',
+                requireDirection: 'Erforderlich',
+                doNotRequireDirection: 'Nicht erforderlich',
+                theFollowing: 'das Folgende:',
+                confirmErrorDoNotRequireField: 'Bitte wählen Sie mindestens ein Feld aus.',
+                receiptDisabledWhenItemizedRequired: 'Belege sind immer erforderlich, wenn auch Einzelbelege erforderlich sind.',
+                itemizedDisabledWhenReceiptWaived: 'Detaillierte Belege sind nicht erforderlich, wenn überhaupt kein Beleg erforderlich ist.',
             },
             flagForReviewTable: {
                 tableColumnType: 'Typ',

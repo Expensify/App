@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -7543,7 +7542,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 general: 'Ogólne',
                 cardRestrictions: 'Ograniczenia karty',
                 expenseDefaults: 'Domyślne ustawienia wydatków',
-                requireFields: 'Wymagaj pól',
+                requireFields: 'Wymagania pola',
                 flagForReview: 'Oznacz do przejrzenia',
             },
             bulkActions: {
@@ -7604,8 +7603,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 applyExpenseDefaultsDescription: 'Aktualizuj pola bez wymagania działania od osoby zgłaszającej',
                 flagForReview: 'Oznacz do przejrzenia',
                 flagForReviewDescription: 'Powiadamiaj zatwierdzających, gdy wydatki przekraczają limity kategorii',
-                requireFields: 'Wymagaj pól',
-                requireFieldsDescription: 'Upewnij się, że kluczowe pola są wypełnione przed wysłaniem wydatków',
+                requireFields: 'Wymagania pola',
+                requireFieldsDescription: 'Wymagaj konkretnych pól wydatku lub zrezygnuj z ich wymagania.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',
@@ -7631,20 +7630,31 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 requireItemizedReceiptOver: (amount: string) => `Wymagaj zindywidualizowanego paragonu powyżej ${amount}`,
                 alwaysRequireReceipt: 'Zawsze wymagaj paragonu',
                 requireReceiptOver: (amount: string) => `Wymagaj paragonu powyżej ${amount}`,
+                typeLabelRequire: 'Wymagaj',
+                typeLabelDoNotRequire: 'Nie wymagaj',
+                requireReceipt: 'Wymagaj paragonu',
+                doNotRequireReceipt: 'Nie wymagaj paragonu',
+                doNotRequireItemizedReceipt: 'Nie wymagaj wyszczególnionego paragonu',
             },
             requireFieldsEmptyState: {
                 title: 'Wychwytuj brakujące szczegóły od razu',
-                subtitle: 'Upewnij się, że kluczowe pola są wypełnione, zanim wydatki zostaną wysłane.',
-                cta: 'Utwórz regułę wymaganego pola',
+                subtitle: 'Wymagaj lub pomijaj pola wydatków dla określonych kategorii.',
+                cta: 'Utwórz regułę wymagalności pola',
             },
             requireFieldsRule: {
-                title: 'Wymagaj pól',
-                subtitle: 'Wymagaj paragonów, kategorii itd. przy wysyłaniu.',
+                title: 'Wymagania pola',
+                subtitle: 'Wymagaj konkretnych pól wydatku lub zrezygnuj z ich wymagania.',
                 thenWarnMember: 'Następnie ostrzegaj członka, jeśli pola są nieuzupełnione:',
                 itemizedReceipt: 'Paragon z wyszczególnieniem pozycji',
                 saveRule: 'Zapisz regułę',
                 confirmErrorCategory: 'Wybierz kategorię.',
                 confirmErrorField: 'Wybierz co najmniej jedno pole, które ma być wymagane.',
+                requireDirection: 'Wymagaj',
+                doNotRequireDirection: 'Nie wymagaj',
+                theFollowing: 'następujące:',
+                confirmErrorDoNotRequireField: 'Wybierz co najmniej jedno pole.',
+                receiptDisabledWhenItemizedRequired: 'Paragony są zawsze wymagane, gdy wymagane są także paragony z wyszczególnieniem pozycji.',
+                itemizedDisabledWhenReceiptWaived: 'Szczegółowe paragony nie są wymagane, jeśli żaden paragon nie jest wymagany.',
             },
             flagForReviewTable: {
                 tableColumnType: 'Typ',

@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -7561,7 +7560,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 general: 'Algemeen',
                 cardRestrictions: 'Kaartbeperkingen',
                 expenseDefaults: 'Standaardinstellingen voor uitgaven',
-                requireFields: 'Maak velden verplicht',
+                requireFields: 'Veldvereisten',
                 flagForReview: 'Markeren voor controle',
             },
             bulkActions: {
@@ -7622,8 +7621,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 applyExpenseDefaultsDescription: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
                 flagForReview: 'Markeren voor controle',
                 flagForReviewDescription: 'Goedkeurders informeren wanneer onkosten de categorielimieten overschrijden',
-                requireFields: 'Maak velden verplicht',
-                requireFieldsDescription: 'Zorg dat belangrijke velden zijn ingevuld voordat onkosten worden ingediend',
+                requireFields: 'Veldvereisten',
+                requireFieldsDescription: 'Specifieke onkostenvakken verplicht stellen of afzien van het verplicht stellen ervan.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -7649,20 +7648,31 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 requireItemizedReceiptOver: (amount: string) => `Gespecificeerde bon vereist boven ${amount}`,
                 alwaysRequireReceipt: 'Altijd bon vereisen',
                 requireReceiptOver: (amount: string) => `Bon vereisen voor bedragen boven ${amount}`,
+                typeLabelRequire: 'Vereist',
+                typeLabelDoNotRequire: 'Niet verplicht stellen',
+                requireReceipt: 'Bon nodig',
+                doNotRequireReceipt: 'Bon niet verplicht stellen',
+                doNotRequireItemizedReceipt: 'Geen gespecificeerde bon vereist',
             },
             requireFieldsEmptyState: {
                 title: 'Signaleer ontbrekende gegevens direct',
-                subtitle: 'Zorg dat de belangrijkste velden zijn ingevuld voordat je onkosten indient.',
-                cta: 'Verplichte regel maken',
+                subtitle: 'Vereis of schaf onkostvelden af voor specifieke categorieën.',
+                cta: 'Veldvereistenregel maken',
             },
             requireFieldsRule: {
-                title: 'Maak velden verplicht',
-                subtitle: 'Vereis bonnetjes, categorieën, enzovoort bij het indienen.',
+                title: 'Veldvereisten',
+                subtitle: 'Specifieke onkostenvakken verplicht stellen of afzien van het verplicht stellen ervan.',
                 thenWarnMember: 'Waarschuw dan het lid als velden ontbreken:',
                 itemizedReceipt: 'Gespecificeerde bon',
                 saveRule: 'Regel opslaan',
                 confirmErrorCategory: 'Selecteer een categorie.',
                 confirmErrorField: 'Selecteer minimaal één verplicht veld.',
+                requireDirection: 'Vereist',
+                doNotRequireDirection: 'Niet verplicht stellen',
+                theFollowing: 'het volgende:',
+                confirmErrorDoNotRequireField: 'Selecteer ten minste één veld.',
+                receiptDisabledWhenItemizedRequired: 'Bonnen zijn altijd vereist wanneer gespecificeerde bonnen ook vereist zijn.',
+                itemizedDisabledWhenReceiptWaived: 'Gespecificeerde bonnetjes zijn niet vereist als er ook helemaal geen bonnetje vereist is.',
             },
             flagForReviewTable: {
                 tableColumnType: 'Type',

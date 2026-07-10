@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -7343,7 +7342,7 @@ ${reportName}`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>为了执行你的代理规则，我们为你创建了一个代理，并将其添加为你工作区的管理员。<br><br>你可以在 <a href="${agentsRoute}">“账户”&gt;“代理”</a> 中编辑代理的详细信息。</muted-text>`,
             },
-            tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置', requireFields: '必填字段', flagForReview: '标记以供审核'},
+            tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置', requireFields: '字段要求', flagForReview: '标记以供审核'},
             bulkActions: {
                 deleteMultiple: () => ({
                     one: '删除规则',
@@ -7402,8 +7401,8 @@ ${reportName}`,
                 applyExpenseDefaultsDescription: '在提交人无须执行任何操作的情况下更新字段',
                 flagForReview: '标记以供审核',
                 flagForReviewDescription: '当费用超出类别限额时通知审批人',
-                requireFields: '必填字段',
-                requireFieldsDescription: '请确保在提交报销前填写所有关键字段',
+                requireFields: '字段要求',
+                requireFieldsDescription: '要求填写特定报销字段，或免除其必填限制。',
             },
             expenseDefaultsTable: {
                 tableColumnType: '类型',
@@ -7429,16 +7428,27 @@ ${reportName}`,
                 requireItemizedReceiptOver: (amount: string) => `需要超过 ${amount} 的分项收据`,
                 alwaysRequireReceipt: '始终要求收据',
                 requireReceiptOver: (amount: string) => `要求票据超过 ${amount}`,
+                typeLabelRequire: '必填',
+                typeLabelDoNotRequire: '不要求',
+                requireReceipt: '需要收据',
+                doNotRequireReceipt: '不需要收据',
+                doNotRequireItemizedReceipt: '不要求明细收据',
             },
-            requireFieldsEmptyState: {title: '提前补全缺失信息', subtitle: '在提交报销前，请确保关键字段已填写完整。', cta: '创建必填规则'},
+            requireFieldsEmptyState: {title: '提前补全缺失信息', subtitle: '为特定类别设置报销字段为必填或可选。', cta: '创建字段必填规则'},
             requireFieldsRule: {
-                title: '必填字段',
-                subtitle: '在提交时要求提供收据、分类等信息。',
+                title: '字段要求',
+                subtitle: '要求填写特定报销字段，或免除其必填限制。',
                 thenWarnMember: '如果有字段缺失，则提醒成员：',
                 itemizedReceipt: '明细收据',
                 saveRule: '保存规则',
                 confirmErrorCategory: '请选择一个类别。',
                 confirmErrorField: '请至少选择一个必填字段。',
+                requireDirection: '必填',
+                doNotRequireDirection: '不要求',
+                theFollowing: '如下内容：',
+                confirmErrorDoNotRequireField: '请至少选择一个字段。',
+                receiptDisabledWhenItemizedRequired: '当需要逐项明细收据时，始终也需要提供收据。',
+                itemizedDisabledWhenReceiptWaived: '如果本身不需要收据，也就不需要逐项列明的收据。',
             },
             flagForReviewTable: {
                 tableColumnType: '类型',

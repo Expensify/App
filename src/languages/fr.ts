@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -7626,7 +7625,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 general: 'Général',
                 cardRestrictions: 'Restrictions de carte',
                 expenseDefaults: 'Paramètres par défaut des dépenses',
-                requireFields: 'Champs obligatoires',
+                requireFields: 'Exigences des champs',
                 flagForReview: 'Marquer pour examen',
             },
             bulkActions: {
@@ -7687,8 +7686,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 applyExpenseDefaultsDescription: 'Mettre à jour les champs sans que le déclarant ne fasse quoi que ce soit',
                 flagForReview: 'Marquer pour examen',
                 flagForReviewDescription: 'Avertir les approbateurs lorsque les dépenses dépassent les limites de catégorie',
-                requireFields: 'Champs obligatoires',
-                requireFieldsDescription: 'Assurez-vous que les champs clés sont remplis avant que les dépenses soient soumises',
+                requireFields: 'Exigences des champs',
+                requireFieldsDescription: 'Rendre certains champs de dépense obligatoires ou renoncer à les exiger.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -7714,20 +7713,31 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 requireItemizedReceiptOver: (amount: string) => `Exiger un reçu détaillé au-delà de ${amount}`,
                 alwaysRequireReceipt: 'Toujours exiger un reçu',
                 requireReceiptOver: (amount: string) => `Exiger un reçu au‑delà de ${amount}`,
+                typeLabelRequire: 'Exiger',
+                typeLabelDoNotRequire: 'Ne pas exiger',
+                requireReceipt: 'Reçu obligatoire',
+                doNotRequireReceipt: 'Ne pas exiger de reçu',
+                doNotRequireItemizedReceipt: 'Ne pas exiger de reçu détaillé',
             },
             requireFieldsEmptyState: {
                 title: 'Identifiez les informations manquantes dès le départ',
-                subtitle: 'Assurez-vous que les champs clés sont remplis avant que les dépenses ne soient soumises.',
-                cta: 'Créer une règle obligatoire',
+                subtitle: 'Rendre les champs de dépenses obligatoires ou facultatifs pour des catégories spécifiques.',
+                cta: 'Créer une règle d’obligation de champ',
             },
             requireFieldsRule: {
-                title: 'Champs obligatoires',
-                subtitle: 'Exiger les reçus, catégories, etc. lors de la soumission.',
+                title: 'Exigences des champs',
+                subtitle: 'Rendre certains champs de dépense obligatoires ou renoncer à les exiger.',
                 thenWarnMember: 'Puis avertir le membre si des champs manquent :',
                 itemizedReceipt: 'Reçu détaillé',
                 saveRule: 'Enregistrer la règle',
                 confirmErrorCategory: 'Veuillez sélectionner une catégorie.',
                 confirmErrorField: 'Veuillez sélectionner au moins un champ à rendre obligatoire.',
+                requireDirection: 'Exiger',
+                doNotRequireDirection: 'Ne pas exiger',
+                theFollowing: 'ce qui suit :',
+                confirmErrorDoNotRequireField: 'Veuillez sélectionner au moins un champ.',
+                receiptDisabledWhenItemizedRequired: 'Les reçus sont toujours obligatoires lorsque les reçus détaillés sont également obligatoires.',
+                itemizedDisabledWhenReceiptWaived: 'Les reçus détaillés ne sont pas requis si aucun reçu n’est requis.',
             },
             flagForReviewTable: {
                 tableColumnType: 'Type',

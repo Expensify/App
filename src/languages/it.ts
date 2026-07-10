@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -7583,7 +7582,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 general: 'Generale',
                 cardRestrictions: 'Limitazioni carta',
                 expenseDefaults: 'Impostazioni predefinite spese',
-                requireFields: 'Rendi obbligatori i campi',
+                requireFields: 'Requisiti del campo',
                 flagForReview: 'Contrassegna per revisione',
             },
             bulkActions: {
@@ -7644,8 +7643,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 applyExpenseDefaultsDescription: 'Aggiorna i campi senza che chi invia debba fare nulla',
                 flagForReview: 'Contrassegna per revisione',
                 flagForReviewDescription: 'Avvisa gli approvatori quando le spese superano i limiti di categoria',
-                requireFields: 'Rendi obbligatori i campi',
-                requireFieldsDescription: 'Assicurati che i campi chiave siano compilati prima di inviare le spese',
+                requireFields: 'Requisiti del campo',
+                requireFieldsDescription: 'Richiedi campi specifici per le spese oppure rinuncia a renderli obbligatori.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -7671,20 +7670,31 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 requireItemizedReceiptOver: (amount: string) => `Richiedi ricevuta dettagliata per importi superiori a ${amount}`,
                 alwaysRequireReceipt: 'Richiedi sempre la ricevuta',
                 requireReceiptOver: (amount: string) => `Richiedi ricevuta sopra ${amount}`,
+                typeLabelRequire: 'Richiedi',
+                typeLabelDoNotRequire: 'Non richiedere',
+                requireReceipt: 'Richiedi ricevuta',
+                doNotRequireReceipt: 'Non richiedere ricevuta',
+                doNotRequireItemizedReceipt: 'Non richiedere ricevuta dettagliata',
             },
             requireFieldsEmptyState: {
                 title: 'Individua subito i dettagli mancanti',
-                subtitle: 'Assicurati che i campi chiave siano compilati prima di inviare le spese.',
-                cta: 'Crea regola di obbligatorietà',
+                subtitle: 'Rendi obbligatori o facoltativi i campi spesa per categorie specifiche.',
+                cta: 'Crea regola di obbligatorietà del campo',
             },
             requireFieldsRule: {
-                title: 'Rendi obbligatori i campi',
-                subtitle: "Richiedi ricevute, categorie, ecc. all'invio.",
+                title: 'Requisiti del campo',
+                subtitle: 'Richiedi campi specifici per le spese oppure rinuncia a renderli obbligatori.',
                 thenWarnMember: 'Poi avvisa il membro se mancano dei campi:',
                 itemizedReceipt: 'Ricevuta dettagliata',
                 saveRule: 'Salva regola',
                 confirmErrorCategory: 'Seleziona una categoria.',
                 confirmErrorField: 'Seleziona almeno un campo da rendere obbligatorio.',
+                requireDirection: 'Richiedi',
+                doNotRequireDirection: 'Non richiedere',
+                theFollowing: 'quanto segue:',
+                confirmErrorDoNotRequireField: 'Seleziona almeno un campo.',
+                receiptDisabledWhenItemizedRequired: 'Le ricevute sono sempre obbligatorie quando sono richieste anche le ricevute con dettaglio.',
+                itemizedDisabledWhenReceiptWaived: 'Le ricevute dettagliate non sono richieste se non è richiesta alcuna ricevuta.',
             },
             flagForReviewTable: {
                 tableColumnType: 'Tipo',

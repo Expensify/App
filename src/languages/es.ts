@@ -1,6 +1,3 @@
-import CONST from '@src/CONST';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -12,12 +9,14 @@ import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import CONST from '@src/CONST';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
 import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, RemoveCopilotAccessConfirmationParams, UnsupportedFormulaValueErrorParams} from './params';
 import type {TranslationDeepObject} from './types';
-
 const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contar',
@@ -7490,7 +7489,7 @@ ${amount} para ${merchant} - ${date}`,
                 general: 'General',
                 cardRestrictions: 'Restricciones de la tarjeta',
                 expenseDefaults: 'Valores predeterminados de gastos',
-                requireFields: 'Campos obligatorios',
+                requireFields: 'Requisitos del campo',
                 flagForReview: 'Marcar para revisión',
             },
             bulkActions: {
@@ -7551,8 +7550,8 @@ ${amount} para ${merchant} - ${date}`,
                 applyExpenseDefaultsDescription: 'Actualizar campos sin que quien los envía haga nada',
                 flagForReview: 'Marcar para revisión',
                 flagForReviewDescription: 'Notificar a los aprobadores cuando los gastos superen los límites de categoría',
-                requireFields: 'Campos obligatorios',
-                requireFieldsDescription: 'Asegúrate de que los campos clave estén rellenos antes de enviar los gastos',
+                requireFields: 'Requisitos del campo',
+                requireFieldsDescription: 'Exige campos específicos de gasto o renuncia a exigirlos.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -7578,20 +7577,31 @@ ${amount} para ${merchant} - ${date}`,
                 requireItemizedReceiptOver: (amount: string) => `Requerir recibo desglosado por encima de ${amount}`,
                 alwaysRequireReceipt: 'Solicitar siempre recibo',
                 requireReceiptOver: (amount: string) => `Solicitar recibo para importes superiores a ${amount}`,
+                typeLabelRequire: 'Requerir',
+                typeLabelDoNotRequire: 'No solicitar',
+                requireReceipt: 'Solicitar recibo',
+                doNotRequireReceipt: 'No solicitar recibo',
+                doNotRequireItemizedReceipt: 'No exigir recibo desglosado',
             },
             requireFieldsEmptyState: {
                 title: 'Detecta los datos que faltan desde el principio',
-                subtitle: 'Asegúrate de que los campos clave estén completos antes de enviar los gastos.',
-                cta: 'Crear regla de requisito',
+                subtitle: 'Exige u omite campos de gastos para categorías específicas.',
+                cta: 'Crear regla de requisito de campo',
             },
             requireFieldsRule: {
-                title: 'Campos obligatorios',
-                subtitle: 'Solicita recibos, categorías, etc., al enviar.',
+                title: 'Requisitos del campo',
+                subtitle: 'Exige campos específicos de gasto o renuncia a exigirlos.',
                 thenWarnMember: 'Luego, avisa al miembro si faltan campos:',
                 itemizedReceipt: 'Recibo desglosado',
                 saveRule: 'Guardar regla',
                 confirmErrorCategory: 'Por favor, selecciona una categoría.',
                 confirmErrorField: 'Por favor, selecciona al menos un campo como obligatorio.',
+                requireDirection: 'Requerir',
+                doNotRequireDirection: 'No solicitar',
+                theFollowing: 'lo siguiente:',
+                confirmErrorDoNotRequireField: 'Por favor, selecciona al menos un campo.',
+                receiptDisabledWhenItemizedRequired: 'Los recibos siempre son obligatorios cuando también se requieren recibos desglosados.',
+                itemizedDisabledWhenReceiptWaived: 'Los recibos desglosados no son obligatorios si ningún recibo es obligatorio.',
             },
             flagForReviewTable: {
                 tableColumnType: 'Tipo',

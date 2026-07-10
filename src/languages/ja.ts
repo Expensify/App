@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -7546,7 +7545,7 @@ ${reportName}`,
                 flagForReview: '確認のためにフラグを付ける',
                 flagForReviewDescription: '経費がカテゴリの上限を超えたとき承認者に通知します',
                 requireFields: '必須項目',
-                requireFieldsDescription: '経費を提出する前に、主要な項目が入力されていることを確認してください',
+                requireFieldsDescription: '特定の経費項目フィールドを必須にするか、必須条件を免除します。',
             },
             expenseDefaultsTable: {
                 tableColumnType: '種類',
@@ -7572,20 +7571,31 @@ ${reportName}`,
                 requireItemizedReceiptOver: (amount: string) => `${amount} を超える金額には明細付き領収書が必要です`,
                 alwaysRequireReceipt: '常にレシートを必須にする',
                 requireReceiptOver: (amount: string) => `${amount} を超える領収書を必須にする`,
+                typeLabelRequire: '必須',
+                typeLabelDoNotRequire: '必須にしない',
+                requireReceipt: '領収書を必須にする',
+                doNotRequireReceipt: '領収書を必須にしない',
+                doNotRequireItemizedReceipt: '明細付き領収書を必須にしない',
             },
             requireFieldsEmptyState: {
                 title: '不足している詳細を事前に把握しましょう',
-                subtitle: '経費を提出する前に、重要な項目がすべて入力されていることを確認してください。',
-                cta: '必須ルールを作成',
+                subtitle: '特定のカテゴリに対して、経費項目の入力を必須または任意に設定します。',
+                cta: 'フィールド必須ルールを作成',
             },
             requireFieldsRule: {
                 title: '必須項目',
-                subtitle: '提出時にレシートやカテゴリなどを必須にする',
+                subtitle: '特定の経費項目フィールドを必須にするか、必須条件を免除します。',
                 thenWarnMember: '不足している項目がある場合はメンバーに警告します:',
                 itemizedReceipt: '明細付きレシート',
                 saveRule: 'ルールを保存',
                 confirmErrorCategory: 'カテゴリを選択してください。',
                 confirmErrorField: '少なくとも 1 つの必須項目を選択してください。',
+                requireDirection: '必須',
+                doNotRequireDirection: '必須にしない',
+                theFollowing: '次のとおりです:',
+                confirmErrorDoNotRequireField: '少なくとも 1 つの項目を選択してください。',
+                receiptDisabledWhenItemizedRequired: '明細付き領収書が必要な場合は、常に領収書の提出も必要です。',
+                itemizedDisabledWhenReceiptWaived: 'どのレシートも必須でない場合は、明細付きレシートも必須ではありません。',
             },
             flagForReviewTable: {
                 tableColumnType: '種類',
