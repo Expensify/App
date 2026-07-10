@@ -50,6 +50,7 @@ function IOURequestStepAttendees({
     const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, reportOwnerAsAttendee));
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
@@ -82,6 +83,7 @@ function IOURequestStepAttendees({
                     parentReportNextStep,
                     isOffline,
                     delegateAccountID,
+                    reportPolicyTags,
                 });
             } else {
                 setMoneyRequestAttendees(transactionID, attendees, !isEditing);
@@ -107,6 +109,7 @@ function IOURequestStepAttendees({
         parentReportNextStep,
         isOffline,
         delegateAccountID,
+        reportPolicyTags,
     ]);
 
     const navigateBack = () => {
