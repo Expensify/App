@@ -484,7 +484,7 @@ function BaseSelectionList<TItem extends ListItem>({
     );
 
     return (
-        <View style={[styles.flex1, styles.appBG, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
+        <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
             {data.length === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
                 <SelectionListEmptyState
@@ -514,7 +514,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         testID="selection-list"
-                        style={[styles.appBG, style?.listStyle]}
+                        style={style?.listStyle}
                         contentContainerStyle={[styles.pb3, style?.contentContainerStyle]}
                         initialScrollIndex={shouldScrollToFocusedIndexOnMount ? initialFocusedIndex : undefined}
                         onScrollBeginDrag={onScrollBeginDrag}
