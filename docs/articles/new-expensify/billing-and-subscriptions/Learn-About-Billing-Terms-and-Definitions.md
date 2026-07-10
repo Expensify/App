@@ -55,8 +55,6 @@ A **Workspace Admin** is a member who has permissions to manage the Workspace se
 
 The **Workspace owner** is the Workspace Admin who is responsible for managing the Workspace's subscription and payment card.
 
-<!-- LINK: Workspace member roles article when created -->
-
 ---
 
 ## What Annual subscription terms mean 
@@ -69,7 +67,7 @@ Some Annual subscription settings affect how your Workspace is billed over time.
 
 **Auto-increase annual seats** automatically increases your subscription size if your member count exceeds your committed subscription size.
 
-To learn more, see [Manage Annual Subscription Settings](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Manage-Annual-Subscription-Setting).
+To learn more, see [Manage Annual Subscription Settings](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Manage-Annual-Subscription-Settings).
 
 ---
 
