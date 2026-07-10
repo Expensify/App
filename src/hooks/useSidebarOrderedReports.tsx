@@ -1,14 +1,18 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {setInboxTab} from '@libs/actions/User';
 import Log from '@libs/Log';
 import SidebarUtils from '@libs/SidebarUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+
 import {useCurrentReportIDState} from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
@@ -18,8 +22,6 @@ import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useReportAttributes from './useReportAttributes';
 import useResponsiveLayout from './useResponsiveLayout';
-
-const componentsUsingHook = new Map<string, {renderDuration: number}>();
 
 type PartialPolicyForSidebar = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
 
@@ -73,6 +75,8 @@ const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSide
         employeeList: policy.employeeList,
     }) as PartialPolicyForSidebar;
 
+// This file does not compile with React Compiler (render-time ref cache below keeps referential
+// stability), so the manual useMemo/useCallback in this provider are load-bearing and must stay.
 function SidebarOrderedReportsContextProvider({
     children,
     /**
@@ -96,6 +100,7 @@ function SidebarOrderedReportsContextProvider({
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -112,11 +117,7 @@ function SidebarOrderedReportsContextProvider({
     const prevBetas = usePrevious(betas);
     const prevPriorityMode = usePrevious(priorityMode);
     const prevIsOffline = usePrevious(isOffline);
-
-    const perfRef = useRef<{hookDuration: number}>({
-        hookDuration: 0,
-    });
-    const hookStartTime = useRef<number>(performance.now());
+    const prevConciergeReportID = usePrevious(conciergeReportID);
 
     /**
      * Find the reports that need to be updated in the LHN
@@ -124,7 +125,7 @@ function SidebarOrderedReportsContextProvider({
     const getUpdatedReports = useCallback(() => {
         const reportsToUpdate = new Set<string>();
 
-        if (betas !== prevBetas || priorityMode !== prevPriorityMode || isOffline !== prevIsOffline) {
+        if (betas !== prevBetas || priorityMode !== prevPriorityMode || isOffline !== prevIsOffline || conciergeReportID !== prevConciergeReportID) {
             for (const key of Object.keys(chatReports ?? {})) {
                 reportsToUpdate.add(key);
             }
@@ -193,6 +194,8 @@ function SidebarOrderedReportsContextProvider({
         prevPriorityMode,
         isOffline,
         prevIsOffline,
+        conciergeReportID,
+        prevConciergeReportID,
         prevDerivedCurrentReportID,
         derivedCurrentReportID,
     ]);
@@ -223,6 +226,7 @@ function SidebarOrderedReportsContextProvider({
                 isOffline,
                 currentUserLogin: currentUserLogin ?? '',
                 currentUserAccountID: accountID,
+                conciergeReportID,
             });
         } else {
             Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
@@ -239,6 +243,7 @@ function SidebarOrderedReportsContextProvider({
                 currentUserAccountID: accountID,
                 reportNameValuePairs,
                 reportAttributes,
+                conciergeReportID,
             });
         }
 
@@ -259,6 +264,7 @@ function SidebarOrderedReportsContextProvider({
         clearCacheDummyCounter,
         currentUserLogin,
         accountID,
+        conciergeReportID,
     ]);
 
     // Derive a stable boolean map indicating which reports have drafts.
@@ -416,11 +422,6 @@ function SidebarOrderedReportsContextProvider({
 
     const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache, setActiveTab, setStickyReportID}), [clearLHNCache, setActiveTab, setStickyReportID]);
 
-    useEffect(() => {
-        const hookExecutionDuration = performance.now() - hookStartTime.current;
-        perfRef.current.hookDuration = hookExecutionDuration;
-    }, [stateValue]);
-
     return (
         <SidebarOrderedReportsStateContext.Provider value={stateValue}>
             <SidebarOrderedReportsActionsContext.Provider value={actionsValue}>{children}</SidebarOrderedReportsActionsContext.Provider>
@@ -428,8 +429,7 @@ function SidebarOrderedReportsContextProvider({
     );
 }
 
-function useSidebarOrderedReportsState(componentName?: string) {
-    useSidebarOrderedReportsPerformance(componentName);
+function useSidebarOrderedReportsState() {
     return useContext(SidebarOrderedReportsStateContext);
 }
 
@@ -437,44 +437,10 @@ function useSidebarOrderedReportsActions() {
     return useContext(SidebarOrderedReportsActionsContext);
 }
 
-function useSidebarOrderedReports(componentName?: string) {
-    const state = useSidebarOrderedReportsState(componentName);
+function useSidebarOrderedReports() {
+    const state = useSidebarOrderedReportsState();
     const actions = useSidebarOrderedReportsActions();
     return {...state, ...actions};
-}
-
-function useSidebarOrderedReportsPerformance(componentName?: string) {
-    const renderStartTime = useRef<number>(0);
-
-    useEffect(() => {
-        if (!componentName) {
-            return;
-        }
-
-        componentsUsingHook.set(componentName, {renderDuration: 0});
-
-        return () => {
-            componentsUsingHook.delete(componentName);
-        };
-    }, [componentName]);
-
-    useEffect(() => {
-        if (!componentName) {
-            return;
-        }
-
-        renderStartTime.current = performance.now();
-
-        return () => {
-            const renderDuration = performance.now() - renderStartTime.current;
-            const currentData = componentsUsingHook.get(componentName);
-            if (currentData) {
-                componentsUsingHook.set(componentName, {
-                    renderDuration,
-                });
-            }
-        };
-    }, [componentName]);
 }
 
 export {SidebarOrderedReportsContextProvider, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};

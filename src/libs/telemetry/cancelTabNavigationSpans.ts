@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+
 import {cancelSpan} from './activeSpans';
 
 // Spans grouped by the tab they belong to. The Reports tab owns three (legacy plus the FirstPaint/ContentLoad
@@ -25,4 +26,4 @@ function cancelTabNavigationSpans(preserve: readonly string[] = []) {
 }
 
 export default cancelTabNavigationSpans;
-export {REPORTS_TAB_SPAN_IDS, INBOX_TAB_SPAN_IDS};
+export {REPORTS_TAB_SPAN_IDS, INBOX_TAB_SPAN_IDS, TAB_NAVIGATION_SPAN_IDS};
