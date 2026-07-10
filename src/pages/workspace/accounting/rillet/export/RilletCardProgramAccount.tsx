@@ -44,8 +44,8 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
             if (!(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT in card.nameValuePairs)) {
                 continue;
             }
-            const feed = card.bank as CardFeed;
-            cardsUsingCustomAccountsPerFeedCount[feed] = (cardsUsingCustomAccountsPerFeedCount[feed] ?? 0) + 1;
+            const feedKey = card.bank as CardFeed;
+            cardsUsingCustomAccountsPerFeedCount[feedKey] = (cardsUsingCustomAccountsPerFeedCount[feedKey] ?? 0) + 1;
         }
     }
 
@@ -64,32 +64,33 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
             <View style={[styles.mv3, styles.mh5]}>
                 <Text>{translate('workspace.rillet.cardProgramAccount.description')}</Text>
             </View>
-            {Object.entries(cardFeeds ?? {}).map(([cardFeedWithDomainIDKey, cardFeed]) => {
-                const cardFeedWithDomainID = cardFeedWithDomainIDKey as CardFeedWithDomainID;
-                const feed = cardFeed.feed as CardFeed;
-                const feedName = getCustomOrFormattedFeedName(translate, feed, cardFeed.customFeedName, false);
-                const cardProgramAccountCode = cardProgramsUsingCustomAccounts?.[feed] ?? creditCardAccountCode;
+            {Object.entries(cardFeeds ?? {}).map(([feedWithDomainID, cardFeed]) => {
+                const feedKey = cardFeed.feed as CardFeed;
+                const feedName = getCustomOrFormattedFeedName(translate, feedKey, cardFeed.customFeedName, false);
+                const cardProgramAccountCode = cardProgramsUsingCustomAccounts?.[feedKey] ?? creditCardAccountCode;
                 const isUsingDefaultAccount = cardProgramAccountCode === creditCardAccountCode;
                 const cardProgramAccount = rilletData?.accounts?.find((account) => account.code === cardProgramAccountCode);
                 const cardProgramAccountDisplayName = cardProgramAccount
                     ? `${cardProgramAccount.code} ${cardProgramAccount.name}${isUsingDefaultAccount ? ` (${translate('common.default').toLocaleLowerCase()})` : ''}`
                     : '';
-                const cardsUsingCustomAccountsCount = cardsUsingCustomAccountsPerFeedCount[feed];
+                const cardsUsingCustomAccountsCount = cardsUsingCustomAccountsPerFeedCount[feedKey];
                 return (
                     <OfflineWithFeedback
-                        key={cardFeedWithDomainID}
-                        pendingAction={settingsPendingAction([`${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feed}`], rilletConfig?.pendingFields)}
+                        key={feedKey}
+                        pendingAction={settingsPendingAction([`${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], rilletConfig?.pendingFields)}
                     >
                         <MenuItemWithTopDescription
                             title={cardProgramAccountDisplayName}
                             description={feedName}
                             hintText={cardsUsingCustomAccountsCount ? translate('workspace.rillet.cardAccount.countInfo', cardsUsingCustomAccountsCount) : undefined}
                             onPress={() =>
-                                policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, cardFeedWithDomainID)) : undefined
+                                policyID
+                                    ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID as CardFeedWithDomainID))
+                                    : undefined
                             }
                             shouldShowRightIcon
                             brickRoadIndicator={
-                                areSettingsInErrorFields([`${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feed}`], rilletConfig?.errorFields)
+                                areSettingsInErrorFields([`${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], rilletConfig?.errorFields)
                                     ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                     : undefined
                             }
