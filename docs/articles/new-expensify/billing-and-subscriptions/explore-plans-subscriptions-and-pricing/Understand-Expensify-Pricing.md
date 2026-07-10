@@ -6,11 +6,12 @@ internalScope: Covers current pricing for Collect and Control Workspaces, Annual
 retrievalIntent: How much does Expensify cost
 contentType: topic
 platform: new
+order: 3
 ---
 
 # Understand Expensify Pricing
 
-Expensify pricing depends on your Workspace plan, subscription type, billing currency, and, for eligible subscriptions, qualifying Expensify Card usage. This article provides an overview of the current pricing model. For the latest pricing details and feature comparison, visit [Expensify Pricing](https://www.expensify.com/pricing).
+Expensify pricing depends on your Workspace plan, subscription type, billing currency, and for eligible subscriptions, qualifying Expensify Card usage. This article provides an overview of the current pricing model. For the latest pricing details and feature comparison, visit [Expensify Pricing](https://www.expensify.com/pricing).
 
 ## Find your subscription pricing
 
