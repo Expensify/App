@@ -45,9 +45,9 @@ import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
+import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,7 +61,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
@@ -171,14 +171,16 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const linkedReportActionID = reportActionIDFromRoute;
 
-    const {scrollOffsetRef} = useContext(ActionListContext);
+    const {getScrollOffset} = useActionListContext();
+    const listRef = useActionListRef();
+
     const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
     const onShowPreviousMessages = handleShowPreviousMessages;
 
-    const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => scrollOffsetRef.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+    const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
     const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
         reportID,
@@ -270,7 +272,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     }, [reportAttributes?.actionTargetReportActionID, renderedVisibleReportActions]);
 
     const {
-        listRef,
         trackVerticalScrolling,
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,
@@ -280,7 +281,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         flushPendingScrollToBottom,
         shouldBeAlignedToTop,
         shouldFocusToTopOnMount,
-        initialScrollKey,
+        initialScrollIndex,
+        initialScrollIndexParams,
         maintainVisibleContentPosition,
         onLoad,
     } = useReportActionsScroll({
@@ -289,6 +291,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         transactionThreadReport,
         parentReportAction,
         sortedVisibleReportActions,
+        renderedVisibleReportActions,
+        keyExtractor,
+        hasScrolledOverThreshold,
         markNewestActionAsRead,
         completeSkippedMarkAsRead,
         unreadMarkerReportActionID,
@@ -326,8 +331,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         });
     };
 
-    const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
-
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
      * This is so that it will not be conflicting with header's separator line.
@@ -357,22 +360,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     }, [parentReportAction, renderedVisibleReportActions, report]);
 
-    // Precompute a reportActionID -> index map so renderItem can resolve the real index in O(1)
-    // instead of scanning renderedVisibleReportActions with indexOf on every render.
-    const actionIndexMap = useMemo(() => {
-        const map = new Map<string, number>();
-        for (const [i, action] of renderedVisibleReportActions.entries()) {
-            map.set(action.reportActionID, i);
-        }
-        return map;
-    }, [renderedVisibleReportActions]);
-
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            // Use the action's actual index in sortedVisibleReportActions rather than the FlashList-provided index,
-            // because useFlashListScrollKey may slice the data for deep-link scroll positioning, making the
-            // FlashList index offset from the full array and causing wrong displayAsGroup computation.
-            const safeIndex = actionIndexMap.get(reportAction.reportActionID) ?? index;
             const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
 
             return (
@@ -386,8 +375,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                         chatReport={chatReportStable}
                         linkedReportActionID={linkedReportActionID}
                         displayAsGroup={
-                            !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, safeIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                            isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, safeIndex, isOffline)
+                            !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                            isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, index, isOffline)
                         }
                         shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
@@ -410,7 +399,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
             );
         },
         [
-            actionIndexMap,
             draftReportActionID,
             firstVisibleReportActionID,
             hasPreviousMessages,
@@ -534,12 +522,10 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                         contentOffset: shouldFocusToTopOnMount ? {x: 0, y: windowHeight} : undefined,
                     }}
                     getItemType={(item) => item.actionName}
-                    shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition}
-                    initialScrollIndex={shouldFocusToTopOnMount ? renderedVisibleReportActions.length - 1 : undefined}
-                    initialScrollIndexParams={shouldFocusToTopOnMount ? {viewOffset: windowHeight} : undefined}
+                    initialScrollIndex={initialScrollIndex}
+                    initialScrollIndexParams={initialScrollIndexParams}
                     maintainVisibleContentPosition={maintainVisibleContentPosition}
                     onLoad={onLoad}
-                    initialScrollKey={initialScrollKey}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}

@@ -404,8 +404,10 @@
         "VBBA",
         "VENDORID",
         "VMPD",
+        "VPAT",
         "Valuska",
         "Venmo",
+        "WCAG",
         "WDYR",
         "Wallester",
         "Warchoł",
@@ -1048,8 +1050,7 @@
         "Prefetcher",
         "knip",
         "lottiefiles",
-        "macrotask",
-        "Macrotask"
+        "jsitooling"
     ],
     "ignorePaths": [
         ".gitignore",
