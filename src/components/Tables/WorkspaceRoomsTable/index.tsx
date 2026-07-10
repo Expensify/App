@@ -25,24 +25,27 @@ type WorkspaceRoomsTableProps = {
     /** Pre-built row data for each room */
     rooms: WorkspaceRoomRowData[];
 
+    /** The policyID that we are viewing the rooms of */
+    policyID: string;
+
     /** The reportID of the room that should play the highlight animation (e.g. when it was just created) */
     highlightedReportID?: string;
 };
 
-function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const [policiesWithLoadedRoomData] = useOnyx(ONYXKEYS.ARE_POLICY_ROOMS_LOADED);
     const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
-
-    const [arePolicyRoomsLoaded] = useOnyx(ONYXKEYS.ARE_POLICY_ROOMS_LOADED);
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
         addOfflineIndicatorBottomSafeAreaPadding: true,
         style: styles.pb5,
     });
+
+    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     useEffect(() => {
         if (!highlightedReportID) {
@@ -82,7 +85,7 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
         />
     );
 
-    if (!arePolicyRoomsLoaded) {
+    if (!policiesWithLoadedRoomData?.[policyID]) {
         return <Table.LoadingState context="WorkspaceRoomsTable" />;
     }
 

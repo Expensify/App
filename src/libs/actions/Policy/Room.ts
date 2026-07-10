@@ -15,7 +15,9 @@ function openPolicyRoomsPage(policyID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ARE_POLICY_ROOMS_LOADED,
-            value: true,
+            value: {
+                [policyID]: true,
+            },
         },
     ];
 

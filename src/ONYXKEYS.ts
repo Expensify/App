@@ -1581,7 +1581,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
     [ONYXKEYS.ARE_AGENTS_LOADED]: boolean;
-    [ONYXKEYS.ARE_POLICY_ROOMS_LOADED]: boolean;
+    [ONYXKEYS.ARE_POLICY_ROOMS_LOADED]: Record<string, boolean>;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
