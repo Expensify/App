@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-import * as core from '@actions/core';
-import {context} from '@actions/github';
-import type {RequestError} from '@octokit/types';
-import memoize from 'lodash/memoize';
 import * as ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
+
+import type {RequestError} from '@octokit/types';
+
+import * as core from '@actions/core';
+import {context} from '@actions/github';
+import memoize from 'lodash/memoize';
 
 type PlatformResult = 'success' | 'cancelled' | 'skipped' | 'failure';
 
@@ -99,7 +101,9 @@ async function run() {
     const prList = (ActionUtils.getJSONInput('PR_LIST', {required: true}) as string[]).map((num) => Number.parseInt(num, 10));
     const mobileExpensifyPRListInput = ActionUtils.getJSONInput('MOBILE_EXPENSIFY_PR_LIST', {required: false});
     const mobileExpensifyPRList = Array.isArray(mobileExpensifyPRListInput) ? mobileExpensifyPRListInput.map((num: string) => Number.parseInt(num, 10)) : [];
-    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true}) as boolean;
+    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {
+        required: true,
+    }) as boolean;
     const version = core.getInput('DEPLOY_VERSION', {required: true});
 
     const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}) as PlatformResult);

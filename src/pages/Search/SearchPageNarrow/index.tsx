@@ -1,8 +1,3 @@
-import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
-import {StyleSheet, View} from 'react-native';
-import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -18,6 +13,7 @@ import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPa
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
 import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavigationDeferredMount';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
@@ -28,18 +24,29 @@ import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+
 import variables from '@styles/variables';
+
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
+
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
+import {StyleSheet, View} from 'react-native';
+import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
 import {SearchActionsBarSwitch, SearchFiltersBarSwitch, SearchPageInputSwitch, SearchTypeMenuSwitch} from './Switches';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;

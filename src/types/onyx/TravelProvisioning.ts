@@ -1,4 +1,5 @@
 import type {Route} from '@src/ROUTES';
+
 import type {Errors} from './OnyxCommon';
 
 /** Model of travel provisioning process information */
@@ -20,6 +21,9 @@ type TravelProvisioning = {
 
     /** Post-verification route that should be opened once the user validates their account */
     nextStepRoute?: Route | null;
+
+    /** Legal entity tax ID collected before terms acceptance on non-USD workspaces, carried into the AcceptSpotnanaTerms call */
+    taxID?: string;
 };
 
 export default TravelProvisioning;

@@ -1,15 +1,21 @@
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileSafari} from '@libs/Browser';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import variables from '@styles/variables';
+
 import CONFIG from '@src/CONFIG';
+
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
+
+import type {EnterAnimation} from './useModalCardStyleInterpolator';
+
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
-import type {EnterAnimation} from './useModalCardStyleInterpolator';
 
 const IS_MOBILE_SAFARI = isMobileSafari();
 
@@ -18,11 +24,14 @@ type SplitNavigatorScreenOptions = {
     centralScreen: PlatformStackNavigationOptions;
 };
 
-const commonScreenOptions: PlatformStackNavigationOptions = {
+const commonScreenOptions = (themeStyles: ReturnType<typeof useThemeStyles>): PlatformStackNavigationOptions => ({
     web: {
         cardOverlayEnabled: true,
     },
-};
+    native: {
+        contentStyle: themeStyles.appBG,
+    },
+});
 
 const useSplitNavigatorScreenOptions = () => {
     const themeStyles = useThemeStyles();
@@ -34,7 +43,7 @@ const useSplitNavigatorScreenOptions = () => {
 
     return {
         sidebarScreen: {
-            ...commonScreenOptions,
+            ...commonScreenOptions(themeStyles),
             title: CONFIG.SITE_TITLE,
             headerShown: false,
             animation: shouldUseNarrowLayout && !IS_MOBILE_SAFARI ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
@@ -51,7 +60,7 @@ const useSplitNavigatorScreenOptions = () => {
         },
 
         centralScreen: {
-            ...commonScreenOptions,
+            ...commonScreenOptions(themeStyles),
             ...hideKeyboardOnSwipe,
             headerShown: false,
             title: CONFIG.SITE_TITLE,

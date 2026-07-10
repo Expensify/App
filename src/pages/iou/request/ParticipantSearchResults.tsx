@@ -1,8 +1,3 @@
-import lodashPick from 'lodash/pick';
-import React, {useContext, useEffect} from 'react';
-import type {Ref} from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import {RESULTS} from 'react-native-permissions';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -10,6 +5,7 @@ import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperS
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
+
 import useContactImport from '@hooks/useContactImport';
 import useContactPermissionModal from '@hooks/useContactPermissionModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -24,6 +20,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useUserToInviteReports from '@hooks/useUserToInviteReports';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
@@ -37,14 +34,24 @@ import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import {getInvoicePrimaryWorkspace} from '@userActions/Policy/Policy';
 import {searchUserInServer} from '@userActions/Report';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {Ref} from 'react';
+import type {GestureResponderEvent} from 'react-native';
+
+import lodashPick from 'lodash/pick';
+import React, {useContext, useEffect} from 'react';
+import {RESULTS} from 'react-native-permissions';
+
 import ImportContactButton from './ImportContactButton';
 import ParticipantSelectorFooter from './ParticipantSelectorFooter';
 
@@ -78,6 +85,9 @@ type ParticipantSearchResultsProps = {
 
     /** Whether this is a transaction from a credit card import */
     isTransactionFromCreditCardImport: boolean;
+
+    /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
+    shouldExcludeP2P?: boolean;
 
     /** Forwarded ref for the SelectionList — used by the parent's useImperativeHandle */
     selectionListRef: Ref<SelectionListWithSectionsHandle | null>;
@@ -116,6 +126,7 @@ function ParticipantSearchResults({
     isTimeRequest,
     isNative,
     isTransactionFromCreditCardImport,
+    shouldExcludeP2P = false,
     selectionListRef,
     textInputAutoFocus,
     setTextInputAutoFocus,
@@ -177,7 +188,7 @@ function ParticipantSearchResults({
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
         excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
-        includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport,
+        includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
         includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
         action,
         shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -228,7 +239,7 @@ function ParticipantSearchResults({
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
         selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport,
+        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -288,6 +299,7 @@ function ParticipantSearchResults({
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            translate,
             personalDetails,
             true,
             undefined,
@@ -353,7 +365,7 @@ function ParticipantSearchResults({
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
                         ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
-                        : getParticipantsOption(participant, personalDetails);
+                        : getParticipantsOption(participant, personalDetails, translate);
                 }),
                 sectionIndex: 5,
             });
