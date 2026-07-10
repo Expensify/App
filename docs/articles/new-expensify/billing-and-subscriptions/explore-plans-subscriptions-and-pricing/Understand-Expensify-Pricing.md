@@ -11,7 +11,9 @@ order: 3
 
 # Understand Expensify Pricing
 
-Expensify pricing depends on your Workspace plan, subscription type, billing currency, and for eligible subscriptions, qualifying Expensify Card usage. This article provides an overview of the current pricing model. For the latest pricing details and feature comparison, visit [Expensify Pricing](https://www.expensify.com/pricing).
+Expensify pricing depends on your Workspace plan, subscription type, billing currency, and for eligible subscriptions, qualifying Expensify Card usage. This article provides an overview of the current pricing model.
+
+For the latest pricing details and feature comparison, visit [Expensify Pricing](https://www.expensify.com/pricing).
 
 ## Find your subscription pricing
 
@@ -35,7 +37,7 @@ Select your billing currency to view the subscription prices.
 | -------------- | ------------ | -------------: | -------------------: |
 | **Collect** | Pay-per-use | **$5** per unique member/month | — |
 | **Control** | Annual | **$18** per member included in your subscription size/month, plus **$36** per active member above your subscription size/month | **As low as $9** per member included in your subscription size/month |
-| **Control** | Pay-per-use | **$36** per active member/month | — |
+| **Control** | Pay-per-use | **$36** per active member/month |  **As low as $18** per active member/month |
 
 </div>
 
@@ -45,7 +47,7 @@ Select your billing currency to view the subscription prices.
 | -------------- | ------------ | -------------: | -------------------: |
 | **Collect** | Pay-per-use | **£5** per unique member/month | — |
 | **Control** | Annual | **£14** per member included in your subscription size/month, plus **£28** per active member above your subscription size/month | **As low as £7** per member included in your subscription size/month |
-| **Control** | Pay-per-use | **£28** per active member/month | — |
+| **Control** | Pay-per-use | **£28** per active member/month | **As low as £14** per active member/month |
 
 </div>
 
@@ -55,7 +57,7 @@ Select your billing currency to view the subscription prices.
 | -------------- | ------------ | -------------: | -------------------: |
 | **Collect** | Pay-per-use | **€5** per unique member/month | — |
 | **Control** | Annual | **€16** per member included in your subscription size/month, plus **€32** per active member above your subscription size/month | **As low as €8** per member included in your subscription size/month |
-| **Control** | Pay-per-use | **€32** per active member/month | — |
+| **Control** | Pay-per-use | **€32** per active member/month | **As low as €16** per active member/month |
 
 </div>
 
@@ -65,7 +67,7 @@ Select your billing currency to view the subscription prices.
 | -------------- | ------------ | -------------: | -------------------: |
 | **Collect** | Pay-per-use | **AU$8** per unique member/month | — |
 | **Control** | Annual | **AU$30** per member included in your subscription size/month, plus **AU$60** per active member above your subscription size/month | **As low as AU$15** per member included in your subscription size/month |
-| **Control** | Pay-per-use | **AU$60** per active member/month | — |
+| **Control** | Pay-per-use | **AU$60** per active member/month | **As low as AU$30** per active member/month |
 
 </div>
 
@@ -75,7 +77,7 @@ Select your billing currency to view the subscription prices.
 | -------------- | ------------ | -------------: | -------------------: |
 | **Collect** | Pay-per-use | **NZ$9** per unique member/month | — |
 | **Control** | Annual | **NZ$32** per member included in your subscription size/month, plus **NZ$64** per active member above your subscription size/month | **As low as NZ$16** per member included in your subscription size/month |
-| **Control** | Pay-per-use | **NZ$64** per active member/month | — |
+| **Control** | Pay-per-use | **NZ$64** per active member/month | **As low as NZ$32** per active member/month |
 
 </div>
 
