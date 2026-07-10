@@ -1,8 +1,7 @@
 import FlashList from '@components/FlashList';
+import type FlatListRefType from '@components/FlashList/types';
 
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
-import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
 
 import variables from '@styles/variables';
 

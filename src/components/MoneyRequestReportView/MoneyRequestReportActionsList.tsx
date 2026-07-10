@@ -45,13 +45,13 @@ import Visibility from '@libs/Visibility';
 
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 
+import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 
 import variables from '@styles/variables';
 
@@ -70,7 +70,7 @@ import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'r
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, View} from 'react-native';
 
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
@@ -114,9 +114,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             return;
         }
 
-        const listRef = reportScrollManager.ref;
-        listRef?.current?.scrollToIndex({index: lastItemIndexRef.current, animated: false});
-    }, [reportScrollManager.ref]);
+        reportScrollManager.scrollToIndex(lastItemIndexRef.current, {animated: false});
+    }, [reportScrollManager]);
 
     const lastMessageTime = useRef<string | null>(null);
     const didLayout = useRef(false);
@@ -220,7 +219,9 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const lastAction = visibleReportActions.at(-1);
 
-    const {scrollOffsetRef} = useContext(ActionListContext);
+    const {scrollOffsetRef} = useActionListContext();
+    const listRef = useActionListRef();
+
     const scrollingVerticalBottomOffset = useRef(0);
     const scrollingVerticalTopOffset = useRef(0);
     const wrapperViewRef = useRef<View>(null);
@@ -657,7 +658,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         }, 2000);
 
         if (!hasNewestReportAction) {
-            openReport({reportID, introSelected, betas});
+            openReport({reportID, introSelected, betas, hasReportActions: true});
             scrollToBottom();
             return;
         }
@@ -780,7 +781,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         visibleReportActions={visibleReportActions}
                         renderReportAction={renderReportAction}
                         linkedReportActionID={linkedReportActionID}
-                        listRef={reportScrollManager.ref}
+                        listRef={listRef}
                         onLastItemIndexChange={updateLastItemIndex}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                         onListLayout={recordTimeToMeasureItemLayout}

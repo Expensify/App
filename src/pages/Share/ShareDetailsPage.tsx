@@ -65,6 +65,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isDraftReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportOrAccountID}`, {selector: isDraftReportSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const delegateAccountID = useDelegateAccountID();
 
     const reportAttributesDerived = useReportAttributes();
@@ -137,6 +138,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 timezoneParam: personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: personalDetail.accountID,
                 delegateAccountID,
+                conciergeReportID,
             });
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
@@ -172,6 +174,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         text: message,
                         timezone: personalDetail.timezone,
                         delegateAccountID,
+                        conciergeReportID,
                     });
                 }
 

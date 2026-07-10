@@ -1,6 +1,7 @@
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
+import type FlatListRefType from '@components/FlashList/types';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
@@ -59,8 +60,6 @@ import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransact
 
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
-
-import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
 
 import variables from '@styles/variables';
 
