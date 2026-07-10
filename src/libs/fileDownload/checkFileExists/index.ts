@@ -12,10 +12,10 @@ function checkFileExists(path: string | undefined): Promise<boolean> {
         return Promise.resolve(false);
     }
 
-    // Decode URI if it's URL-encoded (handles special characters in filenames)
+    // decodeURIComponent, not decodeURI, so reserved chars like # (%23) in filenames decode back to the on-disk name
     let decodedPath = path;
     try {
-        decodedPath = decodeURI(path);
+        decodedPath = decodeURIComponent(path);
     } catch (e) {
         // If decoding fails, use the original path
         decodedPath = path;

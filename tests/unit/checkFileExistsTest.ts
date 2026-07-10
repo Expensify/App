@@ -58,6 +58,13 @@ describe('checkFileExists', () => {
         expect(mockStat).toHaveBeenCalledWith('/var/mobile/Containers/my receipt.png');
     });
 
+    it('should decode reserved characters like # in the filename', async () => {
+        mockStat.mockResolvedValue(buildStatResult(true));
+        const result = await checkFileExists('file:///var/mobile/Containers/sharedFiles/Recibo%20de%20CASA%20MIRLO%20SL.%20%23BEio.pdf');
+        expect(result).toBe(true);
+        expect(mockStat).toHaveBeenCalledWith('/var/mobile/Containers/sharedFiles/Recibo de CASA MIRLO SL. #BEio.pdf');
+    });
+
     it('should return false when RNFS.stat throws', async () => {
         mockStat.mockRejectedValue(new Error('File not found'));
         const result = await checkFileExists('/nonexistent/path');
