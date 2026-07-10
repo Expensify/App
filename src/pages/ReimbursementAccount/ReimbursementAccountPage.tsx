@@ -279,7 +279,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        // Skip while switching the workspace's bank account: the dedicated effect above refetches once the switch
+        // Skip while switching the workspace's bank account: the dedicated effect above fetches once the switch
         // finishes, so fetching here would race it and could load the old account.
         if (isChangingBusinessBankAccount || isLoadingWorkspaceReimbursement) {
             return;
