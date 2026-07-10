@@ -44,7 +44,7 @@ function VictoryChartPieLabelIndicator({
     // can overshoot well past the row for slices near the top/bottom seam, or land back inside the ring
     // when the row differs enough from the slice's natural position and there isn't room left before the
     // column), solve directly for how far out in X the bend must sit at that exact Y to clear the ring,
-    // clamped between the ring touchpoint and the label itself.
+    // clamped between the ring's attachment point and the label itself.
     const safeRadius = slice.radius + (labelIndicatorOuterOffset ?? 0);
     const verticalOffsetFromCenter = resolvedLabel.y - slice.center.y;
     const requiredHorizontalOffset = Math.sqrt(Math.max(0, safeRadius ** 2 - verticalOffsetFromCenter ** 2));
