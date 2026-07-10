@@ -1,10 +1,8 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 /**
  * CLI entry point for scripts/compressSvg.mts. This file is never imported by anything (the action and tests import
  * the library directly), so it can unconditionally parse argv and run — no entry guard needed.
- *
- * Must be run via scripts/runTsNodeEsm.mjs, not `ts-node` directly (see that file for why).
  */
 import * as fs from 'fs';
 import * as path from 'path';

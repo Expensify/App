@@ -16,6 +16,7 @@
         "unit/isDeployChecklistLockedTest.ts",
         "unit/markPullRequestsAsDeployedTest.ts",
         "unit/postOrReplaceComment.ts",
+        "unit/ReactCompilerComplianceCheckTest.ts",
         "unit/waitForPreviousRunsTest.ts"
     ],
     // Reset the parent's `exclude`, which deliberately excludes these same 12 files from the root config (see

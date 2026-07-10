@@ -75,8 +75,9 @@ async function buildAction(actionPath: string): Promise<boolean> {
             sourcemap: false,
             external: ['encoding', ...(EXTRA_EXTERNALS.get(relativeActionPath) ?? [])],
             banner: {js: REQUIRE_SHIM_BANNER},
-            // .mts is used by scripts/compressSvg.mts, which needs unambiguous ESM (so it can statically import
-            // ESM-only deps like svgo) when run directly under ts-node.
+            // .mts is used by scripts/compressSvg.mts, which needs unambiguous ESM so it can statically import
+            // ESM-only deps like svgo. checkSVGCompression.ts imports it via the explicit '.mjs' specifier (per
+            // Node's ESM resolution rules), so this action's bundle needs '.mts' resolved in place of that '.mjs'.
             resolveExtensions: ['.mts', '.tsx', '.ts', '.mjs', '.jsx', '.js', '.css', '.json'],
             tsconfig: TSCONFIG,
             logLevel: 'silent',

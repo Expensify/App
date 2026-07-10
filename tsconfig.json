@@ -70,6 +70,7 @@
         "tests/unit/isDeployChecklistLockedTest.ts",
         "tests/unit/markPullRequestsAsDeployedTest.ts",
         "tests/unit/postOrReplaceComment.ts",
+        "tests/unit/ReactCompilerComplianceCheckTest.ts",
         "tests/unit/waitForPreviousRunsTest.ts"
     ]
 }

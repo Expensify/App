@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env bun
 
 /**
  * CLI entry point for scripts/bumpVersion.ts. This file is never imported by anything (the action and tests import

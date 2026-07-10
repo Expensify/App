@@ -1,9 +1,11 @@
+#!/usr/bin/env bun
+
 /**
  * This script is used for categorizing upwork costs into cost buckets for accounting purposes.
  *
  * To run this script from the root of E/App:
  *
- * node scripts/runTsNodeEsm.mjs scripts/aggregateGitHubDataFromUpwork.mts <path_to_csv> <github_pat> <output_path>
+ * bun scripts/aggregateGitHubDataFromUpwork.mts <path_to_csv> <github_pat> <output_path>
  *
  * The input file must be a CSV with a single column containing just the GitHub issue number. The CSV must have a single header row.
  */

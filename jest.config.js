@@ -43,6 +43,7 @@ module.exports = {
         '<rootDir>/tests/unit/isDeployChecklistLockedTest.ts',
         '<rootDir>/tests/unit/markPullRequestsAsDeployedTest.ts',
         '<rootDir>/tests/unit/postOrReplaceComment.ts',
+        '<rootDir>/tests/unit/ReactCompilerComplianceCheckTest.ts',
         '<rootDir>/tests/unit/waitForPreviousRunsTest.ts',
     ],
     // .worktrees/ and .claude/worktrees/ hold parallel git worktrees a developer may check out locally.

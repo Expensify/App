@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env bun
 /**
  * React Compiler Compliance Check
  *
@@ -9,17 +9,22 @@
  *       1. New files with components/hooks must compile
  *       2. Modified files must not regress (compiled on main -> must compile on PR)
  */
+import CONST from '@github/libs/CONST';
+import GitHubUtils from '@github/libs/GithubUtils';
+
+import * as github from '@actions/github';
 import {transformSync} from '@babel/core';
 import CLI from 'expensify-common/CLI';
 import fs from 'fs';
 import path from 'path';
+import {pathToFileURL} from 'url';
 
+import type {ChangedFile} from './utils/Git';
+
+import ReactCompilerConfig from '../config/babel/reactCompilerConfig';
 import FileUtils from './utils/FileUtils';
 import Git from './utils/Git';
 import {error as logError, errorDetail as logErrorDetail, info as logInfo, success as logSuccess, warn as logWarn} from './utils/Logger';
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-const ReactCompilerConfig = require('../config/babel/reactCompilerConfig');
 
 type SourceLocation = {
     start: {line: number; column: number};
@@ -178,13 +183,45 @@ function checkFiles(inputs: string[], verbose: boolean): boolean {
 }
 
 /**
+ * GitHub's PR file list status can also be 'copied', 'changed', or 'unchanged', which ChangedFile doesn't
+ * distinguish. Treat all of those as 'modified' since none of them mean 'added' or 'removed' for our purposes.
+ */
+function toChangedFileStatus(status: string): ChangedFile['status'] {
+    return status === 'added' || status === 'removed' || status === 'renamed' ? status : 'modified';
+}
+
+/**
+ * Get changed files for the current PR. Uses the GitHub API (for accuracy) in CI, and a local `git diff` otherwise.
+ */
+async function getChangedFiles(mainBaseCommitHash: string): Promise<ChangedFile[]> {
+    if (!IS_CI) {
+        return Git.getChangedFilesWithStatus(mainBaseCommitHash);
+    }
+
+    const files = await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listFiles, {
+        owner: CONST.GITHUB_OWNER,
+        repo: CONST.APP_REPO,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        pull_number: github.context.payload.pull_request?.number ?? 0,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        per_page: 100,
+    });
+
+    return files.map((file) => ({
+        filename: file.filename,
+        status: toChangedFileStatus(file.status),
+        previousFilename: file.previous_filename,
+    }));
+}
+
+/**
  * Check files changed in a PR for React Compiler compliance.
  * Rule 1: New files with components/hooks must compile.
  * Rule 2: Modified files must not regress (compiled on main -> must compile on PR).
  */
 async function checkChangedFiles(remote: string, verbose: boolean): Promise<boolean> {
     const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-    const changedFiles = await Git.getChangedFilesWithStatus(mainBaseCommitHash);
+    const changedFiles = await getChangedFiles(mainBaseCommitHash);
 
     const reactFiles = changedFiles.filter((f) => FILE_EXTENSIONS.some((ext) => f.filename.endsWith(ext)) && f.status !== 'removed');
 
@@ -328,7 +365,7 @@ async function main() {
     process.exit(passed ? 0 : 1);
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
     main().catch((error: unknown) => {
         logError('Unexpected error:', error);
         process.exit(1);

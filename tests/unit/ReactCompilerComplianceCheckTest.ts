@@ -1,3 +1,5 @@
+import {describe, expect, it} from 'bun:test';
+
 import {checkReactCompilerCompliance} from '../../scripts/react-compiler-compliance-check';
 
 describe('checkReactCompilerCompliance', () => {
