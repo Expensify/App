@@ -148,10 +148,15 @@ describe('computePieLabelLayout', () => {
         return {label, midAngle};
     }
 
+    /** Most tests don't care about per-side bounds — apply the same bounds to both columns. */
+    function sameBounds(bounds: PlotBounds): Record<'left' | 'right', PlotBounds> {
+        return {left: bounds, right: bounds};
+    }
+
     it('leaves well-separated labels at their natural position (no collision)', () => {
         // Right side (cos >= 0): angles near 3 o'clock, far apart.
         const slices = [slice('Top', 0.1), slice('Bottom', Math.PI / 2 - 0.1)];
-        const result = computePieLabelLayout({slices, rowHeight: 10, labelRadius: 100, plotBounds: WIDE_BOUNDS});
+        const result = computePieLabelLayout({slices, rowHeight: 10, labelRadius: 100, plotBounds: sameBounds(WIDE_BOUNDS)});
 
         expect(result.Top.relativeY).toBeCloseTo(100 * Math.sin(0.1));
         expect(result.Bottom.relativeY).toBeCloseTo(100 * Math.sin(Math.PI / 2 - 0.1));
@@ -162,7 +167,7 @@ describe('computePieLabelLayout', () => {
     it('pushes an overlapping label down by exactly rowHeight', () => {
         // Two right-side slices whose natural Y values are nearly identical.
         const slices = [slice('First', 0.01), slice('Second', 0.02)];
-        const result = computePieLabelLayout({slices, rowHeight: 40, labelRadius: 100, plotBounds: WIDE_BOUNDS});
+        const result = computePieLabelLayout({slices, rowHeight: 40, labelRadius: 100, plotBounds: sameBounds(WIDE_BOUNDS)});
 
         expect(result.Second.relativeY - result.First.relativeY).toBeCloseTo(40);
     });
@@ -171,7 +176,7 @@ describe('computePieLabelLayout', () => {
         const tightBounds: PlotBounds = {top: -100, bottom: 60};
         // Three right-side slices clustered near the bottom (large positive sin).
         const slices = [slice('A', 1.3), slice('B', 1.35), slice('C', 1.4)];
-        const result = computePieLabelLayout({slices, rowHeight: 40, labelRadius: 100, plotBounds: tightBounds});
+        const result = computePieLabelLayout({slices, rowHeight: 40, labelRadius: 100, plotBounds: sameBounds(tightBounds)});
 
         expect(result.C.relativeY).toBeCloseTo(tightBounds.bottom);
         expect(result.B.relativeY).toBeCloseTo(result.C.relativeY - 40);
@@ -182,7 +187,7 @@ describe('computePieLabelLayout', () => {
         const narrowBounds: PlotBounds = {top: -50, bottom: 50};
         // Five right-side slices, all clustered together, with a rowHeight too large to fit five rows in [−50, 50].
         const slices = [slice('A', 1.0), slice('B', 1.05), slice('C', 1.1), slice('D', 1.15), slice('E', 1.2)];
-        const result = computePieLabelLayout({slices, rowHeight: 40, labelRadius: 100, plotBounds: narrowBounds});
+        const result = computePieLabelLayout({slices, rowHeight: 40, labelRadius: 100, plotBounds: sameBounds(narrowBounds)});
 
         expect(result.A.relativeY).toBeCloseTo(narrowBounds.top);
         expect(result.E.relativeY).toBeCloseTo(narrowBounds.bottom);
@@ -192,15 +197,29 @@ describe('computePieLabelLayout', () => {
 
     it('assigns left-side slices a negative relativeX and end text anchor', () => {
         const slices = [slice('LeftSide', Math.PI)];
-        const result = computePieLabelLayout({slices, rowHeight: 10, labelRadius: 100, plotBounds: WIDE_BOUNDS});
+        const result = computePieLabelLayout({slices, rowHeight: 10, labelRadius: 100, plotBounds: sameBounds(WIDE_BOUNDS)});
 
         expect(result.LeftSide.relativeX).toBe(-100);
         expect(result.LeftSide.textAnchor).toBe('end');
     });
 
+    it('honors independent per-side bounds instead of sharing one top across both columns', () => {
+        // Symmetric angles either side of straight-up (12 o'clock): both slices have the same natural
+        // Y (~-99.5), differing only in which column they land in.
+        const slices = [slice('Right', -(Math.PI / 2 - 0.1)), slice('Left', -(Math.PI / 2 + 0.1))];
+        const naturalY = 100 * Math.sin(-(Math.PI / 2 - 0.1));
+        // Right gets a permissive top (its natural position fits); left gets a much tighter one (its
+        // identical natural position must get pushed down) — proving the two columns don't share a bound.
+        const plotBounds = {left: {top: -50, bottom: 200}, right: {top: -150, bottom: 200}};
+        const result = computePieLabelLayout({slices, rowHeight: 10, labelRadius: 100, plotBounds});
+
+        expect(result.Right.relativeY).toBeCloseTo(naturalY);
+        expect(result.Left.relativeY).toBeCloseTo(-50);
+    });
+
     it('resolves a single 100%-value slice within bounds, vertically centered rather than at the bottom', () => {
         const slices = computeSliceAngles([{label: 'Only', value: 100}], START_ANGLE);
-        const result = computePieLabelLayout({slices, rowHeight: 20, labelRadius: 100, plotBounds: WIDE_BOUNDS});
+        const result = computePieLabelLayout({slices, rowHeight: 20, labelRadius: 100, plotBounds: sameBounds(WIDE_BOUNDS)});
 
         expect(result.Only.relativeY).toBeGreaterThanOrEqual(WIDE_BOUNDS.top);
         expect(result.Only.relativeY).toBeLessThanOrEqual(WIDE_BOUNDS.bottom);
@@ -215,7 +234,7 @@ describe('computePieLabelLayout', () => {
         const slices = computeSliceAngles(TOP_CATEGORIES_10_VALUES, START_ANGLE);
         const rowHeight = 32;
         const plotBounds: PlotBounds = {top: -195, bottom: 195};
-        const result = computePieLabelLayout({slices, rowHeight, labelRadius: 195, plotBounds});
+        const result = computePieLabelLayout({slices, rowHeight, labelRadius: 195, plotBounds: sameBounds(plotBounds)});
 
         expect(Object.keys(result)).toHaveLength(TOP_CATEGORIES_10_VALUES.length);
 

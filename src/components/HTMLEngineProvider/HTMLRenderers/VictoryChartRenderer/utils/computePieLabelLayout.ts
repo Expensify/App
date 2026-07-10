@@ -143,7 +143,7 @@ function computePieLabelLayout({
     slices: PieSliceAngle[];
     rowHeight: number;
     labelRadius: number;
-    plotBounds: PlotBounds;
+    plotBounds: Record<PieLabelSide, PlotBounds>;
 }): Record<string, ResolvedPieLabelLayout> {
     const bySide: Record<PieLabelSide, Array<{label: string; naturalY: number; midAngle: number}>> = {left: [], right: []};
 
@@ -158,7 +158,7 @@ function computePieLabelLayout({
         const resolvedYs = resolveColumnRows(
             columnItems.map((item) => item.naturalY),
             rowHeight,
-            plotBounds,
+            plotBounds[side],
         );
         const relativeX = side === 'right' ? labelRadius : -labelRadius;
         const textAnchor: TextAnchor = side === 'right' ? 'start' : 'end';

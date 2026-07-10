@@ -30,6 +30,11 @@ const START_ANGLE = 270;
 // below that, with a small buffer, so a label stacked at the very top of a column can't overlap it.
 const TITLE_SAFE_TOP = 75;
 
+// The title/subtitle are left-aligned at the same x the left column's labels end at, so a label
+// stacked right at TITLE_SAFE_TOP reads as cramped against them even without literally overlapping.
+// The right column doesn't share that horizontal space, so it doesn't need the extra clearance.
+const LEFT_COLUMN_EXTRA_TOP_CLEARANCE = 24;
+
 function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const {data, chartContainerStyles, chartContentStyles} = useVictoryChartContext();
     const theme = useTheme();
@@ -75,12 +80,13 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
         // Polar chart containers clip their bottom (1 - POLAR_CONTAINER_HEIGHT_RATIO) — labels must stay above that line or they render off-screen.
         // The pie's center sits at designHeight / 2 (victory-native's own layout math), so both the
         // clip line and the title clearance are expressed relative to that same absolute reference.
-        const plotBounds = designHeight
-            ? {
-                  top: Math.max(-Math.min(designHeight / 2, effectiveLabelRadius), TITLE_SAFE_TOP + rowHeight / 2 - designHeight / 2),
-                  bottom: Math.min(designHeight * (POLAR_CONTAINER_HEIGHT_RATIO - 0.5), effectiveLabelRadius),
-              }
-            : {top: -effectiveLabelRadius, bottom: effectiveLabelRadius};
+        const bottom = designHeight ? Math.min(designHeight * (POLAR_CONTAINER_HEIGHT_RATIO - 0.5), effectiveLabelRadius) : effectiveLabelRadius;
+        const topFor = (titleSafeTop: number) =>
+            designHeight ? Math.max(-Math.min(designHeight / 2, effectiveLabelRadius), titleSafeTop + rowHeight / 2 - designHeight / 2) : -effectiveLabelRadius;
+        const plotBounds = {
+            left: {top: topFor(TITLE_SAFE_TOP + LEFT_COLUMN_EXTRA_TOP_CLEARANCE), bottom},
+            right: {top: topFor(TITLE_SAFE_TOP), bottom},
+        };
 
         return computePieLabelLayout({slices, rowHeight, labelRadius: effectiveLabelRadius, plotBounds});
     }, [sliceValues, baseLabelItem, effectiveLabelRadius, typefaces, chartContentStyles.height]);
