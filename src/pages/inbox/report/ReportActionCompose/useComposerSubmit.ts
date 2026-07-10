@@ -16,7 +16,6 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {generateAccountID} from '@libs/UserUtils';
 
 import {useActionListContext} from '@pages/inbox/ActionListContext';
-import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 
 import {setIsComposerFullSize} from '@userActions/Report';
 
@@ -42,7 +41,6 @@ function useComposerSubmit(reportID: string) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const delegateAccountID = useDelegateAccountID();
-    const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
 
     const {composerRef, attachmentFileRef, textRef} = useComposerMeta();
     const {clearComposer} = useComposerActions();
@@ -76,7 +74,6 @@ function useComposerSubmit(reportID: string) {
         }
 
         if (attachmentFileRef.current) {
-            kickoffWaitingIndicator();
             addAttachmentWithComment({
                 report: targetReport,
                 notifyReportID: reportID,
@@ -160,7 +157,6 @@ function useComposerSubmit(reportID: string) {
                 },
             });
         }
-        kickoffWaitingIndicator();
         addComment({
             report: targetReport,
             notifyReportID: reportID,
