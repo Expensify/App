@@ -4,12 +4,22 @@ import {READ_COMMANDS} from '@libs/API/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {OnyxUpdate} from 'react-native-onyx';
+
 import Onyx from 'react-native-onyx';
 
 function openPolicyRoomsPage(policyID: string) {
     const params: OpenPolicyRoomsPageParams = {policyID};
 
-    read(READ_COMMANDS.OPEN_POLICY_ROOMS_PAGE, params);
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_POLICY_ROOMS_LOADED>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ARE_POLICY_ROOMS_LOADED,
+            value: true,
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_POLICY_ROOMS_PAGE, params, {finallyData});
 }
 
 function setRoomIDToHighlightOnRoomsPage(reportID: string) {
