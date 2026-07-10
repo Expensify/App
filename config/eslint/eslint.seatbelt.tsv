@@ -359,10 +359,13 @@
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	2
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/ApproveActionButton.tsx"	"no-restricted-imports"	1
+"../../src/components/ReportActionItem/MoneyRequestReportPreview/ApproveActionButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewProvider.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
+"../../src/components/ReportActionItem/MoneyRequestReportPreview/PayActionButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton.tsx"	"no-restricted-imports"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/SubmitActionButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
+"../../src/components/ReportActionItem/MoneyRequestReportPreview/useReportPreviewActionDecision.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/ReportActionItem/TaskPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TaskView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TransactionPreview/TransactionPreviewContent.tsx"	"no-restricted-imports"	1
@@ -620,6 +623,7 @@
 "../../src/hooks/useReceiptScanDrop.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useReportPrimaryAction.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useReportScrollManager/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/hooks/useReportTransactionViolations.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useReportTransactions.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResetBankAccountModal.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
