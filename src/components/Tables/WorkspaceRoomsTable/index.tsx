@@ -36,8 +36,10 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRo
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const [policiesWithLoadedRoomData] = useOnyx(ONYXKEYS.ARE_POLICY_ROOMS_LOADED);
     const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
+    const [isPolicyRoomDataLoaded] = useOnyx(ONYXKEYS.ARE_POLICY_ROOMS_LOADED, {
+        selector: (value) => value?.[policyID],
+    });
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -85,7 +87,7 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRo
         />
     );
 
-    if (!policiesWithLoadedRoomData?.[policyID]) {
+    if (!isPolicyRoomDataLoaded) {
         return <Table.LoadingState context="WorkspaceRoomsTable" />;
     }
 
