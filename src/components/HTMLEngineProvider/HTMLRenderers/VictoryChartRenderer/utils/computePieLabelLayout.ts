@@ -172,5 +172,5 @@ function computePieLabelLayout({
 }
 
 export {computeSliceAngles, assignColumnSide, computeLabelBlockHeight};
-export type {PieSliceAngle, PieSliceValue, PlotBounds, ResolvedPieLabelLayout, PieLabelSide};
+export type {PieSliceAngle, PieSliceValue, PlotBounds};
 export default computePieLabelLayout;

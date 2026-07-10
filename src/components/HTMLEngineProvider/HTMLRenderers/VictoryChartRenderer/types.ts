@@ -77,7 +77,7 @@ type ResolvedPieLabel = {
     x: number;
     y: number;
     textAnchor: TextAnchor;
-    /** The angle actually used for this slice's layout — see `computePieLabelLayout`'s `ResolvedPieLabelLayout.midAngle`. */
+    /** The angle actually used for this slice's layout, computed by `computePieLabelLayout` — may differ from `(startAngle + endAngle) / 2` for a single 100%-value slice (see `computeSliceAngles`). */
     midAngle: number;
 };
 
