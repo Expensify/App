@@ -183,6 +183,15 @@ Expensify uses AI to detect suspicious or non-human receipts:
 
 This feature helps prevent policy violations and ensures accurate expense tracking from the moment of upload.
 
+## What happens to receipts that are still uploading when I sign out on mobile?
+
+On the Expensify mobile app (iOS and Android), if you sign out while one or more receipts are still uploading, Expensify saves those receipt images to your device's photos first so you don't lose them.
+
+- When you sign out from **Settings**, a **Save your receipts?** prompt appears. Tap **Save and sign out** to save the pending receipts to your photos and finish signing out.
+- If you're signed out automatically (for example, when your session expires), the receipts are saved to your photos without a prompt.
+
+The next time you sign in, you can add the saved images to a new expense. If Expensify can't save the receipts (for example, if photo access is denied), sign-out still completes.
+
 ## Why can't I forward receipts to receipts@expensify.com?
 
 If your company uses **Proofpoint Hosted Email Security**, you may be unable to forward receipts to receipts@expensify.com. This is caused by an issue on Proofpoint's side. Contact Proofpoint for resolution. In the meantime, you can upload receipts in the Expensify app or on the web, or text a receipt photo to 47777 (US numbers only) after [adding your phone number as a contact method](https://new.expensify.com/settings/profile/contact-methods).
