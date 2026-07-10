@@ -383,7 +383,7 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
 function getReportNextStep(
     currentNextStep: ReportNextStepDeprecated | undefined,
     moneyRequestReport: OnyxEntry<Report>,
-    ownerLogin: string | undefined,
+    moneyRequestReportOwnerLogin: string | undefined,
     transactions: Array<OnyxEntry<Transaction>>,
     policy: OnyxEntry<Policy>,
     transactionViolations: OnyxCollection<TransactionViolations>,
@@ -402,7 +402,8 @@ function getReportNextStep(
         transactions.length > 0 &&
         transactions.every(
             (transaction) =>
-                !!transaction && hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, ownerLogin, policy),
+                !!transaction &&
+                hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, moneyRequestReportOwnerLogin, policy),
         )
     ) {
         // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner

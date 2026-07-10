@@ -1942,7 +1942,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 }),
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, submitterEmail, report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, submitterEmail, reportTransactions, violations, policy);
             expect(result).toBe(true);
         });
 
@@ -1975,7 +1975,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 }),
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, submitterEmail, report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, submitterEmail, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
 
@@ -2005,7 +2005,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 }),
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, undefined, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
 
@@ -2035,7 +2035,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 }),
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, submitterEmail, report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, submitterEmail, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
     });

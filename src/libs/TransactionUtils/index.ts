@@ -1687,11 +1687,11 @@ function hasAnyPendingRTERViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     report: OnyxEntry<Report>,
-    ownerLogin: string | undefined,
+    reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
 ): boolean {
     return transactions.some((t) => {
-        const filteredViolations = getTransactionViolations(t, allTransactionViolations, currentUserEmail, currentUserAccountID, report, ownerLogin, policy);
+        const filteredViolations = getTransactionViolations(t, allTransactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
         return hasPendingRTERViolation(filteredViolations);
     });
 }
@@ -1712,10 +1712,10 @@ function hasBrokenConnectionViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     report: OnyxEntry<Report>,
-    ownerLogin: string | undefined,
+    reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
 ): boolean {
-    const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, ownerLogin, policy);
+    const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
     return !!violations?.find((violation) => isBrokenConnectionViolation(violation));
 }
 
@@ -1757,7 +1757,7 @@ function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report>, policy: 
 function shouldShowBrokenConnectionViolationForMultipleTransactions(
     transactions: Transaction[],
     report: OnyxEntry<Report>,
-    ownerLogin: string | undefined,
+    reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentUserEmail: string,
@@ -1775,7 +1775,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
                 return false;
             }
 
-            if (isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy, ownerLogin)) {
+            if (isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy, reportOwnerLogin)) {
                 return false;
             }
 
@@ -1882,7 +1882,7 @@ function allHavePendingRTERViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     report: OnyxEntry<Report>,
-    ownerLogin: string | undefined,
+    reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
 ): boolean {
     if (!transactions) {
@@ -1891,7 +1891,7 @@ function allHavePendingRTERViolation(
 
     const transactionsWithRTERViolations = transactions.map((transaction) => {
         // Get violations not dismissed by current user
-        const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, ownerLogin, policy)?.filter(
+        const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy)?.filter(
             (violation) =>
                 // Further filter to only violations visible to the current user
                 shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction),
@@ -1911,13 +1911,13 @@ function hasAnyTransactionWithoutRTERViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     report: OnyxEntry<Report>,
-    ownerLogin: string | undefined,
+    reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
 ): boolean {
     return (
         transactions.length > 0 &&
         transactions.some((transaction) => {
-            return !hasBrokenConnectionViolation(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, ownerLogin, policy);
+            return !hasBrokenConnectionViolation(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
         })
     );
 }
@@ -3065,10 +3065,10 @@ function hasSubmissionBlockingViolations(
     currentUserEmail: string,
     currentUserAccountID: number,
     report: OnyxEntry<Report>,
-    ownerLogin: string | undefined,
+    reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
 ): boolean {
-    const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, ownerLogin, policy);
+    const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
     return hasSubmissionBlockingViolationInList(violations);
 }
 
