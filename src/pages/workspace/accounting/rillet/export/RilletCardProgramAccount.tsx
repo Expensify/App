@@ -61,8 +61,8 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
             shouldBeBlocked
         >
-            <View style={[styles.mv3, styles.mh5]}>
-                <Text>{translate('workspace.rillet.cardProgramAccount.description')}</Text>
+            <View>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.cardProgramAccount.description')}</Text>
             </View>
             {Object.entries(cardFeeds ?? {}).map(([feedWithDomainID, cardFeed]) => {
                 const feedKey = cardFeed.feed as CardFeed;
