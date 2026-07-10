@@ -135,6 +135,10 @@ function IOURequestStepTag({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const updateTag = (selectedTag: Partial<OptionData>) => {
         const updatedTag = getUpdatedTransactionTag({
             transactionTag,
@@ -148,7 +152,7 @@ function IOURequestStepTag({
 
         if (isEditingSplit) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {tag: updatedTag});
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
@@ -170,12 +174,12 @@ function IOURequestStepTag({
                 isOffline,
                 delegateAccountID,
             });
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         setMoneyRequestTag(transactionID, updatedTag);
-        navigateBack();
+        saveAndNavigateBack();
     };
 
     return (

@@ -45,9 +45,12 @@ type RuleSelectionBaseProps = {
 
     /** Optional hash for rule not found validation */
     hash?: string;
+
+    /** Set at parents whose Save is `pressOnEnter` so an auto-save selection can't leave the row re-focused and hijack the next Enter. */
+    shouldSkipFocusRestoreOnSave?: boolean;
 };
 
-function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave, onBack, backToRoute, hash}: RuleSelectionBaseProps) {
+function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave, onBack, backToRoute, hash, shouldSkipFocusRestoreOnSave}: RuleSelectionBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -70,6 +73,7 @@ function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave
                         onSaveSelection={onSave}
                         shouldAutoSave
                         allowNoneOption
+                        shouldSkipFocusRestoreOnSave={shouldSkipFocusRestoreOnSave}
                     />
                 </View>
             </ScreenWrapper>

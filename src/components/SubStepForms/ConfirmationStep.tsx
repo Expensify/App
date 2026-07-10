@@ -18,12 +18,14 @@ import React from 'react';
 import {View} from 'react-native';
 
 type SummaryItem = {
+    id: string;
     description: string;
     title: string;
     shouldShowRightIcon: boolean;
     onPress: () => void;
     brickRoadIndicator?: BrickRoad;
     errorText?: string;
+    testID?: string;
 };
 
 type ConfirmationStepProps = SubStepProps &
@@ -73,9 +75,10 @@ function ConfirmationStep({
             contentContainerStyle={[styles.flexGrow1, shouldApplySafeAreaPaddingBottom && {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
-            {summaryItems.map(({description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText}) => (
+            {summaryItems.map(({id, description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}) => (
                 <MenuItemWithTopDescription
-                    key={`${title}_${description}`}
+                    key={id}
+                    pressableTestID={testID ?? id}
                     description={description}
                     title={title}
                     shouldShowRightIcon={shouldShowRightIcon}

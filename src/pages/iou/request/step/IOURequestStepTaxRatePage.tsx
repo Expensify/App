@@ -85,6 +85,10 @@ function IOURequestStepTaxRatePage({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const taxRateTitle = getTaxRateTitle(policy, currentTransaction, isMovingTransactionFromTrackExpense(action), policyForMovingExpenses);
     const currency = getCurrency(currentTransaction);
     const decimals = getCurrencyDecimals(currency);
@@ -109,7 +113,7 @@ function IOURequestStepTaxRatePage({
 
         if (shouldClearTax && isEditing) {
             updateMoneyRequestTaxRate(updateTaxRateParams);
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
         if (!currentTransaction || !taxes.code || !taxRates) {
@@ -126,26 +130,26 @@ function IOURequestStepTaxRatePage({
                 taxCode: taxes.code,
                 taxValue,
             });
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         if (isEditing) {
             const newTaxCode = taxes.code;
             updateMoneyRequestTaxRate({...updateTaxRateParams, taxCode: newTaxCode, taxValue, taxAmount: convertToBackendAmount(taxAmount ?? 0)});
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         if (taxAmount === undefined) {
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
         const amountInSmallestCurrencyUnits = convertToBackendAmount(taxAmount);
 
         setMoneyRequestTaxRateValues(currentTransaction.transactionID, {taxCode: taxes?.code ?? '', taxAmount: amountInSmallestCurrencyUnits, taxValue});
 
-        navigateBack();
+        saveAndNavigateBack();
     };
 
     return (

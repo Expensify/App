@@ -31,6 +31,7 @@ type SearchSingleSelectionPickerProps = {
     shouldAutoSave?: boolean;
     shouldShowTextInput?: boolean;
     allowNoneOption?: boolean;
+    shouldSkipFocusRestoreOnSave?: boolean;
 };
 
 function SearchSingleSelectionPicker({
@@ -42,6 +43,7 @@ function SearchSingleSelectionPicker({
     shouldAutoSave,
     shouldShowTextInput = true,
     allowNoneOption = false,
+    shouldSkipFocusRestoreOnSave = false,
 }: SearchSingleSelectionPickerProps) {
     const {translate, localeCompare} = useLocalize();
 
@@ -110,7 +112,7 @@ function SearchSingleSelectionPicker({
         }
         if (shouldAutoSave) {
             onSaveSelection(item.isSelected ? '' : item.value);
-            Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS);
+            Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS, {shouldSkipFocusRestore: shouldSkipFocusRestoreOnSave});
             return;
         }
         if (!item.isSelected) {
@@ -124,7 +126,7 @@ function SearchSingleSelectionPicker({
 
     const applyChanges = () => {
         onSaveSelection(selectedItem?.value);
-        Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS, {shouldSkipFocusRestore: shouldSkipFocusRestoreOnSave});
     };
 
     const footerContent = (

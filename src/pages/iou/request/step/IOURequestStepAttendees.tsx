@@ -88,7 +88,7 @@ function IOURequestStepAttendees({
             }
         }
 
-        Navigation.goBack(backTo);
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
     }, [
         attendees,
         previousAttendees,

@@ -1,6 +1,8 @@
+import isHTMLElement from '@libs/isHTMLElement';
+
 import type {View} from 'react-native';
 
-import React, {createContext, useContext, useRef} from 'react';
+import React, {createContext, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 type LabelEntry = {id: number; text: string};
 
@@ -28,18 +30,35 @@ const DialogLabelActionsContext = createContext<DialogLabelActions>({
 
 type DialogLabelProviderProps = {
     children: React.ReactNode;
-    containerRef: React.RefObject<View | null>;
+    /** Pass via `useState`/callback-ref so the provider observes node identity changes; a `RefObject` would pin the MutationObserver to the original node across Animated.View remounts. */
+    containerNode: View | HTMLElement | null;
 };
 
-function DialogLabelProvider({children, containerRef}: DialogLabelProviderProps) {
+// Title-stack and initial-focus claim are co-located: each pushLabel re-arms the focus claim so a sub-screen re-receives initial focus.
+function DialogLabelProvider({children, containerNode}: DialogLabelProviderProps) {
     const nextIdRef = useRef(0);
     const labelStackRef = useRef<LabelEntry[]>([]);
     const initialFocusClaimedRef = useRef(false);
+    const [hasDialogSemantics, setHasDialogSemantics] = useState(false);
+    const containerRef = useRef<View | null>(null);
+    useLayoutEffect(() => {
+        containerRef.current = (containerNode as View | null) ?? null;
+    }, [containerNode]);
 
     const updateContainerLabel = () => {
+        if (typeof document === 'undefined') {
+            return;
+        }
         const top = labelStackRef.current.at(-1);
-        const node = containerRef.current as unknown as HTMLElement | null;
-        if (!node || typeof node.setAttribute !== 'function') {
+        const node = containerRef.current;
+        if (!isHTMLElement(node)) {
+            return;
+        }
+        // aria-label on a container without dialog semantics is ignored; skip the set on mobile where the RHP has no dialog role.
+        const isDialog = node.getAttribute('role') === 'dialog' || node.getAttribute('aria-modal') === 'true';
+        setHasDialogSemantics((prev) => (prev === isDialog ? prev : isDialog));
+        if (!isDialog) {
+            node.removeAttribute('aria-label');
             return;
         }
         if (top?.text) {
@@ -62,6 +81,19 @@ function DialogLabelProvider({children, containerRef}: DialogLabelProviderProps)
         updateContainerLabel();
     };
 
+    // Observe `role`/`aria-modal` so a viewport-resize flip re-applies the label; the initial call back-fills labels pushed by child effects before this parent effect ran.
+    useEffect(() => {
+        if (typeof MutationObserver === 'undefined' || !isHTMLElement(containerNode)) {
+            return;
+        }
+        const observer = new MutationObserver(updateContainerLabel);
+        observer.observe(containerNode, {attributes: true, attributeFilter: ['role', 'aria-modal']});
+        updateContainerLabel();
+        return () => {
+            observer.disconnect();
+        };
+    }, [containerNode, updateContainerLabel]);
+
     const claimInitialFocus = (): boolean => {
         if (initialFocusClaimedRef.current) {
             return false;
@@ -72,7 +104,7 @@ function DialogLabelProvider({children, containerRef}: DialogLabelProviderProps)
 
     const data: DialogLabelData = {
         containerRef,
-        isInsideDialog: true,
+        isInsideDialog: hasDialogSemantics,
     };
 
     const actions: DialogLabelActions = {

@@ -73,6 +73,40 @@ describe('TransitionTracker', () => {
             drainTransitions();
         });
 
+        it('runImmediately wins over waitForUpcomingTransition when both are set', () => {
+            const callback = jest.fn();
+            TransitionTracker.runAfterTransitions({callback, runImmediately: true, waitForUpcomingTransition: 'navigation'});
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
+
+        it('isolates sync throws on the runImmediately path (Navigation.goBack/navigate default here)', () => {
+            const error = new Error('immediate boom');
+
+            expect(() => {
+                TransitionTracker.runAfterTransitions({
+                    callback: () => {
+                        throw error;
+                    },
+                    runImmediately: true,
+                });
+            }).not.toThrow();
+
+            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A pending callback threw an error', {error});
+        });
+
+        it('isolates rejected promises on the runImmediately path', async () => {
+            const error = new Error('immediate async boom');
+
+            TransitionTracker.runAfterTransitions({
+                callback: () => Promise.reject(error),
+                runImmediately: true,
+            });
+
+            await Promise.resolve();
+
+            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A pending async callback threw an error', {error});
+        });
+
         it('queues callback when transition is active and runs it after endTransition', () => {
             const callback = jest.fn();
             const handle = TransitionTracker.startTransition();
@@ -115,16 +149,75 @@ describe('TransitionTracker', () => {
             jest.useRealTimers();
         });
 
-        it('waitForUpcomingTransition queues callback after next transition starts and runs it after transition ends', async () => {
+        it('waitForUpcomingTransition queues callback after next navigation transition starts and runs it after transition ends', async () => {
             const callback = jest.fn();
             TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
             expect(callback).not.toHaveBeenCalled();
-            const handle = TransitionTracker.startTransition();
+            const handle = TransitionTracker.startTransition('navigation');
             // Two ticks: one for promiseForNextTransitionStart, one for Promise.race wrapper
             await Promise.resolve();
             await Promise.resolve();
             expect(callback).not.toHaveBeenCalled();
             TransitionTracker.endTransition(handle);
+            expect(callback).toHaveBeenCalledTimes(1);
+            drainTransitions();
+        });
+
+        it('waitForUpcomingTransition waits for an already-active navigation transition to end (web order: transitionStart before the call) instead of a phantom next start', () => {
+            const callback = jest.fn();
+            const handle = TransitionTracker.startTransition('navigation');
+            TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
+            expect(callback).not.toHaveBeenCalled();
+            TransitionTracker.endTransition(handle);
+            expect(callback).toHaveBeenCalledTimes(1);
+            drainTransitions();
+        });
+
+        it("waitForUpcomingTransition: 'navigation' ignores non-navigation transitions and waits for an upcoming navigation start", async () => {
+            const callback = jest.fn();
+            const otherHandle = TransitionTracker.startTransition();
+            TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: 'navigation'});
+
+            TransitionTracker.endTransition(otherHandle);
+            await Promise.resolve();
+            expect(callback).not.toHaveBeenCalled();
+
+            const navHandle = TransitionTracker.startTransition('navigation');
+            await Promise.resolve();
+            await Promise.resolve();
+            expect(callback).not.toHaveBeenCalled();
+            TransitionTracker.endTransition(navHandle);
+            expect(callback).toHaveBeenCalledTimes(1);
+            drainTransitions();
+        });
+
+        it('waitForUpcomingTransition: true (legacy) waits for any transition — modal close (no navigation) still fires the callback', async () => {
+            const callback = jest.fn();
+            TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
+
+            const modalHandle = TransitionTracker.startTransition();
+            await Promise.resolve();
+            await Promise.resolve();
+            expect(callback).not.toHaveBeenCalled();
+            TransitionTracker.endTransition(modalHandle);
+            expect(callback).toHaveBeenCalledTimes(1);
+            drainTransitions();
+        });
+
+        it('waitForUpcomingTransition: true with a non-navigation transition active still waits for the upcoming nav-start (register-before-dispatch)', async () => {
+            const callback = jest.fn();
+            const otherHandle = TransitionTracker.startTransition();
+            TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
+
+            TransitionTracker.endTransition(otherHandle);
+            await Promise.resolve();
+            expect(callback).not.toHaveBeenCalled();
+
+            const navHandle = TransitionTracker.startTransition('navigation');
+            await Promise.resolve();
+            await Promise.resolve();
+            expect(callback).not.toHaveBeenCalled();
+            TransitionTracker.endTransition(navHandle);
             expect(callback).toHaveBeenCalledTimes(1);
             drainTransitions();
         });
@@ -146,7 +239,7 @@ describe('TransitionTracker', () => {
         it('cancel prevents waitForUpcomingTransition callback from running after transition starts', () => {
             const callback = jest.fn();
             const cancelHandle = TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
-            const transitionHandle = TransitionTracker.startTransition();
+            const transitionHandle = TransitionTracker.startTransition('navigation');
             cancelHandle.cancel();
             TransitionTracker.endTransition(transitionHandle);
             expect(callback).not.toHaveBeenCalled();
@@ -157,7 +250,7 @@ describe('TransitionTracker', () => {
             const callback = jest.fn();
             const cancelHandle = TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
             cancelHandle.cancel();
-            const transitionHandle = TransitionTracker.startTransition();
+            const transitionHandle = TransitionTracker.startTransition('navigation');
             TransitionTracker.endTransition(transitionHandle);
             expect(callback).not.toHaveBeenCalled();
             expect(mockLogInfo).not.toHaveBeenCalled();

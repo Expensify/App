@@ -1,4 +1,3 @@
-import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
 
@@ -6,6 +5,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {isCancellingDndKeyboardDrag} from '@libs/cancelDndKeyboardDrag';
 import {isSidebarScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import sharedTrapStack from '@libs/sharedTrapStack';
 
 import CONST from '@src/CONST';
 

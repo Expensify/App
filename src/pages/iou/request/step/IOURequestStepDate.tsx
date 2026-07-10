@@ -99,19 +99,23 @@ function IOURequestStepDate({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
         const newCreated = value.moneyRequestCreated;
 
         // Only update created if it has changed
         if (newCreated === currentCreated) {
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplit) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newCreated});
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
@@ -156,7 +160,7 @@ function IOURequestStepDate({
             });
         }
 
-        navigateBack();
+        saveAndNavigateBack();
     };
 
     const validate = useCallback(
