@@ -570,7 +570,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         );
     }
 
-    if (shouldShowConnectedVerifiedBankAccount) {
+    const isConnectedVerifiedBankAccountData = isNonUSDSetup ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE;
+
+    if (shouldShowConnectedVerifiedBankAccount && isConnectedVerifiedBankAccountData) {
         if (topmostFullScreenRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
             return (
                 <ScreenWrapper testID="ReimbursementAccountPage">
