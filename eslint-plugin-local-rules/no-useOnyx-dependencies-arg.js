@@ -1,4 +1,4 @@
-const name = 'no-useonyx-dependencies-arg';
+const name = 'no-useOnyx-dependencies-arg';
 
 const meta = {
     type: 'problem',
