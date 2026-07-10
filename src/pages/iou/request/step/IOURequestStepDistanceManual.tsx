@@ -289,6 +289,7 @@ function IOURequestStepDistanceManual({
             optimisticTransactionID,
             optimisticChatReportID,
             reportDraft,
+            delegateAccountID,
             policyTagList,
         });
     };

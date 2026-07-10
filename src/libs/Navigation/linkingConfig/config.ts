@@ -53,6 +53,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT]: DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path,
             },
         },
+        [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT]: DYNAMIC_ROUTES.AI_FEATURES_PROMO.path,
+            },
+        },
 
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: {
             screens: {
@@ -531,6 +536,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CUSTOMERS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_LOCATIONS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_ITEMS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_ITEMS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TAXES]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.path,
@@ -895,9 +901,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.route,
                         },
-                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
-                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW]: DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path,
                         [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORT_SPREADSHEET]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET.route,
@@ -973,25 +977,23 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE_APPROVER.route,
                         },
-                        [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: {
-                            path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE]: DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.path,
                         [SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT.route,
                         },
-                        [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
-                            path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.route,
+                        [SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT]: {
+                            path: DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.path,
                             screens: {
                                 [CONST.TAB.RECEIPT_PARTNERS.ALL]: {
-                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_ALL,
+                                    path: CONST.TAB.RECEIPT_PARTNERS.ALL,
                                     exact: true,
                                 },
                                 [CONST.TAB.RECEIPT_PARTNERS.LINKED]: {
-                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_LINKED,
+                                    path: CONST.TAB.RECEIPT_PARTNERS.LINKED,
                                     exact: true,
                                 },
                                 [CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING]: {
-                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_OUTSTANDING,
+                                    path: CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING,
                                     exact: true,
                                 },
                             },
@@ -1662,12 +1664,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {
                     screens: {
-                        [SCREENS.NEW_TASK.ROOT]: ROUTES.NEW_TASK.route,
-                        [SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR]: ROUTES.NEW_TASK_ASSIGNEE.route,
+                        [SCREENS.NEW_TASK.DYNAMIC_ROOT]: DYNAMIC_ROUTES.NEW_TASK.path,
+                        [SCREENS.NEW_TASK.DYNAMIC_TASK_ASSIGNEE]: DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path,
                         [SCREENS.NEW_TASK.TASK_SHARE_DESTINATION_SELECTOR]: ROUTES.NEW_TASK_SHARE_DESTINATION,
-                        [SCREENS.NEW_TASK.DETAILS]: ROUTES.NEW_TASK_DETAILS.route,
-                        [SCREENS.NEW_TASK.TITLE]: ROUTES.NEW_TASK_TITLE.route,
-                        [SCREENS.NEW_TASK.DESCRIPTION]: ROUTES.NEW_TASK_DESCRIPTION.route,
+                        [SCREENS.NEW_TASK.DYNAMIC_TASK_DETAILS]: DYNAMIC_ROUTES.NEW_TASK_DETAILS.path,
+                        [SCREENS.NEW_TASK.DYNAMIC_TASK_TITLE]: DYNAMIC_ROUTES.NEW_TASK_TITLE.path,
+                        [SCREENS.NEW_TASK.DYNAMIC_TASK_DESCRIPTION]: DYNAMIC_ROUTES.NEW_TASK_DESCRIPTION.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: {

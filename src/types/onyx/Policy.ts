@@ -321,6 +321,9 @@ type MergeHRConnectionLastSync = ConnectionLastSync & {
 
     /** Status of the sync */
     syncStatus?: ValueOf<typeof CONST.MERGE_HR.SYNC_STATUS>;
+
+    /** Timestamps of the last few manual ("Sync now") syncs, used for blocking manual syncs client-side once the daily limit is reached */
+    manualSyncTimestamps?: string[];
 };
 
 /**
@@ -509,7 +512,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether employees can be invited */
     syncPeople: boolean;
 
-    /** TODO: Will be handled in another issue */
+    /** Whether QuickBooks Online items should be imported */
     syncItems: boolean;
 
     /** TODO: Will be handled in another issue */

@@ -453,12 +453,12 @@ const SCREENS = {
     },
 
     NEW_TASK: {
-        ROOT: 'NewTask_Root',
-        TASK_ASSIGNEE_SELECTOR: 'NewTask_TaskAssigneeSelector',
+        DYNAMIC_ROOT: 'Dynamic_NewTask_Root',
+        DYNAMIC_TASK_ASSIGNEE: 'Dynamic_NewTask_TaskAssigneeSelector',
+        DYNAMIC_TASK_TITLE: 'Dynamic_NewTask_Title',
+        DYNAMIC_TASK_DESCRIPTION: 'Dynamic_NewTask_Description',
+        DYNAMIC_TASK_DETAILS: 'Dynamic_NewTask_Details',
         TASK_SHARE_DESTINATION_SELECTOR: 'NewTask_TaskShareDestinationSelector',
-        DETAILS: 'NewTask_Details',
-        TITLE: 'NewTask_Title',
-        DESCRIPTION: 'NewTask_Description',
     },
 
     TASK: {
@@ -512,6 +512,7 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_CLASSES: 'Policy_Accounting_Quickbooks_Online_Import_Classes',
             QUICKBOOKS_ONLINE_CUSTOMERS: 'Policy_Accounting_Quickbooks_Online_Import_Customers',
             QUICKBOOKS_ONLINE_LOCATIONS: 'Policy_Accounting_Quickbooks_Online_Import_Locations',
+            QUICKBOOKS_ONLINE_ITEMS: 'Policy_Accounting_Quickbooks_Online_Import_Items',
             QUICKBOOKS_ONLINE_TAXES: 'Policy_Accounting_Quickbooks_Online_Import_Taxes',
             DYNAMIC_QUICKBOOKS_ONLINE_EXPORT: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export',
             DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export_Date_Select',
@@ -727,7 +728,7 @@ const SCREENS = {
         COMPANY_CARD_EDIT_TRANSACTION_START_DATE: 'Workspace_CompanyCard_Edit_Transaction_Start_Date',
         DYNAMIC_COMPANY_CARD_EXPORT: 'Dynamic_Workspace_CompanyCard_Export',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
-        EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
+        DYNAMIC_EXPENSIFY_CARD_DETAILS: 'Dynamic_Workspace_ExpensifyCard_Details',
         EXPENSIFY_CARD_ADD_WORK_EMAIL: 'Workspace_ExpensifyCard_Add_Work_Email',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: 'Dynamic_Workspace_ExpensifyCard_New',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE: 'Dynamic_Workspace_ExpensifyCard_IssueNew_ConfirmMagicCode',
@@ -863,8 +864,8 @@ const SCREENS = {
         DOWNGRADE: 'Workspace_Downgrade',
         PAY_AND_DOWNGRADE: 'Workspace_Pay_And_Downgrade',
         RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
-        RECEIPT_PARTNERS_INVITE: 'Workspace_Receipt_Partners_Invite',
-        RECEIPT_PARTNERS_INVITE_EDIT: 'Workspace_Receipt_Partners_Invite_Edit',
+        DYNAMIC_RECEIPT_PARTNERS_INVITE: 'Dynamic_Workspace_Receipt_Partners_Invite',
+        DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT: 'Dynamic_Workspace_Receipt_Partners_Invite_Edit',
         RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT: 'Workspace_Receipt_Partners_Change_Billing_Account',
         RULES: 'Policy_Rules',
         REPORTS_DEFAULT_TITLE: 'Reports_Default_Title',
@@ -969,6 +970,10 @@ const SCREENS = {
 
     MIGRATED_USER_WELCOME_MODAL: {
         DYNAMIC_ROOT: 'Dynamic_MigratedUserWelcomeModal_Root',
+    },
+
+    AI_FEATURES_PROMO_MODAL: {
+        DYNAMIC_ROOT: 'Dynamic_AIFeaturesPromoModal_Root',
     },
 
     TEST_DRIVE_DEMO: {

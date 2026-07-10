@@ -617,7 +617,7 @@ describe('actions/Report', () => {
 
                 // When the user visits the report
                 currentTime = DateUtils.getDBTime();
-                Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
+                Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
                 Report.readNewestAction(REPORT_ID, true);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();
@@ -1176,6 +1176,7 @@ describe('actions/Report', () => {
 
         for (let i = 0; i < 5; i++) {
             Report.openReport({
+                hasReportActions: true,
                 reportID: REPORT_ID,
                 introSelected: TEST_INTRO_SELECTED,
                 participants: [{login: 'test@user.com'}],
@@ -1202,11 +1203,7 @@ describe('actions/Report', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        Report.openReport({
-            reportID: REPORT_ID,
-            introSelected: undefined,
-            betas: undefined,
-        });
+        Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined});
         await waitForBatchedUpdates();
 
         const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
@@ -1223,6 +1220,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         Report.openReport({
+            hasReportActions: true,
             reportID: REPORT_ID,
             introSelected: undefined,
             betas: undefined,
@@ -1296,7 +1294,14 @@ describe('actions/Report', () => {
         const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_ID}` as const);
         expect(transaction).toBeTruthy();
 
-        Report.openReport({reportID: CHILD_REPORT_ID, introSelected: undefined, betas: undefined, transaction: transaction ?? undefined, parentReportID: SELF_DM_ID});
+        Report.openReport({
+            hasReportActions: true,
+            reportID: CHILD_REPORT_ID,
+            introSelected: undefined,
+            betas: undefined,
+            transaction: transaction ?? undefined,
+            parentReportID: SELF_DM_ID,
+        });
         await waitForBatchedUpdates();
 
         // Validate the correct Onyx key received the new action and existing one is preserved
@@ -1342,6 +1347,7 @@ describe('actions/Report', () => {
                 reportID = `${i}`;
             }
             Report.openReport({
+                hasReportActions: true,
                 reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 participants: [{login: 'test@user.com'}],
@@ -2316,6 +2322,7 @@ describe('actions/Report', () => {
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
         Report.openReport({
+            hasReportActions: true,
             reportID: REPORT_ID,
             introSelected: TEST_INTRO_SELECTED,
             participants: [{login: 'test@user.com'}],
@@ -4908,7 +4915,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
             await waitForBatchedUpdates();
 
-            Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -4919,7 +4926,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '2';
 
-            Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -4930,7 +4937,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '3';
 
-            Report.openReport({reportID: REPORT_ID, introSelected: undefined, betas: undefined});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);

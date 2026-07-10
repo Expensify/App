@@ -965,6 +965,7 @@
         "unflushed",
         "unheld",
         "unhold",
+        "unimodules",
         "uninstallations",
         "unminified",
         "unmuting",
@@ -1049,7 +1050,8 @@
         "Prefetch",
         "Prefetcher",
         "knip",
-        "lottiefiles"
+        "lottiefiles",
+        "jsitooling"
     ],
     "ignorePaths": [
         ".gitignore",
