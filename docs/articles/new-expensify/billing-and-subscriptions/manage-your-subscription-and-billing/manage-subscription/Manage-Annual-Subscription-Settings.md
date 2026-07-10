@@ -9,7 +9,7 @@ platform: new
 order: 3
 ---
 
-# Manage Annual subscription settings
+# Manage Annual Subscription Settings
 
 Annual subscriptions include settings that let you manage your subscription, including **Subscription size**, **Auto-renew**, and **Auto-increase annual seats**.
 
