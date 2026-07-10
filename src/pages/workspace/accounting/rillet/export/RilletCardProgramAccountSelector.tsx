@@ -64,7 +64,7 @@ function RilletCardProgramAccountSelector({
             )
             .map((accountItem) => ({
                 value: accountItem.code,
-                text: `${accountItem.code} ${accountItem.name}`,
+                text: `${creditCardAccountCode === accountItem.code ? `${translate('common.default')} - ` : ''}${accountItem.code} ${accountItem.name}`,
                 keyForList: accountItem.code,
                 isSelected: cardProgramAccountCode === accountItem.code,
             })) ?? [];
