@@ -1,7 +1,9 @@
 import {changeTransactionsReport} from '@libs/actions/Transaction';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -29,6 +31,7 @@ function useUndeleteTransactions() {
             transactions,
             allTransactionViolation: transactionViolations,
             allReports,
+            personalPolicyOutputCurrency: policy?.outputCurrency,
         });
     };
 }

@@ -1,25 +1,41 @@
-import debounce from 'lodash/debounce';
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import AppStateMonitor from '@libs/AppStateMonitor';
 import memoize from '@libs/memoize';
+import {getIsOffline} from '@libs/NetworkState';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+
 import Navigation, {navigationRef} from '@navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions, ReportNameValuePairs, Session} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import debounce from 'lodash/debounce';
+import Onyx from 'react-native-onyx';
+
 import updateUnread from './updateUnread';
 
 let allReports: OnyxCollection<Report> = {};
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 let currentUserLogin = '';
+let conciergeReportID: string | undefined;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value: Session | undefined) => {
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         currentUserLogin = value?.email ?? '';
+    },
+});
+
+// this utility updates the web tab's title (to display the unread message indicator)
+// which is not a react component, so therefore, there is no way to use useOnyx().
+Onyx.connectWithoutView({
+    key: ONYXKEYS.CONCIERGE_REPORT_ID,
+    callback: (value) => {
+        conciergeReportID = value;
     },
 });
 
@@ -53,6 +69,8 @@ Onyx.connectWithoutView({
 });
 
 function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string | undefined, draftComment: string | undefined) {
+    // Read the in-memory offline state directly since this is an imperative one-shot computation (reactivity is not needed here).
+    const isOffline = getIsOffline();
     return Object.values(reports ?? {}).filter((report) => {
         const notificationPreference = ReportUtils.getReportNotificationPreference(report);
 
@@ -73,7 +91,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
         const nameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
         const isReportArchived = ReportUtils.isArchivedReport(nameValuePairs);
         const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`]);
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`], isOffline);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
 
         if (!ReportUtils.isUnread(report, oneTransactionThreadReport, isReportArchived)) {
@@ -93,6 +111,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             draftComment,
             currentUserLogin,
             currentUserAccountID,
+            conciergeReportID,
         });
     });
 }

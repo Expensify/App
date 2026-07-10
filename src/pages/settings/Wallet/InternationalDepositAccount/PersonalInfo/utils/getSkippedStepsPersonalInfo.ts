@@ -1,4 +1,5 @@
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 

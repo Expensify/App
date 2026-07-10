@@ -1,6 +1,9 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
+
 import {getCommentLength} from '@libs/ReportUtils';
+
 import useDebouncedCommentMaxLengthValidation from '@pages/inbox/report/ReportActionCompose/useDebouncedCommentMaxLengthValidation';
+
 import CONST from '@src/CONST';
 
 jest.mock('@libs/ReportUtils', () => {

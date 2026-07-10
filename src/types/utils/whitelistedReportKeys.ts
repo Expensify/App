@@ -34,6 +34,9 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         created: unknown;
         submitted: unknown;
         approved: unknown;
+        submitterUserID: unknown;
+        submitterPayrollID: unknown;
+        orderDealNumbers: unknown;
         visibility: unknown;
         invoiceReceiver: unknown;
         parentReportID: unknown;
@@ -48,6 +51,8 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         total: unknown;
         unheldTotal: unknown;
         unheldNonReimbursableTotal: unknown;
+        reimbursableTotal: unknown;
+        unheldReimbursableTotal: unknown;
         currency: unknown;
         errorFields: unknown;
         errors: unknown;
