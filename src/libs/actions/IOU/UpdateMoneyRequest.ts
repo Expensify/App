@@ -82,7 +82,7 @@ type UpdateMoneyRequestDateParams = {
     hash?: number;
     delegateAccountID: number | undefined;
     policyForTrackExpense?: OnyxEntry<OnyxTypes.Policy>;
-    reportPolicyTags?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
     personalPolicyOutputCurrency: string | undefined;
 };
