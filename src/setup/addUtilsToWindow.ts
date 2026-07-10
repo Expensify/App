@@ -38,6 +38,7 @@ export default function addUtilsToWindow() {
                         Onyx.disconnect(connection);
                         resolve(value);
                     },
+                    waitForCollectionCallback: true,
                 });
             });
         };

@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {getTranslationKeyForCardStatus, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -46,6 +46,8 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
     const narrowLayoutSubtitle = [item.lastFourPAN, item.name].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
     const cardType = item.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
     const limitTypeLabel = translate(getTranslationKeyForLimitType(item.limitType));
+    const statusTranslationKey = getTranslationKeyForCardStatus(item.card.state, item.isVirtual);
+    const statusLabel = statusTranslationKey ? translate(statusTranslationKey) : '';
     const formattedLimit = convertToShortDisplayString(item.limit, item.currency);
     const formattedFrozenDate = item.frozenDate ? DateUtils.formatWithUTCTimeZone(item.frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
     let frozenByText: string | undefined;
@@ -58,7 +60,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
         }
     }
 
-    const accessibilityLabel = [cardholderName, item.name, cardType, limitTypeLabel, item.lastFourPAN, formattedLimit, frozenByText].filter(Boolean).join(', ');
+    const accessibilityLabel = [cardholderName, item.name, cardType, limitTypeLabel, item.lastFourPAN, statusLabel, formattedLimit, frozenByText].filter(Boolean).join(', ');
 
     const frozenByRowFooter = !!frozenByText && (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt1]}>
@@ -106,7 +108,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                 shouldShowTooltip
                                 numberOfLines={1}
                                 text={cardholderName}
-                                style={[styles.optionDisplayName, styles.textStrong, styles.pre]}
+                                style={[styles.optionDisplayName, styles.pre]}
                             />
                             {shouldUseNarrowTableLayout ? (
                                 <TextWithTooltip
@@ -137,7 +139,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter]}>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -152,6 +154,16 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                 shouldShowTooltip
                                 numberOfLines={1}
                                 text={item.lastFourPAN}
+                            />
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && (
+                        <View style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter]}>
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={statusLabel}
                             />
                         </View>
                     )}
