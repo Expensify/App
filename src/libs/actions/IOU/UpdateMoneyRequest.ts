@@ -801,6 +801,7 @@ function updateMoneyRequestTaxAmount({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
     delegateAccountID,
+    reportPolicyTags,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -814,6 +815,7 @@ function updateMoneyRequestTaxAmount({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 }) {
     const transactionChanges = {
         taxAmount,
@@ -825,8 +827,7 @@ function updateMoneyRequestTaxAmount({
         transactionChanges,
         policy,
         policyTagList,
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+        reportPolicyTags,
         policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,
