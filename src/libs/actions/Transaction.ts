@@ -1754,6 +1754,9 @@ function getChangeTransactionsReportOnyxData({
     }
 
     for (const [reportIDToUpdate, total] of Object.entries(updatedReportReimbursableTotals)) {
+        if (skippedReportIDsSet.has(reportIDToUpdate)) {
+            continue;
+        }
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
@@ -1768,6 +1771,9 @@ function getChangeTransactionsReportOnyxData({
     }
 
     for (const [reportIDToUpdate, total] of Object.entries(updatedReportUnheldReimbursableTotals)) {
+        if (skippedReportIDsSet.has(reportIDToUpdate)) {
+            continue;
+        }
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
