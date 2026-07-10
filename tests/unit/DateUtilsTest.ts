@@ -20,7 +20,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 jest.mock('@src/libs/Log');
 
 const LOCALE = CONST.LOCALES.EN;
-const UTC = 'UTC';
+const UTC: SelectedTimezone = 'Atlantic/Reykjavik';
 
 const intlFormatForTest = (date: Date, preset: Intl.DateTimeFormatOptions, timeZone: string) =>
     new Intl.DateTimeFormat(LOCALE, {...preset, timeZone}).format(date).replaceAll(CONST.DATE.INTL_NBSP_PATTERN, ' ');
@@ -37,10 +37,7 @@ describe('DateUtils', () => {
                     '999': {
                         accountID: 999,
                         timezone: {
-                            // UTC is not recognized as a valid timezone but
-                            // in these tests we want to use it to avoid issues
-                            // because of daylight saving time
-                            selected: UTC as SelectedTimezone,
+                            selected: UTC,
                         },
                     },
                 },
@@ -94,19 +91,19 @@ describe('DateUtils', () => {
 
     it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
         const today = setMinutes(setHours(new Date(), 14), 32).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, today, UTC as SelectedTimezone, false)).toBe('Today at 2:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, today, UTC, false)).toBe('Today at 2:32 PM');
 
         const tomorrow = addDays(setMinutes(setHours(new Date(), 14), 32), 1).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow, UTC as SelectedTimezone, false)).toBe('Tomorrow at 2:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow, UTC, false)).toBe('Tomorrow at 2:32 PM');
 
         const yesterday = setMinutes(setHours(subDays(new Date(), 1), 7), 43).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday, UTC as SelectedTimezone, false)).toBe('Yesterday at 7:43 AM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday, UTC, false)).toBe('Yesterday at 7:43 AM');
 
         const date = setMinutes(setHours(new Date('2022-11-05'), 10), 17).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, date, UTC as SelectedTimezone, false)).toBe('Nov 5, 2022 at 10:17 AM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, date, UTC, false)).toBe('Nov 5, 2022 at 10:17 AM');
 
         const todayLowercaseDate = setMinutes(setHours(new Date(), 14), 32).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, UTC as SelectedTimezone, false, true)).toBe('today at 2:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, UTC, false, true)).toBe('today at 2:32 PM');
     });
 
     describe('datetimeToCalendarTime — locale + bucketing', () => {
@@ -196,13 +193,13 @@ describe('DateUtils', () => {
 
     it('should return the date in calendar time when calling datetimeToRelative', () => {
         const aFewSecondsAgo = subSeconds(new Date(), 10).toString();
-        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo, UTC as SelectedTimezone)).toBe('less than a minute ago');
+        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo, UTC)).toBe('less than a minute ago');
 
         const aMinuteAgo = subMinutes(new Date(), 1).toString();
-        expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo, UTC as SelectedTimezone)).toBe('1 minute ago');
+        expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo, UTC)).toBe('1 minute ago');
 
         const anHourAgo = subHours(new Date(), 1).toString();
-        expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo, UTC as SelectedTimezone)).toBe('about 1 hour ago');
+        expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo, UTC)).toBe('about 1 hour ago');
     });
 
     it('subtractMillisecondsFromDateTime should subtract milliseconds from a given date and time', () => {
@@ -731,7 +728,7 @@ describe('DateUtils', () => {
         });
 
         it('should return empty string when utcDateTime is empty', () => {
-            expect(DateUtils.formatUTCDateTimeToDateInTimezone('', UTC as SelectedTimezone)).toBe('');
+            expect(DateUtils.formatUTCDateTimeToDateInTimezone('', UTC)).toBe('');
         });
 
         it('should return empty string when timeZone is empty', () => {
@@ -739,7 +736,7 @@ describe('DateUtils', () => {
         });
 
         it('should return date in yyyy-MM-dd format when timeZone is UTC', () => {
-            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00', UTC as SelectedTimezone);
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00', UTC);
             expect(result).toBe('2024-01-15');
         });
 
@@ -758,17 +755,17 @@ describe('DateUtils', () => {
         });
 
         it('should handle UTC datetime with milliseconds', () => {
-            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00.000', UTC as SelectedTimezone);
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00.000', UTC);
             expect(result).toBe('2024-01-15');
         });
 
         it('should handle date-only format (parses as midnight UTC)', () => {
-            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15', UTC as SelectedTimezone);
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15', UTC);
             expect(result).toBe('2024-01-15');
         });
 
         it('should return empty string for invalid date', () => {
-            const result = DateUtils.formatUTCDateTimeToDateInTimezone('invalid-date', UTC as SelectedTimezone);
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('invalid-date', UTC);
             expect(result).toBe('');
         });
     });
@@ -785,13 +782,13 @@ describe('DateUtils', () => {
         });
 
         it('should return midnight local time as UTC in DB format when timeZone is UTC', () => {
-            const result = DateUtils.normalizeDateToStartOfDay('2024-01-15', UTC as SelectedTimezone);
+            const result = DateUtils.normalizeDateToStartOfDay('2024-01-15', UTC);
             expect(result).toBe('2024-01-15 00:00:00');
         });
 
         it('should match getDBTime of startOfDay for the parsed date (without milliseconds)', () => {
             const dateStr = '2022-11-07';
-            const result = DateUtils.normalizeDateToStartOfDay(dateStr, UTC as SelectedTimezone);
+            const result = DateUtils.normalizeDateToStartOfDay(dateStr, UTC);
             const expected = DateUtils.getDBTime(fromZonedTime(startOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf()).replace(/\.\d{3}$/, '');
             expect(result).toBe(expected);
         });
@@ -816,13 +813,13 @@ describe('DateUtils', () => {
         });
 
         it('should return end of day local time as UTC in DB format when timeZone is UTC', () => {
-            const result = DateUtils.normalizeDateToEndOfDay('2024-01-15', UTC as SelectedTimezone);
+            const result = DateUtils.normalizeDateToEndOfDay('2024-01-15', UTC);
             expect(result).toBe('2024-01-15 23:59:59');
         });
 
         it('should match getDBTime of endOfDay for the parsed date (without milliseconds)', () => {
             const dateStr = '2022-11-07';
-            const result = DateUtils.normalizeDateToEndOfDay(dateStr, UTC as SelectedTimezone);
+            const result = DateUtils.normalizeDateToEndOfDay(dateStr, UTC);
             const expected = DateUtils.getDBTime(fromZonedTime(endOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf()).replace(/\.\d{3}$/, '');
             expect(result).toBe(expected);
         });
