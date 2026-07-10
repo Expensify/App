@@ -472,7 +472,7 @@ function getCombinedCardFeedsFromAllFeeds(
     }, {});
 }
 
-function getCardsUsingCustomExportAccountsCount(
+function getCardsUsingCustomExportCount(
     cardFeeds: CombinedCardFeeds,
     cardLists: Record<string, WorkspaceCardsList | undefined>,
     exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
@@ -502,7 +502,7 @@ function getCardsUsingCustomExportAccountsCount(
     return {perFeedCount, totalCount};
 }
 
-function getCardsCustomExportAccountsPendingAction(
+function getCardsCustomExportPendingAction(
     cardFeeds: CombinedCardFeeds,
     cardLists: Record<string, WorkspaceCardsList | undefined>,
     exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
@@ -534,7 +534,7 @@ function getCardsCustomExportAccountsPendingAction(
     return undefined;
 }
 
-function areCardsCustomExportAccountsInErrorFields(
+function areCardsCustomExportInErrorFields(
     cardFeeds: CombinedCardFeeds,
     cardLists: Record<string, WorkspaceCardsList | undefined>,
     exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
@@ -577,7 +577,7 @@ export {
     getVisibleCompanyCardFeedsForSelector,
     getCombinedCardFeedsFromAllFeeds,
     getWorkspaceCardFeedsStatus,
-    getCardsUsingCustomExportAccountsCount,
-    getCardsCustomExportAccountsPendingAction,
-    areCardsCustomExportAccountsInErrorFields,
+    getCardsUsingCustomExportCount,
+    getCardsCustomExportPendingAction,
+    areCardsCustomExportInErrorFields,
 };

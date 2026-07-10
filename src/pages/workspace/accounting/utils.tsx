@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import {isAuthenticationError} from '@libs/actions/connections';
-import {getCardsCustomExportAccountsPendingAction, areCardsCustomExportAccountsInErrorFields} from '@libs/CardFeedUtils';
+import {getCardsCustomExportPendingAction, areCardsCustomExportInErrorFields} from '@libs/CardFeedUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 
@@ -429,12 +429,12 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
                     ...[CONST.EXPENSIFY_CARD.BANK, ...Object.values(CONST.COMPANY_CARD.FEED_BANK_NAME)].map((program) => `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program}`),
                 ],
-                externalSubscribedExportSettingsPendingAction: getCardsCustomExportAccountsPendingAction(
+                externalSubscribedExportSettingsPendingAction: getCardsCustomExportPendingAction(
                     cardFeeds ?? {},
                     cardList ?? {},
                     CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
                 ),
-                externalSubscribedExportSettingsHasErrorFields: areCardsCustomExportAccountsInErrorFields(
+                externalSubscribedExportSettingsHasErrorFields: areCardsCustomExportInErrorFields(
                     cardFeeds ?? {},
                     cardList ?? {},
                     CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
