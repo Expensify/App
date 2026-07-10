@@ -68,7 +68,8 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const connectedIntegration = getValidConnectedIntegration(policy);
     const connectedIntegrationFallback = getConnectedIntegration(policy);
-    const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy);
+    // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside the other default templates.
+    const {customTemplates, defaultTemplates} = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy, true, true);
     const isExported = isExportedUtils(reportActions, moneyRequestReport);
 
     const {showDecisionModal} = useDecisionModal();
@@ -201,11 +202,16 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         },
     };
 
-    for (const template of exportTemplates) {
-        const isStandardTemplate = template.templateName === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT || template.templateName === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT;
+    // Register a submenu option for each export template. The basic export is skipped since it already has a dedicated DOWNLOAD_CSV option above
+    // (it downloads the CSV directly instead of queueing a template export).
+    for (const template of [...customTemplates, ...defaultTemplates]) {
+        if (template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV) {
+            continue;
+        }
+        const isDefaultTemplate = defaultTemplates.includes(template);
         exportSubmenuOptions[template.name] = {
             text: template.name,
-            icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
+            icon: isDefaultTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
             value: template.templateName,
             description: template.description,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
@@ -213,37 +219,27 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         };
     }
 
-    const secondaryExportActions = moneyRequestReport
-        ? getSecondaryExportReportActions(accountID, currentUserLogin ?? '', moneyRequestReport, bankAccountList, policy ?? undefined, exportTemplates)
+    // The accounting export actions (export to integration / mark as exported) the user is allowed to perform on the report
+    const secondaryExportActions: string[] = moneyRequestReport
+        ? getSecondaryExportReportActions(accountID, currentUserLogin ?? '', moneyRequestReport, bankAccountList, policy ?? undefined)
         : [];
 
-    // The display names of the default templates (expense/report level), used to tell the custom and default groups apart when adding dividers.
-    const defaultTemplateNames = new Set(
-        exportTemplates
-            .filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT || template.templateName === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT)
-            .map((template) => template.name),
-    );
-
-    // Group each export action so we can add a divider between the accounting, custom template, and default template groups.
-    const getExportActionGroup = (action: string): string => {
-        if (action === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION || action === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-            return 'accounting';
-        }
-        // "Basic export" (DOWNLOAD_CSV) sits at the bottom of the default templates group with no divider, matching the Search export menu.
-        if (action === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV) {
-            return 'default';
-        }
-        return defaultTemplateNames.has(action) ? 'default' : 'custom';
-    };
-
-    const exportSubMenuEntries = secondaryExportActions.map((action) => {
-        const actionKey = action as string;
-        return {option: exportSubmenuOptions[actionKey], group: getExportActionGroup(actionKey)};
-    });
-    const exportSubMenuItems = exportSubMenuEntries.map(({option, group}, index) => {
-        const addSeparatorBefore = index > 0 && group !== exportSubMenuEntries.at(index - 1)?.group;
-        return option ? {...option, addSeparatorBefore} : option;
-    });
+    // Assemble the export submenu from its pre-sorted groups (accounting actions, custom templates, default templates), with a divider between each non-empty group
+    const exportSubMenuGroups: string[][] = moneyRequestReport
+        ? [
+              secondaryExportActions,
+              customTemplates.map((template) => template.name),
+              defaultTemplates.map((template) => (template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV ? CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV : template.name)),
+          ]
+        : [];
+    const exportSubMenuItems = exportSubMenuGroups
+        .filter((group) => group.length > 0)
+        .flatMap((group, groupIndex) =>
+            group.flatMap((action, itemIndex) => {
+                const option = exportSubmenuOptions[action];
+                return option ? [{...option, addSeparatorBefore: groupIndex > 0 && itemIndex === 0}] : [];
+            }),
+        );
 
     const exportActionEntries: Record<string, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.EXPORT]: {

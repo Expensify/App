@@ -1468,15 +1468,23 @@ function queueExportSearchWithTemplate(
     return exportID;
 }
 
+/** Export templates pre-grouped for the Export menus: each group is sorted alphabetically and rendered with a divider between groups */
+type ExportTemplateGroups = {
+    /** Custom templates (custom integrations + account/policy in-app templates) */
+    customTemplates: ExportTemplate[];
+    /** Default templates (expense/report level exports, and optionally the basic export) */
+    defaultTemplates: ExportTemplate[];
+};
+
 /**
- * Collates a list of export templates available to the user from their account, policy, and custom integrations templates
+ * Collates the export templates available to the user from their account, policy, and custom integrations templates
  * @param integrationsExportTemplates - The user's custom integrations export templates
  * @param csvExportLayouts - The user's custom account level export templates
  * @param localeCompare - Locale-aware string comparison function used to sort each group alphabetically
  * @param policy - The user's policy
  * @param includeReportLevelExport - Whether to include the report level export template
  * @param includeBasicExport - Whether to include the basic export (CSV download) template in the default group
- * @returns The export templates, with the custom/IS group (sorted alphabetically) first, followed by the default group (sorted alphabetically)
+ * @returns The export templates pre-grouped into the custom group and the default group, each sorted alphabetically
  */
 function getExportTemplates(
     integrationsExportTemplates: ExportTemplate[],
@@ -1486,7 +1494,7 @@ function getExportTemplates(
     policy?: Policy,
     includeReportLevelExport = true,
     includeBasicExport = false,
-): ExportTemplate[] {
+): ExportTemplateGroups {
     // Helper function to normalize template data into consistent ExportTemplate format
     const normalizeTemplate = (
         templateName: string,
@@ -1530,14 +1538,13 @@ function getExportTemplates(
     // Update the integrations export templates to include the name, description, policyID, and type
     const integrationsTemplates = integrationsExportTemplates.map((template) => normalizeTemplate(template.name, template, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
 
-    // Custom / IS templates (custom integrations + account/policy in-app templates), sorted alphabetically by name
+    // Custom templates (custom integrations + account/policy in-app templates), sorted alphabetically by name
     const customTemplates = [...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates].sort((first, second) => localeCompare(first.name, second.name));
 
-    // Default templates (expense/report level), sorted alphabetically by name
+    // Default templates (expense/report level and optionally basic export), sorted alphabetically by name
     const defaultTemplates = [...exportTemplates].sort((first, second) => localeCompare(first.name, second.name));
 
-    // Return the custom/IS group first, followed by the default group, to match the grouped Export menu structure
-    return [...customTemplates, ...defaultTemplates];
+    return {customTemplates, defaultTemplates};
 }
 
 /**
@@ -1856,4 +1863,4 @@ export {
     getReportFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
 };
-export type {TransactionPreviewData};
+export type {TransactionPreviewData, ExportTemplateGroups};

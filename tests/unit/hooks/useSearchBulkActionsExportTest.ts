@@ -44,7 +44,7 @@ jest.mock('@libs/actions/SplitExpenses.ts', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
     exportToIntegrationOnSearch: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),

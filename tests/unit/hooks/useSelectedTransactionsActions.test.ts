@@ -33,7 +33,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
-    // Mirror the real getExportTemplates: the basic export (CSV download) template is only included when includeBasicExport is true
+    // Mirror the real getExportTemplates: templates are returned pre-grouped, and the basic export (CSV download) template
+    // is only included in the default group when includeBasicExport is true
     getExportTemplates: jest.fn(
         (
             _integrations: unknown,
@@ -43,8 +44,9 @@ jest.mock('@libs/actions/Search', () => ({
             _policy: unknown,
             _includeReportLevelExport: unknown,
             includeBasicExport = false,
-        ) =>
-            includeBasicExport
+        ) => ({
+            customTemplates: [],
+            defaultTemplates: includeBasicExport
                 ? [
                       {
                           templateName: 'downloadCSV',
@@ -54,6 +56,7 @@ jest.mock('@libs/actions/Search', () => ({
                       },
                   ]
                 : [],
+        }),
     ),
 }));
 

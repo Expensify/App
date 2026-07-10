@@ -17,7 +17,7 @@ const EXPORT_NAME = 'Test Template';
 type ExportDownloadStatusModalProps = {exportID: string; onClose: () => void};
 
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     queueExportSearchWithTemplate: jest.fn(() => 'mock-export-id'),
 }));
 

@@ -389,21 +389,24 @@ function useSelectedTransactionsActions({
             // If we've selected all the transactions on the report, we can also provide the report level export option
             const includeReportLevelExport = allTransactionsLength === selectedTransactionIDs.length;
 
-            // Add the custom IS templates first, followed by the default templates (including basic export), each group sorted alphabetically
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy, includeReportLevelExport, true);
-            const standardTemplateNames = new Set<string>([
-                CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
-                CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
-                CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
-            ]);
-            let previousIsStandardTemplate: boolean | undefined;
-            for (const template of exportTemplates) {
-                const isStandardTemplate = standardTemplateNames.has(template.templateName);
-                // "Basic export" is a plain CSV download, so it uses its own handler rather than the template export flow
+            // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside the other default templates.
+            const {customTemplates, defaultTemplates} = getExportTemplates(
+                integrationsExportTemplates ?? [],
+                csvExportLayouts ?? {},
+                translate,
+                localeCompare,
+                policy,
+                includeReportLevelExport,
+                true,
+            );
+            const orderedTemplates = [...customTemplates, ...defaultTemplates];
+            orderedTemplates.forEach((template, index) => {
+                // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
                 const isBasicExport = template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV;
+                const isDefaultTemplate = index >= customTemplates.length;
                 exportOptions.push({
                     text: template.name,
-                    icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
+                    icon: isDefaultTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
                     onSelected: isBasicExport
                         ? () => {
@@ -425,10 +428,9 @@ function useSelectedTransactionsActions({
                           }
                         : () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.name, template.policyID),
                     // Divider at the custom/default group boundary (suppressed when this is the first item)
-                    addSeparatorBefore: isStandardTemplate !== previousIsStandardTemplate,
+                    addSeparatorBefore: index === 0 || index === customTemplates.length,
                 });
-                previousIsStandardTemplate = isStandardTemplate;
-            }
+            });
 
             return exportOptions;
         };

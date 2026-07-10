@@ -2,7 +2,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     BankAccountList,
-    ExportTemplate,
     OutstandingReportsByPolicyIDDerivedValue,
     Policy,
     Report,
@@ -1110,15 +1109,18 @@ function getSecondaryReportActions({
     return options;
 }
 
+/**
+ * Returns the accounting export actions (export to integration / mark as exported) the user is allowed to perform on the report.
+ * The export template options are collated separately via getExportTemplates, which returns them pre-grouped and sorted.
+ */
 function getSecondaryExportReportActions(
     currentUserAccountID: number,
     currentUserLogin: string,
     report: Report,
     bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
-    exportTemplates: ExportTemplate[] = [],
-): Array<ValueOf<string>> {
-    const options: Array<ValueOf<string>> = [];
+): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> {
+    const options: Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> = [];
     if (isExportAction(currentUserAccountID, currentUserLogin, report, bankAccountList, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
@@ -1126,14 +1128,6 @@ function getSecondaryExportReportActions(
     if (isMarkAsExportedAction(currentUserAccountID, currentUserLogin, report, bankAccountList, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
     }
-
-    // Add any custom IS templates that have been added to the user's account as export options, followed by the default templates
-    for (const template of exportTemplates) {
-        options.push(template.name);
-    }
-
-    // "Basic export" (DOWNLOAD_CSV) is pinned to the bottom of the menu within the default templates group, matching the Search export menu ordering
-    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
 
     return options;
 }

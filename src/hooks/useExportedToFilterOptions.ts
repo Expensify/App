@@ -54,9 +54,12 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
 
     // When search is scoped to workspaces, use only those policies otherwise use all.
     const policiesToUse = policyIDs !== undefined ? getAllPolicyValues(policyIDs, ONYXKEYS.COLLECTION.POLICY, policies) : Object.values(policies ?? {});
-    const policyLevelExportTemplates = policiesToUse.flatMap((policy) => getExportTemplates([], {}, translate, localeCompare, policy, false));
-    const accountLevelExportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, undefined, true);
-    const combinedExportTemplates = [...accountLevelExportTemplates, ...policyLevelExportTemplates];
+    const policyLevelExportTemplates = policiesToUse.flatMap((policy) => {
+        const {customTemplates, defaultTemplates} = getExportTemplates([], {}, translate, localeCompare, policy, false);
+        return [...customTemplates, ...defaultTemplates];
+    });
+    const accountLevelTemplateGroups = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, undefined, true);
+    const combinedExportTemplates = [...accountLevelTemplateGroups.customTemplates, ...accountLevelTemplateGroups.defaultTemplates, ...policyLevelExportTemplates];
 
     const uniqueExportTemplatesByName = new Map<string, ExportTemplate>();
     for (const template of combinedExportTemplates) {

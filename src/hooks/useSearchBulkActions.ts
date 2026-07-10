@@ -1475,8 +1475,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
 
+            const isGroupedSearch = !!getValidGroupBy(queryJSON?.groupBy);
+
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy, includeReportLevelExport);
+            // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside
+            // the other default templates. Grouped exports don't have a separate basic export (it's surfaced as "Current view" below), so it's excluded there.
+            const {customTemplates, defaultTemplates} = getExportTemplates(
+                integrationsExportTemplates ?? [],
+                csvExportLayouts ?? {},
+                translate,
+                localeCompare,
+                policy,
+                includeReportLevelExport,
+                !isGroupedSearch,
+            );
 
             const exportOptions: PopoverMenuItem[] = [];
 
@@ -1590,8 +1602,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
             }
 
-            const isGroupedSearch = !!getValidGroupBy(queryJSON?.groupBy);
-
             // "Current view" is pinned directly under the accounting actions.
             // For grouped exports there's no separate basic export - the backend expects isBasicExport to be true, so handleBasicExport
             // powers the current view here (see https://github.com/Expensify/Expensify/issues/652978).
@@ -1612,29 +1622,30 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
 
             if (!allSelectedAreDeleted && !includesGroupExport) {
-                let previousIsStandardTemplate: boolean | undefined;
-                for (const template of exportTemplates) {
-                    const isStandardTemplate =
-                        template.templateName === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT || template.templateName === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT;
+                const orderedTemplates = [...customTemplates, ...defaultTemplates];
+                orderedTemplates.forEach((template, index) => {
+                    // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
+                    const isBasicExport = template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV;
+                    const isDefaultTemplate = index >= customTemplates.length;
                     exportOptions.push({
                         text: template.name,
-                        icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
+                        icon: isDefaultTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                         description: template.description,
                         onSelected: () => {
+                            if (isBasicExport) {
+                                handleBasicExport();
+                                return;
+                            }
                             beginExportWithTemplate(template.templateName, template.type, template.policyID, template.name);
                         },
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
                         // Divider before the first template (separating from current view) and at the custom/default group boundary
-                        addSeparatorBefore: isStandardTemplate !== previousIsStandardTemplate,
+                        addSeparatorBefore: index === 0 || index === customTemplates.length,
                     });
-                    previousIsStandardTemplate = isStandardTemplate;
-                }
-            }
-
-            // "Basic export" is a default export option, pinned to the bottom of the menu within the default templates group (no divider before it).
-            // Grouped exports don't have a separate basic export (it's surfaced as "Current view" above).
-            if (!isGroupedSearch) {
+                });
+            } else if (!isGroupedSearch) {
+                // The templates aren't available for this selection, but the basic export (a plain CSV download) still is
                 exportOptions.push({
                     text: translate('export.basicExport'),
                     icon: expensifyIcons.Table,
@@ -1643,6 +1654,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     },
                     shouldCloseModalOnSelect: true,
                     shouldCallAfterModalHide: true,
+                    // Divider between the current view group and the default templates group
+                    addSeparatorBefore: true,
                 });
             }
 

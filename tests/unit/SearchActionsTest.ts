@@ -130,43 +130,40 @@ describe('getExportTemplates', () => {
     const localeCompare = (first: string, second: string) => first.localeCompare(second);
     const makeTemplate = (name: string): ExportTemplate => ({name, templateName: name, type: '', policyID: undefined, description: ''});
 
-    it('returns the custom/IS templates first (sorted alphabetically), followed by the default templates (sorted alphabetically)', () => {
+    it('returns the custom templates and the default templates as separate groups, each sorted alphabetically', () => {
         const integrationsExportTemplates: ExportTemplate[] = [makeTemplate('Zebra integration'), makeTemplate('Apple integration')];
         const csvExportLayouts: Record<string, ExportTemplate> = {
             mango: makeTemplate('Mango layout'),
             banana: makeTemplate('Banana layout'),
         };
 
-        const result = getExportTemplates(integrationsExportTemplates, csvExportLayouts, translate, localeCompare);
-        const names = result.map((template) => template.name);
+        const {customTemplates, defaultTemplates} = getExportTemplates(integrationsExportTemplates, csvExportLayouts, translate, localeCompare);
 
-        // Custom/IS group is sorted alphabetically and comes first
-        const customGroup = names.slice(0, 4);
-        expect(customGroup).toEqual(['Apple integration', 'Banana layout', 'Mango layout', 'Zebra integration']);
+        // Custom group (custom integrations + in-app templates) is sorted alphabetically
+        expect(customTemplates.map((template) => template.name)).toEqual(['Apple integration', 'Banana layout', 'Mango layout', 'Zebra integration']);
 
-        // Default group (expense/report level) is sorted alphabetically and comes last
-        const defaultGroup = names.slice(4);
-        expect(defaultGroup).toEqual([translate('export.expenseLevelExport'), translate('export.reportLevelExport')]);
+        // Default group (expense/report level) is sorted alphabetically
+        expect(defaultTemplates.map((template) => template.name)).toEqual([translate('export.expenseLevelExport'), translate('export.reportLevelExport')]);
     });
 
     it('excludes the report level export template when includeReportLevelExport is false', () => {
-        const result = getExportTemplates([], {}, translate, localeCompare, undefined, false);
-        const templateNames = result.map((template) => template.templateName);
+        const {defaultTemplates} = getExportTemplates([], {}, translate, localeCompare, undefined, false);
+        const templateNames = defaultTemplates.map((template) => template.templateName);
 
         expect(templateNames).toContain(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT);
         expect(templateNames).not.toContain(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT);
     });
 
     it('excludes the basic export template by default', () => {
-        const result = getExportTemplates([], {}, translate, localeCompare);
-        const templateNames = result.map((template) => template.templateName);
+        const {defaultTemplates} = getExportTemplates([], {}, translate, localeCompare);
+        const templateNames = defaultTemplates.map((template) => template.templateName);
 
         expect(templateNames).not.toContain(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
     });
 
     it('includes the basic export template in the default group (sorted alphabetically) when includeBasicExport is true', () => {
-        const result = getExportTemplates([], {}, translate, localeCompare, undefined, true, true);
-        const names = result.map((template) => template.name);
+        const {defaultTemplates} = getExportTemplates([], {}, translate, localeCompare, undefined, true, true);
+        const names = defaultTemplates.map((template) => template.name);
 
         // Basic export is sorted alphabetically alongside the other default templates, not pinned to the bottom
         expect(names).toEqual([translate('export.expenseLevelExport'), translate('export.reportLevelExport'), translate('export.basicExport')].sort(localeCompare));
