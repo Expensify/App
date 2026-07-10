@@ -491,10 +491,6 @@ function getCardsUsingCustomExportAccountsPerFeedCount(
     return cardsUsingCustomAccountsPerFeedCount;
 }
 
-function getCardsUsingCustomExportAccountsCount(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>, exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>) {
-    return Object.values(getCardsUsingCustomExportAccountsPerFeedCount(workspaceCardFeeds, exportType)).reduce((totalCount, feedCount) => totalCount + feedCount, 0);
-}
-
 export type {CardFilterItem, CardFeedForDisplay};
 export {
     buildCardsData,
@@ -507,5 +503,4 @@ export {
     getCombinedCardFeedsFromAllFeeds,
     getWorkspaceCardFeedsStatus,
     getCardsUsingCustomExportAccountsPerFeedCount,
-    getCardsUsingCustomExportAccountsCount,
 };
