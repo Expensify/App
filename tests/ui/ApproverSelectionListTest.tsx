@@ -12,6 +12,7 @@ import type {PropsWithChildren} from 'react';
 import React from 'react';
 
 const mockUseState = React.useState;
+let mockIsFocused = true;
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
@@ -19,6 +20,7 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNavigation,
         useFocusEffect: jest.fn(),
+        useIsFocused: jest.fn(() => mockIsFocused),
     };
 });
 
@@ -61,6 +63,7 @@ jest.mock('@libs/PolicyUtils', () => ({
 
 type MockSelectionListProps = {
     data: SelectionListApprover[];
+    onSelectRow?: (approver: SelectionListApprover) => void;
     initiallyFocusedItemKey?: string;
     textInputOptions?: {
         onChangeText?: (value: string) => void;
@@ -70,7 +73,7 @@ type MockSelectionListProps = {
 const selectedApprover = 'user9@example.com';
 const updatedApprover = 'user8@example.com';
 
-function buildApprovers(selectedLogin = selectedApprover) {
+function buildApprovers(selectedLogin: string | null = selectedApprover) {
     return Array.from({length: CONST.STANDARD_LIST_ITEM_LIMIT + 2}, (_, index): SelectionListApprover => {
         const login = `user${index}@example.com`;
 
@@ -86,13 +89,13 @@ function buildApprovers(selectedLogin = selectedApprover) {
     });
 }
 
-function renderApproverSelectionList(allApprovers = buildApprovers()) {
+function renderApproverSelectionList(allApprovers = buildApprovers(), initiallyFocusedOptionKey: string | null = selectedApprover) {
     return render(
         <ApproverSelectionList
             testID="ApproverSelectionList"
             headerTitle="Approver"
             allApprovers={allApprovers}
-            initiallyFocusedOptionKey={selectedApprover}
+            initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
             onBackButtonPress={jest.fn()}
             onSelectApprover={jest.fn()}
         />,
@@ -104,6 +107,7 @@ describe('ApproverSelectionList', () => {
 
     beforeEach(() => {
         mockedSelectionList.mockClear();
+        mockIsFocused = true;
     });
 
     it('pins the initially selected approver to the top on open', () => {
@@ -145,6 +149,134 @@ describe('ApproverSelectionList', () => {
         expect(selectionListProps?.data.find((item) => item.keyForList === updatedApprover)).toEqual(
             expect.objectContaining({
                 keyForList: updatedApprover,
+                isSelected: true,
+            }),
+        );
+        expect(selectionListProps?.initiallyFocusedItemKey).toBe(selectedApprover);
+    });
+
+    it('pins the selected approver when selection data arrives after list data', () => {
+        const {rerender} = renderApproverSelectionList(buildApprovers(null), null);
+
+        rerender(
+            <ApproverSelectionList
+                testID="ApproverSelectionList"
+                headerTitle="Approver"
+                allApprovers={buildApprovers(selectedApprover)}
+                initiallyFocusedOptionKey={selectedApprover}
+                onBackButtonPress={jest.fn()}
+                onSelectApprover={jest.fn()}
+            />,
+        );
+
+        const selectionListProps = mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
+
+        expect(selectionListProps?.data.at(0)).toEqual(
+            expect.objectContaining({
+                keyForList: selectedApprover,
+                isSelected: true,
+            }),
+        );
+        expect(selectionListProps?.initiallyFocusedItemKey).toBe(selectedApprover);
+    });
+
+    it('does not pin a newly selected approver after user interaction during the same mount', () => {
+        const {rerender} = renderApproverSelectionList(buildApprovers(null), null);
+
+        let selectionListProps = mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
+        act(() => {
+            const approverToSelect = selectionListProps?.data.find((item) => item.keyForList === selectedApprover);
+            if (!approverToSelect) {
+                return;
+            }
+            selectionListProps?.onSelectRow?.(approverToSelect);
+        });
+
+        rerender(
+            <ApproverSelectionList
+                testID="ApproverSelectionList"
+                headerTitle="Approver"
+                allApprovers={buildApprovers(selectedApprover)}
+                initiallyFocusedOptionKey={selectedApprover}
+                onBackButtonPress={jest.fn()}
+                onSelectApprover={jest.fn()}
+            />,
+        );
+
+        selectionListProps = mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
+
+        expect(selectionListProps?.data.at(0)).toEqual(
+            expect.objectContaining({
+                keyForList: 'user0@example.com',
+            }),
+        );
+        expect(selectionListProps?.data.find((item) => item.keyForList === selectedApprover)).toEqual(
+            expect.objectContaining({
+                keyForList: selectedApprover,
+                isSelected: true,
+            }),
+        );
+        expect(selectionListProps?.initiallyFocusedItemKey).toBeUndefined();
+    });
+
+    it('pins the selected approver after returning to the screen', () => {
+        const {rerender} = renderApproverSelectionList(buildApprovers(null), null);
+
+        let selectionListProps = mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
+        act(() => {
+            const approverToSelect = selectionListProps?.data.find((item) => item.keyForList === selectedApprover);
+            if (!approverToSelect) {
+                return;
+            }
+            selectionListProps?.onSelectRow?.(approverToSelect);
+        });
+
+        rerender(
+            <ApproverSelectionList
+                testID="ApproverSelectionList"
+                headerTitle="Approver"
+                allApprovers={buildApprovers(selectedApprover)}
+                initiallyFocusedOptionKey={selectedApprover}
+                onBackButtonPress={jest.fn()}
+                onSelectApprover={jest.fn()}
+            />,
+        );
+
+        selectionListProps = mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
+        expect(selectionListProps?.data.at(0)).toEqual(
+            expect.objectContaining({
+                keyForList: 'user0@example.com',
+            }),
+        );
+
+        mockIsFocused = false;
+        rerender(
+            <ApproverSelectionList
+                testID="ApproverSelectionList"
+                headerTitle="Approver"
+                allApprovers={buildApprovers(selectedApprover)}
+                initiallyFocusedOptionKey={selectedApprover}
+                onBackButtonPress={jest.fn()}
+                onSelectApprover={jest.fn()}
+            />,
+        );
+
+        mockIsFocused = true;
+        rerender(
+            <ApproverSelectionList
+                testID="ApproverSelectionList"
+                headerTitle="Approver"
+                allApprovers={buildApprovers(selectedApprover)}
+                initiallyFocusedOptionKey={selectedApprover}
+                onBackButtonPress={jest.fn()}
+                onSelectApprover={jest.fn()}
+            />,
+        );
+
+        selectionListProps = mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
+        expect(selectionListProps?.data.at(0)).toEqual(
+            expect.objectContaining({
+                keyForList: selectedApprover,
                 isSelected: true,
             }),
         );

@@ -1,5 +1,4 @@
 import useDebouncedState from '@hooks/useDebouncedState';
-import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,7 +17,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback, useMemo} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import type {ListItem} from './SelectionList/types';
 
@@ -84,6 +84,7 @@ function ApproverSelectionList({
     const {translate, localeCompare} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const isFocused = useIsFocused();
     const shouldShowTextInput = shouldShowTextInputProp ?? allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const lazyIllustrations = useMemoizedLazyIllustrations(['TurtleInShell']);
 
@@ -99,8 +100,43 @@ function ApproverSelectionList({
 
     const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
     const selectedApproverKeys = useMemo(() => selectedMembers.map((approver) => approver.value?.toString() ?? '').filter(Boolean), [selectedMembers]);
-    const initialSelectedApproverKeys = useInitialSelection(selectedApproverKeys, {isVisible: allApprovers.length > 0});
-    const initiallyFocusedApproverKey = useInitialSelection(initiallyFocusedOptionKey, {isVisible: !!initiallyFocusedOptionKey});
+    const selectedApproverFocusKey = selectedMembers.at(0)?.keyForList;
+    const currentFocusedApproverKey = initiallyFocusedOptionKey ?? selectedApproverFocusKey;
+    const [initialSelectedApproverKeys, setInitialSelectedApproverKeys] = useState(selectedApproverKeys);
+    const [initiallyFocusedApproverKey, setInitiallyFocusedApproverKey] = useState(currentFocusedApproverKey);
+    const [focusCycleKey, setFocusCycleKey] = useState(0);
+    const hasUserChangedSelectionRef = useRef(false);
+    const wasFocusedRef = useRef(isFocused);
+
+    useEffect(() => {
+        if (hasUserChangedSelectionRef.current || !allApprovers.length || !!initialSelectedApproverKeys.length || !selectedApproverKeys.length) {
+            return;
+        }
+
+        setInitialSelectedApproverKeys(selectedApproverKeys);
+    }, [allApprovers.length, initialSelectedApproverKeys.length, selectedApproverKeys]);
+
+    useEffect(() => {
+        if (hasUserChangedSelectionRef.current || initiallyFocusedApproverKey || !currentFocusedApproverKey) {
+            return;
+        }
+
+        setInitiallyFocusedApproverKey(currentFocusedApproverKey);
+    }, [currentFocusedApproverKey, initiallyFocusedApproverKey]);
+
+    useEffect(() => {
+        const wasFocused = wasFocusedRef.current;
+        wasFocusedRef.current = isFocused;
+
+        if (!isFocused || wasFocused) {
+            return;
+        }
+
+        hasUserChangedSelectionRef.current = false;
+        setInitialSelectedApproverKeys(selectedApproverKeys);
+        setInitiallyFocusedApproverKey(currentFocusedApproverKey);
+        setFocusCycleKey((previousKey) => previousKey + 1);
+    }, [currentFocusedApproverKey, isFocused, selectedApproverKeys]);
 
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) || (shouldRequirePolicyAdmin && !isPolicyAdmin(policy)) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
@@ -123,6 +159,7 @@ function ApproverSelectionList({
     const shouldShowListEmptyContent = !debouncedSearchTerm && !data.length && shouldShowListEmptyContentProp;
 
     const toggleApprover = (member: SelectionListApprover) => {
+        hasUserChangedSelectionRef.current = true;
         const isAlreadySelected = selectedMembers.some((selectedOption) => selectedOption.login === member.login);
         let newSelectedApprovers = [];
         if (!allowMultipleSelection) {
@@ -183,6 +220,7 @@ function ApproverSelectionList({
                 />
                 {subtitle}
                 <SelectionList
+                    key={focusCycleKey}
                     data={data}
                     onSelectRow={toggleApprover}
                     ListItem={InviteMemberListItem}
@@ -197,6 +235,7 @@ function ApproverSelectionList({
                     footerContent={footerContent}
                     addBottomSafeAreaPadding
                     shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
+                    disableMaintainingScrollPosition
                     showScrollIndicator
                     isRowMultilineSupported
                 />
