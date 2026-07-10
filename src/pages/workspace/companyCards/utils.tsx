@@ -6,7 +6,7 @@ import {getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVend
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Card, Policy} from '@src/types/onyx';
+import type {Card, CardFeed, Policy} from '@src/types/onyx';
 import type {Account, PolicyConnectionName} from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
@@ -366,6 +366,50 @@ function getExportMenuItem(
                     keyForList: card.name,
                     isSelected: isDefaultTitle ? card.name === defaultLabel : card.id === selectedAccount?.id,
                 })),
+            };
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
+            const rilletConfig = policy?.connections?.rillet?.config;
+            const rilletData = policy?.connections?.rillet?.data;
+            const exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT;
+            const exportReimbursable = rilletConfig?.export?.reimbursable ?? CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL;
+            const exportCompanyCard = rilletConfig?.export?.companyCard ?? CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
+            const shouldShowMenuItem = exportReimbursable === CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL && exportCompanyCard === CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
+            const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
+            const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
+            const cardProgramAccountCode = (companyCard?.bank ? cardProgramsUsingCustomAccounts?.[companyCard.bank as CardFeed] : undefined) ?? creditCardAccountCode;
+            const isUsingCustomAccount = companyCard?.nameValuePairs && CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT in companyCard.nameValuePairs;
+            const cardAccountCode =
+                (companyCard?.nameValuePairs && CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT in companyCard.nameValuePairs
+                    ? companyCard.nameValuePairs[CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT]
+                    : undefined) ?? cardProgramAccountCode;
+            const cardAccount = rilletData?.accounts?.find((account) => account.code === cardAccountCode);
+            const cardAccountDisplayName = cardAccount ? `${cardAccount.code} ${cardAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}` : '';
+            const title = cardAccountDisplayName;
+            const description = currentConnectionName
+                ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, translate('workspace.rillet.cardAccount.label'))
+                : undefined;
+
+            return {
+                title,
+                description,
+                exportType,
+                shouldShowMenuItem,
+                exportPageLink: ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID),
+                data:
+                    rilletData?.accounts
+                        ?.filter(
+                            (accountItem) =>
+                                accountItem.type === CONST.RILLET_ACCOUNT_TYPE.LIABILITY &&
+                                accountItem.subtype === CONST.RILLET_ACCOUNT_SUBTYPE.CREDIT_CARD &&
+                                accountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE,
+                        )
+                        .map((accountItem) => ({
+                            value: accountItem.code,
+                            text: `${cardProgramAccountCode === accountItem.code ? `${translate('common.default')} - ` : ''}${accountItem.code} ${accountItem.name}`,
+                            keyForList: accountItem.code,
+                            isSelected: cardAccountCode === accountItem.code,
+                        })) ?? [],
             };
         }
 
