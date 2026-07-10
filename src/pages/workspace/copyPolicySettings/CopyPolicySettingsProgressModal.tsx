@@ -1,8 +1,10 @@
 import ConfirmModal from '@components/ConfirmModal';
+import RenderHTML from '@components/RenderHTML';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCopyPolicySettings, requestCopyPolicySettingsNotification, setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import {navigateToConciergeChat} from '@libs/actions/Report';
@@ -14,8 +16,10 @@ import ROUTES from '@src/ROUTES';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 
 import React from 'react';
+import {View} from 'react-native';
 
 function useCopyPolicySettingsProgressModal() {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
@@ -43,11 +47,17 @@ function useCopyPolicySettingsProgressModal() {
     const shouldShowAllSet = copyInProgressStep && isCopySettingsComplete;
 
     if (shouldShowFailure) {
-        const errorMessage = backendErrorMessage ?? translate('workspace.copyPolicySettings.error');
+        const prompt = backendErrorMessage ? (
+            <View style={[styles.renderHTML, styles.flexRow]}>
+                <RenderHTML html={backendErrorMessage} />
+            </View>
+        ) : (
+            translate('workspace.copyPolicySettings.error')
+        );
         return {
             isVisible,
             title: translate('workspace.copyPolicySettings.progress.copyFailedTitle'),
-            prompt: errorMessage,
+            prompt,
             confirmText: translate('common.tryAgain'),
             cancelText: translate('common.dismiss'),
             shouldShowCancelButton: true,
