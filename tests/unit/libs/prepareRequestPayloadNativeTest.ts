@@ -15,10 +15,9 @@ jest.mock('@libs/validateFormDataParameter', () => ({
     default: jest.fn(),
 }));
 
-const mockLogAlert = jest.fn();
-jest.mock('@libs/Log', () => ({
-    __esModule: true,
-    default: {alert: mockLogAlert},
+const mockLogReceiptDropped = jest.fn();
+jest.mock('@libs/telemetry/ReceiptObservability', () => ({
+    logReceiptDropped: mockLogReceiptDropped,
 }));
 
 // Bypass the global jest/setup.ts mock to test the real native implementation.
@@ -62,9 +61,8 @@ describe('prepareRequestPayload (native)', () => {
 
         expect(formData.has('receipt')).toBe(false);
         expect(formData.get('amount')).toBe('100');
-        // The drop line carries the trace id and transaction id so it joins the capture/enqueue lines on the [Receipt] spine.
-        expect(mockLogAlert).toHaveBeenCalledWith('[Receipt] dropped', {
-            event: 'dropped',
+        // The drop carries the trace id and transaction id so it joins the capture/enqueue lines on the [Receipt] spine.
+        expect(mockLogReceiptDropped).toHaveBeenCalledWith({
             receiptTraceId: 'trace-123',
             transactionID: 'txn-456',
             command: 'RequestMoney',
