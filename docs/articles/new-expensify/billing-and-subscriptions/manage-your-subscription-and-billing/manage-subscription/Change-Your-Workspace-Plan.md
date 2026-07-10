@@ -21,7 +21,7 @@ To learn which plan is right for your organization, see [Compare Collect and Con
 
 Only the Workspace owner can change a workspace's plan. 
 
-If you have an Annual subcription, changes to your plan may be restricted. To learn more, see [When You Can Change Your Plan](/articles/new-expensify/billing-and-subscriptions/Learn-How-Billing-and-Subscriptions-Work#when-you-can-change-your-plan).
+If you have an Annual subscription, changes to your plan may be restricted. To learn more, see [When You Can Change Your Plan](/articles/new-expensify/billing-and-subscriptions/Learn-How-Billing-and-Subscriptions-Work#when-you-can-change-your-plan).
 
 ---
 
