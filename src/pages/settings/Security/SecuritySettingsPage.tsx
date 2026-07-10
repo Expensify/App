@@ -23,6 +23,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {deleteAgent} from '@libs/actions/Agent';
 import {disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
+import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import {hasDeviceManagementError} from '@libs/UserUtils';
 
@@ -195,12 +196,13 @@ function SecuritySettingsPage() {
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    // The DeleteAgent command must be issued by the agent's owner, but while copiloting the session is
-                    // authenticated as the agent itself. So end the copilot session first (which restores the owner's
-                    // session) and only then delete the agent, now that we're acting as the owner.
-                    const agentAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    await disconnect({stashedCredentials, stashedSession});
-                    deleteAgent(agentAccountID, undefined, undefined, false);
+                    // Delete the agent from within the copilot session (the backend authorizes the owner via the
+                    // delegate token), then end the copilot session. We wait for the DELETE_AGENT request to flush
+                    // before disconnecting: disconnect() swaps the auth token back to the owner and clears the request
+                    // queue, so firing them in parallel would drop the still-in-flight delete.
+                    deleteAgent(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, undefined, undefined, false);
+                    await waitForIdle();
+                    disconnect({stashedCredentials, stashedSession});
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_CLOSE);
