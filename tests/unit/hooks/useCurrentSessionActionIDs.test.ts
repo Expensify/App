@@ -65,6 +65,25 @@ describe('useCurrentSessionActionIDs', () => {
         expect(result.current.has('1')).toBe(false);
     });
 
+    it('does not capture older history that loads after the first message when no pre-session baseline exists', () => {
+        // Given the panel opens with no actions loaded yet.
+        const {result, rerender} = renderHook(({actions}) => useCurrentSessionActionIDs(actions, CURRENT_USER_ACCOUNT_ID, SESSION_START_TIME), {
+            initialProps: {actions: [] as ReportAction[]},
+        });
+
+        // When the user sends the first message this session (no prior server history seen).
+        const question = buildAction({reportActionID: '100', created: '2026-06-29 10:00:05.000', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+        rerender({actions: [question]});
+        expect(result.current.has('100')).toBe(true);
+
+        // And older Concierge history lazy-loads afterwards (created before the session).
+        const olderHistory = buildAction({reportActionID: '1', actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 08:00:00.000', pendingAction: undefined});
+        rerender({actions: [olderHistory, question]});
+
+        // Then that history is not treated as part of the current session.
+        expect(result.current.has('1')).toBe(false);
+    });
+
     it("does not capture other actors' messages before the user has sent anything this session", () => {
         const concierge = buildAction({reportActionID: '200', actorAccountID: CONCIERGE_ACCOUNT_ID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
         const deleting = buildAction({reportActionID: '300', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});

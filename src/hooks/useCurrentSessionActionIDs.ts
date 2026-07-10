@@ -44,6 +44,8 @@ function useCurrentSessionActionIDs(actions: ReportAction[] | undefined, current
 
         // Newest pre-session server timestamp (excluding the user's own skewed messages). A reply is
         // always newer, so this is a skew-proof floor that late-loading older history can't cross.
+        // When no such history is seen yet, fall back to `sessionStartTime` so older history that
+        // loads after the user's first message can't leak in before a baseline exists.
         let latestPreSessionCreated: string | undefined;
         for (const action of actions) {
             if (!action.reportActionID || !seen.has(action.reportActionID) || action.actorAccountID === currentUserAccountID || isCreatedAction(action)) {
@@ -69,7 +71,7 @@ function useCurrentSessionActionIDs(actions: ReportAction[] | undefined, current
                 isNewArrival &&
                 action.actorAccountID !== currentUserAccountID &&
                 !isCreatedAction(action) &&
-                (latestPreSessionCreated === undefined || action.created > latestPreSessionCreated);
+                action.created > (latestPreSessionCreated ?? sessionStartTime);
 
             if ((isCurrentUserPendingAddAction(action, currentUserAccountID) || isSessionReply) && !nextCaptured.has(actionID)) {
                 if (nextCaptured === captured) {
