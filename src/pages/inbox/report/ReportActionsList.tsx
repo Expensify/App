@@ -174,7 +174,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {getScrollOffset} = useActionListContext();
     const listRef = useActionListRef();
 
-    const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
+    const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
@@ -430,10 +430,10 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         () => (
             <ReportActionsListHeader
                 reportID={reportID}
-                hasActiveDraft={hasActiveDraft}
+                isDraftPendingCompletion={isDraftPendingCompletion}
             />
         ),
-        [hasActiveDraft, reportID],
+        [isDraftPendingCompletion, reportID],
     );
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
