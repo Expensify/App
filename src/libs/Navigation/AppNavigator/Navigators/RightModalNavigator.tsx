@@ -271,6 +271,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.DebugModalStackNavigator}
                             />
                             <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.AVATAR_CROP}
+                                component={ModalStackNavigators.AvatarCropModalStackNavigator}
+                            />
+                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION}
                                 component={ModalStackNavigators.NewReportWorkspaceSelectionModalStackNavigator}
                             />
@@ -301,10 +305,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO}
                                 component={ModalStackNavigators.ChronosScheduleOOOModalStackNavigator}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.RIGHT_MODAL.REPORT_VERIFY_ACCOUNT}
-                                component={ModalStackNavigators.ReportVerifyAccountModalStackNavigator}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES}

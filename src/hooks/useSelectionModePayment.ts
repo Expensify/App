@@ -27,6 +27,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import truncate from 'lodash/truncate';
 import {useContext, useEffect, useRef} from 'react';
 
@@ -89,6 +90,7 @@ function useSelectionModePayment({
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -293,7 +295,6 @@ function useSelectionModePayment({
             currentEmail: email ?? '',
             hasViolations,
             isASAPSubmitBetaEnabled,
-            isUserValidated,
             confirmApproval,
             iouReport: moneyRequestReport,
             iouReportNextStep: nextStep,
@@ -303,6 +304,7 @@ function useSelectionModePayment({
             ownerBillingGracePeriodEnd,
             delegateEmail,
             expenseReportPolicy: policy,
+            ownerLogin,
         });
     };
 

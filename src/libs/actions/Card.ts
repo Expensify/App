@@ -31,7 +31,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
 import {buildSpendRuleAST} from '@libs/SpendRulesUtils';
 
@@ -589,16 +589,16 @@ function clearReportVirtualCardFraudForm() {
 }
 
 /**
- * Makes an API call to get virtual card details (pan, cvv, expiration date, address)
+ * Makes an API call to get travel card details (cvv)
  * This function purposefully uses `makeRequestWithSideEffects` method. For security reason
  * card details cannot be persisted in Onyx and have to be asked for each time a user want's to
  * reveal them.
  *
- * @param cardID - virtual card ID
+ * @param cardID - travel card ID
  *
  * @returns promise with card details object
  */
-function revealVirtualCardDetails(cardID: number, validateCode: string): Promise<ExpensifyCardDetails> {
+function revealTravelCardDetails(cardID: number, validateCode: string): Promise<ExpensifyCardDetails> {
     return new Promise((resolve, reject) => {
         const parameters: RevealExpensifyCardDetailsParams = {cardID, validateCode};
 
@@ -627,7 +627,7 @@ function revealVirtualCardDetails(cardID: number, validateCode: string): Promise
         ];
 
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS, parameters, {
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_TRAVEL_CARD_DETAILS, parameters, {
             optimisticData,
             successData,
             failureData,
@@ -1919,13 +1919,13 @@ function getOwnerEmailForCard(card: Card, personalDetailsList: PersonalDetailsLi
     return personalDetailsList?.[String(accountID)]?.login ?? '';
 }
 
-function getCardholderNameForCSV(card: Card, personalDetailsList: PersonalDetailsList | undefined): string {
+function getCardholderNameForCSV(card: Card, personalDetailsList: PersonalDetailsList | undefined, translate: LocalizedTranslate): string {
     const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const details = personalDetailsList?.[String(accountID)];
     if (!details?.displayName?.trim()) {
         return '';
     }
-    return getDisplayNameOrDefault(details, '', false, false);
+    return temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, defaultValue: '', shouldFallbackToHidden: false, shouldAddCurrentUserPostfix: false, translate});
 }
 
 type ExportExpensifyCardListToCSVParams = {
@@ -1962,7 +1962,7 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
 
     const rows = cards.map((card) => {
         const owner = getOwnerEmailForCard(card, personalDetailsList);
-        const ownerNameColumn = getCardholderNameForCSV(card, personalDetailsList);
+        const ownerNameColumn = getCardholderNameForCSV(card, personalDetailsList, translate);
         const lastFourColumn = card.lastFourPAN ?? '';
         const typeColumn = card.nameValuePairs?.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
         const limitTypeColumn = translate(getTranslationKeyForLimitType(card.nameValuePairs?.limitType));
@@ -1985,7 +1985,7 @@ export {
     clearReportVirtualCardFraudForm,
     clearIssueNewCardError,
     reportVirtualExpensifyCardFraud,
-    revealVirtualCardDetails,
+    revealTravelCardDetails,
     updateSettlementFrequency,
     setIssueNewCardStepAndData,
     clearIssueNewCardFlow,
