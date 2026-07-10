@@ -40,9 +40,6 @@ function getReportIDAfterOnboarding(
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
 ): string | undefined {
-    // When a workspace was created during onboarding, take the user to its #admins room. This applies to both
-    // screen sizes: on small screens the #admins room belongs to the onboarding policy, so the findLastAccessedReport
-    // fallback below would filter it out and leave the user on HOME instead.
     if (onboardingAdminsChatReportID && !shouldPreventOpenAdminRoom) {
         return onboardingAdminsChatReportID;
     }
