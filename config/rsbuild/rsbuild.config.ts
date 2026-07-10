@@ -50,6 +50,7 @@ export default defineConfig(async ({command}) => {
         ...common,
         dev: {
             client: {overlay: false},
+            lazyCompilation: false,
         },
         source: {
             ...common.source,
