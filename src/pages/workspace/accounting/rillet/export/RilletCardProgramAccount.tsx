@@ -54,11 +54,11 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
             {Object.entries(cardFeeds ?? {}).map(([feedWithDomainID, cardFeed]) => {
                 const feedKey = cardFeed.feed as CardFeed;
                 const feedName = getCustomOrFormattedFeedName(translate, feedKey, cardFeed.customFeedName, false);
+                const isUsingCustomAccount = !!cardProgramsUsingCustomAccounts?.[feedKey];
                 const cardProgramAccountCode = cardProgramsUsingCustomAccounts?.[feedKey] ?? creditCardAccountCode;
-                const isUsingDefaultAccount = cardProgramAccountCode === creditCardAccountCode;
                 const cardProgramAccount = rilletData?.accounts?.find((account) => account.code === cardProgramAccountCode);
                 const cardProgramAccountDisplayName = cardProgramAccount
-                    ? `${cardProgramAccount.code} ${cardProgramAccount.name}${isUsingDefaultAccount ? ` (${translate('common.default').toLocaleLowerCase()})` : ''}`
+                    ? `${cardProgramAccount.code} ${cardProgramAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}`
                     : '';
                 return (
                     <OfflineWithFeedback
