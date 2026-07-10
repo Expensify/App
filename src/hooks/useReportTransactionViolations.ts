@@ -20,7 +20,7 @@ function useReportTransactionViolations(transactions: Transaction[]) {
     );
     // Pass `transactionIDs` as a dependency so the selector re-runs once the transactions hydrate (otherwise
     // it stays closed over the initial empty list and violations would never be selected on first load).
-    return useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations});
+    return useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations}, [transactionIDs]);
 }
 
 export default useReportTransactionViolations;
