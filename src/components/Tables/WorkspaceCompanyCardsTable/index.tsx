@@ -141,15 +141,13 @@ function WorkspaceCompanyCardsTable({
     // If we already have fetched cards, then do not show a loading spinner (let the remaining updates refresh in the background), else show it
     const hasCards = (companyCardEntries ?? []).length > 0;
 
-    // When the last feed is removed, card data already implies no feed (isNoFeed); lastSelectedFeed Onyx metadata can still report loading after optimistic clear.
     const isLoadingOnyxCardList = !hasCards && isLoadingOnyxValue(cardListMetadata);
     const isLoadingOnyxPersonalDetails = isLoadingOnyxValue(personalDetailsMetadata);
     const isLoadingOnyxFeed = !isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata);
 
     const isLoadingPage = !isOffline && !hasCards && (isLoadingOnyxPersonalDetails || areWorkspaceCardFeedsLoading);
     const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxFeed || !!selectedFeedStatus?.isLoading);
-
-    const isLoading = isLoadingPage || isLoadingFeed;
+    const isLoading = isLoadingPage || isLoadingFeed || isLoadingOnyxCardList;
 
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoading && !hasFeedErrors;
     const showTableControls = showCards && !!selectedFeed && !isLoadingOnyxCardList && !hasFeedErrors;
@@ -157,9 +155,6 @@ function WorkspaceCompanyCardsTable({
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
-
-    // When we reach the medium screen width or the narrow layout is active,
-    // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
@@ -356,7 +351,7 @@ function WorkspaceCompanyCardsTable({
             {headerButtonsComponent}
 
             <Table.LoadingState
-                isLoading={isLoadingOnyxCardList}
+                isLoading={isLoading}
                 context="WorkspaceCompanyCardsTable"
             />
 
