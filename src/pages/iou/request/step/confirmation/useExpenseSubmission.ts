@@ -299,7 +299,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const customUnitRateID = getRateID(transaction) ?? '';
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
+    const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense || isSelfDMDestination, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
         ? ((transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '')
         : '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
