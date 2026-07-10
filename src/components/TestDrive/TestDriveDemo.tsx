@@ -88,6 +88,7 @@ function TestDriveDemo() {
         );
     }, [
         hasSeenTour,
+        hasConciergeReportActions,
         viewTourTaskReport,
         viewTourTaskParentReport,
         isViewTourTaskParentReportArchived,
