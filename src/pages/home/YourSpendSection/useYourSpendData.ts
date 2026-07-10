@@ -2,13 +2,11 @@ import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useTodoCounts from '@hooks/useTodoCounts';
 
 import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards, isPersonalCard, lastFourNumbersFromCardName} from '@libs/CardUtils';
 import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches, getSuggestedSearchesVisibility, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -136,14 +134,12 @@ function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourS
 }
 
 function useYourSpendData(): UseYourSpendDataReturn {
-    const {accountID, email} = useCurrentUserPersonalDetails();
+    const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-
-    const {counts: todoCounts} = useTodoCounts(isFocused);
 
     const {isApprovalApplicable, isPaymentApplicable, paidGroupPolicyIDs} = getYourSpendApplicability(policies);
 
@@ -370,24 +366,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
-    // Fire the "Needs approval" search when a report is awaiting the current user's approval even if they are not part
-    // of the policy's approval workflow (e.g. an approver chosen manually on a single report).
-    const hasReportAwaitingApproval = todoCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE] > 0;
-
-    // The `cardFeedsByPolicy` and `defaultExpensifyCard` params are not passed
-    // because they have no effect on the `TODO_SEARCH_KEYS` (and we are only interested in `TODO_SEARCH_KEYS`)
-    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(email, {}, policies, undefined, hasReportAwaitingApproval).visibility;
-    const suggestedSearches = getSuggestedSearches(accountID);
-
     // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
     // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
-    const applicabilityKey = [
-        isApprovalApplicable ? 1 : 0,
-        isPaymentApplicable ? 1 : 0,
-        paidGroupPolicyIDs.join(','),
-        outstandingReportsSignature ?? '',
-        [...TODO_SEARCH_KEYS].map((k) => (suggestedSearchesVisibility[k] ? 1 : 0)).join(''),
-    ].join('|');
+    const applicabilityKey = [isApprovalApplicable ? 1 : 0, isPaymentApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportsSignature ?? ''].join('|');
 
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {
@@ -427,25 +408,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 isOffline,
                 isLoading: false,
                 shouldCalculateTotals: true,
-                shouldUpdateLastSearchParams: false,
-            });
-        }
-        for (const searchKey of TODO_SEARCH_KEYS) {
-            const isVisible = suggestedSearchesVisibility[searchKey];
-            if (!isVisible) {
-                continue;
-            }
-            const queryJSON = suggestedSearches[searchKey].searchQueryJSON;
-            if (!queryJSON) {
-                continue;
-            }
-            search({
-                queryJSON,
-                searchKey,
-                offset: 0,
-                isOffline,
-                isLoading: false,
-                shouldCalculateTotals: false,
                 shouldUpdateLastSearchParams: false,
             });
         }

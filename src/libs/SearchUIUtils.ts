@@ -5909,9 +5909,9 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: shouldShowCommentsColumn,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: false,
           }
         : {
               [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
@@ -5979,11 +5979,11 @@ function getColumnsToShow({
             }
 
             if (shouldShowCommentsColumn && !addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
-                const totalIndex = result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
-                if (totalIndex === -1) {
+                const totalAmountIndex = result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+                if (totalAmountIndex === -1) {
                     result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
                 } else {
-                    result.splice(totalIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+                    result.splice(totalAmountIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
                 }
             }
 
@@ -6083,7 +6083,7 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }
             if (hasExchangeRate && isExpenseReportView) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT] = true;
+                columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL] = true;
             }
 
             if (!Array.isArray(data)) {

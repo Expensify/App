@@ -35,6 +35,26 @@ const chatReport = {
     type: CONST.REPORT.TYPE.CHAT,
 } as Report;
 
+// PayActionButton reads from context instead of props; these mock-prefixed objects back the mocked context slice hooks.
+const mockReportPreviewData = {iouReportID: TEST_IOU_REPORT_ID, chatReportID: TEST_CHAT_REPORT_ID, chatReport};
+const mockReportPreviewAnimationState = {isPaidAnimationRunning: false, isApprovedAnimationRunning: false, isSubmittingAnimationRunning: false};
+const mockReportPreviewActions = {
+    stopAnimation: jest.fn(),
+    startAnimation: jest.fn(),
+    startApprovedAnimation: jest.fn(),
+    onPaymentOptionsShow: jest.fn(),
+    onPaymentOptionsHide: jest.fn(),
+    onHoldMenuOpen: jest.fn(),
+};
+const mockReportPreviewUIState = {buttonMaxWidth: {}};
+const mockReportPreviewActionState = {
+    reportPreviewAction: CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY,
+    canIOUBePaid: true,
+    onlyShowPayElsewhere: false,
+    shouldShowPayButton: true,
+    connectedIntegration: undefined,
+};
+
 function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T> {
     return [value, {status: 'loaded'}];
 }
@@ -106,26 +126,22 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     useDelegateNoAccessActions: jest.fn(() => ({showDelegateNoAccessModal: jest.fn()})),
 }));
 
+jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
+    __esModule: true,
+    useReportPreviewData: () => mockReportPreviewData,
+    useReportPreviewAnimationState: () => mockReportPreviewAnimationState,
+    useReportPreviewActions: () => mockReportPreviewActions,
+    useReportPreviewUIState: () => mockReportPreviewUIState,
+    useReportPreviewActionState: () => mockReportPreviewActionState,
+}));
+
 const mockedUseOnyx = jest.mocked(useOnyx);
 const mockedPayMoneyRequest = jest.mocked(payMoneyRequest);
 const mockedHasHeldExpenses = jest.mocked(hasHeldExpensesFromTransactions);
 
 function renderPayActionButton(onHoldMenuOpen: jest.Mock) {
-    return render(
-        <PayActionButton
-            iouReportID={TEST_IOU_REPORT_ID}
-            chatReportID={TEST_CHAT_REPORT_ID}
-            chatReport={chatReport}
-            isPaidAnimationRunning={false}
-            isApprovedAnimationRunning={false}
-            stopAnimation={jest.fn()}
-            startAnimation={jest.fn()}
-            startApprovedAnimation={jest.fn()}
-            onHoldMenuOpen={onHoldMenuOpen}
-            buttonMaxWidth={{}}
-            reportPreviewAction={CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY}
-        />,
-    );
+    mockReportPreviewActions.onHoldMenuOpen = onHoldMenuOpen;
+    return render(<PayActionButton />);
 }
 
 describe('PayActionButton', () => {
