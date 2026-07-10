@@ -139,6 +139,7 @@ function AddPersonalBankAccountPage() {
     });
 
     const confirmationIndex = pages.findIndex((page) => page.pageName === SUB_PAGE_NAMES.CONFIRMATION);
+    const successIndex = pages.findIndex((page) => page.pageName === SUB_PAGE_NAMES.SUCCESS);
 
     const handleNext = (data?: unknown) => {
         // When editing a field from the confirmation step, jump straight back to it.
@@ -156,6 +157,10 @@ function AddPersonalBankAccountPage() {
     };
 
     const handleBackButtonPress = () => {
+        if (currentPageName === SUB_PAGE_NAMES.SUCCESS) {
+            exitFlow();
+            return;
+        }
         if (isEditing) {
             moveTo(confirmationIndex, false);
             return;
@@ -167,13 +172,18 @@ function AddPersonalBankAccountPage() {
         prevPage();
     };
 
-    // Advance to the success step once the bank account has been added successfully.
+    // Advance to the success step once the bank account has been added successfully. This can resolve while the user
+    // has navigated back to an earlier substep, so jump straight to success rather than relying on the current page.
     useEffect(() => {
-        if (!shouldShowSuccess || currentPageName !== SUB_PAGE_NAMES.CONFIRMATION) {
+        if (!shouldShowSuccess || currentPageName === SUB_PAGE_NAMES.SUCCESS) {
             return;
         }
-        nextPage();
-    }, [shouldShowSuccess, currentPageName, nextPage]);
+        moveTo(successIndex, false);
+    }, [shouldShowSuccess, currentPageName, moveTo, successIndex]);
+
+    // Clear the personal bank account state whenever the flow unmounts, regardless of how it was exited
+    // (back button, RHP dismiss, continue-setup, etc.) so a re-entry always starts fresh.
+    useEffect(() => clearPersonalBankAccount, []);
 
     useEffect(() => {
         if (!error) {
