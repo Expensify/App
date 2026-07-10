@@ -193,7 +193,7 @@ function GroupChildrenContent({
                         currentUserDetails?.email ?? '',
                         currentUserDetails.accountID,
                         report,
-                        getLoginByAccountID(report.ownerAccountID, transactionsSnapshot.data.personalDetailsList),
+                        getLoginByAccountID(report.ownerAccountID, snapshotData.personalDetailsList),
                         policy,
                     );
                     if (merged.length > 0) {
@@ -203,7 +203,7 @@ function GroupChildrenContent({
             }
         }
         return result;
-    }, [snapshotData, currentUserDetails.email]);
+    }, [snapshotData, currentUserDetails.email, currentUserDetails.accountID]);
 
     const onExpandedRowLongPress = (transaction: TransactionListItemType) => {
         onLongPressRow?.(transaction);
