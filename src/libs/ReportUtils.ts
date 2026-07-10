@@ -5112,6 +5112,18 @@ function canEditMultipleTransactions(
     return true;
 }
 
+function canUnreportedBeMoved(transaction: OnyxEntry<Transaction>, policies: OnyxCollection<Policy>): boolean {
+    if (!isPerDiemRequest(transaction)) {
+        return true;
+    }
+    const perDiemPolicy = getPolicyByCustomUnitID(transaction, policies);
+    const perDiemCustomUnit = getPerDiemCustomUnit(perDiemPolicy);
+    if (!isPerDiemEnabled(perDiemPolicy) || isEmptyObject(perDiemCustomUnit?.rates)) {
+        return false;
+    }
+    return true;
+}
+
 /**
  * Checks if the current user can edit the provided property of an expense
  *
@@ -5151,6 +5163,12 @@ function canEditFieldOfMoneyRequest({
         CONST.EDIT_REQUEST_FIELD.REPORT,
         CONST.EDIT_REQUEST_FIELD.BILLABLE,
     ];
+
+    // Legacy/imported unreported transactions may not have an IOU report action, so bypass the action guard and allow moving them to a report.
+    const isUnreportedLegacyTransaction = !reportAction && (!transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT && isUnreportedLegacyTransaction) {
+        return canUnreportedBeMoved(transaction, allPolicies);
+    }
 
     if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, isChatReportArchived, report, policy)) {
         return false;
@@ -5226,15 +5244,7 @@ function canEditFieldOfMoneyRequest({
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
         if (isUnreportedExpense) {
-            if (isPerDiemRequest(transaction)) {
-                // For unreported per diem expenses, check if there's a valid policy with rates.
-                const perDiemPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
-                const perDiemCustomUnit = getPerDiemCustomUnit(perDiemPolicy);
-                if (!isPerDiemEnabled(perDiemPolicy) || isEmptyObject(perDiemCustomUnit?.rates)) {
-                    return false;
-                }
-            }
-            return true;
+            return canUnreportedBeMoved(transaction, allPolicies);
         }
 
         if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, reportNameValuePairs)) {
