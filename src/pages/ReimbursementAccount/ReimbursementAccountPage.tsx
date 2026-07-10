@@ -122,6 +122,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         acceptTermsAndConditions?: boolean;
     }>({});
     const isLoadingWorkspaceReimbursement = policy?.isLoadingWorkspaceReimbursement;
+    const prevIsLoadingWorkspaceReimbursement = usePrevious(isLoadingWorkspaceReimbursement);
+    const [isSettingBA, setIsSettingBA] = useState(false);
     const isNonUSDWorkspace = !!policyCurrency && policyCurrency !== CONST.CURRENCY.USD;
     const hasUnsupportedCurrency =
         isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) && isNonUSDWorkspace
@@ -248,6 +250,28 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         openReimbursementAccountPage({stepToOpen, subStep, localCurrentStep, policyID: policyIDParam, shouldPreserveDraft: preserveCurrentStep});
     }
 
+    // When the workspace's bank account is switched, the switch request and the refetch that reloads
+    // the new account run one after another. We must not refetch until the switch has committed to escape race condition.
+    useEffect(() => {
+        if (isLoadingWorkspaceReimbursement && !prevIsLoadingWorkspaceReimbursement) {
+            setIsSettingBA(true);
+        }
+        const isSettingFinished = !isLoadingWorkspaceReimbursement && prevIsLoadingWorkspaceReimbursement;
+        if (!isSettingFinished) {
+            return;
+        }
+        fetchData();
+    }, [isLoadingWorkspaceReimbursement, prevIsLoadingWorkspaceReimbursement, fetchData]);
+
+    // Keeps the loader up while switching the workspace's bank account, bridging the gap between the switch request
+    // finishing and the follow-up refetch's own loading flag landing.
+    useEffect(() => {
+        if (!isSettingBA || isLoadingWorkspaceReimbursement || !reimbursementAccount?.isLoading) {
+            return;
+        }
+        setIsSettingBA(false);
+    }, [isSettingBA, isLoadingWorkspaceReimbursement, reimbursementAccount?.isLoading]);
+
     useEffect(() => {
         // Consume this route intent only once so the response changing isPreviousPolicy does not trigger another request.
         const shouldOpenNewBankAccount = route.params?.stepToOpen === REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW && !hasRequestedNewBankAccountRef.current;
@@ -255,7 +279,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        if (isChangingBusinessBankAccount) {
+        // Skip while switching the workspace's bank account: the dedicated effect above refetches once the switch
+        // finishes, so fetching here would race it and could load the old account.
+        if (isChangingBusinessBankAccount || isLoadingWorkspaceReimbursement) {
             return;
         }
 
@@ -497,7 +523,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     if (
         (!!policyIDParam || !!bankAccountIDParam) &&
         !isChangingBusinessBankAccount &&
-        (!hasACHDataBeenLoaded || isLoading || isLoadingWorkspaceReimbursement) &&
+        (!hasACHDataBeenLoaded || isLoading || isLoadingWorkspaceReimbursement || isSettingBA) &&
         shouldShowOfflineLoader &&
         (shouldReopenOnfido || !requestorStepRef?.current)
     ) {
