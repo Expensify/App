@@ -232,7 +232,12 @@ describe('SearchColumnsPage', () => {
         const groupedNewColumns: SearchCustomColumnIds[] = [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY, CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT];
         onSave(groupedNewColumns);
 
-        const expectedQueryString = buildQueryStringFromFilterFormValues({...groupedForm, columns: groupedNewColumns}, SORT_OPTIONS);
+        // The parser derives each group-by's own default sort (e.g. groupCategory), so the expected
+        // string must use the parsed query's sort — exactly the inputs the page passes to the builder.
+        const expectedQueryString = buildQueryStringFromFilterFormValues(
+            {...groupedForm, columns: groupedNewColumns},
+            {sortBy: mockCurrentSearchQueryJSON?.sortBy, sortOrder: mockCurrentSearchQueryJSON?.sortOrder},
+        );
         const expectedQueryJSON = buildSearchQueryJSON(expectedQueryString);
 
         expect(expectedQueryJSON?.hash).not.toBe(mockCurrentSearchQueryJSON?.hash);
