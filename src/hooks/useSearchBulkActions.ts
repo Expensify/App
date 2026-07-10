@@ -481,15 +481,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [selectedReports, selectedTransactions, policies]);
 
+    // Include policy IDs from whole-report selections as well as transactions.
+    // When only reports are selected, selectedTransactions is empty; without report
+    // policyIDs, selectedPolicyID is undefined and bulk Pay options (including VBA)
+    // collapse to Mark as Paid / disappear — see issue #95832 / #93699.
     const selectedPolicyIDs = useMemo(
         () => [
             ...new Set(
-                Object.values(selectedTransactions)
-                    .map((transaction) => transaction.policyID)
-                    .filter(Boolean),
+                [
+                    ...Object.values(selectedTransactions).map((transaction) => transaction.policyID),
+                    ...selectedReports.map((report) => report.policyID),
+                ].filter(Boolean),
             ),
         ],
-        [selectedTransactions],
+        [selectedTransactions, selectedReports],
     );
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
@@ -500,20 +505,35 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return true;
         }
 
-        const firstPolicyID = selectedPolicyIDs.at(0);
-        const selectedPolicy = firstPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${firstPolicyID}`] : undefined;
-        return (selectedTransactionReportIDs ?? selectedReportIDs).some((reportID) => {
-            const report = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        const searchData = currentSearchResults?.data;
+        // Require EVERY selected report to be "pay-elsewhere only" before forcing
+        // bulk Mark as Paid. Using .some() previously greys out VBA for the whole
+        // selection when one report fails eligibility, even if others are VBA-payable.
+        const reportIDs = selectedTransactionReportIDs.length > 0 ? selectedTransactionReportIDs : selectedReportIDs;
+        if (reportIDs.length === 0) {
+            return false;
+        }
+        return reportIDs.every((reportID) => {
+            const report = searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? getReportOrDraftReport(reportID);
+            if (!report) {
+                return false;
+            }
             const chatReportID = report?.chatReportID;
-            const chatReport = chatReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+            const chatReport = chatReportID
+                ? (searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? getReportOrDraftReport(chatReportID))
+                : undefined;
+            // Resolve each report's own policy (search snapshot, then Onyx) — not a single
+            // first-policy from the selection, which breaks multi-report VBA eligibility.
+            const reportPolicy = getPolicyFromSearchSnapshot(report.policyID, searchData, policies);
             const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
-            const invoiceReceiverPolicy = invoiceReceiverPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
+            const invoiceReceiverPolicy = invoiceReceiverPolicyID
+                ? getPolicyFromSearchSnapshot(invoiceReceiverPolicyID, searchData, policies)
+                : undefined;
             return (
-                report &&
                 !canIOUBePaid(
                     report,
                     chatReport,
-                    selectedPolicy,
+                    reportPolicy,
                     bankAccountList,
                     currentUserPersonalDetails?.login ?? '',
                     currentUserPersonalDetails.accountID,
@@ -525,7 +545,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 canIOUBePaid(
                     report,
                     chatReport,
-                    selectedPolicy,
+                    reportPolicy,
                     bankAccountList,
                     currentUserPersonalDetails?.login ?? '',
                     currentUserPersonalDetails.accountID,
@@ -537,7 +557,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             );
         });
     }, [
-        selectedPolicyIDs,
         currentSearchResults?.data,
         selectedTransactionReportIDs,
         selectedReportIDs,
@@ -546,6 +565,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactions,
         currentUserPersonalDetails?.login,
         currentUserPersonalDetails.accountID,
+        policies,
     ]);
 
     const {bulkPayButtonOptions, businessBankAccountOptions} = useBulkPayOptions({
