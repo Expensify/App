@@ -62,9 +62,9 @@ import {cardByIdSelector} from '@selectors/Card';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
-type WorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
+type DynamicWorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
-    typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS | typeof SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS
+    typeof SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS | typeof SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS
 >;
 
 type LimitHintTranslationKey = 'cardPage.smartLimit.title' | 'cardPage.monthlyLimit.title' | 'cardPage.fixedLimit.title';
@@ -82,11 +82,13 @@ function getLimitHintTranslationKey(limitType?: string): LimitHintTranslationKey
     }
 }
 
-function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
+function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpensifyCardDetailsPageProps) {
     const navigation = useNavigation<NavigationProp<SettingsNavigatorParamList>>();
-    const {policyID, cardID, backTo} = route.params;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.path);
+    const {policyID, cardID} = route.params;
+    const quickSettingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.path);
+    const workspaceBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.path);
     const isQuickSettingsFlow = route.name === SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS;
+    const backPath = isQuickSettingsFlow ? quickSettingsBackPath : workspaceBackPath;
     const {convertToDisplayString} = useCurrencyListActions();
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -106,7 +108,9 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [cardFromCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
+    const [cardFromCardList] = useOnyx(ONYXKEYS.CARD_LIST, {
+        selector: cardByIdSelector(cardID),
+    });
     const [cardFeeds] = useCardFeeds(policyID);
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
     const [fundCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
@@ -115,12 +119,18 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
     const workspaceCard = workspaceCards?.[cardID];
     const card = workspaceCard ?? cardFromCardList;
-    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
+    const currency = useCurrencyForExpensifyCard({
+        policyID,
+        fundID: defaultFundID,
+    });
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
     const formattedAvailableSpendAmount = convertToDisplayString(card?.availableSpend, currency);
     const formattedLimit = convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency);
-    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardholder, translate});
+    const displayName = temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: cardholder,
+        translate,
+    });
     const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
     const remainingLimitHintTranslationKey = getLimitHintTranslationKey(card?.nameValuePairs?.limitType);
     const remainingLimitHint = remainingLimitHintTranslationKey ? translate(remainingLimitHintTranslationKey, formattedAvailableSpendAmount) : undefined;
@@ -212,7 +222,10 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
             return;
         }
 
-        navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_EDIT, {policyID, ruleID: spendRule.ruleID});
+        navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_EDIT, {
+            policyID,
+            ruleID: spendRule.ruleID,
+        });
     };
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
@@ -280,11 +293,11 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID="WorkspaceExpensifyCardDetailsPage"
+                testID="DynamicWorkspaceExpensifyCardDetailsPage"
             >
                 <HeaderWithBackButton
                     title={translate('cardPage.expensifyCard')}
-                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? backPath : backTo)}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <ScrollView addBottomSafeAreaPadding>
                     {canManageCardFreeze && isCardFrozen(card) ? (
@@ -435,4 +448,4 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     );
 }
 
-export default WorkspaceExpensifyCardDetailsPage;
+export default DynamicWorkspaceExpensifyCardDetailsPage;
