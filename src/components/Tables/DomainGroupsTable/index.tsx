@@ -10,6 +10,8 @@ import variables from '@styles/variables';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
+import React from 'react';
+
 import type {DomainGroupRowData} from './DomainGroupsTableRow';
 
 import DomainGroupsTableRow from './DomainGroupsTableRow';
@@ -81,6 +83,7 @@ export default function DomainGroupsTable({groups}: DomainGroupsTableProps) {
             keyExtractor={(item) => item.keyForList}
         >
             <Table.FilterBar label={translate('domain.groups.findGroup')} />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>
