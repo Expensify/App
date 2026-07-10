@@ -19,29 +19,15 @@ import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-n
 import Onyx from 'react-native-onyx';
 
 function openAgentsPage() {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENTS>> = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_AGENTS_LOADED>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_AGENTS,
+            key: ONYXKEYS.ARE_AGENTS_LOADED,
             value: true,
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENTS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_AGENTS,
-            value: false,
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENTS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_AGENTS,
-            value: false,
-        },
-    ];
 
-    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {optimisticData, successData, failureData});
+    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {finallyData});
 }
 
 function openProfilePage() {

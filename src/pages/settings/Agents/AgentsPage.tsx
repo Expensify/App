@@ -145,10 +145,7 @@ function AgentsPage() {
                 <RenderHTML html={translate('agentsPage.subtitle')} />
             </View>
 
-            <AgentsTable
-                agents={agents}
-                isLoading={meta.status === 'loading'}
-            />
+            <AgentsTable agents={agents} />
         </ScreenWrapper>
     );
 }
