@@ -4,14 +4,25 @@ import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/Searc
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 
 type NavigationSuggestionSourceItem = SearchQueryItem & {
     action?: () => void;
     matchTerms?: string[];
 };
 
+type MenuDataItem = {
+    translationKey: TranslationPaths;
+    icon: unknown;
+    action: () => void;
+};
+
 const MAX_NAVIGATION_SUGGESTIONS = 8;
 const MIN_NAVIGATION_QUERY_LENGTH = 3;
+
+const EXCLUDED_SETTINGS_ITEMS = new Set<string>(['initialSettingsPage.whatIsNew', 'sidebarScreen.saveTheWorld', 'initialSettingsPage.signOut', 'initialSettingsPage.restoreStashed']);
+
+const ACCOUNT_NAVIGATION_KEYWORDS = new Map<TranslationPaths, string[]>([['initialSettingsPage.security', ['password', '2fa', 'two factor', 'two-factor']]]);
 
 function stripNavigationIntentPrefix(query: string) {
     const trimmedQuery = query.trim();
@@ -58,6 +69,27 @@ function getGoToText(translate: LocaleContextProps['translate'], destination: st
     return translate('search.goTo', {destination});
 }
 
+function buildAccountSourceItems(
+    accountMenuItems: MenuDataItem[],
+    generalMenuItems: MenuDataItem[],
+    translate: LocaleContextProps['translate'],
+    accountContext: React.ReactNode,
+): NavigationSuggestionSourceItem[] {
+    return [...accountMenuItems, ...generalMenuItems]
+        .filter((item) => !EXCLUDED_SETTINGS_ITEMS.has(item.translationKey))
+        .map((item) => {
+            const itemText = translate(item.translationKey);
+            return {
+                text: getGoToText(translate, itemText),
+                singleIcon: item.icon,
+                action: item.action,
+                keyForList: `account_${item.translationKey}`,
+                rightElement: accountContext,
+                matchTerms: [itemText, ...(ACCOUNT_NAVIGATION_KEYWORDS.get(item.translationKey) ?? [])],
+            };
+        });
+}
+
 function buildNavigationSuggestions(query: string, sources: NavigationSuggestionSourceItem[][], localeCompare: LocaleContextProps['localeCompare']): SearchQueryItem[] {
     const trimmedQuery = query.trim();
     const isNavigationIntentOnly = isNavigationIntentOnlyQuery(trimmedQuery);
@@ -86,4 +118,15 @@ function buildNavigationSuggestions(query: string, sources: NavigationSuggestion
         .slice(0, MAX_NAVIGATION_SUGGESTIONS);
 }
 
-export {stripNavigationIntentPrefix, isNavigationIntentOnlyQuery, matchesNavigationQuery, sortNavigationSuggestionItems, getGoToText, buildNavigationSuggestions, MAX_NAVIGATION_SUGGESTIONS};
+export {
+    stripNavigationIntentPrefix,
+    isNavigationIntentOnlyQuery,
+    matchesNavigationQuery,
+    sortNavigationSuggestionItems,
+    getGoToText,
+    buildNavigationSuggestions,
+    buildAccountSourceItems,
+    EXCLUDED_SETTINGS_ITEMS,
+    ACCOUNT_NAVIGATION_KEYWORDS,
+    MAX_NAVIGATION_SUGGESTIONS,
+};

@@ -5,6 +5,9 @@ import {
     matchesNavigationQuery,
     sortNavigationSuggestionItems,
     buildNavigationSuggestions,
+    buildAccountSourceItems,
+    EXCLUDED_SETTINGS_ITEMS,
+    ACCOUNT_NAVIGATION_KEYWORDS,
     MAX_NAVIGATION_SUGGESTIONS,
 } from '@components/Search/SearchRouter/SearchRouterHelpers';
 
@@ -344,5 +347,143 @@ describe('buildNavigationSuggestions', () => {
         const spend = [item('Go to Reports', 'spend_reports')];
         const result = buildNavigationSuggestions('go', [topLevel, spend], localeCompare);
         expect(result.map((r) => r.keyForList)).toEqual(['top_inbox', 'spend_reports']);
+    });
+});
+
+describe('buildAccountSourceItems', () => {
+    const translate = (key: string) => {
+        const translations: Record<string, string> = {
+            'common.profile': 'Profile',
+            'common.wallet': 'Wallet',
+            'initialSettingsPage.whatIsNew': "What's new",
+            'sidebarScreen.saveTheWorld': 'Save the world',
+            'initialSettingsPage.signOut': 'Sign out',
+            'initialSettingsPage.restoreStashed': 'Restore stashed',
+            'initialSettingsPage.help': 'Help',
+            'initialSettingsPage.about': 'About',
+            'initialSettingsPage.security': 'Security',
+        };
+        return translations[key] ?? key;
+    };
+    const mockContext = {type: 'context'} as unknown as React.ReactNode;
+    const action = jest.fn();
+
+    it("excludes What's new, Save the world, Sign out, and Restore stashed", () => {
+        const accountItems = [
+            {translationKey: 'common.profile', icon: mockIcon, action},
+            {translationKey: 'initialSettingsPage.whatIsNew', icon: mockIcon, action},
+            {translationKey: 'sidebarScreen.saveTheWorld', icon: mockIcon, action},
+            {translationKey: 'initialSettingsPage.signOut', icon: mockIcon, action},
+            {translationKey: 'initialSettingsPage.restoreStashed', icon: mockIcon, action},
+        ];
+        const result = buildAccountSourceItems(accountItems, [], translate, mockContext);
+        const keys = result.map((r) => r.keyForList);
+        expect(keys).toContain('account_common.profile');
+        expect(keys).not.toContain('account_initialSettingsPage.whatIsNew');
+        expect(keys).not.toContain('account_sidebarScreen.saveTheWorld');
+        expect(keys).not.toContain('account_initialSettingsPage.signOut');
+        expect(keys).not.toContain('account_initialSettingsPage.restoreStashed');
+    });
+
+    it('includes general menu items that are not excluded', () => {
+        const generalItems = [
+            {translationKey: 'initialSettingsPage.help', icon: mockIcon, action},
+            {translationKey: 'initialSettingsPage.about', icon: mockIcon, action},
+        ];
+        const result = buildAccountSourceItems([], generalItems, translate, mockContext);
+        expect(result).toHaveLength(2);
+        expect(result.map((r) => r.keyForList)).toEqual(['account_initialSettingsPage.help', 'account_initialSettingsPage.about']);
+    });
+
+    it('adds keyword matchTerms for Security', () => {
+        const accountItems = [{translationKey: 'initialSettingsPage.security', icon: mockIcon, action}];
+        const result = buildAccountSourceItems(accountItems, [], translate, mockContext);
+        expect(result.at(0)?.matchTerms).toEqual(['Security', 'password', '2fa', 'two factor', 'two-factor']);
+    });
+
+    it('does not add keyword matchTerms for items without keywords', () => {
+        const accountItems = [{translationKey: 'common.profile', icon: mockIcon, action}];
+        const result = buildAccountSourceItems(accountItems, [], translate, mockContext);
+        expect(result.at(0)?.matchTerms).toEqual(['Profile']);
+    });
+
+    it('EXCLUDED_SETTINGS_ITEMS contains exactly the expected keys', () => {
+        expect(EXCLUDED_SETTINGS_ITEMS).toEqual(
+            new Set(['initialSettingsPage.whatIsNew', 'sidebarScreen.saveTheWorld', 'initialSettingsPage.signOut', 'initialSettingsPage.restoreStashed']),
+        );
+    });
+
+    it('ACCOUNT_NAVIGATION_KEYWORDS has Security keywords', () => {
+        expect(ACCOUNT_NAVIGATION_KEYWORDS.get('initialSettingsPage.security')).toEqual(['password', '2fa', 'two factor', 'two-factor']);
+    });
+});
+
+describe('navigation source composition via buildNavigationSuggestions', () => {
+    const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+    it("account source excludes What's new and Sign out from results", () => {
+        const accountSource = [
+            {text: 'Go to Profile', keyForList: 'account_profile', matchTerms: ['Profile']},
+            {text: "Go to What's new", keyForList: 'account_whatsNew', matchTerms: ["What's new"]},
+            {text: 'Go to Sign out', keyForList: 'account_signOut', matchTerms: ['Sign out']},
+        ];
+        // Use "profile" to match only Profile — "go" intent shows all items
+        const result = buildNavigationSuggestions('profile', [accountSource], localeCompare);
+        const keys = result.map((r) => r.keyForList);
+        expect(keys).toContain('account_profile');
+        expect(keys).not.toContain('account_whatsNew');
+        expect(keys).not.toContain('account_signOut');
+    });
+
+    it('workspace Overview matches by workspace name but subpages do not', () => {
+        const workspaceSource = [
+            {text: 'Go to Overview', keyForList: 'ws_a_profile', matchTerms: ['Overview', 'Work A']},
+            {text: 'Go to Reports', keyForList: 'ws_a_reports', matchTerms: ['Reports']},
+            {text: 'Go to Categories', keyForList: 'ws_a_categories', matchTerms: ['Categories']},
+        ];
+        const resultWorkA = buildNavigationSuggestions('Work A', [workspaceSource], localeCompare);
+        expect(resultWorkA.map((r) => r.keyForList)).toEqual(['ws_a_profile']);
+
+        const resultReports = buildNavigationSuggestions('Reports', [workspaceSource], localeCompare);
+        expect(resultReports.map((r) => r.keyForList)).toEqual(['ws_a_reports']);
+    });
+
+    it('domain items include domain name in matchTerms', () => {
+        const domainSource = [
+            {text: 'Go to Members', keyForList: 'domain_123_members', matchTerms: ['Members', 'example.com']},
+            {text: 'Go to Admins', keyForList: 'domain_123_admins', matchTerms: ['Admins', 'example.com']},
+        ];
+        const result = buildNavigationSuggestions('example', [domainSource], localeCompare);
+        expect(result).toHaveLength(2);
+    });
+
+    it('create items keep their labels and are not prefixed with "Go to"', () => {
+        const createSource = [
+            {text: 'Create expense', keyForList: 'create_expense', matchTerms: ['Create expense']},
+            {text: 'New chat', keyForList: 'create_chat', matchTerms: ['New chat']},
+            {text: 'Book travel', keyForList: 'create_travel', matchTerms: ['Book travel']},
+        ];
+        const result = buildNavigationSuggestions('create', [createSource], localeCompare);
+        expect(result.map((r) => r.keyForList)).toEqual(['create_expense']);
+    });
+
+    it('mixed source ordering preserves priority across all source groups', () => {
+        const topLevel = [{text: 'Go to Home', keyForList: 'top_home', matchTerms: ['Home']}];
+        const spend = [{text: 'Go to Reports', keyForList: 'spend_reports', matchTerms: ['Reports']}];
+        const account = [{text: 'Go to Profile', keyForList: 'account_profile', matchTerms: ['Profile']}];
+        const workspace = [{text: 'Go to Overview', keyForList: 'ws_overview', matchTerms: ['Overview', 'Workspace A']}];
+        const domain = [{text: 'Go to Members', keyForList: 'domain_members', matchTerms: ['Members', 'example.com']}];
+        const create = [{text: 'Create expense', keyForList: 'create_expense', matchTerms: ['Create expense']}];
+
+        // Use "go to" with a specific target to avoid intent-only showing everything
+        const result = buildNavigationSuggestions('go to home', [topLevel, spend, account, workspace, domain, create], localeCompare);
+        const keys = result.map((r) => r.keyForList);
+        expect(keys).toEqual(['top_home']);
+    });
+
+    it('caps mixed sources at MAX_NAVIGATION_SUGGESTIONS', () => {
+        const manyItems = Array.from({length: 12}, (_, i) => ({text: `Go to Item ${i}`, keyForList: `item-${i}`, matchTerms: [`Item ${i}`]}));
+        const result = buildNavigationSuggestions('go', [manyItems], localeCompare);
+        expect(result).toHaveLength(MAX_NAVIGATION_SUGGESTIONS);
     });
 });

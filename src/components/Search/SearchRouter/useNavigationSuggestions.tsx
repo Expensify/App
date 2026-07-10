@@ -50,7 +50,6 @@ import {clearLastSearchParams} from '@userActions/ReportNavigation';
 import {setSearchContext} from '@userActions/Search';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -67,7 +66,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 import navigateToWorkspaceSettingsRoute from './navigateToWorkspaceSettingsRoute';
-import {getGoToText, buildNavigationSuggestions} from './SearchRouterHelpers';
+import {getGoToText, buildNavigationSuggestions, buildAccountSourceItems} from './SearchRouterHelpers';
 
 type RightSideContextProps = {
     label: string;
@@ -93,9 +92,6 @@ function RightSideContext({label, icon}: RightSideContextProps) {
 type WorkspaceContextProps = {
     policy: OnyxTypes.Policy;
 };
-
-const EXCLUDED_SETTINGS_ITEMS = new Set<string>(['initialSettingsPage.whatIsNew', 'sidebarScreen.saveTheWorld', 'initialSettingsPage.signOut', 'initialSettingsPage.restoreStashed']);
-const ACCOUNT_NAVIGATION_KEYWORDS = new Map<TranslationPaths, string[]>([['initialSettingsPage.security', ['password', '2fa', 'two factor', 'two-factor']]]);
 
 function WorkspaceContext({policy}: WorkspaceContextProps) {
     const styles = useThemeStyles();
@@ -317,20 +313,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     );
 
     const accountItems = useMemo(
-        () =>
-            [...accountMenuItemsData.items, ...generalMenuItemsData.items]
-                .filter((item) => !EXCLUDED_SETTINGS_ITEMS.has(item.translationKey))
-                .map((item) => {
-                    const itemText = translate(item.translationKey);
-                    return {
-                        text: getGoToText(translate, itemText),
-                        singleIcon: item.icon,
-                        action: item.action,
-                        keyForList: `account_${item.translationKey}`,
-                        rightElement: accountContext,
-                        matchTerms: [itemText, ...(ACCOUNT_NAVIGATION_KEYWORDS.get(item.translationKey) ?? [])],
-                    };
-                }),
+        () => buildAccountSourceItems(accountMenuItemsData.items, generalMenuItemsData.items, translate, accountContext),
         [accountContext, accountMenuItemsData.items, generalMenuItemsData.items, translate],
     );
 
