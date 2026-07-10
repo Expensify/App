@@ -117,7 +117,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     reportNameValuePairs,
                     onboardingPolicyID,
                     mergedAccountConciergeReportID,
-                    false,
                 );
                 setIsLoading(false);
             } catch (error) {
