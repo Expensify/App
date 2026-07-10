@@ -1,3 +1,4 @@
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -29,7 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 type ConnectExistingBusinessBankAccountPageProps = PlatformStackScreenProps<ConnectExistingBankAccountNavigatorParamList, typeof SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT>;
 
@@ -50,6 +51,8 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const [isSelectingBankAccount, setIsSelectingBankAccount] = useState(false);
 
     const handleAddBankAccountPress = () => {
         // When changing the bank account we prepare a fresh setup (clearing the current account without disconnecting it).
@@ -74,6 +77,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
         const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
 
         if (bankAccountList && methodID && methodID !== connectedAccountBankAccountID && methodID !== policy?.achAccount?.bankAccountID) {
+            setIsSelectingBankAccount(true);
             setWorkspaceReimbursement({
                 policyID,
                 currentAchAccount: policy?.achAccount,
@@ -118,21 +122,28 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                 subtitle={policyName}
                 onBackButtonPress={Navigation.goBack}
             />
-            <ScrollView style={[styles.w100, shouldUseNarrowLayout ? [styles.pt3, styles.ph5, styles.pb5] : [styles.pt5, styles.ph8, styles.pb8]]}>
-                <Text>{translate('workspace.bankAccount.chooseAnExisting')}</Text>
-                <PaymentMethodList
-                    onPress={handleItemPress}
-                    onAddBankAccountPress={handleAddBankAccountPress}
-                    style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                    listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                    itemIconRight={icons.ArrowRight}
-                    filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
-                    filterCurrency={policyCurrency}
-                    excludeStates={[CONST.BANK_ACCOUNT.STATE.LOCKED]}
-                    excludeBankAccountID={isChangingBankAccount ? connectedAccountBankAccountID : undefined}
-                    shouldHideDefaultBadge
+            {isSelectingBankAccount ? (
+                <FullScreenLoadingIndicator
+                    style={[styles.flex1, styles.pRelative]}
+                    reasonAttributes={{context: 'ConnectExistingBusinessBankAccountPage'}}
                 />
-            </ScrollView>
+            ) : (
+                <ScrollView style={[styles.w100, shouldUseNarrowLayout ? [styles.pt3, styles.ph5, styles.pb5] : [styles.pt5, styles.ph8, styles.pb8]]}>
+                    <Text>{translate('workspace.bankAccount.chooseAnExisting')}</Text>
+                    <PaymentMethodList
+                        onPress={handleItemPress}
+                        onAddBankAccountPress={handleAddBankAccountPress}
+                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        itemIconRight={icons.ArrowRight}
+                        filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
+                        filterCurrency={policyCurrency}
+                        excludeStates={[CONST.BANK_ACCOUNT.STATE.LOCKED]}
+                        excludeBankAccountID={isChangingBankAccount ? connectedAccountBankAccountID : undefined}
+                        shouldHideDefaultBadge
+                    />
+                </ScrollView>
+            )}
         </ScreenWrapper>
     );
 }
