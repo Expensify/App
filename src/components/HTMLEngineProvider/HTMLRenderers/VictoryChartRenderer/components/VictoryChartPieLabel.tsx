@@ -24,6 +24,7 @@ type VictoryChartPieLabelProps = {
     labelIndicatorStroke: Color | undefined;
     labelIndicatorStrokeWidth: number | undefined;
     labelIndicatorInnerOffset: number | undefined;
+    labelIndicatorOuterOffset: number | undefined;
 };
 
 function VictoryChartPieLabel({
@@ -36,6 +37,7 @@ function VictoryChartPieLabel({
     labelIndicatorStroke,
     labelIndicatorStrokeWidth,
     labelIndicatorInnerOffset,
+    labelIndicatorOuterOffset,
 }: VictoryChartPieLabelProps) {
     const labelItem: LabelItem = {
         ...baseLabelItem,
@@ -57,6 +59,7 @@ function VictoryChartPieLabel({
                     labelIndicatorStroke={labelIndicatorStroke}
                     labelIndicatorStrokeWidth={labelIndicatorStrokeWidth}
                     labelIndicatorInnerOffset={labelIndicatorInnerOffset}
+                    labelIndicatorOuterOffset={labelIndicatorOuterOffset}
                 />
             )}
             <VictoryChartLabel {...labelItem} />

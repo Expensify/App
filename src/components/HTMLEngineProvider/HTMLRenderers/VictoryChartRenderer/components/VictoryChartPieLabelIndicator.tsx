@@ -21,6 +21,7 @@ type VictoryChartPieLabelIndicatorProps = {
     labelIndicatorStroke: Color | undefined;
     labelIndicatorStrokeWidth: number;
     labelIndicatorInnerOffset: number | undefined;
+    labelIndicatorOuterOffset: number | undefined;
 };
 
 function VictoryChartPieLabelIndicator({
@@ -31,6 +32,7 @@ function VictoryChartPieLabelIndicator({
     labelIndicatorStroke,
     labelIndicatorStrokeWidth,
     labelIndicatorInnerOffset,
+    labelIndicatorOuterOffset,
 }: VictoryChartPieLabelIndicatorProps) {
     const midAngle = convertDegreeToRadian((slice.startAngle + slice.endAngle) / 2);
     const midRadius = (slice.radius + slice.innerRadius) / 2;
@@ -39,12 +41,16 @@ function VictoryChartPieLabelIndicator({
     const x1 = Math.round(slice.center.x + labelIndicatorInnerRadius * Math.cos(midAngle) + (labelIndicatorXShift ?? 0));
     const y1 = Math.round(slice.center.y + labelIndicatorInnerRadius * Math.sin(midAngle) + (labelIndicatorYShift ?? 0));
 
-    // Run horizontal first (away from the ring, at the slice's own natural height) then bend vertically
-    // into the resolved row — never radial-then-diagonal, which could visually double back on itself
-    // once collision resolution has pushed a label far from its slice's natural angle.
+    // Bend near the ring first — a short diagonal that covers both the x and y offset toward the
+    // resolved row — then run flat into the label (x only) so the line meets the text at its own
+    // height instead of approaching it at an angle.
+    const availableRun = resolvedLabel.x - x1;
+    const diagonalRunX = Math.sign(availableRun) * Math.min(Math.abs(labelIndicatorOuterOffset ?? 0), Math.abs(availableRun));
+    const bendX = x1 + diagonalRunX;
+
     const path = Skia.Path.Make();
     path.moveTo(x1, y1);
-    path.lineTo(resolvedLabel.x, y1);
+    path.lineTo(bendX, resolvedLabel.y);
     path.lineTo(resolvedLabel.x, resolvedLabel.y);
 
     return (
