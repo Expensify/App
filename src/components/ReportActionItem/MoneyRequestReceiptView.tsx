@@ -1,12 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
-import mapValues from 'lodash/mapValues';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -17,6 +8,7 @@ import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import ReceiptHoverZoom from '@components/ReceiptHoverZoom';
 import Tooltip from '@components/Tooltip';
+
 import useActiveRoute from '@hooks/useActiveRoute';
 import useAncestors from '@hooks/useAncestors';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
@@ -39,6 +31,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
@@ -66,13 +59,17 @@ import {
     isScanning,
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {cleanUpMoneyRequest} from '@userActions/IOU/DeleteMoneyRequest';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
 import {addAttachmentWithComment, navigateToConciergeChatAndDeleteReport, setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -80,6 +77,18 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import mapValues from 'lodash/mapValues';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import HoveredDistanceEReceipt from './HoveredDistanceEReceipt';
 import {isElementHovered, resetButtonHoverState} from './receiptHoverUtils';
 import ReportActionItemImage from './ReportActionItemImage';
@@ -184,6 +193,9 @@ function MoneyRequestReceiptView({
     // While the receipt is regenerating (e.g. after an offline waypoint edit) the stored map is stale and can't be
     // redrawn locally, so don't surface the e-receipt overlay — the receipt box already shows the pending map.
     const canShowDistanceEReceipt = isMapDistanceRequest && !isPendingReceiptRegeneration;
+    // The Expand button opens the full-screen receipt on the stored map. While regeneration is pending that map is
+    // stale and can't be redrawn locally, so disable Expand for map distance requests until the refreshed receipt arrives.
+    const shouldDisableExpandReceipt = isMapDistanceRequest && isPendingReceiptRegeneration;
     const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
     const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
@@ -249,6 +261,7 @@ function MoneyRequestReceiptView({
             currentUserAccountID,
             timezone: currentUserTimezone,
             delegateAccountID,
+            conciergeReportID,
         });
     };
 
@@ -515,7 +528,8 @@ function MoneyRequestReceiptView({
 
     const showBorderlessLoading = isLoading && fillSpace;
 
-    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !isMapDistanceRequest && !mergeTransactionID;
+    // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.
+    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !mergeTransactionID;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
@@ -719,7 +733,9 @@ function MoneyRequestReceiptView({
                                                     ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly || !canEditReceipt),
                                                 )
                                             }
+                                            disabled={shouldDisableExpandReceipt}
                                             style={styles.receiptActionButton}
+                                            disabledStyle={styles.buttonOpacityDisabled}
                                             hoverStyle={styles.buttonDefaultHovered}
                                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                                             role={CONST.ROLE.BUTTON}

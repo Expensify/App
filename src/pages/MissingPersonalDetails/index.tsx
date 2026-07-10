@@ -1,11 +1,16 @@
-import React, {useCallback} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useCallback} from 'react';
+
 import MissingPersonalDetailsContent from './MissingPersonalDetailsContent';
 
 function MissingPersonalDetails({route: {params: {cardID = ''} = {}}}) {
