@@ -14,8 +14,8 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import ChangeReceiptBillingAccountPage from '@pages/workspace/receiptPartners/ChangeReceiptBillingAccountPage';
-import EditInviteReceiptPartnerPolicyPage from '@pages/workspace/receiptPartners/EditInviteReceiptPartnerPolicyPage';
-import InviteReceiptPartnerPolicyPage from '@pages/workspace/receiptPartners/InviteReceiptPartnerPolicyPage';
+import DynamicEditInviteReceiptPartnerPolicyPage from '@pages/workspace/receiptPartners/DynamicEditInviteReceiptPartnerPolicyPage';
+import DynamicInviteReceiptPartnerPolicyPage from '@pages/workspace/receiptPartners/DynamicInviteReceiptPartnerPolicyPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,16 +64,16 @@ employeePersonalDetails[3] = {
     phoneNumber: '',
 };
 
-const renderInvitePage = (initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]) =>
+const renderInvitePage = (initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE]) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <ModalProvider>
                     <NavigationContainer>
-                        <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE}>
+                        <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE}>
                             <Stack.Screen
-                                name={SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE}
-                                component={InviteReceiptPartnerPolicyPage}
+                                name={SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE}
+                                component={DynamicInviteReceiptPartnerPolicyPage}
                                 initialParams={initialParams}
                             />
                         </Stack.Navigator>
@@ -83,16 +83,16 @@ const renderInvitePage = (initialParams: WorkspaceSplitNavigatorParamList[typeof
         </ComposeProviders>,
     );
 
-const renderEditInvitePage = (initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]) =>
+const renderEditInvitePage = (initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT]) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <ModalProvider>
                     <NavigationContainer>
-                        <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT}>
+                        <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT}>
                             <Stack.Screen
-                                name={SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT}
-                                component={EditInviteReceiptPartnerPolicyPage}
+                                name={SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT}
+                                component={DynamicEditInviteReceiptPartnerPolicyPage}
                                 initialParams={initialParams}
                             />
                         </Stack.Navigator>
