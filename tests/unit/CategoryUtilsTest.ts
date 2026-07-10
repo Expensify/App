@@ -243,6 +243,29 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
             it('returns the full path for normal hierarchies', () => {
                 expect(getDecodedFullCategoryName('Food: Meat')).toEqual('Food: Meat');
                 expect(getDecodedFullCategoryName('A: B:')).toEqual('A: B:');
+                expect(getDecodedFullCategoryName('Meals and Entertainment: Other')).toEqual('Meals and Entertainment: Other');
+            });
+
+            it('normalizes separator spacing for display', () => {
+                expect(getDecodedFullCategoryName('A:B')).toEqual('A: B');
+                expect(getDecodedFullCategoryName('A:  B')).toEqual('A: B');
+            });
+
+            it('drops empty middle segments', () => {
+                expect(getDecodedFullCategoryName('Food: : Meat')).toEqual('Food: Meat');
+            });
+
+            it('keeps a single trailing colon on the last segment', () => {
+                expect(getDecodedFullCategoryName('A: B::')).toEqual('A: B:');
+            });
+
+            it('returns single segments and empty input unchanged', () => {
+                expect(getDecodedFullCategoryName('Plain')).toEqual('Plain');
+                expect(getDecodedFullCategoryName('')).toEqual('');
+            });
+
+            it('decodes HTML entities in every segment', () => {
+                expect(getDecodedFullCategoryName('Travel &amp; Lodging: Other')).toEqual('Travel & Lodging: Other');
             });
         });
     });
