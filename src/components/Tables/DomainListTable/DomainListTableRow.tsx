@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -7,14 +5,22 @@ import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Ta
 import TableRow from '@components/Table/TableRow';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearDomainErrors} from '@libs/actions/Domain';
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {DomainRowData} from '.';
 
 type DomainListTableRowProps = {
@@ -83,7 +89,6 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
             onPress={item.action}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'domainTableRow'}}
             offlineWithFeedback={{
                 errors: item.errors,
                 pendingAction: item.pendingAction,

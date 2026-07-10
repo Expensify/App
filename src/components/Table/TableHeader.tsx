@@ -1,20 +1,27 @@
-import React, {useRef} from 'react';
-import {View} from 'react-native';
-import type {ViewProps} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {ViewProps} from 'react-native';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
+import type {TableColumn, TableData} from './types';
+
 import {getColumnHeaderAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
-import type {TableColumn, TableData} from './types';
 
 /**
  * Number of times a column can be toggled before sorting is reset.
@@ -54,9 +61,14 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, processedData, isMobileSelectionEnabled} = useTableContext<DataType, ColumnKey>();
-    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, processedData, isMobileSelectionEnabled, shouldEnableSelectionInNarrowPaneModal} =
+        useTableContext<DataType, ColumnKey>();
+    // Tables inside a narrow pane modal (RHP) opt into keying the header checkbox off the real screen size, since
+    // shouldUseNarrowLayout is always true in an RHP. Other tables keep the original behavior. Visual padding below still uses shouldUseNarrowLayout.
+    const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
+    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     if (shouldUseNarrowTableLayout && !title) {
@@ -73,16 +85,17 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
     }
 
-    const selectableRows = processedData.filter((row) => !row.disabled);
+    const selectableRows = processedData.filter((row) => !row.disabled && !row.isSelectionDisabled);
+    const hasSelectableRows = selectableRows.length > 0;
     let isSelectionIndeterminate = false;
-    let isEverySelectableRowSelected = selectableRows.length > 0;
+    let isEverySelectableRowSelected = hasSelectableRows;
 
     // We exclude disabled rows from the 'select all' behavior, so if a disabled row is not selected, we still
     // consider all active rows to be selected
     if (isSelectionCheckboxVisible) {
         for (const row of selectableRows) {
-            isSelectionIndeterminate = row.selected || isSelectionIndeterminate;
-            isEverySelectableRowSelected = row.selected && isEverySelectableRowSelected;
+            isSelectionIndeterminate = !!row.selected || isSelectionIndeterminate;
+            isEverySelectableRowSelected = !!row.selected && isEverySelectableRowSelected;
         }
     }
 
@@ -90,11 +103,11 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         <View
             style={[
                 styles.pv2,
-                styles.ph3,
                 styles.mh5,
                 styles.highlightBG,
                 styles.borderBottom,
                 styles.tableTopRadius,
+                shouldUseNarrowLayout && !isSelectionCheckboxVisible ? styles.ph4 : styles.ph3,
                 // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid
                 styles.dFlex,
                 styles.flexRow,
@@ -113,6 +126,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                     {!!isSelectionCheckboxVisible && (
                         <Checkbox
                             containerStyle={styles.m0}
+                            disabled={!hasSelectableRows}
                             isChecked={isEverySelectableRowSelected}
                             isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                             onPress={tableMethods.handleSelectAll}
@@ -135,6 +149,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 <>
                     {!!selectionEnabled && (
                         <Checkbox
+                            disabled={!hasSelectableRows}
                             isChecked={isEverySelectableRowSelected}
                             isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                             onPress={tableMethods.handleSelectAll}

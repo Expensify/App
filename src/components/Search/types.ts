@@ -1,15 +1,20 @@
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
+
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
 import type {
     ReportActionListItemType,
+    SearchListItem,
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
@@ -159,6 +164,7 @@ type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
 type SearchWithdrawalStatus = Array<ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>>;
+type SearchPaidStatus = Array<ValueOf<typeof CONST.SEARCH.PAID_STATUS>>;
 type SyntaxFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
 
 type SearchCustomColumnIds =
@@ -222,8 +228,15 @@ type SearchSelectionActionsValue = {
      */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
-        (selectedTransactions: SelectedTransactions, data?: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
+        (selectedTransactions: SelectedTransactions, data?: SearchData): void;
     };
+    /**
+     * Atomically transform the current selection. The updater receives the previous selection map and returns the
+     * next one, so callers (e.g. the screen-level write actions) can read-modify-write without subscribing to — and
+     * thus re-rendering on — selection state. Passing `data` derives `selectedReports` in the same commit; passing
+     * `totalSelectableItemsCount` unchecks "select all matching" when the new selection no longer covers every item.
+     */
+    applySelection: (updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions, options?: {data?: SearchData; totalSelectableItemsCount?: number}) => void;
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
@@ -233,6 +246,22 @@ type SearchSelectionActionsValue = {
     };
     removeTransaction: (transactionID: string | undefined) => void;
     selectAllMatchingItems: (on: boolean) => void;
+};
+
+/** The displayed (filtered, grouped) search rows. A homogeneous list of one of the four list-item kinds. */
+type SearchData = TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[];
+
+/**
+ * Stable-identity selection write actions consumed by rows and the table header. Provided at screen level by
+ * `SearchWriteActionsProvider` (which owns the screen-derived data the actions operate on) and kept on its own
+ * context — separate from both the selection state context and the bulk-action setters — so pressing a checkbox
+ * never re-renders consumers that only need to dispatch.
+ */
+type SearchRowSelectionActionsValue = {
+    /** Toggle selection of a single transaction row or a group (report / grouped rows). */
+    toggle: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    /** Toggle selection of all currently selectable items. */
+    toggleAll: () => void;
 };
 
 /** Composed value of all three Search state contexts. Kept as a union for callers that need the full bag shape (e.g. test fixtures, action `searchContext` payloads). */
@@ -260,8 +289,6 @@ type ReportFieldNegatedKey = `${typeof CONST.SEARCH.REPORT_FIELD.NOT_PREFIX}${st
 type ReportFieldDateKey = `${typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}-${string}`;
 type ReportFieldKey = ReportFieldTextKey | ReportFieldDateKey | ReportFieldNegatedKey;
 
-type SearchBooleanFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
-
 type SearchTextFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION
@@ -286,11 +313,6 @@ type SearchDateKey = `${SearchDateFilterKeys}${ValueOf<typeof CONST.SEARCH.DATE_
 
 type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
 type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
-
-type SearchCurrencyFilterKeys =
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY;
 
 type SearchFilterKey =
     | SyntaxFilterKey
@@ -411,12 +433,14 @@ type SearchChartProps = {
     unitPosition?: UnitPosition;
 };
 
-type SearchFilterCommonProps = {
+type SearchFilterCommonProps<T> = {
+    value: T;
     selectionListTextInputStyle?: StyleProp<ViewStyle>;
     selectionListStyle?: SelectionListStyle;
     autoFocus?: boolean;
     ready?: boolean;
     footer?: React.ReactNode;
+    onChange: (value: T) => void;
 };
 
 export type {
@@ -424,7 +448,6 @@ export type {
     SelectedTransactions,
     SearchColumnType,
     SearchSortBy,
-    SearchBooleanFilterKeys,
     SearchDateFilterKeys,
     SearchDateKey,
     SearchAmountFilterKeys,
@@ -445,6 +468,8 @@ export type {
     SearchResultsActionsValue,
     SearchSelectionContextValue,
     SearchSelectionActionsValue,
+    SearchData,
+    SearchRowSelectionActionsValue,
     ASTNode,
     QueryFilter,
     QueryFilters,
@@ -465,7 +490,7 @@ export type {
     SearchDatePreset,
     SearchWithdrawalType,
     SearchWithdrawalStatus,
-    SearchCurrencyFilterKeys,
+    SearchPaidStatus,
     UserFriendlyValue,
     SelectedReports,
     SearchTextFilterKeys,

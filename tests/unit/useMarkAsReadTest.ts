@@ -1,15 +1,20 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+
 import useMarkAsRead from '@hooks/useMarkAsRead';
+
 import type Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const REPORT_ID = '1';
 
 let mockIsUnread = true;
 let mockIsVisible = true;
+let mockHasFocus = true;
 let mockIsFocused = true;
 let mockReferrer: string | undefined;
 
@@ -17,6 +22,7 @@ jest.mock('@libs/Visibility', () => ({
     __esModule: true,
     default: {
         isVisible: () => mockIsVisible,
+        hasFocus: () => mockHasFocus,
         onVisibilityChange: () => () => {},
     },
 }));
@@ -77,6 +83,7 @@ describe('useMarkAsRead', () => {
         jest.clearAllMocks();
         mockIsUnread = true;
         mockIsVisible = true;
+        mockHasFocus = true;
         mockIsFocused = true;
         mockReferrer = undefined;
     });
@@ -100,7 +107,7 @@ describe('useMarkAsRead', () => {
 
         act(() => result.current.completeSkippedMarkAsRead());
 
-        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false);
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, true);
     });
 
     it('does not complete a mark-as-read when none was skipped', () => {
@@ -120,5 +127,14 @@ describe('useMarkAsRead', () => {
 
         expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false);
         expect(NavigationMock.setParams).toHaveBeenCalledWith({referrer: undefined});
+    });
+
+    it('does not mark the report as read on report change when the app is visible but unfocused', () => {
+        mockHasFocus = false;
+
+        renderMarkAsRead({isScrolledToEnd: true});
+
+        expect(readNewestAction).toHaveBeenCalledTimes(1);
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false);
     });
 });

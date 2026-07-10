@@ -1,11 +1,14 @@
-import Onyx from 'react-native-onyx';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getIcons, isChatThread, isExpenseRequest, isTaskReport, isTripRoom, isWorkspaceTaskReport, shouldReportShowSubscript} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+
+import Onyx from 'react-native-onyx';
+
 import {
     createExpenseReport,
     createGroupChat,
@@ -20,6 +23,7 @@ import {
     createWorkspaceTaskReport,
     createWorkspaceThread,
 } from '../utils/collections/reports';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // ─── Test Constants ──────────────────────────────────────────────────────────
@@ -93,7 +97,7 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
     const shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
 
     const formatPhoneNumber = (s: string) => s;
-    let icons = getIcons(report, formatPhoneNumber, PERSONAL_DETAILS, null, '', -1, policy, undefined, isReportArchived);
+    let icons = getIcons(report, formatPhoneNumber, translateLocal, PERSONAL_DETAILS, null, '', -1, policy, undefined, isReportArchived);
 
     if (!shouldShowSubscript && report.type !== CONST.REPORT.TYPE.IOU && report.type !== CONST.REPORT.TYPE.INVOICE && icons.length > 1) {
         const firstIcon = icons.at(0);

@@ -1,17 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {WorkspaceCategoryTableRowData} from '.';
 
 type WorkspaceCategoriesTableRowProps = {
@@ -53,14 +58,13 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'categoriesTableRow'}}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ROW}
             onPress={item.action}
             offlineWithFeedback={{
                 errors: item.errors,
                 pendingAction: item.pendingAction,
                 shouldHideOnDelete: false,
-                dismissError: item.dismissError,
+                onClose: item.dismissError,
             }}
         >
             {({hovered}) => (
