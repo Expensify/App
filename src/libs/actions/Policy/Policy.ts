@@ -1240,30 +1240,21 @@ function setWorkspaceReimbursement({
     ];
 
     // We're using setWorkspaceReimbursement in several places, not all of which require updating the last used payment method.
-    if (shouldUpdateLastPaymentMethod) {
-        // Keep the stored bankAccountID current so getLastPolicyBankAccountID doesn't return the old account after a
-        // change. Record VBBA when there's no last method yet, otherwise just repoint the bankAccountID.
-        const lastPaymentMethodValue = lastUsedPaymentMethod
-            ? {
-                  expense: {bankAccountID},
-                  lastUsed: {bankAccountID},
-              }
-            : {
-                  expense: {
-                      name: CONST.IOU.PAYMENT_TYPE.VBBA,
-                      bankAccountID,
-                  },
-                  lastUsed: {
-                      name: CONST.IOU.PAYMENT_TYPE.VBBA,
-                      bankAccountID,
-                  },
-              };
-
+    if (!lastUsedPaymentMethod && shouldUpdateLastPaymentMethod) {
         successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
             value: {
-                [policyID]: lastPaymentMethodValue,
+                [policyID]: {
+                    expense: {
+                        name: CONST.IOU.PAYMENT_TYPE.VBBA,
+                        bankAccountID,
+                    },
+                    lastUsed: {
+                        name: CONST.IOU.PAYMENT_TYPE.VBBA,
+                        bankAccountID,
+                    },
+                },
             },
         });
     }
