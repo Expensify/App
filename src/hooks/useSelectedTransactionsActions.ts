@@ -400,7 +400,7 @@ function useSelectedTransactionsActions({
                 true,
             );
             const orderedTemplates = [...customTemplates, ...defaultTemplates];
-            orderedTemplates.forEach((template, index) => {
+            for (const [index, template] of orderedTemplates.entries()) {
                 // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
                 const isBasicExport = template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV;
                 const isDefaultTemplate = index >= customTemplates.length;
@@ -430,7 +430,7 @@ function useSelectedTransactionsActions({
                     // Divider at the custom/default group boundary (suppressed when this is the first item)
                     addSeparatorBefore: index === 0 || index === customTemplates.length,
                 });
-            });
+            }
 
             return exportOptions;
         };

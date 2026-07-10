@@ -1863,4 +1863,4 @@ export {
     getReportFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
 };
-export type {TransactionPreviewData, ExportTemplateGroups};
+export type {TransactionPreviewData};
