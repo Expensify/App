@@ -79,7 +79,6 @@ export default function DomainMembersTable({
     shouldShowGroupColumn,
     filterConfig,
     isItemInFilter,
-    EmptyStateComponent,
 }: DomainMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
