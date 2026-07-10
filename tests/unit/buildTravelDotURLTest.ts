@@ -1,4 +1,5 @@
 import {buildTravelDotURL} from '@libs/actions/Link';
+
 import CONST from '@src/CONST';
 
 describe('buildTravelDotURL', () => {
