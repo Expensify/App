@@ -2,7 +2,9 @@ import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFilesValidation from '@hooks/useFilesValidation';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
@@ -25,6 +27,8 @@ import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismiss
 import {rand64} from '@libs/NumberUtils';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
+import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
+import {getPickerCaptureSource} from '@libs/telemetry/ReceiptObservability';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
@@ -76,6 +80,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const reportAttributesDerived = useReportAttributes();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const delegateAccountID = useDelegateAccountID();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -97,6 +102,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
+    const {translate} = useLocalize();
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -111,6 +117,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         isArchived,
         reportAttributesDerived,
         reportDraft,
+        translate,
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
@@ -278,6 +285,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             optimisticTransactionIDs,
             optimisticChatReportID,
             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            delegateAccountID,
         };
 
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
@@ -344,7 +352,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         submitDirectly(files, false);
     };
 
-    const processReceipts = (files: FileObject[]) => {
+    const processReceipts = (files: FileObject[], captureSource: ReceiptCaptureSource) => {
         const newReceiptFiles = buildReceiptFiles({
             files,
             getFileSource,
@@ -355,6 +363,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             shouldAcceptMultipleFiles: true,
             isMultiScanEnabled,
             transactions,
+            captureSource,
         });
 
         if (newReceiptFiles.length === 0) {
@@ -380,7 +389,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        processReceipts(files);
+        processReceipts(files, getPickerCaptureSource());
     });
 
     return (
@@ -388,7 +397,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             {PDFValidationComponent}
             <Camera
                 onCapture={(file) => {
-                    processReceipts([file]);
+                    processReceipts([file], 'camera');
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}

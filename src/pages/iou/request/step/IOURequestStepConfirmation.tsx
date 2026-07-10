@@ -86,7 +86,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -276,10 +276,10 @@ function IOURequestStepConfirmation({
                 // is designed for report-backed participants and discards participant.text, so route
                 // any participant without a reportID to getParticipantsOption instead.
                 return participant.accountID || !participant.reportID
-                    ? getParticipantsOption(participant, personalDetails)
+                    ? getParticipantsOption(participant, personalDetails, translate)
                     : getReportOption(participant, privateIsArchived, participantPolicy, personalDetails, conciergeReportID, reportAttributesDerived, participantReportDraft);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, participantsPolicies, policy, conciergeReportID, reportDrafts],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, participantsPolicies, policy, conciergeReportID, reportDrafts, translate],
     );
 
     const sourceReportID = transaction?.reportID ?? reportID;
@@ -890,8 +890,8 @@ function IOURequestStepConfirmation({
                                 <PrevNextButtons
                                     isPrevButtonDisabled={currentTransactionIndex === 0}
                                     isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
-                                    onNext={showNextTransaction}
-                                    onPrevious={showPreviousTransaction}
+                                    onNext={() => startTransition(showNextTransaction)}
+                                    onPrevious={() => startTransition(showPreviousTransaction)}
                                 />
                             ) : null}
                         </HeaderWithBackButton>

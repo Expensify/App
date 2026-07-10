@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -521,6 +520,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Beschränkungen',
         tagGLCode: 'GL-Code taggen',
         off: 'Aus',
+        noResultsFoundSubtitle: 'Keine Ergebnisse. Bitte passen Sie Ihre Filter oder Suchanfrage an',
         unableToDisplayChart: 'Diagram kann nicht angezeigt werden',
         webGLNotSupported: 'Ihr Browser unterstützt WebGL nicht. Bitte aktivieren Sie es oder wechseln Sie den Browser.',
         apiKey: 'API-Schlüssel',
@@ -1064,6 +1064,18 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Kontrollen anpassen und Ausgaben optimieren',
             setupRules: 'Ausgabelimits einrichten',
             inviteAccountant: 'Lade deine:n Steuerberater:in ein',
+            begin: 'Beginnen',
+            done: 'Fertig',
+            createWorkspaceSubText: 'Workspace bereit für die Einrichtung',
+            connectAccountingSubText: 'Kontenplan und mehr synchronisieren',
+            customizeCategoriesSubText: 'Fügen Sie Ihren Kontenplan hinzu',
+            inviteAccountantSubText: 'Beschleunigen Sie den Monatsabschluss',
+            linkCompanyCardsSubText: 'Auslagen automatisch importieren',
+            setupRulesSubText: 'Belege anfordern, hohe Ausgaben markieren und mehr',
+            needHelp: 'Brauchen Sie Hilfe?',
+            talkToConcierge: 'Mit Concierge chatten',
+            talkToAccountExecutive: 'Sprechen Sie mit Ihrer Kundenbetreuung',
+            forGuidedSetup: 'für die geführte Einrichtung.',
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Kostenlose Testversion: Noch ${days} ${days === 1 ? 'Tag' : 'Tage'}!`,
@@ -1742,6 +1754,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Sie können bis zu ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} Ausgaben gleichzeitig duplizieren. Bitte wählen Sie weniger Ausgaben aus und versuchen Sie es erneut.`,
         deleted: 'Gelöscht',
+        deletePendingExpense: 'Ausstehende Ausgabe löschen',
+        deleteConfirmationPendingBYOC: 'Möchten Sie diese Ausgabe wirklich löschen? Sie ist ausstehend und wir importieren sie möglicherweise erneut, sobald sie verbucht wird.',
+        deleteConfirmationSomePendingBYOC:
+            'Möchten Sie diese Ausgaben wirklich löschen? Einige davon sind ausstehend und wir importieren sie möglicherweise erneut, sobald sie verbucht werden.',
         categoryDisabledAlert: {
             title: 'Kategorie deaktiviert',
             prompt: 'Aktivieren Sie Kategorien im Arbeitsbereich, um die Ausgabendetails zu bearbeiten oder die Kategorie aus dieser Ausgabe zu löschen.',
@@ -2204,6 +2220,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Abmelden',
         restoreStashed: 'Gespeicherten Login wiederherstellen',
         signOutConfirmationText: 'Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.',
+        saveReceiptsConfirmation: {
+            title: 'Belege speichern?',
+            prompt: ({count}: {count: number}) =>
+                `Es ${count === 1 ? 'wird noch 1 Beleg' : `werden noch ${count} Belege`} hochgeladen. Wenn du dich jetzt abmeldest, ${count === 1 ? 'speichern wir ihn' : 'speichern wir sie'} in deinen Fotos, damit du ${count === 1 ? 'ihn' : 'sie'} später zu einer neuen Ausgabe hinzufügen kannst.`,
+            confirm: 'Speichern und abmelden',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: 'Belege speichern?',
+            prompt: ({count}: {count: number}) =>
+                `Es ${count === 1 ? 'wird noch 1 Beleg' : `werden noch ${count} Belege`} hochgeladen. Wenn du dich jetzt abmeldest, ${count === 1 ? 'speichern wir ihn' : 'speichern wir sie'} in deinen Fotos, damit du ${count === 1 ? 'ihn' : 'sie'} später zu einer neuen Ausgabe hinzufügen kannst. Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.`,
+            confirm: 'Speichern und abmelden',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Lesen Sie die <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Nutzungsbedingungen</a> und die <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutzerklärung</a>.`,
         help: 'Hilfe',
@@ -2877,6 +2905,7 @@ ${amount} für ${merchant} – ${date}`,
     agentsPage: {
         title: 'Agenten',
         subtitle: `<muted-text>Agents übernehmen Ihre Workflows für Sie, sodass Sie täglich Stunden zurückgewinnen. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Mehr erfahren</a>.</muted-text>`,
+        findAgent: 'Agent suchen',
         newAgent: 'Neue:r Agent:in',
         emptyAgents: {
             title: 'Keine Agenten erstellt',
@@ -4401,6 +4430,12 @@ ${amount} für ${merchant} – ${date}`,
         carRental: 'Autovermietung',
         nightIn: 'Nacht in',
         nightsIn: 'Nächte in',
+        taxID: {
+            title: 'Steuer-ID',
+            subtitle: 'Geben Sie die Steuer-ID Ihrer juristischen Person ein, damit wir die Reisekostenabrechnung in Ihrer Landeswährung einrichten können.',
+            inputLabel: 'Steuer-ID der juristischen Person',
+            error: {required: 'Bitte geben Sie die Steuernummer Ihrer juristischen Person ein.'},
+        },
     },
     workspace: {
         common: {
@@ -4518,7 +4553,7 @@ ${amount} für ${merchant} – ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Kartenverwaltung';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Personen-Admin';
+                        return 'Personalverwaltung';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Zahlungsadministrator';
                     case CONST.POLICY.ROLE.USER:
@@ -4739,12 +4774,14 @@ ${amount} für ${merchant} – ${date}`,
             classes: 'Kategorien',
             locations: 'Standorte',
             customers: 'Kunden/Projekte',
+            items: 'Artikel',
             accountsDescription: 'Ihr QuickBooks Online-Kontenplan wird in Expensify als Kategorien importiert.',
             accountsSwitchTitle: 'Wählen Sie, ob neue Konten als aktivierte oder deaktivierte Kategorien importiert werden sollen.',
             accountsSwitchDescription: 'Aktivierte Kategorien stehen Mitgliedern bei der Erstellung ihrer Ausgaben zur Auswahl.',
             classesDescription: 'Wählen Sie, wie QuickBooks Online-Klassen in Expensify behandelt werden sollen.',
             customersDescription: 'Wählen Sie aus, wie QuickBooks Online-Kunden/Projekte in Expensify behandelt werden sollen.',
             locationsDescription: 'Wählen Sie aus, wie QuickBooks Online-Standorte in Expensify behandelt werden sollen.',
+            itemsDescription: 'Wählen Sie aus, wie QuickBooks Online-Artikel in Expensify behandelt werden sollen.',
             taxesDescription: 'Wählen Sie aus, wie QuickBooks Online-Steuern in Expensify behandelt werden sollen.',
             locationsLineItemsRestrictionDescription:
                 'QuickBooks Online unterstützt bei Schecks oder Lieferantenrechnungen keine Standorte auf Positionsebene. Wenn du Standorte auf Positionsebene verwenden möchtest, stelle sicher, dass du Journaleinträge sowie Kreditkarten-/Debitkartenausgaben nutzt.',
@@ -5088,6 +5125,7 @@ ${amount} für ${merchant} – ${date}`,
                 oauth: 'Über Salesforce anmelden',
                 oauthDescription: 'Um die Einrichtung abzuschließen, müssen Sie sich über Salesforce und Certinia anmelden.\n\nVerwenden Sie die Schaltfläche unten, um fortzufahren.',
                 connectButton: 'Mit Certinia verbinden',
+                connectSandboxButton: 'Mit Certinia Sandbox verbinden',
             },
             import: {
                 chartOfAccounts: 'Kontenplan',
@@ -5530,6 +5568,58 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             enableNewAccountsDescription: 'Neue Rillet-Konten werden als Kategorien verfügbar sein.',
             dimensionsImport: 'Alle Rillet-Dimensionen werden als Tags importiert',
             importDescription: 'Wählen Sie, welche Buchungskonfigurationen aus Rillet importiert werden sollen.',
+            noVendorsFound: 'Keine Anbieter gefunden',
+            noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Rillet hinzu und synchronisieren Sie die Verbindung erneut',
+            noAccountsFound: 'Keine Konten gefunden',
+            noAccountsFoundDescription: 'Bitte fügen Sie Konten in Rillet hinzu und synchronisieren Sie die Verbindung erneut',
+            exportDescription: 'Konfigurieren Sie, wie Expensify-Daten nach Rillet exportiert werden.',
+            exportReimbursable: {label: 'Erstattungsfähige Ausgaben exportieren als', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Lieferantenrechnungen'}}},
+            exportDate: {
+                label: 'Rechnungsdatum des Lieferanten',
+                description: 'Verwenden Sie dieses Datum beim Exportieren von Berichten nach Rillet.',
+                values: {
+                    [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Datum der letzten Ausgabe',
+                        description: 'Datum der letzten im Bericht erfassten Ausgabe.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Exportdatum',
+                        description: 'Datum, an dem der Bericht nach Rillet exportiert wurde.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Einreichungsdatum',
+                        description: 'Datum, an dem der Bericht zur Genehmigung eingereicht wurde.',
+                    },
+                },
+            },
+            exportCompanyCard: {label: 'Firmenkartenausgaben exportieren als', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'Kreditkarten'}}},
+            defaultCompanyCardVendor: {
+                label: 'Standardanbieter für Firmenkarten',
+                description: 'Wählen Sie einen standardmäßigen Rillet-Anbieter für Ausgaben, die nicht automatisch zugeordnet werden.',
+            },
+            companyCardAccount: {label: 'Firmenkartenkonto', description: 'Wählen Sie aus, wohin die Firmenkartentransaktionen exportiert werden sollen.'},
+            noBankAccountsFound: 'Keine Bankkonten gefunden',
+            noBankAccountsFoundDescription: 'Bitte fügen Sie Bankkonten in Rillet hinzu und synchronisieren Sie die Verbindung erneut',
+            autoSyncDescription: 'Synchronisieren Sie Rillet und Expensify automatisch – jeden Tag. Berichte werden in Echtzeit synchronisiert.',
+            accountingMethods: {
+                label: 'Exportmethode',
+                description: 'Wählen Sie, wann Ausgaben exportiert werden sollen.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Periodenabgrenzung',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Barzahlung',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Auslagen aus eigener Tasche werden nach endgültiger Genehmigung exportiert',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen werden beim Bezahlen exportiert',
+                },
+            },
+            syncReimbursedReports: 'Erstattete Berichte synchronisieren',
+            syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungszahlung erzeugt.',
+            billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie aus, von wo Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in Rillet.'},
+            syncExpensifyCardSettlements: 'Expensify Kartenabrechnungen synchronisieren',
+            settlementAccount: {label: 'Verrechnungskonto für Expensify Karte', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
+            syncTravelInvoicingSettlements: 'Abrechnungen für Reiseabrechnungen synchronisieren',
+            travelInvoicingSettlementAccount: {label: 'Abrechnungskonto für Reiseabrechnungen', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
         },
         type: {
             free: 'Kostenlos',
@@ -5728,6 +5818,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             newCard: 'Neue Karte',
             name: 'Name',
             lastFour: 'Letzte 4',
+            statusPendingOrder: 'Bestellung ausstehend',
+            statusShipped: 'Versendet',
+            statusActive: 'Aktiv',
+            statusInactive: 'Inaktiv',
             limit: 'Limit',
             currentBalance: 'Aktueller Kontostand',
             currentBalanceDescription: 'Der aktuelle Saldo ist die Summe aller verbuchten Expensify Karte-Transaktionen, die seit dem letzten Abrechnungsdatum erfolgt sind.',
@@ -6342,6 +6436,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 conciergeNotificationDescription: 'Wenn der Vorgang abgeschlossen ist, sendet Concierge Ihnen eine Nachricht.',
                 copyCompleted: 'Ihre Workspace-Einstellungen wurden kopiert.',
             },
+            upgrade: {
+                title: 'Einige Funktionen erfordern einen Control-Tarif',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} verwendet ${features}, die einen Control-Tarif erfordern.
+
+Um diese Funktionen in Ihre anderen Arbeitsbereiche zu übernehmen, upgraden Sie diese bitte, um fortzufahren.
+
+Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
+            },
         },
         emptyWorkspace: {
             title: 'Du hast keine Arbeitsbereiche',
@@ -6857,7 +6959,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 optionFixedDistanceTitle: 'Eine feste Entfernung pro Antrag ausschließen',
                 optionFixedDistanceHelp: 'Ziehen Sie die gleiche Pendelstrecke von jeder Abrechnung ab. Am besten für Mitglieder geeignet, die eine Abrechnung pro Arbeitstag einreichen.',
                 distanceLabel: 'Entfernung',
-                errors: {distanceMustBePositive: 'Die Entfernung muss eine positive ganze Zahl sein.'},
+                errors: {distanceMustBePositive: 'Die Entfernung muss eine positive ganze Zahl sein.', distanceTooLarge: 'Die Entfernung ist zu groß.'},
             },
             distance: 'Entfernung',
             centrallyManage: 'Tarife zentral verwalten, in Meilen oder Kilometern nachverfolgen und eine Standardkategorie festlegen.',
@@ -7235,6 +7337,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Spezialisierte Arbeitsbereichsrollen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
+            unlockFeatures: 'Schalten Sie diese Funktionen frei!',
         },
         downgrade: {
             commonFeatures: {
@@ -7842,6 +7945,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Mitarbeitenden.</muted-text-label>`,
                 groups: {title: 'Gruppen', description: 'Wählen Sie die Mitarbeitergruppen aus, die Sie mit diesem Workspace synchronisieren möchten'},
+                syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
             },
             notSync: 'Nicht synchronisiert',
             authenticationError: (providerName: string) => `Verbindung mit ${providerName} aufgrund einer abgelaufenen Verknüpfung nicht möglich.`,
@@ -8858,6 +8962,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             pending: 'Ausstehend',
             cleared: 'Ausgeglichen',
             failed: 'Fehlgeschlagen',
+            never: 'Nie',
         },
         failedError: ({link}: {link: string}) => `Wir versuchen diese Abrechnung erneut, sobald du <a href="${link}">dein Konto entsperrst</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Auszahlungs-ID: ${withdrawalID}`,
@@ -8994,13 +9099,15 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         stopTimer: (duration: string) => `Timer stoppen (${duration})`,
         scheduleOOO: 'Abwesenheit planen',
         scheduleOOOTitle: 'Abwesenheit planen',
-        date: 'Datum',
+        date: 'Startdatum',
+        endDate: 'Enddatum',
         time: 'Zeit (24-Stunden-Format)',
         durationAmount: 'Dauer',
         durationUnit: 'Einheit',
         reason: 'Grund',
         workingPercentage: 'Arbeitsprozentsatz',
-        dateRequired: 'Datum ist erforderlich.',
+        dateRequired: 'Startdatum ist erforderlich.',
+        endDateBeforeStart: 'Das Enddatum darf nicht vor dem Startdatum liegen.',
         invalidTimeFormat: 'Bitte geben Sie eine gültige Uhrzeit im 24‑Stunden-Format ein (z. B. 14:30).',
         enterANumber: 'Bitte geben Sie eine Zahl ein.',
         hour: 'Stunden',
@@ -10244,5 +10351,21 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         negativeButton: 'Nicht wirklich',
     },
     monthPickerPage: {month: 'Monat', selectMonth: 'Bitte wählen Sie einen Monat aus'},
+    aiFeaturesPromoModal: {
+        subtitle: 'Neu bei Concierge AI',
+        confirmText: 'Los geht’s!',
+        spendAnalysis: {
+            title: 'Interaktive Ausgabenanalyse',
+            description: `<muted-text>Concierge zeigt monatliche Ausgabenanalysen an und ermöglicht es Ihnen, die Details hinter jeder Zahl genauer zu betrachten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Mehr erfahren</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Lernen Sie Ihre neue Spesenassistenz kennen',
+            description: `<muted-text>Chatten Sie mit Concierge, um Ausgaben direkt in der App oder per E-Mail oder SMS zu erstellen und zu aktualisieren. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Mehr erfahren</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Erstellen Sie Ihre eigenen Agenten',
+            description: `<muted-text>Erstellen Sie benutzerdefinierte Agenten, die Ausgaben anhand Ihrer Regeln prüfen, genehmigen und weiterleiten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Mehr erfahren</a>.</muted-text>`,
+        },
+    },
 };
 export default translations;

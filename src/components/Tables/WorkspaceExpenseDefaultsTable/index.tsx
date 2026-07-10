@@ -24,10 +24,9 @@ type WorkspaceExpenseDefaultsTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    emptyStateContent?: React.ReactElement;
 };
 
-function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyStateContent}: WorkspaceExpenseDefaultsTableProps) {
+function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceExpenseDefaultsTableProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -101,8 +100,6 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
         />
     );
 
-    const isEmpty = rulesData.length === 0;
-
     return (
         <Table
             data={rulesData}
@@ -118,14 +115,10 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             narrowLayoutSortColumn="condition"
             title={translate('workspace.rules.tabs.expenseDefaults')}
         >
-            {isEmpty && emptyStateContent}
-            {(!isEmpty || !emptyStateContent) && (
-                <>
-                    <Table.FilterBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.FilterBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

@@ -36,6 +36,8 @@
 import TableComponent from './Table';
 import TableBody from './TableBody';
 import TableContext from './TableContext';
+import TableEmptyState from './TableEmptyStates/TableEmptyState';
+import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
 import TableFilterBar from './TableFilterBar';
 import TableHeader from './TableHeader';
 import TableRow from './TableRow';
@@ -64,6 +66,12 @@ const Table = Object.assign(TableComponent, {
 
     /** The filter bar with a searchbar/filters menu */
     FilterBar: TableFilterBar,
+
+    /** Renders when the table has no rows */
+    EmptyState: TableEmptyState,
+
+    /** Renders when the table has rows, but the user has filtered all of them out */
+    NoResultsState: TableNoResultsState,
 });
 
 export default Table;

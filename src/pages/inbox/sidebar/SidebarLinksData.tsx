@@ -27,7 +27,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const {translate} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
-    const {filteredReports, orderedReportIDs, currentReportID} = useSidebarOrderedReportsState('SidebarLinksData');
+    const {filteredReports, orderedReportIDs, currentReportID} = useSidebarOrderedReportsState();
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
