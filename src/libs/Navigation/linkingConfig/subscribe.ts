@@ -1,8 +1,10 @@
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
+import {isTabNavigatorMounted, whenTabNavigatorReady} from '@libs/Navigation/helpers/tabNavigatorReadiness';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 
 import type {LinkingOptions} from '@react-navigation/native';
@@ -48,6 +50,16 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             // Without this, the native SDK never sees the callback URL and retries OAuth in a loop
             // after app-to-app bank auth returns. See issue #87757.
             continuePlaidOAuth(url);
+            return;
+        }
+        // TAB_NAVIGATOR is declared on the root navigator before its lazily-loaded child router
+        // mounts. Forwarding the URL during that window dispatches a NAVIGATE that no navigator can
+        // handle, so the deep link is silently dropped. Defer (don't drop) until the tab router
+        // mounts. On public screens TAB_NAVIGATOR isn't declared, so we forward immediately.
+        const rootState = navigationRef.current?.getRootState();
+        const isTabNavigatorDeclared = !!rootState?.routeNames?.includes(NAVIGATORS.TAB_NAVIGATOR);
+        if (isTabNavigatorDeclared && !isTabNavigatorMounted()) {
+            whenTabNavigatorReady().then(() => listener(url));
             return;
         }
         listener(url);

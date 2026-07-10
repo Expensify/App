@@ -67,7 +67,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	117
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	110
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -192,7 +192,6 @@
 "../../src/components/Form/FormProvider.tsx"	"react-hooks/refs"	2
 "../../src/components/Form/InputWrapper.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Form/InputWrapper.tsx"	"react-hooks/refs"	1
-"../../src/components/FullscreenLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject"	1
 "../../src/components/GPSInProgressModal/index.native.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/GPSTripStateChecker/index.native.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/GrowlNotification/GrowlNotificationContent.tsx"	"no-restricted-imports"	1
@@ -237,7 +236,6 @@
 "../../src/components/KYCWall/BaseKYCWall.tsx"	"react-hooks/refs"	2
 "../../src/components/LHNOptionsList/LHNEmptyState.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/LHNOptionsList/OptionRowLHN/OptionRow/Pressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/LoadingIndicator.tsx"	"@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject"	1
 "../../src/components/LocaleContextProvider.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/LocationPermissionModal/index.android.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/LocationPermissionModal/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -360,7 +358,6 @@
 "../../src/components/RoomHeaderAvatars.tsx"	"no-restricted-syntax"	2
 "../../src/components/Rule/RuleBooleanBase.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Rule/TextBase.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
-"../../src/components/SAMLLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject"	1
 "../../src/components/ScreenShareRequestModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/ScreenWrapper/ScreenWrapperContainer.tsx"	"react-hooks/refs"	2
 "../../src/components/Search/FilterComponents/AdvancedFilters/AmountFilterContent.tsx"	"no-restricted-imports"	1
@@ -700,6 +697,7 @@
 "../../src/libs/Navigation/PlatformStackNavigation/ScreenLayout.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenFreezeWrapper/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Navigation/PlatformStackNavigation/navigationOptions/animation/withAnimation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
+"../../src/libs/Navigation/guards/AIFeaturesPromoGuard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/guards/MigratedUserWelcomeModalGuard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/guards/OnboardingGuard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Navigation/helpers/createNormalizedConfigs.ts"	"@typescript-eslint/no-deprecated/escape"	1
@@ -1235,7 +1233,6 @@
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/refs"	5
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/inbox/report/ReportActionsList.tsx"	"react-hooks/refs"	1
 "../../src/pages/inbox/report/ShowPreviousMessagesButton.tsx"	"no-restricted-imports"	1
 "../../src/pages/inbox/report/TripSummary.tsx"	"rulesdir/no-default-id-values"	1
 "../../src/pages/inbox/report/WhisperBanner.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1331,7 +1328,6 @@
 "../../src/pages/media/AttachmentModalScreen/routes/hooks/useReportAttachmentModalType.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/AboutPage/AboutPage.tsx"	"react-hooks/refs"	1
 "../../src/pages/settings/Agents/AgentsListRow.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Agents/AgentsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Agents/AgentsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Agents/Fields/EditAgentAvatarPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Agents/Fields/EditPromptPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1619,7 +1615,7 @@
 "../../src/pages/workspace/members/WorkspaceOwnerChangeErrorPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/workspace/members/WorkspaceOwnerChangeSuccessPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/workspace/members/WorkspaceOwnerPaymentCardForm.tsx"	"react-hooks/set-state-in-effect"	2
-"../../src/pages/workspace/receiptPartners/EditInviteReceiptPartnerPolicyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/workspace/receiptPartners/DynamicEditInviteReceiptPartnerPolicyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/receiptPartners/WorkspaceReceiptPartnersPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/receiptPartners/WorkspaceReceiptPartnersPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/reports/ReportFieldsListValuesPage.tsx"	"no-restricted-imports"	1
