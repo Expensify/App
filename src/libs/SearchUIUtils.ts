@@ -1044,12 +1044,9 @@ function getSuggestedSearches(
 /**
  * Determines if the current user is eligible for the approve suggestion on a given policy.
  */
-function isEligibleForApproveSuggestion(approvalMode: string | undefined, isApprover: boolean, isSubmittedToTarget: boolean, isAdmin: boolean): boolean {
+function isEligibleForApproveSuggestion(approvalMode: string | undefined, isApprover: boolean, isSubmittedToTarget: boolean): boolean {
     const isApprovalEnabled = approvalMode ? approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
-    // Admins can be manually assigned as an approver (e.g. a report forwarded to them) without being part of the
-    // approval workflow, so surface the approve suggestion for them too; the search itself is still scoped to reports
-    // that are actually awaiting their approval.
-    return isApprovalEnabled && (isApprover || isSubmittedToTarget || isAdmin);
+    return isApprovalEnabled && (isApprover || isSubmittedToTarget);
 }
 
 function isPolicyEligibleForSpendOverTime(policy: OnyxTypes.Policy, currentUserEmail: string | undefined): boolean {
@@ -1058,15 +1055,21 @@ function isPolicyEligibleForSpendOverTime(policy: OnyxTypes.Policy, currentUserE
     );
 }
 
+/**
+ * `hasReportAwaitingApproval` seeds the approve suggestion so a user who is the manager of a report awaiting their
+ * approval sees it even when they are not part of the policy's approval workflow (e.g. an approver chosen manually on
+ * a single report). The workflow-config checks below only cover standing approvers, which is not enough on their own.
+ */
 function getSuggestedSearchesVisibility(
     currentUserEmail: string | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     defaultExpensifyCard: CardFeedForDisplay | undefined,
+    hasReportAwaitingApproval = false,
 ): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasGroupPoliciesWithExpenseChat: boolean; shouldShowExpensifyCard: boolean} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
-    let shouldShowApproveSuggestion = false;
+    let shouldShowApproveSuggestion = hasReportAwaitingApproval;
     let shouldShowExportSuggestion = false;
     let shouldShowStatementsSuggestion = false;
     let shouldShowUnapprovedCashSuggestion = false;
@@ -1109,7 +1112,7 @@ function getSuggestedSearchesVisibility(
 
         const isEligibleForSubmitSuggestion = isGroupPolicyEligible;
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
-        const isPolicyEligibleForApproveSuggestion = isGroupPolicyEligible && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo, isAdmin);
+        const isPolicyEligibleForApproveSuggestion = isGroupPolicyEligible && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && isPaymentEnabled;
@@ -4594,18 +4597,30 @@ type TypeMenuSectionsParams = {
     defaultExpensifyCard: CardFeedForDisplay | undefined;
     draftTransactionIDs: string[] | undefined;
     isTrackIntentUser: boolean;
+    hasReportAwaitingApproval?: boolean;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
-    const {currentUserEmail, currentUserAccountID, cardFeedsByPolicy, defaultCardFeed, policies, savedSearches, isOffline, defaultExpensifyCard, draftTransactionIDs, isTrackIntentUser} =
-        params;
+    const {
+        currentUserEmail,
+        currentUserAccountID,
+        cardFeedsByPolicy,
+        defaultCardFeed,
+        policies,
+        savedSearches,
+        isOffline,
+        defaultExpensifyCard,
+        draftTransactionIDs,
+        isTrackIntentUser,
+        hasReportAwaitingApproval = false,
+    } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
     const {
         visibility: suggestedSearchesVisibility,
         hasGroupPoliciesWithExpenseChat,
         shouldShowExpensifyCard,
-    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
+    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval);
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;

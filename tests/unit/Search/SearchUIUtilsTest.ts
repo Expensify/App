@@ -8280,6 +8280,30 @@ describe('SearchUIUtils', () => {
             expect(response2.visibility.export).toBe(true);
         });
 
+        test('Should show approve suggestion for a report awaiting approval even when the user is not a workflow approver', () => {
+            // An approval-enabled group policy where the current user is neither the approver nor a submitsTo/forwardsTo target.
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: 'someoneelse@policy.com',
+                    employeeList: {
+                        'employee@policy.com': {email: 'employee@policy.com', submitsTo: 'someoneelse@policy.com'},
+                    },
+                },
+            };
+
+            // Without a report awaiting approval, the workflow gate hides the suggestion.
+            const withoutReport = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, false);
+            expect(withoutReport.visibility.approve).toBe(false);
+
+            // A report awaiting the user's approval surfaces the suggestion regardless of workflow membership.
+            const withReport = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, true);
+            expect(withReport.visibility.approve).toBe(true);
+        });
+
         test('Should show Top Categories when areCategoriesEnabled is true', () => {
             const policyKey = `policy_${policyID}`;
 
@@ -8715,44 +8739,6 @@ describe('SearchUIUtils', () => {
             expect(response.visibility.unapprovedCash).toBe(true);
             expect(response.visibility.unapprovedCard).toBe(true);
             expect(response.visibility.reconciliation).toBe(true);
-        });
-
-        test('Should show Approve for Admin role even when they are not part of the approval workflow', () => {
-            const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [`policy_${policyID}`]: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    id: policyID,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                    approver: 'someone-else@policy.com',
-                    employeeList: {
-                        'employee1@policy.com': {submitsTo: 'someone-else@policy.com', forwardsTo: ''},
-                    },
-                },
-            };
-
-            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.visibility.approve).toBe(true);
-        });
-
-        test('Should hide Approve for regular member who is not an approver, submits-to target, or admin', () => {
-            const regularEmail = 'regular@policy.com';
-            const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [`policy_${policyID}`]: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    id: policyID,
-                    role: CONST.POLICY.ROLE.USER,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                    approver: 'someone-else@policy.com',
-                    employeeList: {
-                        'employee1@policy.com': {submitsTo: 'someone-else@policy.com', forwardsTo: ''},
-                        [regularEmail]: {submitsTo: 'someone-else@policy.com', forwardsTo: ''},
-                    },
-                },
-            };
-
-            const response = SearchUIUtils.getSuggestedSearchesVisibility(regularEmail, {}, policies, undefined);
-            expect(response.visibility.approve).toBe(false);
         });
 
         test('Should show Statements for an Expensify Card-only paid workspace (Expensify Cards enabled, no company card feed, default Expensify card present)', () => {
