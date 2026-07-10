@@ -1,103 +1,110 @@
-import BlockingView from '@components/BlockingViews/BlockingView';
-import type {ListItem} from '@components/SelectionList/types';
-import SelectionScreen from '@components/SelectionScreen';
+import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearRilletErrorField, updateRilletCreditCardAccount} from '@libs/actions/connections/Rillet';
-import {getLatestErrorField} from '@libs/ErrorUtils';
+import {areCardsCustomExportInErrorFields, getCardsCustomExportPendingAction, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
+import {getCardDescription, getCustomOrFormattedFeedName, splitCardFeedWithDomainID} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-
-import variables from '@styles/variables';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type {RilletAccount} from '@src/types/onyx/Policy';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {Card, CardFeed, CardFeedWithDomainID} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
 
-type AccountListItem = ListItem & {
-    value: RilletAccount['code'];
-};
+type RilletCardAccountCardListProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST>;
 
-function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
+function RilletCardAccountCardList({
+    policy,
+    route: {
+        params: {feed: feedWithDomainID},
+    },
+}: RilletCardAccountCardListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
+    const [cardList] = useCardsList(feedWithDomainID);
+    const [cardFeeds] = useCardFeeds(policyID);
+    const cardFeed = cardFeeds?.[feedWithDomainID];
+    const feedKey = splitCardFeedWithDomainID(feedWithDomainID)?.feedName as CardFeed;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
     const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
-    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID) : undefined;
-
-    const data: AccountListItem[] =
-        rilletData?.accounts
-            ?.filter(
-                (accountItem) =>
-                    accountItem.type === CONST.RILLET_ACCOUNT_TYPE.LIABILITY &&
-                    accountItem.subtype === CONST.RILLET_ACCOUNT_SUBTYPE.CREDIT_CARD &&
-                    accountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE,
-            )
-            .map((accountItem) => ({
-                value: accountItem.code,
-                text: `${accountItem.code} ${accountItem.name}`,
-                keyForList: accountItem.code,
-                isSelected: creditCardAccountCode === accountItem.code,
-            })) ?? [];
-
-    const headerContent = (
-        <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.companyCardAccount.description')}</Text>
-        </View>
-    );
-
-    const listEmptyContent = (
-        <BlockingView
-            icon={illustrations.Telescope}
-            iconWidth={variables.emptyListIconWidth}
-            iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.rillet.noAccountsFound')}
-            subtitle={translate('workspace.rillet.noAccountsFoundDescription')}
-            containerStyle={styles.pb10}
-        />
-    );
-
-    const selectCreditCardAccount = (item: AccountListItem) => {
-        if (item.value !== creditCardAccountCode && policyID) {
-            updateRilletCreditCardAccount(policyID, item.value, creditCardAccountCode);
-        }
-        Navigation.goBack(backPath);
-    };
+    const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
+    const cardProgramAccountCode = cardProgramsUsingCustomAccounts?.[feedKey] ?? creditCardAccountCode;
+    const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
 
     return (
-        <SelectionScreen
-            policyID={policyID}
+        <ConnectionLayout
+            displayName="RilletCardAccountCardList"
+            headerTitleAlreadyTranslated={title}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="RilletCompanyCardAccountPage"
-            title="workspace.rillet.companyCardAccount.label"
-            data={data}
-            headerContent={headerContent}
-            listEmptyContent={listEmptyContent}
-            onSelectRow={selectCreditCardAccount}
-            shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={creditCardAccountCode}
-            onBackButtonPress={() => Navigation.goBack(backPath)}
+            contentContainerStyle={styles.pb2}
+            titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
-            pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE], rilletConfig?.pendingFields)}
-            errors={getLatestErrorField(rilletConfig, CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE)}
-            errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE)}
-        />
+            shouldBeBlocked
+        >
+            <View>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.cardAccount.descriptionLevel2')}</Text>
+            </View>
+            {Object.values(cardList ?? {}).map((card) => {
+                const cardID = Number(card.cardID);
+                const isUsingCustomAccount = typeof card.nameValuePairs === 'object' && CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT in card.nameValuePairs;
+                const cardAccountCode =
+                    (typeof card.nameValuePairs === 'object' ? card.nameValuePairs[CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT] : undefined) ?? cardProgramAccountCode;
+                const cardAccount = rilletData?.accounts?.find((account) => account.code === cardAccountCode);
+                const cardAccountDisplayName = cardAccount
+                    ? `${cardAccount.code} ${cardAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}`
+                    : '';
+                return (
+                    <OfflineWithFeedback
+                        key={feedKey}
+                        pendingAction={getCardsCustomExportPendingAction(
+                            cardFeeds ?? {},
+                            {feedWithDomainID: cardList},
+                            CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
+                            feedKey,
+                            cardID,
+                        )}
+                    >
+                        <MenuItemWithTopDescription
+                            title={cardAccountDisplayName}
+                            description={getCardDescription(card as Card, translate)}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.path))}
+                            shouldShowRightIcon
+                            brickRoadIndicator={
+                                areCardsCustomExportInErrorFields(
+                                    cardFeeds ?? {},
+                                    {feedWithDomainID: cardList},
+                                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
+                                    feedKey,
+                                    cardID,
+                                )
+                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                    : undefined
+                            }
+                        />
+                    </OfflineWithFeedback>
+                );
+            })}
+        </ConnectionLayout>
     );
 }
 
-export default withPolicyConnections(RilletCompanyCardAccountPage);
+export default withPolicyConnections(RilletCardAccountCardList);
