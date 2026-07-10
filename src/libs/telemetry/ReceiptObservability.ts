@@ -34,22 +34,21 @@ type ReceiptEnqueuedParams = {
 };
 
 /**
- * Write commands whose params can carry a captured receipt. A pending request with one of these commands is a receipt
- * that has not reached the server yet. Keep this in sync with the durability slice so the two features agree on which
- * queued requests own a local receipt file.
+ * Write commands whose params carry a captured receipt at data.receipt. A pending request with one of these commands
+ * owns a local receipt file that has not reached the server yet. This is the single source of truth shared by the
+ * receipt observability logs and the sign-out gallery save, so both features agree on which queued requests own a
+ * receipt
  */
 const RECEIPT_BEARING_COMMANDS = new Set<string>([
     WRITE_COMMANDS.REQUEST_MONEY,
     WRITE_COMMANDS.TRACK_EXPENSE,
-    WRITE_COMMANDS.SPLIT_BILL,
-    WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT,
     WRITE_COMMANDS.START_SPLIT_BILL,
-    WRITE_COMMANDS.COMPLETE_SPLIT_BILL,
     WRITE_COMMANDS.REPLACE_RECEIPT,
     WRITE_COMMANDS.SEND_MONEY_ELSEWHERE,
     WRITE_COMMANDS.SEND_MONEY_WITH_WALLET,
     WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE,
     WRITE_COMMANDS.SHARE_TRACKED_EXPENSE,
+    WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY,
 ]);
 
 /** When each receipt was enqueued, keyed by transaction id, so a snapshot can report how long it has waited. */
