@@ -29,7 +29,7 @@ Onyx.connectWithoutView({
     callback: (session) => {
         // When the account is lost (sign-out / session cleared), drop any buffered updates so old-account
         // data can't ride through the anonymous-session allow-list in flushQueue() on a later signed-out deeplink.
-        // Doing it here covers every account-loss path, not just the explicit cleanupSession() call.
+        // Doing it in this SESSION listener covers every path that clears the account (sign-out, forced reauth).
         if (currentAccountID !== undefined && session?.accountID === undefined) {
             clear();
         }

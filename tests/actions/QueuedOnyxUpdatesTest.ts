@@ -273,11 +273,30 @@ describe('actions/QueuedOnyxUpdates', () => {
             await queueOnyxUpdates(oldUpdates);
             expect(isEmpty()).toBe(false);
 
-            // When the session is cleaned up on sign-out (cleanupSession() calls QueuedOnyxUpdates.clear())
+            // When clear() runs (the SESSION listener calls it whenever the account is lost)
             clear();
 
             // Then the buffer is empty, so the old-account update can never ride through the anonymous-session
             // stale-data-filter bypass in flushQueue() during a later signed-out deeplink flow.
+            expect(isEmpty()).toBe(true);
+        });
+
+        it('drops buffered updates when the SESSION account is lost', async () => {
+            // Establish an account so the listener has a defined accountID to transition away from.
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, authToken: 'token'});
+            await waitForBatchedUpdates();
+
+            const oldUpdates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+                {key: `${ONYXKEYS.COLLECTION.REPORT}9999999999999999`, value: {reportID: 'oldReport'}, onyxMethod: 'merge'},
+            ];
+            await queueOnyxUpdates(oldUpdates);
+            expect(isEmpty()).toBe(false);
+
+            // When the account is lost (sign-out / forced reauth clears SESSION), the module SESSION listener
+            // clears the buffer so stale updates can't survive into a later anonymous session.
+            await Onyx.multiSet({[ONYXKEYS.SESSION]: null});
+            await waitForBatchedUpdates();
+
             expect(isEmpty()).toBe(true);
         });
     });
