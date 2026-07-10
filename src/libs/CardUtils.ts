@@ -247,17 +247,18 @@ function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTransl
  * Returns the formatted card name for a company card. Returns an empty string
  * if the card is not a real card, but a cash expense
  */
-function getCompanyCardDescription(translate: LocalizedTranslate, transactionCardName?: string, cardID?: number, cards?: CardList) {
+function getCompanyCardDescription(translate: LocalizedTranslate, transactionCardName?: string, cardID?: number, cards?: CardList, feedCountry?: string) {
     const formattedTransactionCardName = transactionCardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : transactionCardName;
+    const card = cardID ? cards?.[cardID] : undefined;
 
-    if (!cardID || !cards?.[cardID]) {
-        return formattedTransactionCardName;
+    // feedCountry travels with the transaction, so a travel card belonging to another member (absent from the viewer's card
+    // list) still shows the localized travel name instead of the server string.
+    if (isTravelCardTransaction(feedCountry, card)) {
+        return translate('cardTransactions.travelInvoicing');
     }
 
-    const card = cards[cardID];
-
-    if (isTravelCard(card)) {
-        return translate('cardTransactions.travelInvoicing');
+    if (!card) {
+        return formattedTransactionCardName;
     }
 
     if (isExpensifyCard(card)) {
@@ -468,6 +469,29 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
             return 'workspace.card.issueNewCard.singleUse';
         default:
             return 'workspace.card.issueNewCard.smartLimit';
+    }
+}
+
+/**
+ * Maps an Expensify Card `state` to the translation key for its status label shown in the workspace Expensify Card table.
+ * `Pending order` and `Shipped` are physical-only states, so a virtual card in one of those states has no status to show.
+ * Only recognized states map to a label; any other state (bad data, or an unexpected state that slips through
+ * `filterInactiveCardsForWorkspace`) returns `undefined` so the status renders blank rather than defaulting to `Active`.
+ */
+function getTranslationKeyForCardStatus(state: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE> | undefined, isVirtual: boolean): TranslationPaths | undefined {
+    switch (state) {
+        // Pending order and Shipped are physical-only states, so a virtual card in one of them has no meaningful status to show.
+        case CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED:
+            return isVirtual ? undefined : 'workspace.expensifyCard.statusPendingOrder';
+        case CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED:
+            return isVirtual ? undefined : 'workspace.expensifyCard.statusShipped';
+        case CONST.EXPENSIFY_CARD.STATE.OPEN:
+            return 'workspace.expensifyCard.statusActive';
+        case CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED:
+            return 'workspace.expensifyCard.statusInactive';
+        // Any other state (e.g. bad data) has no status to show, so it's left blank rather than defaulting to Active.
+        default:
+            return undefined;
     }
 }
 
@@ -1745,6 +1769,15 @@ function isTravelCard(card: Card | undefined): boolean {
 }
 
 /**
+ * A transaction is on a travel card when the backend stamps its feedCountry, which travels with the transaction so the icon
+ * resolves even for another member's card that isn't in the viewer's own card list. Falls back to the card object for old
+ * cached transactions that predate the feedCountry field.
+ */
+function isTravelCardTransaction(feedCountry: string | undefined, card: Card | undefined): boolean {
+    return feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US || isTravelCard(card);
+}
+
+/**
  * Gets displayable Expensify cards, filtering out inactive cards and grouping combo cards
  * (physical + virtual pairs) so only the physical card is shown per domain.
  *
@@ -1958,6 +1991,7 @@ export {
     getCardDescription,
     getMCardNumberString,
     getTranslationKeyForLimitType,
+    getTranslationKeyForCardStatus,
     maskPin,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
@@ -1966,6 +2000,7 @@ export {
     getBankName,
     isSelectedFeedExpired,
     isTravelCard,
+    isTravelCardTransaction,
     getCompanyFeeds,
     hasCompanyCardFeeds,
     isPersonalCardBrokenConnection,
