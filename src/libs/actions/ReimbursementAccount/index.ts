@@ -46,18 +46,18 @@ function clearReimbursementAccount() {
 }
 
 /**
- * Prepares the app to set up a new bank account by clearing existing data,
- * initializing draft with country and currency, and marking the account change.
+ * Prepares the app to set up a new bank account by marking the account change, clearing existing data,
+ * and initializing draft with country and currency.
  * We need to temporarily clear this data to set up new account without disconnecting existing one
  */
 function prepareNewBankAccountSetup(currency: string) {
+    Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, true);
     clearReimbursementAccount();
     clearReimbursementAccountDraft();
     updateReimbursementAccountDraft({
         country: mapCurrencyToCountry(currency),
         currency,
     });
-    Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, true);
 }
 
 /**
