@@ -5,6 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -42,6 +43,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
         (program) => `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program}`,
     );
 
+    const [cardFeeds] = useCardFeeds(policyID);
     const {isAccordionExpanded: isExportToMultipleAccountsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateExportToMultipleAccountsAccordionSection} =
         useAccordionAnimation(exportToMultipleAccounts);
 
@@ -118,31 +120,37 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                     }
                 />
             </OfflineWithFeedback>
-            <ToggleSettingOptionRow
-                title={translate('workspace.rillet.exportToMultipleAccounts')}
-                switchAccessibilityLabel={translate('workspace.rillet.exportToMultipleAccounts')}
-                shouldPlaceSubtitleBelowSwitch
-                wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={exportToMultipleAccounts}
-                onToggle={() => policyID && updateRilletExportToMultipleAccounts(policyID, !exportToMultipleAccounts, exportToMultipleAccounts)}
-                pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS], rilletConfig?.pendingFields)}
-                errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS)}
-                onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS)}
-            />
-            <Accordion
-                isExpanded={isExportToMultipleAccountsAccordionExpanded}
-                isToggleTriggered={shouldAnimateExportToMultipleAccountsAccordionSection}
-            >
-                <OfflineWithFeedback pendingAction={settingsPendingAction(cardProgramsOfflineFeedbackKeys, rilletConfig?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        title={translate('workspace.rillet.cardProgramAccount.countInfo', cardProgramsUsingCustomAccountsCount)}
-                        description={translate('workspace.rillet.cardProgramAccount.label')}
-                        onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.getRoute(policyID)) : undefined)}
-                        shouldShowRightIcon
-                        brickRoadIndicator={areSettingsInErrorFields(cardProgramsOfflineFeedbackKeys, rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+            {Object.keys(cardFeeds ?? {}).length > 0 && (
+                <>
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.rillet.exportToMultipleAccounts')}
+                        switchAccessibilityLabel={translate('workspace.rillet.exportToMultipleAccounts')}
+                        shouldPlaceSubtitleBelowSwitch
+                        wrapperStyle={[styles.mv3, styles.mh5]}
+                        isActive={exportToMultipleAccounts}
+                        onToggle={() => policyID && updateRilletExportToMultipleAccounts(policyID, !exportToMultipleAccounts, exportToMultipleAccounts)}
+                        pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS], rilletConfig?.pendingFields)}
+                        errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS)}
+                        onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS)}
                     />
-                </OfflineWithFeedback>
-            </Accordion>
+                    <Accordion
+                        isExpanded={isExportToMultipleAccountsAccordionExpanded}
+                        isToggleTriggered={shouldAnimateExportToMultipleAccountsAccordionSection}
+                    >
+                        <OfflineWithFeedback pendingAction={settingsPendingAction(cardProgramsOfflineFeedbackKeys, rilletConfig?.pendingFields)}>
+                            <MenuItemWithTopDescription
+                                title={translate('workspace.rillet.cardProgramAccount.countInfo', cardProgramsUsingCustomAccountsCount)}
+                                description={translate('workspace.rillet.cardProgramAccount.label')}
+                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.getRoute(policyID)) : undefined)}
+                                shouldShowRightIcon
+                                brickRoadIndicator={
+                                    areSettingsInErrorFields(cardProgramsOfflineFeedbackKeys, rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
+                                }
+                            />
+                        </OfflineWithFeedback>
+                    </Accordion>
+                </>
+            )}
         </ConnectionLayout>
     );
 }
