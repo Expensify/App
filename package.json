@@ -445,7 +445,7 @@
         "expo-keep-awake"
       ],
       "android": {
-        "buildFromSource": []
+        "buildFromSource": ["expo-task-manager", "unimodules-app-loader"]
       }
     }
   },
