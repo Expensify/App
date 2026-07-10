@@ -40,21 +40,38 @@ function VictoryChartPieLabelIndicator({
 
     // The final segment must be purely horizontal, at the resolved row's height, so the line meets the
     // label text at that height instead of approaching it at an angle — which fixes the bend point's Y
-    // to resolvedLabel.y. Rather than reaching that Y by extending along the slice's own angle (which
-    // can overshoot well past the row for slices near the top/bottom seam, or land back inside the ring
-    // when the row differs enough from the slice's natural position and there isn't room left before the
-    // column), solve directly for how far out in X the bend must sit at that exact Y to clear the ring,
-    // clamped between the ring's attachment point and the label itself.
+    // to resolvedLabel.y. Solve for the X that puts that point at a safe radius from center.
     const safeRadius = slice.radius + (labelIndicatorOuterOffset ?? 0);
     const verticalOffsetFromCenter = resolvedLabel.y - slice.center.y;
     const requiredHorizontalOffset = Math.sqrt(Math.max(0, safeRadius ** 2 - verticalOffsetFromCenter ** 2));
     const ringHorizontalOffset = x1 - slice.center.x;
     const labelHorizontalOffset = resolvedLabel.x - slice.center.x;
     const bendHorizontalOffset = Math.min(Math.max(requiredHorizontalOffset, Math.abs(ringHorizontalOffset)), Math.abs(labelHorizontalOffset));
-    const bendX = slice.center.x + Math.sign(labelHorizontalOffset) * bendHorizontalOffset;
+    const bendX = Math.round(slice.center.x + Math.sign(labelHorizontalOffset) * bendHorizontalOffset);
+
+    // A straight line between two points that are each individually outside the ring can still dip
+    // inside it if they sit at sufficiently different angles (the chord bows toward center) — visible as
+    // the leader line cutting across a neighboring slice when several tiny slices sit close together with
+    // very different resolved rows. Find the closest point on the ring-to-bend segment to the center; if
+    // it would dip inside the safe radius, push that point outward onto the safe circle instead of
+    // connecting the two directly.
+    const segmentDx = bendX - x1;
+    const segmentDy = resolvedLabel.y - y1;
+    const segmentLengthSquared = segmentDx ** 2 + segmentDy ** 2;
+    const closestT = segmentLengthSquared > 0 ? Math.min(1, Math.max(0, (-(x1 - slice.center.x) * segmentDx - (y1 - slice.center.y) * segmentDy) / segmentLengthSquared)) : 0;
+    const closestX = x1 + closestT * segmentDx - slice.center.x;
+    const closestY = y1 + closestT * segmentDy - slice.center.y;
+    const closestDistance = Math.sqrt(closestX ** 2 + closestY ** 2);
+    const bulgePoint =
+        closestDistance > 0 && closestDistance < safeRadius
+            ? {x: slice.center.x + (closestX * safeRadius) / closestDistance, y: slice.center.y + (closestY * safeRadius) / closestDistance}
+            : undefined;
 
     const path = Skia.Path.Make();
     path.moveTo(x1, y1);
+    if (bulgePoint) {
+        path.lineTo(bulgePoint.x, bulgePoint.y);
+    }
     path.lineTo(bendX, resolvedLabel.y);
     path.lineTo(resolvedLabel.x, resolvedLabel.y);
 
