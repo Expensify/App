@@ -22,6 +22,8 @@ The Rspack development server now uses https. If you're using a mac, you can sim
 
 If you're using another operating system, you will need to ensure `mkcert` is installed, and then follow the instructions in the repository to generate certificates valid for `dev.new.expensify.com` and `localhost`. The certificate should be named `certificate.pem` and the key should be named `key.pem`. They should be placed in `config/rsbuild`.
 
+If you already generated certificates before the Webpack → Rsbuild migration, they're now in the wrong place (`config/webpack`, which no longer exists). Just re-run `npm run setup-https` to regenerate them in `config/rsbuild`, or move the existing files: `mv config/webpack/{key,certificate}.pem config/rsbuild/`.
+
 ## Running the Web App
 
 ### Development Server
