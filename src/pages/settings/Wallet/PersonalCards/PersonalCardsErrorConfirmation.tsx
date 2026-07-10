@@ -25,6 +25,9 @@ function PersonalCardsErrorConfirmation() {
     };
 
     const openPlaidLink = () => {
+        // Clear the previous attempt's errors, otherwise BankConnection sees them and bounces
+        // straight back to this error page without sending a new AddPersonalPlaidCard request
+        clearAddNewPersonalCardErrors();
         setAddNewPersonalCardStepAndData({
             step: CONST.PERSONAL_CARDS.STEP.PLAID_CONNECTION,
             data: {

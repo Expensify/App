@@ -19,7 +19,7 @@ import PersonalCardsErrorConfirmation from '@pages/settings/Wallet/PersonalCards
 import useGetNewPersonalCard from '@pages/settings/Wallet/PersonalCards/useGetNewPersonalCard';
 
 import {getPersonalCardBankConnection} from '@userActions/getCompanyCardBankConnection';
-import {setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
+import {clearAddNewPersonalCardErrors, setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,6 +99,8 @@ function BankConnection() {
 
     const handleBackButtonPress = () => {
         customWindow?.close();
+        // Clear the previous attempt's errors so a retry can send a new AddPersonalPlaidCard request
+        clearAddNewPersonalCardErrors();
         setAddNewPersonalCardStepAndData({step: CONST.PERSONAL_CARDS.STEP.SELECT_BANK});
     };
 
