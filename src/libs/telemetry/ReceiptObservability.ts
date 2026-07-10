@@ -15,7 +15,7 @@ const RECEIPT_LOG_PREFIX = '[Receipt]';
 type ReceiptSnapshotTrigger = 'signOut' | 'background' | 'foreground';
 
 /** How a receipt entered the app. */
-type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace';
+type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace' | 'share';
 
 /**
  * Maps the picker capture path to a source. On native the picker is the OS gallery. On web the same callback fires
