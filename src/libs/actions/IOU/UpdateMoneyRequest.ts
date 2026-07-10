@@ -917,6 +917,7 @@ type UpdateMoneyRequestDistanceParams = {
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
     delegateAccountID: number | undefined;
     personalPolicyOutputCurrency: string | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -941,6 +942,7 @@ function updateMoneyRequestDistance({
     distanceOriginalPolicy,
     delegateAccountID,
     personalPolicyOutputCurrency,
+    reportPolicyTags,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         // Don't sanitize waypoints here - keep all fields for Onyx optimistic data (e.g., keyForList)
@@ -977,8 +979,7 @@ function updateMoneyRequestDistance({
             transactionChanges,
             policy,
             policyTagList,
-            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+            reportPolicyTags,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,

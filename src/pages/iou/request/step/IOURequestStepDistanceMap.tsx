@@ -83,6 +83,7 @@ function IOURequestStepDistanceMap({
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const selfDMReport = useSelfDMReport();
@@ -366,6 +367,7 @@ function IOURequestStepDistanceMap({
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
                     delegateAccountID,
+                    reportPolicyTags,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 });
             }
@@ -404,6 +406,7 @@ function IOURequestStepDistanceMap({
         recentWaypoints,
         distanceOriginalPolicy,
         delegateAccountID,
+        reportPolicyTags,
         personalPolicy?.outputCurrency,
     ]);
 
