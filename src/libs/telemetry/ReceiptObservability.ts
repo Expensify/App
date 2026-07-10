@@ -151,6 +151,35 @@ function logReceiptEnqueued({receiptTraceId, transactionID, command, persistedQu
 }
 
 /**
+ * Records the dropped milestone: the receipt file was gone when we built the upload payload, so the request goes out
+ * without it. Logged at alert level on the [Receipt] spine so it reaches Sentry and joins the capture, submit, and
+ * enqueue lines by receiptTraceId. source and fileName are for the raw device log only; they are not whitelisted, so
+ * they never reach Sentry.
+ */
+function logReceiptDropped({
+    receiptTraceId,
+    transactionID,
+    command,
+    source,
+    fileName,
+}: {
+    receiptTraceId: string | undefined;
+    transactionID: string | undefined;
+    command: string;
+    source: string | undefined;
+    fileName: string | undefined;
+}) {
+    Log.alert(`${RECEIPT_LOG_PREFIX} dropped`, {
+        event: 'dropped',
+        receiptTraceId,
+        transactionID,
+        command,
+        source,
+        fileName,
+    });
+}
+
+/**
  * Logs one line per receipt still pending in the write queue, tagged with what triggered the snapshot. Stays quiet
  * when nothing is pending, so the normal case makes no noise. Sent right away so it survives a hard app kill from the
  * background.
@@ -204,5 +233,14 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger) {
     }
 }
 
-export {mintAndStampReceiptTraceId, logReceiptCaptured, logReceiptSubmitted, logReceiptEnqueued, logReceiptQueueSnapshot, getPickerCaptureSource, RECEIPT_BEARING_COMMANDS};
+export {
+    mintAndStampReceiptTraceId,
+    logReceiptCaptured,
+    logReceiptSubmitted,
+    logReceiptEnqueued,
+    logReceiptDropped,
+    logReceiptQueueSnapshot,
+    getPickerCaptureSource,
+    RECEIPT_BEARING_COMMANDS,
+};
 export type {ReceiptCaptureSource};
