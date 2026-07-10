@@ -666,11 +666,12 @@ function isWhisperAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
 /**
  * Checks whether the report action is a whisper targeting someone other than the current user.
  */
-function isWhisperActionTargetedToOthers(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+function isWhisperActionTargetedToOthers(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
     if (!isWhisperAction(reportAction)) {
         return false;
     }
-    return !getWhisperedTo(reportAction).includes(deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const effectiveCurrentUserAccountID = currentUserAccountID ?? deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    return !getWhisperedTo(reportAction).includes(effectiveCurrentUserAccountID);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED> {
@@ -1235,7 +1236,7 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, currentUserAccountID?: number): boolean {
     if (!reportAction) {
         return false;
     }
@@ -1275,7 +1276,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         }
     }
 
-    if (isWhisperActionTargetedToOthers(reportAction)) {
+    if (isWhisperActionTargetedToOthers(reportAction, currentUserAccountID)) {
         return false;
     }
 

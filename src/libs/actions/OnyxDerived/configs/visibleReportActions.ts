@@ -40,11 +40,12 @@ export default createOnyxDerivedValueConfig({
     // report collection to the visibility check, avoiding stale data from global connections.
     // SESSION dependency is needed for whisper targeting when user changes.
     dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.SESSION],
-    compute: ([allReportActions], {sourceValues, currentValue}): VisibleReportActionsDerivedValue => {
+    compute: ([allReportActions, session], {sourceValues, currentValue}): VisibleReportActionsDerivedValue => {
         if (!allReportActions) {
             return {};
         }
 
+        const currentUserAccountID = session?.accountID;
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
         const sessionUpdates = sourceValues?.[ONYXKEYS.SESSION];
 
@@ -71,7 +72,7 @@ export default createOnyxDerivedValueConfig({
                         if (shouldSkipCachingAction(action)) {
                             continue;
                         }
-                        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined);
+                        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, currentUserAccountID);
                     }
                 }
             }
@@ -121,7 +122,7 @@ export default createOnyxDerivedValueConfig({
                     continue;
                 }
 
-                reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined);
+                reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, currentUserAccountID);
             }
         }
 
