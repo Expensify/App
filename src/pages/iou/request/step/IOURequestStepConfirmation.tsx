@@ -285,8 +285,6 @@ function IOURequestStepConfirmation({
                           conciergeReportID,
                           reportAttributesDerived,
                           participantReportDraft,
-                          undefined,
-                          undefined,
                           currentUserPersonalDetails.accountID,
                       );
             }) ?? [],

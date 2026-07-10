@@ -1296,9 +1296,9 @@ function getReportOption(
     conciergeReportID: string | undefined,
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     reportDraft: OnyxEntry<Report>,
+    currentUserAccountID: number,
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    currentUserAccountID?: number,
 ): OptionData {
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
