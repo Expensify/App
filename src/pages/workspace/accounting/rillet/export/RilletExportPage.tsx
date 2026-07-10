@@ -1,0 +1,112 @@
+import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import Text from '@components/Text';
+
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import Navigation from '@libs/Navigation/Navigation';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
+
+function RilletExportPage({policy}: WithPolicyConnectionsProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const policyID = policy?.id;
+    const policyOwner = policy?.owner;
+    const rilletConfig = policy?.connections?.rillet?.config;
+    const rilletData = policy?.connections?.rillet?.data;
+    const exporter = rilletConfig?.export?.exporter ?? policyOwner;
+    const exportReimbursable = rilletConfig?.export?.reimbursable ?? CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL;
+    const exportDate = rilletConfig?.export?.exportDate ?? CONST.RILLET_EXPORT_DATE.LAST_EXPENSE;
+    const exportCompanyCard = rilletConfig?.export?.companyCard ?? CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
+    const defaultCompanyCardVendor = rilletData?.vendors?.find((vendor) => vendor.id === rilletConfig?.export?.defaultVendorID);
+    const companyCardAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.export?.creditCardAccountCode);
+
+    return (
+        <ConnectionLayout
+            displayName="RilletExportPage"
+            headerTitle="workspace.accounting.export"
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={styles.pb2}
+            titleStyle={styles.ph5}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
+            shouldBeBlocked
+        >
+            <View style={[styles.mv3, styles.mh5]}>
+                <Text>{translate('workspace.rillet.exportDescription')}</Text>
+            </View>
+            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.EXPORTER], rilletConfig?.pendingFields)}>
+                <MenuItemWithTopDescription
+                    title={exporter}
+                    description={translate('workspace.accounting.preferredExporter')}
+                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_PREFERRED_EXPORTER.getRoute(policyID)) : undefined)}
+                    shouldShowRightIcon
+                    brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.EXPORTER], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
+            <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
+            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.REIMBURSABLE], rilletConfig?.pendingFields)}>
+                <MenuItemWithTopDescription
+                    title={translate(`workspace.rillet.exportReimbursable.values.${exportReimbursable}.label`)}
+                    description={translate('workspace.rillet.exportReimbursable.label')}
+                    onPress={() => {}}
+                    interactive={false}
+                    brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.REIMBURSABLE], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.EXPORT_DATE], rilletConfig?.pendingFields)}>
+                <MenuItemWithTopDescription
+                    title={translate(`workspace.rillet.exportDate.values.${exportDate}.label`)}
+                    description={translate('workspace.rillet.exportDate.label')}
+                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_VENDOR_BILL_DATE.getRoute(policyID)) : undefined)}
+                    shouldShowRightIcon
+                    brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.EXPORT_DATE], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
+            <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
+            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.COMPANY_CARD], rilletConfig?.pendingFields)}>
+                <MenuItemWithTopDescription
+                    title={translate(`workspace.rillet.exportCompanyCard.values.${exportCompanyCard}.label`)}
+                    description={translate('workspace.rillet.exportCompanyCard.label')}
+                    onPress={() => {}}
+                    interactive={false}
+                    brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.COMPANY_CARD], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.DEFAULT_VENDORID], rilletConfig?.pendingFields)}>
+                <MenuItemWithTopDescription
+                    title={defaultCompanyCardVendor?.name}
+                    description={translate('workspace.rillet.defaultCompanyCardVendor.label')}
+                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_DEFAULT_COMPANY_CARD_VENDOR.getRoute(policyID)) : undefined)}
+                    shouldShowRightIcon
+                    brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.DEFAULT_VENDORID], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE], rilletConfig?.pendingFields)}>
+                <MenuItemWithTopDescription
+                    title={companyCardAccount?.name}
+                    description={translate('workspace.rillet.companyCardAccount.label')}
+                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_COMPANY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
+                    shouldShowRightIcon
+                    brickRoadIndicator={
+                        areSettingsInErrorFields([CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
+                    }
+                />
+            </OfflineWithFeedback>
+        </ConnectionLayout>
+    );
+}
+
+export default withPolicyConnections(RilletExportPage);
