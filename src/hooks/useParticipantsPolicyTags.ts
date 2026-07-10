@@ -1,5 +1,5 @@
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists} from '@src/types/onyx';
+import type {ParticipantsPolicyTags, PolicyTagLists} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -10,12 +10,12 @@ type ParticipantWithPolicyID = {
     policyID?: string;
 };
 
-function getPolicyTagsSelector(participants: ParticipantWithPolicyID[]): (allTags: OnyxCollection<PolicyTagLists>) => Record<string, PolicyTagLists> {
+function getPolicyTagsSelector(participants: ParticipantWithPolicyID[]): (allTags: OnyxCollection<PolicyTagLists>) => ParticipantsPolicyTags {
     return (allTags: OnyxCollection<PolicyTagLists>) => {
         if (!participants) {
             return {};
         }
-        return participants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
+        return participants.reduce<ParticipantsPolicyTags>((acc, participant) => {
             const key = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`;
             if (allTags?.[key] && participant.policyID) {
                 acc[participant.policyID] = allTags[key];
@@ -31,10 +31,8 @@ function getPolicyTagsSelector(participants: ParticipantWithPolicyID[]): (allTag
  * @param participants - Array of participants with optional policyID
  * @returns Record mapping policyID to PolicyTagLists
  */
-function useParticipantsPolicyTags(participants: ParticipantWithPolicyID[]): Record<string, PolicyTagLists> {
-    const [participantsPolicyTags = getEmptyObject<Record<string, PolicyTagLists>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: getPolicyTagsSelector(participants)}, [
-        participants,
-    ]);
+function useParticipantsPolicyTags(participants: ParticipantWithPolicyID[]): ParticipantsPolicyTags {
+    const [participantsPolicyTags = getEmptyObject<ParticipantsPolicyTags>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: getPolicyTagsSelector(participants)}, [participants]);
 
     return participantsPolicyTags;
 }

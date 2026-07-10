@@ -173,8 +173,8 @@ function getPolicyTags(): OnyxCollection<OnyxTypes.PolicyTagLists> {
  * TODO: remove `buildParticipantsPolicyTags` from this file (https://github.com/Expensify/App/issues/72721)
  * All usages of this function should be replaced with params passed to the functions or useOnyx hook in React components.
  */
-function buildParticipantsPolicyTags(participants: Participant[]): Record<string, OnyxTypes.PolicyTagLists> {
-    return participants.reduce<Record<string, OnyxTypes.PolicyTagLists>>((acc, participant) => {
+function buildParticipantsPolicyTags(participants: Participant[]): OnyxTypes.ParticipantsPolicyTags {
+    return participants.reduce<OnyxTypes.ParticipantsPolicyTags>((acc, participant) => {
         if (participant.policyID) {
             const tags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`];
             if (tags) {
@@ -231,6 +231,7 @@ export {
     getRecentAttendees,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildParticipantsPolicyTags,
+    // TODO: Replace buildParticipantsPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
     // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
     getPolicyTagsData,
     getPolicyTags,

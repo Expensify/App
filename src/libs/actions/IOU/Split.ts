@@ -143,7 +143,7 @@ type CreateDistanceRequestInformation = {
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
-    participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -166,7 +166,7 @@ type CreateSplitsAndOnyxDataParams = {
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     // TODO: delegateAccountID will be made required in PR 11 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
 };
@@ -193,7 +193,7 @@ type StartSplitBilActionParams = {
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 };
 
 type SplitBillActionsParams = {
@@ -228,7 +228,7 @@ type SplitBillActionsParams = {
     shouldDeferForSearch?: boolean;
     // TODO: delegateAccountID will be made required in PR 11 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
-    participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 };
 
 /**
