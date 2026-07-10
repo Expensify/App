@@ -9,10 +9,11 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, Domain, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
-import type {CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
+import type {CardFeed, CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {isAdminSelector} from '@selectors/Domain';
 
@@ -470,6 +471,30 @@ function getCombinedCardFeedsFromAllFeeds(
     }, {});
 }
 
+function getCardsUsingCustomExportAccountsPerFeedCount(
+    workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>,
+    exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
+) {
+    const cardsUsingCustomAccountsPerFeedCount: Partial<Record<CardFeed, number>> = {};
+    for (const workspaceCardList of Object.values(workspaceCardFeeds)) {
+        for (const card of Object.values(workspaceCardList ?? {})) {
+            if (typeof card.nameValuePairs !== 'object') {
+                continue;
+            }
+            if (!(exportType in card.nameValuePairs)) {
+                continue;
+            }
+            const feedKey = card.bank as CardFeed;
+            cardsUsingCustomAccountsPerFeedCount[feedKey] = (cardsUsingCustomAccountsPerFeedCount[feedKey] ?? 0) + 1;
+        }
+    }
+    return cardsUsingCustomAccountsPerFeedCount;
+}
+
+function getCardsUsingCustomExportAccountsCount(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>, exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>) {
+    return Object.values(getCardsUsingCustomExportAccountsPerFeedCount(workspaceCardFeeds, exportType)).reduce((totalCount, feedCount) => totalCount + feedCount, 0);
+}
+
 export type {CardFilterItem, CardFeedForDisplay};
 export {
     buildCardsData,
@@ -481,4 +506,6 @@ export {
     getVisibleCompanyCardFeedsForSelector,
     getCombinedCardFeedsFromAllFeeds,
     getWorkspaceCardFeedsStatus,
+    getCardsUsingCustomExportAccountsPerFeedCount,
+    getCardsUsingCustomExportAccountsCount,
 };

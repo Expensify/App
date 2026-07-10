@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getCardsUsingCustomExportAccountsPerFeedCount} from '@libs/CardFeedUtils';
 import {getCustomOrFormattedFeedName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -35,19 +36,7 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
 
-    const cardsUsingCustomAccountsPerFeedCount: Partial<Record<CardFeed, number>> = {};
-    for (const workspaceCardList of Object.values(cardList ?? {})) {
-        for (const card of Object.values(workspaceCardList ?? {})) {
-            if (typeof card.nameValuePairs !== 'object') {
-                continue;
-            }
-            if (!(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT in card.nameValuePairs)) {
-                continue;
-            }
-            const feedKey = card.bank as CardFeed;
-            cardsUsingCustomAccountsPerFeedCount[feedKey] = (cardsUsingCustomAccountsPerFeedCount[feedKey] ?? 0) + 1;
-        }
-    }
+    const cardsUsingCustomAccountsPerFeedCount = getCardsUsingCustomExportAccountsPerFeedCount(cardList ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
 
     return (
         <ConnectionLayout
