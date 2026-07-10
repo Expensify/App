@@ -472,6 +472,29 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
     }
 }
 
+/**
+ * Maps an Expensify Card `state` to the translation key for its status label shown in the workspace Expensify Card table.
+ * `Pending order` and `Shipped` are physical-only states, so a virtual card in one of those states has no status to show.
+ * Only recognized states map to a label; any other state (bad data, or an unexpected state that slips through
+ * `filterInactiveCardsForWorkspace`) returns `undefined` so the status renders blank rather than defaulting to `Active`.
+ */
+function getTranslationKeyForCardStatus(state: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE> | undefined, isVirtual: boolean): TranslationPaths | undefined {
+    switch (state) {
+        // Pending order and Shipped are physical-only states, so a virtual card in one of them has no meaningful status to show.
+        case CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED:
+            return isVirtual ? undefined : 'workspace.expensifyCard.statusPendingOrder';
+        case CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED:
+            return isVirtual ? undefined : 'workspace.expensifyCard.statusShipped';
+        case CONST.EXPENSIFY_CARD.STATE.OPEN:
+            return 'workspace.expensifyCard.statusActive';
+        case CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED:
+            return 'workspace.expensifyCard.statusInactive';
+        // Any other state (e.g. bad data) has no status to show, so it's left blank rather than defaulting to Active.
+        default:
+            return undefined;
+    }
+}
+
 function maskPin(pin: string | undefined): string {
     if (pin === undefined) {
         return '••••';
@@ -1968,6 +1991,7 @@ export {
     getCardDescription,
     getMCardNumberString,
     getTranslationKeyForLimitType,
+    getTranslationKeyForCardStatus,
     maskPin,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
