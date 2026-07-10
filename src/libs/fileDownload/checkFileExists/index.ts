@@ -12,31 +12,21 @@ function checkFileExists(path: string | undefined): Promise<boolean> {
         return Promise.resolve(false);
     }
 
-    // decodeURIComponent, not decodeURI, so reserved chars like # (%23) in filenames decode back to the on-disk name
-    let decodedPath = path;
+    // RNFS.stat expects a POSIX path, not a file:// URI.
+    const rawPath = path.startsWith('file://') ? path.slice(7) : path;
+
+    // The share extension gives a percent-encoded URI, but moveReceiptToDurableStorage builds a
+    // file:// path from the raw filename, so a literal "%23" is ambiguous. Try decoded, then raw.
+    let decodedPath: string;
     try {
-        decodedPath = decodeURIComponent(path);
-    } catch (e) {
-        // If decoding fails, use the original path
-        decodedPath = path;
+        decodedPath = decodeURIComponent(rawPath);
+    } catch {
+        decodedPath = rawPath;
     }
 
-    // RNFS.stat uses NSFileManager.attributesOfItemAtPath: which expects
-    // a POSIX path, not a file:// URI
-    if (decodedPath.startsWith('file://')) {
-        decodedPath = decodedPath.slice(7);
-    }
+    const statIsFile = (candidate: string) => RNFS.stat(candidate).then((fileStat) => fileStat.isFile());
 
-    // RNFS.stat() returns file info without loading the file content
-    return RNFS.stat(decodedPath)
-        .then((fileStat) => {
-            // File exists if we get stats and it's actually a file (not directory)
-            return fileStat.isFile();
-        })
-        .catch(() => {
-            // File doesn't exist or can't be accessed
-            return false;
-        });
+    return statIsFile(decodedPath).catch(() => (decodedPath === rawPath ? false : statIsFile(rawPath).catch(() => false)));
 }
 
 export default checkFileExists;
