@@ -1,5 +1,6 @@
 import Checkbox from '@components/Checkbox';
 import MenuItem from '@components/MenuItem';
+import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -30,12 +31,12 @@ function FieldRequirementsToggleMenuItem({fieldKey, label, direction, effectiveF
 
     const isChecked = !!effectiveForm?.[fieldKey];
     const isCouplingDisabled = isRequireFieldsFieldCouplingDisabled(fieldKey, direction, effectiveForm);
-    const isFieldDisabled = !canWriteRules || isCouplingDisabled;
+    const isReadOnly = !canWriteRules;
     const couplingTooltipKey = getRequireFieldsFieldCouplingTooltipKey(fieldKey, direction, effectiveForm);
     const couplingTooltip = couplingTooltipKey ? translate(`workspace.rules.requireFieldsRule.${couplingTooltipKey}`) : undefined;
 
     const toggleField = () => {
-        if (isFieldDisabled) {
+        if (isReadOnly || isCouplingDisabled) {
             return;
         }
 
@@ -46,11 +47,14 @@ function FieldRequirementsToggleMenuItem({fieldKey, label, direction, effectiveF
         <MenuItem
             title={label}
             onPress={toggleField}
-            disabled={isFieldDisabled}
+            disabled={isReadOnly}
             interactive={canWriteRules && !isCouplingDisabled}
             shouldGreyOutWhenDisabled={!isCouplingDisabled}
             shouldRenderTooltip={!!couplingTooltip}
-            renderTooltipContent={() => couplingTooltip}
+            renderTooltipContent={() => <Text style={[styles.productTrainingTooltipText, styles.textAlignCenter]}>{couplingTooltip}</Text>}
+            tooltipWrapperStyle={[styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper]}
+            tooltipAnchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+            shouldHideOnScroll
             shouldShowRightComponent
             rightComponent={
                 <View style={[styles.pointerEventsAuto, StyleUtils.getMenuItemIconStyle(true), styles.alignItemsEnd]}>
@@ -59,7 +63,7 @@ function FieldRequirementsToggleMenuItem({fieldKey, label, direction, effectiveF
                         onPress={toggleField}
                         accessibilityLabel={label}
                         accessible={false}
-                        disabled={isFieldDisabled}
+                        disabled={isReadOnly || isCouplingDisabled}
                     />
                 </View>
             }
@@ -67,7 +71,5 @@ function FieldRequirementsToggleMenuItem({fieldKey, label, direction, effectiveF
         />
     );
 }
-
-FieldRequirementsToggleMenuItem.displayName = 'FieldRequirementsToggleMenuItem';
 
 export default FieldRequirementsToggleMenuItem;
