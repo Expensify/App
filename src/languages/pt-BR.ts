@@ -1,13 +1,3 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
-
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
-import type {ValueOf} from 'type-fest';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -19,6 +9,16 @@ import type {ValueOf} from 'type-fest';
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
@@ -63,7 +63,6 @@ import type {
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
-
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -519,6 +518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Restrições',
         tagGLCode: 'Marcar código GL',
         off: 'Desligado',
+        noResultsFoundSubtitle: 'Nenhum resultado. Tente ajustar seus filtros ou termo de pesquisa',
         unableToDisplayChart: 'Não foi possível exibir o gráfico',
         webGLNotSupported: 'Seu navegador não é compatível com WebGL. Ative-o ou mude de navegador.',
         apiKey: 'Chave de API',
@@ -1076,6 +1076,18 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Personalize os controles e simplifique os gastos',
             setupRules: 'Configurar regras de gasto',
             inviteAccountant: 'Convide seu contador',
+            begin: 'Começar',
+            done: 'Concluído',
+            createWorkspaceSubText: 'Espaço de trabalho pronto para configuração',
+            connectAccountingSubText: 'Sincronize seu plano de contas e muito mais',
+            customizeCategoriesSubText: 'Adicione seu plano de contas',
+            inviteAccountantSubText: 'Acelere o fechamento contábil do mês',
+            linkCompanyCardsSubText: 'Importar despesas automaticamente',
+            setupRulesSubText: 'Exigir recibos, sinalizar gastos altos e muito mais',
+            needHelp: 'Precisa de ajuda?',
+            talkToConcierge: 'Falar com o Concierge',
+            talkToAccountExecutive: 'Fale com seu executivo de contas',
+            forGuidedSetup: 'para configuração guiada.',
         },
         yourSpend: {
             title: 'Seus gastos',
@@ -2193,6 +2205,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Sair',
         restoreStashed: 'Restaurar login armazenado',
         signOutConfirmationText: 'Você perderá quaisquer alterações offline se sair.',
+        saveReceiptsConfirmation: {
+            title: 'Salvar seus recibos?',
+            prompt: ({count}: {count: number}) =>
+                `${count === 1 ? 'Ainda há 1 recibo' : `Ainda há ${count} recibos`} sendo enviado. Se você sair agora, ${count === 1 ? 'nós o salvaremos' : 'nós os salvaremos'} nas suas fotos para que você possa ${count === 1 ? 'adicioná-lo' : 'adicioná-los'} a uma nova despesa mais tarde.`,
+            confirm: 'Salvar e sair',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: 'Salvar seus recibos?',
+            prompt: ({count}: {count: number}) =>
+                `${count === 1 ? 'Ainda há 1 recibo' : `Ainda há ${count} recibos`} sendo enviado. Se você sair agora, ${count === 1 ? 'nós o salvaremos' : 'nós os salvaremos'} nas suas fotos para que você possa ${count === 1 ? 'adicioná-lo' : 'adicioná-los'} a uma nova despesa mais tarde. Você perderá quaisquer outras alterações offline.`,
+            confirm: 'Salvar e sair',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leia os <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço</a> e a <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Política de Privacidade</a>.`,
         help: 'Ajuda',
@@ -2863,6 +2887,7 @@ ${amount} para ${merchant} - ${date}`,
     agentsPage: {
         title: 'Agentes',
         subtitle: `<muted-text>Agentes cuidam dos seus fluxos de trabalho para você, para que você ganhe horas de volta no seu dia. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Saiba mais</a>.</muted-text>`,
+        findAgent: 'Encontrar agente',
         newAgent: 'Novo agente',
         emptyAgents: {
             title: 'Nenhum agente criado',
@@ -4496,9 +4521,9 @@ ${amount} para ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Administrador do cartão';
+                        return 'Admin do cartão';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Admin de pessoas';
+                        return 'Administração de pessoas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Admin de pagamentos';
                     case CONST.POLICY.ROLE.USER:
@@ -4717,12 +4742,14 @@ ${amount} para ${merchant} - ${date}`,
             classes: 'Aulas',
             locations: 'Locais',
             customers: 'Clientes/projetos',
+            items: 'Itens',
             accountsDescription: 'Seu plano de contas do QuickBooks Online será importado para o Expensify como categorias.',
             accountsSwitchTitle: 'Escolha importar novas contas como categorias ativadas ou desativadas.',
             accountsSwitchDescription: 'As categorias ativadas estarão disponíveis para que os membros selecionem ao criar suas despesas.',
             classesDescription: 'Escolha como lidar com as classes do QuickBooks Online no Expensify.',
             customersDescription: 'Escolha como gerenciar clientes/projetos do QuickBooks Online no Expensify.',
             locationsDescription: 'Escolha como lidar com os locais do QuickBooks Online no Expensify.',
+            itemsDescription: 'Escolha como lidar com os itens do QuickBooks Online no Expensify.',
             taxesDescription: 'Escolha como lidar com os impostos do QuickBooks Online no Expensify.',
             locationsLineItemsRestrictionDescription:
                 'O QuickBooks Online não oferece suporte a locais no nível de linha para cheques ou contas de fornecedores. Se você quiser ter locais no nível de linha, certifique-se de usar lançamentos de diário e despesas em cartão de crédito/débito.',
@@ -5505,6 +5532,36 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             enableNewAccountsDescription: 'Novas contas Rillet estarão disponíveis como categorias.',
             dimensionsImport: 'Todas as dimensões Rillet são importadas como tags',
             importDescription: 'Escolha quais configurações de codificação importar do Rillet.',
+            noVendorsFound: 'Nenhum fornecedor encontrado',
+            noVendorsFoundDescription: 'Adicione fornecedores no Rillet e sincronize a conexão novamente',
+            noAccountsFound: 'Nenhuma conta encontrada',
+            noAccountsFoundDescription: 'Adicione contas no Rillet e sincronize a conexão novamente',
+            exportDescription: 'Configure como os dados do Expensify são exportados para o Rillet.',
+            exportReimbursable: {label: 'Exportar despesas reembolsáveis como', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Faturas de fornecedores'}}},
+            exportDate: {
+                label: 'Data da fatura do fornecedor',
+                description: 'Use esta data ao exportar relatórios para o Rillet.',
+                values: {
+                    [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Data da última despesa',
+                        description: 'Data da despesa mais recente no relatório.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Data de exportação',
+                        description: 'Data em que o relatório foi exportado para o Rillet.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Data de envio',
+                        description: 'Data em que o relatório foi enviado para aprovação.',
+                    },
+                },
+            },
+            exportCompanyCard: {label: 'Exportar despesas de cartão corporativo como', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'Cartões de crédito'}}},
+            defaultCompanyCardVendor: {
+                label: 'Fornecedor padrão do cartão corporativo',
+                description: 'Escolha um fornecedor Rillet padrão para despesas que não forem correspondidas automaticamente.',
+            },
+            companyCardAccount: {label: 'Conta de cartão corporativo', description: 'Escolha para onde exportar as transações do cartão corporativo.'},
         },
         type: {
             free: 'Grátis',
@@ -5697,6 +5754,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             newCard: 'Novo cartão',
             name: 'Nome',
             lastFour: 'Últimos 4',
+            statusPendingOrder: 'Pedido pendente',
+            statusShipped: 'Enviado',
+            statusActive: 'Ativo',
+            statusInactive: 'Inativo',
             limit: 'Limite',
             currentBalance: 'Saldo atual',
             currentBalanceDescription: 'O saldo atual é a soma de todas as transações lançadas do Cartão Expensify que ocorreram desde a última data de liquidação.',
@@ -9922,7 +9983,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renomeie suas buscas salvas</strong> aqui!</tooltip>',
-        accountSwitcher: '<tooltip>Agora você pode fazer copiloto em outra conta!</tooltip>',
+        accountSwitcher: '<tooltip>Acesse suas <strong>contas Copilot</strong> aqui</tooltip>',
         outstandingFilter: '<tooltip>Filtrar despesas\nque <strong>precisam de aprovação</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envie este recibo para\n<strong>concluir o test drive!</strong></tooltip>',
         gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',

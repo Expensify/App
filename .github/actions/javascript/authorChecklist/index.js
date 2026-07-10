@@ -16564,9 +16564,9 @@ class Buffer {
     };
     return result;
   }
-  append(str, maybeNewline) {
+  append(str, maybeNewline, ignoreMapping = false) {
     this._flush();
-    this._append(str, maybeNewline);
+    this._append(str, maybeNewline, ignoreMapping);
   }
   appendChar(char) {
     this._flush();
@@ -16612,7 +16612,7 @@ class Buffer {
       position.column = 0;
     }
   }
-  _append(str, maybeNewline) {
+  _append(str, maybeNewline, ignoreMapping) {
     const len = str.length;
     const position = this._position;
     const sourcePos = this._sourcePosition;
@@ -16625,7 +16625,7 @@ class Buffer {
     } else {
       this._str += str;
     }
-    const hasMap = this._map !== null;
+    const hasMap = !ignoreMapping && this._map !== null;
     if (!maybeNewline && !hasMap) {
       position.column += len;
       return;
@@ -16709,12 +16709,15 @@ class Buffer {
   _normalizePosition(prop, loc, columnOffset) {
     this._flush();
     const pos = loc[prop];
-    const target = this._sourcePosition;
     if (pos) {
-      target.line = pos.line;
-      target.column = Math.max(pos.column + columnOffset, 0);
-      target.filename = loc.filename;
+      this.setSourcePosition(pos.line, Math.max(pos.column + columnOffset, 0));
+      this._sourcePosition.filename = loc.filename;
     }
+  }
+  setSourcePosition(line, column) {
+    const target = this._sourcePosition;
+    target.line = line;
+    target.column = column;
   }
   getCurrentColumn() {
     return this._position.column + (this._queuedChar ? 1 : 0);
@@ -21049,7 +21052,8 @@ class Printer {
     const spacesCount = count > 0 ? column : column - this._buf.getCurrentColumn();
     if (spacesCount > 0) {
       const spaces = this._originalCode ? this._originalCode.slice(index - spacesCount, index).replace(/[^\t\x0B\f \xA0\u1680\u2000-\u200A\u202F\u205F\u3000\uFEFF]/gu, " ") : " ".repeat(spacesCount);
-      this._append(spaces, false);
+      this._buf.append(spaces, false, true);
+      this._buf.setSourcePosition(line, column);
       this.setLastChar(32);
     }
   }
@@ -21560,7 +21564,9 @@ class SourceMap {
           line,
           column: column
         });
-        if (!originalMapping.name && identifierNamePos) {
+        if (originalMapping.name && (identifierNamePos || identifierName != null && originalMapping.column === column)) {
+          identifierName = originalMapping.name;
+        } else if (identifierNamePos) {
           const originalIdentifierMapping = (0, _traceMapping.originalPositionFor)(this._inputMap, identifierNamePos);
           if (originalIdentifierMapping.name) {
             identifierName = originalIdentifierMapping.name;
@@ -24234,7 +24240,7 @@ var flow = superClass => class FlowParserMixin extends superClass {
   }
   flowParseDeclareVariable(node) {
     this.next();
-    node.id = this.flowParseTypeAnnotatableIdentifier(true);
+    node.id = this.flowParseTypeAnnotatableIdentifier();
     this.scope.declareName(node.id.name, 5, node.id.loc.start);
     this.semicolon();
     return this.finishNode(node, "DeclareVariable");
@@ -24408,9 +24414,14 @@ var flow = superClass => class FlowParserMixin extends superClass {
       reservedType: word
     });
   }
-  flowParseRestrictedIdentifier(liberal, declaration) {
+  flowParseRestrictedIdentifierName(liberal, declaration) {
     this.checkReservedType(this.state.value, this.state.startLoc, declaration);
-    return this.parseIdentifier(liberal);
+    return this.parseIdentifierName(liberal);
+  }
+  flowParseRestrictedIdentifier(liberal, declaration) {
+    const node = this.startNode();
+    const name = this.flowParseRestrictedIdentifierName(liberal, declaration);
+    return this.createIdentifier(node, name);
   }
   flowParseTypeAlias(node) {
     node.id = this.flowParseRestrictedIdentifier(false, true);
@@ -24444,14 +24455,21 @@ var flow = superClass => class FlowParserMixin extends superClass {
     this.semicolon();
     return this.finishNode(node, "OpaqueType");
   }
+  flowParseTypeParameterBound() {
+    if (this.match(14) || this.isContextual(81)) {
+      const node = this.startNode();
+      this.next();
+      node.typeAnnotation = this.flowParseType();
+      return this.finishNode(node, "TypeAnnotation");
+    }
+  }
   flowParseTypeParameter(requireDefault = false) {
     const nodeStartLoc = this.state.startLoc;
     const node = this.startNode();
     const variance = this.flowParseVariance();
-    const ident = this.flowParseTypeAnnotatableIdentifier();
-    node.name = ident.name;
+    node.name = this.flowParseRestrictedIdentifierName();
     node.variance = variance;
-    node.bound = ident.typeAnnotation;
+    node.bound = this.flowParseTypeParameterBound();
     if (this.match(29)) {
       this.eat(29);
       node.default = this.flowParseType();
@@ -25148,13 +25166,13 @@ var flow = superClass => class FlowParserMixin extends superClass {
     node.typeAnnotation = this.flowParseTypeInitialiser();
     return this.finishNode(node, "TypeAnnotation");
   }
-  flowParseTypeAnnotatableIdentifier(allowPrimitiveOverride) {
-    const ident = allowPrimitiveOverride ? this.parseIdentifier() : this.flowParseRestrictedIdentifier();
+  flowParseTypeAnnotatableIdentifier() {
+    const node = this.startNode();
+    const name = this.parseIdentifierName();
     if (this.match(14)) {
-      ident.typeAnnotation = this.flowParseTypeAnnotation();
-      this.resetEndLocation(ident);
+      node.typeAnnotation = this.flowParseTypeAnnotation();
     }
-    return ident;
+    return this.createIdentifier(node, name);
   }
   typeCastToParameter(node) {
     node.expression.typeAnnotation = node.typeAnnotation;
@@ -27381,6 +27399,7 @@ class CommentsParser extends BaseParser {
             adjustInnerComments(node, node.properties, commentWS);
             break;
           case "CallExpression":
+          case "NewExpression":
           case "OptionalCallExpression":
             adjustInnerComments(node, node.arguments, commentWS);
             break;
@@ -27393,6 +27412,7 @@ class CommentsParser extends BaseParser {
           case "ObjectMethod":
           case "ClassMethod":
           case "ClassPrivateMethod":
+          case "TSTypeParameterDeclaration":
             adjustInnerComments(node, node.params, commentWS);
             break;
           case "ArrayExpression":
@@ -27408,6 +27428,9 @@ class CommentsParser extends BaseParser {
             break;
           case "TSEnumBody":
             adjustInnerComments(node, node.members, commentWS);
+            break;
+          case "TSInterfaceBody":
+            adjustInnerComments(node, node.body, commentWS);
             break;
           default:
             {
@@ -33711,7 +33734,7 @@ class ExpressionParser extends LValParser {
               this.next();
               return this.parseAsyncFunctionExpression(this.startNodeAtNode(id));
             } else if (tokenIsIdentifier(type)) {
-              if (this.lookaheadCharCode() === 61) {
+              if (canBeArrow && this.lookaheadCharCode() === 61) {
                 return this.parseAsyncArrowUnaryFunction(this.startNodeAtNode(id));
               } else {
                 return id;
@@ -43537,7 +43560,7 @@ function verify$1(visitor) {
     }
     if (shouldIgnoreKey(nodeType)) continue;
     if (!TYPES.includes(nodeType)) {
-      throw new Error(`You gave us a visitor for the node type ${nodeType} but it's not a valid type in @babel/traverse ${"7.29.0"}`);
+      throw new Error(`You gave us a visitor for the node type ${nodeType} but it's not a valid type in @babel/traverse ${"7.29.7"}`);
     }
     const visitors = visitor[nodeType];
     if (typeof visitors === "object") {

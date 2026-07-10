@@ -17,8 +17,10 @@ import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {getSaveablePendingReceiptRequests, saveReceiptsToGallery} from '@libs/savePendingReceiptsToGallery';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
@@ -108,6 +110,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: PersonalDeta
         'Lightbulb',
         'Lock',
         'Users',
+        'Emoji',
         'CreditCard',
         'Wallet',
         'Bolt',
@@ -186,12 +189,8 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: PersonalDeta
     const confirmModalPrompt = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.prompt') : translate('initialSettingsPage.signOutConfirmationText');
     const confirmModalConfirmText = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.confirm') : translate('initialSettingsPage.signOut');
 
-    const signOut = async (shouldForceSignout = false) => {
-        if ((!network.isOffline && !isTrackingGPS) || shouldForceSignout) {
-            return signOutAndRedirectToSignIn();
-        }
-
-        const result = await showConfirmModal({
+    const showSignOutModal = () => {
+        return showConfirmModal({
             title: confirmModalTitle,
             prompt: confirmModalPrompt,
             confirmText: confirmModalConfirmText,
@@ -199,9 +198,83 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: PersonalDeta
             shouldShowCancelButton: true,
             danger: true,
         });
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
+    };
+
+    const showSaveReceiptsModal = (pendingReceiptCount: number) => {
+        return showConfirmModal({
+            title: translate('initialSettingsPage.saveReceiptsConfirmation.title'),
+            prompt: translate('initialSettingsPage.saveReceiptsConfirmation.prompt', {
+                count: pendingReceiptCount,
+            }),
+            confirmText: translate('initialSettingsPage.saveReceiptsConfirmation.confirm'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+        });
+    };
+
+    // Combined modal for the offline case: warns about losing offline changes and offers to save the pending receipts, so the user is not shown two back-to-back prompts.
+    const showSaveReceiptsAndSignOutModal = (pendingReceiptCount: number) => {
+        return showConfirmModal({
+            title: translate('initialSettingsPage.saveReceiptsAndSignOutConfirmation.title'),
+            prompt: translate('initialSettingsPage.saveReceiptsAndSignOutConfirmation.prompt', {
+                count: pendingReceiptCount,
+            }),
+            confirmText: translate('initialSettingsPage.saveReceiptsAndSignOutConfirmation.confirm'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+    };
+
+    // Save must complete before the forced-signout branch dispatches `Onyx.clear`, which wipes the persisted queue that holds these local file paths.
+    const saveReceipts = async (saveableReceipts: ReturnType<typeof getSaveablePendingReceiptRequests>) => {
+        try {
+            const {savedCount, failedCount} = await saveReceiptsToGallery(saveableReceipts);
+            Log.info('[Receipt] Saved pending receipts to gallery before sign-out', false, {savedCount, failedCount});
+        } catch (error) {
+            Log.alert('[Receipt] Unexpected rejection from saveReceiptsToGallery; sign-out continued', {error});
         }
+    };
+
+    const signOut = async (shouldForceSignout = false) => {
+        // Forced sign-out (expired session, SAML re-auth) must be non-interactive: it must not touch the gallery flow, which can trigger OS permission prompts and delay the redirect.
+        if (shouldForceSignout) {
+            return signOutAndRedirectToSignIn();
+        }
+
+        // `getSaveablePendingReceiptRequests` is platform-split (web returns `[]`) and image-filtered so we do not promise a save the native gallery API can not deliver.
+        const saveableReceipts = getSaveablePendingReceiptRequests();
+        const shouldWarnBeforeSignOut = network.isOffline || isTrackingGPS;
+        // Offline + receipts is the common case; merge the offline warning and the save-receipts prompt into a single modal. GPS keeps its own warning, so it falls through to the two-step path below.
+        const isOfflineReceiptsCase = network.isOffline && !isTrackingGPS && saveableReceipts.length > 0;
+
+        if (!shouldWarnBeforeSignOut && saveableReceipts.length === 0) {
+            return signOutAndRedirectToSignIn();
+        }
+
+        if (isOfflineReceiptsCase) {
+            const result = await showSaveReceiptsAndSignOutModal(saveableReceipts.length);
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            await saveReceipts(saveableReceipts);
+        } else {
+            if (shouldWarnBeforeSignOut) {
+                const result = await showSignOutModal();
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+            }
+
+            if (saveableReceipts.length > 0) {
+                const result = await showSaveReceiptsModal(saveableReceipts.length);
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                await saveReceipts(saveableReceipts);
+            }
+        }
+
         if (isTrackingGPS) {
             stopGpsTripNotification();
             stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));

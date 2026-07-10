@@ -1,27 +1,36 @@
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
+import Icon from '@components/Icon';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
+import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
+import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import variables from '@styles/variables';
 
 import {openInitialSettingsPage} from '@userActions/Wallet';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 // eslint-disable-next-line no-restricted-imports
@@ -47,7 +56,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {isExecuting, singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
+    const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
+    const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['Emoji']);
     const {accountMenuItemsData: accountMenuItemsDataFromHook, generalMenuItemsData: generalMenuItemsDataFromHook} = useInitialSettingsPageMenuData(currentUserPersonalDetails);
     const accountMenuItemsData: Menu = {
         ...accountMenuItemsDataFromHook,
@@ -114,8 +126,32 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     reasonAttributes={skeletonReasonAttributes}
                 />
             ) : (
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
                     <AccountSwitcher isScreenFocused={isScreenFocused} />
+                    <Tooltip text={translate('statusPage.status')}>
+                        <PressableWithFeedback
+                            accessibilityLabel={
+                                emojiCode ? `${translate('statusPage.status')}: ${emojiCode}` : `${translate('statusPage.status')}, ${translate('emojiPicker.emojiNotSelected')}`
+                            }
+                            accessibilityRole="button"
+                            accessible
+                            sentryLabel={CONST.SENTRY_LABEL.ACCOUNT.STATUS_PICKER}
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
+                        >
+                            <View style={styles.primaryMediumIcon}>
+                                {emojiCode ? (
+                                    <Text style={styles.primaryMediumText}>{emojiCode}</Text>
+                                ) : (
+                                    <Icon
+                                        src={icons.Emoji}
+                                        width={variables.iconSizeNormal}
+                                        height={variables.iconSizeNormal}
+                                        fill={theme.icon}
+                                    />
+                                )}
+                            </View>
+                        </PressableWithFeedback>
+                    </Tooltip>
                 </View>
             )}
         </View>
