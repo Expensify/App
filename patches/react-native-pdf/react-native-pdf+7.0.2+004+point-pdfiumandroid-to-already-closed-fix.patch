@@ -17,6 +17,6 @@ index 7a70e6e..0e94f9c 100644
 +    implementation('com.github.zacharee:AndroidPdfViewer:4.0.1') {
 +        exclude group: 'io.legere', module: 'pdfiumandroid'
 +    }
-+    implementation 'com.github.wildan-m:PdfiumAndroidKt:1.0.35-already-closed-fix.3'
++    implementation 'com.github.Expensify:PdfiumAndroidKt:e6c06c2905d1adf8b76f28c7440a2006033ca4c8'
      implementation 'com.google.code.gson:gson:2.13.2'
  }
