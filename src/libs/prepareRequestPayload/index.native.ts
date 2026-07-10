@@ -3,6 +3,8 @@ import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import {logReceiptDropped} from '@libs/telemetry/ReceiptObservability';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 
+import type {Receipt} from '@src/types/onyx/Transaction';
+
 import type PrepareRequestPayload from './types';
 
 /**
@@ -22,7 +24,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
             }
 
             if (key === 'receipt') {
-                const {source, name, type, uri, receiptTraceId} = value as File & {receiptTraceId?: string};
+                const {source, name, type, uri, receiptTraceId} = value as File & Pick<Receipt, 'receiptTraceId'>;
                 if (source) {
                     return checkFileExists(source).then((exists) => {
                         if (!exists) {

@@ -132,6 +132,34 @@ function createDraftTransaction(): Transaction {
     } as Transaction;
 }
 
+// Seed the shared Onyx state both tests drive: a chat report, a draft transaction, and the shared file.
+async function seedShareState() {
+    await act(async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SHARED_REPORT_ID}`, createTestReport());
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, createDraftTransaction());
+        await Onyx.merge(ONYXKEYS.SHARE_TEMP_FILE, {content: 'file://shared.jpg', mimeType: 'image/jpeg'});
+        // Recent prompt timestamp skips the location-permission modal so onConfirm goes straight to performUpload → finishRequestAndNavigate.
+        await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [PARTICIPANT_ACCOUNT_ID]: {accountID: PARTICIPANT_ACCOUNT_ID, login: 'participant@example.com', displayName: 'Participant'},
+        });
+    });
+}
+
+// Render the page and press the mocked confirm button, which is the single entry point both tests exercise.
+async function renderAndConfirm() {
+    render(
+        <SubmitDetailsPage
+            // @ts-expect-error minimal route for test
+            route={{key: 'submit-test', name: 'Share_Submit_Details', params: {reportOrAccountID: SHARED_REPORT_ID}}}
+            navigation={{} as never}
+        />,
+    );
+    await waitForBatchedUpdatesWithAct();
+    fireEvent.press(screen.getByTestId('mock-confirm-button'));
+    await waitForBatchedUpdatesWithAct();
+}
+
 describe('SubmitDetailsPage', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
@@ -141,32 +169,11 @@ describe('SubmitDetailsPage', () => {
         jest.clearAllMocks();
         await Onyx.clear();
         await waitForBatchedUpdates();
+        await seedShareState();
     });
 
     it('threads the same optimisticTransactionID into requestMoney AND cleanupAndNavigateAfterExpenseCreate (V8 contract)', async () => {
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SHARED_REPORT_ID}`, createTestReport());
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, createDraftTransaction());
-            await Onyx.merge(ONYXKEYS.SHARE_TEMP_FILE, {content: 'file://shared.jpg', mimeType: 'image/jpeg'});
-            // Recent prompt timestamp skips the location-permission modal so onConfirm goes straight to performUpload → finishRequestAndNavigate.
-            await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [PARTICIPANT_ACCOUNT_ID]: {accountID: PARTICIPANT_ACCOUNT_ID, login: 'participant@example.com', displayName: 'Participant'},
-            });
-        });
-
-        render(
-            <SubmitDetailsPage
-                // @ts-expect-error minimal route for test
-                route={{key: 'submit-test', name: 'Share_Submit_Details', params: {reportOrAccountID: SHARED_REPORT_ID}}}
-                navigation={{} as never}
-            />,
-        );
-
-        await waitForBatchedUpdatesWithAct();
-
-        fireEvent.press(screen.getByTestId('mock-confirm-button'));
-        await waitForBatchedUpdatesWithAct();
+        await renderAndConfirm();
 
         // A regular chat (not self-DM) routes to requestMoney.
         const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0];
@@ -181,36 +188,9 @@ describe('SubmitDetailsPage', () => {
     });
 
     it('stamps the shared receipt with a trace id and logs the capture and submit milestones with source share', async () => {
-        // Capture each [Receipt] log line into a typed list so assertions never have to cast mock.calls.
-        const receiptLogs: Array<{message: string; params: Record<string, unknown>}> = [];
-        const logInfoSpy = jest.spyOn(Log, 'info').mockImplementation((message, _sendNow, params) => {
-            if (message.includes('[Receipt]') && !!params && typeof params === 'object' && !Array.isArray(params) && !(params instanceof Error)) {
-                receiptLogs.push({message, params});
-            }
-        });
+        const logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
 
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SHARED_REPORT_ID}`, createTestReport());
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, createDraftTransaction());
-            await Onyx.merge(ONYXKEYS.SHARE_TEMP_FILE, {content: 'file://shared.jpg', mimeType: 'image/jpeg'});
-            await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [PARTICIPANT_ACCOUNT_ID]: {accountID: PARTICIPANT_ACCOUNT_ID, login: 'participant@example.com', displayName: 'Participant'},
-            });
-        });
-
-        render(
-            <SubmitDetailsPage
-                // @ts-expect-error minimal route for test
-                route={{key: 'submit-test', name: 'Share_Submit_Details', params: {reportOrAccountID: SHARED_REPORT_ID}}}
-                navigation={{} as never}
-            />,
-        );
-
-        await waitForBatchedUpdatesWithAct();
-
-        fireEvent.press(screen.getByTestId('mock-confirm-button'));
-        await waitForBatchedUpdatesWithAct();
+        await renderAndConfirm();
 
         // The trace id minted at capture travels into the request receipt, so the enqueued and snapshot logs can join back to the capture log.
         const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0];
@@ -218,14 +198,15 @@ describe('SubmitDetailsPage', () => {
         expect(typeof receiptTraceId).toBe('string');
         expect(receiptTraceId).toBeTruthy();
 
+        // Each [Receipt] milestone carries its `event` in the params (Log.info's 3rd arg), so find by event.
+        const receiptMilestone = (event: string) =>
+            logInfoSpy.mock.calls.map((call) => call[2]).find((params) => typeof params === 'object' && params !== null && 'event' in params && params.event === event);
+
         // The capture milestone fires for the share entry point.
-        const captured = receiptLogs.find((line) => line.params.event === 'captured');
-        expect(captured?.params).toMatchObject({event: 'captured', captureSource: 'share', receiptTraceId});
+        expect(receiptMilestone('captured')).toMatchObject({captureSource: 'share', receiptTraceId});
 
         // The submit milestone maps the fixed draft id to the final transaction id.
-        const submitted = receiptLogs.find((line) => line.params.event === 'submitted');
-        expect(submitted?.params).toMatchObject({
-            event: 'submitted',
+        expect(receiptMilestone('submitted')).toMatchObject({
             receiptTraceId,
             draftTransactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
             transactionID: requestMoneyArg?.optimisticTransactionID,
