@@ -257,6 +257,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         translate,
     ]);
 
+    // Restore the persisted Onyx search phrase into the table's internal search state when returning to this screen.
     useEffect(() => {
         if (!isFocusedScreen || members.length === 0 || isLoading) {
             return;
@@ -272,6 +273,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         tableRef.current?.updateSearchString(phrase);
     }, [isFocusedScreen, isLoading, members.length, userSearchPhrase]);
 
+    // Clear the persisted phrase when the room has no members left. This is page-level state, not table search middleware.
     useEffect(() => {
         if (!isFocusedScreen) {
             return;

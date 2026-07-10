@@ -209,10 +209,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         ...filterMethods,
         ...sortMethods,
         ...searchMethods,
-        updateSearchString: (value: string) => {
-            searchMethods.updateSearchString(value);
-            onSearchStringChange?.(value);
-        },
         ...selectionMethods,
         ...highlightingMethods,
     };
@@ -269,6 +265,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         selectionEnabled,
         shouldEnableSelectionInNarrowPaneModal,
         isMobileSelectionEnabled,
+        onSearchStringChange,
     };
 
     return (
