@@ -64,7 +64,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, true);
-    const bankAccountConnectedToWorkspace = Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount?.accountData?.additionalData?.policyID === policyID);
+    const bankAccountConnectedToWorkspace = policyID ? Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount?.accountData?.policyIDs?.includes(policyID)) : undefined;
     const bankAccountState = bankAccountConnectedToWorkspace?.accountData?.state ?? '';
     const pendingAction = reimbursementAccount?.pendingAction;
 
