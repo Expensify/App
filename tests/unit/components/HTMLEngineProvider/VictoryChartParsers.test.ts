@@ -3,7 +3,7 @@ import parseVictoryAxisNode from '@components/HTMLEngineProvider/HTMLRenderers/V
 import parseVictoryLegendNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryLegendParser';
 import parseVictoryPieNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryPieParser';
 import parseVictorySeriesNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victorySeriesParser';
-import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {CartesianChartData, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import adjustHorizontalChartPadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/adjustHorizontalChartPadding';
 import adjustVerticalChartPadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/adjustVerticalChartPadding';
 
@@ -81,12 +81,16 @@ describe('victorySeriesParser', () => {
             categories: ['Alpha', 'Beta', 'Gamma'],
         });
         const yKey = result.yKeys?.at(0);
-        const points = Object.values(result.data ?? {});
-        expect(points).toHaveLength(3);
         expect(yKey).toBeDefined();
-        expect(points.find((point) => point[yKey as keyof typeof point] === 2)?.x).toBe(10);
-        expect(points.find((point) => point[yKey as keyof typeof point] === 1)?.x).toBe(20);
-        expect(points.find((point) => point[yKey as keyof typeof point] === 0)?.x).toBe(30);
+        if (!yKey) {
+            return;
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- victorybar parser always produces cartesian chart points
+        const points = Object.values(result.data ?? {}) as CartesianChartData[];
+        expect(points).toHaveLength(3);
+        expect(points.find((point) => point[yKey] === 2)?.x).toBe(10);
+        expect(points.find((point) => point[yKey] === 1)?.x).toBe(20);
+        expect(points.find((point) => point[yKey] === 0)?.x).toBe(30);
     });
 });
 
