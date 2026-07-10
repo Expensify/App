@@ -3,10 +3,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -18,7 +20,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
-import {openSecuritySettingsPage} from '@libs/actions/Delegate';
+import {deleteAgent} from '@libs/actions/Agent';
+import {disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import {hasDeviceManagementError} from '@libs/UserUtils';
@@ -60,15 +63,24 @@ function SecuritySettingsPage() {
     useDocumentTitle(translate('initialSettingsPage.security'));
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
+    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
+    const {showConfirmModal} = useConfirmModal();
 
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isAgentAccount = useIsAgentAccount();
+
+    // "Copiloting into an agent" means we're acting as a delegate for an agent account. In this mode the
+    // account being managed is the agent itself, so device management and merge accounts don't apply, and
+    // "close account" should delete the agent and end the copilot session instead of closing a real account.
+    const isCopilotingIntoAgent = isAgentAccount && isActingAsDelegate;
 
     const hasEverRegisteredForMultifactorAuthentication = account?.multifactorAuthenticationPublicKeyIDs !== CONST.MULTIFACTOR_AUTHENTICATION.PUBLIC_KEYS_AUTHENTICATION_NEVER_REGISTERED;
 
@@ -110,25 +122,28 @@ function SecuritySettingsPage() {
             });
         }
 
-        baseMenuItems.push({
-            translationKey: 'mergeAccountsPage.mergeAccount',
-            icon: icons.ArrowCollapse,
-            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_ACCOUNTS,
-            action: () => {
-                if (isAccountLocked) {
-                    showLockedAccountModal();
-                    return;
-                }
-                if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.INVOICING) {
-                    Navigation.navigate(
-                        ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
-                    );
-                    return;
-                }
+        // Merging accounts doesn't apply to agent accounts, so hide it when copiloting into an agent.
+        if (!isCopilotingIntoAgent) {
+            baseMenuItems.push({
+                translationKey: 'mergeAccountsPage.mergeAccount',
+                icon: icons.ArrowCollapse,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_ACCOUNTS,
+                action: () => {
+                    if (isAccountLocked) {
+                        showLockedAccountModal();
+                        return;
+                    }
+                    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.INVOICING) {
+                        Navigation.navigate(
+                            ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
+                        );
+                        return;
+                    }
 
-                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
-            },
-        });
+                    Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
+                },
+            });
+        }
 
         if (isAccountLocked) {
             baseMenuItems.push({
@@ -146,22 +161,42 @@ function SecuritySettingsPage() {
             });
         }
 
-        const deviceManagementBrickRoadIndicator = hasDeviceManagementErrorValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-        baseMenuItems.push({
-            translationKey: 'deviceManagementPage.title',
-            icon: icons.Monitor,
-            brickRoadIndicator: deviceManagementBrickRoadIndicator,
-            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DEVICE_MANAGEMENT,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_DEVICE_MANAGEMENT),
-        });
+        // Device management applies to a real user's own logged-in devices, not to an agent, so hide it when copiloting into an agent.
+        if (!isCopilotingIntoAgent) {
+            const deviceManagementBrickRoadIndicator = hasDeviceManagementErrorValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+            baseMenuItems.push({
+                translationKey: 'deviceManagementPage.title',
+                icon: icons.Monitor,
+                brickRoadIndicator: deviceManagementBrickRoadIndicator,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DEVICE_MANAGEMENT,
+                action: () => Navigation.navigate(ROUTES.SETTINGS_DEVICE_MANAGEMENT),
+            });
+        }
 
         baseMenuItems.push({
             translationKey: 'closeAccountPage.closeAccount',
             icon: icons.ClosedSign,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.CLOSE_ACCOUNT,
-            action: () => {
+            action: async () => {
                 if (isAccountLocked) {
                     showLockedAccountModal();
+                    return;
+                }
+                // When copiloting into an agent, "close account" deletes the agent and ends the copilot session
+                // instead of running the usual close-account flow (which targets a real user's account).
+                if (isCopilotingIntoAgent) {
+                    const result = await showConfirmModal({
+                        title: translate('editAgentPage.deleteAgentTitle'),
+                        prompt: translate('editAgentPage.deleteAgentMessage'),
+                        confirmText: translate('common.delete'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    });
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    deleteAgent(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, undefined, undefined, false);
+                    disconnect({stashedCredentials, stashedSession});
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_CLOSE);
@@ -188,9 +223,14 @@ function SecuritySettingsPage() {
         isAccountLocked,
         isActingAsDelegate,
         isAgentAccount,
+        isCopilotingIntoAgent,
         getTwoFactorAuthRoute,
         showDelegateNoAccessModal,
         showLockedAccountModal,
+        showConfirmModal,
+        session?.accountID,
+        stashedCredentials,
+        stashedSession,
         privateSubscription?.type,
         currentUserPersonalDetails.login,
         waitForNavigate,
