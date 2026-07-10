@@ -49,13 +49,13 @@ The subscription options available for your Workspace depend on its plan.
 
 A Workspace's plan and its owner's subscription together determine how that Workspace is billed.
 
-**Note:** If your organization's first Workspace was created before April 1, 2025, you may still have a legacy Collect Annual subscription. For more information, see [Understand legacy Collect pricing](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Learn-About-Plan-and-Subscription-Management#understand-legacy-collect-pricing).
+**Note:** If your organization's first Workspace was created before April 1, 2025, you may still have a legacy Collect Annual subscription. For more information, see [Understand legacy Collect pricing](docs/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing#how-legacy-collect-pricing-works).
 
 ---
 
 ## Related articles
 
-- [Learn About Plan and Subscription Management](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Learn-About-Plan-and-Subscription-Management)
+- [Learn About Plan and Subscription Management](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Learn-About-Plan-and-Subscription-Management)
 
 ---
 
