@@ -20,6 +20,7 @@ const FIXTURE_EXPECTED_SIZES = new Map<string, {width: number; height: number}>(
     ['top-categories-6-label-indicators', {width: 680, height: 530}],
     ['top-categories-10', {width: 680, height: 610}],
     ['top-categories-crowded-slices', {width: 680, height: 530}],
+    ['top-categories-single-slice', {width: 680, height: 530}],
     ['top-employees-by-spend', {width: 680, height: 464}],
     ['top-employees-by-spend-truncated-labels', {width: 680, height: 464}],
 ]);

@@ -106,6 +106,7 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
                                         x: slice.center.x + resolvedLabel.relativeX,
                                         y: slice.center.y + resolvedLabel.relativeY,
                                         textAnchor: resolvedLabel.textAnchor,
+                                        midAngle: resolvedLabel.midAngle,
                                     }}
                                     labelIndicatorXShift={labelIndicatorXShift}
                                     labelIndicatorYShift={labelIndicatorYShift}

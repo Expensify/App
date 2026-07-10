@@ -71,6 +71,15 @@ describe('computeSliceAngles', () => {
         expect(['left', 'right']).toContain(assignColumnSide(midAngle));
     });
 
+    it('anchors a single 100%-value slice to 3 o’clock instead of diametrically opposite the seam', () => {
+        // Regression test: a full-circle slice's start and end angle are the same point, so the naive
+        // (start + end) / 2 "midpoint" used for every other slice lands at the bottom of the ring
+        // (opposite this codebase's 12-o'clock start angle) — an unhelpful spot for the only label.
+        const slices = computeSliceAngles([{label: 'Only', value: 100}], START_ANGLE);
+
+        expect(slices.at(0)?.midAngle).toBe(0);
+    });
+
     it('produces a definite side for every real category in the 10-slice production fixture', () => {
         const slices = computeSliceAngles(TOP_CATEGORIES_10_VALUES, START_ANGLE);
 
@@ -189,12 +198,17 @@ describe('computePieLabelLayout', () => {
         expect(result.LeftSide.textAnchor).toBe('end');
     });
 
-    it('resolves a single 100%-value slice within bounds', () => {
+    it('resolves a single 100%-value slice within bounds, vertically centered rather than at the bottom', () => {
         const slices = computeSliceAngles([{label: 'Only', value: 100}], START_ANGLE);
         const result = computePieLabelLayout({slices, rowHeight: 20, labelRadius: 100, plotBounds: WIDE_BOUNDS});
 
         expect(result.Only.relativeY).toBeGreaterThanOrEqual(WIDE_BOUNDS.top);
         expect(result.Only.relativeY).toBeLessThanOrEqual(WIDE_BOUNDS.bottom);
+        expect(result.Only.relativeY).toBeCloseTo(0);
+        // The indicator line anchors to this same midAngle (not its own `(startAngle + endAngle) / 2`),
+        // so it must match the slice's overridden angle exactly, not just produce a safe Y position.
+        expect(result.Only.midAngle).toBe(0);
+        expect(result.Only.relativeX).toBe(100);
     });
 
     it('resolves every category in the real 10-slice production fixture without collisions or NaN', () => {

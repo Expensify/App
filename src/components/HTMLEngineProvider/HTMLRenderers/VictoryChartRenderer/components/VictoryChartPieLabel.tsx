@@ -12,6 +12,7 @@ type ResolvedPieLabel = {
     x: number;
     y: number;
     textAnchor: TextAnchor;
+    midAngle: number;
 };
 
 type VictoryChartPieLabelProps = {

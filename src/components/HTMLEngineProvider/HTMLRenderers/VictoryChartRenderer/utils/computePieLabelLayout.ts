@@ -33,6 +33,8 @@ type ResolvedPieLabelLayout = {
     relativeX: number;
     relativeY: number;
     textAnchor: TextAnchor;
+    /** The angle actually used for this slice's layout — may differ from `(startAngle + endAngle) / 2` for a single 100%-value slice (see `computeSliceAngles`). The indicator line must anchor to this same angle, not recompute its own from `slice.startAngle`/`slice.endAngle`, or the two would disagree. */
+    midAngle: number;
 };
 
 /**
@@ -41,6 +43,15 @@ type ResolvedPieLabelLayout = {
  * required to resolve label collisions across the whole set before any slice renders.
  */
 function computeSliceAngles(values: PieSliceValue[], startAngle: number): PieSliceAngle[] {
+    const onlyValue = values.length === 1 ? values.at(0) : undefined;
+    if (onlyValue) {
+        // A single slice fills the whole ring, so its start and end angle are the same point — the
+        // "midpoint" of that 360° sweep is diametrically opposite wherever the ring's seam happens to
+        // sit (the bottom, given this codebase's start angle), not a place a reader would expect a
+        // label. Anchor it to a fixed, always-safe spot instead: 3 o'clock, vertically centered.
+        return [{label: onlyValue.label, midAngle: 0}];
+    }
+
     const totalValue = values.reduce((sum, entry) => sum + entry.value, 0);
     let cursorDegrees = startAngle;
 
@@ -130,10 +141,10 @@ function computePieLabelLayout({
     labelRadius: number;
     plotBounds: PlotBounds;
 }): Record<string, ResolvedPieLabelLayout> {
-    const bySide: Record<PieLabelSide, Array<{label: string; naturalY: number}>> = {left: [], right: []};
+    const bySide: Record<PieLabelSide, Array<{label: string; naturalY: number; midAngle: number}>> = {left: [], right: []};
 
     for (const slice of slices) {
-        bySide[assignColumnSide(slice.midAngle)].push({label: slice.label, naturalY: labelRadius * Math.sin(slice.midAngle)});
+        bySide[assignColumnSide(slice.midAngle)].push({label: slice.label, naturalY: labelRadius * Math.sin(slice.midAngle), midAngle: slice.midAngle});
     }
 
     const resolved: Record<string, ResolvedPieLabelLayout> = {};
@@ -149,7 +160,7 @@ function computePieLabelLayout({
         const textAnchor: TextAnchor = side === 'right' ? 'start' : 'end';
 
         for (const [index, item] of columnItems.entries()) {
-            resolved[item.label] = {relativeX, relativeY: resolvedYs.at(index) ?? item.naturalY, textAnchor};
+            resolved[item.label] = {relativeX, relativeY: resolvedYs.at(index) ?? item.naturalY, textAnchor, midAngle: item.midAngle};
         }
     }
 

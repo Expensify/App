@@ -1,5 +1,4 @@
 import type {TextAnchor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
-import convertDegreeToRadian from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/convertDegreeToRadian';
 
 import type {Color} from '@shopify/react-native-skia';
 import type {PieSliceData} from 'victory-native';
@@ -11,6 +10,7 @@ type ResolvedPieLabel = {
     x: number;
     y: number;
     textAnchor: TextAnchor;
+    midAngle: number;
 };
 
 type VictoryChartPieLabelIndicatorProps = {
@@ -34,7 +34,11 @@ function VictoryChartPieLabelIndicator({
     labelIndicatorInnerOffset,
     labelIndicatorOuterOffset,
 }: VictoryChartPieLabelIndicatorProps) {
-    const midAngle = convertDegreeToRadian((slice.startAngle + slice.endAngle) / 2);
+    // Anchor to the same angle the label layout resolved to (not a fresh `(slice.startAngle +
+    // slice.endAngle) / 2`) — for a single 100%-value slice those two disagree, since the slice's own
+    // start/end angle still spans the whole circle even though the label was placed at a fixed,
+    // always-safe spot instead of that circle's arbitrary "midpoint".
+    const {midAngle} = resolvedLabel;
     const midRadius = (slice.radius + slice.innerRadius) / 2;
     const labelIndicatorInnerRadius = midRadius + (labelIndicatorInnerOffset ?? 0);
 
