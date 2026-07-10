@@ -1,21 +1,27 @@
-import React, {useEffect, useMemo, useRef} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+
 import {openApp} from '@libs/actions/App';
 import {isMobileSafari} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import SignInPageWrapped, {SignInPage} from './SignInPage';
+
+import React, {useEffect, useMemo, useRef} from 'react';
+
 import type {SignInPageRef} from './SignInPage';
+
+import SignInPageWrapped, {SignInPage} from './SignInPage';
 
 function SignInModal() {
     const theme = useTheme();

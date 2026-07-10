@@ -1,8 +1,11 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 function fetchUnreportedExpenses(offset: number) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS>> = [

@@ -1,5 +1,5 @@
-import type {OnyxCollection, OnyxEntry, ResultMetadata} from 'react-native-onyx';
 import {filterAmexDirectParentCard, getCompanyCardFeed, getCompanyFeeds, getSelectedFeed, normalizeCardName} from '@libs/CardUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList} from '@src/types/onyx';
@@ -7,8 +7,12 @@ import type Card from '@src/types/onyx/Card';
 import type {AssignableCardsList, WorkspaceCardsList} from '@src/types/onyx/Card';
 import type {CardFeedsStatusByDomainID, CombinedCardFeeds, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import useCardFeeds from './useCardFeeds';
+
+import type {OnyxCollection, OnyxEntry, ResultMetadata} from 'react-native-onyx';
+
 import type {CombinedCardFeed} from './useCardFeeds';
+
+import useCardFeeds from './useCardFeeds';
 import useCardsList from './useCardsList';
 import useOnyx from './useOnyx';
 
@@ -98,9 +102,9 @@ function buildCompanyCardEntries(
     assignedCards: CardList,
     feedName?: CompanyCardFeedWithDomainID,
 ): CompanyCardEntry[] {
+    const existingNames = new Set<string>();
+    const existingEncryptedCardNumbers = new Set<string>();
     const entriesMap = new Map<string, CompanyCardEntry>();
-    const coveredNames = new Set<string>();
-    const coveredEncrypted = new Set<string>();
 
     const cardListEntries = Object.entries(cardList ?? {});
 
@@ -116,7 +120,6 @@ function buildCompanyCardEntries(
         const cardEntryID = encryptedCardNumber ?? normalizedName;
 
         const existingEntry = entriesMap.get(cardEntryID);
-
         const isRicherRecord = card.lastFourPAN && !existingEntry?.assignedCard?.lastFourPAN;
 
         // Skip duplicate when two assigned-card records (e.g. old-format + new-format) resolve to the same cardList entry.
@@ -124,31 +127,33 @@ function buildCompanyCardEntries(
             entriesMap.set(cardEntryID, {cardName, encryptedCardNumber, isAssigned: true, assignedCard: card});
         }
 
-        coveredNames.add(normalizedName);
-        if (encryptedCardNumber !== cardName) {
-            coveredEncrypted.add(encryptedCardNumber);
-        }
+        existingNames.add(normalizedName);
+        existingEncryptedCardNumbers.add(encryptedCardNumber);
     }
 
     // Phase 2: Add remaining unassigned cards. cardList first so its encryptedCardNumber takes precedence.
     for (const [cardName, encryptedCardNumber] of cardListEntries) {
         const normalizedName = normalizeCardName(cardName);
-        if (coveredNames.has(normalizedName) || coveredEncrypted.has(encryptedCardNumber) || entriesMap.has(encryptedCardNumber)) {
+
+        if (existingNames.has(normalizedName) || existingEncryptedCardNumbers.has(encryptedCardNumber)) {
             continue;
         }
 
         entriesMap.set(encryptedCardNumber, {cardName, encryptedCardNumber, isAssigned: false});
-        coveredNames.add(normalizedName);
-        coveredEncrypted.add(encryptedCardNumber);
+        existingNames.add(normalizedName);
+        existingEncryptedCardNumbers.add(encryptedCardNumber);
     }
 
     for (const cardName of filterAmexDirectParentCard(accountList ?? [], feedName)) {
         const normalizedName = normalizeCardName(cardName);
-        if (coveredNames.has(normalizedName) || coveredEncrypted.has(cardName) || entriesMap.has(normalizedName)) {
+        const encryptedCardNumber = cardList?.[cardName] ?? cardName;
+
+        if (existingNames.has(normalizedName) || existingEncryptedCardNumbers.has(encryptedCardNumber)) {
             continue;
         }
-        entriesMap.set(normalizedName, {cardName, encryptedCardNumber: cardName, isAssigned: false});
-        coveredNames.add(normalizedName);
+
+        entriesMap.set(normalizedName, {cardName, encryptedCardNumber, isAssigned: false});
+        existingNames.add(normalizedName);
     }
 
     return Array.from(entriesMap.values());
