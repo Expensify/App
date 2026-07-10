@@ -213,6 +213,7 @@ function SearchAutocompleteList({
         options: listOptions,
         isLoading: isLoadingOptions,
         loadMore: loadMoreRecentReports,
+        loadAll: loadAllRecentReports,
         hasMore: hasMoreRecentReports,
     } = useFilteredOptions({
         enabled: true,
@@ -622,14 +623,15 @@ function SearchAutocompleteList({
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
 
     // If every report within the raw cap gets excluded (e.g. all hidden/muted), sections is empty and
-    // SelectionListWithSections shows its empty state instead of a FlashList, so onEndReached never
-    // mounts and loadMoreRecentReports would never run. Escalate the cap ourselves until a row surfaces.
+    // SelectionListWithSections shows its empty state instead of a FlashList, so onEndReached never mounts
+    // and loadMoreRecentReports would never run. Expand to the full report set in one step so any surviving
+    // row surfaces. This fires at most once: afterwards either a row appears or hasMoreRecentReports is false.
     useEffect(() => {
         if (trimmedAutocompleteQueryValue !== '' || isLoadingOptions || suggestionsCount > 0 || !hasMoreRecentReports) {
             return;
         }
-        loadMoreRecentReports();
-    }, [trimmedAutocompleteQueryValue, isLoadingOptions, suggestionsCount, hasMoreRecentReports, loadMoreRecentReports]);
+        loadAllRecentReports();
+    }, [trimmedAutocompleteQueryValue, isLoadingOptions, suggestionsCount, hasMoreRecentReports, loadAllRecentReports]);
 
     // hasMoreRecentReports only tracks raw reports, not the visible MAX_AMOUNT_OF_SUGGESTIONS cap. Once the
     // visible cap is full, remaining raw reports are all less recent and can never surface, so loading more
