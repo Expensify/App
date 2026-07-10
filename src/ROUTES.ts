@@ -3165,18 +3165,16 @@ const ROUTES = {
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields-rules/new` as const,
     },
     RULES_REQUIRE_FIELDS_RULE_EDIT: {
-        route: 'workspaces/:policyID/rules/require-fields-rules/edit/:categoryName/:direction',
-        getRoute: (policyID: string, categoryName: string, direction: string) =>
-            `workspaces/${policyID}/rules/require-fields-rules/edit/${encodeURIComponent(categoryName)}/${direction}` as const,
+        route: 'workspaces/:policyID/rules/require-fields-rules/edit/:categoryName',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/require-fields-rules/edit/${encodeURIComponent(categoryName)}` as const,
     },
     RULES_REQUIRE_FIELDS_RULE_CATEGORY: {
         route: 'workspaces/:policyID/rules/require-fields-rules/new/category',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields-rules/new/category` as const,
     },
     RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT: {
-        route: 'workspaces/:policyID/rules/require-fields-rules/edit/:categoryName/:direction/category',
-        getRoute: (policyID: string, categoryName: string, direction: string) =>
-            `workspaces/${policyID}/rules/require-fields-rules/edit/${encodeURIComponent(categoryName)}/${direction}/category` as const,
+        route: 'workspaces/:policyID/rules/require-fields-rules/edit/:categoryName/category',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/require-fields-rules/edit/${encodeURIComponent(categoryName)}/category` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_NEW: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/new',
@@ -4319,9 +4317,9 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
 } as const;
 
 export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT, DYNAMIC_ROUTES};
-function getRequireFieldsRuleCategoryRoute(policyID: string, categoryName?: string, direction?: string) {
-    if (categoryName && direction) {
-        return ROUTES.RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT.getRoute(policyID, categoryName, direction);
+function getRequireFieldsRuleCategoryRoute(policyID: string, categoryName?: string) {
+    if (categoryName) {
+        return ROUTES.RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT.getRoute(policyID, categoryName);
     }
 
     return ROUTES.RULES_REQUIRE_FIELDS_RULE_CATEGORY.getRoute(policyID);

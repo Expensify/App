@@ -111,6 +111,9 @@ function SearchSingleSelectionPicker({
             return;
         }
         if (shouldAutoSave) {
+            if (item.isSelected && !allowNoneOption) {
+                return;
+            }
             const selectedValue = item.isSelected ? '' : item.value;
             onSaveSelection(selectedValue);
             if (shouldNavigateOnSave) {

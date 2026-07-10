@@ -1,8 +1,7 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import FieldRequirementsDirectionToggle from '@components/RequireFieldsRules/FieldRequirementsDirectionToggle';
-import FieldRequirementsToggleMenuItem from '@components/RequireFieldsRules/FieldRequirementsToggleMenuItem';
+import FieldRequirementSettingRow from '@components/RequireFieldsRules/FieldRequirementSettingRow';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -25,11 +24,10 @@ import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {
     deleteRequireFieldsRule,
     getEffectiveRequireFieldsRuleForm,
-    getRequireFieldsFieldToggleUpdate,
+    getRequireFieldsFieldSettingUpdate,
     getRequireFieldsFormFromCategory,
     getRequireFieldsRuleKey,
     getRequireFieldsRuleValidationError,
-    inferFieldRequirementsDirection,
     saveRequireFieldsRule,
 } from '@libs/RequireFieldsRulesUtils';
 import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
@@ -42,7 +40,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {getRequireFieldsRuleCategoryRoute} from '@src/ROUTES';
-import type {RequireFieldsRuleToggleFieldKey} from '@src/types/form/RequireFieldsRuleForm';
+import type {RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 
 import {useFocusEffect} from '@react-navigation/native';
@@ -52,11 +50,10 @@ import {View} from 'react-native';
 type RequireFieldsRulePageBaseProps = {
     policyID: string;
     categoryName?: string;
-    direction?: FieldRequirementsDirection;
     testID: string;
 };
 
-function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDirection, testID}: RequireFieldsRulePageBaseProps) {
+function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFieldsRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyData = usePolicyData(policyID);
@@ -71,6 +68,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
     const [form] = useOnyx(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [shouldShowError, setShouldShowError] = useState(false);
+    const [touchedFields, setTouchedFields] = useState<Set<RequireFieldsRuleSettingFieldKey>>(() => new Set());
     const initializedDraftForRuleKeyRef = useRef<string | null>(null);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
@@ -78,10 +76,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
     const selectedCategory = selectedCategoryName ? policyCategories?.[selectedCategoryName] : undefined;
     const effectiveForm = form && selectedCategory ? getEffectiveRequireFieldsRuleForm(selectedCategory, form) : form;
     const categoryDisplayName = selectedCategoryName ? getDecodedCategoryName(selectedCategoryName) : undefined;
-    const direction = effectiveForm?.[INPUT_IDS.DIRECTION] ?? CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
-    const isWaiveDirection = direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
     const formCategory = form?.[INPUT_IDS.CATEGORY];
-    const formDirection = form?.[INPUT_IDS.DIRECTION];
 
     useEffect(() => () => clearDraftRequireFieldsRule(), []);
 
@@ -90,7 +85,10 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
                 setDraftRequireFieldsRule({
-                    [INPUT_IDS.DIRECTION]: CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
+                    [INPUT_IDS.DESCRIPTION_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
+                    [INPUT_IDS.ATTENDEES_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
+                    [INPUT_IDS.RECEIPT_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
+                    [INPUT_IDS.ITEMIZED_RECEIPT_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
                 });
             }
             return;
@@ -100,14 +98,13 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
             return;
         }
 
-        const editDirection = routeDirection ?? (formCategory === categoryName && formDirection ? formDirection : undefined) ?? inferFieldRequirementsDirection(category);
-        const ruleKey = getRequireFieldsRuleKey(editDirection, categoryName);
+        const ruleKey = getRequireFieldsRuleKey(categoryName);
 
         if (initializedDraftForRuleKeyRef.current === ruleKey) {
             return;
         }
 
-        if (formCategory === categoryName && formDirection === editDirection) {
+        if (formCategory === categoryName) {
             initializedDraftForRuleKeyRef.current = ruleKey;
             return;
         }
@@ -115,9 +112,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
         initializedDraftForRuleKeyRef.current = ruleKey;
         setDraftRequireFieldsRule({
             [INPUT_IDS.CATEGORY]: categoryName,
-            ...getRequireFieldsFormFromCategory(category, editDirection),
+            ...getRequireFieldsFormFromCategory(category),
         });
-    }, [category, categoryName, routeDirection, formCategory, formDirection, isEditing]);
+    }, [category, categoryName, formCategory, isEditing]);
 
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
@@ -134,44 +131,38 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
         }, [fetchPolicyData]),
     );
 
-    const fieldToggles: Array<{
-        key: RequireFieldsRuleToggleFieldKey;
+    const fieldSettings: Array<{
+        key: RequireFieldsRuleSettingFieldKey;
         label: string;
         isVisible: boolean;
     }> = [
         {
-            key: INPUT_IDS.REQUIRE_DESCRIPTION,
+            key: INPUT_IDS.DESCRIPTION_SETTING,
             label: translate('common.description'),
-            isVisible: !isWaiveDirection,
+            isVisible: true,
         },
         {
-            key: INPUT_IDS.REQUIRE_RECEIPT,
+            key: INPUT_IDS.RECEIPT_SETTING,
             label: translate('common.receipt'),
             isVisible: true,
         },
         {
-            key: INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT,
+            key: INPUT_IDS.ITEMIZED_RECEIPT_SETTING,
             label: translate('workspace.rules.requireFieldsRule.itemizedReceipt'),
             isVisible: true,
         },
         {
-            key: INPUT_IDS.REQUIRE_ATTENDEES,
+            key: INPUT_IDS.ATTENDEES_SETTING,
             label: translate('iou.attendees'),
-            isVisible: !isWaiveDirection && isAttendeeFieldApplicable,
+            isVisible: isAttendeeFieldApplicable,
         },
     ];
 
-    const errorMessage = getRequireFieldsRuleValidationError(form, selectedCategory, translate, isAttendeeFieldApplicable);
+    const errorMessage = getRequireFieldsRuleValidationError(form, selectedCategory, translate, isEditing, touchedFields);
 
-    const handleToggleField = (fieldKey: RequireFieldsRuleToggleFieldKey, value: boolean) => {
-        updateDraftRequireFieldsRule(getRequireFieldsFieldToggleUpdate(direction, fieldKey, value));
-    };
-
-    const handleDirectionChange = (newDirection: FieldRequirementsDirection) => {
-        updateDraftRequireFieldsRule({
-            [INPUT_IDS.DIRECTION]: newDirection,
-            ...getRequireFieldsFormFromCategory(selectedCategory, newDirection),
-        });
+    const handleSelectFieldSetting = (fieldKey: RequireFieldsRuleSettingFieldKey, setting: FieldRequirementsDirection) => {
+        setTouchedFields((previousTouchedFields) => new Set(previousTouchedFields).add(fieldKey));
+        updateDraftRequireFieldsRule(getRequireFieldsFieldSettingUpdate(fieldKey, setting));
         setShouldShowError(false);
     };
 
@@ -182,10 +173,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
 
         const formToSave = getEffectiveRequireFieldsRuleForm(selectedCategory, form);
         const savedCategory = formToSave[INPUT_IDS.CATEGORY];
-        const savedDirection = formToSave[INPUT_IDS.DIRECTION];
 
-        if (isEditing && categoryName && routeDirection && savedCategory && (savedCategory !== categoryName || savedDirection !== routeDirection)) {
-            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(routeDirection, categoryName));
+        if (isEditing && categoryName && savedCategory && savedCategory !== categoryName) {
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName));
         }
 
         saveRequireFieldsRule(policyData, formToSave);
@@ -221,7 +211,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
     }
 
     const activeCategoryName = selectedCategoryName ?? categoryName;
-    const activeDirection = routeDirection ?? direction;
 
     const footer = canWriteRules ? (
         <FormAlertWithSubmitButton
@@ -258,11 +247,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
                         description={translate('common.category')}
                         title={categoryDisplayName}
                         errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={
-                            canWriteRules
-                                ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? activeCategoryName : undefined, isEditing ? activeDirection : undefined))
-                                : undefined
-                        }
+                        onPress={canWriteRules ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? activeCategoryName : undefined)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
                         icon={icons.Folder}
@@ -272,27 +257,22 @@ function RequireFieldsRulePageBase({policyID, categoryName, direction: routeDire
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_CATEGORY}
                     />
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
-                    <View style={[styles.ph5, styles.pv3, styles.gap3]}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexWrap, styles.gap3]}>
-                            <FieldRequirementsDirectionToggle
-                                direction={direction}
-                                disabled={!canWriteRules}
-                                onSelect={handleDirectionChange}
-                            />
-                            <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.requireFieldsRule.theFollowing')}</Text>
-                        </View>
+                    <View style={[styles.ph5, styles.pv3]}>
+                        <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.requireFieldsRule.doTheFollowing')}</Text>
                     </View>
-                    {fieldToggles
+                    {fieldSettings
                         .filter((field) => field.isVisible)
                         .map((field) => (
-                            <FieldRequirementsToggleMenuItem
+                            <FieldRequirementSettingRow
                                 key={field.key}
                                 fieldKey={field.key}
                                 label={field.label}
-                                direction={direction}
+                                setting={effectiveForm?.[field.key] ?? CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE}
                                 effectiveForm={effectiveForm}
+                                category={selectedCategory}
+                                touchedFields={touchedFields}
                                 canWriteRules={canWriteRules}
-                                onToggle={handleToggleField}
+                                onSelectSetting={handleSelectFieldSetting}
                             />
                         ))}
                 </ScrollView>

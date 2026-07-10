@@ -51,6 +51,4 @@ function FieldRequirementsDirectionToggle({direction, disabled = false, onSelect
     );
 }
 
-FieldRequirementsDirectionToggle.displayName = 'FieldRequirementsDirectionToggle';
-
 export default FieldRequirementsDirectionToggle;

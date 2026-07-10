@@ -8,14 +8,12 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import {updateDraftRequireFieldsRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {categoryHasRequireFieldsRuleForDirection, getEffectiveRequireFieldsRuleForm, getRequireFieldsRuleBackToRoute} from '@libs/RequireFieldsRulesUtils';
-import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
+import {getEffectiveRequireFieldsRuleForm, getRequireFieldsRuleBackToRoute} from '@libs/RequireFieldsRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 
 import React from 'react';
@@ -23,10 +21,9 @@ import React from 'react';
 type RequireFieldsRuleCategoryPageBaseProps = {
     policyID: string;
     categoryName?: string;
-    direction?: FieldRequirementsDirection;
 };
 
-function RequireFieldsRuleCategoryPageBase({policyID, categoryName, direction}: RequireFieldsRuleCategoryPageBaseProps) {
+function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFieldsRuleCategoryPageBaseProps) {
     const isEditing = !!categoryName;
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
@@ -43,8 +40,6 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName, direction}: 
               value: selectedCategoryName,
           }
         : undefined;
-    const formDirection = form?.[INPUT_IDS.DIRECTION] ?? CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
-    const activeDirection = direction ?? formDirection;
 
     const categoryItems = Object.values(policyCategories ?? {})
         .filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
@@ -54,18 +49,12 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName, direction}: 
         });
 
     const backToRoute = (selectedValue?: string) => {
-        const activeCategoryName = selectedValue ?? selectedCategoryName;
-        const selectedCategory = activeCategoryName ? policyCategories?.[activeCategoryName] : undefined;
-
-        if (!isEditing && activeCategoryName && selectedCategory && categoryHasRequireFieldsRuleForDirection(selectedCategory, formDirection)) {
-            return ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, activeCategoryName, formDirection);
-        }
+        const activeCategoryName = selectedValue !== undefined ? selectedValue : selectedCategoryName;
 
         return getRequireFieldsRuleBackToRoute({
             policyID,
             isEditing,
             categoryName,
-            direction: activeDirection,
             selectedCategoryName: activeCategoryName,
         });
     };
@@ -77,15 +66,6 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName, direction}: 
             [INPUT_IDS.CATEGORY]: value,
         };
         const effectiveDraftForm = selectedCategory ? getEffectiveRequireFieldsRuleForm(selectedCategory, draftForm) : draftForm;
-
-        if (!isEditing && value && selectedCategory && categoryHasRequireFieldsRuleForDirection(selectedCategory, formDirection)) {
-            updateDraftRequireFieldsRule({
-                ...effectiveDraftForm,
-                [INPUT_IDS.CATEGORY]: value,
-                [INPUT_IDS.DIRECTION]: formDirection,
-            });
-            return;
-        }
 
         updateDraftRequireFieldsRule(effectiveDraftForm);
     };
