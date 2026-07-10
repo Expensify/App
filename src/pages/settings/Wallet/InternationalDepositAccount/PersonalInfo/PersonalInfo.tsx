@@ -7,6 +7,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
+import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -57,8 +58,21 @@ function PersonalInfoPage() {
                   plaidAccessToken: plaidData?.plaidAccessToken ?? '',
               };
         const finalPhoneNumber = personalBankAccount?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? '';
+
+        // When the Address substep is skipped (the profile already has a complete address), the flat
+        // addressStreet/addressCity/... keys that addPersonalBankAccount expects are never written to the form draft.
+        // Map the saved profile address (stored nested in the addresses array) to those flat keys so the address
+        // is still submitted. The form draft spread below wins, so a manually entered address still takes precedence.
+        const currentAddress = getCurrentAddress(privatePersonalDetails);
+        const [addressStreet, addressStreet2] = getStreetLines(currentAddress?.street);
         const accountData = {
             ...privatePersonalDetails,
+            addressStreet,
+            addressStreet2,
+            addressCity: currentAddress?.city,
+            addressState: currentAddress?.state,
+            addressZipCode: currentAddress?.zip,
+            country: currentAddress?.country,
             ...personalBankAccount,
             ...bankAccountWithToken,
             phoneNumber: formatE164PhoneNumber(finalPhoneNumber, countryCode),
