@@ -90,4 +90,4 @@ You can take over an Annual subscription only if you're a Workspace Admin on eve
 
 Billing history only includes subscription charges made while you're the Workspace owner. Charges paid by the previous Workspace owner won't appear in your billing history.
 
-If you need to review previous subscription charges, ask the previous Workspace owner to follow the steps to [make billing receipts visible to other Workspace Admins](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Find-Your-Expensify-Billing-Receip#how-can-i-make-billing-receipts-visible-to-other-workspace-admins). 
+If you need to review previous subscription charges, ask the previous Workspace owner to follow the steps to [make billing receipts visible to other Workspace Admins](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Find-Your-Expensify-Billing-Receipt#how-can-i-make-billing-receipts-visible-to-other-workspace-admins). 
