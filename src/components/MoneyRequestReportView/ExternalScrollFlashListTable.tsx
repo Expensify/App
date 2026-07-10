@@ -105,10 +105,10 @@ function ExternalScrollDriver({store, offsetTop = 0, onScroll, children, style, 
                 // contentOffset.y.
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 onScroll?.({nativeEvent: {contentOffset: {x: 0, y}}} as NativeSyntheticEvent<NativeScrollEvent>);
-            } catch (error) {
-                if (!(error instanceof Error) || !error.message.includes('LayoutManager is not initialized')) {
-                    throw error;
-                }
+            } catch {
+                // During back-navigation teardown FlashList can be driven after its layout manager is gone, which
+                // throws ("LayoutManager is not initialized"). This call only feeds a synthetic scroll frame to
+                // window the nested list, so a dropped frame here is harmless — swallow it rather than crash.
             }
         };
         // Seed the initial window, then track subsequent parent scrolls. Re-subscribes only when the store, the
