@@ -1,4 +1,4 @@
-import {render, screen, waitFor} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -92,18 +92,6 @@ function renderContent(policy: Policy, account: Partial<Account>, privatePersona
     );
 }
 
-function getTravelProvisioning(): Promise<TravelProvisioning | undefined> {
-    return new Promise((resolve) => {
-        const connection = Onyx.connectWithoutView({
-            key: ONYXKEYS.TRAVEL_PROVISIONING,
-            callback: (value) => {
-                Onyx.disconnect(connection);
-                resolve(value);
-            },
-        });
-    });
-}
-
 describe('EnableTravelContent', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -172,30 +160,5 @@ describe('EnableTravelContent', () => {
 
         // legal name, verify account, domain selector, workspace address, tax ID, terms
         expect(screen.queryAllByRole('group')).toHaveLength(6);
-    });
-
-    it('freezes the step count across remounts within the same flow session, even after an earlier step is completed', async () => {
-        // Each step in this flow is a separate navigation push (a fresh mount), so simulate that: mount 1 with
-        // legal name missing (2 steps: legal name + terms), landing on the legal-name step.
-        mockRouteParams = {subPage: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME};
-        const {unmount} = renderContent(PROVISIONED_POLICY, VALIDATED_ACCOUNT, {});
-        await waitForBatchedUpdatesWithAct();
-
-        await waitFor(async () => {
-            const travelProvisioning = await getTravelProvisioning();
-            expect(travelProvisioning?.enabledSteps).toEqual([CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME, CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS]);
-        });
-        unmount();
-
-        // Mount 2 simulates landing on the terms step after legal name was just saved (privatePersonalDetails is
-        // now complete, which on its own would compute only 1 step), but carries forward the enabledSteps
-        // persisted by mount 1 the way the real EnableTravel wrapper would via useOnyx.
-        const persistedTravelProvisioning = await getTravelProvisioning();
-        mockRouteParams = {subPage: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS};
-        renderContent(PROVISIONED_POLICY, VALIDATED_ACCOUNT, COMPLETE_PERSONAL_DETAILS, persistedTravelProvisioning);
-        await waitForBatchedUpdatesWithAct();
-
-        // Should still reflect the original 2-step session, not shrink to 1 (hidden bar) now that legal name is set
-        expect(screen.queryAllByRole('group')).toHaveLength(2);
     });
 });

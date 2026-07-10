@@ -7,7 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setTravelProvisioningEnabledSteps} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getAdminsPrivateEmailDomains, isNonUSDPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
@@ -20,7 +19,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import type {EnableTravelSubPageProps} from './types';
@@ -78,44 +77,45 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
     // computed once per flow session and persisted to TRAVEL_PROVISIONING (cleared by BookTravelButton at the
     // start of every fresh session), or the total step count would shrink out from under the user as they
     // move between steps, and going back would land on a mount with a mismatched step list.
-    const persistedEnabledSteps = travelProvisioning?.enabledSteps;
-    const [enabledStepNames] = useState<string[]>(() => {
-        if (persistedEnabledSteps) {
-            return persistedEnabledSteps;
-        }
-        const nextEnabledStepNames: string[] = [];
+
+    const [pages] = useState(() => {
+        const stepNames = [];
         if (legalNameMissing) {
-            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME);
+            stepNames.push({
+                pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME,
+                component: LegalNameStep,
+            });
         }
         if (needsVerify) {
-            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.VERIFY_ACCOUNT);
+            stepNames.push({
+                pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.VERIFY_ACCOUNT,
+                component: VerifyAccountStep,
+            });
         }
         if (needsDomainSelector) {
-            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR);
+            stepNames.push({
+                pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR,
+                component: DomainSelectorStep,
+            });
         }
         if (needsAddress) {
-            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS);
+            stepNames.push({
+                pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS,
+                component: WorkspaceAddressStep,
+            });
         }
         if (needsTaxID) {
-            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID);
+            stepNames.push({
+                pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID,
+                component: TaxIDStep,
+            });
         }
-        nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS);
-        return nextEnabledStepNames;
+        stepNames.push({
+            pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS,
+            component: TermsStep,
+        });
+        return stepNames;
     });
-
-    useEffect(() => {
-        if (persistedEnabledSteps) {
-            return;
-        }
-        setTravelProvisioningEnabledSteps(enabledStepNames);
-        // Persist once for this mount only — later flag changes (e.g. legal name getting saved) shouldn't
-        // re-trigger this, since enabledStepNames is already frozen for the rest of this flow session.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const pages = useMemo(() => enabledStepNames.map((pageName) => ({pageName, component: STEP_COMPONENT_BY_PAGE_NAME[pageName] ?? TermsStep})), [enabledStepNames]);
-
-    const stepNames = enabledStepNames;
 
     const startFrom = account === undefined ? -1 : 0;
 
@@ -152,10 +152,10 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
                 title={translate('travel.bookTravel')}
                 onBackButtonPress={handleBackButtonPress}
             />
-            {stepNames.length >= 2 && (
+            {pages.length >= 2 && (
                 <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
                     <InteractiveStepSubPageHeader
-                        stepNames={stepNames}
+                        stepNames={pages.map((step) => step.pageName)}
                         currentStepIndex={pageIndex}
                         currentStepAccessibilityDescription={translate('travel.bookTravel')}
                         onStepSelected={moveTo}

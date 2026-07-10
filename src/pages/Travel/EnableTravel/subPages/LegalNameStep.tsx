@@ -33,7 +33,10 @@ function LegalNameStep({onNext}: EnableTravelSubPageProps) {
     const legalLastName = draftValues?.[INPUT_IDS.LEGAL_LAST_NAME] ?? privatePersonalDetails?.[INPUT_IDS.LEGAL_LAST_NAME] ?? '';
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
-        updateLegalName(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '', formatPhoneNumber, currentUserPersonalDetails);
+        // shouldGoBack is false because updateLegalName normally drives a standalone "edit legal name" page that
+        // navigates back on save; this step drives its own forward navigation via onNext below. Without this,
+        // updateLegalName's own goBack() and onNext()'s forward push raced in the same tick, producing a visible flash.
+        updateLegalName(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '', formatPhoneNumber, currentUserPersonalDetails, false);
         onNext();
     };
 
