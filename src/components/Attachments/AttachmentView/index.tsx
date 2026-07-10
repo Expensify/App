@@ -168,7 +168,11 @@ function AttachmentView({
     const isInFocusedModal = firstRenderRoute.isFocused && isFocused === undefined;
 
     useEffect(() => {
-        if (!isFocused && !isInFocusedModal && !(file && isUsedInAttachmentModal)) {
+        // When isFocused is provided (carousel items), it alone decides whether this attachment owns
+        // the current URL, so unfocused pages never clobber it. The modal escape hatch only applies
+        // to usages that don't track focus (e.g. the single-attachment modal).
+        const shouldUpdateCurrentURL = isFocused ?? (isInFocusedModal || !!(file && isUsedInAttachmentModal));
+        if (!shouldUpdateCurrentURL) {
             return;
         }
         const videoSource = isVideo && typeof source === 'string' ? source : undefined;
@@ -274,6 +278,7 @@ function AttachmentView({
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={onPDFLoadComplete}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
+                    isUsedInAttachmentModal={isUsedInAttachmentModal}
                     isUsedAsChatAttachment={isUsedAsChatAttachment}
                     onLoadError={onPDFLoadError}
                     rotation={rotation}

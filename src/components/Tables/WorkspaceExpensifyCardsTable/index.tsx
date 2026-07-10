@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {filterCardsByPersonalDetails, getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {filterCardsByPersonalDetails, getTranslationKeyForCardStatus, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
 import WorkspaceCardListLabels from '@pages/workspace/expensifyCard/WorkspaceCardListLabels';
@@ -28,7 +28,7 @@ import {View} from 'react-native';
 
 import WorkspaceExpensifyCardsTableRow from './WorkspaceExpensifyCardsTableRow';
 
-type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'limit' | 'actions';
+type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'status' | 'limit' | 'actions';
 
 type WorkspaceExpensifyCardTableRowData = TableData & {
     cardID: number;
@@ -119,11 +119,24 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'limitType',
             label: translate('workspace.card.issueNewCard.limitType'),
             sortable: true,
+            styling: {
+                // minWidth: 0 lets the grid track size purely from its 1fr share instead of the cell content,
+                // so the Limit type and Status columns always render at the same width.
+                containerStyles: [styles.mnw0],
+            },
         },
         {
             key: 'lastFour',
             label: translate('workspace.expensifyCard.lastFour'),
             sortable: true,
+        },
+        {
+            key: 'status',
+            label: translate('common.status'),
+            sortable: true,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
         },
         {
             key: 'limit',
@@ -158,6 +171,14 @@ export default function WorkspaceExpensifyCardsTable({
 
         if (activeSorting.columnKey === 'lastFour') {
             return localeCompare(item1.lastFourPAN, item2.lastFourPAN) * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'status') {
+            const status1TranslationKey = getTranslationKeyForCardStatus(item1.card.state, item1.isVirtual);
+            const status2TranslationKey = getTranslationKeyForCardStatus(item2.card.state, item2.isVirtual);
+            const status1 = status1TranslationKey ? translate(status1TranslationKey) : '';
+            const status2 = status2TranslationKey ? translate(status2TranslationKey) : '';
+            return localeCompare(status1, status2) * orderMultiplier;
         }
 
         if (activeSorting.columnKey === 'limit') {
@@ -196,6 +217,7 @@ export default function WorkspaceExpensifyCardsTable({
                 )}
             </View>
             <Table.FilterBar label={translate('workspace.expensifyCard.findCard')} />
+            <Table.NoResultsState />
             <Table.Header />
         </>
     );
