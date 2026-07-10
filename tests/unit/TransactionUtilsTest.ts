@@ -856,6 +856,7 @@ describe('TransactionUtils', () => {
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
                 [transaction1, transaction2],
                 undefined,
+                undefined,
                 policy,
                 transactionViolations,
                 CURRENT_USER_EMAIL,

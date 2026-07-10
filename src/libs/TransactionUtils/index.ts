@@ -1757,6 +1757,7 @@ function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report>, policy: 
 function shouldShowBrokenConnectionViolationForMultipleTransactions(
     transactions: Transaction[],
     report: OnyxEntry<Report>,
+    ownerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentUserEmail: string,
@@ -1774,7 +1775,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
                 return false;
             }
 
-            if (isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy)) {
+            if (isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy, ownerLogin)) {
                 return false;
             }
 

@@ -359,6 +359,7 @@ function isApproveAction(
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
         reportTransactions,
         report,
+        ownerLogin,
         policy,
         violations,
         currentUserLogin,

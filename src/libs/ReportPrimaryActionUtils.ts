@@ -408,6 +408,7 @@ function isMarkAsCashAction(
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
         reportTransactions,
         report,
+        ownerLogin,
         policy,
         violations,
         currentUserEmail,
