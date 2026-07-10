@@ -129,13 +129,15 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         />
                     </View>
 
-                    <Icon
-                        src={icons.ArrowRight}
-                        fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                        <Icon
+                            src={icons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
                 </>
             )}
         </Table.Row>

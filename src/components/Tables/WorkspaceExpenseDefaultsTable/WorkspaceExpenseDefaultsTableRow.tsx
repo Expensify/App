@@ -2,6 +2,7 @@ import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import type {TableData} from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 import Tooltip from '@components/Tooltip';
@@ -48,6 +49,8 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Pencil', 'Lock']);
     const {processedData} = useTableContext<ExpenseDefaultTableItem>();
     const {translate} = useLocalize();
+
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const isDeleting = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -126,7 +129,10 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
 
                         {!shouldUseNarrowTableLayout && (
                             <>
-                                <View style={[styles.justifyContentCenter]}>
+                                <View
+                                    style={[styles.justifyContentCenter]}
+                                    {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                                >
                                     <Badge
                                         text={item.typeLabel}
                                         icon={Expensicons.Pencil}
@@ -142,14 +148,20 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                                         isCondensed
                                     />
                                 </View>
-                                <View style={[styles.flex1]}>
+                                <View
+                                    style={[styles.flex1]}
+                                    {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                                >
                                     <TextWithTooltip
                                         numberOfLines={1}
                                         text={item.conditionText}
                                         style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                     />
                                 </View>
-                                <View style={[styles.flex1]}>
+                                <View
+                                    style={[styles.flex1]}
+                                    {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                                >
                                     <TextWithTooltip
                                         numberOfLines={1}
                                         text={item.ruleDescription}
@@ -159,13 +171,15 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                             </>
                         )}
 
-                        <Icon
-                            src={Expensicons.ArrowRight}
-                            fill={theme.icon}
-                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || isDeleting) && styles.opacitySemiTransparent]}
-                            width={variables.iconSizeNormal}
-                            height={variables.iconSizeNormal}
-                        />
+                        <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                            <Icon
+                                src={Expensicons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || isDeleting) && styles.opacitySemiTransparent]}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                            />
+                        </View>
                     </>
                 )}
             </Table.Row>

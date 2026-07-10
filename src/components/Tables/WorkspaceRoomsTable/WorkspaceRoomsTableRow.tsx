@@ -50,6 +50,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+
     const memberCountSubtitle = translate('domain.groups.memberCount', {count: item.memberCount});
 
     return (

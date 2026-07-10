@@ -24,9 +24,12 @@ import Animated from 'react-native-reanimated';
 import {getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
 
-type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
+type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'> & {
     /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
-    accessible?: boolean;
+    accessible?: true;
+
+    /** Describes the row's content to assistive technology, e.g. `Workspace name: Acme, Owner: Jane Doe`. */
+    accessibilityLabel: string;
 
     /** Whether or not the table row is pressable or not */
     interactive: boolean;
@@ -50,6 +53,7 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
 export default function TableRow({
     children,
     accessible,
+    accessibilityLabel,
     rowIndex,
     disabled,
     sentryLabel,
@@ -188,7 +192,7 @@ export default function TableRow({
         >
             <PressableWithFeedback
                 accessible={accessible}
-                accessibilityLabel="row"
+                accessibilityLabel={accessibilityLabel}
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}

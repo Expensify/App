@@ -1,4 +1,5 @@
 import Icon from '@components/Icon';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TableRow from '@components/Table/TableRow';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -26,6 +27,7 @@ export default function PersonalExpenseRulesTableRow({item, rowIndex, shouldUseN
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const accessibilityLabel = `${item.merchant}, ${item.changes}`;
 
@@ -48,14 +50,20 @@ export default function PersonalExpenseRulesTableRow({item, rowIndex, shouldUseN
                 <>
                     {!shouldUseNarrowTableLayout && (
                         <>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <View
+                                style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 <TextWithTooltip
                                     shouldShowTooltip
                                     numberOfLines={1}
                                     text={item.merchant}
                                 />
                             </View>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <View
+                                style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 <TextWithTooltip
                                     shouldShowTooltip
                                     numberOfLines={1}
@@ -77,13 +85,15 @@ export default function PersonalExpenseRulesTableRow({item, rowIndex, shouldUseN
                         </View>
                     )}
 
-                    <Icon
-                        src={icons.ArrowRight}
-                        fill={theme.icon}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
-                    />
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                        <Icon
+                            src={icons.ArrowRight}
+                            fill={theme.icon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
+                        />
+                    </View>
                 </>
             )}
         </TableRow>

@@ -200,13 +200,15 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                         />
                     </View>
 
-                    <Icon
-                        src={Expensicons.ArrowRight}
-                        fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                        <Icon
+                            src={Expensicons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
                 </>
             )}
         </Table.Row>

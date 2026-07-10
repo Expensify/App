@@ -36,6 +36,7 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'ArrowRight']);
+
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const threeDotMenuItems: PopoverMenuItem[] = [];

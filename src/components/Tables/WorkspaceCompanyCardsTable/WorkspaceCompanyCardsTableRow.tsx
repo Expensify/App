@@ -4,7 +4,6 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
-import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -127,10 +126,13 @@ function WorkspaceCompanyCardTableRow({
         return Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feedName, cardID.toString())));
     };
 
+    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName].filter(Boolean).join(', ');
+
     return (
         <Table.Row
             interactive
             rowIndex={rowIndex}
+            accessibilityLabel={accessibilityLabel}
             disabled={isCardDeleted || !canPressRow}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_ITEM}
             offlineWithFeedback={{errors, pendingAction, onClose: onDismissError, shouldHideOnDelete: false}}
@@ -176,7 +178,8 @@ function WorkspaceCompanyCardTableRow({
                             style={[styles.flex1, styles.justifyContentCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <Text
+                            <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
                                 text={formattedCardDetails}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -189,7 +192,8 @@ function WorkspaceCompanyCardTableRow({
                             style={[styles.flex1, styles.justifyContentCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <Text
+                            <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
                                 text={customCardName ?? ''}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}

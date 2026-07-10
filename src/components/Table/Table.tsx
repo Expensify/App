@@ -270,13 +270,11 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         isMobileSelectionEnabled,
     };
 
-    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
-
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
             <View
                 style={[styles.flex1, styles.mnh0]}
-                {...getTableContainerAccessibilityProps(isTableSemanticsEnabled, title, processedData.length, columns.length)}
+                {...getTableContainerAccessibilityProps(shouldUseTableSemantics(shouldUseNarrowTableLayout), title, processedData.length, columns.length)}
             >
                 {children}
             </View>

@@ -1,59 +1,67 @@
-import type {Role} from 'react-native';
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
+
+import type {Role} from 'react-native';
+
 import type {SortOrder} from './middlewares/sorting';
 
 /**
- * Table ARIA semantics (`role="table"`, `role="row"`, `role="cell"`, etc.) are only meaningful on web,
- * where React Native Web forwards `role`/`aria-*` to the underlying DOM attributes. On native they are
- * no-ops and would also strip the existing `button`/`presentation` roles that VoiceOver and TalkBack
- * rely on to announce interactive rows, so we only apply them on web.
+ * Table ARIA semantics (`role="table"`, `role="row"`, `role="cell"`, …) are only meaningful on web, where React Native
+ * Web forwards `role`/`aria-*` straight to DOM attributes. On native they are not valid accessibility roles, and applying
+ * them would strip the `button`/`presentation` roles that VoiceOver and TalkBack rely on to announce interactive rows.
  */
-const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+const isDOMPlatform = getPlatform() === CONST.PLATFORM.WEB;
 
 /**
- * Table-related ARIA attributes. React Native Web forwards these to the DOM, and `View`/`Pressable`
- * accept them, but a few are not present in the RN typings, so we declare them explicitly here.
+ * Table related ARIA attributes. React Native Web forwards all of these to the DOM, but only a subset is present in the
+ * React Native typings, so the rest are declared here.
  */
 type TableAccessibilityProps = {
     role?: Role;
+
+    /* eslint-disable @typescript-eslint/naming-convention -- ARIA attributes are kebab-case by spec. */
     'aria-label'?: string;
     'aria-rowcount'?: number;
     'aria-colcount'?: number;
     'aria-rowindex'?: number;
     'aria-sort'?: 'ascending' | 'descending' | 'none';
+    /* eslint-enable @typescript-eslint/naming-convention */
 };
 
 /**
- * Whether table semantics should be applied. They are only useful on web and only in the wide (grid)
- * layout, since the narrow layout renders a single-column card list that already reads correctly.
+ * Whether table semantics should be applied. They only help on web, and only in the wide layout: the narrow layout
+ * renders a single column card list, which screen readers already announce correctly.
  */
 function shouldUseTableSemantics(shouldUseNarrowTableLayout: boolean): boolean {
-    return isWeb && !shouldUseNarrowTableLayout;
+    return isDOMPlatform && !shouldUseNarrowTableLayout;
 }
 
 /**
- * Props for the element that wraps the whole table (`role="table"`). The row count is set on the
- * container because FlashList virtualizes rows, so a screen reader cannot derive the total by walking
- * the DOM. Columns are never virtualized, so the header/cell association is left to positional order.
+ * Props for the element wrapping the whole table. The row count lives on the container because FlashList virtualizes
+ * rows, so a screen reader cannot derive the total by walking the DOM. The column count only covers the data columns:
+ * the selection checkbox renders in an extra leading grid column, but it is a control rather than a data cell.
  */
-function getTableContainerAccessibilityProps(enabled: boolean, label: string | undefined, rowCount: number, columnCount: number): TableAccessibilityProps {
-    if (!enabled) {
+function getTableContainerAccessibilityProps(isEnabled: boolean, label: string | undefined, rowCount: number, columnCount: number): TableAccessibilityProps {
+    if (!isEnabled) {
         return {};
     }
 
     return {
         role: CONST.ROLE.TABLE,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         'aria-label': label,
-        // +1 accounts for the header row, which is rendered as a sibling of the data rows.
+        // The header row is rendered as a sibling of the data rows, so it has to be counted separately.
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         'aria-rowcount': rowCount + 1,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         'aria-colcount': columnCount,
     };
 }
 
-/** Props for a `role="rowgroup"` element (the table body wrapper). */
-function getRowGroupAccessibilityProps(enabled: boolean): TableAccessibilityProps {
-    if (!enabled) {
+/** Props for the element grouping rows together, i.e. the table body wrapper. */
+function getRowGroupAccessibilityProps(isEnabled: boolean): TableAccessibilityProps {
+    if (!isEnabled) {
         return {};
     }
 
@@ -61,38 +69,44 @@ function getRowGroupAccessibilityProps(enabled: boolean): TableAccessibilityProp
 }
 
 /**
- * Props for a `role="row"` element. The header row is row 1, so data rows start at 2.
- * `aria-rowindex` is required because FlashList only renders the rows that are currently visible.
+ * Props for a table row. `aria-rowindex` is 1-based and has to be set explicitly because FlashList only keeps the
+ * visible rows in the DOM, so a screen reader would otherwise announce the position within the rendered window.
+ * The header occupies index 1, so data rows start at 2.
  */
-function getRowAccessibilityProps(enabled: boolean, rowIndex: number, isHeader = false): TableAccessibilityProps {
-    if (!enabled) {
+function getRowAccessibilityProps(isEnabled: boolean, rowIndex: number, isHeaderRow = false): TableAccessibilityProps {
+    if (!isEnabled) {
         return {};
     }
 
     return {
         role: CONST.ROLE.ROW,
-        'aria-rowindex': isHeader ? 1 : rowIndex + 2,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        'aria-rowindex': isHeaderRow ? 1 : rowIndex + 2,
     };
 }
 
-/** Props for a `role="columnheader"` element, including the current sort state. */
-function getColumnHeaderAccessibilityProps(enabled: boolean, isSortable: boolean, isActiveSortColumn: boolean, sortOrder: SortOrder): TableAccessibilityProps {
-    if (!enabled) {
+/** Props for a column header, including the direction the column is currently sorted in. */
+function getColumnHeaderAccessibilityProps(isEnabled: boolean, isSortable: boolean, isActiveSortColumn: boolean, sortOrder: SortOrder): TableAccessibilityProps {
+    if (!isEnabled) {
         return {};
     }
 
-    const props: TableAccessibilityProps = {role: CONST.ROLE.COLUMNHEADER};
+    const columnHeaderProps: TableAccessibilityProps = {role: CONST.ROLE.COLUMNHEADER};
 
     if (isSortable) {
-        props['aria-sort'] = isActiveSortColumn ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none';
+        if (!isActiveSortColumn) {
+            columnHeaderProps['aria-sort'] = 'none';
+        } else {
+            columnHeaderProps['aria-sort'] = sortOrder === 'asc' ? 'ascending' : 'descending';
+        }
     }
 
-    return props;
+    return columnHeaderProps;
 }
 
-/** Props for a `role="cell"` element within a data row. */
-function getCellAccessibilityProps(enabled: boolean): TableAccessibilityProps {
-    if (!enabled) {
+/** Props for a single data cell of a table row. */
+function getCellAccessibilityProps(isEnabled: boolean): TableAccessibilityProps {
+    if (!isEnabled) {
         return {};
     }
 
