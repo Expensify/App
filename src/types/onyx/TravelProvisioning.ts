@@ -22,6 +22,15 @@ type TravelProvisioning = {
 
     /** Booking domain selected during the enable-travel flow when the admin belongs to multiple private domains */
     domain?: string;
+
+    /**
+     * Ordered list of step names the enablement stepper decided this workspace needs, frozen the first time the
+     * flow is entered. Each step of the flow is a separate navigation push (a fresh mount of EnableTravelContent),
+     * and completing a step (e.g. saving the legal name) flips the very Onyx flag that decided whether that step
+     * was included — so this has to be persisted here rather than recomputed on every mount, or the total step
+     * count would shrink out from under the user as they progress.
+     */
+    enabledSteps?: string[];
 };
 
 export default TravelProvisioning;

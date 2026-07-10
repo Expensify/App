@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {setTravelProvisioningEnabledSteps} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getAdminsPrivateEmailDomains, isNonUSDPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
@@ -19,7 +20,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import type {EnableTravelSubPageProps} from './types';
@@ -30,6 +31,15 @@ import TaxIDStep from './subPages/TaxIDStep';
 import TermsStep from './subPages/TermsStep';
 import VerifyAccountStep from './subPages/VerifyAccountStep';
 import WorkspaceAddressStep from './subPages/WorkspaceAddressStep';
+
+const STEP_COMPONENT_BY_PAGE_NAME: Record<string, typeof LegalNameStep> = {
+    [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME]: LegalNameStep,
+    [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.VERIFY_ACCOUNT]: VerifyAccountStep,
+    [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR]: DomainSelectorStep,
+    [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS]: WorkspaceAddressStep,
+    [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID]: TaxIDStep,
+    [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS]: TermsStep,
+};
 
 type EnableTravelContentProps = {
     policy: OnyxEntry<Policy>;
@@ -62,28 +72,50 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
         return travelProvisioning?.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN;
     }, [isProvisioned, adminDomains, travelProvisioning?.domain]);
 
-    const pages = useMemo(() => {
-        const nextPages: Array<{pageName: string; component: typeof LegalNameStep}> = [];
+    // Each step of this flow is a separate navigation push (a fresh mount of this component, not an in-place
+    // update), and completing a step (e.g. saving the legal name) flips the very Onyx flag that decided whether
+    // that step was included. So the step list can't just be frozen in local component state — it has to be
+    // computed once per flow session and persisted to TRAVEL_PROVISIONING (cleared by BookTravelButton at the
+    // start of every fresh session), or the total step count would shrink out from under the user as they
+    // move between steps, and going back would land on a mount with a mismatched step list.
+    const persistedEnabledSteps = travelProvisioning?.enabledSteps;
+    const [enabledStepNames] = useState<string[]>(() => {
+        if (persistedEnabledSteps) {
+            return persistedEnabledSteps;
+        }
+        const nextEnabledStepNames: string[] = [];
         if (legalNameMissing) {
-            nextPages.push({pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME, component: LegalNameStep});
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME);
         }
         if (needsVerify) {
-            nextPages.push({pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.VERIFY_ACCOUNT, component: VerifyAccountStep});
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.VERIFY_ACCOUNT);
         }
         if (needsDomainSelector) {
-            nextPages.push({pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR, component: DomainSelectorStep});
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR);
         }
         if (needsAddress) {
-            nextPages.push({pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS, component: WorkspaceAddressStep});
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS);
         }
         if (needsTaxID) {
-            nextPages.push({pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID, component: TaxIDStep});
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID);
         }
-        nextPages.push({pageName: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS, component: TermsStep});
-        return nextPages;
-    }, [legalNameMissing, needsVerify, needsDomainSelector, needsAddress, needsTaxID]);
+        nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS);
+        return nextEnabledStepNames;
+    });
 
-    const stepNames = useMemo(() => pages.map((page) => page.pageName), [pages]);
+    useEffect(() => {
+        if (persistedEnabledSteps) {
+            return;
+        }
+        setTravelProvisioningEnabledSteps(enabledStepNames);
+        // Persist once for this mount only — later flag changes (e.g. legal name getting saved) shouldn't
+        // re-trigger this, since enabledStepNames is already frozen for the rest of this flow session.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const pages = useMemo(() => enabledStepNames.map((pageName) => ({pageName, component: STEP_COMPONENT_BY_PAGE_NAME[pageName] ?? TermsStep})), [enabledStepNames]);
+
+    const stepNames = enabledStepNames;
 
     const startFrom = account === undefined ? -1 : 0;
 
