@@ -6,6 +6,7 @@ internalScope: Audience is all Workspace owners. Explains what subscriptions are
 retrievalIntent: What are the Annual and Pay per use subscriptions
 contentType: topic
 platform: new
+order: 1
 ---
 
 # Learn About Subscriptions
