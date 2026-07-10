@@ -118,21 +118,17 @@ export default createOnyxDerivedValueConfig({
             conciergeReportID,
             introSelected,
         ],
-        {currentValue, sourceValues, triggeredKeys},
+        {currentValue, sourceValues},
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale ?? IntlStore.getCurrentLocale(), path, ...parameters);
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
-        if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys)) {
-            // Must run regardless — it updates the tracked previous display names.
+        if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
             displayNamesChanged = checkDisplayNamesChanged(personalDetails);
 
-            // Only short-circuit when personal details were the sole trigger; coalescing can batch them
-            // with report/transaction changes, and returning early would drop those.
-            const personalDetailsIsOnlyTrigger = triggeredKeys?.size === 1;
-            if (!displayNamesChanged && personalDetailsIsOnlyTrigger) {
+            if (!displayNamesChanged) {
                 return currentValue ?? {reports: {}, locale: null};
             }
         } else if (!sourceValues) {
@@ -144,14 +140,14 @@ export default createOnyxDerivedValueConfig({
         // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
         // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
         let needsFullRecompute =
-            (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, triggeredKeys) && preferredLocale !== currentValue?.locale) ||
+            (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) ||
             displayNamesChanged ||
-            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, triggeredKeys) ||
-            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys);
+            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues) ||
+            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, sourceValues);
 
         // if policies are loaded first time, we need to recompute all report attributes to get correct action badge in LHN, such as Approve because it depends on policy's type (see canApproveIOU function)
         const policyChangedReportKeys: string[] = [];
-        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, triggeredKeys)) {
+        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
             if (Object.keys(previousPolicies ?? {}).length === 0 && Object.keys(policies ?? {}).length > 0) {
                 needsFullRecompute = true;
             } else if (!needsFullRecompute) {
