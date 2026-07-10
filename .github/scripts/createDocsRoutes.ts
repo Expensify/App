@@ -12,7 +12,6 @@ type Article = {
 type Section = {
     href: string;
     title: string;
-    order?: number;
     articles?: Article[];
     sections?: Section[];
 };
@@ -117,39 +116,17 @@ function getOrderFromArticleFrontMatter(path: string): number | undefined {
     }
 }
 
-function getSectionMeta(sectionPath: string): {title?: string; order?: number} {
-    try {
-        const metaPath = `${sectionPath}/_meta.yml`;
-        if (!fs.existsSync(metaPath)) {
-            return {};
-        }
-        const meta = yaml.load(fs.readFileSync(metaPath, 'utf8')) as Record<string, unknown>;
-        return {
-            title: meta.title as string | undefined,
-            order: meta.order as number | undefined,
-        };
-    } catch {
-        return {};
-    }
-}
-
-function sortSectionsByOrder(sections: Section[]) {
-    sections.sort((a, b) => (a.order ?? Number.POSITIVE_INFINITY) - (b.order ?? Number.POSITIVE_INFINITY));
-}
-
+/**
+ * Build a section from a directory path, with optional parent path for nested href
+ */
 function buildSection(platformName: string, hub: string, sectionPath: string, parentHref: string): Section {
     const sectionName = sectionPath.split('/').pop() ?? sectionPath;
     const fullPath = `${docsDir}/articles/${platformName}/${hub}/${sectionPath}`;
-    const meta = getSectionMeta(fullPath);
     const articles: Article[] = [];
     const childSections: Section[] = [];
     const href = parentHref ? `${parentHref}/${sectionName}` : sectionName;
 
     for (const entry of fs.readdirSync(fullPath)) {
-        if (entry === '_meta.yml') {
-            continue;
-        }
-
         const entryPath = `${fullPath}/${entry}`;
         if (entry.endsWith('.md')) {
             const order = getOrderFromArticleFrontMatter(entryPath);
@@ -163,12 +140,9 @@ function buildSection(platformName: string, hub: string, sectionPath: string, pa
     // The sort is stable, so articles without an `order` keep their relative position and fall after ordered ones.
     articles.sort((a, b) => (a.order ?? Number.POSITIVE_INFINITY) - (b.order ?? Number.POSITIVE_INFINITY));
 
-    sortSectionsByOrder(childSections);
-
     const section: Section = {
         href,
-        title: meta.title ?? toTitleCase(sectionName.replaceAll('-', ' ')),
-        ...(meta.order !== undefined && {order: meta.order}),
+        title: toTitleCase(sectionName.replaceAll('-', ' ')),
         ...(articles.length > 0 && {articles}),
         ...(childSections.length > 0 && {sections: childSections}),
     };
@@ -201,9 +175,7 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
 
         for (const fileOrFolder of fs.readdirSync(basePath)) {
             if (fileOrFolder.endsWith('.md')) {
-                const entryPath = `${basePath}/${fileOrFolder}`;
-                const order = getOrderFromArticleFrontMatter(entryPath);
-                const articleObj = getArticleObj(fileOrFolder, order);
+                const articleObj = getArticleObj(fileOrFolder);
                 pushOrCreateEntry(routeHubs, hub, 'articles', articleObj);
                 continue;
             }
@@ -216,7 +188,6 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
         // Add flat section list for nested section page lookup
         const hubObj = routeHubs.find((obj) => obj.href === hub);
         if (hubObj?.sections?.length) {
-            sortSectionsByOrder(hubObj.sections);
             (hubObj as Hub & {flatSections?: Section[]}).flatSections = flattenSections(hubObj.sections);
         }
     }
