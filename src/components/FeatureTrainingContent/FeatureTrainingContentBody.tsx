@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 
@@ -89,22 +89,24 @@ function FeatureTrainingContentBody({
             )}
             {!!helpText && (
                 <Button
-                    large
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mb3]}
                     onPress={onHelp}
-                    text={helpText}
                     sentryLabel={helpSentryLabel}
-                />
+                >
+                    <Button.Text>{helpText}</Button.Text>
+                </Button>
             )}
             <View style={styles.featureTrainingModalNavButtons}>
                 {shouldShowBackButton && (
                     <Button
-                        large
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={onBack}
-                        text={translate('common.back')}
                         sentryLabel={CONST.SENTRY_LABEL.FEATURE_TRAINING.BACK_BUTTON}
                         style={styles.flex1}
-                    />
+                    >
+                        <Button.Text>{translate('common.back')}</Button.Text>
+                    </Button>
                 )}
                 <FormAlertWithSubmitButton
                     onSubmit={() => onConfirm?.(willShowAgain)}
