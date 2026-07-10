@@ -2057,7 +2057,7 @@
 "../../tests/unit/LogTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/MentionUserRendererTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/unit/MiddlewareTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
-"../../tests/unit/ModifiedExpenseMessageTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
+"../../tests/unit/ModifiedExpenseMessageTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/ModifiedExpenseMessageTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/MoneyRequestReportTransactionListActiveTransactionIDsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/MoneyRequestReportUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8

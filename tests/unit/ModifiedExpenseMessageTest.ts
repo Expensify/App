@@ -15,6 +15,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -2308,7 +2309,7 @@ describe('ModifiedExpenseMessage', () => {
                 // Xero policy with two named supplier contacts. The resolver reads
                 // `connections.xero.data.contacts` (keyed Record), and the label switches to
                 // "supplier" instead of "vendor" because the policy is on Xero.
-                const policyWithXeroSuppliers: Policy = {
+                const policyWithXeroSuppliers = createMock<Policy>({
                     id: 'p-1',
                     name: 'My Workspace',
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -2327,7 +2328,7 @@ describe('ModifiedExpenseMessage', () => {
                             },
                         },
                     },
-                } as unknown as Policy;
+                });
 
                 it('renders "set the supplier to X" for a Xero workspace when the supplier is set for the first time', () => {
                     const reportAction = {
