@@ -37,6 +37,15 @@ type DocsRoutes = {
 
 type HubEntriesKey = 'sections' | 'articles';
 
+/**
+ * Type guard narrowing an unknown value (e.g. the result of `yaml.load`) to a plain object,
+ * so its properties can be read without an unsafe type assertion.
+ * @param value - The value to check
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
+}
+
 const warnMessage = (platform: string): string => `Number of hubs in _routes.yml does not match number of hubs in docs/${platform}/articles. Please update _routes.yml with hub info.`;
 const disclaimer = '# This file is auto-generated. Do not edit it directly. Use npm run createDocsRoutes instead.\n';
 const docsDir = `${process.cwd()}/docs`;
@@ -110,8 +119,11 @@ function getOrderFromArticleFrontMatter(path: string): number | undefined {
         if (!frontmatter) {
             return undefined;
         }
-        const frontmatterObject = yaml.load(frontmatter) as Record<string, unknown>;
-        return frontmatterObject.order as number | undefined;
+        const frontmatterObject = yaml.load(frontmatter);
+        if (!isRecord(frontmatterObject)) {
+            return undefined;
+        }
+        return typeof frontmatterObject.order === 'number' ? frontmatterObject.order : undefined;
     } catch {
         return undefined;
     }
@@ -123,10 +135,13 @@ function getSectionMeta(sectionPath: string): {title?: string; order?: number} {
         if (!fs.existsSync(metaPath)) {
             return {};
         }
-        const meta = yaml.load(fs.readFileSync(metaPath, 'utf8')) as Record<string, unknown>;
+        const meta = yaml.load(fs.readFileSync(metaPath, 'utf8'));
+        if (!isRecord(meta)) {
+            return {};
+        }
         return {
-            title: meta.title as string | undefined,
-            order: meta.order as number | undefined,
+            title: typeof meta.title === 'string' ? meta.title : undefined,
+            order: typeof meta.order === 'number' ? meta.order : undefined,
         };
     } catch {
         return {};
