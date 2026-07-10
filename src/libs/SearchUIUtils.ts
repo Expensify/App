@@ -282,7 +282,7 @@ type GetTransactionSectionsParams = {
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'date' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'created' as const,
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 'submitted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
     [CONST.SEARCH.TABLE_COLUMNS.POSTED]: 'posted' as const,
@@ -4067,6 +4067,17 @@ function getSortedTransactionData(
         // with only empty values is a no-op and sorts identically for asc and desc.
         if (isEmptyValue(aValue) && isEmptyValue(bValue)) {
             return 0;
+        }
+
+        // When sorting by date (created), created values are already equal, so tie-break on inserted before transactionID.
+        if (sortingProperty === 'created') {
+            const insertedComparison = compareValues(a.inserted, b.inserted, sortOrder, 'inserted', localeCompare);
+
+            if (insertedComparison !== 0) {
+                return insertedComparison;
+            }
+
+            return compareValues(a.transactionID, b.transactionID, sortOrder, 'transactionID', localeCompare);
         }
 
         // Values are present but equal (e.g. the boolean Reimbursable/Billable columns), so we add a tie breaker on
