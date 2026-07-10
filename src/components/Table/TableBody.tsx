@@ -104,7 +104,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
                 contentContainerStyle={[
-                    filteredAndSortedData.length === 0 && styles.flex1,
+                    filteredAndSortedData.length === 0 && styles.flexGrow1,
                     listContentContainerStyle,
                     tableBodyContentContainerStyle,
                     contentContainerStyle,
