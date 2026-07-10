@@ -237,6 +237,7 @@ describe('actions/Transaction', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await getOnyxData({
@@ -496,6 +497,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -675,6 +677,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -859,6 +862,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -1053,6 +1057,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
 

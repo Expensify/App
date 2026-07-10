@@ -45,9 +45,9 @@ import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
+import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,7 +61,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
@@ -171,14 +171,16 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const linkedReportActionID = reportActionIDFromRoute;
 
-    const {scrollOffsetRef} = useContext(ActionListContext);
+    const {getScrollOffset} = useActionListContext();
+    const listRef = useActionListRef();
+
     const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
     const onShowPreviousMessages = handleShowPreviousMessages;
 
-    const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => scrollOffsetRef.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+    const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
     const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
         reportID,
@@ -270,7 +272,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     }, [reportAttributes?.actionTargetReportActionID, renderedVisibleReportActions]);
 
     const {
-        listRef,
         trackVerticalScrolling,
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,
