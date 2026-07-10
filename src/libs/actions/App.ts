@@ -1,14 +1,8 @@
-// Issue - https://github.com/Expensify/App/issues/26719
-import {findFocusedRoute} from '@react-navigation/native';
-import {Str} from 'expensify-common';
-import type {AppStateStatus} from 'react-native';
-import {AppState} from 'react-native';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
 import {getLastFullReconnectTimeToRecord} from '@libs/FullReconnectUtils';
 import Log from '@libs/Log';
@@ -22,6 +16,8 @@ import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
+
 import CONST from '@src/CONST';
 import getPathFromState from '@src/libs/Navigation/helpers/getPathFromState';
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -31,6 +27,16 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {AppStateStatus} from 'react-native';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+// Issue - https://github.com/Expensify/App/issues/26719
+import {findFocusedRoute} from '@react-navigation/native';
+import {Str} from 'expensify-common';
+import {AppState} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
@@ -286,12 +292,14 @@ AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
         Log.info('App going to background', false, {previousState: appState, nextState: nextAppState});
         Log.info('Flushing logs as app is going inactive', true, {}, true);
+        logReceiptQueueSnapshot('background');
         saveCurrentPathBeforeBackground();
     }
 
     if (nextAppState === 'active' && appState?.match(/inactive|background/)) {
         Log.info('App coming to foreground', false, {previousState: appState, nextState: nextAppState});
         Log.info('Cancelling telemetry spans as app is coming to foreground', false, {previousState: appState, nextState: nextAppState});
+        logReceiptQueueSnapshot('foreground');
         cancelAllSpans();
     }
     appState = nextAppState;
@@ -319,6 +327,7 @@ function getOnyxDataForOpenOrReconnect(
     isFullReconnect = false,
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
+    shouldClearAppLoading = false,
 ): OnyxData<OnyxDataForOpenOrReconnectKeys> {
     let commandName: string;
     if (isOpenApp) {
@@ -367,7 +376,16 @@ function getOnyxDataForOpenOrReconnect(
             key: ONYXKEYS.IS_LOADING_APP,
             value: true,
         });
+    }
 
+    // Clear IS_LOADING_APP in finallyData for OpenApp and ReconnectApp, not just OpenApp. The optimistic `true`
+    // above persists immediately, while finallyData for write commands is held in memory until the sequential
+    // queue flushes (see QueuedOnyxUpdates), so an interrupted session can leave `true` persisted with no OpenApp
+    // left to clear it — once HAS_LOADED_APP is set, the app only ever runs ReconnectApp. Having ReconnectApp also
+    // clear the flag makes it self-healing. Callers outside that family (GetMissingOnyxMessages) must not clear
+    // it: they run as side-effect requests outside the sequential queue, so they could race a legitimate in-flight
+    // OpenApp and drop the loading gate before its data lands.
+    if (isOpenApp || shouldClearAppLoading) {
         result.finallyData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_APP,
@@ -449,7 +467,7 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     }
 
     const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
-    return API.writeWithNoDuplicatesConflictAction(
+    const openAppPromise = API.writeWithNoDuplicatesConflictAction(
         WRITE_COMMANDS.OPEN_APP,
         params,
         getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
@@ -459,6 +477,10 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         }
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
     });
+
+    loadPostDataForOpenOrReconnect();
+
+    return openAppPromise;
 }
 
 /**
@@ -501,13 +523,28 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         }
 
         const isFullReconnect = !updateIDFrom;
-        return API.writeWithNoDuplicatesReconnectConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded)).finally(() => {
+        const reconnectAppPromise = API.writeWithNoDuplicatesReconnectConflictAction(
+            WRITE_COMMANDS.RECONNECT_APP,
+            params,
+            getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded, undefined, true),
+        ).finally(() => {
             if (!bootsplashSpan) {
                 return;
             }
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
+
+        loadPostDataForOpenOrReconnect();
+
+        return reconnectAppPromise;
     });
+}
+
+/**
+ * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp
+ */
+function loadPostDataForOpenOrReconnect() {
+    API.read(READ_COMMANDS.SEARCH_FOR_TODOS, null);
 }
 
 /**

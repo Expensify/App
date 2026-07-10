@@ -1,8 +1,3 @@
-import {PortalHost} from '@gorhom/portal';
-import {useIsFocused} from '@react-navigation/native';
-import reportByIDsSelector from '@selectors/ReportAttributes';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
@@ -10,7 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useShowSuperWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
-import useActionListContextValue from '@hooks/useActionListContextValue';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissOnMoneyRequestReportRemoval from '@hooks/useDismissOnMoneyRequestReportRemoval';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -25,6 +20,7 @@ import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible'
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -36,16 +32,27 @@ import {getReportName} from '@libs/ReportNameUtils';
 import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
+
 import Navigation from '@navigation/Navigation';
+
+import {ActionListContextProvider} from '@pages/inbox/ActionListContext';
 import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
 import useClearReportActionDraftsOnReportChange from '@pages/inbox/report/useClearReportActionDraftsOnReportChange';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+
 import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {ReportAttributesDerivedValue, Transaction, TransactionViolations} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {PortalHost} from '@gorhom/portal';
+import {useIsFocused} from '@react-navigation/native';
+import reportByIDsSelector from '@selectors/ReportAttributes';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 
 type SearchMoneyRequestPageProps =
     | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
@@ -115,8 +122,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
-
-    const actionListValue = useActionListContextValue();
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -380,7 +385,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             effectiveTransactionThreadReportID={effectiveTransactionThreadReportID}
         >
             <WideRHPOverlayWrapper>
-                <ActionListContext.Provider value={actionListValue}>
+                <ActionListContextProvider>
                     <ReactionListWrapper>
                         <ScreenWrapper
                             testID="SearchMoneyRequestReportPage"
@@ -409,7 +414,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                             </FullPageNotFoundView>
                         </ScreenWrapper>
                     </ReactionListWrapper>
-                </ActionListContext.Provider>
+                </ActionListContextProvider>
             </WideRHPOverlayWrapper>
         </ReportActionEditMessageContextProvider>
     );

@@ -1,8 +1,22 @@
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import CONST from '@src/CONST';
+
+const mockLogInfo = jest.fn();
+const mockLogWarn = jest.fn();
+
+jest.mock('@libs/Log', () => ({
+    info: (...args: unknown[]) => {
+        mockLogInfo(...args);
+    },
+    warn: (...args: unknown[]) => {
+        mockLogWarn(...args);
+    },
+}));
 
 describe('TransitionTracker', () => {
     beforeEach(() => {
+        jest.clearAllMocks();
         jest.useFakeTimers();
     });
 
@@ -19,6 +33,34 @@ describe('TransitionTracker', () => {
             const callback = jest.fn();
             TransitionTracker.runAfterTransitions({callback});
             expect(callback).toHaveBeenCalledTimes(1);
+            drainTransitions();
+        });
+
+        it('isolates errors when an immediate callback throws', () => {
+            const error = new Error('boom');
+
+            expect(() => {
+                TransitionTracker.runAfterTransitions({
+                    callback: () => {
+                        throw error;
+                    },
+                });
+            }).not.toThrow();
+
+            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A pending callback threw an error', {error});
+            drainTransitions();
+        });
+
+        it('isolates async errors when an immediate callback rejects', async () => {
+            const error = new Error('async boom');
+
+            TransitionTracker.runAfterTransitions({
+                callback: () => Promise.reject(error),
+            });
+
+            await Promise.resolve();
+
+            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A pending async callback threw an error', {error});
             drainTransitions();
         });
 
@@ -95,6 +137,9 @@ describe('TransitionTracker', () => {
             await Promise.resolve();
             await Promise.resolve();
             expect(callback).toHaveBeenCalledTimes(1);
+            expect(mockLogInfo).toHaveBeenCalledWith('[TransitionTracker] waitForUpcomingTransition timed out before a transition started', false, {
+                timeoutMs: CONST.MAX_TRANSITION_START_WAIT_MS,
+            });
             drainTransitions();
         });
 
@@ -115,6 +160,7 @@ describe('TransitionTracker', () => {
             const transitionHandle = TransitionTracker.startTransition();
             TransitionTracker.endTransition(transitionHandle);
             expect(callback).not.toHaveBeenCalled();
+            expect(mockLogInfo).not.toHaveBeenCalled();
             drainTransitions();
         });
     });
@@ -179,6 +225,7 @@ describe('TransitionTracker', () => {
             TransitionTracker.endTransition(handle);
             expect(callbackA).toHaveBeenCalledTimes(1);
             expect(callbackB).toHaveBeenCalledTimes(1);
+            expect(mockLogWarn).toHaveBeenCalledTimes(1);
             drainTransitions();
         });
     });

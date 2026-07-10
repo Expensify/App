@@ -1,28 +1,36 @@
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import type {MapState} from '@rnmapbox/maps';
-import Mapbox, {MarkerView} from '@rnmapbox/maps';
-import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
+
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {MapState} from '@rnmapbox/maps';
+
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import Mapbox, {MarkerView} from '@rnmapbox/maps';
+import {getForegroundPermissionsAsync} from 'expo-location';
+import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+
+import type {MapViewProps} from './MapViewTypes';
+
 import Compass from './Compass';
 import Direction from './Direction';
-import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
@@ -107,10 +115,37 @@ function MapView({
                 return;
             }
 
-            getCurrentPosition((params) => {
-                const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                setUserLocation(currentCoords);
-            }, setCurrentPositionToInitialState);
+            // Only read the device location when permission is ALREADY granted. We never request it here,
+            // so opening the map cannot trigger an OS permission prompt without a prior explicit user action.
+            let ignore = false;
+            getForegroundPermissionsAsync().then(({granted}) => {
+                if (ignore) {
+                    return;
+                }
+                if (!granted) {
+                    // Pass the permission-denied error so any stale cached location is cleared and the map falls back to initialState.
+                    setCurrentPositionToInitialState({
+                        code: GeolocationErrorCode.PERMISSION_DENIED,
+                        message: 'User denied access to location.',
+                    });
+                    return;
+                }
+
+                getCurrentPosition((params) => {
+                    if (ignore) {
+                        return;
+                    }
+                    const currentCoords = {
+                        longitude: params.coords.longitude,
+                        latitude: params.coords.latitude,
+                    };
+                    setUserLocation(currentCoords);
+                }, setCurrentPositionToInitialState);
+            });
+
+            return () => {
+                ignore = true;
+            };
         }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
     );
 

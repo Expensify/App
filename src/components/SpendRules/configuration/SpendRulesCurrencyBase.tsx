@@ -1,5 +1,3 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,15 +7,22 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
+import CONST from '@src/CONST';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type SpendRulesCurrencyBaseProps = {
     /** The currently selected currencies */
@@ -157,7 +162,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                     </Text>
                 </View>
                 <Icon
-                    medium
+                    size={CONST.ICON_SIZE.MEDIUM}
                     src={icons.Lock}
                     fill={theme.icon}
                 />

@@ -1,12 +1,16 @@
-import isEmpty from 'lodash/isEmpty';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {Entries, ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {Entries, ValueOf} from 'type-fest';
+
+import isEmpty from 'lodash/isEmpty';
+
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';

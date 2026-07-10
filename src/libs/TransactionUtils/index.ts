@@ -1,16 +1,9 @@
-import {format, isValid, parse} from 'date-fns';
-import {Str} from 'expensify-common';
-import {deepEqual} from 'fast-equals';
-import lodashDeepClone from 'lodash/cloneDeep';
-import lodashSet from 'lodash/set';
-import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
+
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
@@ -48,7 +41,9 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
+
 import type {UpdateMoneyRequestDataKeys} from '@userActions/IOU/UpdateMoneyRequest';
+
 import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -87,7 +82,17 @@ import type {
     WaypointCollection,
 } from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SafeString from '@src/utils/SafeString';
+
+import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {format, isValid, parse} from 'date-fns';
+import {SafeString, Str} from 'expensify-common';
+import {deepEqual} from 'fast-equals';
+import lodashDeepClone from 'lodash/cloneDeep';
+import lodashSet from 'lodash/set';
+import Onyx from 'react-native-onyx';
+
 import getDistanceInMeters from './getDistanceInMeters';
 
 type TransactionParams = {
@@ -604,6 +609,7 @@ function getUpdatedTransaction({
     shouldUpdateReceiptState = true,
     policy = undefined,
     isSplitTransaction = false,
+    personalPolicyOutputCurrency,
 }: {
     transaction: Transaction;
     transactionChanges: TransactionChanges;
@@ -611,6 +617,7 @@ function getUpdatedTransaction({
     shouldUpdateReceiptState?: boolean;
     policy?: OnyxEntry<Policy>;
     isSplitTransaction?: boolean;
+    personalPolicyOutputCurrency: string | undefined;
 }): Transaction {
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -661,7 +668,7 @@ function getUpdatedTransaction({
             updatedTransaction.modifiedAmount = CONST.IOU.DEFAULT_AMOUNT;
             updatedTransaction.modifiedMerchant = translateLocal('iou.fieldPending');
         } else if (transactionChanges.routes?.route0?.geometry?.coordinates) {
-            const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy});
+            const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, personalPolicyOutputCurrency});
             const {unit, rate} = mileageRate;
 
             // Use route distance directly since waypoints changed and the route was recalculated.
@@ -669,12 +676,15 @@ function getUpdatedTransaction({
             const distanceInMeters = transactionChanges.routes?.route0?.distance ?? getDistanceInMeters(transaction, unit);
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
+            // Use the rate's resolved currency (which may come from personalPolicyOutputCurrency for a P2P expense),
+            // not transaction.currency, so the merchant symbol/rate and the recalculated amount stay in the same currency.
+            const updatedCurrency = mileageRate.currency ?? transaction.currency ?? CONST.CURRENCY.USD;
             const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
                 true,
                 distanceInMeters,
                 unit,
                 rate,
-                transaction.currency,
+                updatedCurrency,
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
@@ -684,6 +694,9 @@ function getUpdatedTransaction({
             updatedTransaction.amount = updatedAmount;
             updatedTransaction.modifiedAmount = updatedAmount;
             updatedTransaction.modifiedMerchant = updatedMerchant;
+            if (getCurrency(updatedTransaction) !== updatedCurrency) {
+                updatedTransaction.modifiedCurrency = updatedCurrency;
+            }
 
             // Sync `customUnit.quantity` to the new route distance. Without this the prior manual
             // quantity (set when the user edited distance manually before changing waypoints) would
@@ -725,7 +738,7 @@ function getUpdatedTransaction({
             // When the waypoints are being fetched from the server, we have no information about the distance, and cannot recalculate the updated amount.
             // Otherwise, recalculate the fields based on the new rate.
 
-            const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+            const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
             const {unit, rate} = updatedMileageRate;
 
             const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
@@ -813,7 +826,7 @@ function getUpdatedTransaction({
         lodashSet(updatedTransaction, 'routes.route0.distance', null);
         shouldStopSmartscan = true;
 
-        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
         const {unit, rate} = updatedMileageRate;
 
         // Sync the stored distanceUnit to the policy's current unit. The user's input on the Manual
@@ -1147,8 +1160,13 @@ function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): A
     const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
     return {
         email: creatorLogin,
+        login: creatorLogin,
         displayName: creatorDisplayName,
+        accountID: creatorDetails?.accountID,
+        text: creatorDisplayName,
+        searchText: creatorDisplayName,
         avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
+        selected: true,
     };
 }
 
@@ -1198,7 +1216,7 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsA
  * Strips the SMS domain so phone-login attendees render the same as in the rendered pills.
  */
 function getAttendeesListDisplayString(attendees: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): string {
-    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.email ?? '');
+    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.login ?? '');
     const ordered = localeCompare
         ? // Lowercase to match sortAlphabetically (the pill sort) so joined string and pill order never disagree on case.
           [...attendees].sort((a, b) => localeCompare(getName(a).toLowerCase(), getName(b).toLowerCase()))
@@ -1433,10 +1451,37 @@ function isPending(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
- * Check if all transactions are pending Expensify card transactions.
+ * Returns the appropriate delete dialog title for an expense.
+ * Shows "Delete pending expense" when deleting a single pending transaction.
+ */
+function getDeleteExpenseTitle(translate: LocaleContextProps['translate'], transaction: OnyxEntry<Transaction> | undefined, count = 1): string {
+    if (count === 1 && isPending(transaction)) {
+        return translate('iou.deletePendingExpense');
+    }
+    return translate('iou.deleteExpense', {count});
+}
+
+/**
+ * Returns the appropriate delete confirmation prompt for an expense.
+ * - Single pending transaction: shows a BYOC-specific warning (may be re-imported once it posts).
+ * - Multiple transactions where some are pending: warns that some may be re-imported.
+ * - Otherwise: shows the standard delete confirmation.
+ */
+function getDeleteConfirmationPrompt(translate: LocaleContextProps['translate'], transaction: OnyxEntry<Transaction> | undefined, count = 1, hasSomePending = false): string {
+    if (count === 1 && isPending(transaction)) {
+        return translate('iou.deleteConfirmationPendingBYOC');
+    }
+    if (count > 1 && hasSomePending) {
+        return translate('iou.deleteConfirmationSomePendingBYOC');
+    }
+    return translate('iou.deleteConfirmation', {count});
+}
+
+/**
+ * Check if all transactions are pending (includes both Expensify Card and BYOC card transactions).
  */
 function hasOnlyPendingCardTransactions(transactions: Array<OnyxEntry<Transaction>>): boolean {
-    return transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+    return transactions.length > 0 && transactions.every((t) => isPending(t));
 }
 
 /**
@@ -1770,13 +1815,14 @@ function getVisibleTransactionViolations(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     shouldShowRterForSettledReport = true,
 ): TransactionViolations {
     return mergeProhibitedViolations(
         transactionViolations.filter(
             (violation) =>
-                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
+                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy, iouReportOwnerLogin) &&
                 shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
         ),
     );
@@ -1975,6 +2021,7 @@ function isDuplicate(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     transactionViolation: OnyxEntry<TransactionViolations>,
 ): boolean {
@@ -1984,7 +2031,15 @@ function isDuplicate(
 
     const duplicatedTransactionViolation = transactionViolation?.find((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
     const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
-    const isDuplicatedTransactionViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, currentUserEmail, currentUserAccountID, iouReport, policy);
+    const isDuplicatedTransactionViolationDismissed = isViolationDismissed(
+        transaction,
+        duplicatedTransactionViolation,
+        currentUserEmail,
+        currentUserAccountID,
+        iouReport,
+        policy,
+        iouReportOwnerLogin,
+    );
 
     return hasDuplicatedTransactionViolation && !isDuplicatedTransactionViolationDismissed;
 }
@@ -2010,6 +2065,7 @@ function isViolationDismissed(
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
+    iouReportOwnerLogin?: string,
 ): boolean {
     if (!transaction || !violation) {
         return false;
@@ -2041,7 +2097,7 @@ function isViolationDismissed(
     const shouldViewAsSubmitter = !isSubmitter && isOpenExpenseReport(iouReport);
 
     if (shouldViewAsSubmitter && iouReport.ownerAccountID) {
-        const reportOwnerEmail = getLoginsByAccountIDs([iouReport.ownerAccountID]).at(0);
+        const reportOwnerEmail = iouReportOwnerLogin ?? getLoginsByAccountIDs([iouReport.ownerAccountID]).at(0);
         if (reportOwnerEmail && dismissedByEmails.includes(reportOwnerEmail)) {
             return true;
         }
@@ -2089,6 +2145,7 @@ function hasDuplicateTransactions(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    ownerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     allTransactionViolations: OnyxCollection<TransactionViolation[]>,
 ): boolean {
@@ -2103,6 +2160,7 @@ function hasDuplicateTransactions(
                 currentUserEmail,
                 currentUserAccountID,
                 iouReport,
+                ownerLogin,
                 policy,
                 allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
             ),
@@ -2949,6 +3007,10 @@ function isExpenseUnreported(transaction?: Transaction): transaction is Unreport
     return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 }
 
+function isUnreportedManagedCardTransaction(transaction?: Transaction): boolean {
+    return isExpenseUnreported(transaction) && isManagedCardTransaction(transaction);
+}
+
 /**
  * Returns true if the violation should block report submission.
  */
@@ -3164,11 +3226,14 @@ export {
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
     getCardName,
+    getDeleteExpenseTitle,
+    getDeleteConfirmationPrompt,
     hasReceiptSource,
     hasOdometerImageSource,
     shouldShowAttendees,
     getAllSortedTransactions,
     getFormattedPostedDate,
+    getPostedDate,
     getCategoryTaxDetails,
     isPerDiemRequest,
     isViolationDismissed,
@@ -3214,4 +3279,5 @@ export {
     hasSmartScanFailedWithMissingFields,
     isDeletedTransaction,
     getDistanceRequestType,
+    isUnreportedManagedCardTransaction,
 };
