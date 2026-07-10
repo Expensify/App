@@ -1101,7 +1101,7 @@ describe('PolicyUtils', () => {
                 ownerAccountID: employeeAccountID,
             };
 
-            expect(getSubmitToEmail(policy, report)).toBe(adminEmail);
+            expect(getSubmitToEmail(policy, report, employeeEmail)).toBe(adminEmail);
         });
 
         it('should return the default approver', () => {

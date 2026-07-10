@@ -3,7 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {openPublicProfilePage} from '@libs/actions/PersonalDetails';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getFullSizeAvatar} from '@libs/UserAvatarUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 
@@ -24,13 +24,13 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     const accountID = Number(accountIDParam ?? CONST.DEFAULT_NUMBER_ID);
 
     const defaultAvatars = useDefaultAvatars();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const personalDetail = personalDetails?.[accountID];
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const avatarURL = personalDetail?.avatar ?? '';
-    const displayName = getDisplayNameOrDefault(personalDetail);
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, translate});
 
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isLoading = personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length);

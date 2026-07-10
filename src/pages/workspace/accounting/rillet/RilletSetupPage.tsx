@@ -1,16 +1,17 @@
+import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
-import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isAuthenticationError} from '@libs/actions/connections';
 import {connectToRillet} from '@libs/actions/connections/Rillet';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,6 +33,9 @@ function RilletSetupPage({route}: RilletSetupPageProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const policyID: string = route.params.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const config = policy?.connections?.rillet?.config;
+    const shouldBeBlocked = !!config?.isConfigured && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.RILLET);
 
     const confirmCredentials = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM>) => {
         connectToRillet(policyID, values[INPUT_IDS.API_KEY]);
@@ -52,14 +56,19 @@ function RilletSetupPage({route}: RilletSetupPageProps) {
     };
 
     return (
-        <ScreenWrapper
-            testID="RilletSetupPage"
-            enableEdgeToEdgeBottomSafeAreaPadding
+        <ConnectionLayout
+            displayName="RilletSetupPage"
+            headerTitle="workspace.rillet.rilletSetup"
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={[styles.flex1]}
+            titleStyle={styles.ph5}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
+            shouldBeBlocked={shouldBeBlocked}
+            shouldLoadForEmptyConnection
+            shouldUseScrollView={false}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.rillet.rilletSetup')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM}
@@ -95,7 +104,7 @@ function RilletSetupPage({route}: RilletSetupPageProps) {
                     </View>
                 ))}
             </FormProvider>
-        </ScreenWrapper>
+        </ConnectionLayout>
     );
 }
 

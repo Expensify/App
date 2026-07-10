@@ -186,8 +186,7 @@ type RequestMoneyInformation = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;
-    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
 };
 
 type MoneyRequestInformationParams = {
@@ -221,8 +220,7 @@ type MoneyRequestInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -270,8 +268,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
     personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     /** Whether this is a selfDM split transaction */
     isSelfDMSplit?: boolean;
