@@ -12,10 +12,10 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 - **Member** – Can submit and/or approve expenses.
 - **Workspace admin** – Can manage members, roles, workflows, and settings.
 - **Card admin** – Can manage the Expensify Card and Company cards, including issuing cards, setting limits, and assigning company cards. Has read-only access to Overview and Members, and all other workspace settings pages are hidden. (Control workspaces only)
-- **People admin** – Can manage workspace membership and configure approval workflows. People admins can add and remove Members and Auditors only, and cannot add or remove Admins or other scoped admin roles. They have read-only access to the workspace overview and edit access to Members and the Approvals section of Workflows. All other workspace editor pages are hidden. (Control workspaces only)
+- **People admin** – Can manage workspace membership and configure approval workflows. People admins can add and remove Members and Auditors only, and cannot add or remove admins or other scoped admin roles. They have read-only access to the workspace overview and edit access to Members and the Approvals section of Workflows. All other workspace editor pages are hidden. (Control workspaces only)
 - **Payments admin** – Can manage workspace payment settings in the **Payments** section of **Workflows**, including business bank accounts, the authorized expense payer, and payment methods. Payment permissions are otherwise unchanged, so paying a report still depends on the relevant bank account being shared with the payer. Has read-only access to the workspace overview and Members, and all other workspace editor pages are hidden. (Control workspaces only)
 - **Auditor** – Can view and comment on reports and has read-only access to all workspace editor pages (such as Categories, Tags, Rules, Workflows, and Accounting). Auditors cannot change any workspace settings or take workflow actions such as approving, paying, or taking control. (Control workspaces only)
-- **Editor** – Can edit workspace settings, but cannot see all expenses associated with the workspace. They cannot add Admins to the workspace or change other users’ roles. (Submit workspaces only)
+- **Editor** – Can edit workspace settings, but cannot see all expenses associated with the workspace. They cannot add admins to the workspace or change other users’ roles. (Submit workspaces only)
 
 ---
 
@@ -32,7 +32,7 @@ To invite someone to your workspace:
 
 **Tip:** You can also invite members under **Settings > Profile** by clicking **Share** to send the workspace’s URL or QR code.
 
-**Note:** Workspace admins and People admins can invite members. People admins can only invite users as **Members** or **Auditors** — they cannot invite Admins or other scoped admin roles.
+**Note:** Workspace admins and People admins can invite members. People admins can only invite users as **Members** or **Auditors** — they cannot invite admins or other scoped admin roles.
 
 ---
 
@@ -45,7 +45,7 @@ You can filter the member list by role to quickly find specific groups of member
 3. Select one of the available roles:
    - **All members** – Shows all workspace members (default).
    - **Approvers** – Shows only members who are designated approvers.
-   - **Workspace admins** – Shows only members with the Admin role (not available on Submit workspaces).
+   - **Workspace admins** – Shows only members with the Workspace admin role (not available on Submit workspaces).
    - **Card admins** – Shows only members with the Card admin role (Control workspaces only).
    - **Payments admins** – Shows only members with the Payments admin role (Control workspaces only).
    - **Auditors** – Shows only members with the Auditor role (Control workspaces only).
@@ -63,7 +63,7 @@ If no members match the selected filter, an empty state is displayed with the me
 
 If someone no longer needs access to your workspace, you can remove them individually or in bulk to keep your member list up to date.
 
-**Note:** Workspace admins and People admins can remove members. People admins can only remove **Members** and **Auditors** — they cannot remove Admins or other scoped admin roles.
+**Note:** Workspace admins and People admins can remove members. People admins can only remove **Members** and **Auditors** — they cannot remove admins or other scoped admin roles.
 
 ## Remove a Single Member
 
@@ -89,13 +89,13 @@ If someone no longer needs access to your workspace, you can remove them individ
 3. In the right-hand panel, click **Roles**.
 4. Select the new role and confirm.
 
-**Note:** People admins can change a member’s role between **Member** and **Auditor** only. Granting or removing the Admin role or any scoped admin role (such as Card admin, People admin, or Payments admin) requires a Workspace admin.
+**Note:** People admins can change a member’s role between **Member** and **Auditor** only. Granting or removing the admin role or any scoped admin role (such as Card admin, People admin, or Payments admin) requires a Workspace admin.
 
 ---
 
 # Transfer Workspace Ownership
 
-To transfer ownership to another Admin:
+To transfer ownership to another admin:
 
 1. Go to **Workspaces > Members**.
 2. Click the current **Owner** (identified with a tag).
