@@ -88,6 +88,7 @@ export default function DomainAdminsTable({domainAccountID, admins}: DomainAdmin
             keyExtractor={(item) => item.keyForList}
         >
             <Table.FilterBar label={translate('domain.admins.findAdmin')} />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>

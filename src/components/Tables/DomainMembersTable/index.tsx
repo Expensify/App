@@ -42,7 +42,6 @@ type DomainMembersTableProps = {
     shouldShowGroupColumn: boolean;
     filterConfig?: FilterConfig<DomainMembersTableFilterKey>;
     isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
-    EmptyStateComponent: React.ReactElement;
 };
 
 /**
@@ -156,18 +155,17 @@ export default function DomainMembersTable({
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
         >
-            {isEmpty && EmptyStateComponent}
             {!isEmpty && (
-                <>
-                    <DomainMembersGroupFilterSync
-                        shouldShowGroupFilter={shouldShowGroupFilter}
-                        groupOptionValuesKey={groupOptionValuesKey}
-                    />
-                    <Table.FilterBar label={translate('domain.members.findMember')} />
-                    <Table.Header />
-                    <Table.Body />
-                </>
+                <DomainMembersGroupFilterSync
+                    shouldShowGroupFilter={shouldShowGroupFilter}
+                    groupOptionValuesKey={groupOptionValuesKey}
+                />
             )}
+
+            <Table.FilterBar label={translate('domain.members.findMember')} />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }
