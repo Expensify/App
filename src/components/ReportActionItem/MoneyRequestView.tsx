@@ -220,6 +220,7 @@ function MoneyRequestView({
     let [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
     const parentReportAction = transactionThreadReport?.parentReportActionID ? parentReportActions?.[transactionThreadReport.parentReportActionID] : undefined;
@@ -827,6 +828,7 @@ function MoneyRequestView({
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
                 delegateAccountID,
+                reportPolicyTags,
             });
         });
     };
