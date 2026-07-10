@@ -33,13 +33,10 @@
                             <span>{{ hub.title }}</span>
                         </div>
                         <ul class="nested-treeview">
-                            {% assign emptyItems = "" | split: "," %}
-                            {% assign hubArticles = hub.articles | default: emptyItems %}
-                            {% assign hubSections = hub.sections | default: emptyItems %}
                             {% if hub.articles %} 
-                                {% assign sortedSectionsAndArticles = hubSections | concat: hubArticles | sort: 'order' %}
+                                {% assign sortedSectionsAndArticles = hub.sections | concat: hub.articles | sort: 'title' %} 
                             {% else %} 
-                                {% assign sortedSectionsAndArticles = hubSections | sort: 'order' %} 
+                                {% assign sortedSectionsAndArticles = hub.sections | sort: 'title' %} 
                             {% endif%}
                             {% for item in sortedSectionsAndArticles %}
                                 {% if item.articles %}
@@ -154,61 +151,7 @@
                                                 {% endif %}
                                             </ul>
                                         {% else %}
-                                            <a href="/{{ activePlatform }}/hubs/{{ hub.href }}/{{ item.href }}" class="icon-with-link link">
-                                                <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
-                                                {{ item.title }}
-                                            </a>
-                                        {% endif %}
-                                    </li>
-                                {% elsif item.sections %}
-                                    <li>
-                                        {% assign lhnSectionActive = false %}
-                                        {% if page.url contains item.href %}
-                                            {% assign lhnSectionActive = true %}
-                                        {% endif %}
-                                        {% if lhnSectionActive %}
-                                            <div class="icon-with-link selected">
-                                                <a href="/{{ activePlatform }}/hubs/{{ hub.href }}"><img src="/assets/images/down.svg" class="base-icon"></img></a>
-                                                <span>{{ item.title }}</span>
-                                            </div>
-                                            <ul>
-                                                {% assign lhnSortedSubsections = item.sections | sort: 'order' %}
-                                                {% for subsection in lhnSortedSubsections %}
-                                                    <li>
-                                                        <a href="/{{ activePlatform }}/hubs/{{ hub.href }}/{{ subsection.href }}" class="icon-with-link link">
-                                                            <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
-                                                            {{ subsection.title }}
-                                                        </a>
-                                                        {% if subsection.articles %}
-                                                            <ul>
-                                                                {% for article in subsection.articles %}
-                                                                    {% assign article_href = subsection.href | append: '/' | append: article.href %}
-                                                                    {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article_href title=article.title %}
-                                                                {% endfor %}
-                                                            </ul>
-                                                        {% endif %}
-                                                        {% if subsection.sections %}
-                                                            <ul>
-                                                                {% for subsubsection in subsection.sections %}
-                                                                    <li>
-                                                                        <span class="icon-with-link">{{ subsubsection.title }}</span>
-                                                                        {% if subsubsection.articles %}
-                                                                            <ul>
-                                                                                {% for article in subsubsection.articles %}
-                                                                                    {% assign article_href = subsubsection.href | append: '/' | append: article.href %}
-                                                                                    {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article_href title=article.title %}
-                                                                                {% endfor %}
-                                                                            </ul>
-                                                                        {% endif %}
-                                                                    </li>
-                                                                {% endfor %}
-                                                            </ul>
-                                                        {% endif %}
-                                                    </li>
-                                                {% endfor %}
-                                            </ul>
-                                        {% else %}
-                                            <a href="/{{ activePlatform }}/hubs/{{ hub.href }}/{{ item.href }}" class="icon-with-link link">
+                                            <a href="{{ item.href }}" class="icon-with-link link">
                                                 <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
                                                 {{ item.title }}
                                             </a>
