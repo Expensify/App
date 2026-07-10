@@ -5,7 +5,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {enablePolicyCategories} from '@libs/actions/Policy/Category';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -21,8 +20,6 @@ import {
 
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 
-import {enableCompanyCards, enableExpensifyCard, enablePolicyConnections} from '@userActions/Policy/Policy';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -35,11 +32,9 @@ const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 type GettingStartedItem = {
     key: string;
     label: string;
-    subtitle?: string;
+    subText: string;
     isComplete: boolean;
     route: Route;
-    isFeatureEnabled?: boolean;
-    enableFeature?: () => void;
 };
 
 type UseGettingStartedItemsResult = {
@@ -107,24 +102,37 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     items.push({
         key: 'createWorkspace',
         label: translate('homePage.gettingStartedSection.createWorkspace'),
+        subText: translate('homePage.gettingStartedSection.createWorkspaceSubText'),
         isComplete: true,
         route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID, Navigation.getActiveRoute()) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
     });
 
     if (intent === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-        items.push({
-            key: 'customizeCategories',
-            label: translate('homePage.gettingStartedSection.customizeCategories'),
-            isComplete: hasCustomCategories(policyCategories),
-            route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areCategoriesEnabled,
-            enableFeature: () => enablePolicyCategories({policy, categories: policyCategories ?? {}, tags: {}, reports: [], transactionsAndViolations: {}}, true, false),
-        });
+        if (policy.areCategoriesEnabled) {
+            items.push({
+                key: 'customizeCategories',
+                label: translate('homePage.gettingStartedSection.customizeCategories'),
+                subText: translate('homePage.gettingStartedSection.customizeCategoriesSubText'),
+                isComplete: hasCustomCategories(policyCategories),
+                route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
+            });
+        }
+
+        if (policy.areCompanyCardsEnabled) {
+            items.push({
+                key: 'linkCompanyCards',
+                label: translate('homePage.gettingStartedSection.linkCompanyCards'),
+                subText: translate('homePage.gettingStartedSection.linkCompanyCardsSubText'),
+                isComplete: hasCompanyCardFeeds(allCardFeeds),
+                route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
+            });
+        }
 
         const activeMemberCount = Object.values(policy.employeeList ?? {}).filter((member) => member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
         items.push({
             key: 'inviteAccountant',
             label: translate('homePage.gettingStartedSection.inviteAccountant'),
+            subText: translate('homePage.gettingStartedSection.inviteAccountantSubText'),
             isComplete: activeMemberCount >= MIN_MEMBERS_FOR_ACCOUNTANT_INVITED,
             route: ROUTES.WORKSPACE_MEMBERS.getRoute(activePolicyID),
         });
@@ -145,19 +153,17 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'connectAccounting',
             label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
+            subText: translate('homePage.gettingStartedSection.connectAccountingSubText'),
             isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
             route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areConnectionsEnabled,
-            enableFeature: () => enablePolicyConnections(activePolicyID, true, false),
         });
-    } else {
+    } else if (policy.areCategoriesEnabled) {
         items.push({
             key: 'customizeCategories',
             label: translate('homePage.gettingStartedSection.customizeCategories'),
+            subText: translate('homePage.gettingStartedSection.customizeCategoriesSubText'),
             isComplete: hasCustomCategories(policyCategories),
             route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areCategoriesEnabled,
-            enableFeature: () => enablePolicyCategories({policy, categories: policyCategories ?? {}, tags: {}, reports: [], transactionsAndViolations: {}}, true, false),
         });
     }
 
@@ -166,10 +172,9 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'linkCompanyCards',
             label: translate('homePage.gettingStartedSection.linkCompanyCards'),
+            subText: translate('homePage.gettingStartedSection.linkCompanyCardsSubText'),
             isComplete: hasCompanyCardFeeds(allCardFeeds),
             route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areCompanyCardsEnabled,
-            enableFeature: () => enableCompanyCards(activePolicyID, true, false),
         });
     }
 
@@ -177,11 +182,9 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'issueExpensifyCards',
             label: translate('homePage.gettingStartedSection.issueExpensifyCards'),
-            subtitle: translate('homePage.gettingStartedSection.issueExpensifyCardsSubtitle'),
+            subText: translate('homePage.gettingStartedSection.issueExpensifyCardsSubtitle'),
             isComplete: hasIssuedExpensifyCard,
             route: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areExpensifyCardsEnabled,
-            enableFeature: () => enableExpensifyCard(activePolicyID, true, false),
         });
     }
 
@@ -189,6 +192,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'setupRules',
             label: translate('homePage.gettingStartedSection.setupRules'),
+            subText: translate('homePage.gettingStartedSection.setupRulesSubText'),
             isComplete: hasConfiguredRules(policy, policyCategories),
             route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
         });
