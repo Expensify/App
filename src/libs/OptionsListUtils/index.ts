@@ -466,6 +466,7 @@ type GetAlternateTextConfig = {
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
     isTrackIntentUser?: boolean;
+    currentUserAccountID?: number;
 };
 
 /**
@@ -486,6 +487,7 @@ function getAlternateText(
         conciergeReportID,
         sortedActions,
         isTrackIntentUser,
+        currentUserAccountID,
     }: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport(option.reportID);
@@ -509,6 +511,7 @@ function getAlternateText(
             conciergeReportID,
             sortedActions,
             isTrackIntentUser,
+            currentUserAccountID,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
@@ -1110,6 +1113,7 @@ type CreateOptionParams = {
     conciergeReportID?: string;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
+    currentUserAccountID?: number;
 };
 
 /**
@@ -1129,6 +1133,7 @@ function createOption({
     isTrackIntentUser,
     conciergeReportID,
     sortedActions,
+    currentUserAccountID,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const translateFn = translate ?? translateLocal;
@@ -1215,6 +1220,7 @@ function createOption({
             conciergeReportID,
             sortedActions,
             isTrackIntentUser,
+            currentUserAccountID,
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
@@ -1232,6 +1238,7 @@ function createOption({
                           reportAttributesDerived,
                           policyTags,
                           conciergeReportID,
+                          currentUserAccountID,
                       },
                   );
 
@@ -1291,6 +1298,7 @@ function getReportOption(
     reportDraft: OnyxEntry<Report>,
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
+    currentUserAccountID?: number,
 ): OptionData {
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
@@ -1310,6 +1318,7 @@ function getReportOption(
         policyTags: reportPolicyTags,
         visibleReportActionsData,
         conciergeReportID,
+        currentUserAccountID,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
