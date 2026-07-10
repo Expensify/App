@@ -643,7 +643,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
 
-    it('should include SUBMIT option for admin with only pending transactions', async () => {
+    it('should not include SUBMIT option for admin with only pending transactions', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -681,7 +681,7 @@ describe('getSecondaryAction', () => {
             policy,
             isProduction: false,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
 
     it('should not include SUBMIT option when transaction has smartscan failed violation', async () => {

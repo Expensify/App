@@ -4,7 +4,7 @@ import useReportActionsScroll from '@hooks/useReportActionsScroll';
 
 import type Navigation from '@libs/Navigation/Navigation';
 
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+import {ActionListContext} from '@pages/inbox/ActionListContext';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,11 +33,9 @@ jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameR
 // --- useReportScrollManager ---
 const mockScrollToBottom = jest.fn();
 const mockScrollToIndex = jest.fn();
-const mockScrollManagerRef = {current: null};
 jest.mock('@hooks/useReportScrollManager', () => ({
     __esModule: true,
     default: () => ({
-        ref: mockScrollManagerRef,
         scrollToBottom: mockScrollToBottom,
         scrollToIndex: mockScrollToIndex,
         scrollToEnd: jest.fn(),
@@ -178,6 +176,9 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
         transactionThreadReport: undefined,
         parentReportAction: undefined,
         sortedVisibleReportActions: [makeAction('1')],
+        renderedVisibleReportActions: [makeAction('1')],
+        keyExtractor: (item: ReportAction) => item.reportActionID,
+        hasScrolledOverThreshold: false,
         markNewestActionAsRead: mockMarkNewestActionAsRead,
         completeSkippedMarkAsRead: mockCompleteSkippedMarkAsRead,
         unreadMarkerReportActionID: null,
@@ -192,8 +193,13 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
     };
 }
 
+// Built via a function so the value isn't an inline literal the context-split lint rule would flag; these are all refs/accessors with no re-render concern.
+function buildActionListContextValue() {
+    return {scrollOffsetRef: mockScrollOffsetRef, getScrollOffset: () => mockScrollOffsetRef.current, registerListRef: () => {}, getListRef: () => null};
+}
+
 function wrapper({children}: {children: ReactNode}) {
-    return <ActionListContext.Provider value={{flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: mockScrollOffsetRef}}>{children}</ActionListContext.Provider>;
+    return <ActionListContext.Provider value={buildActionListContextValue()}>{children}</ActionListContext.Provider>;
 }
 
 async function renderScroll(overrides: Partial<ScrollParams> = {}) {
@@ -249,7 +255,8 @@ describe('useReportActionsScroll', () => {
 
             expect(result.current.shouldBeAlignedToTop).toBe(false);
             expect(result.current.shouldFocusToTopOnMount).toBe(false);
-            expect(result.current.maintainVisibleContentPosition).toBeUndefined();
+            expect(result.current.maintainVisibleContentPosition.disabled).toBe(true);
+            expect(result.current.maintainVisibleContentPosition.autoscrollToBottomThreshold).toBeUndefined();
         });
 
         it('is aligned to top and focuses to top on mount for a transaction thread report', async () => {
@@ -408,8 +415,9 @@ describe('useReportActionsScroll', () => {
                 result.current.onLoad();
             });
 
-            // Stays undefined for a regular chat.
-            expect(result.current.maintainVisibleContentPosition).toBeUndefined();
+            // Stays disabled with no autoscroll threshold for a regular chat.
+            expect(result.current.maintainVisibleContentPosition.disabled).toBe(true);
+            expect(result.current.maintainVisibleContentPosition.autoscrollToBottomThreshold).toBeUndefined();
         });
 
         it('waits for the report actions to have loaded before disabling autoscroll-to-top', async () => {
@@ -594,7 +602,6 @@ describe('useReportActionsScroll', () => {
 
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
             expect(result.current.isActionBadgeAboveViewport).toBe(true);
-            expect(result.current.listRef).toBe(mockScrollManagerRef);
 
             result.current.trackVerticalScrolling(undefined);
             expect(mockTrackVerticalScrolling).toHaveBeenCalledWith(undefined);
