@@ -202,6 +202,14 @@ describe('DateUtils', () => {
         expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo, UTC)).toBe('about 1 hour ago');
     });
 
+    it('datetimeToRelative renders localized wording for non-English locales', async () => {
+        await IntlStore.load(CONST.LOCALES.ES);
+        const anHourAgo = subHours(new Date(), 1).toString();
+        const result = DateUtils.datetimeToRelative(CONST.LOCALES.ES, anHourAgo, UTC);
+        expect(result).toMatch(/hace/);
+        expect(result).not.toMatch(/ago/);
+    });
+
     it('subtractMillisecondsFromDateTime should subtract milliseconds from a given date and time', () => {
         const initialDateTime = '2023-07-18T10:30:00Z';
         const millisecondsToSubtract = 5000; // 5 seconds

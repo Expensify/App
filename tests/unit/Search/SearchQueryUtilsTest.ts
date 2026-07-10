@@ -4,6 +4,7 @@ import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
 import {
     applyContainsOperatorToTextFields,
@@ -271,6 +272,17 @@ describe('SearchQueryUtils', () => {
             const result = getDateRangeDisplayValueFromFormValue('invalid');
 
             expect(result).toBe('');
+        });
+
+        test('threads the current IntlStore locale through to the display formatter', () => {
+            const spy = jest.spyOn(IntlStore, 'getCurrentLocale').mockReturnValue(CONST.LOCALES.ES);
+            try {
+                const result = getDateRangeDisplayValueFromFormValue('2025-03-01,2025-03-10');
+                expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true, false, CONST.LOCALES.ES));
+                expect(result).not.toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true, false, CONST.LOCALES.EN));
+            } finally {
+                spy.mockRestore();
+            }
         });
     });
 
