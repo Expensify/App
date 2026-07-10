@@ -55,7 +55,7 @@ The new payment card replaces the previous one and will be used for future Expen
 
 ## Why don't I see the option to add or change a payment card?
 
-Only the workspace Owner can manage the payment card. If the **Subscription** tab or the **Payment** section isn't visible, you're not a Workspace owner. 
+Only the Workspace owner can manage the payment card. If the **Subscription** tab or the **Payment** section isn't visible, you're not a Workspace owner. 
 
 ## Do I need to remove my old card before adding a new one?
 
