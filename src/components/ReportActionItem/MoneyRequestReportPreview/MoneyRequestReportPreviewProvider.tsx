@@ -263,7 +263,6 @@ function MoneyRequestReportPreviewProvider({
         chatReportID,
         iouReport,
         chatReport,
-        policy,
         invoiceReceiverPolicy,
         transactions,
         transactionViolations,

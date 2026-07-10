@@ -21,7 +21,6 @@ type UseReportPreviewActionDecisionParams = {
     chatReportID: string | undefined;
     iouReport: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
-    policy: OnyxEntry<Policy>;
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     transactions: Transaction[];
     transactionViolations: OnyxCollection<TransactionViolations>;
@@ -35,7 +34,6 @@ function useReportPreviewActionDecision({
     chatReportID,
     iouReport,
     chatReport,
-    policy,
     invoiceReceiverPolicy,
     transactions,
     transactionViolations,
@@ -46,6 +44,7 @@ function useReportPreviewActionDecision({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReportID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
