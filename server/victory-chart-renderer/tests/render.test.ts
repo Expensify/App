@@ -3,6 +3,7 @@ import {spawnSync} from 'node:child_process';
 import {chmodSync, copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+
 import {comparePng, FIXTURE_EXPECTED_SIZES, FIXTURE_NAMES, fixturesDir, getLocalCompileTarget, goldenDir, packageRoot} from './testUtils';
 
 const SHOULD_UPDATE_GOLDEN = process.env.UPDATE_GOLDEN === '1';
@@ -60,7 +61,7 @@ describe('victory-chart-renderer CLI', () => {
                     copyFileSync(actualPath, goldenPath);
                 }
 
-                comparePng(actualPath, goldenPath, FIXTURE_EXPECTED_SIZES.get(fixtureName));
+                comparePng(actualPath, goldenPath, FIXTURE_EXPECTED_SIZES.get(fixtureName), fixtureName);
             });
         }
     });

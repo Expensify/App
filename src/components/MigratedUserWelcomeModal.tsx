@@ -1,5 +1,3 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -7,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
 import {openExternalLink} from '@libs/actions/Link';
 import {dismissProductTraining} from '@libs/actions/Welcome';
@@ -14,11 +13,18 @@ import convertToLTR from '@libs/convertToLTR';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import CenteredModalLayout from './CenteredModalLayout';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import type {FeatureListItem} from './FeatureList';
+
+import CenteredModalLayout from './CenteredModalLayout';
 import FeatureTrainingContent from './FeatureTrainingContent';
 import Icon from './Icon';
 import LottieAnimations from './LottieAnimations';
@@ -51,15 +57,19 @@ function MigratedUserWelcomeModal() {
         [illustrations.ChatBubbles, illustrations.ConciergeBot, illustrations.MagnifyingGlassReceipt],
     );
 
-    const handleDismiss = () => {
+    const persistDismissal = () => {
         Log.hmmm('[MigratedUserWelcomeModal] dismissing product training');
         dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
     };
 
-    useBeforeRemove(handleDismiss);
+    useBeforeRemove(persistDismissal);
 
-    const handleClose = () => Navigation.goBack();
+    const handleClose = () => {
+        const spendRoute = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})});
+        Navigation.goBack(undefined, {
+            afterTransition: () => Navigation.navigate(spendRoute),
+        });
+    };
 
     const illustrationProps = isReduceMotionEnabled
         ? {image: illustrations.PlanetWithMobileApp}
@@ -75,7 +85,7 @@ function MigratedUserWelcomeModal() {
         const employeeUrl = shouldUseNarrowLayout ? CONST.STORYLANE.EMPLOYEE_MIGRATED_MOBILE : CONST.STORYLANE.EMPLOYEE_MIGRATED;
         const helpUrl = isCurrentUserPolicyAdmin ? adminUrl : employeeUrl;
         openExternalLink(helpUrl);
-        dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
+        persistDismissal();
     };
 
     return (

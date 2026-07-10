@@ -1,6 +1,3 @@
-import {subYears} from 'date-fns';
-import React from 'react';
-import {View} from 'react-native';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -12,9 +9,11 @@ import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {extractFirstAndLastNameFromAvailableDetails} from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {
@@ -28,12 +27,19 @@ import {
     meetsMaximumAgeRequirement,
     meetsMinimumAgeRequirement,
 } from '@libs/ValidationUtils';
+
 import IdologyQuestions from '@pages/EnablePayments/shared/IdologyQuestions';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
+
 import {setAdditionalDetailsQuestions, updatePersonalDetails} from '@userActions/Wallet';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AdditionalDetailStepForm';
+
+import {subYears} from 'date-fns';
+import React from 'react';
+import {View} from 'react-native';
 
 const DEFAULT_WALLET_ADDITIONAL_DETAILS = {
     errorFields: {},

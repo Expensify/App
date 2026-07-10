@@ -1,10 +1,15 @@
-import type {ImageSource} from 'expo-image';
-import {useContext, useEffect, useState} from 'react';
 import {AttachmentIDContext} from '@components/Attachments/AttachmentIDContext';
+
 import useOnyx from '@hooks/useOnyx';
+
 import {getAttachmentLocalSource, getCachedAttachment} from '@libs/actions/Attachment';
 import Log from '@libs/Log';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ImageSource} from 'expo-image';
+
+import {useContext, useEffect, useState} from 'react';
 
 function useCachedImageSource(source: ImageSource | undefined): ImageSource | null | undefined {
     const uri = typeof source === 'object' ? source.uri : undefined;

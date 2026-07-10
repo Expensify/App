@@ -276,6 +276,7 @@ key "key"
       / to
       / taxRate
       / cardID
+      / bankAccount
       / from
       / attendee
       / payer
@@ -284,6 +285,7 @@ key "key"
       / receiptType
       / withdrawalType
       / withdrawalStatus
+      / paidStatus
       / withdrawalID
       / submitted
       / approved

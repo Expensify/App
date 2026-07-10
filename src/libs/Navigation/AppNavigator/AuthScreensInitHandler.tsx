@@ -1,14 +1,16 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useEffect, useRef} from 'react';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
+
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
+import useOneTransactionThreadReportID from '@hooks/useOneTransactionThreadReportID';
 import useOnyx from '@hooks/useOnyx';
 import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useRootNavigationState from '@hooks/useRootNavigationState';
+
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -16,28 +18,40 @@ import Navigation from '@libs/Navigation/Navigation';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
+import {registerPusherReinitializeHandler} from '@libs/requestPusherReinitialize';
+import type {PusherReinitializeHandlerParams} from '@libs/requestPusherReinitialize';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
+
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import {clearStaleExportDownloads} from '@userActions/Export';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
-function initializePusher(currentUserAccountID?: number, currentUserEmail?: string, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {useEffect, useRef} from 'react';
+
+function initializePusher(
+    currentUserAccountID: number | undefined,
+    currentUserEmail: string | undefined,
+    getTopmostOneTransactionThreadReportID: () => string | undefined,
+    getReportAttributes: () => ReportAttributesDerivedValue['reports'] | undefined,
+) {
     return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getReportAttributes);
+        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getTopmostOneTransactionThreadReportID, getReportAttributes);
     });
 }
 
@@ -75,12 +89,43 @@ function AuthScreensInitHandler() {
 
     useReconcileHighContrastIntent();
 
+    const topmostReportID = useRootNavigationState(Navigation.getTopmostReportId);
+    const topmostOneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
+    // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
+    const topmostOneTransactionThreadReportIDRef = useRef(topmostOneTransactionThreadReportID);
+
+    useEffect(() => {
+        topmostOneTransactionThreadReportIDRef.current = topmostOneTransactionThreadReportID;
+    }, [topmostOneTransactionThreadReportID]);
+
+    useEffect(() => {
+        registerPusherReinitializeHandler(({accountID, email}: PusherReinitializeHandlerParams = {}) => {
+            const currentAccountID = accountID ?? session?.accountID;
+            const currentEmail = email ?? session?.email ?? '';
+
+            if (currentAccountID === undefined) {
+                return Promise.resolve();
+            }
+
+            return initializePusher(
+                currentAccountID,
+                currentEmail,
+                () => topmostOneTransactionThreadReportIDRef.current,
+                () => reportAttributesRef.current,
+            );
+        });
+
+        return () => {
+            registerPusherReinitializeHandler(null);
+        };
+    }, [session?.accountID, session?.email]);
+
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => reportAttributesRef.current);
+        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current);
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -103,7 +148,7 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, session?.email, () => reportAttributesRef.current).finally(() => {
+        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 

@@ -1,7 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import Log from '@libs/Log';
+
 import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 type CacheNameType = ValueOf<typeof CONST.CACHE_NAME>;
 

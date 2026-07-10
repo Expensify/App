@@ -1,5 +1,6 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Attachment} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type CacheAttachmentProps = {
     uri: string;

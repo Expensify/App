@@ -1,7 +1,3 @@
-import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentCarousel from '@components/Attachments/AttachmentCarousel';
 import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
@@ -12,6 +8,7 @@ import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -20,18 +17,28 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
-import {AttachmentStateContext} from './AttachmentStateContextProvider';
+
+import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
+
 import type {AttachmentModalBaseContentProps} from './types';
+
+import {AttachmentStateContext} from './AttachmentStateContextProvider';
 
 function AttachmentModalBaseContent({
     source: sourceProp = '',

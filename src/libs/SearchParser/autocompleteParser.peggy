@@ -93,9 +93,11 @@ autocompleteKey "key"
       / receiptType
       / withdrawalType
       / withdrawalStatus
+      / paidStatus
       / type
       / status
       / cardID
+      / bankAccount
       / feed
       / groupBy
       / view
