@@ -100,6 +100,19 @@ Your workspace also has built-in default protections that automatically block ce
 
 ![Click Settings to adjust the settlement account or frequency]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_08.png){:width="100%"}
 
+## What the Status column shows in the Expensify Card list
+
+The Expensify Card list includes a **Status** column so you can see each card's lifecycle state at a glance without opening the card. Click the **Status** column header to sort the list by status.
+
+Each card shows one of the following statuses:
+
+- **Pending order** — A physical card has been ordered but not yet shipped.
+- **Shipped** — A physical card has shipped and is on its way to the cardholder.
+- **Active** — The card is issued and ready to use. Virtual cards show as **Active** once issued.
+- **Inactive** — The card is frozen or otherwise not currently usable.
+
+**Note:** The **Status** column is hidden on narrow and medium screens. Widen your browser window or view the list on a larger screen to see it.
+
 ---
 
 ## How to apply Expensify Card cash back to your Expensify bill
