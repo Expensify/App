@@ -2,14 +2,10 @@ import CONST from '@github/libs/CONST';
 import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import type {Writable} from 'type-fest';
-
-/**
- * @jest-environment node
- */
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
@@ -20,11 +16,10 @@ type ObjectMethodData<T> = {
 
 type OctokitCreateIssue = InternalOctokit['rest']['issues']['create'];
 
-const asMutable = <T>(value: T): Writable<T> => value as Writable<T>;
-
 beforeAll(() => {
-    // Mock core module
-    asMutable(core).getInput = mockGetInput;
+    // Mock core module. Real ESM module namespace exports are read-only live bindings, so `core.getInput` can't be
+    // reassigned directly (unlike Jest's Babel-transpiled CJS interop); spy on it instead.
+    jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
 
     // Mock octokit module
     const mockOctokit = {
@@ -50,6 +45,12 @@ beforeAll(() => {
 afterEach(() => {
     mockGetInput.mockClear();
     mockListIssues.mockClear();
+});
+
+afterAll(() => {
+    // `bun test` runs all files in one process sharing GithubUtils' module-level state, unlike Jest's per-file
+    // module registry; reset it so later test files re-initialize their own octokit mock from scratch.
+    GithubUtils.internalOctokit = undefined;
 });
 
 describe('GithubUtils', () => {
@@ -280,7 +281,7 @@ describe('GithubUtils', () => {
         });
 
         test('should handle 404 RequestError with specific error message', async () => {
-            const coreErrorSpy = jest.spyOn(core, 'error').mockImplementation();
+            const coreErrorSpy = jest.spyOn(core, 'error').mockImplementation(() => {});
             const requestError = new RequestError('Not Found', 404, {
                 request: {
                     method: 'GET',

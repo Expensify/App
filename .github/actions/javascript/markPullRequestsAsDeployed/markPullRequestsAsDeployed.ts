@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
@@ -8,6 +8,7 @@ import type {RequestError} from '@octokit/types';
 import * as core from '@actions/core';
 import {context} from '@actions/github';
 import memoize from 'lodash/memoize';
+import {pathToFileURL} from 'url';
 
 type PlatformResult = 'success' | 'cancelled' | 'skipped' | 'failure';
 
@@ -211,8 +212,8 @@ async function run() {
     }
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
     run();
 }
 
-module.exports = run;
+export default run;

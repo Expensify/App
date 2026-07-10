@@ -4,32 +4,33 @@ import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 
-import run from '@scripts/createOrUpdateDeployChecklist';
+import type {Mock} from 'bun:test';
 
 import * as core from '@actions/core';
+import {afterAll, afterEach, beforeAll, describe, expect, jest, mock, test} from 'bun:test';
 import * as fns from 'date-fns';
-import {vol} from 'memfs';
+import {fs as memfsFs, vol} from 'memfs';
 import path from 'path';
-
-/**
- * @jest-environment node
- */
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
-// Mock fs
-jest.mock('fs');
+// Captured before mock.module('fs', ...) below replaces the registry entry, so afterAll can restore the real module.
+// Spread eagerly into a plain object: the namespace object returned by `import()` stays live-bound to whatever the
+// registry currently points at, so simply holding a reference to it wouldn't survive the mock/restore below.
+const originalFs = {...(await import('fs'))};
 
-// Mock @actions/core for input handling and logging in tests
-jest.mock('@actions/core', () => ({
-    getInput: jest.fn(),
-    info: jest.fn(),
-    startGroup: jest.fn(),
-    endGroup: jest.fn(),
-    setFailed: jest.fn(),
-}));
+// Must run before `createOrUpdateDeployChecklist` (which imports `fs` internally) is imported below: mock.module
+// patches the shared module registry entry, and existing import bindings are live, but only if the patch happens
+// before those bindings are first read.
+await mock.module('fs', () => ({...memfsFs, default: memfsFs}));
 
-const mockGetInput = core.getInput as jest.MockedFunction<typeof core.getInput>;
+// Must be imported after the mock.module() call above so it picks up the mock.
+const {default: run} = await import('@scripts/createOrUpdateDeployChecklist');
+
+const mockGetInput = jest.fn();
+const originalGetMergedPRsDeployedBetween = GitUtils.getMergedPRsDeployedBetween;
+// eslint-disable-next-line @typescript-eslint/unbound-method -- captured only for restoration in afterAll, never called unbound
+const originalGetWorkflowRunURLForCommit = GithubUtils.getWorkflowRunURLForCommit;
 
 type Arguments = {
     issue_number?: number;
@@ -39,7 +40,7 @@ type Arguments = {
 const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');
 
 const mockListIssues = jest.fn();
-const mockGetMergedPRsDeployedBetween = jest.fn() as jest.MockedFunction<typeof GitUtils.getMergedPRsDeployedBetween>;
+const mockGetMergedPRsDeployedBetween = jest.fn() as Mock<typeof GitUtils.getMergedPRsDeployedBetween>;
 const mockGetWorkflowRunURLForCommit = jest.fn().mockResolvedValue(undefined);
 
 beforeAll(() => {
@@ -80,6 +81,16 @@ beforeAll(() => {
     // Mock GitUtils
     GitUtils.getMergedPRsDeployedBetween = mockGetMergedPRsDeployedBetween;
     GithubUtils.getWorkflowRunURLForCommit = mockGetWorkflowRunURLForCommit;
+
+    // Mock @actions/core for input handling and logging in tests. Real ESM module namespace exports are read-only
+    // live bindings, so these can't be reassigned directly (unlike Jest's Babel-transpiled CJS interop); spy on
+    // them instead.
+    jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
+    jest.spyOn(core, 'info').mockImplementation(() => {});
+    jest.spyOn(core, 'startGroup').mockImplementation(() => {});
+    jest.spyOn(core, 'endGroup').mockImplementation(() => {});
+    jest.spyOn(core, 'setFailed').mockImplementation(() => {});
+
     mockGetInput.mockImplementation((arg) => (arg === 'GITHUB_TOKEN' ? 'fake_token' : ''));
 
     vol.reset();
@@ -95,8 +106,14 @@ afterEach(() => {
     mockGetWorkflowRunURLForCommit.mockClear();
 });
 
-afterAll(() => {
+afterAll(async () => {
     jest.clearAllMocks();
+    // `bun test` runs all files in one process sharing GithubUtils'/GitUtils' module-level state and the `fs` module
+    // registry entry, unlike Jest's per-file module registry; reset them so later test files start from a clean slate.
+    GithubUtils.internalOctokit = undefined;
+    GitUtils.getMergedPRsDeployedBetween = originalGetMergedPRsDeployedBetween;
+    GithubUtils.getWorkflowRunURLForCommit = originalGetWorkflowRunURLForCommit;
+    await mock.module('fs', () => originalFs);
 });
 
 const LABELS = {
@@ -264,7 +281,7 @@ describe('createOrUpdateDeployChecklist', () => {
         });
 
         const result = await run();
-        expect(result).toStrictEqual({
+        expect(result as unknown).toStrictEqual({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             title: `Deploy Checklist: New Expensify ${fns.format(new Date(), 'yyyy-MM-dd')}`,
@@ -315,7 +332,7 @@ describe('createOrUpdateDeployChecklist', () => {
         });
 
         const result = await run();
-        expect(result).toStrictEqual({
+        expect(result as unknown).toStrictEqual({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             title: `Deploy Checklist: New Expensify ${fns.format(new Date(), 'yyyy-MM-dd')}`,
@@ -429,7 +446,7 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result).toStrictEqual({
+            expect(result as unknown).toStrictEqual({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 issue_number: openDeployChecklistBefore.number,
@@ -509,7 +526,7 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result).toStrictEqual({
+            expect(result as unknown).toStrictEqual({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 issue_number: openDeployChecklistBefore.number,
@@ -569,7 +586,7 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result).toStrictEqual({
+            expect(result as unknown).toStrictEqual({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 issue_number: openDeployChecklistBefore.number,

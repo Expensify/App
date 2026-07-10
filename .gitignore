@@ -115,6 +115,7 @@ tests/e2e/results/
 tsconfig.tsbuildinfo
 tsconfig.tsgo.tsbuildinfo
 **/tsconfig.tsgo.tsbuildinfo
+**/*.tsbuildinfo
 
 # Mock-github
 /repo/

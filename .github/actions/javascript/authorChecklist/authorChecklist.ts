@@ -5,6 +5,7 @@ import GithubUtils from '@github/libs/GithubUtils';
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import escapeRegExp from 'lodash/escapeRegExp';
+import {pathToFileURL} from 'url';
 
 import newComponentCategory from './categories/newComponentCategory';
 
@@ -158,7 +159,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     }
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
     generateDynamicChecksAndCheckForCompletion();
 }
 

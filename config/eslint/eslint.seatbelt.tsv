@@ -18,7 +18,6 @@
 "../../.github/actions/javascript/validateReassureOutput/validateReassureOutput.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/libs/DeployChecklistUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/libs/GithubUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
-"../../.github/libs/sanitizeJSONStringValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/scripts/createDocsRoutes.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../.storybook/webpack.config.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../__mocks__/@pusher/pusher-websocket-react-native/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -37,7 +36,7 @@
 "../../jest/setup.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../jest/setupAfterEnv.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../modules/ExpensifyNitroUtils/src/index.ts"	"no-restricted-syntax"	1
-"../../scripts/aggregateGitHubDataFromUpwork.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../scripts/aggregateGitHubDataFromUpwork.mts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../scripts/bumpVersion.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../scripts/combine-web-sourcemaps.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../scripts/compareKnipReports.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -54,6 +53,7 @@
 "../../scripts/utils/OpenAIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../scripts/utils/TSCompilerUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../scripts/utils/Translator/TranslationPromptUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../scripts/utils/sanitizeJSONStringValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../server/stubs/react-native-reanimated.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../server/stubs/react-native-reanimated/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../server/victory-chart-renderer/src/initSkiaForCli.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1928,7 +1928,7 @@
 "../../tests/unit/BaseSelectionListSectionsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/BulletListRendererTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/ButtonStyleUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/unit/CIGitLogicTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../tests/unit/CIGitLogicTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/CLIVariadicTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/CardFeedErrorsDerivedValueTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/CardFeedUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1

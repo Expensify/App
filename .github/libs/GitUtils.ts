@@ -4,9 +4,9 @@ import {execSync} from 'child_process';
 import type {CommitType} from './GithubUtils';
 import type {SemverLevel} from './versionUpdater';
 
-import CONST from './CONST';
-import GithubUtils from './GithubUtils';
-import {getPreviousVersion} from './versionUpdater';
+import CONST from './CONST.js';
+import GithubUtils from './GithubUtils.js';
+import {getPreviousVersion} from './versionUpdater.js';
 
 type MergedPR = {
     prNumber: number;

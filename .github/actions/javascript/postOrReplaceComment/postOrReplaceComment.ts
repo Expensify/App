@@ -5,6 +5,7 @@ import type {TupleToUnion} from 'type-fest';
 
 import * as core from '@actions/core';
 import {context} from '@actions/github';
+import {pathToFileURL} from 'url';
 
 function getTestBuildMessage(appPr?: number, mobileExpensifyPr?: number): string {
     const inputs = ['ANDROID', 'IOS', 'WEB'] as const;
@@ -140,7 +141,7 @@ async function run() {
     await commentPR(REPO, destinationPRNumber, COMMENT_BODY || getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
     run();
 }
 

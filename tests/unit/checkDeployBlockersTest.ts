@@ -2,12 +2,8 @@ import run from '@github/actions/javascript/checkDeployBlockers/checkDeployBlock
 import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import asMutable from '@src/types/utils/asMutable';
-
-/**
- * @jest-environment node
- */
 import * as core from '@actions/core';
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
 
 type CommentData = {body: string};
 
@@ -31,9 +27,10 @@ const mockGetIssue = jest.fn();
 const mockListComments = jest.fn();
 
 beforeAll(() => {
-    // Mock core module
-    asMutable(core).getInput = mockGetInput;
-    asMutable(core).setOutput = mockSetOutput;
+    // Mock core module. Real ESM module namespace exports are read-only live bindings, so `core.getInput` can't be
+    // reassigned directly (unlike Jest's Babel-transpiled CJS interop); spy on it instead.
+    jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
+    jest.spyOn(core, 'setOutput').mockImplementation(mockSetOutput);
 
     // Mock octokit module
     const mockOctokit = {
@@ -73,6 +70,9 @@ afterEach(() => {
 
 afterAll(() => {
     jest.clearAllMocks();
+    // `bun test` runs all files in one process sharing GithubUtils' module-level state, unlike Jest's per-file
+    // module registry; reset it so later test files re-initialize their own octokit mock from scratch.
+    GithubUtils.internalOctokit = undefined;
 });
 
 function checkbox(isClosed: boolean): string {

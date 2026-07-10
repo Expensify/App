@@ -1,6 +1,7 @@
 import GithubUtils from '@github/libs/GithubUtils';
 
 import * as core from '@actions/core';
+import {pathToFileURL} from 'url';
 
 const run = function (): Promise<void> {
     const artifactName = core.getInput('ARTIFACT_NAME', {required: true});
@@ -24,7 +25,7 @@ const run = function (): Promise<void> {
         });
 };
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
     run();
 }
 

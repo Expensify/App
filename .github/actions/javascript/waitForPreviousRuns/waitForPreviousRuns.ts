@@ -2,6 +2,7 @@ import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 
 import * as core from '@actions/core';
+import {pathToFileURL} from 'url';
 
 const DEFAULT_POLL_RATE_S = 20;
 const DEFAULT_QUEUE_LIMIT = 20;
@@ -83,7 +84,7 @@ function run() {
     });
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
     run();
 }
 

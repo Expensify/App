@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env bun
 import CONST from '@github/libs/CONST';
 import {generateDeployChecklistBodyAndAssignees, getDeployChecklistData} from '@github/libs/DeployChecklistUtils';
 import type {ChecklistItem, DeployChecklistData} from '@github/libs/DeployChecklistUtils';
@@ -10,6 +10,7 @@ import type {MergedPR, SubmoduleUpdate} from '@github/libs/GitUtils';
 import * as core from '@actions/core';
 import {format} from 'date-fns/format';
 import fs from 'fs';
+import {pathToFileURL} from 'url';
 
 type IssuesCreateResponse = Awaited<ReturnType<typeof GithubUtils.octokit.issues.create>>['data'];
 
@@ -334,7 +335,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
     }
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
     run();
 }
 

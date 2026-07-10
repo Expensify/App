@@ -3,23 +3,11 @@ import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-method
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import * as github from '@actions/github';
+import {pathToFileURL} from 'url';
+
+import getMergedPR from './getMergedPR';
 
 type WorkflowRun = RestEndpointMethodTypes['actions']['listWorkflowRuns']['response']['data']['workflow_runs'][number];
-
-type PullRequest = RestEndpointMethodTypes['repos']['listPullRequestsAssociatedWithCommit']['response']['data'][number];
-
-/**
- * Given the list of PRs associated with a commit on the target branch,
- * find the PR that was actually merged into that branch.
- *
- * The GitHub API `listPullRequestsAssociatedWithCommit` returns ALL PRs
- * that contain the commit — including open PRs that have merged the target
- * branch into their feature branch. We must filter to only merged PRs
- * targeting the correct base branch to avoid blaming the wrong PR.
- */
-function getMergedPR(associatedPRs: PullRequest[], targetBranch = 'main'): PullRequest | undefined {
-    return associatedPRs.find((pr) => pr.merged_at !== null && pr.base.ref === targetBranch);
-}
 
 async function run() {
     const token = core.getInput('GITHUB_TOKEN', {required: true});
@@ -140,7 +128,7 @@ ${errorMessage}
     }
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
     run().catch((error: Error) => {
         console.error('Failed to process workflow failure:', error);
         core.setFailed(error.message);
@@ -148,5 +136,3 @@ if (require.main === module) {
 }
 
 export default run;
-export {getMergedPR};
-export type {PullRequest};

@@ -6,11 +6,12 @@
                 "wdyr.ts",
                 "src/App.tsx",
                 "src/HybridAppHandler.tsx",
-                "scripts/**/*.{js,ts}",
+                "scripts/**/*.{js,ts,mts,cts}",
                 "web/proxy.ts",
                 "config/webpack/**/*.{js,mjs,ts}",
                 ".github/scripts/**/*.ts",
                 ".github/actions/javascript/**/*.ts",
+                "tests/setupBunScripts.ts",
                 ".storybook/**/*.{js,ts,tsx}",
                 "metro.config.js",
                 "eslint.changed.config.mjs",
@@ -23,7 +24,7 @@
                 "__mocks__/**/*.{js,jsx,ts,tsx}",
                 "web/**/*.{js,jsx,ts,tsx}",
                 "config/**/*.{js,mjs,ts,tsx}",
-                "scripts/**/*.{js,ts}",
+                "scripts/**/*.{js,ts,mts,cts}",
                 "jest/**/*.{js,ts}",
                 ".storybook/**/*.{js,ts,tsx}",
                 ".github/actions/javascript/**/*.ts"
@@ -66,11 +67,11 @@
         "eslint-plugin-storybook",
         "@dword-design/eslint-plugin-import-alias",
         "tsconfig-paths",
-        "@vercel/ncc",
         "bun",
         "shellcheck",
         "patch-package",
-        "diff-so-fancy"
+        "diff-so-fancy",
+        "babel-plugin-transform-import-meta"
     ],
     "ignoreBinaries": ["metro-symbolicate", "mkcert"]
 }

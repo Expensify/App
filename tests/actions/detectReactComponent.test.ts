@@ -1,4 +1,4 @@
-import {detectReactComponent} from '../../.github/actions/javascript/authorChecklist/categories/newComponentCategory';
+import detectReactComponent from '../../.github/actions/javascript/authorChecklist/categories/detectReactComponent';
 
 describe('detectReactComponent test', () => {
     it('should return undefined if no code is provided', () => {

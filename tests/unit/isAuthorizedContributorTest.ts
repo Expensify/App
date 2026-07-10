@@ -1,7 +1,5 @@
-/**
- * @jest-environment node
- */
 import {RequestError} from '@octokit/request-error';
+import {afterAll, afterEach, beforeEach, describe, expect, jest, test} from 'bun:test';
 
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 
@@ -45,6 +43,12 @@ beforeEach(() => {
 
 afterEach(() => {
     jest.restoreAllMocks();
+});
+
+afterAll(() => {
+    // `bun test` runs all files in one process sharing GithubUtils' module-level state, unlike Jest's per-file
+    // module registry; reset it so later test files re-initialize their own octokit mock from scratch.
+    GithubUtils.internalOctokit = undefined;
 });
 
 const defaultParams = {

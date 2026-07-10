@@ -1,29 +1,34 @@
 import run from '@github/actions/javascript/getPullRequestIncrementalChanges/getPullRequestIncrementalChanges';
+import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GitHubUtils from '@github/libs/GithubUtils';
 
 import Git from '@scripts/utils/Git';
 
-import type {Writable} from 'type-fest';
-
-/**
- * @jest-environment node
- */
 import * as core from '@actions/core';
 import {context} from '@actions/github';
+import {afterAll, beforeEach, describe, expect, it, jest} from 'bun:test';
 
-// Mock all dependencies
-jest.mock('@actions/core');
-jest.mock('@actions/github');
-jest.mock('@github/libs/GithubUtils');
-jest.mock('@scripts/utils/Git');
-
-const mockSetOutput = core.setOutput as jest.MockedFunction<typeof core.setOutput>;
 const mockGetInput = jest.fn();
 
-// Mock @actions/core getInput
-(core as Writable<typeof core>).getInput = mockGetInput;
+// Mock @actions/core. Real ESM module namespace exports are read-only live bindings, so these can't be reassigned
+// directly (unlike Jest's Babel-transpiled CJS interop); spy on them instead. `@actions/github`'s `context` is a
+// plain mutable object instance (not a live binding itself), and its constructor is a no-op without
+// GITHUB_EVENT_PATH set, so it's safe to mutate directly below without mocking the module.
+jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
+const mockSetOutput = jest.spyOn(core, 'setOutput').mockImplementation(() => {});
+jest.spyOn(core, 'warning').mockImplementation(() => {});
+jest.spyOn(core, 'startGroup').mockImplementation(() => {});
+jest.spyOn(core, 'endGroup').mockImplementation(() => {});
+jest.spyOn(core, 'setFailed').mockImplementation(() => {});
 
-// Mock Git methods
+// Mock Git methods. `Git`'s default export is a plain mutable object (unlike named exports on a module namespace,
+// which are read-only live bindings), so its static-like methods can be overridden in place.
+// eslint-disable-next-line @typescript-eslint/unbound-method -- captured only for restoration in afterAll, never called unbound
+const originalGitEnsureRef = Git.ensureRef;
+// eslint-disable-next-line @typescript-eslint/unbound-method -- captured only for restoration in afterAll, never called unbound
+const originalGitDiff = Git.diff;
+// eslint-disable-next-line @typescript-eslint/unbound-method -- captured only for restoration in afterAll, never called unbound
+const originalGitParseDiff = Git.parseDiff;
 const mockGitEnsureRef = jest.fn();
 const mockGitDiff = jest.fn();
 const mockGitParseDiff = jest.fn();
@@ -33,8 +38,20 @@ Git.diff = mockGitDiff;
 Git.parseDiff = mockGitParseDiff;
 
 // Mock GitHubUtils methods
+// eslint-disable-next-line @typescript-eslint/unbound-method -- captured only for restoration in afterAll, never called unbound
+const originalGetPullRequestDiff = GitHubUtils.getPullRequestDiff;
 const mockGetPullRequestDiff = jest.fn();
 GitHubUtils.getPullRequestDiff = mockGetPullRequestDiff;
+
+afterAll(() => {
+    Git.ensureRef = originalGitEnsureRef;
+    Git.diff = originalGitDiff;
+    Git.parseDiff = originalGitParseDiff;
+    GitHubUtils.getPullRequestDiff = originalGetPullRequestDiff;
+    // `bun test` runs all files in one process sharing GithubUtils' module-level state, unlike Jest's per-file
+    // module registry; reset it so later test files re-initialize their own octokit mock from scratch.
+    GitHubUtils.internalOctokit = undefined;
+});
 
 describe('getPullRequestIncrementalChanges', () => {
     beforeEach(() => {
@@ -190,12 +207,10 @@ describe('getPullRequestIncrementalChanges', () => {
             pull_request: {number: 123},
         };
 
-        // Mock paginate to return PR files
+        // Mock paginate/octokit to return PR files. `GitHubUtils.paginate`/`.octokit` are getters derived from
+        // `internalOctokit` with no setter, so they can't be reassigned directly; set the backing field instead.
         const mockPaginate = jest.fn().mockResolvedValue([{filename: 'src/file1.ts'}, {filename: 'src/file2.ts'}]);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        (GitHubUtils as any).paginate = mockPaginate;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        (GitHubUtils as any).octokit = {pulls: {listFiles: jest.fn()}};
+        GitHubUtils.internalOctokit = {rest: {pulls: {listFiles: jest.fn()}}, paginate: mockPaginate} as unknown as InternalOctokit;
 
         await run();
 
@@ -235,12 +250,10 @@ describe('getPullRequestIncrementalChanges', () => {
             return null;
         });
 
-        // Mock paginate to return PR files
+        // Mock paginate/octokit to return PR files. `GitHubUtils.paginate`/`.octokit` are getters derived from
+        // `internalOctokit` with no setter, so they can't be reassigned directly; set the backing field instead.
         const mockPaginate = jest.fn().mockResolvedValue([{filename: 'src/test.ts'}]);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        (GitHubUtils as any).paginate = mockPaginate;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        (GitHubUtils as any).octokit = {pulls: {listFiles: jest.fn()}};
+        GitHubUtils.internalOctokit = {rest: {pulls: {listFiles: jest.fn()}}, paginate: mockPaginate} as unknown as InternalOctokit;
 
         await run();
 

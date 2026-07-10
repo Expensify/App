@@ -50,5 +50,27 @@
         "**/*.nitro/*.ts",
         "**/*.nitro/*.tsx"
     ],
-    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*", ".claude/worktrees/**"]
+    "exclude": [
+        "**/node_modules/*",
+        "**/dist/*",
+        ".github/actions/**/index.js",
+        "**/docs/*",
+        ".claude/worktrees/**",
+        // These test files import `bun:test` and are type-checked separately by tests/tsconfig.bun.json (which
+        // declares `@types/bun`), since bun:test`'s ambient types aren't compatible with this config's `jest` types.
+        "tests/unit/awaitStagingDeploysTest.ts",
+        "tests/unit/checkDeployBlockersTest.ts",
+        "tests/unit/CIGitLogicTest.ts",
+        "tests/unit/createOrUpdateDeployChecklistTest.ts",
+        "tests/unit/DeployChecklistUtilsTest.ts",
+        "tests/unit/getPullRequestIncrementalChangesTest.ts",
+        "tests/unit/GithubUtilsTest.ts",
+        "tests/unit/GitUtilsTest.ts",
+        "tests/unit/isAuthorizedContributorTest.ts",
+        "tests/unit/isDeployChecklistLockedTest.ts",
+        "tests/unit/markPullRequestsAsDeployedTest.ts",
+        "tests/unit/postOrReplaceComment.ts",
+        "tests/unit/ReactCompilerComplianceCheckTest.ts",
+        "tests/unit/waitForPreviousRunsTest.ts"
+    ]
 }

@@ -2,6 +2,7 @@ import type {CompareResult, MeasureEntry} from '@callstack/reassure-compare';
 
 import * as core from '@actions/core';
 import fs from 'fs';
+import {pathToFileURL} from 'url';
 
 const run = (): boolean => {
     const regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8')) as CompareResult;
@@ -47,7 +48,7 @@ const run = (): boolean => {
     return true;
 };
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
     run();
 }
 

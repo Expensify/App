@@ -1,9 +1,18 @@
+assert_lefthook_installed: true
+
 pre-commit:
   commands:
     oxfmt:
+      priority: 1
       glob:
         - '*.{j,mj,cj}s'
         - '*.{ts,tsx,mts,cts}'
         - '*.{yml,yaml}'
       run: npx oxfmt --write --no-error-on-unmatched-pattern {staged_files}
       stage_fixed: true
+
+    gh-actions-build:
+      priority: 2
+      glob: '.github/**/*.ts'
+      # stage_fixed doesn't work for files not originally modified and staged by the developer
+      run: npm run gh-actions-build && git add .github/actions/javascript/*/index.js
