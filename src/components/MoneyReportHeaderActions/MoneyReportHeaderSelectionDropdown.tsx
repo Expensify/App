@@ -167,6 +167,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
               outstandingReportsByPolicyID,
               isChatReportArchived,
               isProduction,
+              isOffline,
           })
         : [];
 

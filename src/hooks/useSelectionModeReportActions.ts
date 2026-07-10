@@ -143,6 +143,7 @@ function useSelectionModeReportActions({
         isChatReportArchived,
         invoiceReceiverPolicy,
         ownerLogin: submitterLogin,
+        isOffline,
     });
 
     const secondaryActions = (() => {
@@ -167,6 +168,7 @@ function useSelectionModeReportActions({
             outstandingReportsByPolicyID,
             isChatReportArchived,
             isProduction,
+            isOffline,
         });
     })();
 
