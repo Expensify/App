@@ -23,7 +23,6 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CardFeed} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
