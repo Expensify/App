@@ -28,7 +28,7 @@ import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {getTransactionViolations, isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
