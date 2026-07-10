@@ -45,7 +45,7 @@ function AgentsPage() {
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     useDocumentTitle(translate('agentsPage.title'));
 
-    const [agentPrompts, meta] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
+    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
     const personalDetailsList = usePersonalDetails();
 
     useEffect(() => {
