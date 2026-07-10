@@ -2364,6 +2364,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             existingTransactionDraft: undefined,
             personalDetails: {},
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
