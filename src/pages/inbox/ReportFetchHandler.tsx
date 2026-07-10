@@ -230,15 +230,24 @@ function ReportFetchHandler() {
 
     // When an approver opens a Submit-via-PDF secure access link (/r/:reportID?secureKey=...), validate it once they're
     // signed in. On success the backend shares the report and sets them as manager; on failure the ReportNotFoundGuard
-    // shows the standard 404. Drop the key from the URL afterwards so it isn't reused or left in history.
+    // shows the standard 404.
     useEffect(() => {
         if (!secureKeyFromRoute || !reportIDFromRoute || isAnonymousUser || hasJoinedViaSecureLinkRef.current) {
             return;
         }
         hasJoinedViaSecureLinkRef.current = true;
         joinReportViaSecureLink(reportIDFromRoute, secureKeyFromRoute);
+    }, [secureKeyFromRoute, reportIDFromRoute, isAnonymousUser]);
+
+    // Keep secureKey in the URL until the join has actually granted access to the report. Clearing it earlier would drop
+    // the "secure-link visit" signal that suppresses onboarding, so a slow join could bounce a new user into onboarding
+    // before they gain access. Once the report is accessible we clear it so it isn't reused or left in history.
+    useEffect(() => {
+        if (!secureKeyFromRoute || !hasJoinedViaSecureLinkRef.current || !report?.reportID || !!report?.errorFields?.notFound) {
+            return;
+        }
         navigation.setParams({secureKey: undefined});
-    }, [secureKeyFromRoute, reportIDFromRoute, isAnonymousUser, navigation]);
+    }, [secureKeyFromRoute, report?.reportID, report?.errorFields?.notFound, navigation]);
 
     useEffect(() => {
         hasJoinedViaSecureLinkRef.current = false;

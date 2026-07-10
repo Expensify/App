@@ -161,13 +161,7 @@ function canApproveIOU(
     // TODO: Submit workspaces should show the APPROVE button and redirect to an upgrade modal instead of hiding it.
     // This will be addressed as part of the Wave 3 "Upgrade on Approval" feature.
     const isSubmitWorkspace = isSubmitPolicy(policy);
-    if (!isExpenseReport(iouReport) || !policy || !(isPaidGroupPolicy(policy) || isSubmitWorkspace)) {
-        return false;
-    }
-
-    // On a Submit workspace the submitter is also the report manager, so guard against approving your own expense,
-    // mirroring the same check used by isApproveAction and the other approval-eligibility entry points.
-    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, iouReport?.ownerAccountID, currentUserAccountID)) {
+    if (!policy || !(isPaidGroupPolicy(policy) || isSubmitWorkspace)) {
         return false;
     }
 

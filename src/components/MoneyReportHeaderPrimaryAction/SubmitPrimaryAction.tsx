@@ -140,11 +140,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
         }
 
         confirmPendingRTERAndProceed(() => {
-            if (shouldExportToPDF) {
-                // Open the PDF download modal before submitting so it can show progress and auto-download once the
-                // backend writes the generated filename into the PDF-filename NVP.
-                openPDFDownload();
-            } else if (isSubmitPolicy(policy) && reportID) {
+            if (!shouldExportToPDF && isSubmitPolicy(policy) && reportID) {
                 // On a Submit workspace, vanilla Submit prompts for the approver's email via the submit-to popover,
                 // which runs the submit itself once an approver is chosen.
                 openReportSubmitToPopover();
@@ -161,7 +157,14 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 expenseReportCurrentNextStepDeprecated: nextStep,
                 userBillingGracePeriodEnds,
                 amountOwed,
-                onSubmitted: startSubmittingAnimation,
+                // Open the PDF download modal only once submitReport commits to running (it fires onSubmitted after its
+                // billing-restriction guard), so a restricted account that bails out early doesn't leave the modal stuck.
+                onSubmitted: () => {
+                    startSubmittingAnimation();
+                    if (shouldExportToPDF) {
+                        openPDFDownload();
+                    }
+                },
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
                 shouldExportToPDF,

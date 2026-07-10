@@ -2192,13 +2192,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             parse: {
                                 // eslint-disable-next-line
                                 reportID: (reportID: string | undefined) => reportID ?? '',
-                                // eslint-disable-next-line
                                 secureKey: (secureKey: string | undefined) => secureKey ?? '',
                             },
                             stringify: {
                                 // eslint-disable-next-line
                                 reportID: (reportID: string | undefined) => reportID ?? '',
-                                // eslint-disable-next-line
                                 secureKey: (secureKey: string | undefined) => secureKey ?? '',
                             },
                         },
