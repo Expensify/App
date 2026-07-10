@@ -40,6 +40,7 @@ function useComposerSubmit(reportID: string) {
     const isInSidePanel = useIsInSidePanel();
     const sidePanelContext = useSidePanelContext(reportID);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const delegateAccountID = useDelegateAccountID();
     const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
@@ -89,6 +90,7 @@ function useComposerSubmit(reportID: string) {
                 isInSidePanel,
                 delegateAccountID,
                 sidePanelContext,
+                conciergeReportID,
             });
             attachmentFileRef.current = null;
             return;
@@ -172,6 +174,7 @@ function useComposerSubmit(reportID: string) {
             sidePanelContext,
             reportActionID: optimisticReportActionID,
             delegateAccountID,
+            conciergeReportID,
         });
     };
 
