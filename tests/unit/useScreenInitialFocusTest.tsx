@@ -27,6 +27,10 @@ jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
     useIsFocused: () => mockIsFocused,
 }));
+jest.mock('@hooks/useIsScreenFocused', () => ({
+    __esModule: true,
+    default: () => mockIsFocused,
+}));
 
 const {default: useScreenInitialFocus} = require<{
     default: (node: HTMLElement | null, options?: {shouldSkip?: boolean; shouldClaimOnlyForScreenReader?: boolean}) => void;

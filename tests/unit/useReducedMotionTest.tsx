@@ -82,12 +82,12 @@ describe('useReducedMotion', () => {
         expect(result.current).toBe(false);
     });
 
-    it('should cleanup subscription on unmount', () => {
+    it('keeps the shared listener attached after unmount — detaching would leak a stale cache if the OS toggled reduce-motion during the subscriber gap', () => {
         const {unmount} = renderHook(() => Accessibility.useReducedMotion());
 
         unmount();
 
-        expect(mockRemove).toHaveBeenCalled();
+        expect(mockRemove).not.toHaveBeenCalled();
     });
 
     it('should handle API failure gracefully', async () => {

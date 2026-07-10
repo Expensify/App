@@ -122,9 +122,9 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [containerNode, setContainerNode] = useState<View | null>(null);
-    const setContainerNodeFromRef = useRef((node: View | null) => {
+    const [setContainerNodeFromRef] = useState(() => (node: View | null) => {
         setContainerNode(node);
-    }).current;
+    });
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
     const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();

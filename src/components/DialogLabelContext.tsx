@@ -2,7 +2,7 @@ import isHTMLElement from '@libs/isHTMLElement';
 
 import type {View} from 'react-native';
 
-import React, {createContext, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {createContext, useContext, useEffect, useLayoutEffect, useRef, useSyncExternalStore} from 'react';
 
 type LabelEntry = {id: number; text: string};
 
@@ -39,28 +39,43 @@ function DialogLabelProvider({children, containerNode}: DialogLabelProviderProps
     const nextIdRef = useRef(0);
     const labelStackRef = useRef<LabelEntry[]>([]);
     const initialFocusClaimedRef = useRef(false);
-    const [hasDialogSemantics, setHasDialogSemantics] = useState(false);
     const containerRef = useRef<View | null>(null);
     useLayoutEffect(() => {
         containerRef.current = (containerNode as View | null) ?? null;
     }, [containerNode]);
 
+    const hasDialogSemantics = useSyncExternalStore(
+        (callback) => {
+            if (typeof MutationObserver === 'undefined' || !isHTMLElement(containerNode)) {
+                return () => {};
+            }
+            const observer = new MutationObserver(callback);
+            observer.observe(containerNode, {attributes: true, attributeFilter: ['role', 'aria-modal']});
+            return () => observer.disconnect();
+        },
+        () => {
+            if (!isHTMLElement(containerNode)) {
+                return false;
+            }
+            return containerNode.getAttribute('role') === 'dialog' || containerNode.getAttribute('aria-modal') === 'true';
+        },
+        () => false,
+    );
+
     const updateContainerLabel = () => {
         if (typeof document === 'undefined') {
             return;
         }
-        const top = labelStackRef.current.at(-1);
         const node = containerRef.current;
         if (!isHTMLElement(node)) {
             return;
         }
         // aria-label on a container without dialog semantics is ignored; skip the set on mobile where the RHP has no dialog role.
-        const isDialog = node.getAttribute('role') === 'dialog' || node.getAttribute('aria-modal') === 'true';
-        setHasDialogSemantics((prev) => (prev === isDialog ? prev : isDialog));
-        if (!isDialog) {
+        if (!hasDialogSemantics) {
             node.removeAttribute('aria-label');
             return;
         }
+        const top = labelStackRef.current.at(-1);
         if (top?.text) {
             node.setAttribute('aria-label', top.text);
         } else {
@@ -81,18 +96,9 @@ function DialogLabelProvider({children, containerNode}: DialogLabelProviderProps
         updateContainerLabel();
     };
 
-    // Observe `role`/`aria-modal` so a viewport-resize flip re-applies the label; the initial call back-fills labels pushed by child effects before this parent effect ran.
     useEffect(() => {
-        if (typeof MutationObserver === 'undefined' || !isHTMLElement(containerNode)) {
-            return;
-        }
-        const observer = new MutationObserver(updateContainerLabel);
-        observer.observe(containerNode, {attributes: true, attributeFilter: ['role', 'aria-modal']});
         updateContainerLabel();
-        return () => {
-            observer.disconnect();
-        };
-    }, [containerNode, updateContainerLabel]);
+    }, [hasDialogSemantics, updateContainerLabel]);
 
     const claimInitialFocus = (): boolean => {
         if (initialFocusClaimedRef.current) {

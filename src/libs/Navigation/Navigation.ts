@@ -608,9 +608,10 @@ function popToSidebar(options?: {shouldSkipFocusRestore?: boolean}): boolean {
     }
 
     const armFocusSkipIfRequested = () => {
-        if (options?.shouldSkipFocusRestore) {
-            skipNextFocusRestore();
+        if (!options?.shouldSkipFocusRestore) {
+            return;
         }
+        skipNextFocusRestore();
     };
 
     const topRoute = activeRoute.state?.routes.at(0);

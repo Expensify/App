@@ -124,9 +124,10 @@ function GenericPressable({
                 ref.current?.blur();
                 Accessibility.moveAccessibilityFocus(nextFocusRef);
             }
+            notifyPressedTrigger(internalRef, focusIdentifier);
             onLongPress(event);
         },
-        [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled],
+        [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled, focusIdentifier],
     );
 
     const onPressHandler = useCallback(

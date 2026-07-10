@@ -3,16 +3,16 @@ import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperS
 
 import type {ReactNode} from 'react';
 
-import {useIsFocused} from '@react-navigation/native';
 import {useContext, useEffect} from 'react';
+
+import useIsScreenFocused from './useIsScreenFocused';
 
 /** Registers and manages a dialog label in the DialogLabelContext for the lifetime of the calling component. */
 function useDialogLabelRegistration(title: ReactNode) {
     const {isInsideDialog, containerRef} = useDialogLabelData();
     const {pushLabel, popLabel, claimInitialFocus} = useDialogLabelActions();
     const screenWrapperStatus = useContext(ScreenWrapperStatusContext);
-    // `didScreenTransitionEnd` is one-way — without `isFocused` a kept-alive background screen would steal focus from the active one.
-    const isFocused = useIsFocused();
+    const isFocused = useIsScreenFocused();
 
     useEffect(() => {
         if (!isInsideDialog || typeof title !== 'string' || !title) {

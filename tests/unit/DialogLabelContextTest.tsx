@@ -52,10 +52,10 @@ describe('DialogLabelContext', () => {
         });
 
         it('pushLabel sets aria-label on the container element', () => {
-            const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
             const mockElement = document.createElement('div');
             mockElement.setAttribute('aria-modal', 'true');
-            (result.current.containerRef as {current: unknown}).current = mockElement;
+            currentContainerNode = mockElement;
+            const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             act(() => {
                 result.current.pushLabel('Settings');
@@ -111,10 +111,10 @@ describe('DialogLabelContext', () => {
         });
 
         it('popLabel removes the label and restores the previous one', () => {
-            const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
             const mockElement = document.createElement('div');
             mockElement.setAttribute('aria-modal', 'true');
-            (result.current.containerRef as {current: unknown}).current = mockElement;
+            currentContainerNode = mockElement;
+            const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             let idA: number;
             let idB: number;
@@ -142,10 +142,10 @@ describe('DialogLabelContext', () => {
         });
 
         it('popLabel removes by ID, not by stack position', () => {
-            const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
             const mockElement = document.createElement('div');
             mockElement.setAttribute('aria-modal', 'true');
-            (result.current.containerRef as {current: unknown}).current = mockElement;
+            currentContainerNode = mockElement;
+            const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             let idA: number;
             let idB: number;

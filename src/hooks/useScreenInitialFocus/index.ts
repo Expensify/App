@@ -1,13 +1,14 @@
 import {useDialogLabelData} from '@components/DialogLabelContext';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
+import useIsScreenFocused from '@hooks/useIsScreenFocused';
+
 import Accessibility from '@libs/Accessibility';
 import claimInitialFocus from '@libs/claimInitialFocus';
 import hasHoverSupport from '@libs/DeviceCapabilities/hasHoverSupport';
 import {MAX_INITIAL_FOCUS_FRAMES} from '@libs/focusReturnTimings';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 
-import {useIsFocused} from '@react-navigation/native';
 import {useContext, useEffect, useRef} from 'react';
 
 import type UseScreenInitialFocus from './types';
@@ -34,7 +35,7 @@ function isOnScreen(el: HTMLElement): boolean {
 const useScreenInitialFocus: UseScreenInitialFocus = (node, options) => {
     const status = useContext(ScreenWrapperStatusContext);
     const {isInsideDialog} = useDialogLabelData();
-    const isFocused = useIsFocused();
+    const isFocused = useIsScreenFocused();
     const claimedRef = useRef(false);
     const shouldSkip = options?.shouldSkip ?? false;
     const shouldClaimOnlyForScreenReader = options?.shouldClaimOnlyForScreenReader ?? false;

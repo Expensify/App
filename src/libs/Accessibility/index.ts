@@ -85,7 +85,8 @@ const {
 ensureScreenReaderWarm();
 
 /*
- * One shared native listener, fanned out to every `useSyncExternalStore` subscriber via the Set. Without this, a screen with N pressables (each subscribing via `useScreenReaderState`) registers N native `screenReaderChanged` listeners for the same event — same value written N times, `noteAuthoritative` bumping generation N times. Attach on first subscriber, detach on last.
+ * One shared native listener across all subscribers, kept attached after the first attach — detaching mid-gap would leak
+ * a stale cache if the OS SR state toggled while nothing was listening. `resetForTests` detaches for test isolation.
  */
 function subscribeScreenReader(callback: () => void) {
     screenReaderSubscribers.add(callback);
@@ -107,10 +108,6 @@ function subscribeScreenReader(callback: () => void) {
     return () => {
         cancelled = true;
         screenReaderSubscribers.delete(callback);
-        if (screenReaderSubscribers.size === 0) {
-            screenReaderListenerHandle?.remove();
-            screenReaderListenerHandle = null;
-        }
     };
 }
 
@@ -174,7 +171,7 @@ function resetForTests() {
     wasBackgroundedSinceLastActive = false;
 }
 
-/** Shared native listener (mirrors {@link subscribeScreenReader}). */
+/** Shared native listener (mirrors {@link subscribeScreenReader}) — same lazy-attach + never-detach policy so the cache can't go stale between subscriber gaps. */
 function subscribeReduceMotion(callback: () => void) {
     reduceMotionSubscribers.add(callback);
     if (!reduceMotionListenerHandle) {
@@ -195,10 +192,6 @@ function subscribeReduceMotion(callback: () => void) {
     return () => {
         cancelled = true;
         reduceMotionSubscribers.delete(callback);
-        if (reduceMotionSubscribers.size === 0) {
-            reduceMotionListenerHandle?.remove();
-            reduceMotionListenerHandle = null;
-        }
     };
 }
 

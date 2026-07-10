@@ -1,9 +1,11 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import {useEffect, useRef} from 'react';
+import {AccessibilityInfo} from 'react-native';
 
 const mockScreenReaderResolvers: Array<(value: boolean) => void> = [];
 const capturedScreenReaderListeners: Array<(enabled: boolean) => void> = [];
+const capturedScreenReaderRemovers: jest.Mock[] = [];
 
 jest.mock('@libs/Log');
 jest.mock('@libs/Accessibility/isScreenReaderEnabled', () => ({
@@ -14,22 +16,20 @@ jest.mock('@libs/Accessibility/isScreenReaderEnabled', () => ({
         }),
 }));
 
-jest.mock('react-native', () => ({
-    __esModule: true,
-    AccessibilityInfo: {
-        addEventListener: jest.fn((event: string, listener: (enabled: boolean) => void) => {
-            if (event === 'screenReaderChanged') {
-                capturedScreenReaderListeners.push(listener);
-            }
-            return {remove: jest.fn()};
-        }),
-        isReduceMotionEnabled: jest.fn(() => Promise.resolve(false)),
-    },
-    AppState: {
-        addEventListener: jest.fn(() => ({remove: jest.fn()})),
-        currentState: 'active',
-    },
-}));
+// The `@react-native/jest-preset` already replaces `AccessibilityInfo.addEventListener` with a `jest.fn` at
+// `react-native/Libraries/Components/AccessibilityInfo/AccessibilityInfo`, and that source-level mock takes precedence
+// over any `jest.mock('react-native', ...)` factory in this file. Reprogram the existing spy instead.
+const captureScreenReaderListener = jest.fn();
+captureScreenReaderListener.mockImplementation((event: string, listener: (enabled: boolean) => void) => {
+    if (event === 'screenReaderChanged') {
+        capturedScreenReaderListeners.push(listener);
+        const remove = jest.fn();
+        capturedScreenReaderRemovers.push(remove);
+        return {remove};
+    }
+    return {remove: jest.fn()};
+});
+jest.spyOn(AccessibilityInfo, 'addEventListener').mockImplementation(captureScreenReaderListener);
 
 type ScreenReaderState = 'enabled' | 'disabled' | 'unknown';
 
@@ -51,6 +51,7 @@ beforeEach(() => {
     Accessibility.resetForTests();
     mockScreenReaderResolvers.length = 0;
     capturedScreenReaderListeners.length = 0;
+    capturedScreenReaderRemovers.length = 0;
 });
 
 function emitScreenReaderEvent(enabled: boolean): void {
@@ -153,6 +154,15 @@ describe('useScreenReaderState', () => {
         expect(capturedScreenReaderListeners).toHaveLength(1);
 
         hookC.unmount();
+    });
+
+    it('keeps the shared listener attached after every subscriber unsubscribes — detaching would leak a stale cache if the OS SR state toggled while nothing was listening', () => {
+        const hook = renderHook(() => Accessibility.default.useScreenReaderState());
+        expect(capturedScreenReaderListeners).toHaveLength(1);
+        expect(capturedScreenReaderRemovers).toHaveLength(1);
+
+        hook.unmount();
+        expect(capturedScreenReaderRemovers.at(0)).not.toHaveBeenCalled();
     });
 
     it('fans an event out to every live subscriber via the shared listener (not per-subscriber native callback)', async () => {
