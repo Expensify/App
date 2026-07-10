@@ -60,9 +60,9 @@ describe('checkFileExists', () => {
 
     it('should decode reserved characters like # in the filename', async () => {
         mockStat.mockResolvedValue(buildStatResult(true));
-        const result = await checkFileExists('file:///var/mobile/Containers/sharedFiles/Recibo%20de%20CASA%20MIRLO%20SL.%20%23BEio.pdf');
+        const result = await checkFileExists('file:///var/mobile/Containers/sharedFiles/Receipt%20%2342.pdf');
         expect(result).toBe(true);
-        expect(mockStat).toHaveBeenCalledWith('/var/mobile/Containers/sharedFiles/Recibo de CASA MIRLO SL. #BEio.pdf');
+        expect(mockStat).toHaveBeenCalledWith('/var/mobile/Containers/sharedFiles/Receipt #42.pdf');
     });
 
     it('should return false when RNFS.stat throws', async () => {
