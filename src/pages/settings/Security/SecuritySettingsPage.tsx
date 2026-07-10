@@ -20,6 +20,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
 import {openSecuritySettingsPage} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
+import {useIsAgentAccount} from '@libs/SessionUtils';
 import {hasDeviceManagementError} from '@libs/UserUtils';
 
 import colors from '@styles/theme/colors';
@@ -67,6 +68,7 @@ function SecuritySettingsPage() {
     const {showLockedAccountModal} = useLockedAccountActions();
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const isAgentAccount = useIsAgentAccount();
 
     const hasEverRegisteredForMultifactorAuthentication = account?.multifactorAuthenticationPublicKeyIDs !== CONST.MULTIFACTOR_AUTHENTICATION.PUBLIC_KEYS_AUTHENTICATION_NEVER_REGISTERED;
 
@@ -75,8 +77,11 @@ function SecuritySettingsPage() {
     }, []);
 
     const securityMenuItems = useMemo(() => {
-        const baseMenuItems: BaseMenuItemType[] = [
-            {
+        const baseMenuItems: BaseMenuItemType[] = [];
+
+        // Agent accounts can't have two-factor/multifactor authentication, so hide those options for them.
+        if (!isAgentAccount) {
+            baseMenuItems.push({
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: icons.Shield,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.TWO_FACTOR_AUTH,
@@ -91,10 +96,10 @@ function SecuritySettingsPage() {
                     }
                     Navigation.navigate(getTwoFactorAuthRoute());
                 },
-            },
-        ];
+            });
+        }
 
-        if (hasEverRegisteredForMultifactorAuthentication) {
+        if (!isAgentAccount && hasEverRegisteredForMultifactorAuthentication) {
             baseMenuItems.push({
                 translationKey: 'multifactorAuthentication.revoke.title',
                 icon: icons.Fingerprint,
@@ -182,6 +187,7 @@ function SecuritySettingsPage() {
         icons.Monitor,
         isAccountLocked,
         isActingAsDelegate,
+        isAgentAccount,
         getTwoFactorAuthRoute,
         showDelegateNoAccessModal,
         showLockedAccountModal,

@@ -24,14 +24,17 @@ Once enabled, **Distance Rates** will appear in the left menu.
 
 ## How to add Distance rates
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
-2. Click **Distance rates**.
-3. Click **Add rate**. 
-4. Enter the rate value. 
+1. Go to **Workspaces > [Workspace Name] > Distance Rates**.
+2. Click **Add Rate** in the top-right corner.
+3. Enter the rate value (e.g., $0.585 per mile or km).
+4. (Optional) Set a **Start date** and **End date** to define the period the rate applies to. Leave these blank if the rate has no time limit.
 5. Click **Save**.
 
+When a rate has a **Start date** or **End date**, Expensify uses it to apply the correct rate based on the expense date. See [How Expensify selects a rate when multiple rates exist](#how-expensify-selects-a-rate-when-multiple-rates-exist) below.
 
-## How to edit Distance rate settings 
+---
+
+## How to edit Distance rate settings
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
 2. Click **Distance rates**.
@@ -45,6 +48,7 @@ Once enabled, **Distance Rates** will appear in the left menu.
 
 **Note:** If **Taxes** is enabled on the Workspace, each Distance rate can be associated with a tax rate and a tax reclaimable amount. The selected tax rate is automatically applied when the Distance rate is used on an expense. To track **Taxes** on a Workspace, [learn how to track Taxes](/articles/new-expensify/workspaces/Track-Taxes).
 
+---
 
 ## How to remove Distance rates
 
@@ -58,6 +62,8 @@ To prevent members from using a Distance rate, you can either disable it or dele
 3. Select each rate you want to disable or delete.
 4. Click **Selected**
 5. Choose **Disable rates** or **Delete rates**.
+
+---
 
 # FAQ
 
@@ -88,4 +94,15 @@ No. Updating a Distance rate only affects future Distance expenses. Existing exp
 ## Do I need at least one Distance rate?
 
 Yes. When **Distance Rates** is enabled, the Workspace must always have at least one active Distance rate.
+
+---
+
+## How Expensify Selects a Rate When Multiple Rates Exist
+
+When a Workspace has more than one distance rate, Expensify automatically applies the rate that matches the expense date. This lets you keep multiple rates active at once — for example, last year's mileage rate and this year's updated rate.
+
+- When a member creates or edits a dDistance expense, Expensify selects the rate whose **Start date** and **End date** range includes the expense date.
+- If a member manually selects a rate that isn't valid for the expense date, the expense shows a violation indicating the rate doesn't match the selected date. This is informational and does not block submission.
+
+**Note:** Setting effective dates is optional. If your rates don't have **Start date** or **End date** values, Expensify continues to apply rates as before.
 
