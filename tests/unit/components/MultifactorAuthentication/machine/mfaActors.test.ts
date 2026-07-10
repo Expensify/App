@@ -55,7 +55,7 @@ describe('validateDevice actor', () => {
         // refusal is an expected outcome that the machine routes to the failure screen
         expect(result).toEqual({
             success: false,
-            error: {reason: REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED, message: expect.any(String)},
+            error: {reason: REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED, message: 'Authentication method not allowed (deviceVerificationType: BIOMETRICS_HSM, allowedMethods: )'},
         });
         // Then it should not have queried the sensor, because the allowed-methods gate comes first
         expect(mockIsSensorAvailable).not.toHaveBeenCalled();
@@ -69,7 +69,7 @@ describe('validateDevice actor', () => {
         // Then it should resolve as a failed result with the enrollment reason the native platform reports
         await expect(runValidateDevice(allowingScenario)).resolves.toEqual({
             success: false,
-            error: {reason: REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED, message: expect.any(String)},
+            error: {reason: REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED, message: 'Device check failed (deviceVerificationType: BIOMETRICS_HSM)'},
         });
     });
 
