@@ -1,3 +1,4 @@
+import type {TextAnchor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import convertDegreeToRadian from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/convertDegreeToRadian';
 
 import type {Color} from '@shopify/react-native-skia';
@@ -6,9 +7,16 @@ import type {PieSliceData} from 'victory-native';
 import {Path, Skia} from '@shopify/react-native-skia';
 import React from 'react';
 
+type ResolvedPieLabel = {
+    x: number;
+    y: number;
+    textAnchor: TextAnchor;
+};
+
 type VictoryChartPieLabelIndicatorProps = {
     slice: PieSliceData;
     labelRadius: number;
+    resolvedLabel: ResolvedPieLabel;
     labelIndicatorXShift: number | undefined;
     labelIndicatorYShift: number | undefined;
     labelIndicatorStroke: Color | undefined;
@@ -20,6 +28,7 @@ type VictoryChartPieLabelIndicatorProps = {
 function VictoryChartPieLabelIndicator({
     slice,
     labelRadius,
+    resolvedLabel,
     labelIndicatorXShift,
     labelIndicatorYShift,
     labelIndicatorStroke,
@@ -41,6 +50,7 @@ function VictoryChartPieLabelIndicator({
     const path = Skia.Path.Make();
     path.moveTo(x1, y1);
     path.lineTo(x2, y2);
+    path.lineTo(resolvedLabel.x, resolvedLabel.y);
 
     return (
         <Path
