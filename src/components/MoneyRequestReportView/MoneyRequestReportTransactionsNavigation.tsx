@@ -140,8 +140,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         // hydrate it on arrival.
         const nextDescriptor = nextTransactionID ? siblingDescriptorsByTransactionID?.[nextTransactionID] : undefined;
         if (nextDescriptor) {
-            // Defer the thread resolution off the press frame so the button paints its pressed state first,
-            // then commit the destination swap as a non-urgent transition one frame later.
             requestAnimationFrame(() => {
                 const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {introSelected, betas, currentUserEmail, currentUserAccountID});
                 markReportIDAsExpense(nextReportID);
@@ -153,8 +151,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const nextThreadReportID = nextParentReportAction?.childReportID;
         const navigationParams = {reportID: nextThreadReportID, reportActionID: undefined, backTo};
 
-        // Defer the optimistic-thread prep off the press frame so the button paints its pressed state
-        // before the createTransactionThreadReport/openReport work runs.
         requestAnimationFrame(() => {
             if (nextThreadReportID) {
                 markReportIDAsExpense(nextThreadReportID);
@@ -176,8 +172,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                 });
                 navigationParams.reportID = transactionThreadReport?.reportID;
             }
-            // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating,
-            // and mark the destination render as a transition so the heavy destination tree commits off the interaction's paint.
+            // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
             requestAnimationFrame(() => startTransition(() => Navigation.setParams(navigationParams)));
         });
     };
@@ -195,8 +190,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         // See onNext: resolve the target sibling lazily from its descriptor when present.
         const prevDescriptor = prevTransactionID ? siblingDescriptorsByTransactionID?.[prevTransactionID] : undefined;
         if (prevDescriptor) {
-            // Defer the thread resolution off the press frame so the button paints its pressed state first,
-            // then commit the destination swap as a non-urgent transition one frame later.
             requestAnimationFrame(() => {
                 const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {introSelected, betas, currentUserEmail, currentUserAccountID});
                 markReportIDAsExpense(prevReportID);
@@ -208,8 +201,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const prevThreadReportID = prevParentReportAction?.childReportID;
         const navigationParams = {reportID: prevThreadReportID, reportActionID: undefined, backTo};
 
-        // Defer the optimistic-thread prep off the press frame so the button paints its pressed state
-        // before the createTransactionThreadReport/openReport work runs.
         requestAnimationFrame(() => {
             if (prevThreadReportID) {
                 markReportIDAsExpense(prevThreadReportID);
@@ -231,8 +222,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                 });
                 navigationParams.reportID = transactionThreadReport?.reportID;
             }
-            // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating,
-            // and mark the destination render as a transition so the heavy destination tree commits off the interaction's paint.
+            // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
             requestAnimationFrame(() => startTransition(() => Navigation.setParams(navigationParams)));
         });
     };

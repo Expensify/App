@@ -191,8 +191,6 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             name: 'ReportNavigation',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
-        // Commit the destination report swap as a non-urgent transition so the press frame paints
-        // before the heavy destination tree renders.
         startTransition(() => {
             Navigation.setParams({
                 reportID: reportId,
@@ -211,8 +209,6 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
         if (currentIndex + 1 >= threshold && lastSearchQuery?.hasMoreResults) {
             const newOffset = (lastSearchQuery.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE;
             const queryJSON = lastSearchQuery.queryJSON;
-            // Defer the pagination request off the press frame — it builds optimistic snapshot data
-            // synchronously and doesn't need to block the interaction's paint.
             requestAnimationFrame(() => {
                 search({
                     queryJSON,

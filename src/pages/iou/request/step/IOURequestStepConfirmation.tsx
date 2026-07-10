@@ -774,16 +774,14 @@ function IOURequestStepConfirmation({
     const showNextTransaction = () => {
         const nextTransaction = transactions.at(currentTransactionIndex + 1);
         if (nextTransaction) {
-            // Swap the displayed transaction as a non-urgent transition so the press frame paints
-            // before the whole confirmation list re-renders for the next transaction.
-            startTransition(() => setCurrentTransactionID(nextTransaction.transactionID));
+            setCurrentTransactionID(nextTransaction.transactionID);
         }
     };
 
     const showPreviousTransaction = () => {
         const previousTransaction = transactions.at(currentTransactionIndex - 1);
         if (previousTransaction) {
-            startTransition(() => setCurrentTransactionID(previousTransaction.transactionID));
+            setCurrentTransactionID(previousTransaction.transactionID);
         }
     };
 
@@ -892,8 +890,8 @@ function IOURequestStepConfirmation({
                                 <PrevNextButtons
                                     isPrevButtonDisabled={currentTransactionIndex === 0}
                                     isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
-                                    onNext={showNextTransaction}
-                                    onPrevious={showPreviousTransaction}
+                                    onNext={() => startTransition(showNextTransaction)}
+                                    onPrevious={() => startTransition(showPreviousTransaction)}
                                 />
                             ) : null}
                         </HeaderWithBackButton>
