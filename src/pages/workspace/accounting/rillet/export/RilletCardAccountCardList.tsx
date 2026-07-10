@@ -14,6 +14,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {appendParam} from '@libs/Url';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -86,7 +87,7 @@ function RilletCardAccountCardList({
                         <MenuItemWithTopDescription
                             title={cardAccountDisplayName}
                             description={getCardDescription(card as Card, translate)}
-                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.path))}
+                            onPress={() => Navigation.navigate(appendParam(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.path), 'cardID', cardID.toString()))}
                             shouldShowRightIcon
                             brickRoadIndicator={
                                 areCardsCustomExportInErrorFields(
