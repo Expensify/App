@@ -1801,7 +1801,7 @@ type RilletExport = {
     /**
      * Mapping of card program identifiers to account codes.
      */
-    cardProgramAccounts: Record<string, string>;
+    cardProgramAccounts: Record<OnyxTypes.CardFeed, string>;
 
     /** Accounting method used during export. */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;

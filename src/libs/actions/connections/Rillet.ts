@@ -4,6 +4,7 @@ import type {
     UpdateRilletAccountingMethodParams,
     UpdateRilletAutoSyncParams,
     UpdateRilletBillPaymentAccountParams,
+    UpdateRilletCardProgramAccountParams,
     UpdateRilletCreditCardAccountParams,
     UpdateRilletDefaultVendorParams,
     UpdateRilletEnableNewCategoriesParams,
@@ -509,6 +510,87 @@ function prepareRilletSyncOnyxData<TSettingName extends keyof RilletSync>(
     return {optimisticData, successData, failureData};
 }
 
+function prepareRilletCardProgramAccountOnyxData(
+    policyID: string,
+    feedKey: keyof RilletExport['cardProgramAccounts'],
+    accountCode: ValueOf<RilletExport['cardProgramAccounts']>,
+    oldAccountCode?: ValueOf<RilletExport['cardProgramAccounts']> | null,
+) {
+    const cardProgramAccountOfflineFeedbackKey = `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            export: {
+                                cardProgramAccounts: {
+                                    [feedKey]: accountCode,
+                                },
+                            },
+                            pendingFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            pendingFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            export: {
+                                cardProgramAccounts: {
+                                    [feedKey]: oldAccountCode ?? null,
+                                },
+                            },
+                            pendingFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: null,
+                            },
+                            errorFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
 function updateRilletSubsidiary(policyID: string, subsidiaryID: RilletConnectionsConfig['subsidiaryID'], oldSubsidiaryID?: RilletConnectionsConfig['subsidiaryID']) {
     const onyxData = prepareRilletOnyxData(policyID, CONST.RILLET_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateRilletSubsidiaryParams = {
@@ -681,6 +763,21 @@ function updateRilletExportToMultipleAccounts(policyID: string, enabled: RilletE
     write(WRITE_COMMANDS.UPDATE_RILLET_EXPORT_TO_MULTIPLE_ACCOUNTS, parameters, onyxData);
 }
 
+function updateRilletCardProgramAccount(
+    policyID: string,
+    feedKey: keyof RilletExport['cardProgramAccounts'],
+    accountCode: ValueOf<RilletExport['cardProgramAccounts']>,
+    oldAccountCode?: ValueOf<RilletExport['cardProgramAccounts']>,
+) {
+    const onyxData = prepareRilletCardProgramAccountOnyxData(policyID, feedKey, accountCode, oldAccountCode ?? null);
+    const parameters: UpdateRilletCardProgramAccountParams = {
+        policyID,
+        feedKey,
+        accountCode,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_CARD_PROGRAM_ACCOUNT, parameters, onyxData);
+}
+
 export {
     connectToRillet,
     clearRilletErrorField,
@@ -701,4 +798,5 @@ export {
     updateRilletSyncTravelInvoicingSettlements,
     updateRilletTravelInvoicingSettlementsAccount,
     updateRilletExportToMultipleAccounts,
+    updateRilletCardProgramAccount,
 };
