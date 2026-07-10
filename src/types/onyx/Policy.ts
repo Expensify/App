@@ -247,6 +247,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The old tax code of the tax rate when we edit the tax code */
     previousTaxCode?: string;
 
+    /** The old tax code kept only while a tax code edit is in flight, used to resolve the rate from the old code; cleared once the API resolves */
+    optimisticPreviousTaxCode?: string;
+
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
 
@@ -506,7 +509,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether employees can be invited */
     syncPeople: boolean;
 
-    /** TODO: Will be handled in another issue */
+    /** Whether QuickBooks Online items should be imported */
     syncItems: boolean;
 
     /** TODO: Will be handled in another issue */
@@ -1570,12 +1573,12 @@ type RilletSubsidiary = {
 /**
  * Supported account statuses in Rillet.
  */
-type RilletAccountStatus = 'ACTIVE' | 'INACTIVE';
+type RilletAccountStatus = ValueOf<typeof CONST.RILLET_ACCOUNT_STATUS>;
 
 /**
  * Supported chart of account categories in Rillet.
  */
-type RilletAccountType = 'ASSET' | 'LIABILITY' | 'EQUITY' | 'EXPENSE' | 'INCOME';
+type RilletAccountType = ValueOf<typeof CONST.RILLET_ACCOUNT_TYPE>;
 
 /**
  * A chart of accounts entry in Rillet.
@@ -1713,28 +1716,23 @@ type RilletBankAccount = {
  */
 type RilletConnectionData = {
     /** Collection of subsidiaries. */
-    subsidiaries: RilletSubsidiary[];
+    subsidiaries?: RilletSubsidiary[];
 
     /** Collection of accounts. */
-    accounts: RilletAccount[];
+    accounts?: RilletAccount[];
 
     /** Collection of custom fields. */
-    fields: RilletField[];
+    fields?: RilletField[];
 
     /** Collection of tax rates. */
-    taxRates: RilletTaxRate[];
+    taxRates?: RilletTaxRate[];
 
     /** Collection of vendors. */
-    vendors: RilletVendor[];
+    vendors?: RilletVendor[];
 
     /** Collection of bank accounts. */
-    bankAccounts: RilletBankAccount[];
+    bankAccounts?: RilletBankAccount[];
 };
-
-/**
- * Supported mappings for Rillet coding fields.
- */
-type RilletCodingFieldMappingValue = 'NONE' | 'TAG';
 
 /**
  * Coding configuration used when exporting data to Rillet.
@@ -1743,26 +1741,34 @@ type RilletCoding = {
     /**
      * Mapping of Rillet field IDs to their configured mapping behavior.
      */
-    fieldMappings: Record<string, RilletCodingFieldMappingValue>;
+    fieldMappings?: Record<string, ValueOf<typeof CONST.RILLET_MAPPING_VALUE>>;
 
     /** Whether tax rates should be synchronized from Rillet. */
     syncTaxRates: boolean;
 };
 
+/** Offline feedback key for field mapping */
+type RilletCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `RilletCoding`
+ */
+type RilletCodingOfflineFeedbackKeys = keyof Omit<RilletCoding, 'fieldMappings'> | RilletCodingFieldMappingsOfflineFeedbackKey;
+
 /**
  * Available dates that can be used as the export date.
  */
-type RilletExportDate = 'LAST_EXPENSE' | 'REPORT_EXPORTED' | 'REPORT_SUBMITTED';
+type RilletExportDate = ValueOf<typeof CONST.RILLET_EXPORT_DATE>;
 
 /**
  * Export strategy for reimbursable expenses.
  */
-type RilletExportReimbursable = 'VENDOR_BILL';
+type RilletExportReimbursable = ValueOf<typeof CONST.RILLET_EXPORT_REIMBURSABLE>;
 
 /**
  * Export strategy for company card expenses.
  */
-type RilletExportCompanyCard = 'CREDIT_CARD';
+type RilletExportCompanyCard = ValueOf<typeof CONST.RILLET_EXPORT_COMPANY_CARD>;
 
 /**
  * Export configuration for sending accounting data to Rillet.
@@ -1798,7 +1804,7 @@ type RilletExport = {
     cardProgramAccounts: Record<string, string>;
 
     /** Accounting method used during export. */
-    accountingMethod: string;
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 /**
@@ -1847,16 +1853,16 @@ type RilletConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         enableNewCategories: boolean;
 
         /** Coding settings */
-        coding: RilletCoding;
+        coding?: RilletCoding;
 
         /** Export settings */
-        export: RilletExport;
+        export?: RilletExport;
 
         /** Auto-sync settings */
         autoSync?: RilletAutoSync;
 
         /** Sync settings */
-        sync: RilletSync;
+        sync?: RilletSync;
 
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
@@ -1864,7 +1870,7 @@ type RilletConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    keyof RilletCoding | keyof RilletExport | keyof RilletAutoSync | keyof RilletSync
+    RilletCodingOfflineFeedbackKeys | keyof RilletExport | keyof RilletAutoSync | keyof RilletSync
 >;
 
 /** Gusto connection data */
@@ -2866,4 +2872,13 @@ export type {
     ZenefitsConnectionConfig,
     Vendor,
     AgentRule,
+    RilletExportDate,
+    RilletVendor,
+    RilletAccount,
+    RilletCoding,
+    RilletConnectionsConfig,
+    RilletExport,
+    RilletBankAccount,
+    RilletAutoSync,
+    RilletSync,
 };

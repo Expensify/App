@@ -61,7 +61,9 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
 
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -76,6 +78,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
         personalDetail.login,
         isSubmit2026BetaEnabled,
     ]);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const delegateAccountID = useDelegateAccountID();
 
     const actionableItemButtons = ((): ActionableItem[] => {
@@ -171,6 +174,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                             personalDetail.accountID,
                             personalDetail.email,
                             delegateAccountID,
+                            conciergeReportID,
                         );
                     },
                 }));
@@ -251,6 +255,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                 text: isPhrasalConciergeOptions ? styles.actionableItemButtonText : undefined,
                 button: isPhrasalConciergeOptions ? styles.actionableItemButton : undefined,
             }}
+            wrapperStyle={isPhrasalConciergeOptions ? styles.mt4 : undefined}
         />
     );
 }

@@ -149,6 +149,8 @@ function IOURequestStepUpgrade({
                 transactions,
                 allTransactionViolation: transactionViolations,
                 allReports,
+                // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.
+                personalPolicyOutputCurrency: undefined,
             });
 
             clearSelectedTransactions();
@@ -251,7 +253,7 @@ function IOURequestStepUpgrade({
     ]);
 
     const participant = transaction?.participants?.[0];
-    const adminParticipant = isDistanceRateUpgrade && participant?.accountID ? getParticipantsOption(participant, personalDetails) : undefined;
+    const adminParticipant = isDistanceRateUpgrade && participant?.accountID ? getParticipantsOption(participant, personalDetails, translate) : undefined;
 
     const onUpgrade = () => {
         if (isRestrictedPolicyCreation) {
