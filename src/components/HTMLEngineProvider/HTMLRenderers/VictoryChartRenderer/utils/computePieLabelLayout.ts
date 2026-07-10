@@ -1,3 +1,7 @@
+/**
+ * Resolves pie-chart slice labels into a non-overlapping two-column layout, stacking labels to the
+ * left/right of the ring based on each slice's mid-angle and pushing/compacting them to avoid collisions.
+ */
 import type {ChartDefaultTypeface} from '@components/Charts/types/chartSkiaTypefaceTypes';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LabelItem, TextAnchor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';

@@ -1,17 +1,10 @@
-import type {TextAnchor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {ResolvedPieLabel} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
 import type {Color} from '@shopify/react-native-skia';
 import type {PieSliceData} from 'victory-native';
 
 import {Path, Skia} from '@shopify/react-native-skia';
 import React from 'react';
-
-type ResolvedPieLabel = {
-    x: number;
-    y: number;
-    textAnchor: TextAnchor;
-    midAngle: number;
-};
 
 type VictoryChartPieLabelIndicatorProps = {
     slice: PieSliceData;
