@@ -528,7 +528,8 @@ function prepareRilletCardProgramAccountOnyxData(
                         config: {
                             export: {
                                 cardProgramAccounts: {
-                                    [feedKey]: accountCode,
+                                    // An empty accountCode string implies clearing the custom account
+                                    [feedKey]: accountCode || null,
                                 },
                             },
                             pendingFields: {

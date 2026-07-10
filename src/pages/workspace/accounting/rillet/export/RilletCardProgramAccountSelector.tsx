@@ -88,7 +88,10 @@ function RilletCardProgramAccountSelector({
 
     const selectCreditCardAccount = (item: AccountListItem) => {
         if (item.value !== cardProgramAccountCode && policyID) {
-            updateRilletCardProgramAccount(policyID, feedKey, item.value, cardProgramAccountCode);
+            // Choosing the default account clears the custom account
+            const value = item.value === creditCardAccountCode ? '' : item.value;
+            const oldValue = cardProgramAccountCode === creditCardAccountCode ? undefined : cardProgramAccountCode;
+            updateRilletCardProgramAccount(policyID, feedKey, value, oldValue);
         }
         Navigation.goBack(backPath);
     };
