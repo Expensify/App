@@ -647,6 +647,174 @@ describe('actions/IOU/ReportWorkflow', () => {
                     )
             );
         });
+        it('clears the hold on held transactions when submitting a Submit and Close report', () => {
+            const amount = 10000;
+            const comment = '💸💸💸💸';
+            const merchant = 'NASDAQ';
+            let expenseReport: OnyxEntry<Report>;
+            let chatReport: OnyxEntry<Report>;
+            let policy: OnyxEntry<Policy>;
+            let transactionID: string | undefined;
+
+            return (
+                waitForBatchedUpdates()
+                    .then(() => {
+                        createWorkspace({
+                            policyOwnerEmail: CARLOS_EMAIL,
+                            makeMeAdmin: true,
+                            policyName: "Carlos's Workspace",
+                            policyID: undefined,
+                            engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                            introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                            currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                            currentUserEmailParam: CARLOS_EMAIL,
+                            currency: undefined,
+                            isSelfTourViewed: false,
+                            betas: undefined,
+                            hasActiveAdminPolicies: false,
+                            activePolicy: undefined,
+                        });
+                        return waitForBatchedUpdates();
+                    })
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connection = Onyx.connect({
+                                    key: ONYXKEYS.COLLECTION.REPORT,
+                                    waitForCollectionCallback: true,
+                                    callback: (allReports) => {
+                                        Onyx.disconnect(connection);
+                                        chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+                    .then(() => {
+                        if (chatReport) {
+                            requestMoney({
+                                report: chatReport,
+                                participantParams: {
+                                    payeeEmail: RORY_EMAIL,
+                                    payeeAccountID: RORY_ACCOUNT_ID,
+                                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
+                                },
+                                transactionParams: {
+                                    amount,
+                                    attendees: [],
+                                    currency: CONST.CURRENCY.USD,
+                                    created: '',
+                                    merchant,
+                                    comment,
+                                    reimbursable: true,
+                                },
+                                shouldGenerateTransactionThreadReport: true,
+                                isASAPSubmitBetaEnabled: false,
+                                currentUserAccountIDParam: 123,
+                                currentUserEmailParam: 'existing@example.com',
+                                transactionViolations: {},
+                                policyRecentlyUsedCurrencies: [],
+                                isSelfTourViewed: false,
+                                quickAction: undefined,
+                                existingTransactionDraft: undefined,
+                                draftTransactionIDs: [],
+                                betas: [],
+                                personalDetails: {},
+                            });
+                        }
+                        return waitForBatchedUpdates();
+                    })
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connection = Onyx.connect({
+                                    key: ONYXKEYS.COLLECTION.POLICY,
+                                    waitForCollectionCallback: true,
+                                    callback: (allPolicies) => {
+                                        Onyx.disconnect(connection);
+                                        policy = Object.values(allPolicies ?? {}).find((p): p is OnyxEntry<Policy> => p?.name === "Carlos's Workspace");
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connection = Onyx.connect({
+                                    key: ONYXKEYS.COLLECTION.REPORT,
+                                    waitForCollectionCallback: true,
+                                    callback: (allReports) => {
+                                        Onyx.disconnect(connection);
+                                        expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
+                                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`, {
+                                            statusNum: 0,
+                                            stateNum: 0,
+                                        });
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connection = Onyx.connect({
+                                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                                    waitForCollectionCallback: true,
+                                    callback: (allTransactions) => {
+                                        Onyx.disconnect(connection);
+                                        const heldTransaction = Object.values(allTransactions ?? {}).find((transaction) => transaction?.reportID === expenseReport?.reportID);
+                                        transactionID = heldTransaction?.transactionID;
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+                    // Put the transaction on hold by setting comment.hold to a report action ID, mirroring putOnHold
+                    .then(() => {
+                        if (!transactionID) {
+                            return;
+                        }
+                        return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {hold: 'holdReportActionID'}});
+                    })
+                    .then(() => waitForBatchedUpdates())
+                    .then(async () => {
+                        const heldTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+                        // Verify the transaction is on hold before submitting
+                        expect(heldTransaction?.comment?.hold).toBe('holdReportActionID');
+                    })
+                    .then(async () => {
+                        if (expenseReport) {
+                            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+                            submitReport({
+                                expenseReport,
+                                policy,
+                                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                                currentUserEmailParam: CARLOS_EMAIL,
+                                hasViolations: false,
+                                isASAPSubmitBetaEnabled: true,
+                                expenseReportCurrentNextStepDeprecated: nextStep,
+                                userBillingGracePeriodEnds: undefined,
+                                amountOwed: 0,
+                                ownerBillingGracePeriodEnd: undefined,
+                                delegateEmail: undefined,
+                            });
+                        }
+                        return waitForBatchedUpdates();
+                    })
+                    .then(async () => {
+                        const submittedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`);
+                        // Report is closed since the policy uses Submit and Close
+                        expect(submittedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
+                        expect(submittedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+
+                        const submittedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+                        // The hold is cleared optimistically so the on-hold status bar disappears
+                        expect(submittedTransaction?.comment?.hold).toBe('');
+                    })
+            );
+        });
         it('correctly implements error handling', () => {
             const amount = 10000;
             const comment = '💸💸💸💸';

@@ -1372,6 +1372,7 @@ function submitReport({
     }
 
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
+    const hasHeldExpenses = hasHeldExpensesReportUtils(getReportTransactions(expenseReport.reportID));
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
     const approvalChain = getApprovalChain(policy, expenseReport, submitterLogin);
@@ -1423,7 +1424,13 @@ function submitReport({
               bypassNextApproverID: optimisticNextStepApproverID,
           });
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+        >
     > = [];
 
     if (shouldAddOptimisticSubmitAction) {
@@ -1555,7 +1562,13 @@ function submitReport({
     }
 
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1625,6 +1638,32 @@ function submitReport({
                 iouReportID: expenseReport.reportID,
             },
         });
+    }
+
+    // Clear hold reason of all transactions when submit-and-close moves the report straight to CLOSED,
+    // so the on-hold status bar is removed in lockstep with the optimistic close (mirrors approveMoneyRequest).
+    if (isSubmitAndClosePolicy && !isDEWPolicy && hasHeldExpenses) {
+        const heldTransactions = getAllHeldTransactionsReportUtils(expenseReport.reportID);
+        for (const heldTransaction of heldTransactions) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`,
+                value: {
+                    comment: {
+                        hold: '',
+                    },
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`,
+                value: {
+                    comment: {
+                        hold: heldTransaction.comment?.hold,
+                    },
+                },
+            });
+        }
     }
 
     const parameters: SubmitReportParams = {
