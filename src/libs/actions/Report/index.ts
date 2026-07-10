@@ -2259,7 +2259,8 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         reportID: optimisticTransactionThreadReportID,
         introSelected,
         participants,
-        personalDetails,
+        // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
+        personalDetails: personalDetails ?? allPersonalDetails,
         newReportObject: optimisticTransactionThread,
         parentReportActionID: iouReportAction?.reportActionID,
         transaction,
