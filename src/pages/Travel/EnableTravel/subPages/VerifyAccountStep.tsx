@@ -73,7 +73,7 @@ function VerifyAccountStep({onNext}: EnableTravelSubPageProps) {
     );
 
     return (
-        <View style={[styles.ph5, styles.mt3, styles.flex1]}>
+        <View style={[styles.ph5, styles.mt3, styles.mb5, styles.flex1]}>
             <Text style={styles.mb3}>{translate('contacts.featureRequiresValidate')}</Text>
             <Text style={styles.mb3}>{translate('contacts.enterMagicCode', contactMethod)}</Text>
             <ValidateCodeForm
