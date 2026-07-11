@@ -146,7 +146,7 @@ Escape (web) / hardware-back (native) / outside-click, with topmost-layer gating
 ### Other primitives
 
 - **`<Presence>`** — keeps children mounted through their exit animation (`mounted` → `unmountSuspended` → `unmounted`). `onExitComplete` fires when it's gone, and a custom (non-`AnimatedSurface`) child reads the phase with `usePresence()`.
-- **`<AnimatedSurface>`** — Reanimated enter/exit, inside a `<Presence>` parent. `FADE_ONLY_ENTER_SPEC` / `FADE_ONLY_EXIT` cover the fade case (exit is target-only, so it's an `AnimationFrame`, not a spec).
+- **`<AnimatedSurface>`** — Reanimated enter/exit, inside a `<Presence>` parent. `FADE_ONLY_ENTER_SPEC` / `FADE_ONLY_EXIT` cover the fade case.
 - **`<Portal>`** — renders into `document.body` (web) / an `RNModal` (native).
 - **`createHeadingSystem(name)`** — dialog naming, wired as in the example above. `useRegisteredTitle` / `useRegisteredDescription` let a custom node own the id instead of `<Title>` / `<Description>`.
 
