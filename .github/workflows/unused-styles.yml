@@ -24,4 +24,4 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Run unused style searcher
-        run: bun scripts/findUnusedStyles.ts
+        run: npx bun scripts/findUnusedStyles.ts

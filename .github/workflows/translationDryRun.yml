@@ -22,7 +22,7 @@ jobs:
         run: echo "sha=$(sha256sum src/languages/it.ts | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - name: Run generateTranslations dry run
-        run: bun ./scripts/generateTranslations.ts --dry-run --locales it
+        run: npx bun ./scripts/generateTranslations.ts --dry-run --locales it
 
       - name: Verify translation output
         run: |
