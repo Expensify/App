@@ -86,7 +86,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -894,8 +894,8 @@ function IOURequestStepConfirmation({
                                 <PrevNextButtons
                                     isPrevButtonDisabled={currentTransactionIndex === 0}
                                     isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
-                                    onNext={showNextTransaction}
-                                    onPrevious={showPreviousTransaction}
+                                    onNext={() => startTransition(showNextTransaction)}
+                                    onPrevious={() => startTransition(showPreviousTransaction)}
                                 />
                             ) : null}
                         </HeaderWithBackButton>
