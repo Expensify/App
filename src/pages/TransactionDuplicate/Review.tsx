@@ -52,6 +52,7 @@ function TransactionDuplicateReview() {
     const {isOffline} = useNetwork();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.threadReportID}`, {selector: Boolean});
     const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${route.params.threadReportID}`);
@@ -117,11 +118,12 @@ function TransactionDuplicateReview() {
     };
 
     useEffect(() => {
+        console.log('duplicate review', report);
         if (!route.params.threadReportID || report?.reportID) {
             return;
         }
-        openReport({reportID: route.params.threadReportID, introSelected, betas});
-    }, [report?.reportID, route.params.threadReportID, introSelected, betas]);
+        openReport({reportID: route.params.threadReportID, introSelected, betas, hasReportActions});
+    }, [report?.reportID, route.params.threadReportID, introSelected, betas, hasReportActions]);
 
     useEffect(() => {
         if (!transactionID) {

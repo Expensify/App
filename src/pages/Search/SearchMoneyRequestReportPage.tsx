@@ -75,6 +75,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {currentSearchResults: snapshot} = useSearchResultsContext();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
 
     const parentReportAction = useParentReportAction(report);
@@ -193,6 +194,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             isInitialMountRef.current = true;
         }
 
+        console.log('search report page', visibleTransactions.length, isInitialMountRef.current, transactionThreadReportID, oneTransactionID);
         // Guard prevents calling openReport for multi-transaction reports
         if (visibleTransactions.length > 2 && !isInitialMountRef.current) {
             return;
@@ -211,7 +213,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
 
-        openReport({reportID: reportIDFromRoute, introSelected, betas});
+        openReport({reportID: reportIDFromRoute, introSelected, betas, hasReportActions});
         isInitialMountRef.current = false;
 
         // oneTransactionID dependency handles the case when deleting a transaction:
