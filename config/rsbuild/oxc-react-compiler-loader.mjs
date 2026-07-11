@@ -9,9 +9,9 @@
  * This loader replaces oxc-webpack-loader entirely for Rule A (app source).
  */
 
-const path = require('path');
-const {getTsconfig} = require('get-tsconfig');
-const {transform} = require('oxc-transform');
+import {getTsconfig} from 'get-tsconfig';
+import path from 'node:path';
+import {transform} from 'oxc-transform';
 
 function extractTsconfigOptions(rootContext) {
     try {
@@ -60,7 +60,7 @@ function getLang(ext) {
     return 'js';
 }
 
-module.exports = async function oxcReactCompilerLoader(source) {
+export default async function oxcReactCompilerLoader(source) {
     const callback = this.async();
     try {
         const options = this.getOptions() || {};
@@ -115,4 +115,4 @@ module.exports = async function oxcReactCompilerLoader(source) {
     } catch (err) {
         callback(err);
     }
-};
+}

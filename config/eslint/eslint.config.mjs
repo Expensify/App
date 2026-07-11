@@ -534,6 +534,20 @@ const config = defineConfig([
         },
     },
 
+    // Rspack/webpack loader modules (ESM). Loaders receive their `this` loader
+    // context from the bundler, not from a class/object — the ESM sourceType
+    // makes `no-invalid-this` newly aware of these top-level function
+    // declarations, which is a false positive for this well-established
+    // loader convention. `no-negated-variables` also false-positives on
+    // "annotation" (matches the "notation" substring), which isn't a negation.
+    {
+        files: ['config/rsbuild/*-loader.mjs'],
+        rules: {
+            'no-invalid-this': 'off',
+            'rulesdir/no-negated-variables': 'off',
+        },
+    },
+
     {
         files: ['**/en.ts', '**/es.ts'],
         rules: {

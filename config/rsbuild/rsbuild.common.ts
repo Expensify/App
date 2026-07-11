@@ -266,7 +266,7 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                             // non-fatal React Compiler diagnostics to warnings instead of hard build
                             // errors (workaround for oxc-project/oxc#23587).
                             {
-                                loader: path.resolve(dirname, './oxc-react-compiler-loader.cjs'),
+                                loader: path.resolve(dirname, './oxc-react-compiler-loader.mjs'),
                                 options: {
                                     reactCompiler: {target: '19', panicThreshold: 'none'},
                                     target: 'node20',
@@ -275,7 +275,7 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                             },
                             // Pass 1: Fullstory annotation (sees annotated JSX before OXC transforms it).
                             {
-                                loader: path.resolve(dirname, './fullstory-annotation-loader.cjs'),
+                                loader: path.resolve(dirname, './fullstory-annotation-loader.mjs'),
                             },
                         ],
                     },

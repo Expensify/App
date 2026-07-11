@@ -15,10 +15,16 @@
  * Supports `native: true` mode only (matches the existing webpack config).
  */
 
-const parser = require('@babel/parser');
-const traverse = require('@babel/traverse').default;
-const generate = require('@babel/generator').default;
-const t = require('@babel/types');
+import generateModule from '@babel/generator';
+import * as parser from '@babel/parser';
+import traverseModule from '@babel/traverse';
+import * as t from '@babel/types';
+
+// @babel/traverse and @babel/generator are CJS-only, so their ESM default
+// export is the whole CJS module.exports object rather than the function
+// itself — same interop wrinkle as require(...).default in CommonJS.
+const traverse = traverseModule.default ?? traverseModule;
+const generate = generateModule.default ?? generateModule;
 
 // Modules known to be incompatible with Fullstory annotation (from upstream plugin)
 const KNOWN_INCOMPATIBLE = [
@@ -262,7 +268,7 @@ function applyPropsToComponent(funcPath, componentName, sourceFileName) {
     applyPropsToJSXNode(jsxPath, componentName, sourceFileName);
 }
 
-module.exports = function fullstoryAnnotationLoader(source) {
+export default function fullstoryAnnotationLoader(source) {
     const resourcePath = this.resourcePath;
 
     // Skip known-incompatible node_modules
@@ -358,4 +364,4 @@ module.exports = function fullstoryAnnotationLoader(source) {
     }
 
     return code;
-};
+}
