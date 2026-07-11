@@ -363,6 +363,17 @@ describe('getAmountHasUnsavedChanges', () => {
             ).toBe(false);
         });
 
+        it('flags a cleared field when the draft already holds an amount (revisited after Next)', () => {
+            expect(
+                getAmountHasUnsavedChanges({
+                    ...sameCurrency,
+                    typedAmount: '',
+                    committedAmount: 100,
+                    isCreateEntry: true,
+                }),
+            ).toBe(true);
+        });
+
         it('flags a currency change even with no amount entered', () => {
             expect(
                 getAmountHasUnsavedChanges({

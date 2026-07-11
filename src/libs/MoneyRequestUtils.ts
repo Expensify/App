@@ -224,7 +224,7 @@ type AmountHasUnsavedChangesParams = {
 function getAmountHasUnsavedChanges({typedAmount, committedAmount, isCreateEntry, selectedCurrency, originalCurrency}: AmountHasUnsavedChangesParams): boolean {
     const currencyChanged = selectedCurrency !== originalCurrency;
     if (isCreateEntry) {
-        return typedAmount !== '' || currencyChanged;
+        return typedAmount !== '' || committedAmount !== 0 || currencyChanged;
     }
     const typedAmountInBackendUnits = typedAmount ? convertToBackendAmount(Number.parseFloat(typedAmount)) : 0;
     return typedAmountInBackendUnits !== committedAmount || currencyChanged;
