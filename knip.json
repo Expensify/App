@@ -71,7 +71,6 @@
         "shellcheck",
         "patch-package",
         "diff-so-fancy",
-        "babel-loader",
         "oxc-webpack-loader",
         "@babel/plugin-proposal-class-properties"
     ],

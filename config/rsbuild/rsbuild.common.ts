@@ -253,14 +253,10 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                         exclude: [/node_modules/, /\.native\.(js|jsx|ts|tsx)$/],
                         use: [
                             // Pass 3: worklets (on OXC's plain-JS output — no presets needed).
-                            {
-                                loader: 'babel-loader',
-                                options: {
-                                    babelrc: false,
-                                    configFile: false,
-                                    plugins: ['react-native-worklets/plugin'],
-                                },
-                            },
+                            // worklets-loader skips the Babel parse/transform/codegen cycle for
+                            // files that can't reference a worklet (see that file) — ~97.5% of
+                            // src/, verified by grep.
+                            {loader: path.resolve(dirname, './worklets-loader.mjs')},
                             // Pass 2: React Compiler + all transforms via our thin wrapper loader.
                             // oxc-react-compiler-loader calls oxc-transform directly and demotes
                             // non-fatal React Compiler diagnostics to warnings instead of hard build
@@ -284,17 +280,7 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                         test: /\.tsx?$/,
                         include: [includedNodeModules],
                         exclude: [/\.native\.(ts|tsx)$/],
-                        use: [
-                            {
-                                loader: 'babel-loader',
-                                options: {
-                                    babelrc: false,
-                                    configFile: false,
-                                    plugins: ['react-native-worklets/plugin'],
-                                },
-                            },
-                            {loader: 'oxc-webpack-loader', options: {target: 'node20'}},
-                        ],
+                        use: [{loader: path.resolve(dirname, './worklets-loader.mjs')}, {loader: 'oxc-webpack-loader', options: {target: 'node20'}}],
                     },
                     // Rule B2: JavaScript — need explicit jsx to upgrade .js lang to jsx.
                     {
@@ -302,14 +288,7 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                         include: [includedNodeModules],
                         exclude: [/\.native\.(js|jsx)$/],
                         use: [
-                            {
-                                loader: 'babel-loader',
-                                options: {
-                                    babelrc: false,
-                                    configFile: false,
-                                    plugins: ['react-native-worklets/plugin'],
-                                },
-                            },
+                            {loader: path.resolve(dirname, './worklets-loader.mjs')},
                             {
                                 loader: 'oxc-webpack-loader',
                                 options: {target: 'node20', jsx: {runtime: 'automatic'}},
