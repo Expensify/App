@@ -15,7 +15,6 @@ import variables from '@styles/variables';
 
 import {setSubmitMigrationModalShown} from '@userActions/User';
 
-import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import React from 'react';
@@ -37,7 +36,7 @@ function SubmitPlanWelcomeModal() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler']);
+    const illustrations = useMemoizedLazyIllustrations(['ReceiptWranglerSpaceCowgirl']);
     const {firstName, lastName} = useCurrentUserPersonalDetails();
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
@@ -63,12 +62,10 @@ function SubmitPlanWelcomeModal() {
             contentStyle={[styles.pt0, styles.pb0]}
         >
             <FeatureTrainingContent
-                image={illustrations.ReceiptWrangler}
-                imageWidth={variables.submitPlanWelcomeModalIconSize}
-                imageHeight={variables.submitPlanWelcomeModalIconSize}
+                image={illustrations.ReceiptWranglerSpaceCowgirl}
                 contentFitImage="contain"
-                illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
-                illustrationInnerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.yellow400)]}
+                illustrationAspectRatio={variables.submitPlanWelcomeModalIllustrationAspectRatio}
+                illustrationInnerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, styles.p5, StyleUtils.getBackgroundColorStyle(colors.yellow400)]}
                 illustrationOuterContainerStyle={styles.p0}
                 title={translate('submitPlanWelcomeModal.title')}
                 description={translate('submitPlanWelcomeModal.description')}

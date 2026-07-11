@@ -34,6 +34,7 @@ let hasShownSubmitMigrationModal: OnyxEntry<boolean>;
 let isSubmitMigrationModalShownLoaded = false;
 
 let hasRedirectedToSubmitPlanModal = false;
+let isEvaluationScheduled = false;
 
 const SUBMIT_PLAN_WELCOME_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.entryScreens);
 
@@ -50,6 +51,9 @@ function getValidModalBasePath(): string {
         return ROUTES.HOME;
     }
     try {
+        // getActiveRoute returns a plain string, while getStateFromPath expects a Route. Any string returned by
+        // getActiveRoute is a valid route path, and getStateFromPath safely handles paths it cannot parse.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const focusedRouteName = findFocusedRouteWithOnyxTabGuard(getStateFromPath(activeRoute as Route) ?? {})?.name;
         if (focusedRouteName && SUBMIT_PLAN_WELCOME_ENTRY_SCREENS.has(focusedRouteName)) {
             return activeRoute;
@@ -103,20 +107,49 @@ function navigateToSubmitPlanWelcomeModalIfReady() {
 }
 
 /**
+ * Coalesce the proactive-navigation decision onto a microtask so it runs once, after the current Onyx
+ * update batch has fully applied.
+ *
+ * OpenApp is a write command, so its server `onyxData` (which carries NVP_SUBMIT_MIGRATION_MODAL_SHOWN
+ * and the beta/intro/policy data) and its finallyData (IS_LOADING_APP=false) are queued and flushed
+ * together in a single combined Onyx.update. The order in which per-key subscriber callbacks fire within
+ * that batch is not guaranteed, so evaluating synchronously from the IS_LOADING_APP callback could read a
+ * stale (undefined) `hasShownSubmitMigrationModal` while the positive conditions are already set, and
+ * incorrectly redirect a user who has already seen the modal (most visible right after "clear cache and
+ * restart", when Onyx starts empty). Deferring the decision guarantees every cached value reflects the
+ * just-applied OpenApp data before we decide.
+ */
+function scheduleSubmitPlanWelcomeModalEvaluation() {
+    if (isEvaluationScheduled) {
+        return;
+    }
+    isEvaluationScheduled = true;
+    Promise.resolve().then(() => {
+        isEvaluationScheduled = false;
+        navigateToSubmitPlanWelcomeModalIfReady();
+    });
+}
+
+/**
  * Called by guards/index.ts when session or loading app state changes.
  * Reuses the shared Onyx subscriptions from guards/index.ts to avoid duplicate connections.
  */
 function onSessionOrLoadingAppChanged(sessionValue: OnyxEntry<Session>, isLoadingAppValue: boolean) {
     session = sessionValue;
     isLoadingApp = isLoadingAppValue;
-    navigateToSubmitPlanWelcomeModalIfReady();
+    scheduleSubmitPlanWelcomeModalEvaluation();
 }
 
+// These subscriptions only keep the guard's cached copies in sync for the synchronous `evaluate` and the
+// proactive check. They intentionally do NOT drive navigation: the one-shot proactive redirect is a
+// boot-time decision triggered solely by the app-load/session signal (onSessionOrLoadingAppChanged), by
+// which point every value below has already landed in the same OpenApp batch. Driving navigation from these
+// (especially the high-churn POLICY collection) would recompute eligibility on every unrelated mutation for
+// the whole session.
 Onyx.connectWithoutView({
     key: ONYXKEYS.BETAS,
     callback: (value) => {
         betas = value;
-        navigateToSubmitPlanWelcomeModalIfReady();
     },
 });
 
@@ -124,7 +157,6 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.BETA_CONFIGURATION,
     callback: (value) => {
         betaConfiguration = value;
-        navigateToSubmitPlanWelcomeModalIfReady();
     },
 });
 
@@ -132,7 +164,6 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
     callback: (value) => {
         introSelected = value;
-        navigateToSubmitPlanWelcomeModalIfReady();
     },
 });
 
@@ -140,7 +171,6 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => {
         hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(value);
-        navigateToSubmitPlanWelcomeModalIfReady();
     },
 });
 
@@ -149,7 +179,6 @@ Onyx.connectWithoutView({
     waitForCollectionCallback: true,
     callback: (value) => {
         policies = value;
-        navigateToSubmitPlanWelcomeModalIfReady();
     },
 });
 
@@ -162,7 +191,6 @@ Onyx.connectWithoutView({
         if (value) {
             hasRedirectedToSubmitPlanModal = false;
         }
-        navigateToSubmitPlanWelcomeModalIfReady();
     },
 });
 

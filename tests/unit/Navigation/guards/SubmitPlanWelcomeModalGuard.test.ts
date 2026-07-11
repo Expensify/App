@@ -158,7 +158,9 @@ describe('SubmitPlanWelcomeModalGuard', () => {
             await setUpEligibleUser();
             mockNavigate.mockClear();
 
+            // Proactive navigation is coalesced onto a microtask, so wait for it to flush before asserting.
             onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+            await waitForBatchedUpdates();
 
             expect(mockNavigate).toHaveBeenCalledWith(submitPlanWelcomeRoute);
         });
@@ -168,6 +170,7 @@ describe('SubmitPlanWelcomeModalGuard', () => {
             mockNavigate.mockClear();
 
             onSessionOrLoadingAppChanged(undefined, false);
+            await waitForBatchedUpdates();
 
             expect(mockNavigate).not.toHaveBeenCalled();
         });
@@ -178,6 +181,19 @@ describe('SubmitPlanWelcomeModalGuard', () => {
             mockNavigate.mockClear();
 
             onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+            await waitForBatchedUpdates();
+
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
+        it('should not navigate when the modal has already been shown', async () => {
+            await setUpEligibleUser();
+            await Onyx.merge(ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN, true);
+            await waitForBatchedUpdates();
+            mockNavigate.mockClear();
+
+            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+            await waitForBatchedUpdates();
 
             expect(mockNavigate).not.toHaveBeenCalled();
         });
