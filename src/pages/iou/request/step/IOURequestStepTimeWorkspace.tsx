@@ -1,5 +1,5 @@
-import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -7,9 +7,14 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getActivePoliciesWithExpenseChatAndTimeEnabled, getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
-import {setMoneyRequestParticipantsFromReport, setMoneyRequestTimeRate} from '@userActions/IOU';
+
+import {setMoneyRequestParticipantsFromReport, setMoneyRequestTimeRate} from '@userActions/IOU/MoneyRequest';
+
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
+
 import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';
 
 type IOURequestStepTimeWorkspaceProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>;

@@ -1,12 +1,17 @@
-import type {ForwardedRef, RefObject} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {FlatList} from 'react-native';
 import useFlatListHandle from '@components/FlatList/hooks/useFlatListHandle';
 import type {FlatListInnerRefType} from '@components/FlatList/types';
+
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileSafari} from '@libs/Browser';
+
+import type {ForwardedRef, RefObject} from 'react';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {FlatList} from 'react-native';
+
 import type {CustomFlatListProps} from './types';
 
 // Changing the scroll position during a momentum scroll does not work on mobile Safari.
@@ -251,7 +256,6 @@ function MVCPFlatList<T>({
     );
     return (
         <FlatList
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             horizontal={horizontal}

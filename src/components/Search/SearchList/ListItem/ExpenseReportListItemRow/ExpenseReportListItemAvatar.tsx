@@ -1,11 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import SearchReportAvatar from '@components/ReportActionAvatars/SearchReportAvatar';
 import type {ExpenseReportListItemType} from '@components/Search/SearchList/ListItem/types';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ExpenseReportListItemAvatarProps = {
     item: ExpenseReportListItemType;
@@ -20,9 +24,9 @@ function ExpenseReportListItemAvatar({item, showTooltip, isHovered = false, isFo
     const styles = useThemeStyles();
     const theme = useTheme();
 
+    const {isSelected} = useRowSelection(item.keyForList);
     const finalAvatarBorderColor =
-        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, isFocused || isHovered, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
+        StyleUtils.getItemBackgroundColorStyle(isSelected, isFocused || isHovered, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     return (
         <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch]}>

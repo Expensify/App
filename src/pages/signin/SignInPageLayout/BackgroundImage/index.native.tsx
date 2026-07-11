@@ -1,16 +1,21 @@
-import {Image} from 'expo-image';
-import type {ImageProps as ExpoImageProps} from 'expo-image';
-import React, {useEffect, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
-import type {ImageSourcePropType} from 'react-native';
-import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import MobileBackgroundImage from '@assets/images/home-background--mobile.svg';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isAnonymousUser} from '@libs/actions/Session';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import CONST from '@src/CONST';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
+
+import type {ImageProps as ExpoImageProps} from 'expo-image';
+import type {ImageSourcePropType} from 'react-native';
+
+import {Image} from 'expo-image';
+import React, {useEffect, useState} from 'react';
+import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
 import type BackgroundImageProps from './types';
 
 function BackgroundImage({width}: BackgroundImageProps) {
@@ -36,12 +41,12 @@ function BackgroundImage({width}: BackgroundImageProps) {
             return;
         }
 
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            setIsInteractionComplete(true);
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => setIsInteractionComplete(true),
         });
 
         return () => {
-            interactionTask.cancel();
+            handle.cancel();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

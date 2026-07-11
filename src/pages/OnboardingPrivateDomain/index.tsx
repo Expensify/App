@@ -1,14 +1,16 @@
-import React from 'react';
 import OnboardingWrapper from '@components/OnboardingWrapper';
-import BaseOnboardingPrivateDomain from './BaseOnboardingPrivateDomain';
+
+import React from 'react';
+
 import type {OnboardingPrivateDomainProps} from './types';
+
+import BaseOnboardingPrivateDomain from './BaseOnboardingPrivateDomain';
 
 function OnboardingPrivateDomain(props: OnboardingPrivateDomainProps) {
     return (
         <OnboardingWrapper>
             <BaseOnboardingPrivateDomain
                 shouldUseNativeStyles={false}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         </OnboardingWrapper>

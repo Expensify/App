@@ -1,21 +1,31 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {ViewProps} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 
+import type {ViewProps} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 type ExpandCollapseButtonProps = ViewProps & {
+    /** Whether the full composer is available */
     isFullComposerAvailable: boolean;
+    /** Whether the composer is full size */
     isComposerFullSize: boolean;
+    /** The report ID */
     reportID: string;
+    /** Function to raise the scroll is likely layout triggered */
     raiseIsScrollLikelyLayoutTriggered: () => void;
+    /** Function to set the composer full size */
     setIsComposerFullSize: (reportID: string, isFullSize: boolean) => void;
+    /** Whether the button is disabled */
     disabled?: boolean;
 };
 
@@ -44,7 +54,6 @@ function ExpandCollapseButton({
     const sentryLabel = shouldCollapse ? CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_COLLAPSE_BUTTON : CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_EXPAND_BUTTON;
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <View {...restProps}>
             <Tooltip
                 text={tooltipText}

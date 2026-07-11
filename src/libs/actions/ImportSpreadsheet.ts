@@ -1,8 +1,14 @@
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
+import type {ImportFinalModal, ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
+
+import Onyx from 'react-native-onyx';
+
+type ImportFinalModalResult = {
+    promise: Promise<ImportFinalModal>;
+    cancel: () => void;
+};
 
 function setSpreadsheetData(
     data: string[][],
@@ -49,9 +55,6 @@ function setSpreadsheetData(
         isImportingMultiLevelTags,
         // Preserve transaction import settings that were configured before file upload
         importTransactionSettings,
-        // Reset modal state for new import
-        shouldFinalModalBeOpened: false,
-        importFinalModal: undefined,
         containsHeader: true,
         isImportingIndependentMultiLevelTags: false,
         isGLAdjacent: false,
@@ -70,11 +73,65 @@ function closeImportPage(): Promise<void> {
     return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {
         data: null,
         columns: null,
-        shouldFinalModalBeOpened: false,
+        importFinalModalID: null,
         importFinalModal: null,
         // Clear the import settings so the next import starts fresh
         importTransactionSettings: null,
     });
+}
+
+function getImportFailedFinalModal(): ImportFinalModal {
+    return {
+        titleKey: 'spreadsheet.importFailedTitle',
+        promptKey: 'spreadsheet.importFailedDescription',
+    };
+}
+
+function getImportFinalModalID(): string {
+    return `${Date.now()}-${Math.random()}`;
+}
+
+function getImportFinalModalOnyxData(importFinalModalID: string, importFinalModal: ImportFinalModal) {
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.IMPORTED_SPREADSHEET,
+        value: {
+            importFinalModalID,
+            importFinalModal,
+        },
+    };
+}
+
+function waitForImportFinalModal(importFinalModalID: string): ImportFinalModalResult {
+    let connection: ReturnType<typeof Onyx.connectWithoutView>;
+    let isPending = true;
+
+    const promise = new Promise<ImportFinalModal>((resolve) => {
+        connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.IMPORTED_SPREADSHEET,
+            callback: (spreadsheet) => {
+                if (!isPending || spreadsheet?.importFinalModalID !== importFinalModalID || !spreadsheet?.importFinalModal) {
+                    return;
+                }
+
+                isPending = false;
+                Onyx.disconnect(connection);
+                resolve(spreadsheet.importFinalModal);
+            },
+        });
+    });
+
+    return {
+        promise,
+        cancel: () => {
+            if (!isPending) {
+                return;
+            }
+
+            isPending = false;
+            Onyx.disconnect(connection);
+        },
+    };
 }
 
 function setImportTransactionCardName(cardDisplayName: string): Promise<void> {
@@ -144,6 +201,38 @@ function applySavedColumnMappings(spreadsheetData: string[][], savedLayout: Save
     }
 }
 
+/**
+ * Applies saved company card column mappings to the spreadsheet data.
+ *
+ * @param spreadsheetData - The spreadsheet data in column-major format
+ * @param savedColumnMappings - Saved mappings from uploadLayoutSettings, keyed by field role with a column index value
+ * @param availableColumnRoles - The field roles currently selectable in the mapping UI
+ */
+function applyCompanyCardSavedColumnMappings(spreadsheetData: string[][], savedColumnMappings: Record<string, string>, availableColumnRoles: string[]): void {
+    if (!savedColumnMappings) {
+        return;
+    }
+
+    const validRoles = new Set(availableColumnRoles);
+    const numColumns = spreadsheetData.length;
+    const columnUpdates: Record<number, string> = {};
+
+    for (const [role, indexValue] of Object.entries(savedColumnMappings)) {
+        if (role === CONST.CSV_IMPORT_COLUMNS.IGNORE || !validRoles.has(role)) {
+            continue;
+        }
+        const index = Number(indexValue);
+        if (!Number.isInteger(index) || index < 0 || index >= numColumns) {
+            continue;
+        }
+        columnUpdates[index] = role;
+    }
+
+    if (Object.keys(columnUpdates).length > 0) {
+        Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {columns: columnUpdates});
+    }
+}
+
 export {
     setSpreadsheetData,
     setColumnName,
@@ -153,4 +242,9 @@ export {
     setImportTransactionCurrency,
     setImportTransactionSettings,
     applySavedColumnMappings,
+    applyCompanyCardSavedColumnMappings,
+    getImportFailedFinalModal,
+    getImportFinalModalID,
+    getImportFinalModalOnyxData,
+    waitForImportFinalModal,
 };

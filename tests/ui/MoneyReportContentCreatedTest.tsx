@@ -1,12 +1,18 @@
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType} from '@components/ShowContextMenuContext';
+import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
+
 import MoneyReportContentCreated from '@pages/inbox/report/MoneyReportContentCreated';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -59,8 +65,6 @@ const renderWithProps = (props: Partial<React.ComponentProps<typeof MoneyReportC
         transaction: undefined,
         transactionThreadReport: undefined,
         action: undefined,
-        contextMenuActionsValue: noopActions,
-        disabledStateValue: noopState,
         shouldHideThreadDividerLine: false,
         threadDivider: null,
         ...props,
@@ -68,8 +72,11 @@ const renderWithProps = (props: Partial<React.ComponentProps<typeof MoneyReportC
 
     return render(
         <OnyxListItemProvider>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            <MoneyReportContentCreated {...merged} />
+            <ShowContextMenuStateContext.Provider value={noopState}>
+                <ShowContextMenuActionsContext.Provider value={noopActions}>
+                    <MoneyReportContentCreated {...merged} />
+                </ShowContextMenuActionsContext.Provider>
+            </ShowContextMenuStateContext.Provider>
         </OnyxListItemProvider>,
     );
 };

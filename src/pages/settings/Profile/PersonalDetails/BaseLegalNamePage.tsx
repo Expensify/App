@@ -1,6 +1,3 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
@@ -10,16 +7,24 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/LegalNameForm';
+import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type BaseLegalNamePageProps<TFormID extends OnyxFormKey> = {
     children?: ReactNode;
@@ -37,7 +42,7 @@ type BaseLegalNamePageProps<TFormID extends OnyxFormKey> = {
 /**
  * Appends an error message to the given field, joining with a newline if one already exists.
  */
-function appendErrorMessage(errors: FormInputErrors<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>, key: keyof FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>, message: string) {
+function appendErrorMessage(errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, key: keyof FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, message: string) {
     const existing = errors[key];
     // eslint-disable-next-line no-param-reassign
     errors[key] = existing ? `${existing}\n${message}` : message;
@@ -47,8 +52,8 @@ function appendErrorMessage(errors: FormInputErrors<typeof ONYXKEYS.FORMS.LEGAL_
  * Validates legal first/last name fields.
  * Shared by LegalNamePage and TravelLegalNamePage.
  */
-function validateLegalName(values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>, translate: LocalizedTranslate): FormInputErrors<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM> {
-    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM> = {};
+function validateLegalName(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, translate: LocalizedTranslate): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> {
+    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
     const firstName = values[INPUT_IDS.LEGAL_FIRST_NAME] ?? '';
     const lastName = values[INPUT_IDS.LEGAL_LAST_NAME] ?? '';
 
@@ -163,5 +168,4 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
 }
 
 export {validateLegalName};
-export type {BaseLegalNamePageProps};
 export default BaseLegalNamePage;

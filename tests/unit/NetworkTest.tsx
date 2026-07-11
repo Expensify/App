@@ -1,9 +1,8 @@
-import type {Mock} from 'jest-mock';
-import type {OnyxEntry} from 'react-native-onyx';
-import MockedOnyx from 'react-native-onyx';
-import {confirmReadyToOpenApp, reconnectApp} from '@libs/actions/App';
+import {reconnectApp} from '@libs/actions/App';
 import * as Reconnect from '@libs/actions/Reconnect';
+import {reset as resetFailureTracker} from '@libs/FailureTracker';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -18,7 +17,13 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import {getIsOffline, setHasRadio} from '@src/libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session as OnyxSession} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import MockedOnyx from 'react-native-onyx';
+
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -46,6 +51,7 @@ beforeEach(() => {
     NetworkStore.checkRequiredData();
     NetworkStore.setIsAuthenticating(false);
     resetReauthentication();
+    resetFailureTracker();
     Network.clearProcessQueueInterval();
     SequentialQueue.resetQueue();
 
@@ -113,7 +119,7 @@ describe('NetworkTests', () => {
                 // Verify:
                 // 1. We attempted to authenticate twice (first failed, retry succeeded)
                 // 2. The session has the new auth token (user wasn't logged out)
-                const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'Authenticate');
                 expect(callsToAuthenticate.length).toBe(2);
                 expect(sessionState?.authToken).toBe(NEW_AUTH_TOKEN);
             });
@@ -166,7 +172,6 @@ describe('NetworkTests', () => {
         await waitForBatchedUpdates();
 
         // Trigger reconnect which will fail due to expired token
-        confirmReadyToOpenApp();
         reconnectApp();
         await waitForBatchedUpdates();
 
@@ -186,7 +191,6 @@ describe('NetworkTests', () => {
         await waitForBatchedUpdates();
 
         // 7. Trigger another reconnect due to network change
-        confirmReadyToOpenApp();
         reconnectApp();
 
         // 8. Now fail the pending authentication request
@@ -242,8 +246,8 @@ describe('NetworkTests', () => {
             })
             .then(() => {
                 // Verify: 3 calls to the API, 1 authenticate call, and reconnect was triggered
-                const callsToOpenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
-                const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                const callsToOpenPublicProfilePage = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
+                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'Authenticate');
                 expect(callsToOpenPublicProfilePage.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
                 expect(reconnectSpy).toHaveBeenCalled();
@@ -286,9 +290,15 @@ describe('NetworkTests', () => {
     });
 
     test('Non-retryable request will not be retried if connection is lost in flight', () => {
-        // Given a xhr mock that will fail as if network connection dropped
-        const xhr = jest.spyOn(HttpUtils, 'xhr').mockImplementationOnce(() => {
-            setHasRadio(false);
+        // Given a xhr mock that will fail as if network connection dropped.
+        // Always reject (rather than mockImplementationOnce) so that if any code path
+        // ever triggers a second xhr call the test still observes a mock.
+        let xhrCallCount = 0;
+        const xhr = jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => {
+            xhrCallCount += 1;
+            if (xhrCallCount === 1) {
+                setHasRadio(false);
+            }
             return Promise.reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
         });
 
@@ -302,9 +312,8 @@ describe('NetworkTests', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                // Advance the network request queue by 1 second so that it can realize it's back online
-                jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-                return waitForBatchedUpdates();
+                // Drain the queue deterministically instead of advancing fake timers
+                return SequentialQueue.waitForIdle().then(waitForBatchedUpdates);
             })
             .then(() => {
                 // Then the request should only have been attempted once and we should get an unable to retry

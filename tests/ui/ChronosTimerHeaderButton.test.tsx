@@ -1,15 +1,19 @@
-import {PortalProvider} from '@gorhom/portal';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem, PopoverMenuProps} from '@components/PopoverMenu';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import {PortalProvider} from '@gorhom/portal';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockAddComment = jest.fn();
@@ -24,6 +28,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: (...args: unknown[]): void => {
         mockNavigate(...args);
     },
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     isTopmostRouteModalScreen: () => false,
 }));
 
@@ -38,7 +44,7 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 
 jest.mock('@libs/ChronosUtils', () => ({
-    isChronosTimerRunningFromVisibleActions: () => false,
+    getTimeOfChronosTimerRunningFromVisibleActions: () => null,
 }));
 
 jest.mock('@libs/ReportActionsUtils', () => ({

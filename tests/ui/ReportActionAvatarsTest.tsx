@@ -1,16 +1,22 @@
 import {render, screen} from '@testing-library/react-native';
-import {View as MockedAvatarData} from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import {View as MockedAvatarData} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import {actionR14932} from '../../__mocks__/reportData/actions';
 import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {policy420A} from '../../__mocks__/reportData/policies';
@@ -187,28 +193,28 @@ const iouTripReport = {
 
 const iouActionOne = {
     ...actionR14932,
+    reportID: iouDMReport.reportID,
     originalMessage: {
         ...getOriginalMessage(actionR14932),
         IOUTransactionID: 'TRANSACTION_NUMBER_ONE',
-        IOUReportID: iouDMReport.reportID,
     },
 };
 
 const iouActionTwo = {
     ...actionR14932,
+    reportID: iouDMReport.reportID,
     originalMessage: {
         ...getOriginalMessage(actionR14932),
         IOUTransactionID: 'TRANSACTION_NUMBER_TWO',
-        IOUReportID: iouDMReport.reportID,
     },
 };
 
 const iouActionThree = {
     ...actionR14932,
+    reportID: iouDMSingleExpenseReport.reportID,
     originalMessage: {
         ...getOriginalMessage(actionR14932),
         IOUTransactionID: 'TRANSACTION_NUMBER_THREE',
-        IOUReportID: iouDMSingleExpenseReport.reportID,
     },
 };
 
@@ -276,7 +282,6 @@ const onyxState = {
 function renderAvatar(props: Parameters<typeof ReportActionAvatars>[0]) {
     return render(
         <OnyxListItemProvider>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <ReportActionAvatars {...props} />
         </OnyxListItemProvider>,
     );

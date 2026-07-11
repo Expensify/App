@@ -1,10 +1,15 @@
-import React from 'react';
 import ListCheckbox from '@components/SelectionList/components/ListCheckbox';
 import ListRadioButton from '@components/SelectionList/components/ListRadioButton';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
-import BaseListItem from './BaseListItem';
+
+import React from 'react';
+
 import type {ListItem, SelectableListItemProps} from './types';
+
+import BaseListItem from './BaseListItem';
 
 /**
  * Extends BaseListItem with a selection button (checkbox for multi-select, radio for single-select).
@@ -28,7 +33,6 @@ function SelectableListItem<TItem extends ListItem>({
 
     return (
         <BaseListItem
-            // eslint-disable-next-line react/jsx-props-no-spreading -- props are forwarded from SelectableListItem to BaseListItem as a pass-through layer
             {...baseProps}
             item={item}
             isFocused={isFocused}

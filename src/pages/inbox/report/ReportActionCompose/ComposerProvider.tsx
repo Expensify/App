@@ -1,16 +1,27 @@
-import React, {useRef, useState} from 'react';
-import type {View} from 'react-native';
-import {scheduleOnUI} from 'react-native-worklets';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import Log from '@libs/Log';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
+
 import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
+
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {View} from 'react-native';
+
+import React, {useRef, useState} from 'react';
+import {scheduleOnUI} from 'react-native-worklets';
+
+import type {SuggestionsRef} from './ComposerContext';
+import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
+
 import {
     ComposerActionsContext,
     ComposerEditActionsContext,
@@ -20,8 +31,6 @@ import {
     ComposerStateContext,
     ComposerTextContext,
 } from './ComposerContext';
-import type {SuggestionsRef} from './ComposerContext';
-import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
 import useComposerFocus from './useComposerFocus';
 import useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './useEditMessage';
@@ -51,9 +60,16 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
     const [isMenuVisible, setMenuVisibility] = useState(false);
-    const [text, setText] = useState(() => {
+    const getInitialText = () => {
         return draftComment ?? '';
-    });
+    };
+    const textRef = useRef<string>(getInitialText());
+    const [text, setTextState] = useState(getInitialText);
+
+    const setText = (v: string) => {
+        setTextState(v);
+        textRef.current = v;
+    };
 
     const containerRef = useRef<View>(null);
     const suggestionsRef = useRef<SuggestionsRef>(null);
@@ -63,15 +79,24 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const {editingState, editingReportID, editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection} = useReportActionActiveEdit();
 
-    const [didResetComposerHeight, setDidResetComposerHeight] = useState(false);
+    const [didResetComposerHeightWhileEditing, setDidResetComposerHeightWhileEditing] = useState(false);
 
-    const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeight;
+    const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeightWhileEditing;
     const effectiveDraft = isEditingInComposer ? editingMessage : draftComment;
 
     const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({
         reportID,
         isEditing: !!editingReportAction,
     });
+
+    // Prime the debounce so flush() returns a valid result for restored drafts.
+    // Initialize to true (skip) when there's no draft, false (run) when there is.
+    const [hasInitialValidationRun, setHasInitialValidationRun] = useState(!draftComment);
+    if (!hasInitialValidationRun && draftComment) {
+        setHasInitialValidationRun(true);
+        debouncedCommentMaxLengthValidation(draftComment);
+        debouncedCommentMaxLengthValidation.flush();
+    }
 
     const originalReportID = useOriginalReportID(editingReportID ?? undefined, editingReportAction);
 
@@ -96,11 +121,30 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     });
 
     const clearComposer = () => {
-        const clearWorklet = composerRef.current?.clearWorklet;
-        if (!clearWorklet) {
-            throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
-        }
-        scheduleOnUI(clearWorklet);
+        const tryClear = (attemptsLeft: number) => {
+            const clearWorklet = composerRef.current?.clearWorklet;
+            if (clearWorklet) {
+                scheduleOnUI(clearWorklet);
+                return;
+            }
+
+            // On the attachment-send path, clearComposer is the trigger for the actual send: clearWorklet runs the
+            // native input clear, whose onClear handler calls validateAndSubmitDraft -> addAttachmentWithComment. So a
+            // missing ref must not be swallowed, or the attachment is silently dropped. The composer lives on an
+            // RNSScreen that react-native-screens freezes while another screen (e.g. ReportAddAttachment) is on top, so
+            // right after navigating back the ref may not have re-attached yet. Retry on the next frame instead of
+            // throwing/dropping the submit, but bound the retries so we never loop forever if the composer is truly gone.
+            if (attemptsLeft <= 0) {
+                // We never got the composer back, so the attachment can't be sent. Drop the pending file so a
+                // future send in this same provider doesn't piggyback the stale attachment onto an unrelated message.
+                attachmentFileRef.current = null;
+                Log.hmmm('[ComposerProvider] Skipping clearComposer because composerRef.clearWorklet never re-attached');
+                return;
+            }
+            requestAnimationFrame(() => tryClear(attemptsLeft - 1));
+        };
+
+        tryClear(CONST.COMPOSER.CLEAR_WORKLET_MAX_RETRIES);
     };
 
     const setComposerRef = (ref: ComposerWithSuggestionsRef | null) => {
@@ -108,11 +152,10 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     };
 
     const composerState = {
+        reportID,
         isFocused,
         isMenuVisible,
         isFullComposerAvailable,
-        didResetComposerHeight,
-        draftComment,
     };
 
     const composerEditState = {
@@ -122,8 +165,10 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         editingReportActionID,
         editingReportAction,
         editingMessage,
+        draftComment,
         effectiveDraft,
         currentEditMessageSelection,
+        didResetComposerHeightWhileEditing,
     };
 
     const composerSendState = {
@@ -146,12 +191,12 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         onItemSelected,
         onTriggerAttachmentPicker,
         clearComposer,
-        setDidResetComposerHeight,
     };
 
     const composerEditActions = {
         publishDraft,
         deleteDraft,
+        setDidResetComposerHeightWhileEditing,
     };
 
     const composerMeta = {
@@ -161,6 +206,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         actionButtonRef,
         isNextModalWillOpenRef,
         attachmentFileRef,
+        textRef,
     };
 
     return (
@@ -181,4 +227,3 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 }
 
 export default ComposerProvider;
-export type {ComposerProviderProps};

@@ -1,18 +1,24 @@
-import React, {useMemo} from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
-import type {ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {isSafari} from '@libs/Browser';
+
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {ReactNode} from 'react';
+import type {ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
+import type HeaderWithBackButtonProps from './HeaderWithBackButton/types';
+
 import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import type HeaderWithBackButtonProps from './HeaderWithBackButton/types';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
 
@@ -89,7 +95,6 @@ function HeaderPageLayout({
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...rest}
                         titleColor={titleColor}
                         iconFill={iconFill}

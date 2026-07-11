@@ -1,14 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type SelectedDateModifierHeaderProps = {
     isCompact: boolean;
@@ -51,5 +54,4 @@ function SelectedDateModifierHeader({isCompact, title, onBackPress}: SelectedDat
     );
 }
 
-export type {SelectedDateModifierHeaderProps};
 export default SelectedDateModifierHeader;

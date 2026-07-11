@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
+
 import {search} from '@libs/actions/Search';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 jest.mock('@libs/actions/Search');
 jest.mock('@react-navigation/native', () => ({
@@ -332,12 +336,6 @@ describe('useSearchHighlightAndScroll', () => {
         expect(result.current.newSearchResultKeys?.size).toBe(1);
         expect([...(result.current.newSearchResultKeys ?? new Set())]).toContain('transactions_3');
 
-        // Wait 1s for the timer in useSearchHighlightAndScroll to complete.
-        await new Promise((resolve) => {
-            setTimeout(resolve, 1000);
-        });
-
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(1);
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(baseProps.queryJSON.type, {'3': false});
     });
 

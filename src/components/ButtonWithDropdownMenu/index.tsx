@@ -1,10 +1,8 @@
-import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
+import Text from '@components/Text';
+
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePopoverPosition from '@hooks/usePopoverPosition';
@@ -13,10 +11,20 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import mergeRefs from '@libs/mergeRefs';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
+
+import type {RefObject} from 'react';
+import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
+
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {ButtonWithDropdownMenuProps} from './types';
 
 const defaultAnchorAlignment = {
@@ -24,6 +32,29 @@ const defaultAnchorAlignment = {
     // we assume that popover menu opens below the button, anchor is at TOP
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
+
+type DoubleLineButtonTextProps = {
+    primaryText: string;
+    primaryTextStyle?: StyleProp<TextStyle>;
+    secondLineText: string;
+};
+
+// Must be rendered inside `<Button>` so `Button.Text` still receives its context.
+function DoubleLineButtonText({primaryText, primaryTextStyle, secondLineText}: DoubleLineButtonTextProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1, styles.mw100]}>
+            <Button.Text style={primaryTextStyle}>{primaryText}</Button.Text>
+            <Text
+                style={[styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker, styles.textExtraSmallSupporting, styles.textWhite, styles.textBold, styles.ph1]}
+                numberOfLines={1}
+            >
+                {secondLineText}
+            </Text>
+        </View>
+    );
+}
 
 function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownMenuProps<IValueType>) {
     const {
@@ -36,8 +67,9 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         menuHeaderText = '',
         customText,
         style,
+        buttonStyle,
         disabledStyle,
-        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
+        buttonSize = CONST.BUTTON_SIZE.MEDIUM,
         anchorAlignment = defaultAnchorAlignment,
         buttonRef,
         onPress,
@@ -77,16 +109,18 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const dropdownAnchor = useRef<View | null>(null);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
     const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
     const areAllOptionsDisabled = options.every((option) => option.disabled);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
-    const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
-    const isButtonSizeSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL;
-    const isButtonSizeExtraSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL;
+    const isButtonSizeLarge = buttonSize === CONST.BUTTON_SIZE.LARGE;
+    const isButtonSizeSmall = buttonSize === CONST.BUTTON_SIZE.SMALL;
     const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
     const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
+    const splitButtonIcon = hasError ? icons.DotIndicator : icon;
+    const singleOptionButtonIcon = shouldUseOptionIcon && !shouldShowButtonRightIcon ? options.at(0)?.icon : icon;
+    const rightOptionIcon = options.at(0)?.icon;
 
     useEffect(() => {
         setSelectedItemIndex(defaultSelectedIndex);
@@ -144,7 +178,15 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
             isActive: useKeyboardShortcuts,
         },
     );
-    const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : {};
+    const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : undefined;
+    let dropdownButtonStyle;
+    if (isSplitButton) {
+        dropdownButtonStyle = [splitButtonWrapperStyle, style];
+    } else if (style) {
+        dropdownButtonStyle = [styles.w100, style];
+    }
+    const defaultStyle = style ? styles.w100 : undefined;
+    const nonSplitButtonStyle = buttonStyle ? [styles.w100, buttonStyle] : defaultStyle;
     const isTextTooLong = customText && customText?.length > 6;
 
     const handlePress = useCallback(
@@ -165,55 +207,67 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
-                <View style={[splitButtonWrapperStyle, style]}>
+                <View style={dropdownButtonStyle}>
                     <Button
-                        success={success}
-                        pressOnEnter={pressOnEnter}
+                        variant={success ? 'success' : undefined}
                         ref={dropdownButtonRef}
                         onPress={handlePress}
-                        text={customText ?? selectedItem?.text ?? ''}
                         accessibilityState={!isSplitButton ? {expanded: isMenuVisible} : undefined}
                         isDisabled={isDisabled || areAllOptionsDisabled}
-                        shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+                        stayNormalOnDisable={shouldStayNormalOnDisable}
                         isLoading={isLoading}
-                        shouldRemoveRightBorderRadius
-                        style={isSplitButton ? [styles.pr0, isInLandscapeMode ? undefined : styles.flex1] : {}}
-                        extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
-                        large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                        medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                        small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                        removeBorderRadius="right"
+                        style={isSplitButton ? [styles.pr0, styles.flexGrow1, styles.flexShrink1] : nonSplitButtonStyle}
+                        size={buttonSize}
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView, isTextTooLong && shouldUseShortForm && {...styles.pl2, ...styles.pr1}]}
-                        enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                        iconRight={icons.DownArrow}
-                        iconRightStyles={isMenuVisible ? styles.flipUpsideDown : undefined}
-                        shouldShowRightIcon={!isSplitButton && !isLoading && options?.length > 0}
                         testID={testID}
-                        textStyles={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}]}
-                        secondLineText={secondLineText}
-                        icon={hasError ? icons.DotIndicator : icon}
-                        iconFill={hasError ? theme.danger : undefined}
-                        iconHoverFill={hasError ? theme.danger : undefined}
-                        iconRightFill={hasError ? theme.buttonIcon : undefined}
-                        iconRightHoverFill={hasError ? theme.buttonIcon : undefined}
                         sentryLabel={sentryLabel}
-                    />
+                    >
+                        {pressOnEnter && <Button.KeyboardShortcut enterKeyEventListenerPriority={enterKeyEventListenerPriority} />}
+                        {!!splitButtonIcon && (
+                            <Button.Icon
+                                src={splitButtonIcon}
+                                fill={hasError ? theme.danger : undefined}
+                                hoverFill={hasError ? theme.danger : undefined}
+                            />
+                        )}
+                        {secondLineText ? (
+                            <DoubleLineButtonText
+                                primaryText={customText ?? selectedItem?.text ?? ''}
+                                primaryTextStyle={[
+                                    isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {},
+                                    !!splitButtonIcon && styles.textAlignLeft,
+                                    styles.noPaddingBottom,
+                                ]}
+                                secondLineText={secondLineText}
+                            />
+                        ) : (
+                            <Button.Text style={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}]}>
+                                {customText ?? selectedItem?.text ?? ''}
+                            </Button.Text>
+                        )}
+                        {!isSplitButton && !isLoading && options?.length > 0 && (
+                            <Button.Icon
+                                src={icons.DownArrow}
+                                style={isMenuVisible ? styles.flipUpsideDown : undefined}
+                                fill={hasError ? theme.buttonIcon : undefined}
+                                hoverFill={hasError ? theme.buttonIcon : undefined}
+                            />
+                        )}
+                    </Button>
 
                     {isSplitButton && (
                         <Button
                             ref={dropdownAnchor}
-                            success={success}
+                            variant={success ? 'success' : undefined}
                             isDisabled={isDisabled}
                             accessibilityState={{expanded: isMenuVisible}}
-                            shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+                            stayNormalOnDisable={shouldStayNormalOnDisable}
                             style={[styles.pl0]}
                             onPress={() => setIsMenuVisible(!isMenuVisible)}
-                            shouldRemoveLeftBorderRadius
-                            extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
-                            large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                            medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                            small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                            removeBorderRadius="left"
+                            size={buttonSize}
                             innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton, isButtonSizeSmall && styles.dropDownButtonCartIcon]}
-                            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             sentryLabel={sentryLabel}
                         >
                             <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
@@ -222,11 +276,12 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                     style={[
                                         isButtonSizeLarge && styles.dropDownLargeButtonArrowContain,
                                         isButtonSizeSmall && shouldUseShortForm ? styles.dropDownSmallButtonArrowContain : styles.dropDownMediumButtonArrowContain,
-                                        isButtonSizeExtraSmall && styles.dropDownSmallButtonArrowContain,
                                     ]}
                                 >
                                     <Icon
+                                        // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                         medium={isButtonSizeLarge}
+                                        // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                         small={!isButtonSizeLarge && !shouldUseShortForm}
                                         inline={shouldUseShortForm}
                                         width={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
@@ -243,30 +298,37 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                 </View>
             ) : (
                 <Button
-                    success={success}
+                    variant={success ? 'success' : undefined}
                     ref={buttonRef}
-                    pressOnEnter={pressOnEnter}
                     isDisabled={isDisabled || !!options.at(0)?.disabled}
-                    shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+                    stayNormalOnDisable={shouldStayNormalOnDisable}
                     style={[styles.w100, style]}
                     disabledStyle={disabledStyle}
                     isLoading={isLoading}
-                    text={selectedItem?.text}
                     onPress={handleSingleOptionPress}
-                    extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
-                    large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                    medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                    size={buttonSize}
                     innerStyles={[innerStyleDropButton, shouldShowButtonRightIcon && styles.dropDownButtonCartIconView]}
-                    iconRightStyles={shouldShowButtonRightIcon && styles.ml2}
-                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                    secondLineText={secondLineText}
-                    icon={shouldUseOptionIcon && !shouldShowButtonRightIcon ? options.at(0)?.icon : icon}
-                    iconRight={shouldShowButtonRightIcon ? options.at(0)?.icon : undefined}
-                    shouldShowRightIcon={shouldShowButtonRightIcon}
                     testID={testID}
                     sentryLabel={sentryLabel}
-                />
+                >
+                    {pressOnEnter && <Button.KeyboardShortcut enterKeyEventListenerPriority={enterKeyEventListenerPriority} />}
+                    {!!singleOptionButtonIcon && <Button.Icon src={singleOptionButtonIcon} />}
+                    {secondLineText ? (
+                        <DoubleLineButtonText
+                            primaryText={selectedItem?.text ?? ''}
+                            primaryTextStyle={[!!singleOptionButtonIcon && styles.textAlignLeft, styles.noPaddingBottom]}
+                            secondLineText={secondLineText}
+                        />
+                    ) : (
+                        <Button.Text>{selectedItem?.text ?? ''}</Button.Text>
+                    )}
+                    {shouldShowButtonRightIcon && !!rightOptionIcon && (
+                        <Button.Icon
+                            src={rightOptionIcon}
+                            style={styles.ml2}
+                        />
+                    )}
+                </Button>
             )}
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
                 <PopoverMenu
@@ -309,7 +371,10 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                   setSelectedItemIndex(index);
                               },
                         shouldCallAfterModalHide: true,
-                        subMenuItems: item.subMenuItems?.map((subItem) => ({...subItem, shouldCallAfterModalHide: true})),
+                        subMenuItems: item.subMenuItems?.map((subItem) => ({
+                            ...subItem,
+                            shouldCallAfterModalHide: true,
+                        })),
                     }))}
                 />
             )}

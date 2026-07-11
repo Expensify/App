@@ -1,7 +1,9 @@
-import type {ComponentType} from 'react';
-import React, {useEffect, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import addViewportResizeListener from '@libs/VisualViewport';
+
+import type {ComponentType} from 'react';
+
+import React, {useEffect, useState} from 'react';
 
 type ViewportOffsetTopProps = {
     // viewportOffsetTop returns the offset of the top edge of the visual viewport from the
@@ -28,7 +30,6 @@ export default function withViewportOffsetTop<TProps extends ViewportOffsetTopPr
 
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 viewportOffsetTop={viewportOffsetTop}
             />

@@ -1,12 +1,19 @@
-import React from 'react';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {LockAccountOnyxKey} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type Response from '@src/types/onyx/Response';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import LockAccountPageBase from './LockAccountPageBase';
 
 function LockAccountPage() {
@@ -31,10 +38,20 @@ function LockAccountPage() {
     );
 
     const lockAccountPagePrompt = (
-        <>
-            <Text>{translate('lockAccountPage.compromisedDescription')}</Text>
-            <Text>{translate('lockAccountPage.domainAdminsDescription')}</Text>
-        </>
+        <View style={[styles.renderHTML, styles.gap4]}>
+            <View>
+                <RenderHTML html={translate('lockAccountPage.findYourSituation')} />
+            </View>
+            <View>
+                <RenderHTML html={translate('lockAccountPage.lostCardOrCharges')} />
+            </View>
+            <View>
+                <RenderHTML html={translate('lockAccountPage.unauthorizedAccess')} />
+            </View>
+            <View>
+                <RenderHTML html={translate('lockAccountPage.securityTeamFollowUp')} />
+            </View>
+        </View>
     );
 
     return (
@@ -43,6 +60,7 @@ function LockAccountPage() {
             onBackButtonPress={() => Navigation.goBack()}
             confirmModalPrompt={confirmModalPrompt}
             lockAccountPagePrompt={lockAccountPagePrompt}
+            lockButtonText={translate('lockAccountPage.lockMyAccount')}
             handleLockRequestFinish={handleLockRequestFinish}
         />
     );

@@ -1,16 +1,22 @@
-import {circularDeepEqual, deepEqual} from 'fast-equals';
-import React, {useEffect, useMemo, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import type {PopoverAnchorPosition} from '@components/Modal/types';
 import Popover from '@components/Popover';
+
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
+
 import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import {circularDeepEqual, deepEqual} from 'fast-equals';
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import type PopoverWithMeasuredContentProps from './types';
 
 /**
@@ -205,7 +211,6 @@ function PopoverWithMeasuredContentBase({
             hideModalContentWhileAnimating={hideModalContentWhileAnimating}
             modalId={modalId}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             anchorPosition={shiftedAnchorPosition}
         >

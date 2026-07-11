@@ -1,14 +1,18 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import type {Followup} from '@libs/ReportActionFollowupUtils';
 import type {Ancestor, OptimisticReportAction} from '@libs/ReportUtils';
 import {buildOptimisticAddCommentReportAction} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {addComment, buildOptimisticResolvedFollowups} from '.';
 
 /** Delay before showing pre-generated Concierge response (in milliseconds) */
@@ -25,6 +29,7 @@ const CONCIERGE_RESPONSE_DELAY_MS = 4000;
  * @param reportAction - The report action containing the followup-list
  * @param selectedFollowup - The followup object containing the question text and optional pre-generated response
  * @param timezoneParam - The user's timezone
+ * @param conciergeReportID - The Concierge report ID, used to detect whether the comment is posted in the Concierge chat
  * @param ancestors - Array of ancestor reports for proper threading
  */
 function resolveSuggestedFollowup(
@@ -36,6 +41,7 @@ function resolveSuggestedFollowup(
     currentUserAccountID: number,
     currentUserEmail: string | undefined,
     delegateAccountID: number | undefined,
+    conciergeReportID: string | undefined,
     ancestors: Ancestor[] = [],
 ) {
     const reportID = report?.reportID;
@@ -55,6 +61,7 @@ function resolveSuggestedFollowup(
         event: 'followup_clicked',
         reportID,
         reportActionID,
+        questionText: selectedFollowup.text,
         hasPregeneratedResponse: !!selectedFollowup.response,
     });
 
@@ -64,29 +71,21 @@ function resolveSuggestedFollowup(
     });
 
     if (!selectedFollowup.response) {
-        addComment({report, notifyReportID: notifyReportID ?? reportID, ancestors, text: selectedFollowup.text, timezoneParam, currentUserAccountID, delegateAccountID});
+        addComment({
+            report,
+            notifyReportID: notifyReportID ?? reportID,
+            ancestors,
+            text: selectedFollowup.text,
+            timezoneParam,
+            currentUserAccountID,
+            delegateAccountID,
+            conciergeReportID,
+        });
         return;
     }
 
     // If there's a pre-generated response, queue it for delayed display.
     const optimisticConciergeReportActionID = rand64();
-
-    // Post user's comment immediately
-    addComment({
-        report,
-        notifyReportID: notifyReportID ?? reportID,
-        ancestors,
-        text: selectedFollowup.text,
-        timezoneParam,
-        currentUserAccountID,
-        shouldPlaySound: false,
-        isInSidePanel: false,
-        pregeneratedResponseParams: {
-            optimisticConciergeReportActionID,
-            pregeneratedResponse: selectedFollowup.response,
-        },
-        delegateAccountID,
-    });
 
     // Use the full delay as createdOffset so the Concierge response timestamp is
     // strictly after the user's comment — a 1ms offset was not enough to guarantee
@@ -101,6 +100,25 @@ function resolveSuggestedFollowup(
         currentUserEmail,
         currentUserAccountID,
         delegateAccountIDParam: delegateAccountID,
+    });
+
+    // Post user's comment immediately
+    addComment({
+        report,
+        notifyReportID: notifyReportID ?? reportID,
+        ancestors,
+        text: selectedFollowup.text,
+        timezoneParam,
+        currentUserAccountID,
+        shouldPlaySound: false,
+        isInSidePanel: false,
+        pregeneratedResponseParams: {
+            optimisticConciergeReportActionID,
+            optimisticConciergeCreated: optimisticConciergeAction.reportAction.created,
+            pregeneratedResponse: selectedFollowup.response,
+        },
+        delegateAccountID,
+        conciergeReportID,
     });
 
     addOptimisticConciergeActionWithDelay(reportID, optimisticConciergeAction);
@@ -127,7 +145,30 @@ function addOptimisticConciergeActionWithDelay(reportID: string, optimisticConci
  * Called when the response has been pending too long (e.g. app was killed and restarted).
  */
 function discardPendingConciergeAction(reportID: string | undefined) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`, null);
+    Onyx.multiSet({
+        [`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`]: null,
+        [`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`]: null,
+    });
+}
+
+/**
+ * Clears the pending followup-list marker for a report so the skeleton stops rendering.
+ */
+function clearPendingFollowupList(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`, null);
+}
+
+/**
+ * Temporarily hides the pending followup-list skeleton.
+ */
+function hidePendingFollowupList(reportID: string | undefined, hidden: boolean | null) {
+    if (!reportID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`, {hidden});
 }
 
 /**
@@ -146,7 +187,15 @@ function applyPendingConciergeAction(reportID: string | undefined, reportAction:
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[reportAction.reportActionID]: reportAction},
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`,
+            value: {
+                reportActionID: reportAction.reportActionID,
+                createdAt: Date.now(),
+            },
+        },
     ]);
 }
 
-export {resolveSuggestedFollowup, discardPendingConciergeAction, applyPendingConciergeAction, CONCIERGE_RESPONSE_DELAY_MS};
+export {resolveSuggestedFollowup, discardPendingConciergeAction, applyPendingConciergeAction, clearPendingFollowupList, hidePendingFollowupList, CONCIERGE_RESPONSE_DELAY_MS};

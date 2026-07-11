@@ -1,8 +1,5 @@
-// These functions use makeRequestWithSideEffects because challenge data must be returned immediately
-// for security and timing requirements (see detailed explanation below)
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
+
 import {makeRequestWithSideEffects} from '@libs/API';
 import type {DenyTransactionParams, RevokeMultifactorAuthenticationCredentialsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
@@ -10,9 +7,16 @@ import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import {isAuthenticationChallenge, isRegistrationChallenge, parseHttpResponse} from '@libs/MultifactorAuthentication/shared/helpers';
 import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LocallyProcessed3DSChallengeReviews} from '@src/types/onyx';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+// These functions use makeRequestWithSideEffects because challenge data must be returned immediately
+// for security and timing requirements (see detailed explanation below)
+import Onyx from 'react-native-onyx';
 
 /**
  * These subscriptions keep ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS tidy as values within it are no longer needed
@@ -294,6 +298,56 @@ async function changePINForCard({cardID, pin, signedChallenge, authenticationMet
     }
 }
 
+async function setPersonalDetailsAndRevealExpensifyCardWithSCA(params: MultifactorAuthenticationScenarioParameters['SET-PERSONAL-DETAILS-AND-REVEAL-CARD-DETAILS']) {
+    // `isFromMissingDetailsFlow` is a UI-only flag consumed by the scenario callback to drive
+    // post-reveal navigation; the backend doesn't expect it.
+    const {isFromMissingDetailsFlow, ...apiParams} = params;
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD,
+            {
+                ...apiParams,
+                signedChallenge: JSON.stringify(apiParams.signedChallenge),
+            },
+            {
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                        value: {
+                            isLoading: true,
+                        },
+                    },
+                ],
+                finallyData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                        value: {
+                            isLoading: false,
+                        },
+                    },
+                ],
+            },
+        );
+
+        const {jsonCode, message, pan, expiration, cvv} = response ?? {};
+        const parsed = parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD, message);
+
+        return {
+            ...parsed,
+            body: {
+                pan: typeof pan === 'string' ? pan : '',
+                expiration: typeof expiration === 'string' ? expiration : '',
+                cvv: typeof cvv === 'string' ? cvv : '',
+            },
+        };
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to set personal details and reveal card details for card', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD, undefined);
+    }
+}
+
 /** Check whether a given transaction is still pending review and update the transactionsPending3DSReview key in Onyx */
 async function isTransactionStillPending3DSReview(transactionID: string) {
     const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW, null, {});
@@ -401,6 +455,7 @@ export {
     setPersonalDetailsAndShipExpensifyCardsWithPIN,
     revealPINForCard,
     changePINForCard,
+    setPersonalDetailsAndRevealExpensifyCardWithSCA,
     isTransactionStillPending3DSReview,
     denyTransaction,
     authorizeTransaction,

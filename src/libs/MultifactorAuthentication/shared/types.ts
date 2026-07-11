@@ -1,13 +1,16 @@
+import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
+
+import type NativeBiometricsHSMKeyInfo from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
+import type NATIVE_BIOMETRICS_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
+import type {PasskeyRegistrationKeyInfo} from '@libs/MultifactorAuthentication/Passkeys/types';
+import type {PASSKEY_AUTH_TYPE} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
+
 /**
  * Shared type definitions for multifactor authentication operations.
  * Technology-agnostic types used across NativeBiometricsHSM and Passkeys.
  */
 import type {ValueOf} from 'type-fest';
-import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
-import type NativeBiometricsHSMKeyInfo from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
-import type NATIVE_BIOMETRICS_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
-import type {PasskeyRegistrationKeyInfo} from '@libs/MultifactorAuthentication/Passkeys/types';
-import type {PASSKEY_AUTH_TYPE} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
+
 import type {SignedChallenge} from './challengeTypes';
 import type VALUES from './VALUES';
 import type {ReasonValue} from './VALUES';
@@ -88,9 +91,7 @@ export type {
     AllMultifactorAuthenticationBaseParameters,
     MultifactorAuthenticationActionParams,
     MultifactorAuthenticationReason,
-    MultifactorAuthenticationMethodCode,
     ChallengeType,
-    MarqetaAuthTypeName,
     AuthTypeName,
     AuthTypeInfo,
     MultifactorAuthenticationCallbackResponse,

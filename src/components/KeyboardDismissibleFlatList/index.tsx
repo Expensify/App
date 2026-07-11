@@ -1,8 +1,11 @@
-import React from 'react';
-import {useAnimatedScrollHandler, useComposedEventHandler} from 'react-native-reanimated';
 import type {AnimatedFlatListWithCellRendererProps} from '@components/AnimatedFlatListWithCellRenderer';
 import AnimatedFlatListWithCellRenderer from '@components/AnimatedFlatListWithCellRenderer';
+
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
+
+import React from 'react';
+import {useAnimatedScrollHandler, useComposedEventHandler} from 'react-native-reanimated';
+
 import {useKeyboardDismissibleFlatListActions} from './KeyboardDismissibleFlatListContext';
 
 function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, inverted, ref, ...restProps}: AnimatedFlatListWithCellRendererProps<T>) {
@@ -18,7 +21,6 @@ function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, inverted, ref, 
 
     return (
         <AnimatedFlatListWithCellRenderer
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             ref={ref}
             onScroll={onScroll}

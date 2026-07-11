@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import {markRejectViolationAsResolved, rejectExpenseReport, rejectMoneyRequest} from '@libs/actions/IOU/RejectMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getParsedComment} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
@@ -12,12 +10,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../../utils/TestHelper';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import type {MockFetch} from '../../utils/TestHelper';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -233,6 +238,70 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 expect.anything(),
             );
             writeSpy.mockRestore();
+        });
+
+        it('should reuse the same rejected report when rejecting multiple expenses from the same report', async () => {
+            const secondTransaction = {
+                ...createRandomTransaction(2),
+                reportID: iouReport?.reportID,
+                amount,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Second Test Merchant',
+                transactionID: '2',
+            };
+
+            const expenseReport = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE, total: amount * 2};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`, secondTransaction);
+            await waitForBatchedUpdates();
+
+            const sharedRejectedToReportID = '9999';
+            let existingRejectedReport: OnyxEntry<Report>;
+            const setExistingRejectedReport = (nextRejectedReport: OnyxEntry<Report>) => {
+                existingRejectedReport = nextRejectedReport;
+            };
+
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL], {
+                sharedRejectedToReportID,
+                existingRejectedReport,
+                setExistingRejectedReport,
+            });
+
+            rejectMoneyRequest(secondTransaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL], {
+                sharedRejectedToReportID,
+                existingRejectedReport,
+                setExistingRejectedReport,
+            });
+            await waitForBatchedUpdates();
+
+            let allReports: OnyxCollection<Report>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (reports) => {
+                    allReports = reports;
+                },
+            });
+            const rejectedReports = Object.values(allReports ?? {}).filter(
+                (reportCandidate) =>
+                    reportCandidate?.reportID !== expenseReport.reportID &&
+                    reportCandidate?.chatReportID === chatReport?.reportID &&
+                    reportCandidate?.type === CONST.REPORT.TYPE.EXPENSE &&
+                    reportCandidate?.ownerAccountID === TEST_USER_ACCOUNT_ID,
+            );
+
+            expect(rejectedReports).toHaveLength(1);
+            expect(rejectedReports.at(0)?.reportID).toBe(sharedRejectedToReportID);
+
+            const firstRejectedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            const secondRejectedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`);
+
+            expect(firstRejectedTransaction?.reportID).toBe(sharedRejectedToReportID);
+            expect(secondRejectedTransaction?.reportID).toBe(sharedRejectedToReportID);
         });
     });
 

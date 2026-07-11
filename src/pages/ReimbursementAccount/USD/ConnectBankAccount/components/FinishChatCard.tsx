@@ -1,21 +1,32 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
+
+import Navigation from '@libs/Navigation/Navigation';
+
 import {goToWithdrawalAccountSetupStep, requestResetBankAccount, setBankAccountSubStep} from '@userActions/BankAccounts';
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import type {Policy, ReimbursementAccount} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
+
 import Enable2FACard from './Enable2FACard';
 
 type FinishChatCardProps = {
@@ -25,11 +36,17 @@ type FinishChatCardProps = {
     /** Boolean required to display Enable2FACard component */
     requiresTwoFactorAuth: boolean;
 
+    /** The policy which the user has access to and which the report is tied to */
+    policy: OnyxEntry<Policy>;
+
     /** Method to set the state of USD bank account step */
-    setUSDBankAccountStep: (step: string | null) => void;
+    setUSDBankAccountStep?: (step: string | null) => void;
+
+    /** Route to return to when navigating back out of the flow */
+    backTo?: Route;
 };
 
-function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBankAccountStep}: FinishChatCardProps) {
+function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, setUSDBankAccountStep, backTo}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -38,8 +55,12 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const policyID = reimbursementAccount?.achData?.policyID;
-    const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
+
+    useResetBankAccountModal({
+        reimbursementAccount,
+        isNonUSDWorkspace: false,
+        setUSDBankAccountStep,
+    });
 
     const handleNavigateToConciergeChat = () =>
         navigateToConciergeChat(
@@ -78,8 +99,15 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
                     title={translate('workspace.bankAccount.updateDetails')}
                     onPress={() => {
                         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
-                            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                            Navigation.navigate(
+                                ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
+                                    policyID: policy?.id,
+                                    page: CONST.BANK_ACCOUNT.PAGE_NAMES.REQUESTOR,
+                                    subPage: CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.SUB_PAGE_NAMES.FULL_NAME,
+                                    backTo,
+                                }),
+                            );
                         });
                     }}
                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
@@ -93,14 +121,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
                     shouldShowRightIcon
                 />
             </Section>
-            {!requiresTwoFactorAuth && <Enable2FACard policyID={policyID} />}
-            {shouldShowResetModal && (
-                <WorkspaceResetBankAccountModal
-                    reimbursementAccount={reimbursementAccount}
-                    isNonUSDWorkspace={false}
-                    setUSDBankAccountStep={setUSDBankAccountStep}
-                />
-            )}
+            {!requiresTwoFactorAuth && <Enable2FACard />}
         </ScrollView>
     );
 }

@@ -1,18 +1,21 @@
-import React, {useEffect} from 'react';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
+
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
+
 import CONST from '@src/CONST';
-import {useComposerMeta, useComposerSendState} from './ComposerContext';
 
-type ComposerEmojiPickerProps = {
-    reportID: string;
-};
+import React, {useEffect} from 'react';
 
-function ComposerEmojiPicker({reportID}: ComposerEmojiPickerProps) {
+import {useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
+
+function ComposerEmojiPicker() {
+    const {reportID} = useComposerState();
     const styles = useThemeStyles();
 
     const {isMediumScreenWidth} = useResponsiveLayout();

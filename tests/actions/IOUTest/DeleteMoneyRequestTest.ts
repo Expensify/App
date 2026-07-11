@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
@@ -12,6 +9,7 @@ import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportActionMessage, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {buildTransactionThread, isIOUReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -22,12 +20,19 @@ import type {IntroSelected, Report} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../../utils/TestHelper';
+
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import PusherHelper from '../../utils/PusherHelper';
-import type {MockFetch} from '../../utils/TestHelper';
 import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -124,6 +129,9 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         let thread: OptimisticChatReport;
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
+        const expectedTransactionThreadParticipants = {
+            [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+        };
         let IOU_REPORT_ID: string | undefined;
         let IOU_REPORT: OnyxEntry<Report>;
         let reportActionID;
@@ -152,7 +160,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -179,11 +187,11 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -242,7 +250,8 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 isMoneyRequestAction(reportAction),
             );
             expect(createIOUAction).toBeTruthy();
-            expect(createIOUAction && getOriginalMessage(createIOUAction)?.IOUReportID).toBe(iouReport?.reportID);
+            expect(createIOUAction?.reportID).toBe(iouReport?.reportID);
+            thread = (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${createIOUAction?.childReportID}`)) as OptimisticChatReport;
 
             // When fetching all transactions from Onyx
             let allTransactions: OnyxCollection<Transaction>;
@@ -277,6 +286,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    transactionThreadReport: thread,
                     isChatIOUReportArchived: true,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -367,6 +377,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    transactionThreadReport: thread,
                     isChatIOUReportArchived: true,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -432,11 +443,11 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -451,6 +462,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     currentUserEmail: TEST_USER_LOGIN,
@@ -505,7 +517,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Given a transaction thread
             thread = buildTransactionThread(createIOUAction, iouReport, TEST_USER_ACCOUNT_ID);
 
-            expect(thread.participants).toStrictEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+            expect(thread.participants).toStrictEqual(expectedTransactionThreadParticipants);
 
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
@@ -517,15 +529,16 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
 
             // Given User logins from the participant accounts
-            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
             }));
             // When Opening a thread report with the given details
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
@@ -568,6 +581,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     currentUserEmail: TEST_USER_LOGIN,
@@ -623,9 +637,9 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
 
             // Given User logins from the participant accounts
-            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
@@ -633,6 +647,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // When Opening a thread report with the given details
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
@@ -689,6 +704,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     policyCategories: {},
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
+                    delegateAccountID: undefined,
                     isASAPSubmitBetaEnabled: false,
                     policyRecentlyUsedCurrencies: [],
                     parentReportNextStep: undefined,
@@ -723,6 +739,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     currentUserEmail: TEST_USER_LOGIN,
@@ -752,17 +769,18 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Given a transaction thread
             thread = buildTransactionThread(createIOUAction, iouReport, TEST_USER_ACCOUNT_ID);
 
-            expect(thread.participants).toEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+            expect(thread.participants).toEqual(expectedTransactionThreadParticipants);
 
-            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
+            jest.advanceTimersByTime(10);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
@@ -801,6 +819,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -844,6 +863,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     currentUserEmail: TEST_USER_LOGIN,
@@ -891,7 +911,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
             thread = buildTransactionThread(createIOUAction, iouReport, TEST_USER_ACCOUNT_ID);
 
-            expect(thread.participants).toStrictEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+            expect(thread.participants).toStrictEqual(expectedTransactionThreadParticipants);
 
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
@@ -900,14 +920,15 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             jest.advanceTimersByTime(10);
-            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
@@ -950,6 +971,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1007,6 +1029,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: RORY_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -1038,6 +1061,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    transactionThreadReport: thread,
                     isChatIOUReportArchived: undefined,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -1120,11 +1144,11 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     existingTransactionDraft: undefined,
-                    draftTransactionIDs: [],
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    delegateAccountID: undefined,
                 });
             }
 
@@ -1152,6 +1176,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    transactionThreadReport: thread,
                     isChatIOUReportArchived: undefined,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -1201,11 +1226,11 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1213,17 +1238,18 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
             thread = buildTransactionThread(createIOUAction, iouReport, TEST_USER_ACCOUNT_ID);
 
-            expect(thread.participants).toStrictEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+            expect(thread.participants).toStrictEqual(expectedTransactionThreadParticipants);
 
             jest.advanceTimersByTime(10);
-            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
@@ -1263,6 +1289,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    transactionThreadReport: thread,
                     isSingleTransactionView: true,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -1322,6 +1349,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     currentUserEmail: TEST_USER_LOGIN,
@@ -1373,9 +1401,9 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     quickAction: undefined,
                     isSelfTourViewed: false,
                     existingTransactionDraft: undefined,
-                    draftTransactionIDs: [],
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    delegateAccountID: undefined,
                 });
             }
 
@@ -1393,17 +1421,18 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Given a transaction thread
             thread = buildTransactionThread(createIOUAction, iouReport, TEST_USER_ACCOUNT_ID);
 
-            expect(thread.participants).toEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+            expect(thread.participants).toEqual(expectedTransactionThreadParticipants);
 
-            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
+            jest.advanceTimersByTime(10);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
@@ -1446,6 +1475,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1494,6 +1524,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     currentUserEmail: TEST_USER_LOGIN,
@@ -1545,9 +1576,9 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const moneyRequestAction1: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
                 childReportID: '1',
                 originalMessage: {
-                    IOUReportID: expenseReport.reportID,
                     amount: transaction1.amount,
                     currency: transaction1.currency,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -1559,9 +1590,9 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const moneyRequestAction2: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 ...createRandomReportAction(2),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
                 childReportID: '2',
                 originalMessage: {
-                    IOUReportID: expenseReport.reportID,
                     amount: transaction2.amount,
                     currency: transaction2.currency,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -1584,6 +1615,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 violations: {},
                 iouReport: expenseReport,
                 chatReport: expenseReport,
+                transactionThreadReport: undefined,
                 transactionIDsPendingDeletion: [],
                 selectedTransactionIDs,
                 allTransactionViolationsParam: {},
@@ -1597,6 +1629,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 violations: {},
                 iouReport: expenseReport,
                 chatReport: expenseReport,
+                transactionThreadReport: undefined,
                 transactionIDsPendingDeletion: [transaction1.transactionID],
                 selectedTransactionIDs,
                 allTransactionViolationsParam: {},
@@ -1644,9 +1677,9 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const moneyRequestAction1: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 ...createRandomReportAction(20),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
                 childReportID: '20',
                 originalMessage: {
-                    IOUReportID: expenseReport.reportID,
                     amount: transaction1.amount,
                     currency: transaction1.currency,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -1676,6 +1709,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 violations: {},
                 iouReport: expenseReport,
                 chatReport: expenseReport,
+                transactionThreadReport: undefined,
                 allTransactionViolationsParam: transactionViolations,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 currentUserEmail: TEST_USER_LOGIN,
@@ -1717,9 +1751,9 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const moneyRequestAction1: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 ...createRandomReportAction(21),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
                 childReportID: '21',
                 originalMessage: {
-                    IOUReportID: expenseReport.reportID,
                     amount: transaction1.amount,
                     currency: transaction1.currency,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -1740,6 +1774,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 violations: {},
                 iouReport: expenseReport,
                 chatReport: expenseReport,
+                transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 currentUserEmail: TEST_USER_LOGIN,

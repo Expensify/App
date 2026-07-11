@@ -10,26 +10,28 @@
  * import * as icons from '@expensify/react-native-expensify-icons';
  *
  * <Button onPress={handlePress} success>
- *   <Button.IconLeft src={icons.UserPlus} />
+ *   <Button.Icon src={icons.UserPlus} />
  *   <Button.Text>Add members</Button.Text>
- *   <Button.IconRight src={icons.ArrowRight} />
+ *   <Button.Icon src={icons.ArrowRight} />
  * </Button>
  * ```
  *
  * The old `Button` component is not affected – migration can be gradual.
  */
-import withNavigationFallback from '@components/withNavigationFallback';
+import React from 'react';
+
 import ButtonComponent from './Button';
-import ButtonDoubleLineText from './primitives/ButtonDoubleLineText';
-import {ButtonIconLeft, ButtonIconRight} from './primitives/ButtonIcons';
+import ButtonIcon from './primitives/ButtonIcon';
 import ButtonKeyboardShortcut from './primitives/ButtonKeyboardShortcut';
 import ButtonText from './primitives/ButtonText';
 
-const Button = Object.assign(withNavigationFallback(ButtonComponent), {
-    IconLeft: ButtonIconLeft,
+function ButtonBase(props: React.ComponentProps<typeof ButtonComponent>) {
+    return <ButtonComponent {...props} />;
+}
+
+const Button = Object.assign(ButtonBase, {
+    Icon: ButtonIcon,
     Text: ButtonText,
-    IconRight: ButtonIconRight,
-    DoubleLineText: ButtonDoubleLineText,
     KeyboardShortcut: ButtonKeyboardShortcut,
 });
 

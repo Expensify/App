@@ -1,7 +1,11 @@
-import Mapbox from '@rnmapbox/maps';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import Mapbox from '@rnmapbox/maps';
+
 import type {DirectionProps} from './MapViewTypes';
+
 import utils from './utils';
 
 function Direction({coordinates, belowLayerID}: DirectionProps) {
@@ -36,6 +40,11 @@ function Direction({coordinates, belowLayerID}: DirectionProps) {
                             id={`${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}-segment-${index}`}
                             style={styles.mapDirection}
                         />
+                        <Mapbox.LineLayer
+                            belowLayerID={`${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}-segment-${index}`}
+                            id={`${CONST.MAP_VIEW_LAYERS.ROUTE_BORDER}-segment-${index}`}
+                            style={styles.mapDirectionBorder}
+                        />
                     </Mapbox.ShapeSource>
                 ))}
             </>
@@ -62,6 +71,11 @@ function Direction({coordinates, belowLayerID}: DirectionProps) {
                 belowLayerID={belowLayerID}
                 id={CONST.MAP_VIEW_LAYERS.ROUTE_FILL}
                 style={styles.mapDirection}
+            />
+            <Mapbox.LineLayer
+                belowLayerID={CONST.MAP_VIEW_LAYERS.ROUTE_FILL}
+                id={CONST.MAP_VIEW_LAYERS.ROUTE_BORDER}
+                style={styles.mapDirectionBorder}
             />
         </Mapbox.ShapeSource>
     );

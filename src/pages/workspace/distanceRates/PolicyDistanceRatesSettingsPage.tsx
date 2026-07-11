@@ -1,33 +1,43 @@
-import React from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import CustomUnitDefaultCategorySelector from '@components/CustomUnitDefaultCategorySelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import type {UnitItemType} from '@components/UnitPicker';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {clearPolicyDistanceRatesErrorFields, setPolicyDistanceRatesUnit} from '@userActions/Policy/DistanceRate';
+
+import {clearPolicyCommuterExclusionsErrors, clearPolicyDistanceRatesErrorFields} from '@userActions/Policy/DistanceRate';
 import {enableDistanceRequestTax} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CustomUnit} from '@src/types/onyx/Policy';
-import UnitSelector from './UnitSelector';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
 
 type PolicyDistanceRatesSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
 
@@ -38,7 +48,10 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isCommuterExclusionsEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS);
     const customUnit = getDistanceRateCustomUnit(policy);
+    const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
     const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
 
@@ -47,14 +60,6 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const errorFields = customUnit?.errorFields;
 
     const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
-
-    const setNewUnit = (unit: UnitItemType) => {
-        if (!customUnit) {
-            return;
-        }
-        const attributes = {...customUnit?.attributes, unit: unit.value};
-        setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes});
-    };
 
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
         if (!customUnit?.customUnitID) {
@@ -77,6 +82,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -98,11 +104,37 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     errorRowStyles={styles.mh5}
                                     onClose={() => clearErrorFields('attributes')}
                                 >
-                                    <UnitSelector
-                                        label={translate('workspace.distanceRates.unit')}
-                                        defaultValue={defaultUnit}
+                                    <MenuItemWithTopDescription
+                                        shouldShowRightIcon={canWriteDistanceRates}
+                                        title={defaultUnit ? Str.recapitalize(translate(getUnitTranslationKey(defaultUnit))) : ''}
+                                        description={translate('workspace.distanceRates.unit')}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.getRoute(policyID))}
+                                        interactive={canWriteDistanceRates}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
-                                        setNewUnit={setNewUnit}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.UNIT_SELECTOR}
+                                    />
+                                </OfflineWithFeedback>
+                            )}
+                            {isCommuterExclusionsEnabled && (
+                                <OfflineWithFeedback
+                                    errors={getLatestErrorField(policy ?? {}, 'commuterExclusions')}
+                                    pendingAction={policy?.pendingFields?.commuterExclusions}
+                                    errorRowStyles={styles.mh5}
+                                    onClose={() => clearPolicyCommuterExclusionsErrors(policyID)}
+                                >
+                                    <MenuItemWithTopDescription
+                                        shouldShowRightIcon
+                                        title={
+                                            policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && policy?.commuterExclusions?.fixedDistance != null
+                                                ? translate('workspace.distanceRates.commuterExclusions.summaryFixedDistance', {
+                                                      distance: policy.commuterExclusions.fixedDistance,
+                                                      unit: policy.commuterExclusions.fixedDistanceUnit ?? defaultUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                                                  })
+                                                : translate('workspace.distanceRates.commuterExclusions.summaryDisabled')
+                                        }
+                                        description={translate('workspace.distanceRates.commuterExclusions.title')}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
+                                        wrapperStyle={[styles.ph5, styles.mt3]}
                                     />
                                 </OfflineWithFeedback>
                             )}
@@ -118,6 +150,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                         defaultValue={defaultCategory}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
                                         customUnitID={customUnit.customUnitID}
+                                        interactive={canWriteDistanceRates}
                                     />
                                 </OfflineWithFeedback>
                             )}
@@ -139,7 +172,9 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                             isOn={isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled}
                                             accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                                             onToggle={onToggleTrackTax}
-                                            disabled={!isPolicyTrackTaxEnabled}
+                                            disabled={!canWriteDistanceRates || !isPolicyTrackTaxEnabled}
+                                            disabledAction={withReadOnlyFallback()}
+                                            showLockIcon={!canWriteDistanceRates}
                                         />
                                     </View>
                                 </View>

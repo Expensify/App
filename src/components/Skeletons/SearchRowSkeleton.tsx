@@ -1,16 +1,23 @@
-import React from 'react';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import {Circle} from 'react-native-svg';
 import SkeletonRect from '@components/SkeletonRect';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import getPlatform from '@libs/getPlatform';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+import {Circle} from 'react-native-svg';
+
 import ItemListSkeletonView from './ItemListSkeletonView';
 
 type SearchRowSkeletonProps = {
@@ -70,7 +77,7 @@ function SearchRowSkeleton({
                     itemViewHeight={100}
                     itemViewStyle={[styles.highlightBG, styles.mr0]}
                     itemContainerStyle={styles.borderBottom}
-                    style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.searchTableBottomRadius, !isLoadMore && styles.searchTableTopRadius]}
+                    style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
                     gradientOpacityEnabled={gradientOpacityEnabled}
                     shouldAnimate={shouldAnimate}
                     onLayout={onLayout}
@@ -136,7 +143,7 @@ function SearchRowSkeleton({
                 itemViewStyle={[styles.highlightBG, styles.mr0]}
                 itemViewHeight={variables.tableRowHeight}
                 itemContainerStyle={styles.borderBottom}
-                style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.searchTableBottomRadius, !isLoadMore && styles.searchTableTopRadius]}
+                style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
                 renderSkeletonItem={() => (
                     <>
                         <SkeletonRect

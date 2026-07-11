@@ -1,17 +1,18 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {areSettingsInErrorFields, findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {MenuItem} from '@pages/workspace/accounting/netsuite/types';
 import {
     exportExpensesDestinationSettingName,
@@ -22,9 +23,13 @@ import {
 } from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useMemo} from 'react';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'description' | 'title' | 'onPress' | 'shouldHide' | 'onCloseError' | 'helperText' | 'shouldParseHelperText'> & {
     subscribedSettings?: string[];
@@ -47,14 +52,11 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
 
     const {vendors, payableList} = policy?.connections?.netsuite?.options?.data ?? {};
 
-    const defaultVendor = useMemo(() => findSelectedVendorWithDefaultSelect(vendors, config?.defaultVendor), [vendors, config?.defaultVendor]);
+    const defaultVendor = useMemo(() => vendors?.find(({id}) => id === config?.defaultVendor), [vendors, config?.defaultVendor]);
 
-    const selectedPayableAccount = useMemo(() => findSelectedBankAccountWithDefaultSelect(payableList, config?.payableAcct), [payableList, config?.payableAcct]);
+    const selectedPayableAccount = useMemo(() => payableList?.find(({id}) => id === config?.payableAcct), [payableList, config?.payableAcct]);
 
-    const selectedReimbursablePayableAccount = useMemo(
-        () => findSelectedBankAccountWithDefaultSelect(payableList, config?.reimbursablePayableAccount),
-        [payableList, config?.reimbursablePayableAccount],
-    );
+    const selectedReimbursablePayableAccount = useMemo(() => payableList?.find(({id}) => id === config?.reimbursablePayableAccount), [payableList, config?.reimbursablePayableAccount]);
 
     const menuItems: MenuItemWithSubscribedSettings[] = [
         {

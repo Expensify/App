@@ -1,11 +1,15 @@
-import {hasStartedLocationUpdatesAsync, reverseGeocodeAsync, stopLocationUpdatesAsync} from 'expo-location';
-import type {SetRequired} from 'type-fest';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
+
 import type {GpsDraftDetails} from '@src/types/onyx';
 import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {Routes, Waypoint} from '@src/types/onyx/Transaction';
+
+import type {SetRequired} from 'type-fest';
+
+import {hasStartedLocationUpdatesAsync, reverseGeocodeAsync, stopLocationUpdatesAsync} from 'expo-location';
+
 import {removeLastSegment, setEndWaypointAddress, setIsTracking} from './actions/GPSDraftDetails';
 import DistanceRequestUtils from './DistanceRequestUtils';
 import {roundToTwoDecimalPlaces} from './NumberUtils';
@@ -116,7 +120,7 @@ async function stopGpsTrip(isOffline: boolean, gpsPoints: GPSPoint[][], skipLast
         return;
     }
 
-    if (isLastSegmentEmptyOrHasOnlyOnePoint(lastSegment) && gpsPoints.length > 1) {
+    if (isLastSegmentEmptyOrHasOnlyOnePoint(lastSegment)) {
         removeLastSegment(gpsPoints);
         return;
     }
@@ -156,10 +160,6 @@ function getTotalGpsTripPoints(gpsDraftDetails: GpsDraftDetails | undefined): nu
     return gpsDraftDetails?.gpsPoints?.flat().length ?? 0;
 }
 
-function getTotalGpsTripSegments(gpsDraftDetails: GpsDraftDetails | undefined): number {
-    return gpsDraftDetails?.gpsPoints?.length ?? 0;
-}
-
 function getTotalGpsTripPointsInLastSegment(gpsPoints: GPSPoint[][]): number {
     return gpsPoints.at(-1)?.length ?? 0;
 }
@@ -188,10 +188,8 @@ export {
     getStringifiedGPSCoordinates,
     addressFromGpsPoint,
     coordinatesToString,
-    calculateGPSDistance,
     isTripStopped,
     getTotalGpsTripPoints,
-    getTotalGpsTripSegments,
     getTotalGpsTripPointsInLastSegment,
     getGpsPoints,
     getFirstGpsPoint,

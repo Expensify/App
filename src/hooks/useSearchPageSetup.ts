@@ -1,12 +1,16 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {useEffect} from 'react';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {openSearch, search} from '@libs/actions/Search';
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {useEffect} from 'react';
+
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
@@ -25,8 +29,9 @@ let lastSavedSearchHash: number | undefined;
 function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const {clearSelectedTransactions} = useSearchActionsContext();
-    const {shouldUseLiveData, currentSearchResults, currentSearchKey} = useSearchStateContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {shouldUseLiveData, currentSearchResults} = useSearchResultsContext();
+    const {currentSearchKey} = useSearchQueryContext();
 
     const hash = queryJSON?.hash;
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, true);

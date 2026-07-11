@@ -1,28 +1,32 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {MoneyRequestStepScanParticipantsFlowParams} from '@libs/actions/IOU/MoneyRequest';
-import {createTransaction, getMoneyRequestParticipantOptions, handleMoneyRequestStepDistanceNavigation, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
-import getCurrentPosition from '@libs/getCurrentPosition';
-import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
+import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+
+import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyTagLists, QuickAction, RecentWaypoint} from '@src/types/onyx';
+import type {Policy, QuickAction, RecentWaypoint} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {SplitShares} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type * as IOU from '../../../src/libs/actions/IOU';
+import type * as SubmitWithDismissFirstMock from '../../__mocks__/submitWithDismissFirst';
+
 import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '../../../src/libs/DistanceRequestUtils';
-import * as ReportUtils from '../../../src/libs/ReportUtils';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getOnyxData} from '../../utils/TestHelper';
+import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU', () => {
@@ -45,7 +49,7 @@ jest.mock('@libs/actions/IOU/Split', () => {
     const actualSplit = jest.requireActual<typeof Split>('@libs/actions/IOU/Split');
     return {
         ...actualSplit,
-        createDistanceRequest: jest.fn(),
+        createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: 'distance-chat-id', transactionID: 'distance-written-id'})),
         startSplitBill: jest.fn(),
         resetSplitShares: jest.fn(),
     };
@@ -56,13 +60,38 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
+// Pass-through spy so behavior is unchanged but the call args (incl. currentUserAccountID) can be asserted.
+jest.mock('@libs/shouldUseDefaultExpensePolicy', () => {
+    const actual = jest.requireActual<{default: typeof shouldUseDefaultExpensePolicy}>('@libs/shouldUseDefaultExpensePolicy');
+    return {
+        __esModule: true,
+        default: jest.fn((...args: Parameters<typeof shouldUseDefaultExpensePolicy>) => actual.default(...args)),
+    };
+});
+
 jest.mock('@libs/getCurrentPosition');
+
+// Fire executeWrite synchronously so downstream writes can be asserted.
+jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual<typeof SubmitWithDismissFirstMock>('../../__mocks__/submitWithDismissFirst'));
+// Cleanup helpers are spies so the move-from-track cleanup-id contract can be asserted.
+const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
+const mockCleanupAfterExpenseCreate = jest.fn();
+jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({
+    __esModule: true,
+    default: (...args: unknown[]): void => {
+        mockCleanupAndNavigateAfterExpenseCreate(...args);
+    },
+}));
+jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
+    __esModule: true,
+    default: (...args: unknown[]): void => {
+        mockCleanupAfterExpenseCreate(...args);
+    },
+}));
 
 describe('MoneyRequest', () => {
     const currentUserAccountID = 111;
-    const currentUserLogin = 'test@example.com';
     const TEST_USER_ACCOUNT_ID = 123;
-    const TEST_USER_EMAIL = 'test@test.com';
     const SELF_DM_REPORT_ID = '2';
     const TEST_LATITUDE = 37.7749;
     const TEST_LONGITUDE = -122.4194;
@@ -109,6 +138,10 @@ describe('MoneyRequest', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             recentWaypoints: [] as RecentWaypoint[],
+            optimisticTransactionIDs: ['mock-txn-id'],
+            optimisticChatReportID: undefined,
+            currentUserLocalCurrency: undefined,
+            delegateAccountID: undefined,
         };
 
         beforeEach(async () => {
@@ -124,6 +157,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
                 allTransactionDrafts: {},
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(1);
@@ -150,12 +184,14 @@ describe('MoneyRequest', () => {
                         reimbursable: true,
                         gpsPoint: undefined,
                     }),
-                    shouldHandleNavigation: true,
                     isASAPSubmitBetaEnabled: false,
                 }),
             );
 
-            expect(TrackExpense.trackExpense).toHaveBeenLastCalledWith(expect.objectContaining({shouldHandleNavigation: true}));
+            // Deferral is channel-driven; the action no longer receives a shouldDeferForSearch / shouldHandleNavigation flag.
+            const lastTrackExpenseParams = jest.mocked(TrackExpense.trackExpense).mock.calls.at(-1)?.at(0);
+            expect(lastTrackExpenseParams && 'shouldDeferForSearch' in lastTrackExpenseParams).toBeFalsy();
+            expect(lastTrackExpenseParams && 'shouldHandleNavigation' in lastTrackExpenseParams).toBeFalsy();
         });
 
         it('should call requestMoney for non-TRACK (SEND) iouType', () => {
@@ -163,6 +199,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.SEND,
                 allTransactionDrafts: {},
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
@@ -190,8 +227,6 @@ describe('MoneyRequest', () => {
                         billable: undefined,
                         reimbursable: true,
                     }),
-                    shouldHandleNavigation: true,
-                    backToReport: undefined,
                     shouldGenerateTransactionThreadReport: false,
                     isASAPSubmitBetaEnabled: false,
                     currentUserAccountIDParam: 111,
@@ -201,7 +236,7 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should pass shouldHandleNavigation as true for last file only', () => {
+        it('should not pass shouldDeferAPIWrite to the action (V2: deferral is channel-driven)', () => {
             const files = [
                 {...fakeReceiptFile, transactionID: '111'},
                 {...fakeReceiptFile, transactionID: '222'},
@@ -213,28 +248,12 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 files,
                 allTransactionDrafts: {},
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(files.length);
-
-            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
-                1,
-                expect.objectContaining({
-                    shouldHandleNavigation: false,
-                }),
-            );
-            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
-                2,
-                expect.objectContaining({
-                    shouldHandleNavigation: false,
-                }),
-            );
-            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
-                3,
-                expect.objectContaining({
-                    shouldHandleNavigation: true,
-                }),
-            );
+            const trackExpenseCallsHaveDeferFlag = jest.mocked(TrackExpense.trackExpense).mock.calls.some(([params]) => !!params && 'shouldDeferAPIWrite' in params);
+            expect(trackExpenseCallsHaveDeferFlag).toBe(false);
         });
 
         it('should default receipt source and state correctly when file is missing', () => {
@@ -244,6 +263,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 files,
                 allTransactionDrafts: {},
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -263,6 +283,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 currentUserEmail: undefined,
                 allTransactionDrafts: {},
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -278,9 +299,9 @@ describe('MoneyRequest', () => {
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 created: '',
+                reportID: 'report456',
                 originalMessage: {
                     IOUTransactionID: draftTransaction.transactionID,
-                    IOUReportID: 'report456',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
             };
@@ -295,6 +316,7 @@ describe('MoneyRequest', () => {
                 allTransactionDrafts: {
                     [draftTransaction.transactionID]: draftTransaction,
                 },
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -309,6 +331,7 @@ describe('MoneyRequest', () => {
             createTransaction({
                 ...baseParams,
                 allTransactionDrafts: undefined,
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -324,6 +347,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 billable: true,
                 reimbursable: false,
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -340,6 +364,7 @@ describe('MoneyRequest', () => {
             createTransaction({
                 ...baseParams,
                 allTransactionDrafts: {},
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -348,6 +373,19 @@ describe('MoneyRequest', () => {
                     draftTransactionIDs: [],
                 }),
             );
+        });
+
+        // getMoneyRequestInformation derives isScanRequest from existingTransaction; dropping it would silently downgrade a scanned receipt to a manual request.
+        it('should pass the receipt transaction as existingTransaction to requestMoney', () => {
+            createTransaction({...baseParams});
+
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: fakeTransaction}));
+        });
+
+        it('should pass the receipt transaction as existingTransaction to trackExpense', () => {
+            createTransaction({...baseParams, iouType: CONST.IOU.TYPE.TRACK});
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: fakeTransaction}));
         });
 
         it('should compute draftTransactionIDs from allTransactionDrafts', () => {
@@ -360,6 +398,7 @@ describe('MoneyRequest', () => {
                     [draft1.transactionID]: draft1,
                     [draft2.transactionID]: draft2,
                 },
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -375,6 +414,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
                 gpsPoint,
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -410,6 +450,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 transactions: [transactionWithoutTax],
                 policyParams: {policy: policyWithTax},
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -446,6 +487,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.REQUEST,
                 transactions: [transactionWithoutTax],
                 policyParams: {policy: policyWithTax},
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -482,6 +524,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 transactions: [transactionWithTax],
                 policyParams: {policy: policyWithTax},
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -506,6 +549,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.REQUEST,
                 transactions: [transactionWithoutTax],
                 policyParams: undefined,
+                delegateAccountID: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -517,529 +561,31 @@ describe('MoneyRequest', () => {
                 }),
             );
         });
-    });
 
-    describe('handleMoneyRequestStepScanParticipants', () => {
-        const fakeReport = {
-            ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-            ownerAccountID: currentUserAccountID,
-            policyID: '1',
-        };
-
-        const fakeTransaction = createRandomTransaction(1);
-        const fakePolicy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
-        const fakeQuickAction: OnyxEntry<QuickAction> = {
-            action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
-            chatReportID: '555',
-        };
-        const fileObj = new File([new Blob(['test'])], 'test.jpg', {type: 'image/jpeg'});
-        const fakeReceiptFile: ReceiptFile = {transactionID: fakeTransaction.transactionID, file: fileObj, source: 12345};
-        const backTo = ROUTES.REPORT_WITH_ID.getRoute('123');
-        const managerMcTestAccountID = 444;
-
-        const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
-
-        const baseParams: MoneyRequestStepScanParticipantsFlowParams = {
-            iouType: CONST.IOU.TYPE.CREATE,
-            policy: fakePolicy,
-            report: fakeReport,
-            reportID: '1',
-            transactions: [fakeTransaction],
-            initialTransaction: {
-                transactionID: '1',
-                reportID: '1',
-                taxCode: '',
-                taxAmount: 0,
-                currency: CONST.CURRENCY.USD,
-            },
-            currentUserAccountID,
-            currentUserLogin,
-            personalDetails: {
-                [TEST_USER_ACCOUNT_ID]: {
-                    accountID: TEST_USER_ACCOUNT_ID,
-                    displayName: 'Test Participant',
-                    login: TEST_USER_EMAIL,
-                },
-            },
-            shouldSkipConfirmation: false,
-            isArchivedExpenseReport: false,
-            isAutoReporting: false,
-            isASAPSubmitBetaEnabled: false,
-            quickAction: fakeQuickAction,
-            files: [fakeReceiptFile],
-            shouldGenerateTransactionThreadReport: false,
-            selfDMReport,
-            isSelfTourViewed: false,
-            betas: [],
-            recentWaypoints: [] as RecentWaypoint[],
-            allTransactionDrafts: {},
-            participants: [] as Participant[],
-            participantsPolicyTags: {} as Record<string, PolicyTagLists>,
-            amountOwed: 0,
-            userBillingGracePeriodEnds: undefined,
-        };
-
-        beforeEach(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, {
-                ...fakeReport,
-                participants: {
-                    [TEST_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                        role: CONST.REPORT.ROLE.MEMBER,
-                    },
-                },
-            });
-            baseParams.recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
-            baseParams.participants = getMoneyRequestParticipantOptions(
-                baseParams.currentUserAccountID,
-                baseParams.report,
-                baseParams.policy,
-                baseParams.personalDetails,
-                undefined,
-                undefined,
-            );
-            await getOnyxData({
-                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
-                waitForCollectionCallback: true,
-                callback: (value) => {
-                    baseParams.participantsPolicyTags = baseParams.participants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
-                        if (participant.policyID) {
-                            acc[participant.policyID] = value?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`] ?? {};
-                        }
-                        return acc;
-                    }, {});
-                },
-            });
-        });
-
-        afterEach(async () => {
-            await Onyx.clear();
-            jest.clearAllMocks();
-        });
-
-        it(`should go back when backTo is provided`, () => {
-            handleMoneyRequestStepScanParticipants({
+        it('should pass each UI-provided optimistic transaction ID to the per-file write (so the UI can target the same id for nav)', () => {
+            createTransaction({
                 ...baseParams,
-                backTo,
+                iouType: CONST.IOU.TYPE.REQUEST,
+                optimisticTransactionIDs: ['ui-id-1'],
                 allTransactionDrafts: {},
+                delegateAccountID: undefined,
             });
-
-            expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
+            const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            expect(requestMoneyArg?.optimisticTransactionID).toBe('ui-id-1');
         });
 
-        it('should set manager mc test participant for the test transaction and navigate to confirmation page', async () => {
-            jest.spyOn(ReportUtils, 'generateReportID').mockReturnValue('123');
-
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
-                [managerMcTestAccountID]: {
-                    accountID: managerMcTestAccountID,
-                    login: CONST.EMAIL.MANAGER_MCTEST,
-                    displayName: 'Manager MC Test',
-                },
-            });
-
-            handleMoneyRequestStepScanParticipants({
+        it('should forward the UI-resolved optimisticChatReportID to requestMoney (so the action builds the chat with the same id the UI navigates to)', () => {
+            createTransaction({
                 ...baseParams,
-                isTestTransaction: true,
+                iouType: CONST.IOU.TYPE.REQUEST,
+                report: undefined,
+                participant: {accountID: 222, login: 'test@test.com'},
+                optimisticChatReportID: 'ui-resolved-chat',
                 allTransactionDrafts: {},
-                personalDetails: {
-                    ...baseParams.personalDetails,
-                    [managerMcTestAccountID]: {
-                        accountID: managerMcTestAccountID,
-                        login: CONST.EMAIL.MANAGER_MCTEST,
-                        displayName: 'Manager MC Test',
-                    },
-                },
+                delegateAccountID: undefined,
             });
-
-            await waitForBatchedUpdates();
-
-            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.initialTransaction.transactionID}`);
-            expect(updatedTransaction).toMatchObject({
-                participants: [
-                    expect.objectContaining({
-                        accountID: managerMcTestAccountID,
-                        login: CONST.EMAIL.MANAGER_MCTEST,
-                        selected: true,
-                    }),
-                ],
-                isFromGlobalCreate: true,
-            });
-
-            expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.ACTION.SUBMIT, baseParams.initialTransaction.transactionID, '123'),
-            );
-        });
-
-        it('should startSplitBill for SPLIT iouType when not from global create menu and skipping confirmation', async () => {
-            handleMoneyRequestStepScanParticipants({
-                ...baseParams,
-                iouType: CONST.IOU.TYPE.SPLIT,
-                shouldSkipConfirmation: true,
-                initialTransaction: {
-                    ...baseParams.initialTransaction,
-                    isFromGlobalCreate: false,
-                },
-                allTransactionDrafts: {},
-            });
-
-            await waitForBatchedUpdates();
-
-            expect(Split.startSplitBill).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    participants: [
-                        expect.objectContaining({
-                            accountID: 0,
-                            selected: true,
-                            isSelected: true,
-                        }),
-                    ],
-                    currentUserLogin: baseParams.currentUserLogin,
-                    currentUserAccountID: baseParams.currentUserAccountID,
-                    comment: '',
-                    receipt: fakeReceiptFile.file,
-                    existingSplitChatReportID: baseParams.reportID,
-                    billable: false,
-                    category: '',
-                    tag: '',
-                    currency: baseParams.initialTransaction.currency,
-                    taxCode: baseParams.initialTransaction.taxCode,
-                    taxAmount: baseParams.initialTransaction.taxAmount,
-                    quickAction: baseParams.quickAction,
-                    policyRecentlyUsedCurrencies: [],
-                }),
-            );
-        });
-
-        it('should return if no participants found for non-SPLIT iouType when not from global create menu and skipping confirmation', async () => {
-            const report = {
-                ...fakeReport,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-            };
-            baseParams.participants = getMoneyRequestParticipantOptions(baseParams.currentUserAccountID, report, baseParams.policy, baseParams.personalDetails, undefined, undefined);
-
-            await getOnyxData({
-                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
-                waitForCollectionCallback: true,
-                callback: (value) => {
-                    baseParams.participantsPolicyTags = baseParams.participants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
-                        if (participant.policyID) {
-                            acc[participant.policyID] = value?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`] ?? {};
-                        }
-                        return acc;
-                    }, {});
-                },
-            });
-            handleMoneyRequestStepScanParticipants({
-                ...baseParams,
-                iouType: CONST.IOU.TYPE.TRACK,
-                report,
-                shouldSkipConfirmation: true,
-                initialTransaction: {
-                    ...baseParams.initialTransaction,
-                    isFromGlobalCreate: false,
-                },
-            });
-
-            await waitForBatchedUpdates();
-            expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
-        });
-
-        it('should trackExpense with GPS coordinates when location permission is granted', async () => {
-            const mockGetCurrentPosition = getCurrentPosition as jest.MockedFunction<typeof getCurrentPosition>;
-            mockGetCurrentPosition.mockImplementation((successCallback) => {
-                successCallback({
-                    coords: {
-                        latitude: TEST_LATITUDE,
-                        longitude: TEST_LONGITUDE,
-                        altitude: null,
-                        accuracy: null,
-                        altitudeAccuracy: null,
-                        heading: null,
-                        speed: null,
-                    },
-                    timestamp: 1000,
-                });
-                return Promise.resolve();
-            });
-
-            handleMoneyRequestStepScanParticipants({
-                ...baseParams,
-                iouType: CONST.IOU.TYPE.TRACK,
-                shouldSkipConfirmation: true,
-                initialTransaction: {
-                    ...baseParams.initialTransaction,
-                    isFromGlobalCreate: false,
-                },
-                locationPermissionGranted: true,
-            });
-
-            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    transactionParams: expect.objectContaining({
-                        gpsPoint: {
-                            lat: TEST_LATITUDE,
-                            long: TEST_LONGITUDE,
-                        },
-                    }),
-                }),
-            );
-        });
-
-        it('should track expense without GPS coordinates when location permission is denied', async () => {
-            const mockGetCurrentPosition = getCurrentPosition as jest.MockedFunction<typeof getCurrentPosition>;
-            mockGetCurrentPosition.mockImplementation((successCallback, errorCallback) => {
-                errorCallback({
-                    code: GeolocationErrorCode.PERMISSION_DENIED,
-                    message: 'Permission Denied',
-                });
-                return Promise.resolve();
-            });
-
-            handleMoneyRequestStepScanParticipants({
-                ...baseParams,
-                iouType: CONST.IOU.TYPE.TRACK,
-                shouldSkipConfirmation: true,
-                initialTransaction: {
-                    ...baseParams.initialTransaction,
-                    isFromGlobalCreate: false,
-                },
-                locationPermissionGranted: true,
-            });
-
-            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    transactionParams: expect.objectContaining({
-                        gpsPoint: undefined,
-                    }),
-                }),
-            );
-        });
-
-        it('should trackExpense for TRACK iouType when not from global create menu and skipping confirmation', async () => {
-            handleMoneyRequestStepScanParticipants({
-                ...baseParams,
-                iouType: CONST.IOU.TYPE.TRACK,
-                shouldSkipConfirmation: true,
-                initialTransaction: {
-                    ...baseParams.initialTransaction,
-                    isFromGlobalCreate: false,
-                },
-            });
-
-            await waitForBatchedUpdates();
-
-            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
-
-            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    report: baseParams.report,
-                    isDraftPolicy: false,
-                    participantParams: expect.objectContaining({
-                        payeeEmail: baseParams.currentUserLogin,
-                        payeeAccountID: baseParams.currentUserAccountID,
-                        participant: expect.objectContaining({
-                            accountID: 0,
-                            selected: true,
-                            isSelected: true,
-                            ownerAccountID: fakeReport.ownerAccountID,
-                        }),
-                    }),
-                    transactionParams: expect.objectContaining({
-                        amount: 0,
-                        currency: fakeTransaction?.currency ?? 'USD',
-                        created: fakeTransaction?.created,
-                        receipt: fakeReceiptFile.file,
-                        billable: undefined,
-                        reimbursable: true,
-                        gpsPoint: undefined,
-                    }),
-                    isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
-                    currentUserAccountIDParam: baseParams.currentUserAccountID,
-                    currentUserEmailParam: baseParams.currentUserLogin,
-                    quickAction: baseParams.quickAction,
-                    shouldHandleNavigation: true,
-                    recentWaypoints,
-                }),
-            );
-            // Should not call request money inside createTransaction function
-            expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
-        });
-
-        it(`should assign participants from report and navigate to confirmation page when not from global create menu`, async () => {
-            handleMoneyRequestStepScanParticipants({
-                ...baseParams,
-                iouType: CONST.IOU.TYPE.TRACK,
-                initialTransaction: {
-                    ...baseParams.initialTransaction,
-                    isFromGlobalCreate: false,
-                },
-            });
-
-            await waitForBatchedUpdates();
-
-            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${fakeReceiptFile.transactionID}`);
-            expect(updatedTransaction).toMatchObject({
-                participants: [
-                    {
-                        accountID: 0,
-                        isPolicyExpenseChat: true,
-                        reportID: fakeReport.reportID,
-                        selected: true,
-                    },
-                ],
-                participantsAutoAssigned: true,
-            });
-
-            expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, baseParams.initialTransaction.transactionID, baseParams.reportID),
-            );
-        });
-
-        it("should set initial transaction's participants if it is different from policyExpenseChat participants", async () => {
-            const defaultExpensePolicy = {
-                ...fakePolicy,
-                autoReporting: false,
-                type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
-            };
-
-            handleMoneyRequestStepScanParticipants({
-                ...baseParams,
-                initialTransaction: {
-                    ...baseParams.initialTransaction,
-                    participants: [
-                        {
-                            accountID: TEST_USER_ACCOUNT_ID,
-                            reportID: '123',
-                        },
-                    ],
-                },
-                defaultExpensePolicy,
-            });
-
-            await waitForBatchedUpdates();
-
-            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${fakeReceiptFile.transactionID}`);
-            expect(updatedTransaction).toMatchObject({
-                participants: [
-                    expect.objectContaining({
-                        accountID: TEST_USER_ACCOUNT_ID,
-                        reportID: '123',
-                    }),
-                ],
-            });
-            expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                    CONST.IOU.ACTION.CREATE,
-                    CONST.IOU.TYPE.SUBMIT,
-                    baseParams.initialTransaction.transactionID,
-                    baseParams.reportID,
-                    baseParams.backToReport,
-                ),
-            );
-        });
-
-        it('should navigate to confirmation page of track expense for self DM', async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SELF_DM_REPORT_ID}`, {
-                ...fakeReport,
-                reportID: SELF_DM_REPORT_ID,
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-            });
-
-            const defaultExpensePolicy = {
-                ...fakePolicy,
-                autoReporting: false,
-                type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
-            };
-
-            handleMoneyRequestStepScanParticipants({
-                ...baseParams,
-                initialTransaction: {
-                    ...baseParams.initialTransaction,
-                    participants: [
-                        {
-                            accountID: TEST_USER_ACCOUNT_ID,
-                            reportID: SELF_DM_REPORT_ID,
-                        },
-                    ],
-                },
-                defaultExpensePolicy,
-            });
-
-            await waitForBatchedUpdates();
-
-            expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, baseParams.initialTransaction.transactionID, SELF_DM_REPORT_ID),
-            );
-        });
-
-        it('should track expense when coming from global create menu and auto reporting is disabled', async () => {
-            const defaultExpensePolicy = {
-                ...fakePolicy,
-                autoReporting: false,
-                type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
-            };
-
-            handleMoneyRequestStepScanParticipants({
-                ...baseParams,
-                defaultExpensePolicy,
-            });
-
-            await waitForBatchedUpdates();
-
-            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${fakeTransaction.transactionID}`);
-            expect(draftTransaction).toMatchObject({
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                participants: [
-                    {
-                        accountID: 0,
-                        isPolicyExpenseChat: false,
-                        reportID: selfDMReport.reportID,
-                        selected: true,
-                    },
-                ],
-            });
-
-            expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, baseParams.initialTransaction.transactionID, selfDMReport.reportID),
-            );
-        });
-
-        it('should navigate to participants page when the user click create expense option (combined submit/track flow)', () => {
-            handleMoneyRequestStepScanParticipants(baseParams);
-
-            expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(baseParams.iouType, baseParams.initialTransaction.transactionID, baseParams.reportID),
-            );
-        });
-
-        it('should pass amountOwed through to shouldUseDefaultExpensePolicy and navigate to participants page when no default policy', () => {
-            handleMoneyRequestStepScanParticipants({
-                ...baseParams,
-                defaultExpensePolicy: undefined,
-                amountOwed: 8010,
-            });
-
-            expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(baseParams.iouType, baseParams.initialTransaction.transactionID, baseParams.reportID),
-            );
-        });
-
-        it('should pass ownerBillingGracePeriodEnd through to shouldUseDefaultExpensePolicy', () => {
-            const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
-            handleMoneyRequestStepScanParticipants({
-                ...baseParams,
-                defaultExpensePolicy: undefined,
-                amountOwed: 100,
-                ownerBillingGracePeriodEnd: pastDate,
-            });
-
-            expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(baseParams.iouType, baseParams.initialTransaction.transactionID, baseParams.reportID),
-            );
+            const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            expect(requestMoneyArg?.optimisticChatReportID).toBe('ui-resolved-chat');
         });
     });
 
@@ -1084,11 +630,17 @@ describe('MoneyRequest', () => {
             selfDMReport,
             betas: [CONST.BETAS.ALL],
             recentWaypoints: [] as RecentWaypoint[],
+            optimisticTransactionID: 'mock-txn-id',
+            optimisticChatReportID: 'mock-chat-id',
             isSelfTourViewed: false,
             amountOwed: 0,
             draftTransactionIDs: undefined,
             userBillingGracePeriodEnds: undefined,
             conciergeReportID: undefined,
+            action: CONST.IOU.ACTION.CREATE,
+            reportDraft: undefined,
+            currentUserLocalCurrency: undefined,
+            policyTagList: {},
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1122,6 +674,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 backTo,
                 draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -1132,6 +685,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 backTo,
                 draftTransactionIDs: undefined,
+                delegateAccountID: undefined,
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -1150,9 +704,10 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
             });
 
-            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction);
+            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1);
         });
 
         it('call trackExpense for TRACK iouType when from manual distance step and skipping confirmation', async () => {
@@ -1162,59 +717,92 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
             });
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
 
-            expect(TrackExpense.trackExpense).toHaveBeenCalledWith({
-                report: baseParams.report,
-                isDraftPolicy: false,
-                introSelected: undefined,
-                isSelfTourViewed: false,
-                participantParams: {
-                    payeeEmail: baseParams.currentUserLogin,
-                    payeeAccountID: baseParams.currentUserAccountID,
-                    participant: expect.objectContaining({
-                        accountID: 0,
-                        selected: true,
-                        isSelected: true,
-                        allReportErrors: {},
-                        brickRoadIndicator: null,
-                        isPolicyExpenseChat: true,
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: baseParams.report,
+                    isDraftPolicy: false,
+                    // Action is nav-free — UI owns navigation; draft + optimistic IDs are threaded in.
+                    existingTransaction: baseParams.transaction,
+                    transactionParams: expect.objectContaining({
+                        amount: 0,
+                        distance: 20,
+                        merchant: 'Pending...',
+                        customUnitRateID: '_FAKE_P2P_ID_',
                     }),
-                },
-                policyParams: {
-                    policy: undefined,
-                },
-                transactionParams: {
-                    amount: 0,
-                    distance: 20,
-                    currency: fakeTransaction?.currency ?? 'USD',
-                    created: fakeTransaction?.created ?? '',
-                    merchant: 'Pending...',
-                    receipt: {},
-                    billable: false,
-                    reimbursable: fakePolicy?.defaultReimbursable ?? true,
-                    validWaypoints: undefined,
-                    customUnitRateID: '_FAKE_P2P_ID_',
-                    attendees: fakeTransaction?.comment?.attendees,
-                    gpsCoordinates: undefined,
-                    odometerEnd: undefined,
-                    odometerStart: undefined,
-                    taxCode: '',
-                    taxAmount: 0,
-                },
-                isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: baseParams.currentUserAccountID,
-                currentUserEmailParam: baseParams.currentUserLogin,
-                quickAction: baseParams.quickAction,
-                recentWaypoints: baseParams.recentWaypoints,
-                betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [baseParams.transactionID],
-            });
+                    currentUser: {accountID: baseParams.currentUserAccountID, email: baseParams.currentUserLogin},
+                }),
+            );
+            const distanceTrackExpenseParams = jest.mocked(TrackExpense.trackExpense).mock.calls.at(-1)?.at(0);
+            expect(typeof distanceTrackExpenseParams?.optimisticTransactionID).toBe('string');
+            expect(typeof distanceTrackExpenseParams?.optimisticChatReportID).toBe('string');
+            expect(distanceTrackExpenseParams && 'shouldHandleNavigation' in distanceTrackExpenseParams).toBeFalsy();
 
             // The function must return after trackExpense and not call createDistanceRequest
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+        });
+
+        it('should pass the existing tracked transaction ID (not the optimistic id) to cleanup for a move-from-track distance submission', async () => {
+            const EXISTING_TRACKED_TRANSACTION_ID = 'tracked-transaction-88';
+            const linkedTrackedExpenseReportAction = {
+                reportActionID: 'linked-action-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '',
+                originalMessage: {
+                    IOUTransactionID: EXISTING_TRACKED_TRANSACTION_ID,
+                    IOUReportID: 'tracked-report-1',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const movedTransaction = {
+                ...fakeTransaction,
+                linkedTrackedExpenseReportAction,
+            };
+
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                transaction: movedTransaction,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                optimisticTransactionID: 'optimistic-should-be-ignored',
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionID: EXISTING_TRACKED_TRANSACTION_ID,
+                }),
+            );
+        });
+
+        // createDistanceRequest writes under the draft transaction, so cleanup must target that id — not the UI's optimistic one.
+        it('should pass the written transaction id from createDistanceRequest (not the draft or optimistic id) to cleanup for a non-track distance submission', async () => {
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                shouldSkipConfirmation: true,
+                manualDistance: 20,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                optimisticTransactionID: 'optimistic-should-be-ignored',
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionID: 'distance-written-id',
+                }),
+            );
         });
 
         it('should call trackExpense for TRACK iouType with valid waypoints when not from manual distance step and skipping confirmation', async () => {
@@ -1250,6 +838,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1301,8 +890,7 @@ describe('MoneyRequest', () => {
                         }),
                     }),
                     isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
-                    currentUserAccountIDParam: baseParams.currentUserAccountID,
-                    currentUserEmailParam: baseParams.currentUserLogin,
+                    currentUser: {accountID: baseParams.currentUserAccountID, email: baseParams.currentUserLogin},
                     quickAction: baseParams.quickAction,
                     recentWaypoints: baseParams.recentWaypoints,
                 }),
@@ -1316,6 +904,7 @@ describe('MoneyRequest', () => {
                 manualDistance: 20,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(
@@ -1339,13 +928,16 @@ describe('MoneyRequest', () => {
                         splitShares: fakeTransaction?.splitShares,
                         attendees: fakeTransaction?.comment?.attendees,
                     }),
-                    backToReport: baseParams.backToReport,
                     isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                     transactionViolations: baseParams.transactionViolations,
                     quickAction: baseParams.quickAction,
                     policyRecentlyUsedCurrencies: [],
                 }),
             );
+            const distanceParams = jest.mocked(Split.createDistanceRequest).mock.calls.at(-1)?.at(0);
+            expect(distanceParams && 'shouldHandleNavigation' in distanceParams).toBeFalsy();
+            expect(distanceParams && 'shouldDeferForSearch' in distanceParams).toBeFalsy();
+            expect(distanceParams && 'backToReport' in distanceParams).toBeFalsy();
         });
 
         it('should call createDistanceRequest for non-TRACK iouType when not from manual distance step and skipping confirmation', () => {
@@ -1355,6 +947,7 @@ describe('MoneyRequest', () => {
                 manualDistance: undefined,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(
@@ -1378,13 +971,16 @@ describe('MoneyRequest', () => {
                         splitShares: fakeTransaction?.splitShares,
                         attendees: fakeTransaction?.comment?.attendees,
                     }),
-                    backToReport: baseParams.backToReport,
                     isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                     transactionViolations: baseParams.transactionViolations,
                     quickAction: baseParams.quickAction,
                     policyRecentlyUsedCurrencies: [],
                 }),
             );
+            const distanceParams = jest.mocked(Split.createDistanceRequest).mock.calls.at(-1)?.at(0);
+            expect(distanceParams && 'shouldHandleNavigation' in distanceParams).toBeFalsy();
+            expect(distanceParams && 'shouldDeferForSearch' in distanceParams).toBeFalsy();
+            expect(distanceParams && 'backToReport' in distanceParams).toBeFalsy();
         });
 
         it('should navigate to confirmation page when not skipping confirmation', async () => {
@@ -1393,6 +989,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: false,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1429,6 +1026,7 @@ describe('MoneyRequest', () => {
                 isAutoReporting: true,
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1470,6 +1068,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy,
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1482,6 +1081,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
@@ -1494,6 +1094,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy: undefined,
                 iouType: CONST.IOU.TYPE.CREATE,
                 amountOwed: 8010,
+                delegateAccountID: undefined,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
@@ -1508,9 +1109,23 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.CREATE,
                 amountOwed: 100,
                 ownerBillingGracePeriodEnd: pastDate,
+                delegateAccountID: undefined,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
+        });
+
+        it('should pass currentUserAccountID to shouldUseDefaultExpensePolicy so the billing restriction uses the explicit account, not the deprecated session value', () => {
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                report: undefined,
+                defaultExpensePolicy: fakePolicy,
+                iouType: CONST.IOU.TYPE.CREATE,
+                delegateAccountID: undefined,
+            });
+
+            const lastCallArgs = jest.mocked(shouldUseDefaultExpensePolicy).mock.calls.at(-1) ?? [];
+            expect(lastCallArgs.at(5)).toBe(baseParams.currentUserAccountID);
         });
 
         it('should pass conciergeReportID through to getMoneyRequestParticipantOptions when report exists', async () => {
@@ -1522,6 +1137,7 @@ describe('MoneyRequest', () => {
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
                 conciergeReportID,
+                delegateAccountID: undefined,
             });
 
             // When report exists and iouType is not CREATE, the function calls getMoneyRequestParticipantOptions
@@ -1538,10 +1154,51 @@ describe('MoneyRequest', () => {
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
                 conciergeReportID: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
             expect(baseParams.setDistanceRequestData).toHaveBeenCalled();
+        });
+
+        it('should pass reportDraft to getMoneyRequestParticipantOptions and mark participant as disabled', async () => {
+            let capturedParticipants: Participant[] = [];
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                shouldSkipConfirmation: false,
+                isArchivedExpenseReport: false,
+                draftTransactionIDs: [baseParams.transactionID],
+                reportDraft: fakeReport,
+                setDistanceRequestData: (participants) => {
+                    capturedParticipants = participants;
+                },
+                delegateAccountID: undefined,
+            });
+
+            await waitForBatchedUpdates();
+            expect(capturedParticipants.length).toBeGreaterThan(0);
+            expect(capturedParticipants.at(0)).toMatchObject({isDisabled: true});
+        });
+
+        it('should not mark participant as disabled when reportDraft is undefined', async () => {
+            let capturedParticipants: Participant[] = [];
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                shouldSkipConfirmation: false,
+                isArchivedExpenseReport: false,
+                draftTransactionIDs: [baseParams.transactionID],
+                reportDraft: undefined,
+                setDistanceRequestData: (participants) => {
+                    capturedParticipants = participants;
+                },
+                delegateAccountID: undefined,
+            });
+
+            await waitForBatchedUpdates();
+            expect(capturedParticipants.length).toBeGreaterThan(0);
+            expect(capturedParticipants.at(0)).toMatchObject({isDisabled: false});
         });
     });
 
@@ -1566,17 +1223,17 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants when conciergeReportID is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should return participants when conciergeReportID is provided', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge123');
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge123', undefined, undefined, undefined, translateLocal);
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should pass conciergeReportID through to getReportOption for policy expense chat participants', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge456');
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge456', undefined, undefined, undefined, translateLocal);
             // For policy expense chat, participants have accountID 0 and go through getReportOption
             // which uses conciergeReportID for identifying concierge chat
             expect(Array.isArray(participants)).toBe(true);
@@ -1584,7 +1241,7 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants with privateIsArchived passed through', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true, undefined, undefined, translateLocal);
             expect(Array.isArray(participants)).toBe(true);
         });
 
@@ -1593,8 +1250,31 @@ describe('MoneyRequest', () => {
                 ...createRandomReport(2, undefined),
                 participants: {},
             };
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
             expect(Array.isArray(participants)).toBe(true);
+        });
+
+        it('should mark policy expense chat participant as disabled when reportDrafts contains the report', () => {
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, fakeReport, translateLocal);
+            expect(Array.isArray(participants)).toBe(true);
+            expect(participants.length).toBeGreaterThan(0);
+            expect(participants.at(0)).toMatchObject({isDisabled: true});
+        });
+
+        it('should not mark participant as disabled when reportDraft is undefined', () => {
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
+            expect(Array.isArray(participants)).toBe(true);
+            expect(participants.length).toBeGreaterThan(0);
+            expect(participants.at(0)).toMatchObject({isDisabled: false});
+        });
+
+        it('should not mark participant as disabled when reportDrafts is undefined', () => {
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
+            expect(Array.isArray(participants)).toBe(true);
+            expect(participants.length).toBeGreaterThan(0);
+            // When reportDrafts is undefined, isDraftReport is called which checks Onyx directly
+            // and since no draft is set, isDisabled should be false
+            expect(participants.at(0)).toMatchObject({isDisabled: false});
         });
     });
 
@@ -1608,7 +1288,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(true);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(true);
         });
 
         it('should return false when iouType is not CREATE', () => {
@@ -1618,9 +1298,9 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0, undefined, undefined)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should return false when policy is not a paid group policy', () => {
@@ -1630,7 +1310,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should return false when isPolicyExpenseChatEnabled is false', () => {
@@ -1640,15 +1320,15 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: false,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should return false when policy is undefined', () => {
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should return false when policy is null', () => {
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should handle amountOwed being undefined', () => {
@@ -1658,7 +1338,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined)).toBe(true);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined, currentUserAccountID)).toBe(true);
         });
 
         it('should pass ownerBillingGracePeriodEnd through to shouldRestrictUserBillableActions', async () => {
@@ -1673,7 +1353,7 @@ describe('MoneyRequest', () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate, TEST_USER_ACCOUNT_ID)).toBe(false);
 
             await Onyx.clear();
         });

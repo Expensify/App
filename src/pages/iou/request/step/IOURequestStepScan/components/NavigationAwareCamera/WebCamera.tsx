@@ -1,9 +1,12 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ForwardedRef} from 'react';
+
 import {useIsFocused} from '@react-navigation/native';
 import React, {useState} from 'react';
-import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import Webcam from 'react-webcam';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {NavigationAwareCameraProps} from './types';
 
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
@@ -20,7 +23,6 @@ function WebCamera({itemRef, ref, ...props}: NavigationAwareCameraProps) {
         // Hide the camera during initialization to prevent random failures on some iOS versions.
         <View style={isInitialized ? [styles.dFlex, styles.flex1] : styles.dNone}>
             <Webcam
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 onUserMedia={() => setIsInitialized(true)}
                 ref={ref as unknown as ForwardedRef<Webcam>}

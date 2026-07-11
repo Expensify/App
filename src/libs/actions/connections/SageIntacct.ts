@@ -1,12 +1,9 @@
-import type {CONST as COMMON_CONST} from 'expensify-common';
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {ConnectPolicyToSageIntacctParams, UpdateManyPolicyConnectionConfigurationsParams} from '@libs/API/parameters';
+import type {ConnectPolicyToSageIntacctParams} from '@libs/API/parameters';
 import type UpdateSageIntacctAccountingMethodParams from '@libs/API/parameters/UpdateSageIntacctAccountingMethodParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -20,6 +17,12 @@ import type {
     SageIntacctMappingValue,
     SageIntacctOfflineStateKeys,
 } from '@src/types/onyx/Policy';
+
+import type {CONST as COMMON_CONST} from 'expensify-common';
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 type SageIntacctCredentials = {companyID: string; userID: string; password: string};
 
@@ -625,14 +628,12 @@ function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Sag
 }
 function updateSageIntacctTravelInvoicingPayableAccount(policyID: string, payableAccountName: string, oldPayableAccountName?: string) {
     const onyxData = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, payableAccountName, oldPayableAccountName);
-    const parameters: UpdateManyPolicyConnectionConfigurationsParams = {
+    const parameters = {
         policyID,
-        connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
-        configUpdate: JSON.stringify({[CONST.SAGE_INTACCT_CONFIG.EXPORT]: {[CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: payableAccountName}}),
-        idempotencyKey: CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
+        creditCardAccountID: payableAccountName,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
 function clearSageIntacctErrorField(policyID: string | undefined, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {

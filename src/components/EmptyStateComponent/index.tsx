@@ -1,14 +1,20 @@
-import isEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
-import {StyleSheet, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+
 import CONST from '@src/CONST';
+
+import isEmpty from 'lodash/isEmpty';
+import React, {useMemo} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type {EmptyStateComponentProps} from './types';
 
 function EmptyStateComponent({
@@ -21,6 +27,7 @@ function EmptyStateComponent({
     subtitleStyles,
     children,
     headerStyles,
+    foregroundStyles,
     cardStyles,
     cardContentStyles,
     headerContentStyles,
@@ -42,7 +49,7 @@ function EmptyStateComponent({
 
     return (
         <View style={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}>
-            <View style={styles.emptyStateForeground}>
+            <View style={[styles.emptyStateForeground, foregroundStyles]}>
                 <View style={[styles.emptyStateContent, cardStyles]}>
                     <View style={[styles.emptyStateHeader, headerStyles]}>{HeaderComponent}</View>
                     <View style={[styles.ph2, styles.pb2, cardContentStyles]}>
@@ -64,7 +71,7 @@ function EmptyStateComponent({
                         {children}
                         {!isEmpty(buttons) && (
                             <View style={[styles.gap2, styles.mt6, styles.flexRow, styles.flexWrap, styles.justifyContentCenter]}>
-                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, dropDownOptions}) =>
+                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, innerStyles, hoverStyles, dropDownOptions}) =>
                                     dropDownOptions ? (
                                         <ButtonWithDropdownMenu
                                             key={buttonText}
@@ -84,6 +91,8 @@ function EmptyStateComponent({
                                             icon={icon}
                                             isDisabled={isDisabled}
                                             style={style}
+                                            innerStyles={innerStyles}
+                                            hoverStyles={hoverStyles}
                                         />
                                     ),
                                 )}

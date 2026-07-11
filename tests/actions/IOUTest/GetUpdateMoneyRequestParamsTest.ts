@@ -1,10 +1,13 @@
-import Onyx from 'react-native-onyx';
 import {getUpdateMoneyRequestParams} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, RecentlyUsedTags, Report} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -104,6 +107,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
+            delegateAccountID: undefined,
             transactionChanges: {merchant: 'Some Merchant'},
             policy: undefined,
             policyTagList,
@@ -139,6 +143,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
+            delegateAccountID: undefined,
             transactionChanges: {tag: tag1},
             policy: undefined,
             policyTagList,
@@ -176,6 +181,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
+            delegateAccountID: undefined,
             transactionChanges: {tag: tag2},
             policy: undefined,
             policyTagList,
@@ -215,6 +221,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
+            delegateAccountID: undefined,
             transactionChanges: {tag: tag1},
             policy: undefined,
             policyTagList,
@@ -244,6 +251,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
+            delegateAccountID: undefined,
             transactionChanges: {tag: tag1},
             policy: undefined,
             policyTagList: undefined,
@@ -260,6 +268,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
+            delegateAccountID: undefined,
             transactionChanges: {tag: tag1},
             policy: undefined,
             policyTagList: {},

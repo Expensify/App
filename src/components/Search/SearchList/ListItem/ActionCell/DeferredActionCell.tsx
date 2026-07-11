@@ -1,13 +1,20 @@
-import React, {useDeferredValue} from 'react';
 import Button from '@components/Button';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
-import ActionCell from '.';
+
+import React, {useDeferredValue} from 'react';
+
 import type {ActionCellProps} from '.';
+
+import ActionCell from '.';
 import actionTranslationsMap from './actionTranslationsMap';
 
-function DeferredActionCell(actionCellProps: ActionCellProps) {
+type DeferredActionCellProps = ActionCellProps & {isMarkAsDone?: boolean};
+
+function DeferredActionCell(actionCellProps: DeferredActionCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldRender = useDeferredValue(true, false);
@@ -16,7 +23,12 @@ function DeferredActionCell(actionCellProps: ActionCellProps) {
         const action = actionCellProps.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
         const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE;
         const isSuccess = !shouldUseViewAction && action !== CONST.SEARCH.ACTION_TYPES.UNDELETE;
-        const text = shouldUseViewAction ? translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]) : translate(actionTranslationsMap[action]);
+        let text: string;
+        if (shouldUseViewAction) {
+            text = translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]);
+        } else {
+            text = actionCellProps.isMarkAsDone ? translate('common.done') : translate(actionTranslationsMap[action]);
+        }
 
         return (
             <Button
@@ -32,7 +44,7 @@ function DeferredActionCell(actionCellProps: ActionCellProps) {
     }
 
     // Deferred wrapper intentionally forwards all props to the underlying component
-    // eslint-disable-next-line react/jsx-props-no-spreading
+
     return <ActionCell {...actionCellProps} />;
 }
 

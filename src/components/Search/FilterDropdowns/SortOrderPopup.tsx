@@ -1,11 +1,15 @@
-import React from 'react';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryJSON, SortOrder} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {getSortOrderOptions} from '@libs/SearchUIUtils';
+
+import React from 'react';
+
 import SingleSelectPopup from './SingleSelectPopup';
 
 type SortOrderPopupProps = {
@@ -17,7 +21,7 @@ type SortOrderPopupProps = {
 
 function SortOrderPopup({queryJSON, onSort, onBackButtonPress, closeOverlay}: SortOrderPopupProps) {
     const {translate} = useLocalize();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
 
     const onSortChange = (sortOrder: SortOrder) => {
         clearSelectedTransactions();

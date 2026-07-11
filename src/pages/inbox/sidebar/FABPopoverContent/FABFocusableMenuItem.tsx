@@ -1,7 +1,10 @@
-import React from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import useFABMenuItem from './useFABMenuItem';
 
 type FABFocusableMenuItemProps = Omit<MenuItemProps, 'focused' | 'onFocus' | 'wrapperStyle' | 'shouldCheckActionAllowedOnPress' | 'role' | 'onPress'> & {
@@ -21,7 +24,7 @@ function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfte
     return (
         <FocusableMenuItem
             // FABFocusableMenuItemProps is a strict subset of MenuItemProps — spreading forwards all remaining props safely
-            // eslint-disable-next-line react/jsx-props-no-spreading
+
             {...(props as MenuItemProps)}
             focused={isFocused}
             onFocus={() => setFocusedIndex(itemIndex)}

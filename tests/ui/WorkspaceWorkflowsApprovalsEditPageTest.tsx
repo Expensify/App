@@ -1,17 +1,21 @@
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import WorkspaceWorkflowsApprovalsEditPage from '@pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage';
-import {setApprovalWorkflow} from '@userActions/Workflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {Member} from '@src/types/onyx/ApprovalWorkflow';
+import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -32,6 +36,8 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     dismissModal: jest.fn(),
 }));
 
@@ -92,7 +98,6 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
     });
 
     beforeEach(async () => {
-        jest.spyOn(require('@userActions/Workflow'), 'setApprovalWorkflow');
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
@@ -116,18 +121,62 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
         });
     });
 
-    it('should pass deduplicated availableMembers to setApprovalWorkflow for self-approval workflow', async () => {
+    it('preserves pending edits when resuming an EDIT-mode workflow on first mount', async () => {
+        const PENDING_MEMBER: Member = {
+            email: 'pending-edit@example.com',
+            displayName: 'Pending Edit User',
+        };
+        const aliceApprover: Approver = {
+            email: ALICE_EMAIL,
+            displayName: 'alice',
+        };
+        const seededWorkflow: ApprovalWorkflowOnyx = {
+            action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+            approvers: [aliceApprover],
+            originalApprovers: [aliceApprover],
+            members: [PENDING_MEMBER],
+            availableMembers: [],
+            usedApproverEmails: [],
+            isDefault: false,
+        };
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, seededWorkflow);
+            await waitForBatchedUpdatesWithAct();
+        });
+
         renderEditPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(setApprovalWorkflow).toHaveBeenCalled();
-        const mockCalls = (setApprovalWorkflow as jest.Mock<unknown[], [{availableMembers: Member[]}]>).mock.calls;
-        const firstCall = mockCalls.at(0);
-        const callArg = firstCall?.at(0);
-        const availableMembers: Member[] = callArg?.availableMembers ?? [];
+        const members = await new Promise<Member[]>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.APPROVAL_WORKFLOW,
+                callback: (state) => {
+                    resolve(state?.members ?? []);
+                    Onyx.disconnect(connection);
+                },
+            });
+        });
+
+        expect(members.map((m) => m.email)).toContain(PENDING_MEMBER.email);
+    });
+
+    it('should write deduplicated availableMembers to the approval workflow onyx state for self-approval workflow', async () => {
+        renderEditPage();
+        await waitForBatchedUpdatesWithAct();
+
+        const availableMembers = await new Promise<Member[]>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.APPROVAL_WORKFLOW,
+                callback: (state) => {
+                    resolve(state?.availableMembers ?? []);
+                    Onyx.disconnect(connection);
+                },
+            });
+        });
         const emails = availableMembers.map((m) => m.email);
         const uniqueEmails = [...new Set(emails)];
 
+        expect(emails.length).toBeGreaterThan(0);
         expect(emails).toHaveLength(uniqueEmails.length);
         expect(emails).toContain(ALICE_EMAIL);
     });

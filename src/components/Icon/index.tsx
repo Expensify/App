@@ -1,84 +1,99 @@
-import type {ImageContentFit} from 'expo-image';
-import React, {useCallback, useMemo, useState} from 'react';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {PixelRatio, StyleSheet, View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
-import type {SharedValue} from 'react-native-reanimated';
-import type {AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
-import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
-import ImageSVG from '@components/ImageSVG';
-import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import variables from '@styles/variables';
-import type IconAsset from '@src/types/utils/IconAsset';
-import type {Dimensions} from '@src/types/utils/Layout';
-import IconWrapperStyles from './IconWrapperStyles';
 
-type IconCarouselPagerProps = {
-    pagerRef: AttachmentCarouselPagerStateContextType['pagerRef'];
-    isScrollEnabled: SharedValue<boolean>;
-    onTap: () => void;
-    onSwipeDown: () => void;
-};
+import variables from '@styles/variables';
+
+import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ImageContentFit} from 'expo-image';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+
+import type {IconSize} from './primitives/types';
+
+import BaseIcon from './primitives/BaseIcon';
+import InlineIcon from './primitives/InlineIcon';
+import resolveIconSize from './primitives/resolveIconSize';
 
 type IconProps = {
     /** The asset to render. */
     src: IconAsset | undefined;
 
-    /** The width of the icon. */
+    /** Custom width when no preset size is selected. */
     width?: number;
 
-    /** The height of the icon. */
+    /** Custom height when no preset size is selected. */
     height?: number;
 
-    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
+    /** Fill color for the SVG. */
     fill?: string;
 
-    /** Is small icon */
+    /** Preset icon size. */
+    size?: IconSize;
+
+    /**
+     * @deprecated Use `size={CONST.ICON_SIZE.EXTRA_SMALL}` instead.
+     * Renders an extra small icon.
+     */
     extraSmall?: boolean;
+
+    /**
+     * @deprecated Use `size={CONST.ICON_SIZE.SMALL}` instead.
+     * Renders a small icon.
+     */
     small?: boolean;
 
-    /** Is large icon */
-    large?: boolean;
-
-    /** Is medium icon */
+    /**
+     * @deprecated Use `size={CONST.ICON_SIZE.MEDIUM}` instead.
+     * Renders a medium icon.
+     */
     medium?: boolean;
 
-    /** Is inline icon */
+    /**
+     * @deprecated Use `size={CONST.ICON_SIZE.LARGE}` instead.
+     * Renders a large icon.
+     */
+    large?: boolean;
+
+    /** Renders the icon inline within text. */
     inline?: boolean;
 
-    /** Is icon hovered */
+    /** Whether the icon is hovered. */
     hovered?: boolean;
 
-    /** Is icon pressed */
+    /** Whether the icon is pressed. */
     pressed?: boolean;
 
-    /** Additional styles to add to the Icon */
+    /** Additional styles for the icon wrapper. */
     additionalStyles?: StyleProp<ViewStyle>;
 
-    /** Used to locate this icon in end-to-end tests. */
+    /** Test identifier for end-to-end tests. */
     testID?: string;
 
-    /** Determines how the image should be resized to fit its container */
+    /** How the SVG content should fit its container. */
     contentFit?: ImageContentFit;
 
-    /** Determines whether the icon is being used within a button. The icon size will remain the same for both icon-only buttons and buttons with text. */
+    /** Keeps icon sizing consistent when used inside buttons. */
     isButtonIcon?: boolean;
 
-    /** Renders the Icon component within a MultiGestureCanvas for improved gesture controls. */
-    enableMultiGestureCanvas?: boolean;
+    /** When set, exposes the icon to assistive tech. Leave unset for decorative icons. */
+    accessibilityLabel?: string;
 };
 
+/** Renders an SVG icon with preset sizes and inline layout. */
 function Icon({
     src,
     width = variables.iconSizeNormal,
     height = variables.iconSizeNormal,
     fill = undefined,
+    size,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility adapter for legacy size boolean props
     extraSmall = false,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility adapter for legacy size boolean props
     small = false,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility adapter for legacy size boolean props
     large = false,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility adapter for legacy size boolean props
     medium = false,
     inline = false,
     additionalStyles = [],
@@ -87,130 +102,48 @@ function Icon({
     testID = '',
     contentFit = 'cover',
     isButtonIcon = false,
-    enableMultiGestureCanvas = false,
+    accessibilityLabel,
 }: IconProps) {
     const StyleUtils = useStyleUtils();
-    const styles = useThemeStyles();
-    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(extraSmall, small, medium, large, width, height, isButtonIcon);
-    const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
-    const contentSize: Dimensions = {width: iconWidth as number, height: iconHeight as number};
-    const [canvasSize, setCanvasSize] = useState<Dimensions>();
-    const isCanvasLoading = canvasSize === undefined;
-    const updateCanvasSize = useCallback(
-        ({
-            nativeEvent: {
-                layout: {width: layoutWidth, height: layoutHeight},
-            },
-        }: LayoutChangeEvent) => setCanvasSize({width: PixelRatio.roundToNearestPixel(layoutWidth), height: PixelRatio.roundToNearestPixel(layoutHeight)}),
-        [],
-    );
-
-    const isScrollingEnabledFallback = useSharedValue(false);
-    const state = useAttachmentCarouselPagerState();
-    const actions = useAttachmentCarouselPagerActions();
-
-    const {onTap, onSwipeDown, pagerRef, isScrollEnabled}: IconCarouselPagerProps = useMemo((): IconCarouselPagerProps => {
-        if (state === null || actions === null) {
-            return {
-                pagerRef: undefined,
-                isScrollEnabled: isScrollingEnabledFallback,
-                onTap: () => {},
-                onSwipeDown: () => {},
-            };
-        }
-        return {
-            pagerRef: state.pagerRef,
-            isScrollEnabled: state.isScrollEnabled,
-            onTap: actions.onTap ?? (() => {}),
-            onSwipeDown: actions.onSwipeDown ?? (() => {}),
-        };
-    }, [state, actions, isScrollingEnabledFallback]);
 
     if (!src) {
         return null;
     }
 
-    if (inline) {
-        return (
-            <View
-                testID={testID}
-                style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), styles.bgTransparent, styles.overflowVisible]}
-                pointerEvents="none"
-            >
-                <View style={iconStyles}>
-                    <ImageSVG
-                        src={src}
-                        width={iconWidth}
-                        height={iconHeight}
-                        fill={fill}
-                        hovered={hovered}
-                        pressed={pressed}
-                        contentFit={contentFit}
-                        pointerEvents="none"
-                    />
-                </View>
-            </View>
-        );
-    }
+    const resolvedSize = resolveIconSize(size, extraSmall, small, medium, large);
+    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(resolvedSize, width, height, isButtonIcon);
 
-    if (canUseTouchScreen() && enableMultiGestureCanvas) {
+    if (inline) {
+        const contentSize = {width, height};
         return (
-            <View
-                style={StyleSheet.absoluteFill}
-                onLayout={updateCanvasSize}
-            >
-                {!isCanvasLoading && (
-                    <MultiGestureCanvas
-                        isActive
-                        canvasSize={canvasSize}
-                        contentSize={contentSize}
-                        zoomRange={DEFAULT_ZOOM_RANGE}
-                        pagerRef={pagerRef}
-                        isUsedInCarousel={false}
-                        isPagerScrollEnabled={isScrollEnabled}
-                        onTap={onTap}
-                        onSwipeDown={onSwipeDown}
-                    >
-                        <View
-                            testID={testID}
-                            style={[additionalStyles]}
-                        >
-                            <ImageSVG
-                                src={src}
-                                width={iconWidth}
-                                height={iconHeight}
-                                fill={fill}
-                                hovered={hovered}
-                                pressed={pressed}
-                                contentFit={contentFit}
-                            />
-                        </View>
-                    </MultiGestureCanvas>
-                )}
-            </View>
+            <InlineIcon
+                testID={testID}
+                additionalStyles={additionalStyles}
+                src={src}
+                contentSize={contentSize}
+                iconWidth={iconWidth}
+                iconHeight={iconHeight}
+                fill={fill}
+                isHovered={hovered}
+                isPressed={pressed}
+                contentFit={contentFit}
+            />
         );
     }
 
     return (
-        <View
+        <BaseIcon
             testID={testID}
-            style={additionalStyles}
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            accessible={false}
-            pointerEvents="none"
-        >
-            <ImageSVG
-                src={src}
-                width={iconWidth}
-                height={iconHeight}
-                fill={fill}
-                hovered={hovered}
-                pressed={pressed}
-                contentFit={contentFit}
-                pointerEvents="none"
-            />
-        </View>
+            accessibilityLabel={accessibilityLabel}
+            additionalStyles={additionalStyles}
+            src={src}
+            iconWidth={iconWidth}
+            iconHeight={iconHeight}
+            fill={fill}
+            isHovered={hovered}
+            isPressed={pressed}
+            contentFit={contentFit}
+        />
     );
 }
 

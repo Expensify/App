@@ -1,12 +1,17 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
 
 type CustomUnitDefaultCategorySelectorProps = {
     /** Currently selected category */
@@ -23,9 +28,12 @@ type CustomUnitDefaultCategorySelectorProps = {
 
     /** The custom unit ID to update when selecting a category */
     customUnitID: string;
+
+    /** Whether the selector should navigate to the edit flow */
+    interactive?: boolean;
 };
 
-function CustomUnitDefaultCategorySelector({defaultValue = '', wrapperStyle, label, focused, customUnitID}: CustomUnitDefaultCategorySelectorProps) {
+function CustomUnitDefaultCategorySelector({defaultValue = '', wrapperStyle, label, focused, customUnitID, interactive = true}: CustomUnitDefaultCategorySelectorProps) {
     const styles = useThemeStyles();
 
     const decodedCategoryName = getDecodedCategoryName(defaultValue);
@@ -37,11 +45,12 @@ function CustomUnitDefaultCategorySelector({defaultValue = '', wrapperStyle, lab
 
     return (
         <MenuItemWithTopDescription
-            shouldShowRightIcon
+            shouldShowRightIcon={interactive}
             title={decodedCategoryName}
             description={label}
             descriptionTextStyle={descStyle}
             onPress={onPress}
+            interactive={interactive}
             wrapperStyle={wrapperStyle}
             focused={focused}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CATEGORY_SELECTOR}

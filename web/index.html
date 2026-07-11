@@ -13,20 +13,34 @@
     <meta property="og:title" content="New Expensify">
     <meta property="og:description" content="Corporate cards, reimbursements, receipt scanning, invoicing, and bill pay.">
     <meta property="og:image" content="https://new.expensify.com/og-preview-image.png">
+    <style>
+        @font-face {
+            font-family: Expensify Neue;
+            font-weight: 400;
+            font-style: normal;
+            src: url('/fonts/ExpensifyNeue-Regular.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: Expensify Neue;
+            font-weight: 700;
+            font-style: normal;
+            src: url('/fonts/ExpensifyNeue-Bold.woff2') format('woff2');
+        }
+    </style>
     <link rel="stylesheet" type="text/css" href="/css/fonts.css" />
     <link rel="stylesheet" type="text/css" href="/css/pdf.css" />
     <!-- Do not index the staging site -->
-    <% if (htmlWebpackPlugin.options.isStaging) { %>
+    <% if (isStaging) { %>
         <meta name="robots" content="noindex, nofollow">
     <% } %>
 
-    <% if (htmlWebpackPlugin.options.useThirdPartyScripts && htmlWebpackPlugin.options.isWeb) { %>
+    <% if (useThirdPartyScripts && isWeb) { %>
         <!-- Ketch cookie consent -->
             <script>!function(){window.semaphore=window.semaphore||[],window.ketch=function(){window.semaphore.push(arguments)};var e=document.createElement("script");e.type="text/javascript",e.src="https://global.ketchcdn.com/web/v3/config/expensify/website_smart_tag/boot.js",e.defer=e.async=!0,document.getElementsByTagName("head")[0].appendChild(e)}();</script>
         <!-- End Ketch cookie consent -->
     <% } %>
 
-    <% if (htmlWebpackPlugin.options.isWeb) { %>
+    <% if (isWeb) { %>
         <!-- begin Convert Experiences code-->
         <script type="text/javascript" src="//cdn-4.convertexperiments.com/v1/js/10042537-100413459.js">
         </script>
@@ -137,7 +151,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, interactive-widget=resizes-content, viewport-fit=cover">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">
-    <% if (htmlWebpackPlugin.options.useThirdPartyScripts) { %>
+    <% if (useThirdPartyScripts) { %>
         <!-- Google Tag Manager -->
         <script nonce='nonce-random-value'>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
         new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -150,7 +164,7 @@
     <link rel="manifest" href="/manifest.json" />
 </head>
 <body>
-    <% if (htmlWebpackPlugin.options.useThirdPartyScripts) { %>
+    <% if (useThirdPartyScripts) { %>
         <!-- Google Tag Manager (noscript) -->
         <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N4M3FLJZ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <!-- End Google Tag Manager (noscript) -->
@@ -159,7 +173,7 @@
     <div id="root" class="fs-unmask"></div>
     <div id="splash">
         <div class="splash-logo">
-            <%= htmlWebpackPlugin.options.splashLogo %>
+            <%= splashLogo %>
         </div>
     </div>
 </body>

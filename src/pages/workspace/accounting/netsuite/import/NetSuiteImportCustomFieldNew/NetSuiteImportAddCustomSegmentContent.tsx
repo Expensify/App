@@ -1,19 +1,20 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {FormRef} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
+
+import useLocalize from '@hooks/useLocalize';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+
 import {updateNetSuiteCustomSegments} from '@userActions/connections/NetSuiteCommands';
 import {clearDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +22,13 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import {getCustomSegmentInitialSubstep, getSubstepValues} from './customUtils';
 import ChooseSegmentTypeStep from './subPages/ChooseSegmentTypeStep';
 import ConfirmCustomSegmentStep from './subPages/ConfirmCustomSegmentList';
@@ -47,6 +55,7 @@ const pages = [
 function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValues}: NetSuiteImportAddCustomSegmentContentProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const formRef = useRef<FormRef | null>(null);
 
     const config = policy?.connections?.netsuite?.options?.config;
@@ -55,26 +64,24 @@ function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValu
     const values = useMemo(() => getSubstepValues(draftValues), [draftValues]);
     const startFrom = useMemo(() => getCustomSegmentInitialSubstep(values), [values]);
     const handleFinishStep = useCallback(() => {
-        InteractionManager.runAfterInteractions(() => {
-            const updatedCustomSegments = customSegments.concat([
-                {
-                    segmentName: values[INPUT_IDS.SEGMENT_NAME],
-                    internalID: values[INPUT_IDS.INTERNAL_ID],
-                    scriptID: values[INPUT_IDS.SCRIPT_ID],
-                    mapping: values[INPUT_IDS.MAPPING] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                },
-            ]);
-            updateNetSuiteCustomSegments(
-                policyID,
-                updatedCustomSegments,
-                customSegments,
-                `${CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS}_${customSegments.length}`,
-                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            );
-            clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM);
+        const updatedCustomSegments = customSegments.concat([
+            {
+                segmentName: values[INPUT_IDS.SEGMENT_NAME],
+                internalID: values[INPUT_IDS.INTERNAL_ID],
+                scriptID: values[INPUT_IDS.SCRIPT_ID],
+                mapping: values[INPUT_IDS.MAPPING] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+            },
+        ]);
+        updateNetSuiteCustomSegments(
+            policyID,
+            updatedCustomSegments,
+            customSegments,
+            `${CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS}_${customSegments.length}`,
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        );
+        clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM);
 
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
-        });
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
     }, [values, customSegments, policyID]);
 
     const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomFieldSubPageWithPolicy>({
@@ -120,10 +127,12 @@ function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValu
         );
     }
 
+    const headerTitle = `workspace.netsuite.import.importCustomFields.customSegments.${customSegmentType ? `addForm.${customSegmentType}AddTitle` : 'addText'}` as TranslationPaths;
+
     return (
         <ConnectionLayout
             displayName="NetSuiteImportAddCustomSegmentContent"
-            headerTitle={`workspace.netsuite.import.importCustomFields.customSegments.${customSegmentType ? `addForm.${customSegmentType}AddTitle` : 'addText'}` as TranslationPaths}
+            headerTitle={headerTitle}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -137,6 +146,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValu
                 <InteractiveStepSubPageHeader
                     currentStepIndex={pageIndex}
                     stepNames={CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT.STEP_INDEX_LIST}
+                    currentStepAccessibilityDescription={translate(headerTitle)}
                 />
             </View>
             <View style={[styles.flex1, styles.mt3]}>

@@ -1,11 +1,16 @@
-import React, {useMemo, useRef} from 'react';
-import type {ValueOf} from 'type-fest';
 import SelectionList from '@components/SelectionList';
 import SplitListItem from '@components/SelectionList/ListItem/SplitListItem';
 import type {ListItem, SplitListItemType} from '@components/SelectionList/ListItem/types';
 import type {SelectionListHandle} from '@components/SelectionList/types';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useMemo, useRef} from 'react';
+
 import useHandleInputFocus from './useHandleInputFocus';
 
 type SplitListProps = {
@@ -47,7 +52,6 @@ function SplitList({data, initiallyFocusedOptionKey, onSelectRow, listFooterCont
             ((props: SplitListItemProps) => (
                 <SplitListItem
                     onInputFocus={(item: ListItem) => handleInputFocus(item as SplitListItemType)}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             )) as typeof SplitListItem,

@@ -1,8 +1,12 @@
 import {act, render, renderHook} from '@testing-library/react-native';
-import type {ReactElement, ReactNode} from 'react';
+
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import type {ReactElement, ReactNode} from 'react';
 
 type ShowConfirmModalOptions = {
     prompt?: ReactNode;
@@ -56,6 +60,8 @@ jest.mock('@components/TextLink', () => {
 });
 
 jest.mock('@libs/Navigation/Navigation', () => ({
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigate: jest.fn(),
 }));
 

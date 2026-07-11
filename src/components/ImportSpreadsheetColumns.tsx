@@ -1,15 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setContainsHeader} from '@libs/actions/ImportSpreadsheet';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {ColumnRole} from './ImportColumn';
+
 import Button from './Button';
 import FixedFooter from './FixedFooter';
-import type {ColumnRole} from './ImportColumn';
 import ImportColumn from './ImportColumn';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScrollView from './ScrollView';
@@ -28,7 +33,7 @@ type ImportSpreadsheetColumnsProps = {
     columnRoles?: ColumnRole[];
 
     // A function to perform the import operation.
-    importFunction: () => void;
+    importFunction: () => void | Promise<void>;
 
     // An optional Errors object containing any errors that may have occurred.
     errors?: Errors | null;

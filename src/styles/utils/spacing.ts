@@ -335,6 +335,10 @@ export default {
         marginTop: 36,
     },
 
+    mt10: {
+        marginTop: 40,
+    },
+
     mt11: {
         marginTop: 44,
     },
@@ -825,6 +829,10 @@ export default {
 
     gapHalf: {
         gap: 2,
+    },
+
+    gap1Half: {
+        gap: 6,
     },
 
     gap2: {

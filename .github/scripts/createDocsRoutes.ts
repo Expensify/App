@@ -1,6 +1,7 @@
+import type {ValueOf} from 'type-fest';
+
 import fs from 'fs';
 import yaml from 'js-yaml';
-import type {ValueOf} from 'type-fest';
 
 type Article = {
     href: string;
@@ -45,6 +46,9 @@ const platformNames = {
     travel: 'travel',
 } as const;
 
+// Words that should be fully uppercased in auto-generated titles (e.g. "ai" -> "AI")
+const ACRONYMS = new Set(['ai']);
+
 /**
  * @param str - The string to convert to title case
  */
@@ -52,8 +56,12 @@ function toTitleCase(str: string): string {
     return str
         .split(' ')
         .map((word, index) => {
-            if (index !== 0 && (word.toLowerCase() === 'a' || word.toLowerCase() === 'the' || word.toLowerCase() === 'and')) {
-                return word.toLowerCase();
+            const lowerWord = word.toLowerCase();
+            if (ACRONYMS.has(lowerWord)) {
+                return word.toUpperCase();
+            }
+            if (index !== 0 && (lowerWord === 'a' || lowerWord === 'the' || lowerWord === 'and')) {
+                return lowerWord;
             }
             return word.charAt(0).toUpperCase() + word.substring(1);
         })
@@ -127,6 +135,10 @@ function buildSection(platformName: string, hub: string, sectionPath: string, pa
             childSections.push(buildSection(platformName, hub, `${sectionPath}/${entry}`, href));
         }
     }
+
+    // Articles are displayed in the order stored here, so sort by the optional `order` front matter.
+    // The sort is stable, so articles without an `order` keep their relative position and fall after ordered ones.
+    articles.sort((a, b) => (a.order ?? Number.POSITIVE_INFINITY) - (b.order ?? Number.POSITIVE_INFINITY));
 
     const section: Section = {
         href,

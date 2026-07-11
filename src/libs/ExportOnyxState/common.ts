@@ -1,7 +1,10 @@
-import {Str} from 'expensify-common';
-import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxState from '@src/types/onyx/OnyxState';
+
+import type {ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+
 import type {MaskOnyxState} from './types';
 
 const MASKING_PATTERN = '***';
@@ -99,6 +102,7 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
     ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING,
     ONYXKEYS.NVP_PRIVATE_BILLING_STATUS,
     ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
+    ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN,
     ONYXKEYS.ONFIDO_TOKEN,
     ONYXKEYS.ONFIDO_APPLICANT_ID,
     ...Object.values(ONYXKEYS.DERIVED),

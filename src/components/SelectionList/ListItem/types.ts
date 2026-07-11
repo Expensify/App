@@ -1,20 +1,27 @@
-import type {ReactElement, ReactNode} from 'react';
-import type {BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
-import type {AnimatedStyle} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
 import type {HoldMenuCallback} from '@components/Search';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import type {SpendRuleSummaryPart} from '@libs/SpendRulesUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
+
 import type CONST from '@src/CONST';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {ReactElement, ReactNode} from 'react';
+import type {BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
+
 import type BareUserListItem from './BareUserListItem';
 import type BaseListItem from './BaseListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
@@ -160,7 +167,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     canSelectMultiple?: boolean;
 
     /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
+    onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
@@ -347,6 +354,20 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         accessible?: boolean;
     };
 
+type SpendRuleListItemType = ListItem & {
+    /** The action for this rule */
+    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+
+    /** The cards that the spend rule applies to */
+    summary: string;
+
+    /** The summary parts for the spend rule */
+    summaryParts: SpendRuleSummaryPart[];
+
+    /** A list of relevant tokens for searching for specific spend rules */
+    searchTokens: string[];
+};
+
 /**
  * Props for SelectableListItem, which extends BaseListItem with selection button support.
  */
@@ -397,6 +418,8 @@ type SplitListItemType = ListItem &
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
+type SpendRuleListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type BaseSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
@@ -431,6 +454,8 @@ type TravelDomainListItemProps<TItem extends ListItem> = SelectableListItemProps
 type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
 export type {
+    SpendRuleListItemType,
+    SpendRuleListItemProps,
     BaseListItemProps,
     ExtendedTargetedEvent,
     ListItem,

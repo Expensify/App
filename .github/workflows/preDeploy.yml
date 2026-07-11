@@ -14,8 +14,8 @@ jobs:
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
-  prettier:
-    uses: ./.github/workflows/prettier.yml
+  oxfmt:
+    uses: ./.github/workflows/oxfmt.yml
 
   test:
     uses: ./.github/workflows/test.yml
@@ -27,7 +27,7 @@ jobs:
     if: ${{ always() }}
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Exit failed workflow
         if: ${{ needs.typecheck.result == 'failure' || needs.lint.result == 'failure' || needs.test.result == 'failure' }}
@@ -43,7 +43,7 @@ jobs:
       SHOULD_DEPLOY: ${{ fromJSON(steps.shouldDeploy.outputs.SHOULD_DEPLOY) }}
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Get merged pull request
         id: getMergedPullRequest

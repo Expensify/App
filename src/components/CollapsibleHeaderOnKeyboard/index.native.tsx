@@ -1,11 +1,15 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller';
-import Reanimated, {Easing, useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useRef} from 'react';
+import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller';
+import Reanimated, {Easing, useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
 import type {CollapsibleHeaderOnKeyboardProps} from './types';
 
 const COLLAPSE_DURATION = 100;
@@ -66,6 +70,16 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
         if (height <= 0) {
             return;
         }
+
+        // Portrait: always sync height immediately in both directions (e.g. next step appears, or
+        // Submit shows beside More after Retract). Avoids stale clipped height from the collapse animation.
+        if (!isInLandscapeMode) {
+            naturalHeightRef.current = height;
+            naturalHeight.set(height);
+            animatedHeight.set(height);
+            return;
+        }
+
         // First measurement, or content changed while header is fully open
         // (to skip onLayout calls triggered by our own height animation collapsing the view to 0)
         if (naturalHeightRef.current === -1 || animatedHeight.get() >= naturalHeightRef.current) {
@@ -77,11 +91,12 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
 
     // Restores the header when the screen goes from landscape to portrait mode.
     useEffect(() => {
-        const naturalHeightValue = naturalHeightRef.current;
+        const naturalHeightValue = naturalHeight.get();
         if (!isInLandscapeMode && isFocused && naturalHeightValue !== -1) {
             animatedHeight.set(withTiming(naturalHeightValue, {duration: RESTORE_DURATION}));
         }
-    }, [isInLandscapeMode, isFocused, animatedHeight]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isInLandscapeMode]);
 
     // Restores the header when the screen loses focus
     useEffect(() => {
@@ -89,7 +104,7 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
             return;
         }
 
-        const naturalHeightValue = naturalHeightRef.current;
+        const naturalHeightValue = naturalHeight.get();
         if (naturalHeightValue === -1) {
             return;
         }
@@ -159,18 +174,21 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
         // When fully open, leave height undefined so the view sizes itself naturally.
         // This avoids fighting the layout engine during orientation changes.
         if (animatedHeight.get() >= naturalHeight.get()) {
-            return {overflow: 'hidden'};
+            return {overflow: 'hidden', height: 'auto'};
         }
         return {height: animatedHeight.get(), overflow: 'hidden'};
     });
 
-    // Inner wrapper slides the content upward. translateY = animatedHeight - naturalHeight,
-    // so it goes from 0 (fully open) to -naturalHeight (fully collapsed), making the header
-    // appear to exit through the top while the outer clip hides it progressively.
+    // Inner wrapper slides the content upward during landscape keyboard collapse only.
     const innerStyle = useAnimatedStyle(() => {
         if (animatedHeight.get() >= naturalHeight.get()) {
             return {};
         }
+
+        if (!isInLandscapeModeSV.get()) {
+            return {};
+        }
+
         return {transform: [{translateY: animatedHeight.get() - naturalHeight.get()}]};
     });
 

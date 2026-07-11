@@ -1,8 +1,3 @@
-import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
-import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
-import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
-import {StackView} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
 import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToWebNavigationOptions';
 import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {
@@ -13,6 +8,14 @@ import type {
     PlatformStackNavigatorProps,
     PlatformStackRouterOptions,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+
+import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
+import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
+
+import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
+import {StackView} from '@react-navigation/stack';
+import React, {useMemo} from 'react';
+
 import wrapDescriptorsWithFreeze from './wrapDescriptorsWithFreeze';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
@@ -109,7 +112,6 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             () => (
                 <NavigationContent>
                     <StackView
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                         direction="ltr"
                         state={mappedState}
@@ -118,16 +120,12 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                         describe={describe}
                     />
 
-                    {!!ExtraContent && (
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        <ExtraContent {...customCodePropsWithCustomState} />
-                    )}
+                    {!!ExtraContent && <ExtraContent {...customCodePropsWithCustomState} />}
                 </NavigationContent>
             ),
             [NavigationContent, customCodePropsWithCustomState, describe, wrappedDescriptors, mappedState, navigation, props],
         );
 
-        // eslint-disable-next-line react/jsx-props-no-spreading
         return NavigationContentWrapper === undefined ? Content : <NavigationContentWrapper {...customCodePropsWithCustomState}>{Content}</NavigationContentWrapper>;
     }
     PlatformNavigator.displayName = displayName;

@@ -1,17 +1,22 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
-import {getCurrentUserPersonalDetails, getUserAccountID} from './index';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
+import {getCurrentUserPersonalDetails} from './index';
 
 type ExpenseReportStatusPredicate = (expenseReport: OnyxEntry<OnyxTypes.Report>, transactionReportID?: string) => boolean;
 
@@ -44,6 +49,7 @@ function shouldOptimisticallyUpdateSearch(
     currentSearchQueryJSON: Readonly<SearchQueryJSON>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     isInvoice: boolean | undefined,
+    currentUserAccountID: number,
     transaction?: OnyxEntry<OnyxTypes.Transaction>,
 ) {
     if (
@@ -76,7 +82,7 @@ function shouldOptimisticallyUpdateSearch(
         return false;
     }
 
-    const suggestedSearches = getSuggestedSearches(getUserAccountID());
+    const suggestedSearches = getSuggestedSearches(currentUserAccountID);
     const submitQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT].searchQueryJSON;
     const approveQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE].searchQueryJSON;
     const unapprovedCashSimilarSearchHash = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH].similarSearchHash;
@@ -125,7 +131,7 @@ function getSearchOnyxUpdate({
         return;
     }
 
-    if (shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, isInvoice, transaction)) {
+    if (shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, isInvoice, fromAccountID, transaction)) {
         const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID);
         const successData = [];
         if (isOptimisticToAccountData) {
@@ -189,6 +195,12 @@ function getSearchOnyxUpdate({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
                 value: {
+                    search: {
+                        type: currentSearchQueryJSON.type,
+                        status: currentSearchQueryJSON.status,
+                        hasResults: true,
+                        isLoading: false,
+                    },
                     data: optimisticSnapshotData,
                 },
             },
@@ -236,4 +248,3 @@ function getSearchOnyxUpdate({
 }
 
 export {getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch};
-export type {GetSearchOnyxUpdateParams};

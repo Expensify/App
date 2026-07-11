@@ -1,17 +1,22 @@
-import type * as CoreNavigation from '@react-navigation/core';
-import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {SearchContextProvider} from '@components/Search/SearchContext';
+import {SearchContextProvider} from '@components/Search/SearchContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+
+import type * as CoreNavigation from '@react-navigation/core';
+
+import * as NativeNavigation from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -53,6 +58,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         getState: jest.fn(() => ({})),
     },
     getActiveRoute: jest.fn(() => 'activeRoute'),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     getDeepestFocusedScreen: jest.fn(() => undefined),
 }));
 
@@ -176,13 +183,13 @@ const mockTransaction: Transaction = {
 
 const mockReportAction: ReportAction = {
     reportActionID: 'ACTION_001',
+    reportID: FAKE_REPORT_ID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2025-01-01 00:00:00',
     actorAccountID: FAKE_ACCOUNT_ID,
     message: [{type: 'COMMENT', html: 'expense', text: 'expense'}],
     originalMessage: {
         IOUTransactionID: FAKE_TRANSACTION_ID,
-        IOUReportID: FAKE_REPORT_ID,
         type: CONST.IOU.TYPE.CREATE,
         amount: 10000,
         currency: CONST.CURRENCY.USD,

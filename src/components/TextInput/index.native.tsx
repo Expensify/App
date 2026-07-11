@@ -1,9 +1,13 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import Log from '@libs/Log';
+
 import React, {useEffect} from 'react';
 import {AppState, Keyboard} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import Log from '@libs/Log';
-import BaseTextInput from './BaseTextInput';
+
 import type {BaseTextInputProps} from './BaseTextInput/types';
+
+import BaseTextInput from './BaseTextInput';
 
 function TextInput({ref, navigation, ...props}: BaseTextInputProps) {
     const styles = useThemeStyles();
@@ -32,7 +36,6 @@ function TextInput({ref, navigation, ...props}: BaseTextInputProps) {
 
     return (
         <BaseTextInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             // Setting autoCompleteType to new-password throws an error on Android/iOS, so fall back to password in that case
 

@@ -1,17 +1,25 @@
-import React, {useState} from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+import type {TextInputOptions} from '@components/SelectionList/types';
+
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+
+import type {ReactNode} from 'react';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import ListFilterView from './ListFilterViewWrapper';
 
 type MultiSelectItem<T> = {
@@ -19,17 +27,12 @@ type MultiSelectItem<T> = {
     value: T;
     icons?: Icon[];
     leftElement?: ReactNode;
+    searchableText?: string;
 };
 
-type MultiSelectProps<T> = {
+type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & {
     /** The list of all items to show up in the list */
     items: Array<MultiSelectItem<T>>;
-
-    /** The currently selected items */
-    value: Array<MultiSelectItem<T>>;
-
-    /** Function to call when changes are applied */
-    onChange: (item: Array<MultiSelectItem<T>>) => void;
 
     /** Whether the search input should be displayed. */
     isSearchable?: boolean;
@@ -39,9 +42,24 @@ type MultiSelectProps<T> = {
 
     /** Whether the data for the popover is loading */
     loading?: boolean;
+
+    /** Whether to show the loading placeholder */
+    shouldShowLoadingPlaceholder?: boolean;
 };
 
-function MultiSelect<T extends string>({loading, value, items, isSearchable, searchPlaceholder, onChange}: MultiSelectProps<T>) {
+function MultiSelect<T extends string>({
+    loading,
+    shouldShowLoadingPlaceholder,
+    value,
+    items,
+    isSearchable,
+    searchPlaceholder,
+    selectionListTextInputStyle,
+    selectionListStyle,
+    autoFocus,
+    footer,
+    onChange,
+}: MultiSelectProps<T>) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -49,7 +67,8 @@ function MultiSelect<T extends string>({loading, value, items, isSearchable, sea
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
-    const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) : items;
+    const searchLower = debouncedSearchTerm.toLowerCase();
+    const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower)) : items;
     const listData: ListItem[] = filteredItems.map((item) => ({
         text: item.text,
         keyForList: item.value,
@@ -77,11 +96,15 @@ function MultiSelect<T extends string>({loading, value, items, isSearchable, sea
         }
     };
 
-    const textInputOptions = {
+    const textInputOptions: TextInputOptions = {
         value: searchTerm,
         label: isSearchable ? (searchPlaceholder ?? translate('common.search')) : undefined,
         onChangeText: setSearchTerm,
         headerMessage,
+        style: {
+            containerStyle: selectionListTextInputStyle,
+        },
+        disableAutoFocus: !autoFocus,
     };
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MultiSelectDataLoading'};
@@ -102,11 +125,13 @@ function MultiSelect<T extends string>({loading, value, items, isSearchable, sea
             ) : (
                 <SelectionList
                     shouldSingleExecuteRowSelect
+                    shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     data={listData}
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
                     textInputOptions={textInputOptions}
-                    style={{contentContainerStyle: [styles.pb0]}}
+                    style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
+                    footerContent={footer}
                 />
             )}
         </ListFilterView>

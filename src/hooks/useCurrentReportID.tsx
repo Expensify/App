@@ -1,7 +1,10 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
-import React, {createContext, startTransition, useCallback, useContext, useMemo, useRef, useState} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
+
 import NAVIGATORS from '@src/NAVIGATORS';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+
+import React, {createContext, startTransition, useCallback, useContext, useMemo, useRef, useState} from 'react';
 
 type CurrentReportIDStateContextType = {
     currentReportID: string | undefined;
@@ -128,8 +131,3 @@ function useCurrentReportIDActions() {
 }
 
 export {CurrentReportIDContextProvider, useCurrentReportIDState, useCurrentReportIDActions};
-
-// Backward compatible type alias
-type CurrentReportIDContextValue = CurrentReportIDStateContextType & CurrentReportIDActionsContextType;
-
-export type {CurrentReportIDContextValue};

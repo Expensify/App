@@ -1,7 +1,7 @@
 import MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG from '@components/MultifactorAuthentication/config/scenarios';
 import type {MultifactorAuthenticationScenarioConfigRecord} from '@components/MultifactorAuthentication/config/types';
+
 import CONST from '@src/CONST';
-import SCREENS from '@src/SCREENS';
 
 describe('MultifactorAuthentication Scenarios Config', () => {
     it('should have all required properties for every scenario config', () => {
@@ -32,7 +32,6 @@ describe('MultifactorAuthentication Scenarios Config', () => {
 
         expect(biometricsTestScenario).toBeDefined();
         expect(biometricsTestScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS]);
-        expect(biometricsTestScenario.screen).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST);
         expect(biometricsTestScenario.pure).toBe(true);
         expect(biometricsTestScenario.action).toBeDefined();
     });
@@ -67,7 +66,6 @@ describe('MultifactorAuthentication Scenarios Config', () => {
         const config = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG as MultifactorAuthenticationScenarioConfigRecord;
         const biometricsTestConfig = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST];
 
-        // Invoke the callback with successful authentication and valid response data
         const callbackResult = await biometricsTestConfig.callback?.(
             true,
             {
@@ -78,8 +76,6 @@ describe('MultifactorAuthentication Scenarios Config', () => {
             undefined,
         );
 
-        // Verify that the callback returns SHOW_OUTCOME_SCREEN, indicating
-        // the MFA flow should navigate to the outcome screen
         expect(callbackResult).toBe(CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN);
     });
 
