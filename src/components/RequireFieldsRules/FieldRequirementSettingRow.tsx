@@ -110,7 +110,7 @@ function FieldRequirementSettingRow({fieldKey, label, setting, effectiveForm, ca
 
     const rowContent = (
         <View style={[styles.ph5, styles.pv3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3, styles.flexWrap]}>
-            <Text style={[styles.textLabel, styles.flexShrink1]}>{label}</Text>
+            <Text style={[styles.flexShrink1, styles.pr3, styles.alignSelfCenter]}>{label}</Text>
             <FieldRequirementsDirectionToggle
                 direction={setting}
                 disabled={isReadOnly || isCouplingDisabled}

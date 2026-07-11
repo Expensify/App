@@ -26,27 +26,31 @@ function FieldRequirementsDirectionToggle({direction, disabled = false, onSelect
     return (
         <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal]}>
             <Button
-                text={translate('workspace.rules.requireFieldsRule.requireDirection')}
                 onPress={() => onSelect(CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE)}
                 isDisabled={disabled}
-                small
+                size={CONST.BUTTON_SIZE.SMALL}
                 style={styles.ph0}
                 innerStyles={!isRequireSelected ? styles.bgTransparent : undefined}
-                textStyles={[styles.alignSelfCenter, !isRequireSelected ? styles.textSupporting : undefined]}
                 accessibilityLabel={translate('workspace.rules.requireFieldsRule.requireDirection')}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DIRECTION_TOGGLE}
-            />
+            >
+                <Button.Text style={[styles.alignSelfCenter, !isRequireSelected ? styles.textSupporting : undefined]}>
+                    {translate('workspace.rules.requireFieldsRule.requireDirection')}
+                </Button.Text>
+            </Button>
             <Button
-                text={translate('workspace.rules.requireFieldsRule.doNotRequireDirection')}
                 onPress={() => onSelect(CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE)}
                 isDisabled={disabled}
-                small
+                size={CONST.BUTTON_SIZE.SMALL}
                 style={styles.ph0}
                 innerStyles={!isWaiveDirectionSelected ? styles.bgTransparent : undefined}
-                textStyles={[styles.alignSelfCenter, !isWaiveDirectionSelected ? styles.textSupporting : undefined]}
                 accessibilityLabel={translate('workspace.rules.requireFieldsRule.doNotRequireDirection')}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DIRECTION_TOGGLE}
-            />
+            >
+                <Button.Text style={[styles.alignSelfCenter, !isWaiveDirectionSelected ? styles.textSupporting : undefined]}>
+                    {translate('workspace.rules.requireFieldsRule.doNotRequireDirection')}
+                </Button.Text>
+            </Button>
         </View>
     );
 }
