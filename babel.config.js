@@ -33,11 +33,9 @@ function traceTransformer() {
 // @babel/eslint-parser loads babel.config.js for every file it lints (caller name is
 // always undefined or '@babel/eslint-parser', never 'metro'/'babel-jest', so it always
 // falls into this branch below) to resolve syntax plugins like `exportNamespaceFrom`
-// needed to parse the same syntax the web bundle uses. The presets/plugins that
-// previously lived here (@babel/preset-react, @babel/preset-env, @babel/preset-flow,
-// @babel/preset-typescript, babel-plugin-react-native-web, and several class-property
-// transforms) have been removed from devDependencies because OXC now handles those
-// transforms natively in the web build and ESLint doesn't need them for parsing.
+// needed to parse the same syntax the web bundle uses. OXC handles JSX/TypeScript/env-target
+// transforms natively for the web build, so this branch only lists the plugins ESLint's
+// parser needs for syntax it wouldn't otherwise recognise.
 const web = {
     presets: [],
     plugins: [
