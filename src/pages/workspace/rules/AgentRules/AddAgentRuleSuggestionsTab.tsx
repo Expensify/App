@@ -28,10 +28,11 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SuggestedAgentRule from '@src/types/onyx/SuggestedAgentRule';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type AddAgentRuleSuggestionsTabProps = {
+    /** Called with the chosen suggestion when the user presses Next */
     onSelectSuggestion: (suggestion: SuggestedAgentRule) => void;
 };
 
@@ -48,15 +49,12 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
     const [searchValue, setSearchValue] = useState('');
     const [selectedSuggestionID, setSelectedSuggestionID] = useState<string | undefined>();
 
-    const filteredSuggestions = useMemo(() => {
-        const trimmedSearch = searchValue.trim().toLowerCase();
-        if (!trimmedSearch) {
-            return data;
-        }
-        return data.filter((suggestion) => suggestion.title.toLowerCase().includes(trimmedSearch) || suggestion.prompt.toLowerCase().includes(trimmedSearch));
-    }, [data, searchValue]);
+    const trimmedSearch = searchValue.trim().toLowerCase();
+    const filteredSuggestions = !trimmedSearch
+        ? data
+        : data.filter((suggestion) => suggestion.title.toLowerCase().includes(trimmedSearch) || suggestion.prompt.toLowerCase().includes(trimmedSearch));
 
-    const selectedSuggestion = data.find((suggestion) => suggestion.id === selectedSuggestionID);
+    const selectedSuggestion = filteredSuggestions.find((suggestion) => suggestion.id === selectedSuggestionID);
 
     const goToConcierge = () => {
         Navigation.navigate(ROUTES.CONCIERGE);
@@ -123,7 +121,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                             <PressableWithFeedback
                                 key={suggestion.id}
                                 accessibilityLabel={suggestion.title}
-                                role={CONST.ROLE.BUTTON}
+                                accessibilityRole={CONST.ROLE.BUTTON}
                                 onPress={() => setSelectedSuggestionID(suggestion.id)}
                                 wrapperStyle={[styles.mh5]}
                                 style={[

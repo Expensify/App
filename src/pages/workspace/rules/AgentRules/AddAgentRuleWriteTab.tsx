@@ -23,6 +23,7 @@ import {View} from 'react-native';
 type AddAgentRuleFormID = typeof ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM;
 
 type AddAgentRuleWriteTabProps = {
+    /** Called with the form values when the user saves the rule */
     onSave: (values: FormOnyxValues<AddAgentRuleFormID>) => void;
 };
 
