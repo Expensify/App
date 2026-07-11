@@ -197,7 +197,7 @@
     "react-native-localize": "^3.5.4",
     "react-native-nitro-modules": "0.35.0",
     "react-native-nitro-sqlite": "9.6.0",
-    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#8e7180f35fb94cc4fef3f7c33ac97734b232530e",
+    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#939d563220aba55dfe6d2e0b313c68baa01d6d83",
     "react-native-pager-view": "8.0.0",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
@@ -432,7 +432,10 @@
         "expo-keep-awake"
       ],
       "android": {
-        "buildFromSource": ["expo-task-manager", "unimodules-app-loader"]
+        "buildFromSource": [
+          "expo-task-manager",
+          "unimodules-app-loader"
+        ]
       }
     }
   },
