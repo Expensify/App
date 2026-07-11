@@ -14,6 +14,7 @@ import {isEmailPublicDomain} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 
@@ -28,7 +29,7 @@ import type {ReactElement} from 'react';
 
 import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -79,9 +80,13 @@ function BookTravelButton({
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
+
+    // Ref to track if we should auto-resume the booking flow after returning from the missing-personal-details page
+    const shouldResumeBookingRef = useRef(false);
 
     const navigateToPublicDomainError = () => {
         const dynamicSuffix = hasPolicyIDInActiveRoute() ? DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path : DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID);
@@ -125,6 +130,19 @@ function BookTravelButton({
             return;
         }
 
+        const isPolicyProvisioned = isWorkspaceProvisionedForTravel(policy?.travelSettings);
+        const hasAcceptedTravelTerms = policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
+        const willUseEnablementStepper = !hasAcceptedTravelTerms && (isPolicyProvisioned || isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED));
+
+        // The enablement stepper collects a missing legal name as one of its own steps, so this pre-check (and its
+        // resume-after-filling behavior) only still applies to the outcomes that never reach the stepper: opening
+        // TravelDot on an already-enabled workspace, and the legacy request-access path below.
+        if (!willUseEnablementStepper && areTravelPersonalDetailsMissing(privatePersonalDetails)) {
+            shouldResumeBookingRef.current = true;
+            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
+            return;
+        }
+
         const adminDomains = getAdminsPrivateEmailDomains(policy);
         if (adminDomains.length === 0) {
             navigateToPublicDomainError();
@@ -141,8 +159,7 @@ function BookTravelButton({
             return;
         }
 
-        const isPolicyProvisioned = isWorkspaceProvisionedForTravel(policy?.travelSettings);
-        if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
+        if (hasAcceptedTravelTerms) {
             openTravelDotLink(policy?.id);
             return;
         }
@@ -176,6 +193,18 @@ function BookTravelButton({
         cleanupTravelProvisioningSession();
         Navigation.navigate(ROUTES.TRAVEL_ENABLE.getRoute(activePolicyID ?? String(CONST.DEFAULT_NUMBER_ID)));
     };
+
+    // Auto-resume the booking flow after returning from the missing-personal-details page: when the user saves
+    // their legal name and navigates back, privatePersonalDetails updates and this effect re-triggers bookATrip()
+    useEffect(() => {
+        if (!shouldResumeBookingRef.current || areTravelPersonalDetailsMissing(privatePersonalDetails)) {
+            return;
+        }
+
+        shouldResumeBookingRef.current = false;
+        bookATrip();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to trigger this effect when privatePersonalDetails changes
+    }, [privatePersonalDetails]);
 
     return (
         <>
