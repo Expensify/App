@@ -80,6 +80,7 @@ function TermsStep({policyID, resolvedDomain}: EnableTravelSubPageProps) {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID,
             delegateAccountID,
+            conciergeReportID,
         });
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
     };
