@@ -12,6 +12,7 @@ import Accessibility from '@libs/Accessibility';
 import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
+import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -56,7 +57,7 @@ type FormWrapperProps = ChildrenProps &
         isAlertVisible?: boolean;
 
         /** Server side field errors keyed by field name */
-        serverErrorFields?: FormInputErrors;
+        serverErrorFields?: ErrorFields | null;
 
         /** Server side error message */
         serverErrorMessage?: string;
