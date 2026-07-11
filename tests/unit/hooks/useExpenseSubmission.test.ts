@@ -18,6 +18,7 @@ const mockSubmitPerDiemExpenseForSelfDMAction = jest.fn();
 const mockCleanupAfterExpenseCreate = jest.fn();
 const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
 const mockResolveChatTargetForSubmitCleanup = jest.fn();
+const mockSendInvoiceAction = jest.fn();
 
 jest.mock('@userActions/IOU/TrackExpense', () => ({
     requestMoney: (...args: unknown[]) => mockRequestMoneyAction(...args),
@@ -27,6 +28,11 @@ jest.mock('@userActions/IOU/TrackExpense', () => ({
 jest.mock('@userActions/IOU/PerDiem', () => ({
     submitPerDiemExpense: (...args: unknown[]) => mockSubmitPerDiemExpenseAction(...args),
     submitPerDiemExpenseForSelfDM: (...args: unknown[]) => mockSubmitPerDiemExpenseForSelfDMAction(...args),
+}));
+
+jest.mock('@userActions/IOU/SendInvoice', () => ({
+    sendInvoice: (...args: unknown[]) => mockSendInvoiceAction(...args),
+    getReceiverType: jest.fn(),
 }));
 
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
@@ -192,6 +198,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
         await Onyx.clear();
         mockRequestMoneyAction.mockReturnValue({iouReport: {reportID: 'iou-1'}});
         mockResolveChatTargetForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, chatReportID: 'fallback-id', optimisticChatReportID: undefined});
+        mockSendInvoiceAction.mockReturnValue({invoiceRoomReportID: 'invoice-room-1', transactionID: 'invoice-txn-1'});
     });
 
     describe('requestMoney path', () => {
@@ -484,5 +491,40 @@ describe('useExpenseSubmission action-bailout safety', () => {
         expect(mockTrackExpenseAction).not.toHaveBeenCalled();
         expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
         expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
+    });
+
+    describe('invoice path', () => {
+        it('sends the invoice and routes through cleanupAndNavigateAfterExpenseCreate with isInvoice + the returned room id when shouldHandleNavigation=true', async () => {
+            const {result} = renderHook(() => useExpenseSubmission(buildParams({iouType: CONST.IOU.TYPE.INVOICE})));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSendInvoiceAction).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    isInvoice: true,
+                    optimisticChatReportID: 'invoice-room-1',
+                    transactionID: 'invoice-txn-1',
+                }),
+            );
+        });
+
+        it('cleans up only (no navigation) when the orchestrator already navigated (shouldHandleNavigation=false)', async () => {
+            const {result} = renderHook(() => useExpenseSubmission(buildParams({iouType: CONST.IOU.TYPE.INVOICE})));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSendInvoiceAction).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
+        });
     });
 });
