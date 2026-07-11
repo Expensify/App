@@ -51,13 +51,12 @@ function getLang(ext) {
     if (ext === 'tsx') {
         return 'tsx';
     }
-    if (ext === 'jsx') {
-        return 'jsx';
-    }
     if (ext === 'ts') {
         return 'ts';
     }
-    return 'js';
+    // JSX is legal syntax in plain .js files too (both rules that route here match .js and .jsx
+    // identically), so .js gets the same JSX-enabled parser as .jsx rather than a stricter one.
+    return 'jsx';
 }
 
 export default async function oxcReactCompilerLoader(source) {

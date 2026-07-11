@@ -39,11 +39,26 @@ function getCurrentBranchName(): string {
 const localBranchName = getCurrentBranchName();
 
 /**
+ * React Compiler + react-native-worklets loaders.
+ */
+function getOxcAndWorkletsLoaders() {
+    return [
+        {loader: path.resolve(dirname, './loaders/worklets-loader.mjs')},
+        {
+            loader: path.resolve(dirname, './loaders/oxc-react-compiler-loader.mjs'),
+            options: {
+                reactCompiler: {target: '19', panicThreshold: 'none'},
+                target: 'node20',
+                jsx: {runtime: 'automatic'},
+            },
+        },
+    ];
+}
+
+/**
  * These RN packages ship non-transpiled JSX and rely on the "react-native" import (aliased to
  * react-native-web below), so they need to go through the same OXC transform pipeline as our own
- * source rather than being treated as opaque, already-built node_modules (see Rule B below).
- * React Compiler must NOT run on them since they intentionally mutate state in ways that violate
- * the Rules of React.
+ * source rather than being treated as opaque.
  */
 const INCLUDED_NODE_MODULES = [
     'react-native-reanimated',
@@ -71,9 +86,9 @@ const INCLUDED_NODE_MODULES = [
     '@shopify/react-native-skia',
 ];
 
-// Matches node_modules paths that ARE in the allowlist above (Rule B — transformed but without
-// React Compiler).
-const includedNodeModules = new RegExp(`node_modules/(${INCLUDED_NODE_MODULES.join('|')})`);
+// Matches node_modules paths that ARE in the allowlist above — these get transformed through the
+// same OXC + React Compiler pipeline as app source (see the module rule below that uses this regex).
+const includedNodeModulesRegex = new RegExp(`node_modules/(${INCLUDED_NODE_MODULES.join('|')})`);
 
 const environmentToLogoSuffixMap: Record<string, string> = {
     production: '-dark',
@@ -168,7 +183,7 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
         ],
         tools: {
             // Rsbuild's default 'js' rule (builtin:swc-loader, its 'js' oneOf branch) matches every
-            // .js/.ts/.jsx/.tsx file, including everything Rule A/B/B2 below already handle. Rules
+            // .js/.ts/.jsx/.tsx file, including everything our own module rules below already handle. Rules
             // declared later in `module.rules` run their loaders FIRST (closest to raw source), and
             // our custom rules are added via `addRules` (which appends after Rsbuild's defaults), so
             // without this exclude, swc-loader would strip JSX/TypeScript before the Fullstory
@@ -180,7 +195,7 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                     .rule('js')
                     .oneOf('js')
                     .exclude.add((resourcePath: string) => !resourcePath.includes('node_modules'))
-                    .add(includedNodeModules)
+                    .add(includedNodeModulesRegex)
                     .end();
             },
             rspack: (config, {addRules}) => {
@@ -261,54 +276,36 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                         resolve: {fullySpecified: false},
                         include: [path.resolve(dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js')],
                     },
-                    // Rule A — app source files (React Compiler enabled).
+                    // App source files (React Compiler enabled).
                     {
                         test: /\.(js|ts)x?$/,
-                        // Exclude ALL node_modules (including includedNodeModules — handled by Rule B below).
+                        // Exclude ALL node_modules (including the included-node_modules allowlist, handled below).
                         exclude: [/node_modules/, /\.native\.(js|jsx|ts|tsx)$/],
                         use: [
-                            // Pass 3: worklets (on OXC's plain-JS output — no presets needed).
-                            // worklets-loader skips the Babel parse/transform/codegen cycle for
-                            // files that can't reference a worklet (see that file) — ~97.5% of
-                            // src/, verified by grep.
-                            {loader: path.resolve(dirname, './loaders/worklets-loader.mjs')},
-                            // Pass 2: React Compiler + all transforms via our thin wrapper loader.
+                            // Worklets, then React Compiler + all other OXC transforms (see
+                            // getOxcAndWorkletsLoaders). worklets-loader skips the Babel
+                            // parse/transform/codegen cycle for files that can't reference a
+                            // worklet (see that file) — ~97.5% of src/, verified by grep.
                             // oxc-react-compiler-loader calls oxc-transform directly and demotes
                             // non-fatal React Compiler diagnostics to warnings instead of hard build
                             // errors (workaround for oxc-project/oxc#23587).
-                            {
-                                loader: path.resolve(dirname, './loaders/oxc-react-compiler-loader.mjs'),
-                                options: {
-                                    reactCompiler: {target: '19', panicThreshold: 'none'},
-                                    target: 'node20',
-                                    jsx: {runtime: 'automatic'},
-                                },
-                            },
-                            // Pass 1: Fullstory annotation (sees annotated JSX before OXC transforms it).
+                            ...getOxcAndWorkletsLoaders(),
+                            // Fullstory annotation.
                             {
                                 loader: path.resolve(dirname, './loaders/fullstory-annotation-loader.mjs'),
                             },
                         ],
                     },
-                    // Rule B — included node_modules that need transforms but NOT React Compiler.
+                    // Included node_modules (see includedNodeModulesRegex above). Same OXC + React
+                    // Compiler pass as app source above (oxc-react-compiler-loader's per-file
+                    // bailout, see that file, handles any Rules-of-React violations in these
+                    // packages) minus the Fullstory pass, which only makes sense for our own
+                    // components.
                     {
-                        test: /\.tsx?$/,
-                        include: [includedNodeModules],
-                        exclude: [/\.native\.(ts|tsx)$/],
-                        use: [{loader: path.resolve(dirname, './loaders/worklets-loader.mjs')}, {loader: 'oxc-webpack-loader', options: {target: 'node20'}}],
-                    },
-                    // Rule B2: JavaScript — need explicit jsx to upgrade .js lang to jsx.
-                    {
-                        test: /\.jsx?$/,
-                        include: [includedNodeModules],
-                        exclude: [/\.native\.(js|jsx)$/],
-                        use: [
-                            {loader: path.resolve(dirname, './loaders/worklets-loader.mjs')},
-                            {
-                                loader: 'oxc-webpack-loader',
-                                options: {target: 'node20', jsx: {runtime: 'automatic'}},
-                            },
-                        ],
+                        test: /\.(js|ts)x?$/,
+                        include: [includedNodeModulesRegex],
+                        exclude: [/\.native\.(js|jsx|ts|tsx)$/],
+                        use: getOxcAndWorkletsLoaders(),
                     },
                 ]);
 
