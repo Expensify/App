@@ -61,7 +61,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
@@ -146,28 +146,24 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
 
-    const reportAttributesSelector = useCallback(
-        (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
-            const attrs = value?.reports?.[reportID];
-            if (!attrs) {
-                return undefined;
-            }
-            return {
-                actionBadge: attrs.actionBadge,
-                actionTargetReportActionID: attrs.actionTargetReportActionID,
-                brickRoadStatus: attrs.brickRoadStatus,
-            };
-        },
-        [reportID],
-    );
+    const reportAttributesSelector = (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
+        const attrs = value?.reports?.[reportID];
+        if (!attrs) {
+            return undefined;
+        }
+        return {
+            actionBadge: attrs.actionBadge,
+            actionTargetReportActionID: attrs.actionTargetReportActionID,
+            brickRoadStatus: attrs.brickRoadStatus,
+        };
+    };
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
         selector: reportAttributesSelector,
     });
     const isHarvestCreatedExpenseReportAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
 
-    const stableReportSelector = useCallback((reportEntry: OnyxEntry<OnyxTypes.Report>) => getStableReportSelector(reportEntry), []);
-    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: stableReportSelector});
-    const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: stableReportSelector});
+    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
+    const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
 
     const linkedReportActionID = reportActionIDFromRoute;
 
@@ -200,15 +196,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         hasNewerActions,
     });
 
-    const persistedDraftReportAction = useMemo(() => {
-        if (!draftReportAction) {
-            return undefined;
-        }
+    const persistedDraftReportAction = draftReportAction ? sortedVisibleReportActions.find((action) => action.reportActionID === draftReportAction.reportActionID) : undefined;
 
-        return sortedVisibleReportActions.find((action) => action.reportActionID === draftReportAction.reportActionID);
-    }, [draftReportAction, sortedVisibleReportActions]);
-
-    const renderedVisibleReportActions = useMemo(() => {
+    const renderedVisibleReportActions = (() => {
         if (!draftReportAction) {
             return sortedVisibleReportActions;
         }
@@ -239,7 +229,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
         visibleReportActionsWithDraft.push(draftReportAction);
         return visibleReportActionsWithDraft;
-    }, [sessionStartTime, draftReportAction, isDraftPendingCompletion, showHiddenHistory, sortedVisibleReportActions]);
+    })();
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
@@ -263,13 +253,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     }, [draftReportAction, persistedDraftReportAction, revealDraftFromReportAction]);
 
     // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
-    const actionBadgeTargetIndex = useMemo(() => {
-        const targetID = reportAttributes?.actionTargetReportActionID;
-        if (!targetID) {
-            return -1;
-        }
-        return renderedVisibleReportActions.findIndex((action) => action.reportActionID === targetID);
-    }, [reportAttributes?.actionTargetReportActionID, renderedVisibleReportActions]);
+    const actionBadgeTargetID = reportAttributes?.actionTargetReportActionID;
+    const actionBadgeTargetIndex = actionBadgeTargetID ? renderedVisibleReportActions.findIndex((action) => action.reportActionID === actionBadgeTargetID) : -1;
 
     const {
         trackVerticalScrolling,
@@ -331,18 +316,15 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         });
     };
 
+    const firstVisibleReportActionID = getFirstVisibleReportActionID(sortedReportActions, isOffline);
+
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
      * This is so that it will not be conflicting with header's separator line.
      */
-    const shouldHideThreadDividerLine = useMemo(
-        (): boolean => getFirstVisibleReportActionID(sortedReportActions, isOffline) === unreadMarkerReportActionID,
-        [sortedReportActions, isOffline, unreadMarkerReportActionID],
-    );
+    const shouldHideThreadDividerLine = firstVisibleReportActionID === unreadMarkerReportActionID;
 
-    const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(sortedReportActions, isOffline), [sortedReportActions, isOffline]);
-
-    const shouldUseThreadDividerLine = useMemo(() => {
+    const shouldUseThreadDividerLine = (() => {
         const topReport = renderedVisibleReportActions.length > 0 ? renderedVisibleReportActions.at(renderedVisibleReportActions.length - 1) : null;
 
         if (topReport && topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
@@ -358,96 +340,62 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         }
 
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
-    }, [parentReportAction, renderedVisibleReportActions, report]);
+    })();
 
-    const renderItem = useCallback(
-        ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            // Only suppress the context menu while the reply is still being generated. Once streaming completes the
-            // three-dots menu must appear, even if the synthetic draft is still rendered during draft-to-persisted reconciliation.
-            const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
+    const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+        // Only suppress the context menu while the reply is still being generated. Once streaming completes the
+        // three-dots menu must appear, even if the synthetic draft is still rendered during draft-to-persisted reconciliation.
+        const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
-            return (
-                <ReportActionIndexContext.Provider value={index}>
-                    <ReportActionsListItemRenderer
-                        reportAction={reportAction}
-                        parentReportAction={parentReportAction}
-                        parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                        report={reportStable}
-                        transactionThreadReport={transactionThreadReport}
-                        chatReport={chatReportStable}
-                        linkedReportActionID={linkedReportActionID}
-                        displayAsGroup={
-                            !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                            isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, index, isOffline)
-                        }
-                        shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                        shouldDisplayReplyDivider={renderedVisibleReportActions.length > 1}
-                        isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                        shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                        isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
-                        shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+        return (
+            <ReportActionIndexContext.Provider value={index}>
+                <ReportActionsListItemRenderer
+                    reportAction={reportAction}
+                    parentReportAction={parentReportAction}
+                    parentReportActionForTransactionThread={parentReportActionForTransactionThread}
+                    report={reportStable}
+                    transactionThreadReport={transactionThreadReport}
+                    chatReport={chatReportStable}
+                    linkedReportActionID={linkedReportActionID}
+                    displayAsGroup={
+                        !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                        isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, index, isOffline)
+                    }
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                    shouldDisplayReplyDivider={renderedVisibleReportActions.length > 1}
+                    isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                    shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                    isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
+                    shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+                />
+                {!!reportStable?.reportID && (
+                    <ShowPreviousMessagesButton
+                        reportID={reportStable.reportID}
+                        actionType={reportAction.actionName}
+                        hasPreviousMessages={!!hasPreviousMessages}
+                        showFullHistory={!showHiddenHistory}
+                        onPress={onShowPreviousMessages}
                     />
-                    {!!reportStable?.reportID && (
-                        <ShowPreviousMessagesButton
-                            reportID={reportStable.reportID}
-                            actionType={reportAction.actionName}
-                            hasPreviousMessages={!!hasPreviousMessages}
-                            showFullHistory={!showHiddenHistory}
-                            onPress={onShowPreviousMessages}
-                        />
-                    )}
-                </ReportActionIndexContext.Provider>
-            );
-        },
-        [
-            draftReportActionID,
-            isDraftPendingCompletion,
-            firstVisibleReportActionID,
-            hasPreviousMessages,
-            isOffline,
-            linkedReportActionID,
-            onShowPreviousMessages,
-            parentReportAction,
-            parentReportActionForTransactionThread,
-            isHarvestCreatedExpenseReportAction,
-            renderedVisibleReportActions,
-            reportStable,
-            chatReportStable,
-            shouldHideThreadDividerLine,
-            shouldUseThreadDividerLine,
-            showHiddenHistory,
-            transactionThreadReport,
-            unreadMarkerReportActionID,
-        ],
-    );
+                )}
+            </ReportActionIndexContext.Provider>
+        );
+    };
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = useMemo(
-        () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportActionID, draftMessageHTML],
-        [draftMessageHTML, draftReportActionID, unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
-    );
+    const extraData = [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportActionID, draftMessageHTML];
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <ReportActionsListHeader
-                reportID={reportID}
-                hasActiveDraft={hasActiveDraft}
-            />
-        ),
-        [hasActiveDraft, reportID],
+    const listHeaderComponent = (
+        <ReportActionsListHeader
+            reportID={reportID}
+            hasActiveDraft={hasActiveDraft}
+        />
     );
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    const listFooterComponent = useMemo(() => {
-        if (!shouldShowOfflineSkeleton) {
-            return;
-        }
-
-        return <ReportActionsSkeletonView shouldAnimate={false} />;
-    }, [shouldShowOfflineSkeleton]);
+    const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
 
     const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
@@ -538,8 +486,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     );
 }
 
-const MemoizedReportActionsListContent = memo(ReportActionsListContent);
-
 /**
  * Public report-actions list. Thin composition that wraps the content in `ReportActionsSkeletonGuard`,
  * which owns the data pipeline + skeleton decision and only mounts the content once it is ready.
@@ -547,7 +493,7 @@ const MemoizedReportActionsListContent = memo(ReportActionsListContent);
 function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     return (
         <ReportActionsSkeletonGuard reportID={reportID}>
-            <MemoizedReportActionsListContent
+            <ReportActionsListContent
                 reportID={reportID}
                 onLayout={onLayout}
             />

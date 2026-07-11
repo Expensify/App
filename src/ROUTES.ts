@@ -144,6 +144,10 @@ const DYNAMIC_ROUTES = {
         path: 'migrated-user-welcome',
         entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
     },
+    AI_FEATURES_PROMO: {
+        path: 'ai-features-promo',
+        entryScreens: ['*'],
+    },
     EXPENSE_LIMIT_TYPE_SELECTOR: {
         path: 'expense-limit-type',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER],
@@ -568,10 +572,12 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
     NOTIFICATION_PREFERENCES: {
-        path: 'notification-preferences',
+        // `reportID` is intentionally carried as a distinct path param (`notificationReportID`) rather than
+        // `reportID`, so it never collides with a `reportID` inherited from the surrounding report chain's
+        // query string. This keeps the inherited `?reportID=` intact for back navigation.
+        path: 'notification-preferences/:notificationReportID',
         entryScreens: [SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT, SCREENS.DYNAMIC_PROFILE],
-        getRoute: (reportID: string) => getUrlWithParams('notification-preferences', {reportID}),
-        queryParams: ['reportID'],
+        getRoute: (notificationReportID: string) => `notification-preferences/${notificationReportID}` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT: {
         path: 'sage-intacct/export',
@@ -4083,6 +4089,26 @@ const ROUTES = {
     POLICY_ACCOUNTING_RILLET_DEFAULT_COMPANY_CARD_VENDOR: {
         route: 'workspaces/:policyID/accounting/rillet/export/default-company-card-vendor',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_EXPORT_METHOD: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced/export-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/export-method` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_BILL_PAYMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced/bill-payment-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/bill-payment-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced/expensify-card-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/expensify-card-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced/travel-invoicing-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/travel-invoicing-settlement-account` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
