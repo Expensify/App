@@ -217,7 +217,7 @@ function WorkspaceCompanyCardsDisplayButton() {
                         onPress={onPress}
                     >
                         <Icon
-                            small
+                            size={CONST.ICON_SIZE.SMALL}
                             src={icons.Gear}
                             fill={theme.icon}
                         />

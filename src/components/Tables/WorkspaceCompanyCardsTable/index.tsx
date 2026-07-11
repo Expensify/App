@@ -353,7 +353,7 @@ function WorkspaceCompanyCardsTable({
 
     // Unassign requests hide their rows while online (pending-delete filter below), so bulk unassigning every
     // visible card would flash the empty feed state; treat that in-flight window as loading instead.
-    const hasPendingUnassignments = (companyCardEntries ?? []).some((entry) => entry.assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const hasPendingUnassignment = (companyCardEntries ?? []).some((entry) => entry.assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoading && !hasFeedErrors;
     const showTableControls = showCards && !!selectedFeed && !isLoadingCards && !hasFeedErrors;
@@ -574,7 +574,7 @@ function WorkspaceCompanyCardsTable({
                     context: 'WorkspaceCompanyCardsTable',
                     isLoading,
                     isLoadingCards,
-                    hasPendingUnassignments,
+                    hasPendingUnassignment,
                 }}
             />
         </View>
@@ -655,7 +655,7 @@ function WorkspaceCompanyCardsTable({
                         canWriteCompanyCards={canWriteCompanyCards}
                         clearCardSelection={clearCardSelection}
                     />
-                    {hasPendingUnassignments && cardsData.length === 0 ? (
+                    {hasPendingUnassignment && cardsData.length === 0 ? (
                         // While bulk unassign requests are in flight, the pending rows are hidden and the feed can momentarily
                         // have no cards. Show the loading spinner instead of the empty-feed state until the rows settle.
                         <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>
