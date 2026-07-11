@@ -9,7 +9,7 @@
 // Uses the ambient `Bun` global instead of `import {plugin} from 'bun'` — importing the `"bun"` module
 // resolves @types/bun's global augmentations (it redeclares `require`), which conflicts with the
 // generic `require<T>` overload `src/types/global.d.ts` registers for the rest of the root TS program.
-const {plugin} = Bun;
+const {plugin} = globalThis.Bun;
 
 const STUBS = {
     'react-native': {

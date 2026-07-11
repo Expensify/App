@@ -17,11 +17,19 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      - name: Capture pre-run checksum
+        id: before
+        run: echo "sha=$(sha256sum src/languages/it.ts | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
+
       - name: Run generateTranslations dry run
         run: bun ./scripts/generateTranslations.ts --dry-run --locales it
 
       - name: Verify translation output
         run: |
+          # The [it] prefix only ever comes from the dry-run's dummy translator, so a checksum
+          # change plus this marker proves the script actually re-ran and wrote fresh output,
+          # not that it silently no-op'd and left the already-committed file untouched.
+          test "$(sha256sum src/languages/it.ts | cut -d ' ' -f1)" != "${{ steps.before.outputs.sha }}"
           grep -q 'This file was automatically generated' src/languages/it.ts
           grep -q '\[it\]' src/languages/it.ts
 

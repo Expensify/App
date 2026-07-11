@@ -1,2 +1,8 @@
-# Bun runtime config for root scripts (victory-chart-renderer keeps its own [test] root).
+# Preload the React Native stub for `bun scripts/*.ts` runs (Bun's plugin API intercepts both
+# `import` and `require()`, so scripts don't load the real Flow-typed RN packages at runtime).
 preload = ["./scripts/stubReactNative.js"]
+
+# Bun test discovery for server-side tooling (Jest owns src/ and tests/).
+[test]
+root = "server"
+pathIgnorePatterns = ["**/fixtures/**", "**/dist/**", "**/.dev/**", "**/__output__/**", "**/__golden__/**"]
