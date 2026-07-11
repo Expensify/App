@@ -214,6 +214,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 // Mock the generic empty-state building blocks so Table.EmptyState/Table.NoResultsState render simple markers
 jest.mock('@components/EmptyStateComponent/GenericEmptyStateComponent', () => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const {View: RNView, Text: RNText} = jest.requireActual<typeof import('react-native')>('react-native');
     function MockGenericEmptyStateComponent({title, subtitle}: {title?: string; subtitle?: string}) {
         return (
@@ -229,6 +230,7 @@ jest.mock('@components/EmptyStateComponent/GenericEmptyStateComponent', () => {
 jest.mock('@hooks/useGenericEmptyStateIllustration', () => jest.fn(() => ({})));
 
 jest.mock('@components/ScrollView', () => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const {ScrollView: RNScrollView} = jest.requireActual<typeof import('react-native')>('react-native');
     return RNScrollView;
 });
