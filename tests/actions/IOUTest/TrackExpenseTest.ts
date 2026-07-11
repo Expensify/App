@@ -212,6 +212,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -337,6 +338,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -346,6 +348,7 @@ describe('actions/IOU/TrackExpense', () => {
             const transaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
                         const trackedExpenseTransaction = Object.values(transactions ?? {}).at(0);
@@ -362,6 +365,7 @@ describe('actions/IOU/TrackExpense', () => {
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
                         resolve(reportActions);
@@ -402,6 +406,7 @@ describe('actions/IOU/TrackExpense', () => {
             let allTransactionsDraft: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     allTransactionsDraft = val;
                 },
@@ -443,6 +448,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -452,6 +458,7 @@ describe('actions/IOU/TrackExpense', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
                         const categorizedTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`];
@@ -533,6 +540,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -540,6 +548,7 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -587,6 +596,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -594,6 +604,7 @@ describe('actions/IOU/TrackExpense', () => {
             const policyExpenseChatOnyx = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
+                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -603,6 +614,7 @@ describe('actions/IOU/TrackExpense', () => {
             const policyOnyx = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -668,6 +680,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -675,6 +688,7 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -722,6 +736,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -729,6 +744,7 @@ describe('actions/IOU/TrackExpense', () => {
             const policyExpenseChatOnyx = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
+                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -738,6 +754,7 @@ describe('actions/IOU/TrackExpense', () => {
             const policyOnyx = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -807,6 +824,7 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -814,6 +832,7 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -861,6 +880,7 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -868,6 +888,7 @@ describe('actions/IOU/TrackExpense', () => {
             const policyOnyx = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -945,6 +966,7 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -952,6 +974,7 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -999,6 +1022,7 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -1006,6 +1030,7 @@ describe('actions/IOU/TrackExpense', () => {
             const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports);
@@ -1102,6 +1127,7 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -1109,6 +1135,7 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -1157,6 +1184,7 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1164,6 +1192,7 @@ describe('actions/IOU/TrackExpense', () => {
             const accountantChatNvpAfter = await new Promise<OnyxEntry<{private_isArchived?: string | null}>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${accountantExpenseChatID}`,
+                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -1173,6 +1202,7 @@ describe('actions/IOU/TrackExpense', () => {
             const expenseReportNvpAfter = await new Promise<OnyxEntry<{private_isArchived?: string | null}>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedExpenseReportID}`,
+                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -1218,6 +1248,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             };
         }
@@ -1242,6 +1273,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1294,6 +1326,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1321,6 +1354,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1368,6 +1402,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1398,6 +1433,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactionDrafts: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactionDrafts = val;
                 },
@@ -1437,6 +1473,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -1445,6 +1482,7 @@ describe('actions/IOU/TrackExpense', () => {
             let finalTransactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     finalTransactions = val;
                 },
@@ -1474,6 +1512,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1526,6 +1565,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -1553,6 +1593,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1578,6 +1619,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1607,6 +1649,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1627,6 +1670,7 @@ describe('actions/IOU/TrackExpense', () => {
             const reports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
                     callback: (val) => {
                         Onyx.disconnect(connection);
                         resolve(val);
@@ -1644,11 +1688,13 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 ...getDefaultTrackExpenseParams(undefined, {amount: 3000, merchant: 'Optimistic SelfDM ID Test'}),
                 optimisticChatReportID: optimisticSelfDMReportID,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
             const reports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
                     callback: (val) => {
                         Onyx.disconnect(connection);
                         resolve(val);
@@ -1665,12 +1711,14 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 ...getDefaultTrackExpenseParams(undefined, {amount: 3000, merchant: 'Optimistic Txn ID Test'}),
                 optimisticTransactionID,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1697,6 +1745,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1729,6 +1778,7 @@ describe('actions/IOU/TrackExpense', () => {
                     receipt: {source: 'new-receipt.jpg', name: 'new-receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
                 }),
                 existingTransaction,
+                delegateAccountID: undefined,
             });
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -1737,6 +1787,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1776,6 +1827,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1804,6 +1856,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1831,6 +1884,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1854,6 +1908,7 @@ describe('actions/IOU/TrackExpense', () => {
                 ...getDefaultTrackExpenseParams(selfDMReport, {amount: 12000, merchant: 'Tour Viewed Merchant'}),
                 isSelfTourViewed: true,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -1862,6 +1917,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1887,6 +1943,7 @@ describe('actions/IOU/TrackExpense', () => {
                 ...getDefaultTrackExpenseParams(selfDMReport, {amount: 9000, merchant: 'Tour Not Viewed Merchant'}),
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -1895,6 +1952,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1942,6 +2000,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -1988,6 +2047,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -2036,6 +2096,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             // Then result should be valid
@@ -2075,11 +2136,34 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
             });
 
             expect(resultWithoutTourViewed).toBeDefined();
             expect(resultWithoutTourViewed.chatReport).toBeDefined();
             expect(resultWithoutTourViewed.transaction).toBeDefined();
+        });
+
+        describe('delegateAccountID forwarding', () => {
+            it('sets delegateAccountID on the IOU action when delegateAccountID is provided', async () => {
+                const DELEGATE_ACCOUNT_ID = 999;
+                const selfDMReport: Report = {
+                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                    reportID: 'selfDM-delegate-forward',
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+                trackExpense({
+                    ...getDefaultTrackExpenseParams(selfDMReport),
+                    delegateAccountID: DELEGATE_ACCOUNT_ID,
+                });
+                await waitForBatchedUpdates();
+
+                const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+                const iouAction = Object.values(reportActions ?? {}).find((action) => isMoneyRequestAction(action));
+                expect(iouAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            });
         });
 
         it('getTrackExpenseInformation with isDraftChatReport:true should produce createdWorkspaceParams', () => {
@@ -2119,6 +2203,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: 'USD',
+                delegateAccountID: undefined,
                 isDraftChatReport: true,
             });
 
@@ -2165,6 +2250,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: 'USD',
+                delegateAccountID: undefined,
                 isDraftChatReport: false,
             });
 
@@ -2228,6 +2314,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -2236,6 +2323,7 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -2329,6 +2417,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -2337,6 +2426,7 @@ describe('actions/IOU/TrackExpense', () => {
             const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports);
@@ -2365,6 +2455,7 @@ describe('actions/IOU/TrackExpense', () => {
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -2384,6 +2475,7 @@ describe('actions/IOU/TrackExpense', () => {
             const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
                         resolve(transactions);
@@ -2419,6 +2511,7 @@ describe('actions/IOU/TrackExpense', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
@@ -2457,6 +2550,7 @@ describe('actions/IOU/TrackExpense', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2476,6 +2570,7 @@ describe('actions/IOU/TrackExpense', () => {
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -2529,6 +2624,7 @@ describe('actions/IOU/TrackExpense', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
@@ -2630,6 +2726,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -2637,6 +2734,7 @@ describe('actions/IOU/TrackExpense', () => {
             const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -2647,6 +2745,7 @@ describe('actions/IOU/TrackExpense', () => {
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -2657,6 +2756,7 @@ describe('actions/IOU/TrackExpense', () => {
             const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -2814,6 +2914,7 @@ describe('actions/IOU/TrackExpense', () => {
                     personalDetails: testPersonalDetails,
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
+                    delegateAccountID: undefined,
                 });
             }).not.toThrow();
         });
@@ -2885,6 +2986,7 @@ describe('actions/IOU/TrackExpense', () => {
                     personalDetails: testPersonalDetails,
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
+                    delegateAccountID: undefined,
                 });
             }).not.toThrow();
         });
@@ -2926,6 +3028,7 @@ describe('actions/IOU/TrackExpense', () => {
                     personalDetails: undefined,
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
+                    delegateAccountID: undefined,
                 });
             }).not.toThrow();
         });
@@ -2967,6 +3070,7 @@ describe('actions/IOU/TrackExpense', () => {
                     personalDetails: undefined,
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
+                    delegateAccountID: undefined,
                 });
             }).not.toThrow();
         });

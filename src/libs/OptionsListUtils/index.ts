@@ -235,6 +235,7 @@ import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersona
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
@@ -250,6 +251,7 @@ const deprecatedCachedOneTransactionThreadReportIDs: Record<string, string | und
 let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
     callback: (actions) => {
         if (!actions) {
             return;

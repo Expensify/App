@@ -43,6 +43,7 @@ let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {};
 // This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allReportNameValuePairs = value;
     },
@@ -52,6 +53,7 @@ let allReportActions: OnyxCollection<ReportActions> = {};
 // This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allReportActions = value;
     },
@@ -60,6 +62,7 @@ Onyx.connectWithoutView({
 let allDraftComments: OnyxCollection<string> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allDraftComments = value;
     },
@@ -134,6 +137,7 @@ const triggerUnreadUpdate = debounce(() => {
 // This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
         triggerUnreadUpdate();

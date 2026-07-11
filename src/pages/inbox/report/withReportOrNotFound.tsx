@@ -80,11 +80,16 @@ type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
 export default function (shouldRequireReportID = true): <TProps extends WithReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) => ComponentType<TProps> {
     return function <TProps extends WithReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) {
         function WithReportOrNotFound(props: TProps) {
+            const params = props.route.params;
+            // Most screens carry the report ID under `reportID`. The notification-preferences screen instead
+            // owns its target report as a distinct path param (`notificationReportID`) so it never collides
+            // with a `reportID` inherited from the surrounding report chain in the URL.
+            const reportID = 'notificationReportID' in params ? params.notificationReportID : params.reportID;
             const [betas] = useOnyx(ONYXKEYS.BETAS);
-            const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
+            const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
             const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-            const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`);
-            const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${props.route.params.reportID}`);
+            const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
+            const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
             const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
             const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
             const participantAccountIDs = useMemo(() => Object.keys(report?.participants ?? {}).map(Number), [report?.participants]);
@@ -96,7 +101,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const resolvedHasGuidesEmails = useMemo(() => resolveHasGuidesEmails({participantAccountIDs, hasGuidesEmails}), [participantAccountIDs, hasGuidesEmails]);
             const isFocused = useIsFocused();
             const contentShown = React.useRef(false);
-            const isReportIdInRoute = !!props.route.params.reportID?.length;
+            const isReportIdInRoute = !!reportID?.length;
             const isReportLoaded = !isEmptyObject(report) && !!report?.reportID;
             const isReportArchived = useReportIsArchived(report?.reportID);
             // The `isLoadingInitialReportActions` value will become `false` only after the first OpenReport API call is finished (either succeeded or failed)
@@ -110,13 +115,9 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     return;
                 }
 
-                openReport({
-                    reportID: props.route.params.reportID,
-                    introSelected,
-                    betas,
-                });
+                openReport({reportID, introSelected, betas});
                 // eslint-disable-next-line react-hooks/exhaustive-deps
-            }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
+            }, [shouldFetchReport, isReportLoaded, reportID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);
