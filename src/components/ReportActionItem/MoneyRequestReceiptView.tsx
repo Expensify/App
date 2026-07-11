@@ -550,7 +550,7 @@ function MoneyRequestReceiptView({
         }
         const source = URL.createObjectURL(file as Blob);
         replaceReceipt({
-            transactionID: linkedTransactionID,
+            transaction,
             file: file as File,
             source,
             transactionPolicy: policy,
