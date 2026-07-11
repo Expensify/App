@@ -138,7 +138,7 @@ function WorkflowsLoadMoreCard({count, onPress}: {count: number; onPress: () => 
                 <Icon
                     src={expensifyIcons.CircularArrowBackwards}
                     fill={theme.textSupporting}
-                    extraSmall
+                    size={CONST.ICON_SIZE.EXTRA_SMALL}
                     additionalStyles={styles.mr1}
                 />
                 <Text style={[styles.buttonSmallText, styles.textSupporting]}>{label}</Text>
@@ -717,6 +717,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                             navigateToBankAccountRoute({
                                                                 policyID: route.params.policyID,
                                                                 backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                                                                policyCurrency: policy?.outputCurrency,
+                                                                bankAccountState: state,
                                                             });
                                                         }
                                                       : undefined
