@@ -16,11 +16,11 @@ import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
+    canMemberWrite,
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
     hasDynamicExternalWorkflow,
     isPaidGroupPolicy,
-    isPolicyAdmin,
     isSubmitAndClose,
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
@@ -57,7 +57,6 @@ import {
     isPayer as isPayerReportUtils,
     isProcessingReport,
     isReportApproved,
-    isReportManager,
     isReportPendingDelete,
     isSettled,
 } from '@libs/ReportUtils';
@@ -69,6 +68,7 @@ import {
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
     isDuplicate,
+    isExpensifyCardTransaction,
     isOnHold,
     isPending,
     isScanning,
@@ -181,16 +181,6 @@ function canApproveIOU(
     );
 }
 
-function canUnapproveIOU(iouReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>) {
-    return (
-        isExpenseReport(iouReport) &&
-        (isReportManager(iouReport) || isPolicyAdmin(policy)) &&
-        isReportApproved({report: iouReport}) &&
-        !isSubmitAndClose(policy) &&
-        !iouReport?.isWaitingOnBankAccount
-    );
-}
-
 function canIOUBePaid(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
@@ -231,7 +221,9 @@ function canIOUBePaid(
     }
 
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, bankAccountList, policy, onlyShowPayElsewhere);
-    const canPay = isReportPayer || (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && isPolicyAdmin(policy));
+    const canPay =
+        isReportPayer ||
+        (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
 
     const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
@@ -268,10 +260,6 @@ function canIOUBePaid(
     );
 }
 
-function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxEntry<OnyxTypes.Session>, bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>) {
-    return isPayerReportUtils(session?.accountID, session?.email, iouReport, bankAccountList) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
-}
-
 function canSubmitReport(
     report: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
@@ -285,7 +273,8 @@ function canSubmitReport(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
-    const hasNoSubmittableTransaction = transactions.length > 0 && transactions.every((t) => isScanningTransaction(t) || hasSmartScanFailedWithMissingFields([t], report));
+    const hasNoSubmittableTransaction =
+        transactions.length > 0 && transactions.every((t) => isScanningTransaction(t) || (isExpensifyCardTransaction(t) && isPending(t)) || hasSmartScanFailedWithMissingFields([t], report));
     const hasAnySubmissionBlockingViolations = transactions.some((transaction) =>
         hasSubmissionBlockingViolations(transaction, allViolations, currentUserEmailParam, currentUserAccountID, report, policy),
     );
@@ -1898,10 +1887,8 @@ export {
     approveMoneyRequest,
     assignReportToMe,
     canApproveIOU,
-    canCancelPayment,
     canIOUBePaid,
     canSubmitReport,
-    canUnapproveIOU,
     clearPendingExpenseAction,
     getBadgeFromIOUReport,
     getIOUReportActionWithBadge,

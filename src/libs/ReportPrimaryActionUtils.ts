@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
+    canMemberWrite,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
@@ -58,6 +59,7 @@ import {
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
     isDuplicate,
+    isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isScanning,
@@ -137,7 +139,10 @@ function isSubmitAction(
 
     const reportTransactionsList = reportTransactions ?? [];
     const hasNoSubmittableTransaction =
-        reportTransactionsList.length > 0 && reportTransactionsList.every((transaction) => isScanning(transaction) || hasSmartScanFailedWithMissingFields([transaction], report));
+        reportTransactionsList.length > 0 &&
+        reportTransactionsList.every(
+            (transaction) => isScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report),
+        );
 
     if (hasNoSubmittableTransaction) {
         return false;
@@ -221,7 +226,10 @@ function isPrimaryPayAction({
     }
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
     const canPayReport =
-        isReportPayer || (canNonPayerAdminPay && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && isPolicyAdminPolicyUtils(policy));
+        isReportPayer ||
+        (canNonPayerAdminPay &&
+            policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
+            canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);

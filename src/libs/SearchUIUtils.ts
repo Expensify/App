@@ -2298,11 +2298,12 @@ function getReportNameValuePairsFromKey(data: OnyxTypes.SearchResults['data'], r
 function getSearchReportAvatarProps(
     report: OnyxTypes.Report,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    translate: LocalizedTranslate,
     personalDetailsList: OnyxTypes.PersonalDetailsList,
     policy?: OnyxTypes.Policy,
     isReportArchived = false,
 ) {
-    const avatarIcons = getIcons(report, formatPhoneNumber, personalDetailsList, null, '', -1, policy, undefined, isReportArchived);
+    const avatarIcons = getIcons(report, formatPhoneNumber, translate, personalDetailsList, null, '', -1, policy, undefined, isReportArchived);
     const hasSecondAvatar = avatarIcons.length > 1 && !!avatarIcons.at(1)?.name;
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
@@ -2607,7 +2608,7 @@ function getTaskSections(
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
                 const parentReportName = getReportName(parentReport, reportAttributesDerivedValue);
-                const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
+                const icons = getIcons(parentReport, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
 
                 result.parentReportName = parentReportName;
@@ -2909,7 +2910,7 @@ function getReportSections({
 
                 const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(reportItem);
                 const reportIsArchived = isArchivedReport(getReportNameValuePairsFromKey(data, reportItem));
-                const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, mergedPersonalDetails, policy, reportIsArchived);
+                const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, translate, mergedPersonalDetails, policy, reportIsArchived);
 
                 const isRejectedReport =
                     reportItem.stateNum === CONST.REPORT.STATE_NUM.OPEN &&
@@ -5890,9 +5891,9 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: shouldShowCommentsColumn,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: false,
           }
         : {
               [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
@@ -5960,11 +5961,11 @@ function getColumnsToShow({
             }
 
             if (shouldShowCommentsColumn && !addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
-                const totalIndex = result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
-                if (totalIndex === -1) {
+                const totalAmountIndex = result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+                if (totalAmountIndex === -1) {
                     result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
                 } else {
-                    result.splice(totalIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+                    result.splice(totalAmountIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
                 }
             }
 
@@ -6064,7 +6065,7 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }
             if (hasExchangeRate && isExpenseReportView) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT] = true;
+                columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL] = true;
             }
 
             if (!Array.isArray(data)) {
