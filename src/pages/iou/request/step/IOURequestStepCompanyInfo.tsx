@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserveSearchChannelIfGlobalCreate';
 import {startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import {extractUrlDomain} from '@libs/Url';
@@ -102,6 +103,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             },
             {skipSubmitExpenseSpan: true},
         );
+        reserveSearchChannelIfGlobalCreate(!!isFromGlobalCreate);
         const {invoiceRoomReportID, transactionID: invoiceTransactionID} = sendInvoice({
             currentUserAccountID: currentUserPersonalDetails.accountID,
             transaction,

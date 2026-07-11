@@ -10,6 +10,7 @@ import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserveSearchChannelIfGlobalCreate';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -371,17 +372,9 @@ function SubmitExpenseOrchestrator({
         });
     };
 
-    // A global-create submit off the inbox lands on Search — reserve the channel so the optimistic write defers behind the skeleton.
-    const reserveSearchChannelIfGlobalCreate = () => {
-        if (!isFromGlobalCreateForNavigation || isReportTopmostSplitNavigator()) {
-            return;
-        }
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-    };
-
     const handleDefaultSubmit = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
-        reserveSearchChannelIfGlobalCreate();
+        reserveSearchChannelIfGlobalCreate(isFromGlobalCreateForNavigation);
         requestAnimationFrame(() => {
             createTransaction(locationPermissionGranted);
             requestAnimationFrame(() => {
