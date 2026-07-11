@@ -48,16 +48,14 @@ function detachReceipt(
     transactionPolicy: OnyxEntry<OnyxTypes.Policy>,
     transactionPolicyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    transactionReport: OnyxEntry<OnyxTypes.Report>,
     transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     if (!transactionID) {
         return;
     }
     const allTransactions = getAllTransactions();
-    const allReports = getAllReports();
-
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const newTransaction = transaction
         ? {
               ...transaction,
@@ -116,7 +114,7 @@ function detachReceipt(
             policyTagList: transactionPolicyTagList ?? {},
             policyCategories: transactionPolicyCategories ?? {},
             hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
-            isInvoiceTransaction: isInvoiceReportReportUtils(expenseReport),
+            isInvoiceTransaction: isInvoiceReportReportUtils(transactionReport),
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({
@@ -126,7 +124,7 @@ function detachReceipt(
         });
     }
 
-    const updatedReportAction = buildOptimisticDetachReceipt(expenseReport?.reportID, transactionID, transaction?.merchant);
+    const updatedReportAction = buildOptimisticDetachReceipt(transactionReport?.reportID, transactionID, transaction?.merchant);
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -147,20 +145,20 @@ function detachReceipt(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${updatedReportAction?.reportID}`,
         value: {
-            lastVisibleActionCreated: expenseReport?.lastVisibleActionCreated,
-            lastReadTime: expenseReport?.lastReadTime,
+            lastVisibleActionCreated: transactionReport?.lastVisibleActionCreated,
+            lastReadTime: transactionReport?.lastReadTime,
         },
     });
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReport?.reportID}`,
         value: {
             [updatedReportAction.reportActionID]: {pendingAction: null},
         },
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReport?.reportID}`,
         value: {
             [updatedReportAction.reportActionID]: {
                 ...(updatedReportAction as OnyxTypes.ReportAction),
