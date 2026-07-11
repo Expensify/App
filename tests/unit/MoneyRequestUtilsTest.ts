@@ -442,6 +442,10 @@ describe('getStringFieldHasUnsavedChanges (hours, manual distance)', () => {
         it('does not flag an empty field', () => {
             expect(getStringFieldHasUnsavedChanges('', '', true)).toBe(false);
         });
+
+        it('flags a cleared field when the draft already holds a value (revisited after Next)', () => {
+            expect(getStringFieldHasUnsavedChanges('', '5', true)).toBe(true);
+        });
     });
 
     describe('editing (only a change counts)', () => {

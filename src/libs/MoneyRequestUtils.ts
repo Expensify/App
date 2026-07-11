@@ -232,7 +232,7 @@ function getAmountHasUnsavedChanges({typedAmount, committedAmount, isCreateEntry
 
 /** Whether a raw-string money-request step (hours, manual distance) has unsaved input. */
 function getStringFieldHasUnsavedChanges(typedValue: string, committedValue: string, isCreateEntry: boolean): boolean {
-    return isCreateEntry ? typedValue !== '' : typedValue !== committedValue;
+    return isCreateEntry ? typedValue !== '' || committedValue !== '' : typedValue !== committedValue;
 }
 
 /** Whether the distance (map) step has unsaved waypoints. */
