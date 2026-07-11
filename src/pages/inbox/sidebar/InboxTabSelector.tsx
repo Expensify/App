@@ -4,16 +4,11 @@ import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import useLocalize from '@hooks/useLocalize';
 import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React from 'react';
-import {View} from 'react-native';
-
 function InboxTabSelector() {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const {activeTab, inboxTabCounts} = useSidebarOrderedReportsState();
     const {setActiveTab} = useSidebarOrderedReportsActions();
 
@@ -28,34 +23,26 @@ function InboxTabSelector() {
             key: CONST.INBOX_TAB.UNREAD,
             title: translate('inboxTabs.unread'),
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.UNREAD]),
-            isBadgeCondensed: true,
-            badgeStyles: styles.inboxTabBadge,
         },
         {
             key: CONST.INBOX_TAB.TODO,
             title: translate('inboxTabs.todo'),
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.TODO]),
-            isBadgeCondensed: true,
-            badgeStyles: styles.inboxTabBadge,
         },
     ];
 
     return (
         <TabSelectorContextProvider activeTabKey={activeTab}>
-            <View style={styles.pt1}>
-                <TabSelectorBase
-                    tabs={tabs}
-                    activeTabKey={activeTab}
-                    onTabPress={(key) => {
-                        if (key !== CONST.INBOX_TAB.ALL && key !== CONST.INBOX_TAB.UNREAD && key !== CONST.INBOX_TAB.TODO) {
-                            return;
-                        }
-                        setActiveTab(key);
-                    }}
-                    equalWidth
-                    contentContainerStyles={styles.pb1}
-                />
-            </View>
+            <TabSelectorBase
+                tabs={tabs}
+                activeTabKey={activeTab}
+                onTabPress={(key) => {
+                    if (key !== CONST.INBOX_TAB.ALL && key !== CONST.INBOX_TAB.UNREAD && key !== CONST.INBOX_TAB.TODO) {
+                        return;
+                    }
+                    setActiveTab(key);
+                }}
+            />
         </TabSelectorContextProvider>
     );
 }

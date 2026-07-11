@@ -4613,13 +4613,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 20,
         },
 
-        inboxTabBadge: {
-            minWidth: 18,
-            height: 16,
-            marginLeft: 8,
-            justifyContent: 'center',
-        },
-
         scrollableTabSelector: {
             flexGrow: 0,
         },
