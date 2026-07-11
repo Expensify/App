@@ -27,14 +27,17 @@ function traceTransformer() {
     };
 }
 
-// This config is no longer read by the web build. Rsbuild's JS/TS/JSX pipeline (see
-// config/rsbuild/rsbuild.common.ts) uses OXC directly with inline loader options
-// (configFile:false), bypassing this file entirely. Kept here for tooling compatibility
-// (e.g. IDE plugins that load babel.config.js without setting a caller name).
-// The presets/plugins that previously lived here (@babel/preset-react, @babel/preset-env,
-// @babel/preset-flow, @babel/preset-typescript, babel-plugin-react-native-web, and several
-// class-property/export-namespace transforms) have been removed from devDependencies because
-// OXC now handles those transforms natively in the web build.
+// Rsbuild's web build no longer reads this: its JS/TS/JSX pipeline (see
+// config/rsbuild/rsbuild.common.ts) calls OXC directly with configFile:false, bypassing
+// this file entirely. This `web` config object is still read, though — ESLint's
+// @babel/eslint-parser loads babel.config.js for every file it lints (caller name is
+// always undefined or '@babel/eslint-parser', never 'metro'/'babel-jest', so it always
+// falls into this branch below) to resolve syntax plugins like `exportNamespaceFrom`
+// needed to parse the same syntax the web bundle uses. The presets/plugins that
+// previously lived here (@babel/preset-react, @babel/preset-env, @babel/preset-flow,
+// @babel/preset-typescript, babel-plugin-react-native-web, and several class-property
+// transforms) have been removed from devDependencies because OXC now handles those
+// transforms natively in the web build and ESLint doesn't need them for parsing.
 const web = {
     presets: [],
     plugins: [
