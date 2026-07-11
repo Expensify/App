@@ -5,20 +5,13 @@
  * release), which caused the build to fail instead of bailing out on components
  * that violate the Rules of React — the same behaviour as babel-plugin-react-compiler.
  *
- * Options mirror oxc-loader's TransformOptions plus `reactCompiler`.
- * This loader replaces oxc-loader entirely for Rule A (app source).
+ * Options mirror oxc-webpack-loader's TransformOptions plus `reactCompiler`.
+ * This loader replaces oxc-webpack-loader entirely for Rule A (app source).
  */
 
 const path = require('path');
 const {getTsconfig} = require('get-tsconfig');
-
-// Resolve the oxc-transform binary that oxc-loader itself uses (its nested copy)
-// so we stay on the same native binary version as oxc-loader.
-const oxcTransformPath = require.resolve('oxc-transform', {
-    paths: [path.resolve(__dirname, '../../node_modules/oxc-loader')],
-});
-
-const {transform} = require(oxcTransformPath);
+const {transform} = require('oxc-transform');
 
 function extractTsconfigOptions(rootContext) {
     try {

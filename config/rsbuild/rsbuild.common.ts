@@ -290,7 +290,7 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                                     plugins: ['react-native-worklets/plugin'],
                                 },
                             },
-                            {loader: 'oxc-loader', options: {target: 'node20'}},
+                            {loader: 'oxc-webpack-loader', options: {target: 'node20'}},
                         ],
                     },
                     // Rule B2: JavaScript — need explicit jsx to upgrade .js lang to jsx.
@@ -308,7 +308,7 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                                 },
                             },
                             {
-                                loader: 'oxc-loader',
+                                loader: 'oxc-webpack-loader',
                                 options: {target: 'node20', jsx: {runtime: 'automatic'}},
                             },
                         ],

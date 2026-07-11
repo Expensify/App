@@ -72,7 +72,7 @@
         "patch-package",
         "diff-so-fancy",
         "babel-loader",
-        "oxc-loader",
+        "oxc-webpack-loader",
         "@babel/plugin-proposal-class-properties"
     ],
     "ignoreBinaries": ["metro-symbolicate", "mkcert"]
