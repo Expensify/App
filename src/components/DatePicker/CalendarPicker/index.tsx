@@ -28,13 +28,10 @@ import React, {useCallback, useContext, useEffect, useRef, useState} from 'react
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
-import type CalendarPickerListItem from './types';
-
 import ArrowIcon from './ArrowIcon';
 import Day from './Day';
 import generateMonthMatrix from './generateMonthMatrix';
 import MonthPickerModal from './MonthPickerModal';
-import YearPickerModal from './YearPickerModal';
 
 type CalendarPickerProps = {
     /** An initial value of date string */

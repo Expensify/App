@@ -1,10 +1,13 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import type {ReactNode} from 'react';
-import React, {useContext, useEffect} from 'react';
-import {Text, View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+
 import ReanimatedModal from '@components/Modal/ReanimatedModal';
 import HiddenForOverlayContext from '@components/Modal/ReanimatedModal/HiddenForOverlayContext';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useContext, useEffect} from 'react';
+import {Text, View} from 'react-native';
 
 // The presentation-only subtrees are stubbed so the suite exercises ReanimatedModal's real logic: the
 // HiddenForOverlayContext provider, the hidden-for-overlay state, the container hide style, and the backdrop
@@ -98,6 +101,8 @@ function renderModal(children: ReactNode) {
             hasBackdrop
             onBackdropPress={jest.fn()}
             onBackButtonPress={jest.fn()}
+            // required by GestureHandlerProps since the latest main; swipes aren't exercised here
+            swipeThreshold={0}
         >
             {children}
         </ReanimatedModal>,
