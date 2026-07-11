@@ -45,14 +45,7 @@ function getRequireFieldsRuleKey(categoryName: string): string {
 }
 
 function parseRequireFieldsRuleKey(ruleKey: string): {categoryName: string} {
-    const separator = CONST.FIELD_REQUIREMENTS_RULE_KEY_SEPARATOR;
-    const separatorIndex = ruleKey.indexOf(separator);
-
-    if (separatorIndex === -1) {
-        return {categoryName: ruleKey};
-    }
-
-    return {categoryName: ruleKey.slice(separatorIndex + separator.length)};
+    return {categoryName: ruleKey};
 }
 
 function getRequireFieldsRuleNavigationRoute(policyID: string, categoryName: string): Route {
@@ -263,21 +256,53 @@ function isReceiptOverrideValue(value: ReceiptOverrideTarget): value is number {
     return typeof value === 'number';
 }
 
+function shouldApplyReceiptFieldSetting(
+    fieldKey: typeof INPUT_IDS.RECEIPT_SETTING | typeof INPUT_IDS.ITEMIZED_RECEIPT_SETTING,
+    category: PolicyCategory | undefined,
+    effectiveForm: RequireFieldsRuleForm,
+    initialForm: Partial<RequireFieldsRuleForm>,
+    touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+): boolean {
+    const setting = effectiveForm[fieldKey];
+    const initialSetting = initialForm[fieldKey];
+
+    if (setting !== initialSetting) {
+        return true;
+    }
+
+    const isWaived = fieldKey === INPUT_IDS.RECEIPT_SETTING ? isReceiptWaivedForCategory : isItemizedReceiptWaivedForCategory;
+    const isRequireOverride = fieldKey === INPUT_IDS.RECEIPT_SETTING ? isReceiptRequireOverrideForCategory : isItemizedReceiptRequireOverrideForCategory;
+
+    return hasExplicitReceiptWaiveIntentForCategory(category, setting, !!touchedFields?.has(fieldKey), isWaived, isRequireOverride);
+}
+
 function applyRequireFieldsReceiptSettings(
     policyData: PolicyData,
     categoryName: string,
     category: PolicyCategory | undefined,
-    receiptSetting: FieldRequirementsDirection,
-    itemizedReceiptSetting: FieldRequirementsDirection,
+    effectiveForm: RequireFieldsRuleForm,
+    initialForm: Partial<RequireFieldsRuleForm>,
+    touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
 ) {
-    let receiptTarget = getReceiptOverrideTarget(category?.maxAmountNoReceipt, receiptSetting);
-    let itemizedTarget = getReceiptOverrideTarget(category?.maxAmountNoItemizedReceipt, itemizedReceiptSetting);
+    const receiptSetting = effectiveForm[INPUT_IDS.RECEIPT_SETTING];
+    const itemizedReceiptSetting = effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING];
+    const shouldApplyReceiptSetting = shouldApplyReceiptFieldSetting(INPUT_IDS.RECEIPT_SETTING, category, effectiveForm, initialForm, touchedFields);
+    const shouldApplyItemizedReceiptSetting = shouldApplyReceiptFieldSetting(INPUT_IDS.ITEMIZED_RECEIPT_SETTING, category, effectiveForm, initialForm, touchedFields);
 
-    if (receiptTarget === CONST.DISABLED_MAX_EXPENSE_VALUE && itemizedTarget === undefined && !isWaiveReceiptThreshold(category?.maxAmountNoItemizedReceipt)) {
+    let receiptTarget = shouldApplyReceiptSetting ? getReceiptOverrideTarget(category?.maxAmountNoReceipt, receiptSetting) : undefined;
+    let itemizedTarget = shouldApplyItemizedReceiptSetting ? getReceiptOverrideTarget(category?.maxAmountNoItemizedReceipt, itemizedReceiptSetting) : undefined;
+
+    if (shouldApplyReceiptSetting && receiptTarget === CONST.DISABLED_MAX_EXPENSE_VALUE && itemizedTarget === undefined && !isWaiveReceiptThreshold(category?.maxAmountNoItemizedReceipt)) {
         itemizedTarget = CONST.DISABLED_MAX_EXPENSE_VALUE;
     }
 
-    if (itemizedReceiptSetting === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE && itemizedTarget === 0 && receiptTarget !== 0 && category?.maxAmountNoReceipt !== 0) {
+    if (
+        shouldApplyItemizedReceiptSetting &&
+        itemizedReceiptSetting === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE &&
+        itemizedTarget === 0 &&
+        receiptTarget !== 0 &&
+        category?.maxAmountNoReceipt !== 0
+    ) {
         receiptTarget = 0;
     }
 
@@ -324,7 +349,7 @@ function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleFo
     }
 
     if (hasReceiptSettingsChanged(category, effectiveForm, initialForm, touchedFields)) {
-        applyRequireFieldsReceiptSettings(policyData, categoryName, category, effectiveForm[INPUT_IDS.RECEIPT_SETTING], effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING]);
+        applyRequireFieldsReceiptSettings(policyData, categoryName, category, effectiveForm, initialForm, touchedFields);
     }
 }
 

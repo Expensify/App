@@ -4825,7 +4825,6 @@ const CONST = {
         REQUIRE: 'require',
         DO_NOT_REQUIRE: 'doNotRequire',
     },
-    FIELD_REQUIREMENTS_RULE_KEY_SEPARATOR: '::',
     SPEND_RULES: {
         BADGE_VARIANTS: {
             SUCCESS: 'success',
