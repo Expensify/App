@@ -54,8 +54,8 @@ const STUBS = {
 plugin({
     name: 'stub-react-native',
     setup(build) {
-        Object.entries(STUBS).forEach(([specifier, stub]) => {
+        for (const [specifier, stub] of Object.entries(STUBS)) {
             build.module(specifier, () => ({exports: {...stub, default: stub}, loader: 'object'}));
-        });
+        }
     },
 });
