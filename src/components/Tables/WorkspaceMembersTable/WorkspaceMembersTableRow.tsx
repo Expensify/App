@@ -60,7 +60,11 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.LIST_ROW}
-            offlineWithFeedback={{errors: item.errors, pendingAction: item.pendingAction, onClose: item.dismissError}}
+            offlineWithFeedback={{
+                errors: item.errors,
+                pendingAction: item.pendingAction,
+                onClose: item.dismissError,
+            }}
             onPress={item.action}
         >
             {(hovered) => (
@@ -90,13 +94,23 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
 
                     {!shouldUseNarrowTableLayout && shouldShowCustomField1Column && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text numberOfLines={1}>{item.employeeUserID}</Text>
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.employeeUserID ?? ''}
+                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            />
                         </View>
                     )}
 
                     {!shouldUseNarrowTableLayout && shouldShowCustomField2Column && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text numberOfLines={1}>{item.employeePayrollID}</Text>
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.employeePayrollID ?? ''}
+                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            />
                         </View>
                     )}
 
