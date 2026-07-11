@@ -40,8 +40,7 @@ type CreateTrackExpenseParams = {
     defaultWorkspaceName?: string;
     currentUserLocalCurrency: string | undefined;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
-    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions> | undefined;
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
     isDraftChatReport?: boolean;
