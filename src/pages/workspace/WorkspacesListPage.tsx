@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
-import WorkspaceListLayout from '@components/WorkspaceListLayout';
+import WorkspaceListLayout, {WorkspaceListHeaderContent} from '@components/WorkspaceListLayout';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -171,8 +171,9 @@ function WorkspacesListPage() {
         }
     }
 
+    const duplicateWorkspacePolicyID = duplicateWorkspace?.policyID;
     useEffect(() => {
-        const duplicatedWSPolicyID = duplicateWorkspace?.policyID;
+        const duplicatedWSPolicyID = duplicateWorkspacePolicyID;
         const filteredWorkspaces = tableRef.current?.getProcessedData() ?? [];
 
         if (!duplicatedWSPolicyID || !filteredWorkspaces.length || !isFocused) {
@@ -180,6 +181,7 @@ function WorkspacesListPage() {
         }
 
         const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicatedWSPolicyID);
+
         if (duplicateWorkspaceIndex < 0) {
             return;
         }
@@ -190,7 +192,7 @@ function WorkspacesListPage() {
         });
 
         return () => handle.cancel();
-    }, [duplicateWorkspace?.policyID, isFocused, workspaceRows.length]);
+    }, [duplicateWorkspacePolicyID, isFocused, workspaceRows.length]);
 
     // Scroll to the top when the list gets its first workspace, so it's visible. On web, returning from the create
     // flow restores the scroll position the empty list had (it was scrolled down to reach the "New workspace" button),
@@ -221,6 +223,12 @@ function WorkspacesListPage() {
             icon={icons.Plus}
         />
     );
+    const headerComponent = (
+        <WorkspaceListHeaderContent
+            activeTabKey="workspaces"
+            headerButton={headerButton}
+        />
+    );
 
     const onBackButtonPress = () => {
         Navigation.goBack(route.params?.backTo);
@@ -233,35 +241,43 @@ function WorkspacesListPage() {
         <WorkspaceListLayout
             activeTabKey="workspaces"
             headerButton={headerButton}
+            headerComponent={headerComponent}
+            scrollHeaderWithTable
         >
-            {shouldShowLoadingIndicator ? (
-                <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={
-                            {
-                                context: 'WorkspacesListPage',
-                                isOffline,
-                            } satisfies SkeletonSpanReasonAttributes
-                        }
+            <>
+                {shouldShowLoadingIndicator ? (
+                    <>
+                        {headerComponent}
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={
+                                    {
+                                        context: 'WorkspacesListPage',
+                                        isOffline,
+                                    } satisfies SkeletonSpanReasonAttributes
+                                }
+                            />
+                        </View>
+                    </>
+                ) : (
+                    <WorkspaceListTable
+                        ref={tableRef}
+                        workspaces={workspaceRows}
+                        headerComponent={headerComponent}
+                        onDeleteWorkspace={setPolicyIDToDelete}
+                        pendingDeletePolicyID={policyIDToDelete}
                     />
-                </View>
-            ) : (
-                <WorkspaceListTable
-                    ref={tableRef}
-                    workspaces={workspaceRows}
-                    onDeleteWorkspace={setPolicyIDToDelete}
-                    pendingDeletePolicyID={policyIDToDelete}
-                />
-            )}
-            {!!policyIDToDelete && (
-                <DeleteWorkspaceFlow
-                    key={policyIDToDelete}
-                    policyID={policyIDToDelete}
-                    onDismiss={() => setPolicyIDToDelete(undefined)}
-                />
-            )}
-            <CopyPolicySettingsProgressModal />
+                )}
+                {!!policyIDToDelete && (
+                    <DeleteWorkspaceFlow
+                        key={policyIDToDelete}
+                        policyID={policyIDToDelete}
+                        onDismiss={() => setPolicyIDToDelete(undefined)}
+                    />
+                )}
+                <CopyPolicySettingsProgressModal />
+            </>
         </WorkspaceListLayout>
     );
 }

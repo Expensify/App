@@ -16,9 +16,10 @@ type WorkspaceRequireFieldsTableProps = {
     selectedKeys: string[];
     emptyState: TableEmptyStateProps;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
 
-function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyState}: WorkspaceRequireFieldsTableProps) {
+function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, emptyState}: WorkspaceRequireFieldsTableProps) {
     const {translate} = useLocalize();
 
     const renderRow = ({item, rowIndex, shouldUseNarrowTableLayout}: TableRenderRowProps<RequireFieldsTableItem>) => (
@@ -36,6 +37,7 @@ function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys,
             selectionEnabled={selectionEnabled}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
+            headerComponent={headerComponent}
             emptyState={emptyState}
             tableTitle={translate('workspace.rules.tabs.requireFields')}
             findRuleLabel={translate('workspace.rules.requireFieldsTable.findRule')}

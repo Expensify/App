@@ -1,4 +1,4 @@
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableRenderRowProps} from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
@@ -29,6 +29,7 @@ type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
     emptyStateContent?: React.ReactElement;
     tableTitle: string;
     findRuleLabel: string;
@@ -44,6 +45,7 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
     selectionEnabled,
     selectedKeys,
     onRowSelectionChange,
+    headerComponent,
     tableTitle,
     findRuleLabel,
     typeColumnLabel,
@@ -95,6 +97,9 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
 
     const renderItem = ({item, index}: ListRenderItemInfo<TItem>) => renderRow({item, rowIndex: index, shouldUseNarrowTableLayout});
 
+    const searchBarComponent = <Table.FilterBar label={findRuleLabel} />;
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+
     return (
         <Table
             data={rulesData}
@@ -109,11 +114,11 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
             initialSortColumn="condition"
             narrowLayoutSortColumn="condition"
             title={tableTitle}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
-            <Table.FilterBar label={findRuleLabel} />
             <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
-            <Table.Header />
             <Table.Body />
         </Table>
     );

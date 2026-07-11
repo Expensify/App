@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -32,12 +32,13 @@ type PersonalExpenseRuleRowData = TableData & {
 };
 
 type PersonalExpenseRulesTableProps = {
+    headerComponent?: React.ReactElement;
     personalExpenseRules: PersonalExpenseRuleRowData[];
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function PersonalExpenseRulesTable({personalExpenseRules, selectedKeys, onRowSelectionChange}: PersonalExpenseRulesTableProps) {
+export default function PersonalExpenseRulesTable({headerComponent, personalExpenseRules, selectedKeys, onRowSelectionChange}: PersonalExpenseRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -94,6 +95,9 @@ export default function PersonalExpenseRulesTable({personalExpenseRules, selecte
         Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute());
     };
 
+    const searchBarComponent = <Table.FilterBar label={translate('expenseRulesPage.findRule')} />;
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+
     return (
         <Table
             selectionEnabled
@@ -107,8 +111,9 @@ export default function PersonalExpenseRulesTable({personalExpenseRules, selecte
             renderItem={renderPersonalExpenseRuleItem}
             onRowSelectionChange={onRowSelectionChange}
             keyExtractor={(rule) => rule.keyForList}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
-            <Table.FilterBar label={translate('expenseRulesPage.findRule')} />
             <Table.EmptyState
                 title={translate('expenseRulesPage.emptyRules.title')}
                 subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
@@ -122,7 +127,6 @@ export default function PersonalExpenseRulesTable({personalExpenseRules, selecte
                 ]}
             />
             <Table.NoResultsState />
-            <Table.Header />
             <Table.Body />
         </Table>
     );

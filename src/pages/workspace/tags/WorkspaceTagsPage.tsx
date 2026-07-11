@@ -875,21 +875,18 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         />
                     )}
                     {!isLoading && (
-                        <>
-                            {hasVisibleTags && headerContent}
-
-                            <WorkspaceTagsTable
-                                tags={tagRows}
-                                selectionEnabled={canWriteTags && !hasDependentTags}
-                                selectedKeys={selectedTagKeys}
-                                isMultiLevelTags={isMultiLevelTags}
-                                hasDependentTags={hasDependentTags}
-                                shouldShowApproverColumn={shouldShowApproverColumn}
-                                shouldShowGLCodeColumn={shouldShowGLCodeColumn}
-                                emptyState={tagsTableEmptyState}
-                                onRowSelectionChange={setSelectedTagKeys}
-                            />
-                        </>
+                        <WorkspaceTagsTable
+                            tags={tagRows}
+                            selectionEnabled={canWriteTags && !hasDependentTags}
+                            selectedKeys={selectedTagKeys}
+                            isMultiLevelTags={isMultiLevelTags}
+                            hasDependentTags={hasDependentTags}
+                            shouldShowApproverColumn={shouldShowApproverColumn}
+                            shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                            emptyState={tagsTableEmptyState}
+                            onRowSelectionChange={setSelectedTagKeys}
+                            headerComponent={hasVisibleTags ? headerContent : undefined}
+                        />
                     )}
                 </ScreenWrapper>
             </AccessOrNotFoundWrapper>

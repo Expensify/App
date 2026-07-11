@@ -679,33 +679,17 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 )}
 
                 {!isLoading && (
-                    <>
-                        {hasVisibleCategories && (
-                            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                                {!hasSyncError && isConnectionVerified && currentConnectionName ? (
-                                    <ImportedFromAccountingSoftware
-                                        policyID={policyId}
-                                        currentConnectionName={currentConnectionName}
-                                        connectedIntegration={connectedIntegration}
-                                        translatedText={translate('workspace.categories.importedFromAccountingSoftware')}
-                                    />
-                                ) : (
-                                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-                                )}
-                            </View>
-                        )}
-
-                        <WorkspaceCategoriesTable
-                            categories={categoryRows}
-                            selectionEnabled={canWriteCategories}
-                            selectedKeys={selectedCategoryKeys}
-                            emptyStateSubtitleText={subtitleText}
-                            emptyStateButtons={emptyStateButtons}
-                            shouldShowGLCodeColumn={shouldShowGLCodeColumn}
-                            shouldShowApproverColumn={shouldShowApproverColumn}
-                            onRowSelectionChange={setSelectedCategoryKeys}
-                        />
-                    </>
+                    <WorkspaceCategoriesTable
+                        categories={categoryRows}
+                        selectionEnabled={canWriteCategories}
+                        selectedKeys={selectedCategoryKeys}
+                        emptyStateSubtitleText={subtitleText}
+                        emptyStateButtons={emptyStateButtons}
+                        shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                        shouldShowApproverColumn={shouldShowApproverColumn}
+                        onRowSelectionChange={setSelectedCategoryKeys}
+                        headerComponent={hasVisibleCategories ? headerContent : undefined}
+                    />
                 )}
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}

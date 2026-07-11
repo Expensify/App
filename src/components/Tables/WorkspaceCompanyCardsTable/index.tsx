@@ -3,7 +3,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import CardFeedIcon from '@components/CardFeedIcon';
 import ScrollView from '@components/ScrollView';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Text from '@components/Text';
 
@@ -367,8 +367,10 @@ function WorkspaceCompanyCardsTable({
             isItemInFilter={isItemInFilter}
             initialSortColumn="member"
             title={translate('workspace.common.companyCards')}
+            headerComponent={showCards ? composeTableHeaderComponent(headerButtonsComponent, <Table.FilterBar label={translate('workspace.companyCards.findCard')} />) : undefined}
+            shouldUseStickyColumnHeader={showCards}
         >
-            {headerButtonsComponent}
+            {!showCards && headerButtonsComponent}
 
             {isLoadingCards && <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>}
 
@@ -416,24 +418,22 @@ function WorkspaceCompanyCardsTable({
                 </ScrollView>
             )}
 
+            {/* Table.EmptyState and Table.NoResultsState must stay direct children (not wrapped in a fragment)
+            so the Table root can extract them and render them inside the scrolling list when cards are shown. */}
             {showCards && (
-                <>
-                    <Table.FilterBar label={translate('workspace.companyCards.findCard')} />
-                    <Table.EmptyState
-                        headerMedia={illustrations.LaptopAssignCard}
-                        containerStyles={styles.mt5}
-                        headerStyles={styles.emptyStateCardIllustrationContainer}
-                        headerContentStyles={styles.pendingStateCardIllustration}
-                        title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
-                        subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}
-                    >
-                        {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
-                    </Table.EmptyState>
-                    <Table.NoResultsState />
-                    <Table.Header />
-                    <Table.Body />
-                </>
+                <Table.EmptyState
+                    headerMedia={illustrations.LaptopAssignCard}
+                    containerStyles={styles.mt5}
+                    headerStyles={styles.emptyStateCardIllustrationContainer}
+                    headerContentStyles={styles.pendingStateCardIllustration}
+                    title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
+                    subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}
+                >
+                    {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
+                </Table.EmptyState>
             )}
+            {showCards && <Table.NoResultsState />}
+            {showCards && <Table.Body />}
         </Table>
     );
 }

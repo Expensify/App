@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -24,9 +24,12 @@ type WorkspaceRoomsTableProps = {
 
     /** The reportID of the room that should play the highlight animation (e.g. when it was just created) */
     highlightedReportID?: string;
+
+    /** Content rendered above the table header inside the scrollable list */
+    headerComponent?: React.ReactElement;
 };
 
-function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, highlightedReportID, headerComponent}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -77,6 +80,8 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
         />
     );
 
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, <Table.FilterBar label={translate('workspace.common.findRoom')} />);
+
     return (
         <Table
             ref={tableRef}
@@ -88,10 +93,10 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
             initialSortColumn="name"
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
-            <Table.FilterBar label={translate('workspace.common.findRoom')} />
             <Table.NoResultsState />
-            <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
         </Table>
     );
