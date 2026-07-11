@@ -94,7 +94,7 @@ function TermsStep({policyID, resolvedDomain}: EnableTravelSubPageProps) {
 
                 // Handle permission denied error
                 if (errorCode === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.path));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(domain)));
                     cleanupTravelProvisioningSession();
                     return Promise.reject(new Error('Permission denied'));
                 }

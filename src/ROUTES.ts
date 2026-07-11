@@ -932,6 +932,8 @@ const DYNAMIC_ROUTES = {
     TRAVEL_DOMAIN_PERMISSION_INFO: {
         path: 'domain-permission-info',
         entryScreens: [SCREENS.TRAVEL.ENABLE],
+        getRoute: (domain: string) => getUrlWithParams('domain-permission-info', {domain}),
+        queryParams: ['domain'],
     },
     TRAVEL_UPGRADE: {
         path: 'travel-upgrade',

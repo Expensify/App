@@ -43,10 +43,19 @@ const STEP_COMPONENT_BY_PAGE_NAME: Record<string, typeof LegalNameStep> = {
 };
 
 type EnableTravelContentProps = {
+    /** The workspace being enabled for travel */
     policy: OnyxEntry<Policy>;
+
+    /** ID of the workspace being enabled for travel */
     policyID: string;
+
+    /** The current user's account, used to check validation status */
     account: OnyxEntry<Account>;
+
+    /** The current user's private personal details, used to detect a missing legal name */
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
+
+    /** Persisted provisioning session state (frozen step list, selected domain, tax ID) */
     travelProvisioning: OnyxEntry<TravelProvisioning>;
 };
 
