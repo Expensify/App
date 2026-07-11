@@ -193,7 +193,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             isFromGlobalCreate: true,
             isInvoice: true,
             hasMultipleTransactions: false,
-            shouldAddPendingNewTransactionIDs: true,
+            shouldAddPendingNewTransactionIDs: false,
         });
     });
 
@@ -263,6 +263,22 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
                 draftTransactionIDs: [],
                 transactionID: 'txn-1',
                 isFromGlobalCreate: false,
+            });
+
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false}));
+        });
+
+        it('should be false for an invoice — invoice rooms render no pending-consuming preview card', () => {
+            jest.mocked(isMoneyRequestReport).mockReturnValue(false);
+
+            cleanupAndNavigateAfterExpenseCreate({
+                action: CONST.IOU.ACTION.CREATE,
+                report: undefined,
+                draftTransactionIDs: [],
+                transactionID: 'txn-1',
+                isFromGlobalCreate: true,
+                optimisticChatReportID: 'invoice-room-1',
+                isInvoice: true,
             });
 
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false}));

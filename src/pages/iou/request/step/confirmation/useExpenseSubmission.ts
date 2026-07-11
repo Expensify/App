@@ -944,7 +944,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const invoiceChatReport = !isEmptyObject(report) && report?.reportID ? report : existingInvoiceReport;
             const invoiceChatReportID = invoiceChatReport ? undefined : reportID;
 
-            sendInvoice({
+            const {invoiceRoomReportID, transactionID: invoiceTransactionID} = sendInvoice({
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 transaction,
                 policyRecentlyUsedCurrencies,
@@ -958,8 +958,20 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
-                shouldHandleNavigation,
             });
+            if (shouldHandleNavigation) {
+                cleanupAndNavigateAfterExpenseCreate({
+                    report: undefined,
+                    action,
+                    draftTransactionIDs,
+                    transactionID: invoiceTransactionID,
+                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                    optimisticChatReportID: invoiceRoomReportID,
+                    isInvoice: true,
+                });
+            } else {
+                cleanupAfterExpenseCreate({draftTransactionIDs});
+            }
             markSubmitExpenseEnd();
             return;
         }
