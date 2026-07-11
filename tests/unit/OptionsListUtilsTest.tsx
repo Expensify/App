@@ -5517,6 +5517,56 @@ describe('OptionsListUtils', () => {
             });
             expect(result).toBe(expectedVisibleText);
         });
+        it('should return "@Hidden" when last action is an ADD_COMMENT mentioning a user not in personal details', async () => {
+            // Given a chat report whose last action is an ADD_COMMENT that mentions a user who does not exist in personal details
+            const mentionedAccountID = 999999;
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+            const addCommentAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: DateUtils.getDBTime(),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: `<mention-user accountID="${mentionedAccountID}"></mention-user>`,
+                        text: '',
+                        isEdited: false,
+                        isDeletedParentAction: false,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user accountID="${mentionedAccountID}"></mention-user>`,
+                    mentionedAccountIDs: [mentionedAccountID],
+                },
+                shouldShow: true,
+                pendingAction: null,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [addCommentAction.reportActionID]: addCommentAction,
+            });
+            await waitForBatchedUpdates();
+
+            // When we get the last message text while the mentioned user is absent from personal details
+            const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                lastAction: addCommentAction,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+
+            // Then the mention should fall back to the hidden placeholder
+            expect(lastMessage).toBe(`@${translateLocal('common.hidden')}`);
+        });
         it('should return "No activity yet" for MoneyRequestReport with zero transactions', async () => {
             const report: Report = {
                 ...createRandomReport(0, undefined),
