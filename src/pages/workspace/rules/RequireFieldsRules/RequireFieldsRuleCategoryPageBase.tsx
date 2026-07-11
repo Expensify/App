@@ -48,16 +48,12 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
             return {name: decodedCategoryName, value: category.name};
         });
 
-    const backToRoute = (selectedValue?: string) => {
-        const activeCategoryName = selectedValue !== undefined ? selectedValue : selectedCategoryName;
-
-        return getRequireFieldsRuleBackToRoute({
+    const backToRoute = () =>
+        getRequireFieldsRuleBackToRoute({
             policyID,
             isEditing,
             categoryName,
-            selectedCategoryName: activeCategoryName,
         });
-    };
 
     const onSave = (value?: string) => {
         const selectedCategory = value ? policyCategories?.[value] : undefined;

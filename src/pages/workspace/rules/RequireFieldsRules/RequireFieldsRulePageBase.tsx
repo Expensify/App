@@ -178,7 +178,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
             deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName));
         }
 
-        saveRequireFieldsRule(policyData, formToSave);
+        saveRequireFieldsRule(policyData, formToSave, touchedFields);
 
         if (!isEditing && isRulesRevampEnabled) {
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.REQUIRE_FIELDS);
@@ -209,8 +209,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     if (!isEditing && !!policy && !canWriteRules) {
         return <NotFoundPage />;
     }
-
-    const activeCategoryName = selectedCategoryName ?? categoryName;
 
     const footer = canWriteRules ? (
         <FormAlertWithSubmitButton
@@ -247,7 +245,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                         description={translate('common.category')}
                         title={categoryDisplayName}
                         errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? activeCategoryName : undefined)) : undefined}
+                        onPress={canWriteRules ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
                         icon={icons.Folder}

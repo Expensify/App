@@ -182,15 +182,63 @@ function getEffectiveRequireFieldsRuleForm(category: PolicyCategory | undefined,
     };
 }
 
-function hasRequireFieldsRuleChanges(category: PolicyCategory | undefined, effectiveForm: RequireFieldsRuleForm): boolean {
-    const initialForm = getRequireFieldsFormFromCategory(category);
+function hasExplicitReceiptWaiveIntentForCategory(
+    category: PolicyCategory | undefined,
+    setting: FieldRequirementsDirection,
+    wasFieldTouched: boolean,
+    isWaived: (category: PolicyCategory) => boolean,
+    isRequireOverride: (category: PolicyCategory) => boolean,
+): boolean {
+    if (!wasFieldTouched || setting !== CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE || !category) {
+        return false;
+    }
+
+    return !isWaived(category) && !isRequireOverride(category);
+}
+
+function hasReceiptSettingsChanged(
+    category: PolicyCategory | undefined,
+    effectiveForm: RequireFieldsRuleForm,
+    initialForm: Partial<RequireFieldsRuleForm>,
+    touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+): boolean {
+    if (effectiveForm[INPUT_IDS.RECEIPT_SETTING] !== initialForm[INPUT_IDS.RECEIPT_SETTING]) {
+        return true;
+    }
+
+    if (effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING] !== initialForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING]) {
+        return true;
+    }
 
     return (
-        effectiveForm[INPUT_IDS.DESCRIPTION_SETTING] !== initialForm[INPUT_IDS.DESCRIPTION_SETTING] ||
-        effectiveForm[INPUT_IDS.ATTENDEES_SETTING] !== initialForm[INPUT_IDS.ATTENDEES_SETTING] ||
-        effectiveForm[INPUT_IDS.RECEIPT_SETTING] !== initialForm[INPUT_IDS.RECEIPT_SETTING] ||
-        effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING] !== initialForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING]
+        hasExplicitReceiptWaiveIntentForCategory(
+            category,
+            effectiveForm[INPUT_IDS.RECEIPT_SETTING],
+            !!touchedFields?.has(INPUT_IDS.RECEIPT_SETTING),
+            isReceiptWaivedForCategory,
+            isReceiptRequireOverrideForCategory,
+        ) ||
+        hasExplicitReceiptWaiveIntentForCategory(
+            category,
+            effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING],
+            !!touchedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING),
+            isItemizedReceiptWaivedForCategory,
+            isItemizedReceiptRequireOverrideForCategory,
+        )
     );
+}
+
+function hasRequireFieldsRuleChanges(category: PolicyCategory | undefined, effectiveForm: RequireFieldsRuleForm, touchedFields?: Set<RequireFieldsRuleSettingFieldKey>): boolean {
+    const initialForm = getRequireFieldsFormFromCategory(category);
+
+    if (
+        effectiveForm[INPUT_IDS.DESCRIPTION_SETTING] !== initialForm[INPUT_IDS.DESCRIPTION_SETTING] ||
+        effectiveForm[INPUT_IDS.ATTENDEES_SETTING] !== initialForm[INPUT_IDS.ATTENDEES_SETTING]
+    ) {
+        return true;
+    }
+
+    return hasReceiptSettingsChanged(category, effectiveForm, initialForm, touchedFields);
 }
 
 type ReceiptOverrideTarget = number | null | undefined;
@@ -251,7 +299,7 @@ function applyRequireFieldsReceiptSettings(
     }
 }
 
-function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleForm) {
+function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleForm, touchedFields?: Set<RequireFieldsRuleSettingFieldKey>) {
     const categoryName = form[INPUT_IDS.CATEGORY];
     if (!categoryName || !policyData.policy?.id) {
         return;
@@ -275,10 +323,7 @@ function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleFo
         setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, effectiveForm[INPUT_IDS.ATTENDEES_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE, policyCategories);
     }
 
-    if (
-        effectiveForm[INPUT_IDS.RECEIPT_SETTING] !== initialForm[INPUT_IDS.RECEIPT_SETTING] ||
-        effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING] !== initialForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING]
-    ) {
+    if (hasReceiptSettingsChanged(category, effectiveForm, initialForm, touchedFields)) {
         applyRequireFieldsReceiptSettings(policyData, categoryName, category, effectiveForm[INPUT_IDS.RECEIPT_SETTING], effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING]);
     }
 }
@@ -397,7 +442,7 @@ function getRequireFieldsRuleValidationError(
     const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
 
     if (isEditing) {
-        if (!hasRequireFieldsRuleChanges(category, effectiveForm)) {
+        if (!hasRequireFieldsRuleChanges(category, effectiveForm, touchedFields)) {
             return translate('workspace.rules.requireFieldsRule.confirmErrorField');
         }
 
@@ -621,14 +666,11 @@ type RequireFieldsRuleBackToRouteParams = {
     policyID: string;
     isEditing: boolean;
     categoryName?: string;
-    selectedCategoryName?: string;
 };
 
-function getRequireFieldsRuleBackToRoute({policyID, isEditing, categoryName, selectedCategoryName}: RequireFieldsRuleBackToRouteParams): Route {
-    const activeCategoryName = selectedCategoryName ?? categoryName;
-
-    if (isEditing && activeCategoryName) {
-        return ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, activeCategoryName);
+function getRequireFieldsRuleBackToRoute({policyID, isEditing, categoryName}: RequireFieldsRuleBackToRouteParams): Route {
+    if (isEditing && categoryName) {
+        return ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName);
     }
 
     return ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID);
