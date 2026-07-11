@@ -88,7 +88,7 @@ module.exports = async function oxcReactCompilerLoader(source) {
             cwd: this.rootContext,
         };
 
-        const result = await transform(resourcePath, source, transformOptions);
+        let result = await transform(resourcePath, source, transformOptions);
 
         // Demote React Compiler diagnostics to webpack warnings instead of
         // hard errors (workaround for oxc-project/oxc#23587).
@@ -103,6 +103,15 @@ module.exports = async function oxcReactCompilerLoader(source) {
             const msg = fatalErrors.map((e) => `${e.message}${e.codeframe ? `\n${e.codeframe}` : ''}`).join('\n\n');
             callback(new Error(`Oxc transform errors:\n${msg}`));
             return;
+        }
+
+        // An Error-severity React Compiler diagnostic (e.g. a genuine Rules-of-React
+        // violation like accessing a ref during render) makes oxc-transform bail out
+        // of the whole transform and return empty code, not just skip the optimization
+        // pass. Re-run without the compiler to fall back to plain JSX/TS transform output,
+        // matching babel-plugin-react-compiler's default "skip this component" bailout.
+        if (!result.code && rcErrors.length > 0) {
+            result = await transform(resourcePath, source, {...transformOptions, reactCompiler: false});
         }
 
         if (sourceMaps && result.map) {

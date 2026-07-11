@@ -167,6 +167,22 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
             }),
         ],
         tools: {
+            // Rsbuild's default 'js' rule (builtin:swc-loader, its 'js' oneOf branch) matches every
+            // .js/.ts/.jsx/.tsx file, including everything Rule A/B/B2 below already handle. Rules
+            // declared later in `module.rules` run their loaders FIRST (closest to raw source), and
+            // our custom rules are added via `addRules` (which appends after Rsbuild's defaults), so
+            // without this exclude, swc-loader would strip JSX/TypeScript before the Fullstory
+            // annotation loader or OXC's React Compiler ever see the original JSX — silently
+            // defeating both. Only the 'js' oneOf branch is touched, so worker/raw/text imports
+            // (other oneOf branches on the same parent rule) are unaffected.
+            bundlerChain: (chain) => {
+                chain.module
+                    .rule('js')
+                    .oneOf('js')
+                    .exclude.add((resourcePath: string) => !resourcePath.includes('node_modules'))
+                    .add(includedNodeModules)
+                    .end();
+            },
             rspack: (config, {addRules}) => {
                 // canvaskit-wasm and expo's getBundleUrl.web.ts reference __filename/__dirname, which don't
                 // exist in a browser bundle. Rspack's default ('warn-mock') mocks them to a fixed value but
@@ -431,6 +447,10 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             },
         },
         tools: {
+            // getSharedConfiguration's own `tools.bundlerChain` (JSX/TS rule excludes) isn't otherwise
+            // inherited here since the explicit `tools: {...}` below replaces (rather than merges with)
+            // `...shared`'s tools object.
+            bundlerChain: shared.tools?.bundlerChain,
             rspack: (config, utils) => {
                 // `sharedRspackTool`'s declared return type includes `Promise<void | RspackOptions>` because
                 // that's a valid shape for `tools.rspack` in general, but `getSharedConfiguration`'s own

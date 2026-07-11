@@ -8,7 +8,7 @@
                 "src/HybridAppHandler.tsx",
                 "scripts/**/*.{js,ts}",
                 "web/proxy.ts",
-                "config/rsbuild/**/*.{js,mjs,ts}",
+                "config/rsbuild/**/*.{js,mjs,cjs,ts}",
                 ".github/scripts/**/*.ts",
                 ".github/actions/javascript/**/*.ts",
                 ".storybook/**/*.{js,ts,tsx}",
@@ -70,7 +70,10 @@
         "bun",
         "shellcheck",
         "patch-package",
-        "diff-so-fancy"
+        "diff-so-fancy",
+        "babel-loader",
+        "oxc-loader",
+        "@babel/plugin-proposal-class-properties"
     ],
     "ignoreBinaries": ["metro-symbolicate", "mkcert"]
 }
