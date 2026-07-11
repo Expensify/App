@@ -1,8 +1,11 @@
+import formatExpensifyRsyslogLine from '@server/libs/formatExpensifyRsyslogLine';
 import Log from '@server/stubs/expensify-log';
-import {afterEach, describe, expect, test} from 'bun:test';
+import {afterEach, beforeEach, describe, expect, test} from 'bun:test';
 
-const LOG_LINE_PREFIX = 'VCR_LOG ';
-const EXPECTED_LOG_METHODS = ['warn', 'hmmm', 'info', 'alert', 'error'] as const;
+// VCR_LOG_DESTINATION=stderr forces the fallback path so these tests are deterministic regardless
+// of whether /run/systemd/journal/syslog exists on the host (it does in the CI docker container,
+// per ci/docker/syslog/rsyslog.conf, but not on a bare macOS dev machine).
+const REQUEST_ID = 'VCLOG_TEST_STUB';
 
 type CapturedStderr = {
     writes: string[];
@@ -26,49 +29,62 @@ function captureStderr(): CapturedStderr {
     };
 }
 
-function parseLogLine(line: string) {
-    expect(line.startsWith(LOG_LINE_PREFIX)).toBe(true);
-    return JSON.parse(line.slice(LOG_LINE_PREFIX.length).trim()) as {
-        level: string;
-        message: string;
-        params: unknown;
-        time: string;
-    };
-}
-
 describe('expensify-log stub', () => {
-    let stderrCapture: CapturedStderr | undefined;
+    let stderrCapture: CapturedStderr;
 
-    afterEach(() => {
-        stderrCapture?.restore();
-        stderrCapture = undefined;
+    beforeEach(() => {
+        process.env.VCR_LOG_DESTINATION = 'stderr';
+        process.env.REQUEST_ID = REQUEST_ID;
+        stderrCapture = captureStderr();
     });
 
-    test('exports match headless Log API', () => {
+    afterEach(() => {
+        stderrCapture.restore();
+        delete process.env.VCR_LOG_DESTINATION;
+        delete process.env.REQUEST_ID;
+    });
+
+    test('exports the levels the headless bundle relies on', () => {
         const stub = Log as Record<string, unknown>;
 
-        for (const methodName of EXPECTED_LOG_METHODS) {
-            expect(Object.hasOwn(stub, methodName)).toBe(true);
+        for (const methodName of ['info', 'alert', 'warn', 'hmmm']) {
             expect(typeof stub[methodName]).toBe('function');
         }
     });
 
-    test.each([
-        ['warn', 'warn', Log.warn],
-        ['hmmm', 'hmmm', Log.hmmm],
-        ['info', 'info', Log.info],
-        ['alert', 'alert', Log.alert],
-        ['error', 'alert', Log.error],
-    ] as const)('writes structured %s log line to stderr', (methodName, expectedLevel, logMethod) => {
-        stderrCapture = captureStderr();
+    test('info() falls back to a stderr line matching formatExpensifyRsyslogLine', () => {
+        Log.info('render succeeded', true, {outPath: '/tmp/chart.png'});
 
-        logMethod(`${methodName} message`, {jobIndex: 1});
+        const [expectedLine] = formatExpensifyRsyslogLine({level: 'info', message: 'render succeeded', params: {outPath: '/tmp/chart.png'}, requestId: REQUEST_ID});
+        expect(stderrCapture.writes).toEqual([`${expectedLine}\n`]);
+    });
 
-        expect(stderrCapture.writes).toHaveLength(1);
-        const record = parseLogLine(stderrCapture.writes[0]);
-        expect(record.level).toBe(expectedLevel);
-        expect(record.message).toBe(`${methodName} message`);
-        expect(record.params).toEqual({jobIndex: 1});
-        expect(record.time).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    test('alert() maps to the [alrt] level', () => {
+        Log.alert('render failed', {message: 'boom'});
+
+        const [expectedLine] = formatExpensifyRsyslogLine({level: 'alrt', message: 'render failed', params: {message: 'boom'}, requestId: REQUEST_ID});
+        expect(stderrCapture.writes).toEqual([`${expectedLine}\n`]);
+    });
+
+    test('warn() maps to the [warn] level', () => {
+        Log.warn('slow render');
+
+        const [expectedLine] = formatExpensifyRsyslogLine({level: 'warn', message: 'slow render', requestId: REQUEST_ID});
+        expect(stderrCapture.writes).toEqual([`${expectedLine}\n`]);
+    });
+
+    test('hmmm() maps to the [hmmm] level', () => {
+        Log.hmmm('unexpected but recoverable');
+
+        const [expectedLine] = formatExpensifyRsyslogLine({level: 'hmmm', message: 'unexpected but recoverable', requestId: REQUEST_ID});
+        expect(stderrCapture.writes).toEqual([`${expectedLine}\n`]);
+    });
+
+    test('splits multi-line output into one write per chunk when a message needs chunking', () => {
+        const longMessage = 'x'.repeat(8000);
+        Log.alert(longMessage);
+
+        const expectedLines = formatExpensifyRsyslogLine({level: 'alrt', message: longMessage, requestId: REQUEST_ID});
+        expect(stderrCapture.writes).toEqual(expectedLines.map((line) => `${line}\n`));
     });
 });

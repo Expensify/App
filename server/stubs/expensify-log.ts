@@ -1,16 +1,27 @@
-const LOG_LINE_PREFIX = 'VCR_LOG ';
+/*
+ * Headless replacement for @libs/Log (see rnStubPlugin). tsconfig paths still resolve @libs/Log to
+ * the real expensify-common Logger for type-checking, so this stub matches Logger's public method
+ * signatures even though `sendNow`/`includeStackTrace`/`onlyFlushWithOthers`/`extraData` don't
+ * apply to this process-per-invocation CLI and are ignored.
+ */
+import type {LogLevel, LogParams} from '@server/libs/formatExpensifyRsyslogLine';
 
-function write(level: string, message: string, params: unknown = {}): void {
-    const record = {level, message, params, time: new Date().toISOString()};
-    process.stderr.write(`${LOG_LINE_PREFIX}${JSON.stringify(record)}\n`);
+import formatExpensifyRsyslogLine from '@server/libs/formatExpensifyRsyslogLine';
+import writeRsyslog from '@server/libs/rsyslogWriter';
+
+function write(level: LogLevel, message: string, params: LogParams): void {
+    const lines = formatExpensifyRsyslogLine({level, message, params, requestId: process.env.REQUEST_ID ?? ''});
+
+    for (const line of lines) {
+        writeRsyslog(line);
+    }
 }
 
 const Log = {
-    warn: (message: string, params?: unknown) => write('warn', message, params),
-    hmmm: (message: string, params?: unknown) => write('hmmm', message, params),
-    info: (message: string, params?: unknown) => write('info', message, params),
-    alert: (message: string, params?: unknown) => write('alert', message, params),
-    error: (message: string, params?: unknown) => write('alert', message, params),
+    info: (message: string, sendNow?: boolean, parameters?: LogParams) => write('info', message, parameters),
+    alert: (message: string, parameters?: LogParams) => write('alrt', message, parameters),
+    warn: (message: string, parameters?: LogParams) => write('warn', message, parameters),
+    hmmm: (message: string, parameters?: LogParams) => write('hmmm', message, parameters),
 };
 
 export default Log;

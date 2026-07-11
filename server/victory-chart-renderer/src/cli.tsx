@@ -1,5 +1,7 @@
-import CLI from 'expensify-common/CLI';
 import Log from '@libs/Log';
+
+import CLI from 'expensify-common/CLI';
+
 import loadChartFontsForCli from './loadChartFontsForCli';
 import parseChartXml from './parseChartXml';
 import renderChartToPng from './renderChartToPng';
@@ -34,7 +36,7 @@ try {
 
     await renderChartToPng(tnode, fonts, canvasSize, outPath);
 
-    Log.info('Victory chart rendered successfully', {
+    Log.info('Victory chart rendered successfully', true, {
         outPath,
         width: canvasSize.width,
         height: canvasSize.height,
@@ -47,6 +49,8 @@ try {
     const message = error instanceof Error ? error.message : String(error);
     const stack = error instanceof Error ? error.stack : undefined;
 
+    // Always surface a plain-text error on stderr for local/CLI visibility, independent of
+    // whether the rsyslog socket is reachable in this environment.
     console.error(message);
     Log.alert('Victory chart render failed', {
         message,
