@@ -45,7 +45,7 @@ type IOURequestStepCompanyInfoProps = WithWritableReportOrNotFoundProps<typeof S
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO>;
 
 function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepCompanyInfoProps) {
-    const {backTo} = route.params;
+    const {backTo, reportID} = route.params;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -104,11 +104,13 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             {skipSubmitExpenseSpan: true},
         );
         reserveSearchChannelIfGlobalCreate(!!isFromGlobalCreate);
-        const {invoiceRoomReportID, transactionID: invoiceTransactionID} = sendInvoice({
+        const invoiceChatReportID = report?.reportID ? undefined : reportID;
+        sendInvoice({
             currentUserAccountID: currentUserPersonalDetails.accountID,
             transaction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             invoiceChatReport: report,
+            invoiceChatReportID,
             policy,
             policyTagList: policyTags,
             policyCategories,
@@ -123,9 +125,9 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             report: undefined,
             action: CONST.IOU.ACTION.CREATE,
             draftTransactionIDs,
-            transactionID: invoiceTransactionID,
+            transactionID: transaction?.transactionID,
             isFromGlobalCreate,
-            optimisticChatReportID: invoiceRoomReportID,
+            optimisticChatReportID: report?.reportID ?? reportID,
             isInvoice: true,
         });
     };

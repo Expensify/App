@@ -944,7 +944,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const invoiceChatReport = !isEmptyObject(report) && report?.reportID ? report : existingInvoiceReport;
             const invoiceChatReportID = invoiceChatReport ? undefined : reportID;
 
-            const {invoiceRoomReportID, transactionID: invoiceTransactionID} = sendInvoice({
+            sendInvoice({
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 transaction,
                 policyRecentlyUsedCurrencies,
@@ -964,9 +964,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     report: undefined,
                     action,
                     draftTransactionIDs,
-                    transactionID: invoiceTransactionID,
+                    transactionID: transaction?.transactionID,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                    optimisticChatReportID: invoiceRoomReportID,
+                    optimisticChatReportID: invoiceChatReport?.reportID ?? invoiceChatReportID,
                     isInvoice: true,
                 });
             } else {

@@ -12,7 +12,7 @@ describe('reserveSearchChannelIfGlobalCreate', () => {
         jest.clearAllMocks();
     });
 
-    it('reserves the SEARCH channel for a global-create submit off the inbox (lands on Search)', () => {
+    it('reserves the SEARCH channel for a global-create submit off the inbox', () => {
         jest.mocked(isReportTopmostSplitNavigator).mockReturnValue(false);
 
         reserveSearchChannelIfGlobalCreate(true);
@@ -28,7 +28,7 @@ describe('reserveSearchChannelIfGlobalCreate', () => {
         expect(reserveDeferredWriteChannel).not.toHaveBeenCalled();
     });
 
-    it('does not reserve on the inbox — the write targets a chat there, not Search', () => {
+    it('does not reserve on the inbox', () => {
         jest.mocked(isReportTopmostSplitNavigator).mockReturnValue(true);
 
         reserveSearchChannelIfGlobalCreate(true);

@@ -198,7 +198,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
         await Onyx.clear();
         mockRequestMoneyAction.mockReturnValue({iouReport: {reportID: 'iou-1'}});
         mockResolveChatTargetForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, chatReportID: 'fallback-id', optimisticChatReportID: undefined});
-        mockSendInvoiceAction.mockReturnValue({invoiceRoomReportID: 'invoice-room-1', transactionID: 'invoice-txn-1'});
     });
 
     describe('requestMoney path', () => {
@@ -494,7 +493,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
     });
 
     describe('invoice path', () => {
-        it('sends the invoice and routes through cleanupAndNavigateAfterExpenseCreate with isInvoice + the returned room id when shouldHandleNavigation=true', async () => {
+        it('calls cleanupAndNavigateAfterExpenseCreate with isInvoice when shouldHandleNavigation=true', async () => {
             const {result} = renderHook(() => useExpenseSubmission(buildParams({iouType: CONST.IOU.TYPE.INVOICE})));
             await waitForBatchedUpdatesWithAct();
 
@@ -507,13 +506,13 @@ describe('useExpenseSubmission action-bailout safety', () => {
             expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
                 expect.objectContaining({
                     isInvoice: true,
-                    optimisticChatReportID: 'invoice-room-1',
-                    transactionID: 'invoice-txn-1',
+                    optimisticChatReportID: REPORT_ID,
+                    transactionID: TRANSACTION_ID,
                 }),
             );
         });
 
-        it('cleans up only (no navigation) when the orchestrator already navigated (shouldHandleNavigation=false)', async () => {
+        it('calls cleanupAfterExpenseCreate and skips cleanupAndNavigateAfterExpenseCreate when shouldHandleNavigation=false', async () => {
             const {result} = renderHook(() => useExpenseSubmission(buildParams({iouType: CONST.IOU.TYPE.INVOICE})));
             await waitForBatchedUpdatesWithAct();
 

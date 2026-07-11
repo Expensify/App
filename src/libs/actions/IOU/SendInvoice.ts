@@ -816,8 +816,6 @@ function sendInvoice({
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
 
     notifyNewAction(invoiceRoom.reportID, undefined, true);
-
-    return {invoiceRoomReportID: invoiceRoom.reportID, transactionID};
 }
 
 export {getReceiverType, getSendInvoiceInformation, sendInvoice};

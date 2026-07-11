@@ -223,7 +223,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
         });
 
-        it('should be true for CREATE when backToReport is the receiving chat (report-preview "Add expense" returns to the chat whose preview card shows the new expense)', () => {
+        it('should be true for CREATE when backToReport is the receiving chat', () => {
             jest.mocked(isMoneyRequestReport).mockReturnValue(false);
 
             cleanupAndNavigateAfterExpenseCreate({
@@ -238,7 +238,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
         });
 
-        it('should be false for CREATE when backToReport points to a money-request (expense) report that highlights via its own live diff', () => {
+        it('should be false for CREATE when backToReport points to a money-request (expense) report', () => {
             jest.mocked(getReportOrDraftReport).mockReturnValue(expenseReport);
             jest.mocked(isMoneyRequestReport).mockReturnValue(true);
 
@@ -268,7 +268,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false}));
         });
 
-        it('should be false for an invoice — invoice rooms render no pending-consuming preview card', () => {
+        it('should be false for an invoice', () => {
             jest.mocked(isMoneyRequestReport).mockReturnValue(false);
 
             cleanupAndNavigateAfterExpenseCreate({
