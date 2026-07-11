@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-const mockButtonWithDropdownMenu = jest.fn(() => null);
+const mockButtonWithDropdownMenu = jest.fn((_props: unknown) => null);
 let mockExcludedTransactions: SelectedTransactions = {};
 let mockSearchCount: number | undefined;
 let mockSearchIsLoading = false;

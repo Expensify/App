@@ -10,7 +10,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-const mockSearchPageFooter = jest.fn(() => null);
+const mockSearchPageFooter = jest.fn((_props: unknown) => null);
 let mockExcludedTransactions: SelectedTransactions = {};
 let mockSearchType: SearchResults['search']['type'] = CONST.SEARCH.DATA_TYPES.EXPENSE;
 
