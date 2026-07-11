@@ -125,6 +125,22 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         expect(result.type).toBe('ALLOW');
     });
 
+    it("should allow when the user's domain restricts workspace creation", async () => {
+        await setUpEligibleUser();
+        // The eligible user's domain security group forbids creating workspaces, so the modal (whose CTA
+        // creates a Submit workspace) must not be shown.
+        const restrictedDomain = 'restricted.example.com';
+        await Onyx.merge(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {[restrictedDomain]: 'group1'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SECURITY_GROUP}group1`, {enableRestrictedPolicyCreation: true});
+        await waitForBatchedUpdates();
+        // The guard reads the email from its cached session, populated via onSessionOrLoadingAppChanged.
+        onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123, email: `employee@${restrictedDomain}`}, false);
+        await waitForBatchedUpdates();
+
+        const result = SubmitPlanWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
+        expect(result.type).toBe('ALLOW');
+    });
+
     it('should allow while the app is still loading this session (HAS_LOADED_APP not yet set)', async () => {
         await setUpEligibleUser();
         // Simulate the sign-in window where the eligibility NVPs are present but OpenApp has not yet delivered

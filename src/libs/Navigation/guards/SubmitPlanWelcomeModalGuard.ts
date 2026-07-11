@@ -11,13 +11,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Beta, BetaConfiguration, IntroSelected, Policy, Session} from '@src/types/onyx';
+import type {Beta, BetaConfiguration, IntroSelected, Policy, SecurityGroup, Session} from '@src/types/onyx';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import type {GuardContext, GuardResult, NavigationGuard} from './types';
@@ -30,6 +31,8 @@ let introSelected: OnyxEntry<IntroSelected>;
 let policies: OnyxCollection<Policy>;
 let hasCompletedGuidedSetupFlow: boolean | undefined;
 let hasShownSubmitMigrationModal: OnyxEntry<boolean>;
+let myDomainSecurityGroups: OnyxEntry<Record<string, string>>;
+let securityGroups: OnyxCollection<SecurityGroup>;
 let isSubmitMigrationModalShownLoaded = false;
 let hasLoadedApp = false;
 
@@ -87,7 +90,21 @@ function shouldShowSubmitPlanWelcomeModal(): boolean {
     const hasEmployerIntent = introSelected?.choice === CONST.ONBOARDING_CHOICES.EMPLOYER;
     const groupPolicies = getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, session?.email);
 
-    return isSubmit2026BetaEnabled && hasEmployerIntent && !!hasCompletedGuidedSetupFlow && groupPolicies.length === 0 && !hasShownSubmitMigrationModal;
+    return isSubmit2026BetaEnabled && hasEmployerIntent && !!hasCompletedGuidedSetupFlow && groupPolicies.length === 0 && !isPolicyCreationRestricted() && !hasShownSubmitMigrationModal;
+}
+
+/**
+ * Whether the user's domain security group restricts workspace creation. Mirrors `usePreferredPolicy`.
+ * Restricted users can't create a Submit workspace, so we must not show them the modal — otherwise
+ * "Get the free plan" would dismiss it (marking it shown) without creating anything or navigating.
+ */
+function isPolicyCreationRestricted(): boolean {
+    const userDomain = session?.email ? Str.extractEmailDomain(session.email) : undefined;
+    const securityGroupID = userDomain ? myDomainSecurityGroups?.[userDomain] : undefined;
+    if (!securityGroupID) {
+        return false;
+    }
+    return securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${securityGroupID}`]?.enableRestrictedPolicyCreation === true;
 }
 
 /**
@@ -209,6 +226,23 @@ Onyx.connectWithoutView({
     callback: (value) => {
         hasLoadedApp = value ?? false;
         scheduleSubmitPlanWelcomeModalEvaluation();
+    },
+});
+
+// Domain security-group data for the policy-creation restriction check. Pure cache-feeders (they do not
+// drive navigation); the restriction is read synchronously in shouldShowSubmitPlanWelcomeModal.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS,
+    callback: (value) => {
+        myDomainSecurityGroups = value;
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.SECURITY_GROUP,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        securityGroups = value;
     },
 });
 
