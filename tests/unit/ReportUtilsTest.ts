@@ -6842,6 +6842,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: true,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
             };
 
             // When the param identifies this report as Concierge, the empty chat is kept in the option list...
