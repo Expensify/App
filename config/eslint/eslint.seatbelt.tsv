@@ -2323,6 +2323,6 @@
 "../../tests/utils/getIsUsingFakeTimers.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../rsbuild/CustomVersionFilePlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../rsbuild/ModuleInitTimingPlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../rsbuild/fullstory-annotation-loader.mjs"	"rulesdir/no-negated-variables"	1
+"../rsbuild/loaders/fullstory-annotation-loader.mjs"	"rulesdir/no-negated-variables"	1
 "../rsbuild/rsbuild.common.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../rspack/RspackPreloadPlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1

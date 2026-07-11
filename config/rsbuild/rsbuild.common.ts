@@ -271,13 +271,13 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                             // worklets-loader skips the Babel parse/transform/codegen cycle for
                             // files that can't reference a worklet (see that file) — ~97.5% of
                             // src/, verified by grep.
-                            {loader: path.resolve(dirname, './worklets-loader.mjs')},
+                            {loader: path.resolve(dirname, './loaders/worklets-loader.mjs')},
                             // Pass 2: React Compiler + all transforms via our thin wrapper loader.
                             // oxc-react-compiler-loader calls oxc-transform directly and demotes
                             // non-fatal React Compiler diagnostics to warnings instead of hard build
                             // errors (workaround for oxc-project/oxc#23587).
                             {
-                                loader: path.resolve(dirname, './oxc-react-compiler-loader.mjs'),
+                                loader: path.resolve(dirname, './loaders/oxc-react-compiler-loader.mjs'),
                                 options: {
                                     reactCompiler: {target: '19', panicThreshold: 'none'},
                                     target: 'node20',
@@ -286,7 +286,7 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                             },
                             // Pass 1: Fullstory annotation (sees annotated JSX before OXC transforms it).
                             {
-                                loader: path.resolve(dirname, './fullstory-annotation-loader.mjs'),
+                                loader: path.resolve(dirname, './loaders/fullstory-annotation-loader.mjs'),
                             },
                         ],
                     },
@@ -295,7 +295,7 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                         test: /\.tsx?$/,
                         include: [includedNodeModules],
                         exclude: [/\.native\.(ts|tsx)$/],
-                        use: [{loader: path.resolve(dirname, './worklets-loader.mjs')}, {loader: 'oxc-webpack-loader', options: {target: 'node20'}}],
+                        use: [{loader: path.resolve(dirname, './loaders/worklets-loader.mjs')}, {loader: 'oxc-webpack-loader', options: {target: 'node20'}}],
                     },
                     // Rule B2: JavaScript — need explicit jsx to upgrade .js lang to jsx.
                     {
@@ -303,7 +303,7 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                         include: [includedNodeModules],
                         exclude: [/\.native\.(js|jsx)$/],
                         use: [
-                            {loader: path.resolve(dirname, './worklets-loader.mjs')},
+                            {loader: path.resolve(dirname, './loaders/worklets-loader.mjs')},
                             {
                                 loader: 'oxc-webpack-loader',
                                 options: {target: 'node20', jsx: {runtime: 'automatic'}},
