@@ -1408,15 +1408,7 @@ const ROUTES = {
     SETTINGS_BANK_ACCOUNT_PURPOSE: 'settings/wallet/bank-account-purpose',
     SETTINGS_ENABLE_PAYMENTS: {
         route: 'settings/wallet/enable-payments/:page?/:subPage?/:action?',
-        getRoute: ({
-            page,
-            subPage,
-            action,
-        }: {
-            page?: EnablePaymentsPageType;
-            subPage?: EnablePaymentsSubPageType;
-            action?: 'edit';
-        } = {}) => {
+        getRoute: ({page, subPage, action}: {page?: EnablePaymentsPageType; subPage?: EnablePaymentsSubPageType; action?: 'edit'} = {}) => {
             const base = 'settings/wallet/enable-payments';
             // The interpolated values are cast to `string` to keep the resulting template literal type simple and avoid TS2590 union complexity errors.
             const pagePart = page ? `/${page as string}` : '';
@@ -4436,12 +4428,8 @@ function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAtt
     return `${url}${sourceParam}${typeParam}${reportIDParam}${reportActionIDParam}${attachmentIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam} ` as const;
 }
 
-type ExtractRouteName<TRoute> = TRoute extends {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getRoute: (...args: any[]) => infer TRouteName;
-}
-    ? TRouteName
-    : TRoute;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ExtractRouteName<TRoute> = TRoute extends {getRoute: (...args: any[]) => infer TRouteName} ? TRouteName : TRoute;
 
 /**
  * Represents all routes in the app as a union of literal strings.

@@ -166,9 +166,7 @@ function useConfirmationValidation({
     isNewManualExpenseFlowEnabled,
     isReadOnly,
     shouldShowDate,
-}: UseConfirmationValidationParams): {
-    validate: (paymentType?: PaymentMethodType) => ValidationResult | null;
-} {
+}: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
     const validate = (paymentType?: PaymentMethodType): ValidationResult | null => {
@@ -302,10 +300,7 @@ function useConfirmationValidation({
             }
 
             if (isEditingSplitBill && areRequiredFieldsEmpty(transaction, transactionReport)) {
-                return {
-                    errorKey: 'iou.error.genericSmartscanFailureMessage',
-                    shouldSetDidConfirmSplit: true,
-                };
+                return {errorKey: 'iou.error.genericSmartscanFailureMessage', shouldSetDidConfirmSplit: true};
             }
 
             if (isEditingSplitBill && iouAmount === 0) {
