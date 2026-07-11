@@ -38,6 +38,9 @@ async function setUpEligibleUser() {
     await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
     await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.EMPLOYER});
     await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+    // HAS_LOADED_APP flips to true only after OpenApp finishes loading this session's account data (incl. the
+    // shown-flag), so the guard requires it before deciding. Set it here so the eligible user is "fully loaded".
+    await Onyx.merge(ONYXKEYS.HAS_LOADED_APP, true);
     await waitForBatchedUpdates();
 }
 
@@ -122,6 +125,17 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         expect(result.type).toBe('ALLOW');
     });
 
+    it('should allow while the app is still loading this session (HAS_LOADED_APP not yet set)', async () => {
+        await setUpEligibleUser();
+        // Simulate the sign-in window where the eligibility NVPs are present but OpenApp has not yet delivered
+        // the account data (and therefore the shown-flag) for this session.
+        await Onyx.merge(ONYXKEYS.HAS_LOADED_APP, false);
+        await waitForBatchedUpdates();
+
+        const result = SubmitPlanWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
+        expect(result.type).toBe('ALLOW');
+    });
+
     it('should not redirect multiple times in the same session', async () => {
         await setUpEligibleUser();
 
@@ -189,6 +203,18 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         it('should not navigate when the modal has already been shown', async () => {
             await setUpEligibleUser();
             await Onyx.merge(ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN, true);
+            await waitForBatchedUpdates();
+            mockNavigate.mockClear();
+
+            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+            await waitForBatchedUpdates();
+
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
+        it('should not navigate during the sign-in window before the app has loaded (HAS_LOADED_APP false)', async () => {
+            await setUpEligibleUser();
+            await Onyx.merge(ONYXKEYS.HAS_LOADED_APP, false);
             await waitForBatchedUpdates();
             mockNavigate.mockClear();
 

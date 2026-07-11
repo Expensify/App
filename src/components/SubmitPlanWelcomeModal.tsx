@@ -7,7 +7,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 
 import colors from '@styles/theme/colors';
@@ -43,7 +42,6 @@ function SubmitPlanWelcomeModal() {
     // Whenever this modal is removed from the navigation stack (confirmed, dismissed, or closed),
     // persist that the user has seen it so it never triggers again.
     useBeforeRemove(() => {
-        Log.info('[SubmitPlanWelcomeModal] marking submit migration modal as shown');
         setSubmitMigrationModalShown();
     });
 

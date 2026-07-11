@@ -1,4 +1,3 @@
-import Log from '@libs/Log';
 import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {canEditWorkspaceSettings, isGroupPolicy} from '@libs/PolicyUtils';
@@ -100,8 +99,9 @@ function useAutoCreateSubmitWorkspace() {
                         isSelfTourViewed,
                         conciergeChat,
                     });
-                } catch (error) {
-                    Log.warn('[useAutoCreateSubmitWorkspace] Error completing onboarding', {error});
+                } catch {
+                    // Swallow onboarding completion failures so a network error doesn't block workspace
+                    // creation or the follow-up navigation; the optimistic Onyx data is already applied.
                 }
             }
 

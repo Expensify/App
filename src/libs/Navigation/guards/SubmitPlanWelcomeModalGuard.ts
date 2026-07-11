@@ -1,4 +1,3 @@
-import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -32,6 +31,7 @@ let policies: OnyxCollection<Policy>;
 let hasCompletedGuidedSetupFlow: boolean | undefined;
 let hasShownSubmitMigrationModal: OnyxEntry<boolean>;
 let isSubmitMigrationModalShownLoaded = false;
+let hasLoadedApp = false;
 
 let hasRedirectedToSubmitPlanModal = false;
 let isEvaluationScheduled = false;
@@ -97,11 +97,10 @@ function shouldShowSubmitPlanWelcomeModal(): boolean {
  * race condition where the modal would re-appear on app restart.
  */
 function navigateToSubmitPlanWelcomeModalIfReady() {
-    if (!session?.authToken || isLoadingApp || hasRedirectedToSubmitPlanModal || !isSubmitMigrationModalShownLoaded || !shouldShowSubmitPlanWelcomeModal()) {
+    if (!session?.authToken || isLoadingApp || !hasLoadedApp || hasRedirectedToSubmitPlanModal || !isSubmitMigrationModalShownLoaded || !shouldShowSubmitPlanWelcomeModal()) {
         return;
     }
 
-    Log.info('[SubmitPlanWelcomeModalGuard] Proactively navigating to submit plan welcome modal');
     hasRedirectedToSubmitPlanModal = true;
     Navigation.navigate(getSubmitPlanWelcomeModalRoute());
 }
@@ -118,6 +117,14 @@ function navigateToSubmitPlanWelcomeModalIfReady() {
  * incorrectly redirect a user who has already seen the modal (most visible right after "clear cache and
  * restart", when Onyx starts empty). Deferring the decision guarantees every cached value reflects the
  * just-applied OpenApp data before we decide.
+ *
+ * The decision additionally waits for HAS_LOADED_APP, which covers the sign-in flow: SignInUser can deliver
+ * the eligibility NVPs (beta/intro/onboarding) and authenticate the session before OpenApp has fetched
+ * NVP_SUBMIT_MIGRATION_MODAL_SHOWN. In that window IS_LOADING_APP is still the stale `false` preserved from
+ * before sign-in and the shown-flag reads as a stale `undefined`, so without HAS_LOADED_APP we'd redirect a
+ * user who has already seen the modal. HAS_LOADED_APP is cleared on sign-out and only set (in OpenApp's
+ * queueFlushedData) after the response NVPs land, so it is a reliable "this session's account data, including
+ * the shown-flag, has loaded" signal.
  */
 function scheduleSubmitPlanWelcomeModalEvaluation() {
     if (isEvaluationScheduled) {
@@ -194,6 +201,17 @@ Onyx.connectWithoutView({
     },
 });
 
+// HAS_LOADED_APP is the one subscription that also drives the proactive redirect: it flips to true only after
+// OpenApp's response NVPs (including the shown-flag) have been applied, so scheduling from here guarantees the
+// decision runs on this session's fully-loaded account data rather than on stale sign-in/boot values.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.HAS_LOADED_APP,
+    callback: (value) => {
+        hasLoadedApp = value ?? false;
+        scheduleSubmitPlanWelcomeModalEvaluation();
+    },
+});
+
 /**
  * Block navigation while the submit plan modal is active (on top of the stack).
  * Prevents tab switches from pushing screens before the modal overlay becomes visible,
@@ -237,16 +255,16 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
             return {type: 'ALLOW'};
         }
 
-        // Guard against the race condition where the beta/intro/policy NVPs arrive before
-        // NVP_SUBMIT_MIGRATION_MODAL_SHOWN has been fetched. Without this check, a navigation
-        // firing between those Onyx callbacks would see an undefined flag and incorrectly redirect
-        // users who already saw the modal.
-        if (!isSubmitMigrationModalShownLoaded) {
+        // Wait until this session's account data has fully loaded before deciding. HAS_LOADED_APP flips to
+        // true only after OpenApp's response NVPs (incl. the shown-flag) land, which closes the sign-in gap
+        // where SignInUser authenticates and delivers the eligibility NVPs before OpenApp fetches the
+        // shown-flag — a navigation firing in that window would otherwise read a stale (undefined) flag and
+        // redirect a user who already saw the modal.
+        if (!hasLoadedApp || !isSubmitMigrationModalShownLoaded) {
             return {type: 'ALLOW'};
         }
 
         if (shouldShowSubmitPlanWelcomeModal()) {
-            Log.info('[SubmitPlanWelcomeModalGuard] Redirecting to submit plan welcome modal');
             hasRedirectedToSubmitPlanModal = true;
 
             return {
