@@ -79,10 +79,14 @@ function getEffectiveFlagForReviewRuleForm(
     };
 }
 
-function saveFlagForReviewRule(policyID: string, policyCategories: PolicyCategories | undefined, form: FlagForReviewRuleForm) {
+function saveFlagForReviewRule(policyID: string, policyCategories: PolicyCategories | undefined, form: FlagForReviewRuleForm, originalCategoryName?: string) {
     const categoryName = form[INPUT_IDS.CATEGORY];
     if (!categoryName) {
         return;
+    }
+
+    if (originalCategoryName && originalCategoryName !== categoryName) {
+        deleteFlagForReviewRule(policyID, originalCategoryName, policyCategories);
     }
 
     setPolicyCategoryMaxAmount(
