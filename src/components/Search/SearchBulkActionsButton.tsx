@@ -48,7 +48,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions = {}, selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const kycWallRef = useContext(KYCWallContext);
     const {isAccountLocked} = useLockedAccountState();
@@ -102,35 +102,43 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const isExpenseReportType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const popoverUseScrollView = shouldPopoverUseScrollView(headerButtonsOptions);
-    const selectedItemsCount = useMemo(() => {
-        if (!selectedTransactions) {
-            return 0;
-        }
-
-        if (isExpenseReportType) {
-            const reportIDs = new Set(
-                Object.values(selectedTransactions)
-                    .map((transaction) => transaction?.reportID)
-                    .filter((reportID): reportID is string => !!reportID),
-            );
-            return reportIDs.size;
-        }
-
-        return selectedTransactionsKeys.reduce((count, key) => {
-            if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-                const group = searchData?.[key as keyof typeof searchData] as {count?: number} | undefined;
-                return count + (group?.count ?? 0);
+    const {selectedItemsCount, excludedItemsCount} = useMemo(() => {
+        const getItemsCount = (transactionsToCount: typeof selectedTransactions) => {
+            if (isExpenseReportType) {
+                const reportIDs = new Set(
+                    Object.values(transactionsToCount)
+                        .map((transaction) => transaction?.reportID)
+                        .filter((reportID): reportID is string => !!reportID),
+                );
+                return reportIDs.size;
             }
-            return count + 1;
-        }, 0);
-    }, [selectedTransactions, selectedTransactionsKeys, isExpenseReportType, searchData]);
+
+            return Object.keys(transactionsToCount).reduce((count, key) => {
+                if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+                    const group = searchData?.[key as keyof typeof searchData] as {count?: number} | undefined;
+                    return count + (group?.count ?? 0);
+                }
+                return count + 1;
+            }, 0);
+        };
+
+        return {
+            selectedItemsCount: getItemsCount(selectedTransactions),
+            excludedItemsCount: getItemsCount(excludedTransactions),
+        };
+    }, [excludedTransactions, selectedTransactions, isExpenseReportType, searchData]);
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
-    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !!currentSearchResults?.search?.isLoading;
+    const selectedAllMatchingItemsCount = typeof allMatchingItemsCount === 'number' ? Math.max(allMatchingItemsCount - excludedItemsCount, 0) : undefined;
+    const hasExcludedItems = Object.keys(excludedTransactions).length > 0;
+    const isAllMatchingItemsCountLoading =
+        areAllMatchingItemsSelected && hasExcludedItems && typeof allMatchingItemsCount !== 'number' && !isOffline && !!currentSearchResults?.search?.isLoading;
     let selectionButtonText: string;
     if (areAllMatchingItemsSelected) {
         selectionButtonText =
-            typeof allMatchingItemsCount !== 'number' ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: allMatchingItemsCount});
+            !hasExcludedItems || selectedAllMatchingItemsCount === undefined
+                ? translate('search.exportAll.allMatchingItemsSelected')
+                : translate('workspace.common.selected', {count: selectedAllMatchingItemsCount});
     } else {
         selectionButtonText = translate('workspace.common.selected', {count: selectedItemsCount});
     }

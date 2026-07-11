@@ -1315,7 +1315,7 @@ function rejectMoneyRequestsOnSearch(
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV(
-    {query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams,
+    {query, jsonQuery, reportIDList, transactionIDList, excludedTransactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
 ) {
@@ -1349,6 +1349,7 @@ function exportSearchItemsToCSV(
         jsonQuery,
         reportIDList: Array.from(reportIDSet),
         transactionIDList,
+        ...(excludedTransactionIDList?.length ? {excludedTransactionIDList} : {}),
         isBasicExport,
         exportColumnLabels,
     }) as Params;
@@ -1376,7 +1377,16 @@ function exportSearchItemsToCSV(
     );
 }
 
-function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams): string {
+function queueExportSearchItemsToCSV({
+    query,
+    jsonQuery,
+    reportIDList,
+    transactionIDList,
+    excludedTransactionIDList,
+    isBasicExport,
+    exportColumnLabels,
+    exportName,
+}: ExportSearchItemsToCSVParams): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -1406,6 +1416,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
         jsonQuery,
         reportIDList,
         transactionIDList,
+        ...(excludedTransactionIDList?.length ? {excludedTransactionIDList} : {}),
         isBasicExport,
         exportColumnLabels,
         exportName,

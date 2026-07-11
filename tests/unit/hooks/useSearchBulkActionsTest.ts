@@ -153,12 +153,14 @@ jest.mock('@hooks/usePaymentContext', () => ({
 const mockClearSelectedTransactions = jest.fn();
 const mockSelectAllMatchingItems = jest.fn();
 let mockSelectedTransactions: SelectedTransactions = {};
+let mockExcludedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockAreAllMatchingItemsSelected = false;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions,
+        excludedTransactions: mockExcludedTransactions,
         selectedReports: mockSelectedReports,
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),
@@ -230,6 +232,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockAreAllMatchingItemsSelected = false;
         await Onyx.clear();
         mockSelectedTransactions = {};
+        mockExcludedTransactions = {};
         mockSelectedReports = [];
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
@@ -242,6 +245,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
     it('handleBasicExport with select-all tracks the export', async () => {
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {tx2: makeSelectedTransaction()};
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
@@ -259,6 +263,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalled();
+        expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalledWith(expect.objectContaining({excludedTransactionIDList: ['tx2']}));
         expect(result.current.exportDownloadStatusModal).not.toBeNull();
     });
 

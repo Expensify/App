@@ -223,7 +223,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const StyleUtils = useStyleUtils();
     const {isSelected: liveRowSelected} = useRowSelection(item?.keyForList);
-    const isItemSelected = isSelectAllChecked || liveRowSelected;
+    const isItemSelected = isSelectAllChecked || (transactionsWithoutPendingDelete.length === 0 && liveRowSelected);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,

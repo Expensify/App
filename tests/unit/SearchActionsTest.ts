@@ -1,6 +1,9 @@
-import {queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import {exportSearchItemsToCSV, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import fileDownload from '@libs/fileDownload';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -9,12 +12,14 @@ import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 const EXPENSE_STATUS_ALL = CONST.SEARCH.STATUS.EXPENSE.ALL;
 
 jest.mock('@libs/API');
+jest.mock('@libs/fileDownload');
 jest.mock('@libs/Network/enhanceParameters', () => ({
     __esModule: true,
     default: (_: string, params: Record<string, unknown>) => params,
 }));
 
 const mockWrite = jest.mocked(write);
+const mockFileDownload = jest.mocked(fileDownload);
 
 function getWriteOptions(): {optimisticData: AnyOnyxUpdate[]; failureData: AnyOnyxUpdate[]} {
     const options = mockWrite.mock.calls.at(-1)?.at(2);
@@ -63,6 +68,62 @@ describe('queueExportSearchItemsToCSV', () => {
         const failureUpdate = failureData.find((u) => u.key === `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
         expect(failureUpdate).toBeDefined();
         expect(failureUpdate?.value).toEqual({state: CONST.EXPORT_DOWNLOAD.STATE.FAILED, exportType: CONST.EXPORT_DOWNLOAD.TYPE.CSV});
+    });
+
+    it('includes excluded transaction IDs in the queued CSV payload', () => {
+        queueExportSearchItemsToCSV({
+            query: EXPENSE_STATUS_ALL,
+            jsonQuery: '{}',
+            reportIDList: [],
+            transactionIDList: ['tx1'],
+            excludedTransactionIDList: ['tx2'],
+            isBasicExport: true,
+            exportColumnLabels: '{}',
+            exportName: 'Basic export',
+        });
+
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, expect.objectContaining({excludedTransactionIDList: ['tx2']}), expect.any(Object));
+    });
+
+    it('does not add an exclusion field when there are no exclusions', () => {
+        queueExportSearchItemsToCSV({
+            query: EXPENSE_STATUS_ALL,
+            jsonQuery: '{}',
+            reportIDList: [],
+            transactionIDList: ['tx1'],
+            isBasicExport: true,
+            exportColumnLabels: '{}',
+            exportName: 'Basic export',
+        });
+
+        expect(mockWrite.mock.calls.at(-1)?.at(1)).not.toHaveProperty('excludedTransactionIDList');
+    });
+});
+
+describe('exportSearchItemsToCSV', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('includes excluded transaction IDs in the direct CSV form payload', () => {
+        const appendSpy = jest.spyOn(FormData.prototype, 'append');
+
+        exportSearchItemsToCSV(
+            {
+                query: EXPENSE_STATUS_ALL,
+                jsonQuery: '{}',
+                reportIDList: [],
+                transactionIDList: ['tx1'],
+                excludedTransactionIDList: ['tx2'],
+                isBasicExport: true,
+                exportColumnLabels: '{}',
+                exportName: 'Basic export',
+            },
+            jest.fn(),
+            jest.fn((key: string) => key) as unknown as LocalizedTranslate,
+        );
+
+        expect(appendSpy).toHaveBeenCalledWith('excludedTransactionIDList', 'tx2');
+        expect(mockFileDownload).toHaveBeenCalled();
+        appendSpy.mockRestore();
     });
 });
 

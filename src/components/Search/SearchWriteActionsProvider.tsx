@@ -127,7 +127,7 @@ function useReconcileSelectionWithData({
     reportNameValuePairs,
     outstandingReportsByPolicyID,
 }: ReconcileSelectionParams) {
-    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions = {}, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {applySelection} = useSearchSelectionActions();
 
     useEffect(() => {
@@ -150,7 +150,7 @@ function useReconcileSelectionWithData({
                     if (transactionGroup.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                         continue;
                     }
-                    if (reportKey && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
+                    if (reportKey && !Object.hasOwn(excludedTransactions, reportKey) && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
                         const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(transactionGroup);
                         newTransactionList[reportKey] = {
                             ...emptyReportSelection,
@@ -172,10 +172,11 @@ function useReconcileSelectionWithData({
 
                 for (const transactionItem of transactionGroup.transactions) {
                     const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
+                    const isExcluded = Object.hasOwn(excludedTransactions, listKey) || Object.hasOwn(excludedTransactions, transactionItem.transactionID);
                     const isSelected = listKey in selectedTransactions || transactionItem.transactionID in selectedTransactions;
 
                     // Include transaction if: already individually selected, part of select-all, or group-level propagation (expense report / empty group expanded)
-                    const shouldInclude = isSelected || areAllMatchingItemsSelected || propagateSelectionToAllRows;
+                    const shouldInclude = !isExcluded && (isSelected || areAllMatchingItemsSelected || propagateSelectionToAllRows);
                     if (!shouldInclude) {
                         continue;
                     }
@@ -205,7 +206,7 @@ function useReconcileSelectionWithData({
 
                     newTransactionList[listKey] = {
                         ...baseEntry,
-                        isSelected: areAllMatchingItemsSelected || !!previousSelection?.isSelected || propagateSelectionToAllRows,
+                        isSelected: !isExcluded && (areAllMatchingItemsSelected || !!previousSelection?.isSelected || propagateSelectionToAllRows),
                         canReject: currentUserEmail && transactionItem.report ? canRejectReportAction(currentUserEmail, transactionItem.report) : false,
                         policyID: transactionItem.report?.policyID,
                         groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
@@ -218,6 +219,10 @@ function useReconcileSelectionWithData({
                     continue;
                 }
                 const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
+                const isExcluded = Object.hasOwn(excludedTransactions, listKey) || Object.hasOwn(excludedTransactions, transactionItem.transactionID);
+                if (isExcluded) {
+                    continue;
+                }
                 if (!(listKey in selectedTransactions) && !(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
                     continue;
                 }
@@ -266,9 +271,9 @@ function useReconcileSelectionWithData({
         // so `selectedReports` is derived atomically and a stale `useSyncSelectedReports` derivation can't briefly
         // clear it (which would close screens like SearchChangeApproverPage that dismiss on empty `selectedReports`).
         applySelection(() => newTransactionList, {data: filteredData});
-        // `selectedTransactions` is intentionally omitted from the deps and read from closure instead (see the
-        // hook doc above): including it would re-run this reconcile on every checkbox press. We only want it to
-        // run when the underlying data, focus, or select-all state changes.
+        // `selectedTransactions` and `excludedTransactions` are intentionally omitted from the deps and read from
+        // closure instead (see the hook doc above): including them would re-run this reconcile on every checkbox
+        // press. We only want it to run when the underlying data, focus, or select-all state changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filteredData, applySelection, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType]);
 }
@@ -392,7 +397,7 @@ function SearchWriteActionsProvider({
 
                     return updatedTransactions;
                 },
-                {totalSelectableItemsCount},
+                {totalSelectableItemsCount, shouldPreserveAllMatchingSelection: true},
             );
             return;
         }
@@ -456,7 +461,7 @@ function SearchWriteActionsProvider({
                     ),
                 };
             },
-            {totalSelectableItemsCount},
+            {totalSelectableItemsCount, shouldPreserveAllMatchingSelection: true},
         );
     };
 
