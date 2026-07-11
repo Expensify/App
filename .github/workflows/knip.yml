@@ -47,4 +47,4 @@ jobs:
         run: git checkout ${{ github.sha }}
 
       - name: Compare reports
-        run: npx ts-node ./scripts/compareKnipReports.ts --mainPath=/tmp/knip-main.json --prPath=/tmp/knip-pr.json
+        run: bun ./scripts/compareKnipReports.ts --mainPath=/tmp/knip-main.json --prPath=/tmp/knip-pr.json

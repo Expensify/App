@@ -6,10 +6,8 @@ on:
     paths-ignore: ['docs', 'help']
 
 jobs:
-  # We always run dry-run the script to verify that it still works.
-  # The generateTranslations script runs with ts-node, which can't handle Flow
-  # (the specialized JS that React Native is written in).
-  # Therefore, adding an import in the wrong place could break the script, even if you didn't modify the script.
+  # We always run generateTranslations --dry-run in CI to verify the script still works end-to-end.
+  # It imports from @src and @libs; Bun runs it with stubReactNative preload for modules that expect RN.
   dryRun:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
@@ -20,10 +18,15 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Run generateTranslations dry run
-        run: npx ts-node ./scripts/generateTranslations.ts --dry-run
+        run: bun ./scripts/generateTranslations.ts --dry-run --locales it
+
+      - name: Verify translation output
+        run: |
+          grep -q 'This file was automatically generated' src/languages/it.ts
+          grep -q '\[it\]' src/languages/it.ts
 
       - name: Explain failure
         if: failure()
         run: |
-          echo '::error:: 😦 Something you did broke scripts/generateTranslations.ts. Most likely, this means you added an import that caused react-native to be directly or indirectly imported into the script.'
+          echo '::error:: generateTranslations --dry-run failed or did not produce expected output in src/languages/it.ts. Check script imports and recent changes to @src/@libs code the script depends on.'
           exit 1
