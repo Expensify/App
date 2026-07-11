@@ -5410,6 +5410,28 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             exportCompanyCard: {label: '导出公司卡费用为', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: '信用卡'}}},
             defaultCompanyCardVendor: {label: '默认公司卡供应商', description: '为未自动匹配的报销选择一个默认的 Rillet 供应商。'},
             companyCardAccount: {label: '公司卡账户', description: '选择公司卡交易的导出位置。'},
+            noBankAccountsFound: '未找到银行账户',
+            noBankAccountsFoundDescription: '请在 Rillet 中添加银行账户，然后再次同步连接',
+            autoSyncDescription: '每天自动同步 Rillet 和 Expensify。报表实时同步。',
+            accountingMethods: {
+                label: '导出方式',
+                description: '选择导出报销的时间。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '应计',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付费用将在最终批准后导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付报销在支付后会导出',
+                },
+            },
+            syncReimbursedReports: '同步已报销报表',
+            syncReimbursedReportsDescription: '当报销单通过 ACH 支付时，将在此账户中生成一笔账单付款。',
+            billPaymentAccount: {label: '账单支付账户', description: '选择从哪里支付账单，我们会在 Rillet 中创建付款。'},
+            syncExpensifyCardSettlements: '同步 Expensify 卡结算',
+            settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
+            syncTravelInvoicingSettlements: '同步差旅发票结算',
+            travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
         },
         type: {
             free: '免费',
@@ -6702,7 +6724,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 optionFixedDistanceTitle: '为每笔报销排除固定距离',
                 optionFixedDistanceHelp: '从每笔报销中扣除相同的通勤距离。最适合每个工作日提交一笔报销的成员使用。',
                 distanceLabel: '距离',
-                errors: {distanceMustBePositive: '距离必须是一个正整数。'},
+                errors: {distanceMustBePositive: '距离必须是一个正整数。', distanceTooLarge: '距离过大。'},
             },
             distance: '距离',
             centrallyManage: '集中管理费率，以英里或公里跟踪，并设置默认类别。',
@@ -7643,6 +7665,7 @@ ${reportName}`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
                 groups: {title: '群组', description: '选择要与此工作区同步的员工分组'},
+                syncLimitReached: {title: '请明天再试', prompt: '您已达到今日的同步上限。'},
             },
             notSync: '未同步',
             authenticationError: (providerName: string) => `由于连接已过期，无法连接到 ${providerName}。`,
@@ -9959,5 +9982,21 @@ ${reportName}`,
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},
     monthPickerPage: {month: '月份', selectMonth: '请选择月份'},
+    aiFeaturesPromoModal: {
+        subtitle: 'Concierge AI 新手指南',
+        confirmText: '出发吧！',
+        spendAnalysis: {
+            title: '交互式支出分析',
+            description: `<muted-text>Concierge 会提供每月支出洞察，并让你深入查看每个数字背后的详细信息。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">了解详情</a>。</muted-text>`,
+        },
+        expenseAssistant: {
+            title: '认识你的全新报销助手',
+            description: `<muted-text>在应用内或通过电子邮件、短信与 Concierge 聊天来创建和更新报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">了解更多</a>。</muted-text>`,
+        },
+        customAgents: {
+            title: '构建你自己的代理',
+            description: `<muted-text>创建自定义代理，根据你设置的规则审核、批准和分配报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">了解更多</a>。</muted-text>`,
+        },
+    },
 };
 export default translations;
