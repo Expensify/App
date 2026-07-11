@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import type {AddPolicyAgentRuleParams, DeletePolicyAgentRuleParams, UpdatePolicyAgentRuleParams} from '@libs/API/parameters';
+import type {AddPolicyAgentRuleParams, DeletePolicyAgentRuleParams, GetAgentRuleSuggestionsParams, UpdatePolicyAgentRuleParams} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -115,6 +115,20 @@ function openPolicyRulesPage(policyID: string | undefined) {
     const params: OpenPolicyRulesPageParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_POLICY_RULES_PAGE, params);
+}
+
+/**
+ * Fetches ready-made agent rule suggestions for the add-agent-rule Suggestions tab.
+ * Backend writes the list into ONYXKEYS.AGENT_RULE_SUGGESTIONS.
+ */
+function getAgentRuleSuggestions(policyID: string | undefined) {
+    if (!policyID) {
+        Log.warn('Invalid params for getAgentRuleSuggestions', {policyID});
+        return;
+    }
+
+    const params: GetAgentRuleSuggestionsParams = {policyID};
+    API.read(READ_COMMANDS.GET_AGENT_RULE_SUGGESTIONS, params);
 }
 
 /**
@@ -593,6 +607,7 @@ function clearPolicyAgentRuleErrors(policyID: string, agentRuleID: string, agent
 
 export {
     openPolicyRulesPage,
+    getAgentRuleSuggestions,
     setPolicyCodingRule,
     deletePolicyCodingRule,
     getTransactionsMatchingCodingRule,

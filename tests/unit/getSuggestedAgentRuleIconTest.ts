@@ -1,50 +1,50 @@
 import {getSuggestedAgentRuleIcon} from '@libs/PolicyRulesUtils';
 
 describe('getSuggestedAgentRuleIcon', () => {
-    it('maps approve rules to ThumbsUp', () => {
+    it('maps amount/cap titles to Coins even when the prompt says Reject', () => {
         expect(
             getSuggestedAgentRuleIcon({
-                id: '1',
-                title: 'Approve any report that consists of expenses under $75',
-                prompt: 'Approve any report that consists of expenses under $75',
+                id: 'expense-amount-over',
+                title: 'Per-expense amount over a cap',
+                prompt: 'Reject any single expense of $75 or more.',
             }),
-        ).toBe('ThumbsUp');
+        ).toBe('Coins');
     });
 
-    it('maps block rules to CircleSlash', () => {
+    it('maps flagged titles to Flag', () => {
         expect(
             getSuggestedAgentRuleIcon({
-                id: '2',
-                title: 'Block all spend from gambling or shady websites',
-                prompt: 'Block all spend from gambling or shady websites',
-            }),
-        ).toBe('CircleSlash');
-    });
-
-    it('maps flag rules to Flag', () => {
-        expect(
-            getSuggestedAgentRuleIcon({
-                id: '3',
-                title: 'Flag spend when someone spends above the category average',
-                prompt: 'Flag spend when someone spends above the category average',
+                id: 'expense-amount-between',
+                title: 'Per-expense amount within a flagged band',
+                prompt: 'Reject expenses with an amount between $500 and $1000 inclusive.',
             }),
         ).toBe('Flag');
     });
 
-    it('maps hotel spend limits to Coins', () => {
+    it('maps banned/block titles to CircleSlash', () => {
         expect(
             getSuggestedAgentRuleIcon({
-                id: '4',
-                title: 'Set spend limit of $200/night for all hotels booked in New York City',
-                prompt: 'Set spend limit of $200/night for all hotels booked in New York City',
+                id: 'merchant-contains',
+                title: 'Merchant name contains a banned word',
+                prompt: 'Reject any expense whose merchant name contains the word "casino".',
             }),
-        ).toBe('Coins');
+        ).toBe('CircleSlash');
+    });
+
+    it('defaults allow-list / category rules to ThumbsUp', () => {
+        expect(
+            getSuggestedAgentRuleIcon({
+                id: 'category-is',
+                title: 'Category is a specific value',
+                prompt: 'Only approve expenses categorized as "Travel". Reject expenses in any other category.',
+            }),
+        ).toBe('ThumbsUp');
     });
 
     it('defaults to ThumbsUp when no keyword matches', () => {
         expect(
             getSuggestedAgentRuleIcon({
-                id: '5',
+                id: 'custom',
                 title: 'Something custom',
                 prompt: 'Do a custom thing',
             }),

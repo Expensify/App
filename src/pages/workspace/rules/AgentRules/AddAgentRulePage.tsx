@@ -26,7 +26,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import variables from '@styles/variables';
 
-import {addPolicyAgentRule} from '@userActions/Policy/Rules';
+import {addPolicyAgentRule, getAgentRuleSuggestions} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,8 +73,9 @@ function AddAgentRulePage({
 
     useEffect(() => {
         Tab.setSelectedTab(CONST.TAB.AGENT_RULE_TAB_TYPE, CONST.TAB.AGENT_RULE.SUGGESTIONS);
+        getAgentRuleSuggestions(policyID);
         return () => clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM);
-    }, []);
+    }, [policyID]);
 
     const tabs: TabSelectorBaseItem[] = [
         {

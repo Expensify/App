@@ -158,7 +158,7 @@ const ONYXKEYS = {
     BETA_CONFIGURATION: 'betaConfiguration',
 
     /** Agent rule suggestions for the add-rule Suggestions tab */
-    SUGGESTED_AGENT_RULES: 'suggestedAgentRules',
+    AGENT_RULE_SUGGESTIONS: 'agentRuleSuggestions',
 
     /** Whether the user is a member of a policy other than their personal */
     HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',
@@ -1505,7 +1505,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
-    [ONYXKEYS.SUGGESTED_AGENT_RULES]: OnyxTypes.SuggestedAgentRule[];
+    [ONYXKEYS.AGENT_RULE_SUGGESTIONS]: OnyxTypes.SuggestedAgentRule[];
     [ONYXKEYS.BETA_CONFIGURATION]: OnyxTypes.BetaConfiguration;
     [ONYXKEYS.NVP_MUTED_PLATFORMS]: Partial<Record<Platform, true>>;
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;

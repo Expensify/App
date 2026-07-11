@@ -5,13 +5,12 @@ import type SuggestedAgentRule from '@src/types/onyx/SuggestedAgentRule';
 type SuggestedAgentRuleIcon = 'ThumbsUp' | 'CircleSlash' | 'Flag' | 'Coins';
 
 /**
- * Backend suggestions are {id, title, prompt} only, so Suggestions-tab icons are derived from copy.
- * Unmatched suggestions fall back to ThumbsUp.
+ * Backend suggestions are {id, title, prompt} only. Icons are derived from id + title.
  */
 const SUGGESTED_AGENT_RULE_ICON_RULES = [
-    {icon: 'CircleSlash', keywords: ['block', 'prohibit', 'reject']},
-    {icon: 'Flag', keywords: ['flag']},
-    {icon: 'Coins', keywords: ['limit', '/night', 'hotel']},
+    {icon: 'CircleSlash', keywords: ['block', 'banned', 'blocked', 'alcohol', 'gift-card', 'personal', 'ai-generated', 'handwritten', 'incorrect-receipt']},
+    {icon: 'Flag', keywords: ['flag', 'mismatch', 'empty', 'mixed', 'age', 'weekend', 'suspected', 'unusually', 'within', 'window', 'deadline']},
+    {icon: 'Coins', keywords: ['amount', 'total', 'cap', 'tip', 'currency', 'limit']},
 ] as const satisfies ReadonlyArray<{icon: SuggestedAgentRuleIcon; keywords: readonly string[]}>;
 
 function isPendingDeleteOrUpdate(pendingAction: PendingAction | undefined): boolean {
@@ -23,7 +22,7 @@ function getMccGroupDisplayName(groupID: string): string {
 }
 
 function getSuggestedAgentRuleIcon(suggestion: SuggestedAgentRule): SuggestedAgentRuleIcon {
-    const text = `${suggestion.title} ${suggestion.prompt}`.toLowerCase();
+    const text = `${suggestion.id} ${suggestion.title}`.toLowerCase();
 
     for (const rule of SUGGESTED_AGENT_RULE_ICON_RULES) {
         if (rule.keywords.some((keyword) => text.includes(keyword))) {

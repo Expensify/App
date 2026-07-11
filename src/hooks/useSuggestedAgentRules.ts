@@ -16,7 +16,7 @@ type UseSuggestedAgentRulesResult = {
 };
 
 function useSuggestedAgentRules(): UseSuggestedAgentRulesResult {
-    const [suggestions, metadata] = useOnyx(ONYXKEYS.SUGGESTED_AGENT_RULES);
+    const [suggestions, metadata] = useOnyx(ONYXKEYS.AGENT_RULE_SUGGESTIONS);
     const isLoading = isLoadingOnyxValue(metadata);
 
     return {
