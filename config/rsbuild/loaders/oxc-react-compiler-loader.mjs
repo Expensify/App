@@ -1,12 +1,12 @@
 /**
  * Thin wrapper around oxc-transform that adds React Compiler support while
  * demoting non-fatal React Compiler diagnostics from hard build errors to
- * webpack warnings. This works around oxc-project/oxc#23587 (fixed in a future
+ * webpack warnings.
+ *
+ * This works around oxc-project/oxc#23587 (fixed in a future
  * release), which caused the build to fail instead of bailing out on components
  * that violate the Rules of React — the same behaviour as babel-plugin-react-compiler.
- *
- * Options mirror oxc-webpack-loader's TransformOptions plus `reactCompiler`.
- * This loader replaces oxc-webpack-loader entirely for Rule A (app source).
+ * We need the workaround for now until a new oxc release containing the fix adds back `reactCompiler`.
  */
 
 import {getTsconfig} from 'get-tsconfig';
@@ -98,11 +98,9 @@ export default async function oxcReactCompilerLoader(source) {
             return;
         }
 
-        // An Error-severity React Compiler diagnostic (e.g. a genuine Rules-of-React
-        // violation like accessing a ref during render) makes oxc-transform bail out
-        // of the whole transform and return empty code, not just skip the optimization
-        // pass. Re-run without the compiler to fall back to plain JSX/TS transform output,
-        // matching babel-plugin-react-compiler's default "skip this component" bailout.
+        // A React Compiler error makes oxc-transform bail out
+        // of the whole transform and return empty code, not just skip the optimization.
+        // Re-run without the compiler to fall back to plain JSX/TS transform output.
         if (!result.code && rcErrors.length > 0) {
             result = await transform(resourcePath, source, {...transformOptions, reactCompiler: false});
         }
