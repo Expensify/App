@@ -5,7 +5,11 @@
 // `import`. `Bun.plugin`'s `module()` API registers a virtual module for an exact specifier that is
 // intercepted for both `import` and `require()`, so scripts never load the real (Flow-typed) React
 // Native packages they don't need at runtime.
-import {plugin} from 'bun';
+//
+// Uses the ambient `Bun` global instead of `import {plugin} from 'bun'` — importing the `"bun"` module
+// resolves @types/bun's global augmentations (it redeclares `require`), which conflicts with the
+// generic `require<T>` overload `src/types/global.d.ts` registers for the rest of the root TS program.
+const {plugin} = Bun;
 
 const STUBS = {
     'react-native': {
