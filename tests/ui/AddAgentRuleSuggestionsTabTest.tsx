@@ -150,6 +150,17 @@ describe('AddAgentRuleSuggestionsTab', () => {
         expect(screen.getByText(SUGGESTIONS.at(1)?.title ?? '')).toBeOnTheScreen();
     });
 
+    it('disables Next when the selected suggestion is filtered out', () => {
+        const onSelectSuggestion = jest.fn();
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={onSelectSuggestion} />);
+
+        fireEvent.press(screen.getByLabelText(SUGGESTIONS.at(0)?.title ?? ''));
+        fireEvent.changeText(screen.getByLabelText('workspace.rules.agentRules.findSuggestion'), 'gambling');
+        fireEvent.press(screen.getByText('common.next'));
+
+        expect(onSelectSuggestion).not.toHaveBeenCalled();
+    });
+
     it('shows the empty state when there are no suggestions', () => {
         mockedUseSuggestedAgentRules.mockReturnValue({data: [], isLoading: false});
         render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
