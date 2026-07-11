@@ -166,8 +166,8 @@ function FormProvider({
 
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const [errorAnnouncementKey, setErrorAnnouncementKey] = useState(0);
-    const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
-    const hasServerErrorFields = useMemo(() => !!formState && !isEmptyObject(formState?.errorFields), [formState]);
+    const hasServerError = !!formState && !isEmptyObject(formState?.errors);
+    const hasServerErrorFields = !!formState && !isEmptyObject(formState?.errorFields);
     const {setIsBlurred} = useInputBlurActions();
     const blurTransitionHandle = useRef<CancelHandle | null>(null);
 
