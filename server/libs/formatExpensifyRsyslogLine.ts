@@ -6,11 +6,11 @@
  * Line shape: <6>victory-chart-renderer: {REQUEST_ID} victory-chart-renderer  !script! ?vcr? [level] message ~~ key: 'value'
  */
 
-export type LogLevel = 'info' | 'hmmm' | 'warn' | 'alrt';
+type LogLevel = 'info' | 'hmmm' | 'warn' | 'alrt';
 
 // Mirrors expensify-common's Logger#Parameters union (see Logger.d.ts) so callers can pass through
 // whatever they'd otherwise pass to the real Log.
-export type LogParams = string | Record<string, unknown> | Array<Record<string, unknown>> | Error | undefined;
+type LogParams = string | Record<string, unknown> | Array<Record<string, unknown>> | Error | undefined;
 
 type FormatExpensifyRsyslogLineOptions = {
     level: LogLevel;
@@ -53,7 +53,12 @@ function stringifyParamValue(value: unknown): string {
     if (typeof value === 'object') {
         return JSON.stringify(value);
     }
-    return String(value);
+    if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint' || typeof value === 'symbol') {
+        return value.toString();
+    }
+    // Functions are the only remaining typeof case; Object.prototype.toString.call is the only
+    // stringification here that's guaranteed not to trigger @typescript-eslint/no-base-to-string.
+    return Object.prototype.toString.call(value);
 }
 
 function formatParamEntries(entries: Array<[string, unknown]>): string {
@@ -114,3 +119,4 @@ function formatExpensifyRsyslogLine({level, message, params, requestId}: FormatE
 }
 
 export default formatExpensifyRsyslogLine;
+export type {LogLevel, LogParams};

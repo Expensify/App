@@ -10,7 +10,12 @@ import formatExpensifyRsyslogLine from '@server/libs/formatExpensifyRsyslogLine'
 import writeRsyslog from '@server/libs/rsyslogWriter';
 
 function write(level: LogLevel, message: string, params: LogParams): void {
-    const lines = formatExpensifyRsyslogLine({level, message, params, requestId: process.env.REQUEST_ID ?? ''});
+    // Read lazily (rather than caching at module load) so tests can set process.env.REQUEST_ID
+    // before calling write(). Unset outside of a real invocation (e.g. local/unit-test runs), in
+    // which case the formatted line simply carries an empty REQUEST_ID field.
+    const envRequestId = process.env.REQUEST_ID;
+    const requestId = envRequestId === undefined ? '' : envRequestId;
+    const lines = formatExpensifyRsyslogLine({level, message, params, requestId});
 
     for (const line of lines) {
         writeRsyslog(line);
