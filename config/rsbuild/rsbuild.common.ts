@@ -202,6 +202,21 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                 // eslint-disable-next-line no-param-reassign
                 config.ignoreWarnings = [...(config.ignoreWarnings ?? []), /lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/, /oxc-react-compiler-loader:/];
 
+                // A list of paths rspack trusts would not be modified while rspack is running.
+                // Onyx and react-native-live-markdown can be modified on the fly, changes to other
+                // node_modules would not be reflected live. Applies to `dev`, `build`, and Storybook
+                // alike: persisting the module graph + OXC/Fullstory loader outputs to disk on every
+                // command (not just `dev`) is what makes repeated local `npm run build` runs fast —
+                // without it, every build re-runs every loader from scratch regardless of what changed.
+                // eslint-disable-next-line no-param-reassign
+                config.cache ??= {type: 'persistent'};
+                if (typeof config.cache === 'object' && config.cache.type === 'persistent') {
+                    // eslint-disable-next-line no-param-reassign
+                    config.cache.snapshot = {
+                        managedPaths: [/([\\/]node_modules[\\/](?!react-native-onyx|@expensify\/react-native-live-markdown))/],
+                    };
+                }
+
                 // eslint-disable-next-line no-param-reassign
                 config.resolve ??= {};
                 // eslint-disable-next-line no-param-reassign
