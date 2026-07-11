@@ -20,13 +20,13 @@ import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import type {Beta, IntroSelected, PersonalDetails, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
+import type {Beta, IntroSelected, PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasExpensifyGuidesEmailsSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 
 import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
@@ -105,8 +105,13 @@ function AncestorReportActionItem({
         selector: personalDetailsSelector(report?.ownerAccountID),
     });
     const participantAccountIDs = useMemo(() => Object.keys(report?.participants ?? {}).map(Number), [report?.participants]);
-    const guidesEmailsSelector = useMemo(() => hasExpensifyGuidesEmailsSelector(participantAccountIDs), [participantAccountIDs]);
-    const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: guidesEmailsSelector}, [guidesEmailsSelector]);
+    const guidesEmailsSelector = useCallback(
+        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => hasExpensifyGuidesEmailsSelector(participantAccountIDs)(personalDetailsList),
+        [participantAccountIDs],
+    );
+    const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: guidesEmailsSelector,
+    });
     const resolvedHasGuidesEmails = useMemo(() => resolveHasGuidesEmails({participantAccountIDs, hasGuidesEmails}), [participantAccountIDs, hasGuidesEmails]);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {selector: getStableReportSelector});
 

@@ -97,7 +97,9 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 (personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>) => hasExpensifyGuidesEmailsSelector(participantAccountIDs)(personalDetailsList),
                 [participantAccountIDs],
             );
-            const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: guidesEmailsSelector}, [guidesEmailsSelector]);
+            const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                selector: guidesEmailsSelector,
+            });
             const resolvedHasGuidesEmails = useMemo(() => resolveHasGuidesEmails({participantAccountIDs, hasGuidesEmails}), [participantAccountIDs, hasGuidesEmails]);
             const isFocused = useIsFocused();
             const contentShown = React.useRef(false);
