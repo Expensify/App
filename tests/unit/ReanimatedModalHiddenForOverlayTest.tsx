@@ -2,12 +2,17 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ReanimatedModal from '@components/Modal/ReanimatedModal';
 import HiddenForOverlayContext from '@components/Modal/ReanimatedModal/HiddenForOverlayContext';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 
-import type {ReactNode} from 'react';
+import type {ComponentType, ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useContext, useEffect} from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
+
+type MockViewProps = {testID?: string; style?: StyleProp<ViewStyle>; children?: ReactNode};
+type MockReactNativePrimitives = {View: ComponentType<MockViewProps>};
+type MockReactPrimitives = {useEffect: typeof useEffect};
 
 // The presentation-only subtrees are stubbed so the suite exercises ReanimatedModal's real logic: the
 // HiddenForOverlayContext provider, the hidden-for-overlay state, the container hide style, and the backdrop
@@ -20,7 +25,7 @@ jest.mock('@components/FocusTrap/FocusTrapForModal', () => {
 });
 
 jest.mock('@components/Modal/ReanimatedModal/Backdrop', () => {
-    const ReactNativeActual = jest.requireActual<typeof import('react-native')>('react-native');
+    const ReactNativeActual = jest.requireActual<MockReactNativePrimitives>('react-native');
     function MockBackdrop() {
         return <ReactNativeActual.View testID="reanimatedModalBackdrop" />;
     }
@@ -28,17 +33,16 @@ jest.mock('@components/Modal/ReanimatedModal/Backdrop', () => {
 });
 
 jest.mock('@components/Modal/ReanimatedModal/Container', () => {
-    const ReactActual = jest.requireActual<typeof import('react')>('react');
-    const ReactNativeActual = jest.requireActual<typeof import('react-native')>('react-native');
-    function MockContainer({children, style, onOpenCallBack}: {children: ReactNode; style?: unknown; onOpenCallBack?: () => void}) {
+    const ReactActual = jest.requireActual<MockReactPrimitives>('react');
+    const ReactNativeActual = jest.requireActual<MockReactNativePrimitives>('react-native');
+    function MockContainer({children, style, onOpenCallBack}: {children: ReactNode; style?: StyleProp<ViewStyle>; onOpenCallBack?: () => void}) {
         ReactActual.useEffect(() => {
             onOpenCallBack?.();
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
         return (
             <ReactNativeActual.View
                 testID="reanimatedModalContainer"
-                style={style as StyleProp<ViewStyle>}
+                style={style}
             >
                 {children}
             </ReactNativeActual.View>
@@ -67,19 +71,17 @@ function HideRequester() {
     const setHiddenForOverlay = useContext(HiddenForOverlayContext);
     return (
         <View>
-            <Text testID="hasProvider">{setHiddenForOverlay ? 'true' : 'false'}</Text>
-            <Text
+            <View testID={setHiddenForOverlay ? 'hasProvider-true' : 'hasProvider-false'} />
+            <PressableWithoutFeedback
+                accessibilityLabel="requestHide"
                 testID="requestHide"
                 onPress={() => setHiddenForOverlay?.(true)}
-            >
-                hide
-            </Text>
-            <Text
+            />
+            <PressableWithoutFeedback
+                accessibilityLabel="requestShow"
                 testID="requestShow"
                 onPress={() => setHiddenForOverlay?.(false)}
-            >
-                show
-            </Text>
+            />
         </View>
     );
 }
@@ -112,7 +114,7 @@ function renderModal(children: ReactNode) {
 describe('ReanimatedModal HiddenForOverlayContext', () => {
     test('provides the context to its content', () => {
         renderModal(<HideRequester />);
-        expect(screen.getByTestId('hasProvider')).toHaveTextContent('true');
+        expect(screen.getByTestId('hasProvider-true')).toBeTruthy();
     });
 
     test('hides in place when content requests it: container gets the hide style and the backdrop is dropped, both restored on release', () => {
@@ -129,7 +131,7 @@ describe('ReanimatedModal HiddenForOverlayContext', () => {
         fireEvent.press(screen.getByTestId('requestHide'));
         expect(screen.queryByTestId('reanimatedModalBackdrop')).toBeNull();
         expect(flattenStyle(screen.getByTestId('reanimatedModalContainer').props.style).opacity).toBe(0);
-        expect(screen.getByTestId('hasProvider')).toBeTruthy();
+        expect(screen.getByTestId('hasProvider-true')).toBeTruthy();
 
         // Content releases the hide (year selector closed): backdrop and visibility restored.
         fireEvent.press(screen.getByTestId('requestShow'));
