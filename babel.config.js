@@ -35,7 +35,7 @@ function traceTransformer() {
 // falls into this branch below) to resolve syntax plugins like `exportNamespaceFrom`
 // needed to parse the same syntax the web bundle uses. OXC handles JSX/TypeScript/env-target
 // transforms natively for the web build, so this branch only lists the plugins ESLint's
-// parser needs for syntax it wouldn't otherwise recognise.
+// parser needs for syntax it wouldn't otherwise recognize.
 const web = {
     presets: [],
     plugins: [

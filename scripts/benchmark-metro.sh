@@ -11,25 +11,26 @@ echo "=== Metro benchmark: ${LABEL} (${PLATFORM}) ==="
 echo "Output dir: ${OUT_DIR}"
 
 run_bundle() {
-    local reset_flag="$1"
-    local run_label="$2"
+    local run_label="$1"
+    shift
+    local -a reset_flags=("$@")
     /usr/bin/time -p npx react-native bundle \
         --entry-file index.js \
         --platform "${PLATFORM}" \
         --dev true \
         --bundle-output "${BUNDLE_OUT}" \
         --assets-dest "${OUT_DIR}/assets" \
-        ${reset_flag} \
+        "${reset_flags[@]}" \
         2>&1 | tee "${OUT_DIR}/${run_label}.log" | tail -5
 }
 
 echo ""
 echo "--- Cold build (--reset-cache) ---"
-run_bundle "--reset-cache" "cold"
+run_bundle "cold" "--reset-cache"
 
 echo ""
 echo "--- Warm build (cached) ---"
-run_bundle "" "warm"
+run_bundle "warm"
 
 BUNDLE_SIZE=$(wc -c < "${BUNDLE_OUT}" | tr -d ' ')
 echo ""
