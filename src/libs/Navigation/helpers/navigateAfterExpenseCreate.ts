@@ -39,7 +39,9 @@ function getNavigateAfterCreateSearchNavigatorState() {
  * when creating an expense from the global create button.
  * If the expense is created from the global create button then:
  * - If it is created on the inbox tab, it will open the chat report containing that expense.
- * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
+ * - Exception: native home-screen shortcuts (force touch) always navigate to Spend > Expenses,
+ *   even when initiated from the inbox tab.
+ * - If it is created elsewhere, it will navigate to Spend > Expenses and highlight the newly created expense.
  */
 function navigateAfterExpenseCreate({
     activeReportID,
