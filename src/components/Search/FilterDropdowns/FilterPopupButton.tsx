@@ -14,17 +14,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 import type {ReactNode, RefObject} from 'react';
-import type {ReactNode, RefObject} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/core';
-import {useIsFocused} from '@react-navigation/core';
-import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import React, {useRef, useState} from 'react';
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 import {View} from 'react-native';
 
 type PopoverComponentProps = {

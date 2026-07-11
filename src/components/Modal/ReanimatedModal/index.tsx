@@ -22,7 +22,6 @@ import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-na
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 
 import type ReanimatedModalProps from './types';
-import type ReanimatedModalProps from './types';
 
 import Backdrop from './Backdrop';
 import Container from './Container';

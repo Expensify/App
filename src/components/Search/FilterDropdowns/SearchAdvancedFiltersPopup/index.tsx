@@ -15,8 +15,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useCallback, useRef, useState} from 'react';
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 import {View} from 'react-native';
 
 import AmountFilterContentPopupWrapper from './AmountFilterContentPopupWrapper';

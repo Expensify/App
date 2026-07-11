@@ -21,17 +21,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 
 import {addMonths, addYears, format, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
-import {addMonths, addYears, format, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
-import {Str} from 'expensify-common';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import type CalendarPickerListItem from './types';

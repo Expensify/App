@@ -5,6 +5,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getPlatform from '@libs/getPlatform';
+
 import {setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';

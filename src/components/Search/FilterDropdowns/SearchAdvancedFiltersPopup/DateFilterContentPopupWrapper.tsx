@@ -11,8 +11,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import {View} from 'react-native';
 
 function DateFilterContentPopupWrapper({filterKey, value, hasFeed, onChange}: DateFilterContentWrapperProps) {
