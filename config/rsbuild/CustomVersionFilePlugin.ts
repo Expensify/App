@@ -1,4 +1,4 @@
-import type {Compiler} from 'webpack';
+import type {Compiler} from '@rspack/core';
 
 import fs from 'fs';
 import path from 'path';
@@ -8,7 +8,7 @@ import packageJson from '../../package.json' with {type: 'json'};
 const APP_VERSION = packageJson.version;
 
 /**
- * Custom webpack plugin that writes the app version (from package.json) and the webpack hash to './version.json'
+ * Custom rspack plugin that writes the app version (from package.json) and the rspack hash to './version.json'
  */
 class CustomVersionFilePlugin {
     apply(compiler: Compiler) {
