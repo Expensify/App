@@ -1,18 +1,25 @@
-import type * as ReactNavigationNative from '@react-navigation/native';
 import {fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
-import {createElement} from 'react';
-import type {ComponentProps, ComponentType, ReactNode} from 'react';
-import Onyx from 'react-native-onyx';
+
 import RealDatePicker from '@components/DatePicker';
 import type DatePickerModalType from '@components/DatePicker/DatePickerModal';
 import useIsYearSelectorOpen from '@components/DatePicker/useIsYearSelectorOpen';
+
 import useResponsiveLayoutDefault from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import {setCalendarPickerSelectedYear} from '@libs/actions/CalendarPicker';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as ReactNavigationNative from '@react-navigation/native';
+import type {ComponentProps, ComponentType, ReactNode} from 'react';
+
+import {createElement} from 'react';
+import Onyx from 'react-native-onyx';
+
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

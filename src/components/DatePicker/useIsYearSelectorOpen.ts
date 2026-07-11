@@ -1,6 +1,8 @@
-import {findFocusedRoute} from '@react-navigation/native';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+
 import SCREENS from '@src/SCREENS';
+
+import {findFocusedRoute} from '@react-navigation/native';
 
 /**
  * Whether the dynamic year-selector route is the currently focused screen.

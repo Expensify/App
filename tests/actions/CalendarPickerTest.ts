@@ -1,6 +1,8 @@
-import Onyx from 'react-native-onyx';
 import {clearCalendarPickerSelectedYear, setCalendarPickerSelectedYear} from '@src/libs/actions/CalendarPicker';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

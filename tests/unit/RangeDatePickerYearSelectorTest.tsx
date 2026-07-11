@@ -1,12 +1,18 @@
-import type * as ReactNavigationNative from '@react-navigation/native';
 import {render, screen, within} from '@testing-library/react-native';
-import {act} from 'react';
-import type {ComponentType, ReactNode} from 'react';
-import Onyx from 'react-native-onyx';
+
 import RangeDatePicker from '@components/Search/FilterComponents/RangeDatePicker';
+
 import {setCalendarPickerSelectedYear} from '@libs/actions/CalendarPicker';
 import DateUtils from '@libs/DateUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as ReactNavigationNative from '@react-navigation/native';
+import type {ComponentType, ReactNode} from 'react';
+
+import {act} from 'react';
+import Onyx from 'react-native-onyx';
+
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
