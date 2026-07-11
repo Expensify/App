@@ -731,7 +731,15 @@ function getRequireFieldsFieldCouplingTooltipKey(
         return undefined;
     }
 
-    return fieldKey === INPUT_IDS.RECEIPT_SETTING ? 'receiptDisabledWhenItemizedRequired' : 'itemizedDisabledWhenReceiptWaived';
+    if (fieldKey === INPUT_IDS.RECEIPT_SETTING && touchedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING)) {
+        return 'receiptDisabledWhenItemizedRequired';
+    }
+
+    if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING && touchedFields?.has(INPUT_IDS.RECEIPT_SETTING)) {
+        return 'itemizedDisabledWhenReceiptWaived';
+    }
+
+    return undefined;
 }
 
 export {
