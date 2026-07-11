@@ -32,7 +32,7 @@ export default function fullstoryAnnotationLoader(source) {
             babelrc: false,
             configFile: false,
             filename: this.resourcePath,
-            plugins: [['@fullstory/babel-plugin-annotate-react', {native: true}]],
+            plugins: [['@fullstory/babel-plugin-annotate-react', {native: true, reactCompiler: true}]],
             parserOpts: {plugins: ['jsx', 'typescript']},
             sourceMaps: !!this.sourceMap,
         },
