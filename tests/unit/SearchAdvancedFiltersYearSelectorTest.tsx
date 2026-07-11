@@ -1,13 +1,19 @@
-import type * as ReactNavigationNative from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
-import type {ComponentType, ReactNode} from 'react';
-import Onyx from 'react-native-onyx';
+
 import type SearchAdvancedFiltersPopupComponent from '@components/Search/FilterDropdowns/SearchAdvancedFiltersPopup';
+
 import {clearCalendarPickerSelectedYear, setCalendarPickerSelectedYear} from '@libs/actions/CalendarPicker';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as ReactNavigationNative from '@react-navigation/native';
+import type {ComponentType, ReactNode} from 'react';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // The popover lives only in the WEB variant (index.tsx) — the native variant returns null because advanced
