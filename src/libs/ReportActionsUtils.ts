@@ -2624,8 +2624,8 @@ function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportActio
 /**
  * Check if the current user is the requestor of the action
  */
-function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
+function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
+    return (currentUserAccountID ?? deprecatedCurrentUserAccountID) === reportAction?.actorAccountID;
 }
 
 /**
@@ -4661,8 +4661,9 @@ function wasMessageReceivedWhileOffline(
     lastOfflineAt: Date | undefined,
     lastOnlineAt: Date | undefined,
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
+    currentUserAccountID: number,
 ) {
-    const wasByCurrentUser = wasActionTakenByCurrentUser(action);
+    const wasByCurrentUser = wasActionTakenByCurrentUser(action, currentUserAccountID);
     const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, getLocalDateFromDatetime);
 
     return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
