@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Table from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
+import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
@@ -29,7 +30,6 @@ import localFileDownload from '@libs/localFileDownload';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
-import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
 
 import variables from '@styles/variables';
@@ -304,6 +304,7 @@ function WorkspaceCompanyCardsTable({
     } = companyCards;
 
     const {cardFeedErrors} = useCardFeedErrors();
+    const illustrations = useMemoizedLazyIllustrations(['LaptopAssignCard', 'BrokenMagnifyingGlass']);
     const isFeedConnectionBroken = feedName ? cardFeedErrors[feedName]?.isFeedConnectionBroken : false;
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
@@ -547,7 +548,6 @@ function WorkspaceCompanyCardsTable({
         />
     );
 
-    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
     });
@@ -596,12 +596,11 @@ function WorkspaceCompanyCardsTable({
             selectedKeys={validSelectedCardKeys}
             onRowSelectionChange={setSelectedCardKeys}
             title={translate('workspace.common.companyCards')}
-            ListEmptyComponent={isLoadingCards || hasPendingUnassignments ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
             <WorkspaceCompanyCardsSelectionSearchPruner setSelectedCardKeys={setSelectedCardKeys} />
             {headerButtonsComponent}
 
-            {isLoading && !feedErrorKey && <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>}
+            {isLoadingCards && <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>}
 
             {!isLoading && isFeedPending && !feedErrorKey && (
                 <ScrollView addBottomSafeAreaPadding>
@@ -656,6 +655,25 @@ function WorkspaceCompanyCardsTable({
                         canWriteCompanyCards={canWriteCompanyCards}
                         clearCardSelection={clearCardSelection}
                     />
+                    {hasPendingUnassignments && cardsData.length === 0 ? (
+                        // While bulk unassign requests are in flight, the pending rows are hidden and the feed can momentarily
+                        // have no cards. Show the loading spinner instead of the empty-feed state until the rows settle.
+                        <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>
+                    ) : (
+                        <>
+                            <Table.EmptyState
+                                headerMedia={illustrations.LaptopAssignCard}
+                                containerStyles={styles.mt5}
+                                headerStyles={styles.emptyStateCardIllustrationContainer}
+                                headerContentStyles={styles.pendingStateCardIllustration}
+                                title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
+                                subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}
+                            >
+                                {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
+                            </Table.EmptyState>
+                            <Table.NoResultsState />
+                        </>
+                    )}
                     <Table.Header />
                     <Table.Body />
                 </>
