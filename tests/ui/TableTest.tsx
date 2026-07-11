@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import Table from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
@@ -207,7 +207,31 @@ jest.mock('@hooks/useLazyAsset', () => ({
         ArrowUpLong: 'ArrowUpLong',
         ArrowDownLong: 'ArrowDownLong',
     })),
+    useMemoizedLazyIllustrations: jest.fn(() => ({
+        EmptyShelves: 'EmptyShelves',
+    })),
 }));
+
+// Mock the generic empty-state building blocks so Table.EmptyState/Table.NoResultsState render simple markers
+jest.mock('@components/EmptyStateComponent/GenericEmptyStateComponent', () => {
+    const {View: RNView, Text: RNText} = jest.requireActual<typeof import('react-native')>('react-native');
+    function MockGenericEmptyStateComponent({title, subtitle}: {title?: string; subtitle?: string}) {
+        return (
+            <RNView testID="generic-empty-state">
+                <RNText>{title}</RNText>
+                <RNText>{subtitle}</RNText>
+            </RNView>
+        );
+    }
+    return MockGenericEmptyStateComponent;
+});
+
+jest.mock('@hooks/useGenericEmptyStateIllustration', () => jest.fn(() => ({})));
+
+jest.mock('@components/ScrollView', () => {
+    const {ScrollView: RNScrollView} = jest.requireActual<typeof import('react-native')>('react-native');
+    return RNScrollView;
+});
 
 // Mock Icon component
 jest.mock('@components/Icon', () => {
@@ -659,6 +683,79 @@ describe('Table', () => {
             expect(screen.getByTestId('empty-state')).toBeTruthy();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(2);
             expect(mockFlashListProps.at(-1)?.ListEmptyComponent).toBeUndefined();
+        });
+
+        it('should render Table.EmptyState inside the list when a page header is present', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={[]}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={<Text testID="table-header-component">Page header</Text>}
+                    shouldUseStickyColumnHeader
+                >
+                    <Table.EmptyState title="No items yet" />
+                    <Table.Body />
+                </Table>,
+            );
+
+            // The empty state renders exactly once, as a synthetic row inside the list below the page header.
+            expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
+            expect(within(screen.getByTestId('flash-list')).getByTestId('generic-empty-state')).toBeTruthy();
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(2);
+            expect(mockFlashListProps.at(-1)?.ListEmptyComponent).toBeUndefined();
+        });
+
+        it('should render Table.NoResultsState inside the list when search matches nothing and a page header is present', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                    headerComponent={<Text testID="table-header-component">Page header</Text>}
+                    shouldUseStickyColumnHeader
+                >
+                    <Table.FilterBar label="Search" />
+                    <Table.NoResultsState />
+                    <Table.Body />
+                </Table>,
+            );
+
+            fireEvent.changeText(screen.getByTestId('search-input'), 'no-match-search');
+
+            // The no-results state renders exactly once, as a synthetic row inside the list below the page header.
+            expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
+            expect(within(screen.getByTestId('flash-list')).getByTestId('generic-empty-state')).toBeTruthy();
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(2);
+        });
+
+        it('should render Table.EmptyState as a sibling when no page header is present', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={[]}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.EmptyState title="No items yet" />
+                    <Table.Body />
+                </Table>,
+            );
+
+            // Without a page header the body renders nothing and the empty state fills the table area.
+            expect(screen.getByTestId('generic-empty-state')).toBeTruthy();
+            expect(screen.queryByTestId('flash-list')).toBeNull();
         });
     });
 
