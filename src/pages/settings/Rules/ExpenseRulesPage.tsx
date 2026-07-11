@@ -3,16 +3,13 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import type {PersonalExpenseRuleRowData} from '@components/Tables/PersonalExpenseRulesTable';
 import PersonalExpenseRulesTable from '@components/Tables/PersonalExpenseRulesTable';
 import Text from '@components/Text';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -50,7 +47,6 @@ function ExpenseRulesPage() {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const genericIllustration = useGenericEmptyStateIllustration();
     const illustrations = useMemoizedLazyIllustrations(['Flash']);
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
     const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
@@ -163,25 +159,6 @@ function ExpenseRulesPage() {
         </View>
     );
 
-    const emptyStateComponent = (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-            <GenericEmptyStateComponent
-                {...genericIllustration}
-                title={translate('expenseRulesPage.emptyRules.title')}
-                subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
-                headerStyles={styles.emptyStateCardIllustrationContainer}
-                buttons={[
-                    {
-                        success: true,
-                        buttonAction: navigateToNewRulePage,
-                        icon: icons.Plus,
-                        buttonText: translate('expenseRulesPage.newRule'),
-                    },
-                ]}
-            />
-        </ScrollView>
-    );
-
     const loadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'ExpenseRulesPage.loading',
         isLoading,
@@ -215,11 +192,9 @@ function ExpenseRulesPage() {
             </HeaderWithBackButton>
             {shouldDisplayButtonsInSeparateLine && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
 
-            {!hasRules && (
-                <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
-                </View>
-            )}
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
+            </View>
 
             {!hasRules && isLoading && (
                 <ActivityIndicator
@@ -234,14 +209,6 @@ function ExpenseRulesPage() {
                     selectedKeys={selectedRules}
                     personalExpenseRules={personalExpenseRules}
                     onRowSelectionChange={setSelectedRules}
-                    headerComponent={
-                        hasRules ? (
-                            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
-                            </View>
-                        ) : undefined
-                    }
-                    EmptyStateComponent={emptyStateComponent}
                 />
             )}
 

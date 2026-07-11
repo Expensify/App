@@ -1,14 +1,18 @@
-import DomainListEmptyState from '@components/Domain/DomainListEmptyState';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table from '@components/Table';
 
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
 
 import type CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -35,12 +39,12 @@ type DomainRowData = {
 
 type DomainListTableProps = {
     domains: DomainRowData[];
-    headerComponent?: React.ReactElement;
 };
 
-export default function DomainListTable({domains, headerComponent}: DomainListTableProps) {
+export default function DomainListTable({domains}: DomainListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['EarthWithControls']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -69,9 +73,6 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
-    const searchBarComponent = <Table.FilterBar label={translate('workspace.common.findDomain')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
-
     const renderTableItem = ({item, index}: ListRenderItemInfo<DomainRowData>) => {
         return (
             <DomainListTableRow
@@ -82,6 +83,14 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
         );
     };
 
+    const emptyStateButtons = [
+        {
+            success: true,
+            buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN)),
+            buttonText: translate('domain.addDomain.newDomain'),
+        },
+    ];
+
     return (
         <Table
             data={domains}
@@ -91,11 +100,21 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
             isItemInSearch={isTableItemInSearch}
             initialSortColumn="domains"
             title={translate('common.domains')}
-            headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
-            ListEmptyComponent={DomainListEmptyState}
             keyExtractor={(row, index) => `${row.domainAccountID}-${index}`}
         >
+            <Table.FilterBar label={translate('workspace.common.findDomain')} />
+            <Table.EmptyState
+                headerMedia={illustrations.EarthWithControls}
+                headerContentStyles={styles.emptyDomainListStaticIllustrationStyle}
+                title={translate('workspace.emptyDomain.title')}
+                subtitle={translate('workspace.emptyDomain.subtitle')}
+                titleStyles={styles.pt2}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                containerStyles={styles.mb10}
+                buttons={emptyStateButtons}
+            />
+            <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

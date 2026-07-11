@@ -1,5 +1,6 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table from '@components/Table';
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -53,12 +54,12 @@ type WorkspaceTagsTableProps = {
     hasDependentTags: boolean;
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
-    EmptyStateComponent: React.ReactElement;
-    headerComponent?: React.ReactElement;
+    emptyState: TableEmptyStateProps;
 };
 
 export default function WorkspaceTagsTable({
     tags,
+    emptyState,
     selectionEnabled,
     selectedKeys,
     onRowSelectionChange,
@@ -66,8 +67,6 @@ export default function WorkspaceTagsTable({
     hasDependentTags,
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
-    EmptyStateComponent,
-    headerComponent,
 }: WorkspaceTagsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -200,10 +199,6 @@ export default function WorkspaceTagsTable({
         />
     );
 
-    const isEmpty = tags.length === 0;
-    const searchBarComponent = <Table.FilterBar label={translate('workspace.tags.findTag')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
-
     return (
         <Table
             data={tags}
@@ -217,11 +212,12 @@ export default function WorkspaceTagsTable({
             selectedKeys={selectedKeys}
             keyExtractor={(tag) => tag.keyForList}
             onRowSelectionChange={onRowSelectionChange}
-            headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
-            {isEmpty && EmptyStateComponent}
-            {!isEmpty && <Table.Body />}
+            <Table.FilterBar label={translate('workspace.tags.findTag')} />
+            <Table.EmptyState {...emptyState} />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

@@ -1,13 +1,11 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import WorkspaceDistanceRatesTable from '@components/Tables/WorkspaceDistanceRatesTable';
 import type {DistanceRateTableItemData} from '@components/Tables/WorkspaceDistanceRatesTable/WorkspaceDistanceRatesTableRow';
 import Text from '@components/Text';
@@ -15,7 +13,6 @@ import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
-import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -79,9 +76,7 @@ function PolicyDistanceRatesPage({
     const {canWrite: canWriteDistanceRates, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
 
     const {asset: CarIce} = useMemoizedLazyAsset(() => loadIllustration('CarIce' as IllustrationName));
-    const genericIllustration = useGenericEmptyStateIllustration();
     const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
-    const customUnitID = customUnit?.customUnitID;
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit?.rates]);
 
     const selectableRates = useMemo(
@@ -276,16 +271,16 @@ function PolicyDistanceRatesPage({
 
     const dismissErrorByID = useCallback(
         (rateID: string) => {
-            if (!customUnitID) {
+            if (!customUnit?.customUnitID) {
                 return;
             }
             if (customUnitRates[rateID]?.errors) {
-                clearDeleteDistanceRateError(policyID, customUnitID, rateID);
+                clearDeleteDistanceRateError(policyID, customUnit.customUnitID, rateID);
                 return;
             }
-            clearCreateDistanceRateItemAndError(policyID, customUnitID, rateID);
+            clearCreateDistanceRateItemAndError(policyID, customUnit.customUnitID, rateID);
         },
-        [customUnitID, customUnitRates, policyID],
+        [customUnit?.customUnitID, customUnitRates, policyID],
     );
 
     const openRateDetailsByID = useCallback(
@@ -447,29 +442,6 @@ function PolicyDistanceRatesPage({
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
-    const emptyStateContent = (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-            <GenericEmptyStateComponent
-                {...genericIllustration}
-                title={translate('workspace.distanceRates.emptyRates.title')}
-                subtitle={translate('workspace.distanceRates.emptyRates.subtitle')}
-                headerStyles={styles.emptyStateCardIllustrationContainer}
-                buttons={
-                    canWriteDistanceRates
-                        ? [
-                              {
-                                  icon: icons.Plus,
-                                  buttonText: translate('workspace.distanceRates.addRate'),
-                                  buttonAction: addRate,
-                                  success: true,
-                              },
-                          ]
-                        : undefined
-                }
-            />
-        </ScrollView>
-    );
-
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -510,20 +482,21 @@ function PolicyDistanceRatesPage({
                     />
                 )}
                 {!isLoading && (
-                    <WorkspaceDistanceRatesTable
-                        ratesData={ratesData}
-                        selectionEnabled={canWriteDistanceRates}
-                        selectedKeys={selectedDistanceRates}
-                        onRowSelectionChange={setSelectedDistanceRates}
-                        EmptyStateComponent={emptyStateContent}
-                        headerComponent={
-                            ratesData.length > 0 ? (
-                                <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
-                                </View>
-                            ) : undefined
-                        }
-                    />
+                    <>
+                        {ratesData.length > 0 && (
+                            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
+                            </View>
+                        )}
+                        <WorkspaceDistanceRatesTable
+                            policyID={policyID}
+                            ratesData={ratesData}
+                            selectedKeys={selectedDistanceRates}
+                            selectionEnabled={canWriteDistanceRates}
+                            onRowSelectionChange={setSelectedDistanceRates}
+                            canWriteDistanceRates={canWriteDistanceRates}
+                        />
+                    </>
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

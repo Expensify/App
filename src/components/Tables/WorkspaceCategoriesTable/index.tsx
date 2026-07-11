@@ -1,5 +1,6 @@
+import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -43,9 +44,9 @@ type WorkspaceCategoriesTableProps = {
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
     selectedKeys: string[];
+    emptyStateSubtitleText: React.ReactNode;
+    emptyStateButtons: EmptyStateButton[] | undefined;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    EmptyStateComponent: React.ReactElement;
-    headerComponent?: React.ReactElement;
 };
 
 export default function WorkspaceCategoriesTable({
@@ -55,9 +56,9 @@ export default function WorkspaceCategoriesTable({
     selectionEnabled,
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
+    emptyStateSubtitleText,
+    emptyStateButtons,
     onRowSelectionChange,
-    EmptyStateComponent,
-    headerComponent,
 }: WorkspaceCategoriesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -144,10 +145,6 @@ export default function WorkspaceCategoriesTable({
         />
     );
 
-    const isEmpty = categories.length === 0;
-    const searchBarComponent = <Table.FilterBar label={translate('workspace.categories.findCategory')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
-
     return (
         <Table
             ref={ref}
@@ -162,11 +159,17 @@ export default function WorkspaceCategoriesTable({
             selectedKeys={selectedKeys}
             keyExtractor={(category) => category.keyForList}
             onRowSelectionChange={onRowSelectionChange}
-            headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
-            {isEmpty && EmptyStateComponent}
-            {!isEmpty && <Table.Body />}
+            <Table.FilterBar label={translate('workspace.categories.findCategory')} />
+            <Table.EmptyState
+                title={translate('workspace.categories.emptyCategories.title')}
+                subtitleText={emptyStateSubtitleText}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                buttons={emptyStateButtons}
+            />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

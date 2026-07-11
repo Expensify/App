@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -49,7 +49,6 @@ type WorkspaceMembersTableProps = {
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    headerComponent?: React.ReactElement;
 };
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
@@ -59,6 +58,7 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     CARD_ADMINS: 'cardAdmins',
     EDITORS: 'editors',
     MEMBERS: 'members',
+    PAYMENTS_ADMINS: 'paymentsAdmins',
     PEOPLE_ADMINS: 'peopleAdmins',
 } as const;
 
@@ -71,7 +71,6 @@ export default function WorkspaceMembersTable({
     shouldShowCustomField2Column,
     members,
     onRowSelectionChange,
-    headerComponent,
 }: WorkspaceMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -234,6 +233,11 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
+        const isPaymentsAdmin = item.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.PAYMENTS_ADMINS) && isPaymentsAdmin) {
+            return true;
+        }
+
         const isEditor = item.role === CONST.POLICY.ROLE.EDITOR;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.EDITORS) && isEditor) {
             return true;
@@ -276,6 +280,11 @@ export default function WorkspaceMembersTable({
         });
 
         filterConfig.role.options.push({
+            label: translate('workspace.people.paymentsAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.PAYMENTS_ADMINS,
+        });
+
+        filterConfig.role.options.push({
             label: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
         });
@@ -304,7 +313,6 @@ export default function WorkspaceMembersTable({
             />
         );
     };
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, <Table.FilterBar label={translate('workspace.people.findMember')} />);
 
     return (
         <Table
@@ -322,9 +330,10 @@ export default function WorkspaceMembersTable({
             isItemInSearch={isTableItemInSearch}
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
-            headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
+            <Table.FilterBar label={translate('workspace.people.findMember')} />
+            <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

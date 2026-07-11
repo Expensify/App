@@ -1,6 +1,7 @@
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 
+import useDomainHighlightOnReturn from '@hooks/useDomainHighlightOnReturn';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -12,7 +13,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
-import React from 'react';
+import React, {useRef} from 'react';
 
 import DomainAdminsTableRow from './DomainAdminsTableRow';
 
@@ -30,12 +31,15 @@ type DomainAdminRowData = TableData & {
 };
 
 type DomainAdminsTableProps = {
+    domainAccountID: number;
     admins: DomainAdminRowData[];
 };
 
-export default function DomainAdminsTable({admins}: DomainAdminsTableProps) {
+export default function DomainAdminsTable({domainAccountID, admins}: DomainAdminsTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const tableRef = useRef<TableHandle<DomainAdminRowData, DomainAdminsTableColumnKey>>(null);
+    useDomainHighlightOnReturn(domainAccountID, 'admins', tableRef);
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -70,10 +74,10 @@ export default function DomainAdminsTable({admins}: DomainAdminsTableProps) {
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
-    const tableHeaderComponent = <Table.FilterBar label={translate('domain.admins.findAdmin')} />;
 
     return (
         <Table
+            ref={tableRef}
             data={admins}
             columns={domainAdminsTableColumns}
             renderItem={renderTableItem}
@@ -82,9 +86,10 @@ export default function DomainAdminsTable({admins}: DomainAdminsTableProps) {
             initialSortColumn="admin"
             title={translate('domain.admins.title')}
             keyExtractor={(item) => item.keyForList}
-            headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
+            <Table.FilterBar label={translate('domain.admins.findAdmin')} />
+            <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

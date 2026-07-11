@@ -67,6 +67,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         hasSearchString,
         headerComponent,
         isEmptyResult,
+        originalDataLength,
         tableListMetadata,
     } = useTableContext<DataType>();
     const {
@@ -103,6 +104,14 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
+    // Tables without a scrolling page header keep the default contract: an empty table renders
+    // nothing here so the declarative Table.EmptyState/Table.NoResultsState siblings take over.
+    // With a page header the list must stay mounted even when empty, otherwise the header
+    // (tabs, buttons, search) would disappear together with the rows.
+    if (!tableListMetadata.hasPageHeader && (isEmptyResult || (!originalDataLength && !ListEmptyComponent))) {
+        return null;
+    }
+
     const renderListComponent = (component: typeof ListHeaderComponent | typeof ListEmptyComponent) => {
         if (!component) {
             return null;
@@ -137,8 +146,6 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
     let listEmptyComponent = ListEmptyComponent;
     if (tableListMetadata.shouldRenderSyntheticEmptyRow) {
         listEmptyComponent = undefined;
-    } else if (isEmptyResult) {
-        listEmptyComponent = EmptyResultComponent;
     }
 
     const renderListItem = (info: ListRenderItemInfo<DataType>) => {

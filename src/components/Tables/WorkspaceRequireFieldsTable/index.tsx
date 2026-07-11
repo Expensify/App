@@ -1,4 +1,5 @@
 import type {TableRenderRowProps} from '@components/Table';
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import WorkspaceCategoryRulesTable from '@components/Tables/WorkspaceCategoryRulesTable';
 
 import useLocalize from '@hooks/useLocalize';
@@ -13,12 +14,11 @@ type WorkspaceRequireFieldsTableProps = {
     rulesData: RequireFieldsTableItem[];
     selectionEnabled: boolean;
     selectedKeys: string[];
+    emptyState: TableEmptyStateProps;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    headerComponent?: React.ReactElement;
-    emptyStateContent?: React.ReactElement;
 };
 
-function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, emptyStateContent}: WorkspaceRequireFieldsTableProps) {
+function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyState}: WorkspaceRequireFieldsTableProps) {
     const {translate} = useLocalize();
 
     const renderRow = ({item, rowIndex, shouldUseNarrowTableLayout}: TableRenderRowProps<RequireFieldsTableItem>) => (
@@ -36,8 +36,7 @@ function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys,
             selectionEnabled={selectionEnabled}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
-            headerComponent={headerComponent}
-            emptyStateContent={emptyStateContent}
+            emptyState={emptyState}
             tableTitle={translate('workspace.rules.tabs.requireFields')}
             findRuleLabel={translate('workspace.rules.requireFieldsTable.findRule')}
             typeColumnLabel={translate('workspace.rules.requireFieldsTable.tableColumnType')}

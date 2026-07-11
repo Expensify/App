@@ -1,5 +1,6 @@
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableRenderRowProps} from '@components/Table';
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -12,7 +13,6 @@ import variables from '@styles/variables';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type CategoryRulesTableColumnKey = 'type' | 'condition' | 'rule' | 'actions';
 
@@ -29,13 +29,13 @@ type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    headerComponent?: React.ReactElement;
     emptyStateContent?: React.ReactElement;
     tableTitle: string;
     findRuleLabel: string;
     typeColumnLabel: string;
     conditionColumnLabel: string;
     ruleColumnLabel: string;
+    emptyState: TableEmptyStateProps;
     renderRow: (props: TableRenderRowProps<TItem>) => React.ReactElement;
 };
 
@@ -44,13 +44,12 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
     selectionEnabled,
     selectedKeys,
     onRowSelectionChange,
-    headerComponent,
-    emptyStateContent,
     tableTitle,
     findRuleLabel,
     typeColumnLabel,
     conditionColumnLabel,
     ruleColumnLabel,
+    emptyState,
     renderRow,
 }: WorkspaceCategoryRulesTableProps<TItem>) {
     const {localeCompare} = useLocalize();
@@ -96,10 +95,6 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
 
     const renderItem = ({item, index}: ListRenderItemInfo<TItem>) => renderRow({item, rowIndex: index, shouldUseNarrowTableLayout});
 
-    const isEmpty = rulesData.length === 0;
-    const searchBarComponent = <Table.FilterBar label={findRuleLabel} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
-
     return (
         <Table
             data={rulesData}
@@ -114,11 +109,12 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
             initialSortColumn="condition"
             narrowLayoutSortColumn="condition"
             title={tableTitle}
-            headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
-            ListEmptyComponent={emptyStateContent ? <View style={[styles.flex1, styles.mnh0, styles.w100]}>{emptyStateContent}</View> : undefined}
         >
-            {(!isEmpty || !!emptyStateContent || !!headerComponent) && <Table.Body />}
+            <Table.FilterBar label={findRuleLabel} />
+            <Table.EmptyState {...emptyState} />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

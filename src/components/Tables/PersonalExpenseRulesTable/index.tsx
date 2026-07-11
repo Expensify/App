@@ -1,13 +1,17 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table from '@components/Table';
 
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import {clearDraftRule} from '@libs/actions/User';
+import Navigation from '@libs/Navigation/Navigation';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import ROUTES from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -28,15 +32,14 @@ type PersonalExpenseRuleRowData = TableData & {
 };
 
 type PersonalExpenseRulesTableProps = {
-    EmptyStateComponent: React.ReactElement;
-    headerComponent?: React.ReactElement;
     personalExpenseRules: PersonalExpenseRuleRowData[];
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function PersonalExpenseRulesTable({EmptyStateComponent, headerComponent, personalExpenseRules, selectedKeys, onRowSelectionChange}: PersonalExpenseRulesTableProps) {
+export default function PersonalExpenseRulesTable({personalExpenseRules, selectedKeys, onRowSelectionChange}: PersonalExpenseRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const personalExpenseRulesTableColumns: Array<TableColumn<PersonalExpenseRulesTableColumnKey>> = [
@@ -86,8 +89,10 @@ export default function PersonalExpenseRulesTable({EmptyStateComponent, headerCo
         />
     );
 
-    const searchBarComponent = <Table.FilterBar label={translate('expenseRulesPage.findRule')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+    const navigateToNewRulePage = () => {
+        clearDraftRule();
+        Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute());
+    };
 
     return (
         <Table
@@ -102,10 +107,22 @@ export default function PersonalExpenseRulesTable({EmptyStateComponent, headerCo
             renderItem={renderPersonalExpenseRuleItem}
             onRowSelectionChange={onRowSelectionChange}
             keyExtractor={(rule) => rule.keyForList}
-            headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
-            ListEmptyComponent={EmptyStateComponent}
         >
+            <Table.FilterBar label={translate('expenseRulesPage.findRule')} />
+            <Table.EmptyState
+                title={translate('expenseRulesPage.emptyRules.title')}
+                subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
+                buttons={[
+                    {
+                        success: true,
+                        buttonAction: navigateToNewRulePage,
+                        icon: icons.Plus,
+                        buttonText: translate('expenseRulesPage.newRule'),
+                    },
+                ]}
+            />
+            <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

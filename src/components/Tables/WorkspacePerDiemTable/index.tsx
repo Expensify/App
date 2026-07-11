@@ -1,5 +1,6 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table from '@components/Table';
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -35,12 +36,11 @@ type WorkspacePerDiemTableProps = {
     perDiemData: PerDiemTableRowData[];
     selectionEnabled: boolean;
     selectedKeys: string[];
+    emptyState: TableEmptyStateProps;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    headerComponent?: React.ReactElement;
-    EmptyStateComponent: React.ReactElement;
 };
 
-export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, EmptyStateComponent}: WorkspacePerDiemTableProps) {
+export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, selectedKeys, emptyState, onRowSelectionChange}: WorkspacePerDiemTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -112,9 +112,6 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
         />
     );
 
-    const searchBarComponent = <Table.FilterBar label={translate('workspace.perDiem.findPerDiemRate')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
-
     return (
         <Table
             data={perDiemData}
@@ -129,10 +126,11 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             initialSortColumn="destination"
             narrowLayoutSortColumn="destination"
             title={translate('common.perDiem')}
-            headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
-            ListEmptyComponent={EmptyStateComponent}
         >
+            <Table.FilterBar label={translate('workspace.perDiem.findPerDiemRate')} />
+            <Table.EmptyState {...emptyState} />
+            <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

@@ -653,6 +653,7 @@ function createExpenseByType({
     customUnitPolicyID,
     personalDetails,
     recentWaypoints,
+    policyTagList,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -665,20 +666,10 @@ function createExpenseByType({
     customUnitPolicyID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    policyTagList: OnyxTypes.PolicyTagLists;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
-            const isMoneyRequestReport = isMoneyRequestReportReportUtils(params.report);
-            const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(params.report?.chatReportID) : params.report;
-            const moneyRequestReportID = isMoneyRequestReport ? params.report?.reportID : '';
-            // Part of the onyx.connect migration, it will be removed in further PRs (https://github.com/Expensify/App/issues/72721).
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const policyTagList = getMoneyRequestPolicyTags({
-                existingIOUReport: params.existingIOUReport,
-                moneyRequestReportID,
-                parentChatReport: currentChatReport,
-                participant: participants.at(0) ?? {},
-            });
             const distanceParams: CreateDistanceRequestInformation = {
                 ...params,
                 participants,
@@ -730,7 +721,10 @@ function createExpenseByType({
             return submitPerDiemExpense(perDiemParams);
         }
         default:
-            return requestMoney(params);
+            return requestMoney({
+                ...params,
+                policyParams: {...(params.policyParams ?? {}), policyTagList},
+            });
     }
 }
 
@@ -758,6 +752,8 @@ type DuplicateExpenseTransactionParams = {
     optimisticReportPreviewActionID?: string;
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
+    delegateAccountID: number | undefined;
+    policyTagList: OnyxTypes.PolicyTagLists;
 };
 
 function duplicateExpenseTransaction({
@@ -784,13 +780,15 @@ function duplicateExpenseTransaction({
     optimisticReportPreviewActionID: externalReportPreviewActionID,
     currentUser,
     currentUserLocalCurrency,
+    delegateAccountID,
+    policyTagList,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
     }
     const {accountID: currentUserAccountID, email: currentUserLogin = ''} = currentUser;
-
     const participants = getMoneyRequestParticipantsFromReport(targetReport, currentUserAccountID);
+
     const transactionDetails = getTransactionDetails(transaction);
     const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
 
@@ -831,6 +829,7 @@ function duplicateExpenseTransaction({
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
+        delegateAccountID,
     };
 
     // If no workspace is provided the expense should be unreported
@@ -870,6 +869,8 @@ function duplicateExpenseTransaction({
             betas,
             isSelfTourViewed,
             currentUserLocalCurrency,
+            delegateAccountID,
+            reportActionsList: undefined,
         };
         return trackExpense(trackExpenseParams);
     }
@@ -892,6 +893,7 @@ function duplicateExpenseTransaction({
         customUnitPolicyID,
         personalDetails,
         recentWaypoints,
+        policyTagList,
     });
 }
 
@@ -916,6 +918,7 @@ type DuplicateReportParams = {
     currentUserLogin: string;
     currentUserAccountID: number;
     shouldPlaySound?: boolean;
+    delegateAccountID: number | undefined;
 };
 
 function duplicateReport({
@@ -939,6 +942,7 @@ function duplicateReport({
     currentUserAccountID,
     currentUserLogin,
     shouldPlaySound = true,
+    delegateAccountID,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1029,7 +1033,20 @@ function duplicateReport({
             betas,
             personalDetails,
             shouldDeferAutoSubmit: !isLastExpense,
+            delegateAccountID,
         };
+
+        const isMoneyRequestReport = isMoneyRequestReportReportUtils(params.report);
+        const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(params.report?.chatReportID) : params.report;
+        const moneyRequestReportID = isMoneyRequestReport ? params.report?.reportID : '';
+        // Part of the onyx.connect migration, it will be removed in further PRs (https://github.com/Expensify/App/issues/72721).
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const policyTagList = getMoneyRequestPolicyTags({
+            existingIOUReport: params.existingIOUReport,
+            moneyRequestReportID,
+            parentChatReport: currentChatReport,
+            participant: participants.at(0) ?? {},
+        });
 
         const result = createExpenseByType({
             transactionType: getTransactionType(transaction),
@@ -1043,6 +1060,7 @@ function duplicateReport({
             customUnitPolicyID: targetPolicy?.id,
             personalDetails,
             recentWaypoints,
+            policyTagList,
         });
 
         if (result?.iouReport) {
@@ -1074,6 +1092,8 @@ type BulkDuplicateExpensesParams = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
+    delegateAccountID: number | undefined;
+    policyTagList: OnyxTypes.PolicyTagLists;
 };
 
 function bulkDuplicateExpenses({
@@ -1095,6 +1115,8 @@ function bulkDuplicateExpenses({
     recentWaypoints,
     currentUser,
     currentUserLocalCurrency,
+    delegateAccountID,
+    policyTagList,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1190,6 +1212,8 @@ function bulkDuplicateExpenses({
             optimisticReportPreviewActionID: currentReportPreviewActionID,
             currentUser,
             currentUserLocalCurrency,
+            delegateAccountID,
+            policyTagList,
         });
 
         if (result?.iouReport) {
@@ -1225,6 +1249,7 @@ type BulkDuplicateReportsParams = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUserLogin: string;
     currentUserAccountID: number;
+    delegateAccountID: number | undefined;
 };
 
 function bulkDuplicateReports({
@@ -1248,6 +1273,7 @@ function bulkDuplicateReports({
     recentWaypoints,
     currentUserLogin,
     currentUserAccountID,
+    delegateAccountID,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1322,6 +1348,7 @@ function bulkDuplicateReports({
             shouldPlaySound: false,
             currentUserAccountID,
             currentUserLogin,
+            delegateAccountID,
         });
     }
 

@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -10,6 +10,8 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
 
 import type {WorkspaceTaxTableRowData} from './WorkspaceTaxesTableRow';
 
@@ -22,10 +24,9 @@ type WorkspaceTaxesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    headerComponent?: React.ReactElement;
 };
 
-export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent}: WorkspaceTaxesTableProps) {
+export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceTaxesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -78,8 +79,6 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
-    const searchBarComponent = <Table.FilterBar label={translate('workspace.taxes.findTaxRate')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
 
     return (
         <Table
@@ -95,9 +94,10 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             selectedKeys={selectedKeys}
             keyExtractor={(tax) => tax.keyForList}
             onRowSelectionChange={onRowSelectionChange}
-            headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
+            <Table.FilterBar label={translate('workspace.taxes.findTaxRate')} />
+            <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

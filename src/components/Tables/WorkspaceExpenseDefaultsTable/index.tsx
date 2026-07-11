@@ -1,4 +1,4 @@
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
@@ -24,11 +24,9 @@ type WorkspaceExpenseDefaultsTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    headerComponent?: React.ReactElement;
-    emptyStateContent?: React.ReactElement;
 };
 
-function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, emptyStateContent}: WorkspaceExpenseDefaultsTableProps) {
+function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceExpenseDefaultsTableProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -102,10 +100,6 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
         />
     );
 
-    const isEmpty = rulesData.length === 0;
-    const searchBarComponent = <Table.FilterBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
-
     return (
         <Table
             data={rulesData}
@@ -120,11 +114,11 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             initialSortColumn="condition"
             narrowLayoutSortColumn="condition"
             title={translate('workspace.rules.tabs.expenseDefaults')}
-            headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
-            ListEmptyComponent={emptyStateContent}
         >
-            {(!isEmpty || !!emptyStateContent || !!headerComponent) && <Table.Body />}
+            <Table.FilterBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

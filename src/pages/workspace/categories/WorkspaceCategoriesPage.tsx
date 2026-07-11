@@ -3,13 +3,12 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
+import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import type {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
@@ -18,7 +17,6 @@ import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
-import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -98,7 +96,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Gear', 'Plus', 'Table', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen']);
-    const genericIllustration = useGenericEmptyStateIllustration();
 
     const {
         taskReport: setupCategoryTaskReport,
@@ -615,33 +612,21 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         canWriteCategories,
     ]);
 
-    const emptyStateContent = (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-            <GenericEmptyStateComponent
-                {...genericIllustration}
-                title={translate('workspace.categories.emptyCategories.title')}
-                subtitleText={subtitleText}
-                headerStyles={styles.emptyStateCardIllustrationContainer}
-                buttons={
-                    !policyHasAccountingConnections
-                        ? [
-                              {
-                                  icon: icons.Table,
-                                  buttonText: translate('common.import'),
-                                  buttonAction: navigateToImportSpreadsheet,
-                              },
-                              {
-                                  icon: icons.Plus,
-                                  buttonText: translate('workspace.categories.addCategory'),
-                                  buttonAction: navigateToCreateCategoryPage,
-                                  success: true,
-                              },
-                          ]
-                        : undefined
-                }
-            />
-        </ScrollView>
-    );
+    const emptyStateButtons: EmptyStateButton[] | undefined = !policyHasAccountingConnections
+        ? [
+              {
+                  icon: icons.Table,
+                  buttonText: translate('common.import'),
+                  buttonAction: navigateToImportSpreadsheet,
+              },
+              {
+                  icon: icons.Plus,
+                  buttonText: translate('workspace.categories.addCategory'),
+                  buttonAction: navigateToCreateCategoryPage,
+                  success: true,
+              },
+          ]
+        : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -694,16 +679,33 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 )}
 
                 {!isLoading && (
-                    <WorkspaceCategoriesTable
-                        categories={categoryRows}
-                        selectionEnabled={canWriteCategories}
-                        selectedKeys={selectedCategoryKeys}
-                        shouldShowGLCodeColumn={shouldShowGLCodeColumn}
-                        shouldShowApproverColumn={shouldShowApproverColumn}
-                        onRowSelectionChange={setSelectedCategoryKeys}
-                        EmptyStateComponent={emptyStateContent}
-                        headerComponent={hasVisibleCategories ? headerContent : undefined}
-                    />
+                    <>
+                        {hasVisibleCategories && (
+                            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                                {!hasSyncError && isConnectionVerified && currentConnectionName ? (
+                                    <ImportedFromAccountingSoftware
+                                        policyID={policyId}
+                                        currentConnectionName={currentConnectionName}
+                                        connectedIntegration={connectedIntegration}
+                                        translatedText={translate('workspace.categories.importedFromAccountingSoftware')}
+                                    />
+                                ) : (
+                                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+                                )}
+                            </View>
+                        )}
+
+                        <WorkspaceCategoriesTable
+                            categories={categoryRows}
+                            selectionEnabled={canWriteCategories}
+                            selectedKeys={selectedCategoryKeys}
+                            emptyStateSubtitleText={subtitleText}
+                            emptyStateButtons={emptyStateButtons}
+                            shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                            shouldShowApproverColumn={shouldShowApproverColumn}
+                            onRowSelectionChange={setSelectedCategoryKeys}
+                        />
+                    </>
                 )}
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}

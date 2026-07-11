@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
-import WorkspaceListLayout, {WorkspaceListHeaderContent} from '@components/WorkspaceListLayout';
+import WorkspaceListLayout from '@components/WorkspaceListLayout';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -25,6 +25,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPaidGroupPolicyByType} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
@@ -33,7 +34,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {createDisplayDetailsByAccountIDsSelector} from '@src/selectors/PersonalDetails';
-import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
 import {createCopySettingsEligibleTargetsSelector, createWorkspaceListPoliciesSelector} from '@src/selectors/Policy';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
@@ -42,8 +42,6 @@ import {View} from 'react-native';
 
 import CopyPolicySettingsProgressModal from './copyPolicySettings/CopyPolicySettingsProgressModal';
 import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
-
-const EMPTY_COPY_SETTINGS_ELIGIBLE_TARGETS: CopySettingsEligibleTargets = {adminNonPersonal: [], corporateOnly: []};
 
 function WorkspacesListPage() {
     const tableRef = useRef<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>>(null);
@@ -67,9 +65,12 @@ function WorkspacesListPage() {
     // this page. Per-row error indicators subscribe to those fields themselves in WorkspaceRowBrickRoadIndicator.
     const [workspaceListPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createWorkspaceListPoliciesSelector(session?.email)}, [session?.email]);
 
-    // Projection of the policy collection passed down to the row menus, which compute their copy-settings
-    // eligibility from it. Kept at the page level so it is evaluated once per policy write instead of once per row.
+    // IDs of every workspace eligible as a copy-settings target. Derived once per policy write (not per row) so each row can cheaply decide whether to offer "Copy settings".
     const [copySettingsEligibleTargets] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCopySettingsEligibleTargetsSelector(session?.email)}, [session?.email]);
+
+    // A workspace can copy its settings when there is at least one other eligible target.
+    const isWorkspaceEligibleToCopy = (policyID: string) =>
+        !!copySettingsEligibleTargets && (copySettingsEligibleTargets.length > 1 || (copySettingsEligibleTargets.length === 1 && copySettingsEligibleTargets.at(0) !== policyID));
 
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
 
@@ -99,8 +100,19 @@ function WorkspacesListPage() {
 
     for (const policy of workspaceListPolicies ?? []) {
         if (policy.isJoinRequestPending && policy.nonMemberDetails) {
-            const {policyID, ownerAccountID} = policy.nonMemberDetails;
-            const ownerDetails = ownerAccountID ? ownerDisplayDetails?.[ownerAccountID] : undefined;
+            const {policyID, ownerAccountID, ownerEmail, ownerDefaultAvatar} = policy.nonMemberDetails;
+            let ownerDetails = ownerAccountID ? ownerDisplayDetails?.[ownerAccountID] : undefined;
+
+            // The owner of a policy the user only requested to join is usually not in the personal details list,
+            // so fall back to the owner email and default avatar the join request already provides.
+            if (!ownerDetails && ownerAccountID && ownerEmail) {
+                ownerDetails = {
+                    accountID: ownerAccountID,
+                    login: ownerEmail,
+                    displayName: ownerEmail,
+                    avatar: ownerDefaultAvatar,
+                };
+            }
 
             const pendingWorkspaceRow: WorkspaceRowData = {
                 keyForList: policyID,
@@ -112,6 +124,7 @@ function WorkspacesListPage() {
                 role: CONST.POLICY.ROLE.USER,
                 isDeleted: false,
                 isJoinRequestPending: true,
+                isEligibleToCopy: false,
                 isDefault: activePolicyID === policyID,
                 shouldAnimateInHighlight: duplicateWorkspace?.policyID === policyID,
                 ownerAccountID,
@@ -119,7 +132,7 @@ function WorkspacesListPage() {
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
                 ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
                 iconType: policy.nonMemberDetails.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : getDefaultWorkspaceAvatar(policy.name),
+                icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : getDefaultWorkspaceAvatar(policy.nonMemberDetails.name),
                 action: () => null,
                 dismissError: () => null,
             };
@@ -127,10 +140,12 @@ function WorkspacesListPage() {
             workspaceRows.push(pendingWorkspaceRow);
         } else {
             const ownerDetails = policy.ownerAccountID ? ownerDisplayDetails?.[policy.ownerAccountID] : undefined;
+            const policyID = policy.id;
+            const isEligibleToCopy = isWorkspaceEligibleToCopy(policyID) && isPaidGroupPolicyByType(policy.type);
 
             const workspaceRow: WorkspaceRowData = {
-                keyForList: policy.id,
-                policyID: policy.id,
+                keyForList: policyID,
+                policyID,
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 errors: policy.errors,
                 type: policy.type,
@@ -138,8 +153,9 @@ function WorkspacesListPage() {
                 role: policy.role,
                 ownerAccountID: policy.ownerAccountID,
                 isJoinRequestPending: false,
-                shouldAnimateInHighlight: duplicateWorkspace?.policyID === policy.id,
-                isDefault: activePolicyID === policy.id,
+                isEligibleToCopy,
+                shouldAnimateInHighlight: duplicateWorkspace?.policyID === policyID,
+                isDefault: activePolicyID === policyID,
                 isDeleted: policy.isPendingDelete,
                 ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
@@ -147,17 +163,16 @@ function WorkspacesListPage() {
                 iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
                 pendingAction: policy.pendingAction,
-                action: (event) => navigateToWorkspace(policy.id, event),
-                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                action: (event) => navigateToWorkspace(policyID, event),
+                dismissError: () => dismissWorkspaceError(policyID, policy.pendingAction),
             };
 
             workspaceRows.push(workspaceRow);
         }
     }
 
-    const duplicateWorkspacePolicyID = duplicateWorkspace?.policyID;
     useEffect(() => {
-        const duplicatedWSPolicyID = duplicateWorkspacePolicyID;
+        const duplicatedWSPolicyID = duplicateWorkspace?.policyID;
         const filteredWorkspaces = tableRef.current?.getProcessedData() ?? [];
 
         if (!duplicatedWSPolicyID || !filteredWorkspaces.length || !isFocused) {
@@ -165,7 +180,6 @@ function WorkspacesListPage() {
         }
 
         const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicatedWSPolicyID);
-
         if (duplicateWorkspaceIndex < 0) {
             return;
         }
@@ -176,7 +190,7 @@ function WorkspacesListPage() {
         });
 
         return () => handle.cancel();
-    }, [duplicateWorkspacePolicyID, isFocused, workspaceRows.length]);
+    }, [duplicateWorkspace?.policyID, isFocused, workspaceRows.length]);
 
     // Scroll to the top when the list gets its first workspace, so it's visible. On web, returning from the create
     // flow restores the scroll position the empty list had (it was scrolled down to reach the "New workspace" button),
@@ -207,12 +221,6 @@ function WorkspacesListPage() {
             icon={icons.Plus}
         />
     );
-    const headerComponent = (
-        <WorkspaceListHeaderContent
-            activeTabKey="workspaces"
-            headerButton={headerButton}
-        />
-    );
 
     const onBackButtonPress = () => {
         Navigation.goBack(route.params?.backTo);
@@ -225,44 +233,35 @@ function WorkspacesListPage() {
         <WorkspaceListLayout
             activeTabKey="workspaces"
             headerButton={headerButton}
-            headerComponent={headerComponent}
-            scrollHeaderWithTable
         >
-            <>
-                {shouldShowLoadingIndicator ? (
-                    <>
-                        {headerComponent}
-                        <View style={[styles.flex1, styles.fullScreenLoading]}>
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={
-                                    {
-                                        context: 'WorkspacesListPage',
-                                        isOffline,
-                                    } satisfies SkeletonSpanReasonAttributes
-                                }
-                            />
-                        </View>
-                    </>
-                ) : (
-                    <WorkspaceListTable
-                        ref={tableRef}
-                        workspaces={workspaceRows}
-                        headerComponent={headerComponent}
-                        onDeleteWorkspace={setPolicyIDToDelete}
-                        pendingDeletePolicyID={policyIDToDelete}
-                        copySettingsEligibleTargets={copySettingsEligibleTargets ?? EMPTY_COPY_SETTINGS_ELIGIBLE_TARGETS}
+            {shouldShowLoadingIndicator ? (
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={
+                            {
+                                context: 'WorkspacesListPage',
+                                isOffline,
+                            } satisfies SkeletonSpanReasonAttributes
+                        }
                     />
-                )}
-                {!!policyIDToDelete && (
-                    <DeleteWorkspaceFlow
-                        key={policyIDToDelete}
-                        policyID={policyIDToDelete}
-                        onDismiss={() => setPolicyIDToDelete(undefined)}
-                    />
-                )}
-                <CopyPolicySettingsProgressModal />
-            </>
+                </View>
+            ) : (
+                <WorkspaceListTable
+                    ref={tableRef}
+                    workspaces={workspaceRows}
+                    onDeleteWorkspace={setPolicyIDToDelete}
+                    pendingDeletePolicyID={policyIDToDelete}
+                />
+            )}
+            {!!policyIDToDelete && (
+                <DeleteWorkspaceFlow
+                    key={policyIDToDelete}
+                    policyID={policyIDToDelete}
+                    onDismiss={() => setPolicyIDToDelete(undefined)}
+                />
+            )}
+            <CopyPolicySettingsProgressModal />
         </WorkspaceListLayout>
     );
 }

@@ -1,5 +1,6 @@
-import Table, {composeTableHeaderComponent} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import Table from '@components/Table';
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -12,7 +13,6 @@ import variables from '@styles/variables';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import type {SpendRuleTableItem} from './WorkspaceSpendRulesTableRow';
 
@@ -24,12 +24,11 @@ type WorkspaceSpendRulesTableProps = {
     rulesData: SpendRuleTableItem[];
     selectionEnabled: boolean;
     selectedKeys: string[];
+    emptyState: TableEmptyStateProps;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    headerComponent?: React.ReactElement;
-    emptyStateContent?: React.ReactElement;
 };
 
-function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, emptyStateContent}: WorkspaceSpendRulesTableProps) {
+function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, emptyState, onRowSelectionChange}: WorkspaceSpendRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -100,10 +99,6 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
         />
     );
 
-    const isEmpty = rulesData.length === 0;
-    const searchBarComponent = <Table.FilterBar label={translate('workspace.rules.spendRules.findRule')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
-
     return (
         <Table
             data={rulesData}
@@ -118,11 +113,12 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             initialSortColumn="card"
             narrowLayoutSortColumn="card"
             title={translate('workspace.rules.tabs.cardRestrictions')}
-            headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
-            ListEmptyComponent={emptyStateContent ? <View style={[styles.flex1, styles.mnh0, styles.w100]}>{emptyStateContent}</View> : undefined}
         >
-            {(!isEmpty || !!emptyStateContent) && <Table.Body />}
+            <Table.FilterBar label={translate('workspace.rules.spendRules.findRule')} />
+            <Table.EmptyState {...emptyState} />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }
