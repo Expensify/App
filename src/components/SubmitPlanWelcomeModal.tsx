@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -8,13 +6,21 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import {setSubmitMigrationModalShown} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import CenteredModalLayout from './CenteredModalLayout';
 import FeatureTrainingContent from './FeatureTrainingContent';
 import Text from './Text';

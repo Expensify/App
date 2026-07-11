@@ -1,11 +1,15 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import type {ViewProps} from 'react-native';
-import type ReactNative from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SubmitPlanWelcomeModal from '@components/SubmitPlanWelcomeModal';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ViewProps} from 'react-native';
+import type ReactNative from 'react-native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
 
 const mockAutoCreateSubmitWorkspace = jest.fn();
 const mockGoBack = jest.fn();

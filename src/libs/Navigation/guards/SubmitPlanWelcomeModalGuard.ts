@@ -1,8 +1,3 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
-import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
@@ -10,6 +5,7 @@ import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,6 +13,14 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Beta, BetaConfiguration, IntroSelected, Policy, Session} from '@src/types/onyx';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import Onyx from 'react-native-onyx';
+
 import type {GuardContext, GuardResult, NavigationGuard} from './types';
 
 let session: OnyxEntry<Session>;
@@ -51,7 +55,7 @@ function getValidModalBasePath(): string {
             return activeRoute;
         }
     } catch {
-        // getStateFromPath can throw for unparseable paths; fall back to HOME below.
+        // getStateFromPath can throw for paths it cannot parse; fall back to HOME below.
     }
     return ROUTES.HOME;
 }

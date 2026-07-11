@@ -1,9 +1,12 @@
-import React from 'react';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import SubmitPlanWelcomeModal from '@components/SubmitPlanWelcomeModal';
+
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SubmitPlanModalNavigatorParamList} from '@libs/Navigation/types';
+
 import SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 const Stack = createPlatformStackNavigator<SubmitPlanModalNavigatorParamList>();
 

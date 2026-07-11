@@ -1,15 +1,19 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
 import SubmitPlanWelcomeModalGuard, {onSessionOrLoadingAppChanged, resetSessionFlag} from '@libs/Navigation/guards/SubmitPlanWelcomeModalGuard';
 import type {GuardContext} from '@libs/Navigation/guards/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 // eslint-disable-next-line no-restricted-imports -- type-only namespace import used solely to type jest.requireActual for the module mock below
 import type * as PolicyUtilsModule from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], unknown[]>(() => []);
