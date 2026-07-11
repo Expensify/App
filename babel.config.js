@@ -32,8 +32,8 @@ function traceTransformer() {
  * It is also recommended by babel:
  * https://babeljs.io/docs/options#no-targets
  */
-const defaultPresetsForWebpack = ['@babel/preset-react', ['@babel/preset-env', {targets: {node: 20}}], '@babel/preset-flow', '@babel/preset-typescript'];
-const defaultPluginsForWebpack = [
+const defaultPresetsForWeb = ['@babel/preset-react', ['@babel/preset-env', {targets: {node: 20}}], '@babel/preset-flow', '@babel/preset-typescript'];
+const defaultPluginsForWeb = [
     ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
     ['react-native-web'],
@@ -51,7 +51,7 @@ const defaultPluginsForWebpack = [
     '@babel/plugin-transform-export-namespace-from',
 ];
 
-defaultPluginsForWebpack.push([
+defaultPluginsForWeb.push([
     '@fullstory/babel-plugin-annotate-react',
     {
         native: true,
@@ -59,12 +59,12 @@ defaultPluginsForWebpack.push([
 ]);
 
 if (process.env.DEBUG_BABEL_TRACE) {
-    defaultPluginsForWebpack.push(traceTransformer);
+    defaultPluginsForWeb.push(traceTransformer);
 }
 
-const webpack = {
-    presets: defaultPresetsForWebpack,
-    plugins: defaultPluginsForWebpack,
+const web = {
+    presets: defaultPresetsForWeb,
+    plugins: defaultPluginsForWeb,
 };
 
 const metro = {
@@ -181,7 +181,7 @@ module.exports = (api) => {
     }
 
     // For `react-native` (iOS/Android) caller will be "metro"
-    // For `webpack` (Web) caller will be "@babel-loader"
+    // For the web build (Rspack) caller will be "babel-loader"
     // For jest, it will be babel-jest
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
     const runningIn = api.caller((args = {}) => args.name);
@@ -189,5 +189,5 @@ module.exports = (api) => {
         console.debug('  - running in: ', runningIn);
     }
 
-    return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
+    return ['metro', 'babel-jest'].includes(runningIn) ? metro : web;
 };
