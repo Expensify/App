@@ -139,13 +139,18 @@ function AgentsPage() {
             >
                 {!shouldUseNarrowLayout && newAgentButton}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
 
-            <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
-                <RenderHTML html={translate('agentsPage.subtitle')} />
-            </View>
-
-            <AgentsTable agents={agents} />
+            <AgentsTable
+                agents={agents}
+                headerComponent={
+                    <>
+                        {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
+                        <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
+                            <RenderHTML html={translate('agentsPage.subtitle')} />
+                        </View>
+                    </>
+                }
+            />
         </ScreenWrapper>
     );
 }

@@ -1,6 +1,6 @@
 import RenderHTML from '@components/RenderHTML';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -36,9 +36,12 @@ type AgentRowData = TableData & {
 
 type AgentsTableProps = {
     agents: AgentRowData[];
+
+    /** Content rendered above the table header inside the scrollable list */
+    headerComponent?: React.ReactElement;
 };
 
-export default function AgentsTable({agents}: AgentsTableProps) {
+export default function AgentsTable({agents, headerComponent}: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -78,6 +81,9 @@ export default function AgentsTable({agents}: AgentsTableProps) {
         />
     );
 
+    const searchBarComponent = <Table.FilterBar label={translate('agentsPage.findAgent')} />;
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+
     return (
         <Table
             data={agents}
@@ -88,8 +94,9 @@ export default function AgentsTable({agents}: AgentsTableProps) {
             initialSortColumn="agent"
             title={translate('agentsPage.title')}
             keyExtractor={(item) => item.keyForList}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
-            <Table.FilterBar label={translate('agentsPage.findAgent')} />
             <Table.EmptyState
                 headerMedia={illustrations.TvScreenRobot}
                 headerStyles={styles.emptyStateCardIllustrationContainer}
@@ -102,7 +109,6 @@ export default function AgentsTable({agents}: AgentsTableProps) {
                 }
             />
             <Table.NoResultsState />
-            <Table.Header />
             <Table.Body />
         </Table>
     );
