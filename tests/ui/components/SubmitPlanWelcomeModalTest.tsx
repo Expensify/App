@@ -15,11 +15,17 @@ const mockAutoCreateSubmitWorkspace = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetSubmitMigrationModalShown = jest.fn();
 
+// Capture the callback the modal registers with useBeforeRemove so we can simulate the modal being
+// removed from the navigation stack and assert the shown-state persistence fires.
+let beforeRemoveCallback: (() => void) | undefined;
+
 jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
 }));
 
-jest.mock('@hooks/useBeforeRemove', () => () => {});
+jest.mock('@hooks/useBeforeRemove', () => (callback: () => void) => {
+    beforeRemoveCallback = callback;
+});
 
 jest.mock('@hooks/useAutoCreateSubmitWorkspace', () => () => mockAutoCreateSubmitWorkspace);
 
@@ -51,6 +57,7 @@ describe('SubmitPlanWelcomeModal', () => {
         mockAutoCreateSubmitWorkspace.mockClear();
         mockGoBack.mockClear();
         mockSetSubmitMigrationModalShown.mockClear();
+        beforeRemoveCallback = undefined;
     });
 
     function renderModal() {
@@ -76,5 +83,14 @@ describe('SubmitPlanWelcomeModal', () => {
 
         expect(mockGoBack).toHaveBeenCalled();
         expect(mockAutoCreateSubmitWorkspace).not.toHaveBeenCalled();
+    });
+
+    it('marks the migration modal as shown when it is removed from the navigation stack', () => {
+        renderModal();
+
+        expect(beforeRemoveCallback).toBeDefined();
+        beforeRemoveCallback?.();
+
+        expect(mockSetSubmitMigrationModalShown).toHaveBeenCalledTimes(1);
     });
 });

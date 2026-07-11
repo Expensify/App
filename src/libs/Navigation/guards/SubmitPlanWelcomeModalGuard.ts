@@ -260,4 +260,4 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
 };
 
 export default SubmitPlanWelcomeModalGuard;
-export {resetSessionFlag, onSessionOrLoadingAppChanged, shouldShowSubmitPlanWelcomeModal};
+export {resetSessionFlag, onSessionOrLoadingAppChanged};
