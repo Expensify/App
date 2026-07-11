@@ -195,9 +195,12 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                     __dirname: 'mock',
                 };
                 // We can ignore the "module not installed" warning from lottie-react-native because we
-                // are not using the library for JSON format of Lottie animations.
+                // are not using the library for JSON format of Lottie animations. We also ignore
+                // oxc-react-compiler-loader's demoted React Compiler diagnostics (see that file) —
+                // they're deliberately warnings, not errors, matching babel-plugin-react-compiler's
+                // default bailout behaviour, so Storybook's `--smoke-test` shouldn't fail the build on them.
                 // eslint-disable-next-line no-param-reassign
-                config.ignoreWarnings = [...(config.ignoreWarnings ?? []), /lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/];
+                config.ignoreWarnings = [...(config.ignoreWarnings ?? []), /lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/, /oxc-react-compiler-loader:/];
 
                 // eslint-disable-next-line no-param-reassign
                 config.resolve ??= {};
