@@ -161,6 +161,13 @@ describe('AddAgentRuleSuggestionsTab', () => {
         expect(onSelectSuggestion).not.toHaveBeenCalled();
     });
 
+    it('shows a loading indicator while suggestions are loading', () => {
+        mockedUseSuggestedAgentRules.mockReturnValue({data: [], isLoading: true});
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
+
+        expect(screen.queryByText('workspace.rules.agentRules.emptySuggestionsTitle')).toBeNull();
+    });
+
     it('shows the empty state when there are no suggestions', () => {
         mockedUseSuggestedAgentRules.mockReturnValue({data: [], isLoading: false});
         render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);

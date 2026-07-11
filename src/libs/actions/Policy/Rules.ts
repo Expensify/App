@@ -119,7 +119,6 @@ function openPolicyRulesPage(policyID: string | undefined) {
 
 /**
  * Fetches ready-made agent rule suggestions for the add-agent-rule Suggestions tab.
- * Backend writes the list into ONYXKEYS.AGENT_RULE_SUGGESTIONS.
  */
 function getAgentRuleSuggestions(policyID: string | undefined) {
     if (!policyID) {
@@ -128,7 +127,29 @@ function getAgentRuleSuggestions(policyID: string | undefined) {
     }
 
     const params: GetAgentRuleSuggestionsParams = {policyID};
-    API.read(READ_COMMANDS.GET_AGENT_RULE_SUGGESTIONS, params);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS,
+            value: true,
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS,
+            value: false,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS,
+            value: false,
+        },
+    ];
+
+    API.read(READ_COMMANDS.GET_AGENT_RULE_SUGGESTIONS, params, {optimisticData, successData, failureData});
 }
 
 /**

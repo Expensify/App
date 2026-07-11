@@ -11,13 +11,14 @@ type UseSuggestedAgentRulesResult = {
     /** Suggested rules from Onyx, or an empty array while loading or when no suggestion exist */
     data: SuggestedAgentRule[];
 
-    /** Whether the Onyx key is loading */
+    /** Whether Onyx is hydrating or the suggestions request is fetching data */
     isLoading: boolean;
 };
 
 function useSuggestedAgentRules(): UseSuggestedAgentRulesResult {
     const [suggestions, metadata] = useOnyx(ONYXKEYS.AGENT_RULE_SUGGESTIONS);
-    const isLoading = isLoadingOnyxValue(metadata);
+    const [isFetchingSuggestions] = useOnyx(ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS);
+    const isLoading = isLoadingOnyxValue(metadata) || !!isFetchingSuggestions;
 
     return {
         data: suggestions ?? [],
@@ -26,4 +27,3 @@ function useSuggestedAgentRules(): UseSuggestedAgentRulesResult {
 }
 
 export default useSuggestedAgentRules;
-export type {UseSuggestedAgentRulesResult};

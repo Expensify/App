@@ -34,4 +34,3 @@ function getSuggestedAgentRuleIcon(suggestion: SuggestedAgentRule): SuggestedAge
 }
 
 export {getMccGroupDisplayName, getSuggestedAgentRuleIcon, isPendingDeleteOrUpdate};
-export type {SuggestedAgentRuleIcon};

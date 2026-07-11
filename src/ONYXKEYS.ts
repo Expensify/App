@@ -433,6 +433,9 @@ const ONYXKEYS = {
     /** Is loading policy rules preview? */
     IS_LOADING_POLICY_CODING_RULES_PREVIEW: 'isLoadingPolicyCodingRulesPreview',
 
+    /** Is loading agent rule suggestions for the add-rule Suggestions tab? */
+    IS_LOADING_AGENT_RULE_SUGGESTIONS: 'isLoadingAgentRuleSuggestions',
+
     /** Set when we are loading fresh subscription/billing data from the server */
     IS_LOADING_SUBSCRIPTION_DATA: 'isLoadingSubscriptionData',
 
@@ -1575,6 +1578,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS]: boolean;
     [ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE]: boolean;
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
+    [ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
