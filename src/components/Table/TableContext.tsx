@@ -1,4 +1,7 @@
+import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
+
 import type {FlashListRef} from '@shopify/flash-list';
+import type {NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
 
 import React, {createContext, useContext} from 'react';
 
@@ -29,6 +32,15 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
     /** Reference to the underlying FlashList for programmatic control. */
     listRef: React.RefObject<FlashListRef<DataType> | null>;
+
+    /** Ref for the view wrapping the table list; its top is the anchor used when scrolling a focused input above the keyboard. */
+    listContainerRef: React.RefObject<View | null>;
+
+    /** Tracks the list scroll offset for the focused-input scroll helper; wired into the list's onScroll. */
+    trackScrollOffset: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
+    /** Scrolls the table list so the given input stays visible above the keyboard (no-op on web). */
+    scrollInputIntoView: (input: MeasurableInput) => void;
 
     /** FlashList props passed through from the Table component. */
     listProps: SharedListProps<DataType>;
@@ -87,6 +99,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
 const defaultTableContextValue: TableContextValue<TableData, string> = {
     listRef: React.createRef(),
+    listContainerRef: React.createRef(),
+    trackScrollOffset: () => {},
+    scrollInputIntoView: () => {},
     processedData: [],
     originalDataLength: 0,
     columns: [],

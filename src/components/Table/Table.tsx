@@ -1,6 +1,8 @@
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+import useScrollToFocusedInput from '@components/SelectionList/hooks/useScrollToFocusedInput';
 
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -210,6 +212,11 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     const listRef = useRef<FlashListRef<DataType>>(null);
 
+    // Keeps the table search input visible above the keyboard when it is focused inside the
+    // scrolling list (native only; the web variant of the hook is a no-op).
+    const {isKeyboardShown} = useKeyboardState();
+    const {containerRef: listContainerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
+
     const tableMethods: TableMethods<ColumnKey, FilterKey> = {
         ...filterMethods,
         ...sortMethods,
@@ -289,6 +296,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         emptyStateElement,
         noResultsStateElement,
         listRef,
+        listContainerRef,
+        trackScrollOffset,
+        scrollInputIntoView,
         listProps,
         processedData,
         originalDataLength,

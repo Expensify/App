@@ -62,6 +62,8 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         activeSearchString,
         listProps,
         listRef,
+        listContainerRef,
+        trackScrollOffset,
         shouldUseNarrowTableLayout,
         hasActiveFilters,
         hasSearchString,
@@ -78,6 +80,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         contentContainerStyle: listContentContainerStyle,
         getItemType,
         keyExtractor,
+        onScroll,
         renderItem,
         stickyHeaderIndices,
         ...restListProps
@@ -190,6 +193,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     return (
         <View
+            ref={listContainerRef}
             style={[styles.flex1, styles.mnh0, style]}
             {...props}
         >
@@ -214,6 +218,10 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                 renderItem={renderListItem}
                 keyExtractor={keyExtractorForList}
                 getItemType={getItemTypeForList}
+                onScroll={(event) => {
+                    trackScrollOffset(event);
+                    onScroll?.(event);
+                }}
                 {...restListProps}
             />
         </View>

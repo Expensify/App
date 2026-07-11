@@ -29,6 +29,7 @@ function TableSearchBar({label}: TableSearchBarProps) {
     const {
         activeSearchString,
         shouldUseNarrowTableLayout,
+        scrollInputIntoView,
         tableMethods: {updateSearchString},
     } = useTableContext();
 
@@ -75,7 +76,11 @@ function TableSearchBar({label}: TableSearchBarProps) {
             clearButtonStyle={shouldUseNarrowTableLayout ? undefined : styles.mr0}
             clearButtonIconSize={shouldUseNarrowTableLayout ? undefined : variables.iconSizeSmall}
             onBlur={() => setInputFocused(false)}
-            onFocus={() => setInputFocused(true)}
+            onFocus={() => {
+                setInputFocused(true);
+                // Keep the input visible above the keyboard when it is focused inside the scrolling table list.
+                scrollInputIntoView(inputRef.current);
+            }}
             onChangeText={(text) => updateSearchString(text)}
         />
     );
