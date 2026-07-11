@@ -94,23 +94,27 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
 
                     {!shouldUseNarrowTableLayout && shouldShowCustomField1Column && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={item.employeeUserID ?? ''}
-                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            />
+                            {!!item.employeeUserID && (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={item.employeeUserID}
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                />
+                            )}
                         </View>
                     )}
 
                     {!shouldUseNarrowTableLayout && shouldShowCustomField2Column && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={item.employeePayrollID ?? ''}
-                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            />
+                            {!!item.employeePayrollID && (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={item.employeePayrollID}
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                />
+                            )}
                         </View>
                     )}
 
