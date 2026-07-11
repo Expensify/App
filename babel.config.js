@@ -1,6 +1,12 @@
 require('dotenv').config();
+/**
+ * Expo SDK 56 replaces global fetch with expo/fetch unless this is set at transform time.
+ * metro.config.js sets it for the Metro process; babel needs it here so release bundles inline the value.
+ */
+process.env.EXPO_PUBLIC_USE_RN_FETCH = process.env.EXPO_PUBLIC_USE_RN_FETCH ?? '1';
 
 const BaseReactCompilerConfig = require('./config/babel/reactCompilerConfig');
+const {expoInlineEnvVars} = require('babel-preset-expo/build/plugins/inline-env-vars');
 
 const ReactCompilerConfig = {
     ...BaseReactCompilerConfig,
@@ -21,14 +27,15 @@ function traceTransformer() {
     };
 }
 
-// This config is no longer read by webpack. The webpack build uses inline loader
-// options in config/webpack/webpack.common.ts (babel-loader with configFile:false).
-// Kept here for tooling compatibility (e.g. babel-jest, IDE plugins).
+// This config is no longer read by the web build. Rsbuild's JS/TS/JSX pipeline (see
+// config/rsbuild/rsbuild.common.ts) uses OXC directly with inline loader options
+// (configFile:false), bypassing this file entirely. Kept here for tooling compatibility
+// (e.g. IDE plugins that load babel.config.js without setting a caller name).
 // The presets/plugins that previously lived here (@babel/preset-react, @babel/preset-env,
 // @babel/preset-flow, @babel/preset-typescript, babel-plugin-react-native-web, and several
 // class-property/export-namespace transforms) have been removed from devDependencies because
-// OXC now handles those transforms natively in the webpack build.
-const webpack = {
+// OXC now handles those transforms natively in the web build.
+const web = {
     presets: [],
     plugins: [
         ['babel-plugin-react-compiler', ReactCompilerConfig],
@@ -51,6 +58,9 @@ const metro = {
         // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
         // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
         '@babel/plugin-transform-flow-strip-types',
+
+        // Inline EXPO_PUBLIC_* env vars into release bundles (e.g. EXPO_PUBLIC_USE_RN_FETCH to keep RN fetch).
+        expoInlineEnvVars,
 
         ['@babel/plugin-proposal-class-properties', {loose: true}],
         ['@babel/plugin-proposal-private-methods', {loose: true}],
@@ -154,13 +164,13 @@ module.exports = (api) => {
     }
 
     // For `react-native` (iOS/Android) caller will be "metro"
-    // For `webpack` (Web) caller will be "@babel-loader"
     // For jest, it will be babel-jest
-    // For `storybook` there won't be any config at all so we must give default argument of an empty object
+    // The web build and Storybook (Rsbuild) don't call into this file at all — their JS/TS/JSX
+    // pipeline goes through OXC directly (see config/rsbuild/rsbuild.common.ts), bypassing Babel.
     const runningIn = api.caller((args = {}) => args.name);
     if (!process.env.KNIP) {
         console.debug('  - running in: ', runningIn);
     }
 
-    return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
+    return ['metro', 'babel-jest'].includes(runningIn) ? metro : web;
 };
