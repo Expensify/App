@@ -8,7 +8,7 @@
                 "src/HybridAppHandler.tsx",
                 "scripts/**/*.{js,ts}",
                 "web/proxy.ts",
-                "config/webpack/**/*.{js,mjs,ts}",
+                "config/rsbuild/**/*.{js,mjs,ts}",
                 ".github/scripts/**/*.ts",
                 ".github/actions/javascript/**/*.ts",
                 ".storybook/**/*.{js,ts,tsx}",
@@ -41,8 +41,8 @@
             "eslint": {
                 "config": ["config/eslint/eslint.config.mjs", "eslint.changed.config.mjs"]
             },
-            "webpack": {
-                "config": ["config/webpack/webpack.common.ts"]
+            "rsbuild": {
+                "config": ["config/rsbuild/rsbuild.config.ts", ".storybook/rsbuild.config.ts"]
             },
             "babel": {
                 "config": ["babel.config.js"]
