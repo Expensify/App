@@ -118,7 +118,6 @@ function TransactionDuplicateReview() {
     };
 
     useEffect(() => {
-        console.log('duplicate review', report);
         if (!route.params.threadReportID || report?.reportID) {
             return;
         }

@@ -194,7 +194,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             isInitialMountRef.current = true;
         }
 
-        console.log('search report page', visibleTransactions.length, isInitialMountRef.current, transactionThreadReportID, oneTransactionID);
         // Guard prevents calling openReport for multi-transaction reports
         if (visibleTransactions.length > 2 && !isInitialMountRef.current) {
             return;
