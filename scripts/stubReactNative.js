@@ -1,27 +1,12 @@
-// Comprehensive React Native module interceptor for ts-node
-const Module = require('module');
+// Comprehensive React Native module interceptor for Bun script preload.
+//
+// Bun's module loader resolves native ES `import` statements independently of Node's
+// `Module.prototype.require`, so a require-hook alone only intercepts CJS `require()` calls, not
+// `import`. `Bun.plugin`'s `module()` API registers a virtual module for an exact specifier that is
+// intercepted for both `import` and `require()`, so scripts never load the real (Flow-typed) React
+// Native packages they don't need at runtime.
+import {plugin} from 'bun';
 
-const originalRequire = Module.prototype.require;
-
-// List of modules to stub (we don't need these in scripts)
-const MODULES_TO_STUB = new Set([
-    'react-native',
-    'react-native-config',
-    'react-native-key-command',
-    '@expensify/react-native-hybrid-app',
-    'react-native-blob-util',
-    'react-native-fs',
-    'react-native-reanimated',
-    'react-native-performance',
-    'react-native-gesture-handler',
-    'react-native-safe-area-context',
-    'react-native-picker-select',
-    'react-native-onyx',
-    '@react-navigation/native',
-    'expo-audio',
-]);
-
-// Stub implementations
 const STUBS = {
     'react-native': {
         Platform: {OS: 'web', isPad: false, isTV: false, isTesting: false, Version: '0.0.0'},
@@ -50,22 +35,27 @@ const STUBS = {
         addEventListener: () => ({}),
         removeEventListener: () => {},
     },
+    'react-native-blob-util': {},
+    'react-native-fs': {},
+    'react-native-reanimated': {},
+    'react-native-performance': {},
+    'react-native-gesture-handler': {},
+    'react-native-safe-area-context': {},
+    'react-native-picker-select': {},
+    'react-native-onyx': {},
     '@expensify/react-native-hybrid-app': {
         isHybridApp: () => false,
         getHybridAppSettings: () => Promise.resolve(null),
     },
+    '@react-navigation/native': {},
+    'expo-audio': {},
 };
 
-// Override require to intercept React Native modules
-Module.prototype.require = function (...args) {
-    const id = args[0];
-
-    // Check if this is a module we want to stub
-    if (MODULES_TO_STUB.has(id) || id.startsWith('react-native')) {
-        const stub = STUBS[id] || {};
-        return {__esModule: true, default: stub, ...stub};
-    }
-
-    // For other modules, use original require
-    return originalRequire.apply(this, args);
-};
+plugin({
+    name: 'stub-react-native',
+    setup(build) {
+        Object.entries(STUBS).forEach(([specifier, stub]) => {
+            build.module(specifier, () => ({exports: {...stub, default: stub}, loader: 'object'}));
+        });
+    },
+});

@@ -1,4 +1,2 @@
-# Bun test discovery for server-side tooling (Jest owns src/ and tests/).
-[test]
-root = "server"
-pathIgnorePatterns = ["**/fixtures/**", "**/dist/**", "**/.dev/**", "**/__output__/**", "**/__golden__/**"]
+# Bun runtime config for root scripts (victory-chart-renderer keeps its own [test] root).
+preload = ["./scripts/stubReactNative.js"]
