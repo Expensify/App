@@ -40,6 +40,7 @@ type ReplaceReceipt = {
     isSameReceipt?: boolean;
     transactionPolicyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     transactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
+    transactionReport: OnyxEntry<OnyxTypes.Report>;
 };
 
 function detachReceipt(
@@ -190,6 +191,7 @@ function replaceReceipt({
     isSameReceipt,
     transactionPolicyTagList,
     transactionViolations,
+    transactionReport,
 }: ReplaceReceipt) {
     if (!file) {
         return;
@@ -199,10 +201,8 @@ function replaceReceipt({
     logReceiptCaptured({file, captureSource: 'replace', receiptTraceId});
 
     const allTransactions = getAllTransactions();
-    const allReports = getAllReports();
 
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const oldReceipt = transaction?.receipt ?? {};
     const receiptOptimistic = {
         source,
@@ -212,7 +212,16 @@ function replaceReceipt({
         receiptTraceId,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
-    const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicy, transactionPolicyCategories, transactionPolicyTagList, transactionViolations};
+    const retryParams: ReplaceReceipt = {
+        transactionID,
+        file: undefined,
+        source,
+        transactionPolicy,
+        transactionPolicyCategories,
+        transactionPolicyTagList,
+        transactionViolations,
+        transactionReport,
+    };
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
@@ -264,7 +273,7 @@ function replaceReceipt({
             policyTagList: transactionPolicyTagList ?? {},
             policyCategories: transactionPolicyCategories ?? {},
             hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
-            isInvoiceTransaction: isInvoiceReportReportUtils(expenseReport),
+            isInvoiceTransaction: isInvoiceReportReportUtils(transactionReport),
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({

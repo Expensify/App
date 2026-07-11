@@ -70,6 +70,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 transactionPolicyCategories: policyCategories,
                 transactionPolicyTagList: policyTagList,
                 transactionViolations,
+                transactionReport: report,
             });
         } else {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);

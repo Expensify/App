@@ -313,12 +313,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         transactionPolicy: policy,
                         transactionPolicyTagList: policyTagList,
                         transactionViolations,
+                        transactionReport,
                         ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
                     });
                 }
             });
         },
-        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList, transactionViolations],
+        [transaction, isOdometerImage, isDraftTransaction, imageType, isEditingConfirmation, fileType, policyCategories, policy, policyTagList, transactionViolations, transactionReport],
     );
 
     const rotateReceipt = useCallback(() => {
