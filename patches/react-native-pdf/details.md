@@ -61,3 +61,4 @@
 - Fork carrying the fix: https://github.com/Expensify/PdfiumAndroidKt/commit/e6c06c2905d1adf8b76f28c7440a2006033ca4c8 (tag `expensify-already-closed-fix-v1`)
 - Upstream library: https://github.com/johngray1965/PdfiumAndroidKt
 - E/App issue: https://github.com/Expensify/App/issues/93839
+- PR introducing patch: https://github.com/Expensify/App/pull/94894
