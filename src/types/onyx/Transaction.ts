@@ -263,6 +263,9 @@ type Receipt = {
 
     /** Local thumbnail URI for fast preview on confirmation page */
     thumbnail?: string;
+
+    /** Correlation id created at capture, used to follow this receipt from capture to upload in the logs. */
+    receiptTraceId?: string;
 };
 
 /** Model of route */
