@@ -1,5 +1,3 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,19 +6,25 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateMergeHRGroups} from '@libs/actions/connections/MergeHR';
 import {isMergeHRConnected} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type MergeHRGroupsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.HR_MERGE_GROUPS>;
 
@@ -36,7 +40,6 @@ function MergeHRGroupsPage({
 }: MergeHRGroupsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
 
     const policy = usePolicy(policyID);
     const availableGroups = policy?.connections?.merge_hris?.data?.groups ?? [];
@@ -92,7 +95,7 @@ function MergeHRGroupsPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.MERGE_HR) || (!!policy && !isMergeHRConnected(policy))}
+            shouldBeBlocked={!!policy && !isMergeHRConnected(policy)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

@@ -1,15 +1,14 @@
-import {createFilteredPoliciesInfoSelector} from '@selectors/Policy';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React from 'react';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import FollowupListSkeleton from '@components/ReportActionItem/FollowupListSkeleton';
+
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,11 +28,17 @@ import type {CreateDraftTransactionParams} from '@libs/ReportUtils';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
+
 import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import {createFilteredPoliciesInfoSelector} from '@selectors/Policy';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import React from 'react';
 
 type ChatActionableButtonsProps = {
     action: OnyxTypes.ReportAction;
@@ -52,7 +57,9 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
 
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -63,6 +70,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const firstPolicyID = filteredPoliciesInfo?.firstPolicyID;
     const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const delegateAccountID = useDelegateAccountID();
 
     const actionableItemButtons = ((): ActionableItem[] => {
@@ -158,6 +166,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                             personalDetail.accountID,
                             personalDetail.email,
                             delegateAccountID,
+                            conciergeReportID,
                         );
                     },
                 }));
@@ -197,7 +206,12 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                     });
                 },
             });
-            const options = [prepareTrackExpenseButton('submit', {isRestrictedToPreferredPolicy, preferredPolicyID})];
+            const options = [
+                prepareTrackExpenseButton('submit', {
+                    isRestrictedToPreferredPolicy,
+                    preferredPolicyID,
+                }),
+            ];
 
             if (Permissions.canUseTrackFlows()) {
                 options.push(prepareTrackExpenseButton('categorize'), prepareTrackExpenseButton('share'));
@@ -237,6 +251,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                 text: isPhrasalConciergeOptions ? styles.actionableItemButtonText : undefined,
                 button: isPhrasalConciergeOptions ? styles.actionableItemButton : undefined,
             }}
+            wrapperStyle={isPhrasalConciergeOptions ? styles.mt4 : undefined}
         />
     );
 }

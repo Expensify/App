@@ -1,10 +1,13 @@
-import Onyx from 'react-native-onyx';
 import {buildOnyxDataForMoneyRequest} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import type {OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {createSelfDM} from '../../utils/collections/reports';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -185,6 +188,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     isSelfDMSplit: true,
                     selfDMReportID: selfDMReport.reportID,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    delegateAccountID: undefined,
                 };
             }
 
@@ -325,6 +329,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     quickAction: undefined,
                     isSelfDMSplit: false,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    delegateAccountID: undefined,
                 };
             }
 
@@ -364,6 +369,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     isSelfDMSplit: true,
                     selfDMReportID: undefined,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    delegateAccountID: undefined,
                 };
             }
 
@@ -409,6 +415,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                         } as Report,
                     },
                 },
+                delegateAccountID: undefined,
             };
         }
 
