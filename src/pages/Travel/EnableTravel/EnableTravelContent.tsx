@@ -131,7 +131,7 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
 
     const startFrom = account === undefined ? -1 : 0;
 
-    const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo, isRedirecting} = useSubPage<EnableTravelSubPageProps>({
+    const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo, resetToPage, isRedirecting} = useSubPage<EnableTravelSubPageProps>({
         pages,
         startFrom,
         onFinished: () => Navigation.closeRHPFlow(),
@@ -184,6 +184,7 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
                 onNext={nextPage}
                 onMove={moveTo}
                 currentPageName={currentPageName}
+                resetToPage={resetToPage}
                 policy={policy}
                 policyID={policyID}
                 resolvedDomain={resolvedDomain}
