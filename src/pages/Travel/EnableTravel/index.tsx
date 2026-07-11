@@ -24,14 +24,18 @@ function EnableTravel({route}: EnableTravelProps) {
     const policy = usePolicy(policyID);
     const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
-    // Deliberately not blocking on travelProvisioning's own loading metadata here (unlike the two above) — it's
-    // a plain optional session key with no guaranteed write on account creation, so gating the whole screen on
-    // it hydrating can leave this stuck on the loading indicator. EnableTravelContent already treats "not loaded
-    // yet" and "genuinely has no persisted enabledSteps" the same way (compute fresh), which is an acceptable
-    // trade-off given a real step transition only happens well after the previous step's write has settled.
-    const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
+    const [travelProvisioning, travelProvisioningMetadata] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
 
-    if (isLoadingOnyxValue(privatePersonalDetailsMetadata, accountMetadata)) {
+    // travelProvisioning's loading metadata only gates mid-flow mounts (URL already has a subPage), not the
+    // flow-entry mount. Entry mounts recompute and overwrite the persisted step list anyway, and gating them on
+    // an optional session key with no guaranteed write could stick them on the loading indicator. Mid-flow the
+    // gate is required: steps like tax ID and domain selector merge into TRAVEL_PROVISIONING in the same tick as
+    // the forward navigation, and useOnyx treats a first connection with a pending merge on the key as
+    // "loading" (value undefined). Without the gate, the new mount would freeze a freshly recomputed — and
+    // wrong — step list and persist it over the real one, shrinking the stepper mid-flow.
+    const isMidFlowMount = !!route.params.subPage;
+
+    if (isLoadingOnyxValue(privatePersonalDetailsMetadata, accountMetadata) || (isMidFlowMount && isLoadingOnyxValue(travelProvisioningMetadata))) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'EnableTravel'};
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
