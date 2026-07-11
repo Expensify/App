@@ -257,7 +257,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     {translate('onboarding.accounting.title')}
                 </Text>
             </View>
-            <ScrollView style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.pt3, styles.pb8]}>
+            <ScrollView
+                style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+                contentContainerStyle={[styles.pt3, styles.pb5]}
+            >
                 <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>{accountingOptions.map(renderOption)}</View>
                 {selectedIntegration === 'other' && (
                     <TextInput
