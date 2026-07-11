@@ -357,6 +357,30 @@ describe('validateAttachmentFile', () => {
             }
         });
 
+        it('still revokes the superseded blob: uri when the filename needs cleaning (new File() drops the custom .uri)', async () => {
+            const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:new-url');
+            const revokeObjectURLSpy = jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+            try {
+                const previousUri = 'blob:previous-url';
+                // A name cleanFileName rewrites (spaces), forcing the `new File(...)` reassignment that does
+                // not carry over the custom .uri property — the revoke must still target the original URI.
+                const fileWithUri: FileObject = new File([new Blob(['content'], {type: 'text/plain'})], 'Screenshot 2026-07-11 at 9.15.03 AM.png', {type: 'image/png'});
+                fileWithUri.uri = previousUri;
+
+                const error = await validateAttachmentFile(fileWithUri);
+
+                expect(error.isValid).toBe(true);
+                if (!error.isValid) {
+                    throw new Error('validateAttachmentFile should return a valid result');
+                }
+                expect(revokeObjectURLSpy).toHaveBeenCalledWith(previousUri);
+                expect(error.file.uri).toBe('blob:new-url');
+            } finally {
+                createObjectURLSpy.mockRestore();
+                revokeObjectURLSpy.mockRestore();
+            }
+        });
+
         it('does not revoke any object URL when the incoming file has no uri', async () => {
             // In Node/Jest the react-native-url-polyfill throws for createObjectURL (no BlobModule).
             // Mock it so the File path that assigns file.uri can run.

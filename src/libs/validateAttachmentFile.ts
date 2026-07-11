@@ -70,7 +70,10 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         if (updatedFile.name !== cleanName) {
             updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
         }
-        const previousUri = updatedFile.uri;
+        // Read the superseded URI from normalizedFile: when the name needed cleaning, updatedFile was
+        // reassigned to a fresh File that doesn't carry the custom .uri property, so reading it there
+        // would skip the revoke exactly for cleaned filenames (e.g. default macOS screenshot names).
+        const previousUri = normalizedFile.uri;
         const inputSource = URL.createObjectURL(updatedFile);
         if (previousUri && previousUri !== inputSource && previousUri.startsWith('blob:')) {
             // Release the superseded object URL (e.g. the one AttachmentPicker assigned) so its Blob can be
