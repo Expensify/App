@@ -163,6 +163,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         translate,
         convertToDisplayString,
         localeCompare,
+        isOffline,
         onNavigate: Navigation.navigate,
     });
 

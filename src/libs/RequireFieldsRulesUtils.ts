@@ -77,36 +77,36 @@ function isRequireFieldsFieldPendingDelete(category: PolicyCategory, field: Requ
     return category.pendingFields?.[field] === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function isDescriptionRequiredForCategory(category: PolicyCategory): boolean {
-    return !!category.areCommentsRequired && !isRequireFieldsFieldPendingDelete(category, 'areCommentsRequired');
+function isDescriptionRequiredForCategory(category: PolicyCategory, shouldIncludePendingDeleteFields = false): boolean {
+    return !!category.areCommentsRequired && (shouldIncludePendingDeleteFields || !isRequireFieldsFieldPendingDelete(category, 'areCommentsRequired'));
 }
 
-function isAttendeesRequiredForCategory(category: PolicyCategory): boolean {
-    return !!category.areAttendeesRequired && !isRequireFieldsFieldPendingDelete(category, 'areAttendeesRequired');
+function isAttendeesRequiredForCategory(category: PolicyCategory, shouldIncludePendingDeleteFields = false): boolean {
+    return !!category.areAttendeesRequired && (shouldIncludePendingDeleteFields || !isRequireFieldsFieldPendingDelete(category, 'areAttendeesRequired'));
 }
 
-function isReceiptRequireOverrideForCategory(category: PolicyCategory): boolean {
+function isReceiptRequireOverrideForCategory(category: PolicyCategory, shouldIncludePendingDeleteFields = false): boolean {
     return (
         hasCategoryReceiptOverride(category.maxAmountNoReceipt) &&
         hasExplicitReceiptThreshold(category.maxAmountNoReceipt) &&
-        !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoReceipt')
+        (shouldIncludePendingDeleteFields || !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoReceipt'))
     );
 }
 
-function isItemizedReceiptRequireOverrideForCategory(category: PolicyCategory): boolean {
+function isItemizedReceiptRequireOverrideForCategory(category: PolicyCategory, shouldIncludePendingDeleteFields = false): boolean {
     return (
         hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt) &&
         hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt) &&
-        !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoItemizedReceipt')
+        (shouldIncludePendingDeleteFields || !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoItemizedReceipt'))
     );
 }
 
-function isReceiptWaivedForCategory(category: PolicyCategory): boolean {
-    return isWaiveReceiptThreshold(category.maxAmountNoReceipt) && !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoReceipt');
+function isReceiptWaivedForCategory(category: PolicyCategory, shouldIncludePendingDeleteFields = false): boolean {
+    return isWaiveReceiptThreshold(category.maxAmountNoReceipt) && (shouldIncludePendingDeleteFields || !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoReceipt'));
 }
 
-function isItemizedReceiptWaivedForCategory(category: PolicyCategory): boolean {
-    return isWaiveReceiptThreshold(category.maxAmountNoItemizedReceipt) && !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoItemizedReceipt');
+function isItemizedReceiptWaivedForCategory(category: PolicyCategory, shouldIncludePendingDeleteFields = false): boolean {
+    return isWaiveReceiptThreshold(category.maxAmountNoItemizedReceipt) && (shouldIncludePendingDeleteFields || !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoItemizedReceipt'));
 }
 
 function categoryHasAnyRequireFieldsRule(category: PolicyCategory): boolean {
@@ -483,10 +483,11 @@ function getRequireFieldsRuleDescriptionsForCategory(
     translate: LocaleContextProps['translate'],
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     policyCurrency: string,
+    shouldIncludePendingDeleteFields = false,
 ): string[] {
     const descriptions: string[] = [];
 
-    if (isDescriptionRequiredForCategory(category)) {
+    if (isDescriptionRequiredForCategory(category, shouldIncludePendingDeleteFields)) {
         descriptions.push(
             getRequireFieldsRuleDescription(
                 translate,
@@ -499,7 +500,7 @@ function getRequireFieldsRuleDescriptionsForCategory(
         );
     }
 
-    if (isReceiptRequireOverrideForCategory(category)) {
+    if (isReceiptRequireOverrideForCategory(category, shouldIncludePendingDeleteFields)) {
         descriptions.push(
             getRequireFieldsRuleDescription(
                 translate,
@@ -512,7 +513,7 @@ function getRequireFieldsRuleDescriptionsForCategory(
         );
     }
 
-    if (isItemizedReceiptRequireOverrideForCategory(category)) {
+    if (isItemizedReceiptRequireOverrideForCategory(category, shouldIncludePendingDeleteFields)) {
         descriptions.push(
             getRequireFieldsRuleDescription(
                 translate,
@@ -525,7 +526,7 @@ function getRequireFieldsRuleDescriptionsForCategory(
         );
     }
 
-    if (isAttendeesRequiredForCategory(category)) {
+    if (isAttendeesRequiredForCategory(category, shouldIncludePendingDeleteFields)) {
         descriptions.push(
             getRequireFieldsRuleDescription(
                 translate,
@@ -538,7 +539,7 @@ function getRequireFieldsRuleDescriptionsForCategory(
         );
     }
 
-    if (isReceiptWaivedForCategory(category)) {
+    if (isReceiptWaivedForCategory(category, shouldIncludePendingDeleteFields)) {
         descriptions.push(
             getRequireFieldsRuleDescription(
                 translate,
@@ -551,7 +552,7 @@ function getRequireFieldsRuleDescriptionsForCategory(
         );
     }
 
-    if (isItemizedReceiptWaivedForCategory(category)) {
+    if (isItemizedReceiptWaivedForCategory(category, shouldIncludePendingDeleteFields)) {
         descriptions.push(
             getRequireFieldsRuleDescription(
                 translate,
@@ -586,10 +587,11 @@ function createRequireFieldsTableItem({
 }): RequireFieldsTableItem {
     const ruleKey = getRequireFieldsRuleKey(categoryName);
     const pendingAction = getRequireFieldsPendingActionForCategory(category);
+    const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const decodedCategoryName = getDecodedCategoryName(categoryName);
     const conditionText = translate('workspace.rules.requireFieldsTable.conditionCategoryIs', decodedCategoryName);
     const typeLabel = translate('workspace.rules.requireFieldsRule.title');
-    const ruleDescriptions = getRequireFieldsRuleDescriptionsForCategory(category, translate, convertToDisplayString, policyCurrency);
+    const ruleDescriptions = getRequireFieldsRuleDescriptionsForCategory(category, translate, convertToDisplayString, policyCurrency, isPendingDelete);
     const ruleDescription = formatRequireFieldsRuleDescriptions(ruleDescriptions);
 
     return {
@@ -601,7 +603,7 @@ function createRequireFieldsTableItem({
         ruleDescription,
         searchTokens: [decodedCategoryName, ruleDescription, typeLabel, ...ruleDescriptions],
         pendingAction,
-        disabled: false,
+        disabled: isPendingDelete,
         action: () => {
             setDraftRequireFieldsRule({
                 [INPUT_IDS.CATEGORY]: categoryName,
@@ -618,6 +620,7 @@ function getRequireFieldsTableData({
     translate,
     convertToDisplayString,
     localeCompare,
+    isOffline,
     onNavigate,
 }: {
     policy: Policy | undefined;
@@ -625,6 +628,7 @@ function getRequireFieldsTableData({
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     localeCompare: LocaleContextProps['localeCompare'];
+    isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): RequireFieldsTableItem[] {
     if (!policy?.id || !policyCategories) {
@@ -640,7 +644,14 @@ function getRequireFieldsTableData({
             continue;
         }
 
-        if (!categoryHasAnyRequireFieldsRule(category)) {
+        const pendingAction = getRequireFieldsPendingActionForCategory(category);
+        const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+        if (!isOffline && isPendingDelete) {
+            continue;
+        }
+
+        if (!categoryHasAnyRequireFieldsRule(category) && !isPendingDelete) {
             continue;
         }
 
