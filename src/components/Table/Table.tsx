@@ -11,6 +11,7 @@ import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
 
 import type {FlashListRef} from '@shopify/flash-list';
+import type {ReactElement} from 'react';
 
 import React, {useImperativeHandle, useRef} from 'react';
 
@@ -24,6 +25,8 @@ import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
 import TableContext from './TableContext';
+import TableEmptyState from './TableEmptyStates/TableEmptyState';
+import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
 
 /**
  * A composable table component that provides filtering, search, and sorting functionality.
@@ -218,14 +221,26 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const originalDataLength = data?.length ?? 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
     const shouldRenderStickyHeader = shouldUseStickyColumnHeader && processedData.length > 0 && !isEmptyResult && !(shouldUseNarrowTableLayout && !title);
+
+    // When the page header scrolls inside the list, TableBody renders the table's empty states as
+    // list rows below the header. They are extracted from the direct children here so they don't
+    // render a second time as siblings of the list.
+    const childrenArray = React.Children.toArray(children);
+    const emptyStateElement = childrenArray.find((child): child is ReactElement => React.isValidElement(child) && child.type === TableEmptyState);
+    const noResultsStateElement = childrenArray.find((child): child is ReactElement => React.isValidElement(child) && child.type === TableNoResultsState);
+
     const tableListMetadata = getTableListMetadata({
         headerComponent,
         listHeaderComponent: listProps.ListHeaderComponent,
         listEmptyComponent: listProps.ListEmptyComponent,
+        hasEmptyStateContent: !!emptyStateElement,
         processedData,
         isEmptyResult,
         shouldRenderStickyHeader,
     });
+    const renderedChildren = tableListMetadata.hasPageHeader
+        ? childrenArray.filter((child) => !(React.isValidElement(child) && (child.type === TableEmptyState || child.type === TableNoResultsState)))
+        : children;
 
     /**
      * Exposes table control methods through the ref.
@@ -271,6 +286,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
         title,
         headerComponent,
+        emptyStateElement,
+        noResultsStateElement,
         listRef,
         listProps,
         processedData,
@@ -294,7 +311,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
-            {children}
+            {renderedChildren}
 
             <Modal
                 shouldPreventScrollOnFocus

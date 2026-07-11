@@ -21,6 +21,12 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Content rendered as the FlashList header so it scrolls with the table rows. */
     headerComponent?: React.ReactElement;
 
+    /** Empty-state element extracted from the table children; rendered by TableBody as a list row when the page header scrolls with the table. */
+    emptyStateElement?: React.ReactElement;
+
+    /** No-results element extracted from the table children; rendered by TableBody as a list row when the page header scrolls with the table. */
+    noResultsStateElement?: React.ReactElement;
+
     /** Reference to the underlying FlashList for programmatic control. */
     listRef: React.RefObject<FlashListRef<DataType> | null>;
 

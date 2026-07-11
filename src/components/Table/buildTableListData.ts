@@ -23,6 +23,7 @@ type TableListMetadataParams<DataType extends TableData> = {
     headerComponent?: React.ReactElement;
     listHeaderComponent?: SharedListProps<DataType>['ListHeaderComponent'];
     listEmptyComponent?: SharedListProps<DataType>['ListEmptyComponent'];
+    hasEmptyStateContent: boolean;
     processedData: Array<TableRow<DataType>>;
     isEmptyResult: boolean;
     shouldRenderStickyHeader: boolean;
@@ -32,6 +33,7 @@ function getTableListMetadata<DataType extends TableData>({
     headerComponent,
     listHeaderComponent,
     listEmptyComponent,
+    hasEmptyStateContent,
     processedData,
     isEmptyResult,
     shouldRenderStickyHeader,
@@ -42,7 +44,7 @@ function getTableListMetadata<DataType extends TableData>({
     return {
         hasPageHeader,
         shouldRenderStickyHeader,
-        shouldRenderSyntheticEmptyRow: processedData.length === 0 && hasPageHeader && (isEmptyResult || !!listEmptyComponent),
+        shouldRenderSyntheticEmptyRow: processedData.length === 0 && hasPageHeader && (isEmptyResult || !!listEmptyComponent || hasEmptyStateContent),
         isEmptyResult,
         syntheticRowsBeforeData,
         stickyTableHeaderIndex: hasPageHeader ? 1 : 0,

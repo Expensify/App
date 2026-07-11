@@ -66,6 +66,8 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         hasActiveFilters,
         hasSearchString,
         headerComponent,
+        emptyStateElement,
+        noResultsStateElement,
         isEmptyResult,
         originalDataLength,
         tableListMetadata,
@@ -157,9 +159,9 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
             case 'tableHeader':
                 return <TableHeader isStickyListHeader />;
             case 'emptyResult':
-                return EmptyResultComponent;
+                return noResultsStateElement ?? EmptyResultComponent;
             case 'listEmpty':
-                return renderListComponent(ListEmptyComponent);
+                return emptyStateElement ?? renderListComponent(ListEmptyComponent);
             case 'data':
             default:
                 return renderItem?.({...info, index: getDataIndex(info.index, tableListMetadata)}) ?? null;
