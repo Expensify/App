@@ -1409,7 +1409,13 @@ function getPolicyName(params: GetPolicyNameParams): string {
     const noPolicyFound = params.returnEmptyIfNotFound ? '' : (params.unavailableTranslation ?? unavailableTranslation);
     const parentReport = report ? getRootParentReport({report, reports}) : undefined;
 
-    if ((!report?.policyName && !parentReport?.policyName && isEmptyObject(policies) && isEmptyObject(allPolicies)) || isEmptyObject(report)) {
+    // Bail only when none of the sources used below can resolve a name. oldPolicyName is included because it's a valid
+    // fallback (see below) and is the only name a draft workspace's expense chat carries (e.g. "Submit to my employer"
+    // with no persisted policies) — without it this returned "Unavailable workspace" for those drafts.
+    if (
+        (!report?.policyName && !report?.oldPolicyName && !parentReport?.policyName && !parentReport?.oldPolicyName && isEmptyObject(policies) && isEmptyObject(allPolicies)) ||
+        isEmptyObject(report)
+    ) {
         return noPolicyFound;
     }
     const finalPolicy = (() => {
@@ -11595,6 +11601,7 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     currentUserEmail: string,
     currentUserLocalCurrency: string,
     policyType?: CreatableWorkspaceType,
+    backToReportID?: string,
 ): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
     const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
@@ -11619,7 +11626,11 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     if (isCategorizing) {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
     } else {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true));
+        // The confirmation route needs a `:reportID`, so it points at the (draft) workspace expense chat to resolve the
+        // draft policy/destination. That report only lives in REPORT_DRAFT. Send back to the origin report (e.g. the
+        // self-DM the track expense came from) so navigateBack returns there instead of the draft report's start step.
+        const backTo = backToReportID ? ROUTES.REPORT_WITH_ID.getRoute(backToReportID) : undefined;
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true, backTo));
     }
 }
 
@@ -11798,6 +11809,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
                 currentUserEmail,
                 currentUserLocalCurrency,
                 CONST.POLICY.TYPE.SUBMIT,
+                reportID,
             );
             return;
         }
