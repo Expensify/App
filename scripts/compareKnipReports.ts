@@ -1,6 +1,7 @@
-import fs from 'fs';
 import type {TupleToUnion} from 'type-fest';
-import CLI from './utils/CLI';
+
+import CLI from 'expensify-common/CLI';
+import fs from 'fs';
 
 /**
  * Knip (https://knip.dev) is a static analyzer that flags unused files, exports,
@@ -55,7 +56,7 @@ function parseReport(filepath: string): Report {
 
     // knip writes a single top-level JSON object to stdout, but tooling around it
     // can prepend noise (npm-run script header, babel.config.js debug logs,
-    // webpack-plugin warnings, etc.). The object can also be pretty-printed, so
+    // rspack-plugin warnings, etc.). The object can also be pretty-printed, so
     // we can't rely on a fixed token like `{"issues"`. Locate every `{` and try
     // to parse from there; accept the first slice that parses AND has an
     // `issues` array. Anything else is a hard failure — the CI should not

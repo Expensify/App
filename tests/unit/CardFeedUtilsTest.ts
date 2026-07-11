@@ -1,17 +1,13 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import type {OnyxCollection} from 'react-native-onyx';
-import {
-    getCardFeedNamesWithType,
-    getCardFeedsForDisplay,
-    getCardFeedsForDisplayPerPolicy,
-    getExpensifyCardFeedsForDisplay,
-    getFeedInfo,
-    getSelectedCardsFromFeeds,
-} from '@libs/CardFeedUtils';
+import {getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy, getExpensifyCardFeedsForDisplay, getFeedInfo, getVisibleCompanyCardFeedsForSelector} from '@libs/CardFeedUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {Card, CardFeeds, CardList, CompanyCardFeed, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, CompanyCardFeed, Domain, Policy} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -42,78 +38,10 @@ function createTestPolicy(overrides: Partial<Policy> & Pick<Policy, 'id'>): Poli
     };
 }
 
-function createExpensifyCardBase(cardID: number, fundID: string, feedCountry?: string): Card {
-    return createTestCard({
-        accountID: cardID,
-        lastUpdated: '2024-11-29',
-        bank: CONST.EXPENSIFY_CARD.BANK,
-        cardID,
-        cardName: `${cardID}XXXXXX`,
-        domainName: 'user.com',
-        fundID,
-        lastFourPAN: '1234',
-        lastScrapeResult: 200,
-        scrapeMinDate: '',
-        ...(feedCountry ? {nameValuePairs: createCardNameValuePairs({feedCountry})} : {}),
-    });
-}
-
 const cardFeedAmericaExpressMock: CardFeedWithNumber = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT} 1001`;
 const cardFeedVisaMock: CompanyCardFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
 const cardFeedCitiBankMock: CompanyCardFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK;
 const cardFeedStripeMock: CompanyCardFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
-
-const fakeWorkspace: Record<string, WorkspaceCardsList> = {
-    'cards_11111111_Expensify Card': {
-        '11111111': {
-            accountID: 11111111,
-            lastUpdated: '2024-11-29',
-            bank: 'Expensify Card',
-            cardID: 11111111,
-            cardName: '111111XXXXXX1111',
-            domainName: 'expensify-policy1234567891011121.exfy',
-            fraud: 'none',
-            fundID: '11111111',
-            lastFourPAN: '1234',
-            lastScrape: '',
-            lastScrapeResult: 200,
-            scrapeMinDate: '',
-            state: 3,
-        },
-        '22222222': {
-            accountID: 22222222,
-            lastUpdated: '2024-11-29',
-            bank: 'Expensify Card',
-            cardID: 22222222,
-            cardName: '222222XXXXXX2222',
-            domainName: 'expensify-policy1234567891011121.exfy',
-            fraud: 'none',
-            fundID: '11111111',
-            lastFourPAN: '5678',
-            lastScrape: '',
-            lastScrapeResult: 200,
-            scrapeMinDate: '',
-            state: 3,
-        },
-    },
-    'cards_22222222_Expensify Card': {
-        '33333333': {
-            accountID: 33333333,
-            lastUpdated: '2024-11-29',
-            bank: 'Expensify Card',
-            cardID: 33333333,
-            cardName: '333333XXXXXX3333',
-            domainName: 'expensify-policy1234567891011121.exfy',
-            fraud: 'none',
-            fundID: '22222222',
-            lastFourPAN: '9101',
-            lastScrape: '',
-            lastScrapeResult: 200,
-            scrapeMinDate: '',
-            state: 3,
-        },
-    },
-};
 
 const cardListMock: CardList = {
     '11223344': createTestCard({cardID: 11223344, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, fundID: '5555', state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
@@ -144,29 +72,6 @@ describe('Card Feed Utils', () => {
     beforeAll(() => {
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
-    });
-    it('returns display name of workspace & domain cards', () => {
-        const cardFeedNamesWithType = getCardFeedNamesWithType({workspaceCardFeeds: fakeWorkspace, policies: undefined, translate: translateLocal});
-        expect(Object.keys(cardFeedNamesWithType).length).toBe(2);
-        expect(Object.values(cardFeedNamesWithType).every((cardFeedName) => cardFeedName.name === 'All Expensify')).toBe(true);
-    });
-
-    it('returns feeds to selected cards', () => {
-        const feeds = ['22222222_Expensify Card'];
-        const selected = getSelectedCardsFromFeeds({}, fakeWorkspace, feeds);
-        expect(selected.length).toBe(1);
-        expect(selected.at(0)).toEqual('33333333');
-    });
-
-    it('returns empty object when workspaceCardFeeds is empty', () => {
-        const names = getCardFeedNamesWithType({workspaceCardFeeds: {key: {}}, policies: undefined, translate: translateLocal});
-        expect(names).toEqual({});
-    });
-
-    it('returns empty array when selectedFeeds contains a non-existent feed', () => {
-        const feeds = ['99999999_Expensify Card'];
-        const selected = getSelectedCardsFromFeeds({}, fakeWorkspace, feeds);
-        expect(selected).toEqual([]);
     });
 
     it('returns card feeds for display with custom names', () => {
@@ -461,76 +366,70 @@ describe('getExpensifyCardFeedsForDisplay', () => {
     });
 });
 
-describe('country-aware domain feed picker', () => {
-    beforeAll(() => {
-        IntlStore.load(CONST.LOCALES.EN);
-        return waitForBatchedUpdates();
-    });
+describe('getVisibleCompanyCardFeedsForSelector', () => {
+    const fundID = 1234;
+    const currentUserAccountID = 777;
 
-    it('feed names are different for Expensify Cards and Travel invoicing', () => {
-        const workspaceCardFeeds: Record<string, WorkspaceCardsList> = {
-            'cards_5555_Expensify Card': {
-                '1': createExpensifyCardBase(1, '5555', CONST.COUNTRY.US),
-                '2': createExpensifyCardBase(2, '5555', CONST.COUNTRY.GB),
-            },
-            'cards_5555_Expensify Card_TRAVEL_US': {
-                '3': createExpensifyCardBase(3, '5555', CONST.TRAVEL.PROGRAM_TRAVEL_US),
+    function createCompanyCardFeeds(companyCards: NonNullable<NonNullable<CardFeeds['settings']>['companyCards']>): OnyxCollection<CardFeeds> {
+        return {
+            [`sharedNVP_private_domain_member_${fundID}`]: {
+                settings: {
+                    companyCardNicknames: {},
+                    companyCards,
+                },
             },
         };
+    }
 
-        const names = getCardFeedNamesWithType({workspaceCardFeeds, policies: undefined, translate: translateLocal});
-        expect(Object.keys(names).sort()).toEqual(['cards_5555_Expensify Card', 'cards_5555_Expensify Card_TRAVEL_US']);
-        expect(names['cards_5555_Expensify Card'].name).toBe('All Expensify - user.com');
-        expect(names['cards_5555_Expensify Card_TRAVEL_US'].name).toBe('All Consolidated Travel Billing - user.com');
+    function createAdminDomain(accountID: number, adminAccountID: number): Domain {
+        const domain: Domain = {
+            validated: true,
+            accountID,
+            email: '+@company.com',
+            domain_defaultSecurityGroupID: '0',
+        };
+        // Set the prefixed admin-access key separately so the object literal isn't widened to a string index
+        // signature (which would force an unsafe `as unknown as Domain` assertion).
+        domain[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`] = adminAccountID;
+        return domain;
+    }
+
+    it('enumerates a feed once when the user is an admin of a policy backed by the fund (no linkedPolicyIDs)', () => {
+        const cardFeeds = createCompanyCardFeeds({[cardFeedAmericaExpressMock]: {}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', policyAccountID: fundID})};
+
+        const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, {}, currentUserAccountID);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.id).toBe('1234_oauth.americanexpressfdx.com 1001');
     });
 
-    it('resolves a travel selection to only travel cards', () => {
-        const cardList: CardList = {
-            '1': createExpensifyCardBase(1, '5555', CONST.COUNTRY.US),
-            '2': createExpensifyCardBase(2, '5555', CONST.TRAVEL.PROGRAM_TRAVEL_US),
-            '3': createExpensifyCardBase(3, '5555', CONST.TRAVEL.PROGRAM_TRAVEL_US),
-        };
+    it('enumerates a feed once when the user is a domain admin for the fund', () => {
+        const cardFeeds = createCompanyCardFeeds({[cardFeedAmericaExpressMock]: {}});
+        const domains: OnyxCollection<Domain> = {[`domain_${fundID}`]: createAdminDomain(fundID, currentUserAccountID)};
 
-        const selected = getSelectedCardsFromFeeds(cardList, {}, ['5555_Expensify Card_TRAVEL_US']);
-        expect(selected.sort()).toEqual(['2', '3']);
+        const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, {}, domains, currentUserAccountID);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.id).toBe('1234_oauth.americanexpressfdx.com 1001');
     });
 
-    it('resolves a 2-segment Expensify selection to every non-travel card for the fundID', () => {
-        const cardList: CardList = {
-            '1': createExpensifyCardBase(1, '5555', CONST.COUNTRY.US),
-            '2': createExpensifyCardBase(2, '5555', CONST.COUNTRY.GB),
-            '3': createExpensifyCardBase(3, '5555', CONST.TRAVEL.PROGRAM_TRAVEL_US),
-        };
+    it('excludes feeds when the user is neither a domain admin nor a workspace admin for the fund', () => {
+        const cardFeeds = createCompanyCardFeeds({[cardFeedAmericaExpressMock]: {}});
+        const policies: OnyxCollection<Policy> = {policy_OTHER: createTestPolicy({id: 'OTHER', policyAccountID: 9999})};
 
-        const selected = getSelectedCardsFromFeeds(cardList, {}, ['5555_Expensify Card']);
-        expect(selected.sort()).toEqual(['1', '2']);
+        const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, {}, currentUserAccountID);
+
+        expect(result).toHaveLength(0);
     });
 
-    it('still resolves a 2-segment selection when cards carry no feedCountry', () => {
-        const cardList: CardList = {
-            '1': createExpensifyCardBase(1, '5555'),
-            '2': createExpensifyCardBase(2, '5555'),
-        };
+    it('enumerates a feed with multiple linkedPolicyIDs exactly once (no per-policy duplication)', () => {
+        const cardFeeds = createCompanyCardFeeds({[cardFeedAmericaExpressMock]: {linkedPolicyIDs: ['WS', 'WS2', 'WS3']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', policyAccountID: fundID})};
 
-        const selected = getSelectedCardsFromFeeds(cardList, {}, ['5555_Expensify Card']);
-        expect(selected.sort()).toEqual(['1', '2']);
-    });
+        const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, {}, currentUserAccountID);
 
-    it('keeps the travel workspace feed visible when the only domain entry is a regular Expensify Card', () => {
-        const workspaceCardFeeds: Record<string, WorkspaceCardsList> = {
-            'cards_5555_Expensify Card': {
-                '1': {...createExpensifyCardBase(1, '5555', CONST.COUNTRY.US), domainName: 'user.com'},
-                '2': {...createExpensifyCardBase(2, '5555', CONST.COUNTRY.US), domainName: 'expensify-policy1234567891011121.exfy'},
-            },
-            'cards_5555_Expensify Card_TRAVEL_US': {
-                '3': {...createExpensifyCardBase(3, '5555', CONST.TRAVEL.PROGRAM_TRAVEL_US), domainName: 'expensify-policy1234567891011121.exfy'},
-            },
-        };
-
-        const names = getCardFeedNamesWithType({workspaceCardFeeds, policies: undefined, translate: translateLocal});
-        expect(Object.keys(names)).toContain('cards_5555_Expensify Card_TRAVEL_US');
-        expect(names['cards_5555_Expensify Card_TRAVEL_US'].type).toBe('workspace');
-        expect(Object.keys(names)).toContain('cards_5555_Expensify Card');
-        expect(names['cards_5555_Expensify Card'].type).toBe('domain');
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.linkedPolicyIDs).toEqual(['WS', 'WS2', 'WS3']);
     });
 });

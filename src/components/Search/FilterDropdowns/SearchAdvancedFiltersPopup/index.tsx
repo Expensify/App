@@ -1,17 +1,24 @@
-import React, {useCallback, useRef, useState} from 'react';
-import {View} from 'react-native';
 import SafeTriangle from '@components/SafeTriangle';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+import {View} from 'react-native';
+
 import AmountFilterContentPopupWrapper from './AmountFilterContentPopupWrapper';
 import CommonFilterContentPopupWrapper from './CommonFilterContentPopupWrapper';
 import DateFilterContentPopupWrapper from './DateFilterContentPopupWrapper';
