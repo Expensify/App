@@ -2,15 +2,9 @@
  * Thin wrapper around the upstream @fullstory/babel-plugin-annotate-react plugin, invoked directly via @babel/core rather than
  * going through babel-loader.
  *
- * Two pre-filters skip Babel entirely when a file cannot possibly contain JSX:
- *  - `.ts` files: TypeScript's grammar disallows JSX syntax outside `.tsx`, so this is a
- *    guaranteed-safe skip, not a heuristic. Measured across src/: 1722 of 3481 `.ts` files
- *    (49.5%) contain a literal `<` from generics/comparisons (e.g. `Record<K, V>`) and would
- *    otherwise be false positives for the check below — including all of src/languages/ and
- *    most of src/CONST/, some of the largest files in the repo.
- *  - All other extensions (.tsx, .jsx, .js): fall back to a `source.includes('<')` check, since
- *    JSX is legal in plain `.js` files too (verified: only 2 non-.jsx `.js` files exist in src/,
- *    both generated parsers with no JSX — but nothing enforces that going forward).
+ * It is an optimization. Two filters skip Babel entirely when a file cannot possibly contain JSX:
+ *  - `.ts` files: TypeScript's grammar disallows JSX syntax outside `.tsx`
+ *  - All other extensions (.tsx, .jsx, .js): fall back to a `source.includes('<')`, a quick check for JSX
  */
 
 import babel from '@babel/core';
