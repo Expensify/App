@@ -142,8 +142,7 @@ module.exports = (api) => {
 
     // For `react-native` (iOS/Android) caller will be "metro"
     // For jest, it will be babel-jest
-    // The web build and Storybook (Rsbuild) don't call into this file at all — their JS/TS/JSX
-    // pipeline goes through OXC directly (see config/rsbuild/rsbuild.common.ts), bypassing Babel.
+    // The web build and Storybook (Rsbuild) don't call into this file at all
     const runningIn = api.caller((args = {}) => args.name);
     if (!process.env.KNIP) {
         console.debug('  - running in: ', runningIn);

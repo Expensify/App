@@ -86,8 +86,7 @@ const INCLUDED_NODE_MODULES = [
     '@shopify/react-native-skia',
 ];
 
-// Matches node_modules paths that ARE in the allowlist above — these get transformed through the
-// same OXC + React Compiler pipeline as app source (see the module rule below that uses this regex).
+// Matches node_modules paths that are in the allowlist above
 const includedNodeModulesRegex = new RegExp(`node_modules/(${INCLUDED_NODE_MODULES.join('|')})`);
 
 const environmentToLogoSuffixMap: Record<string, string> = {
@@ -182,14 +181,7 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
             }),
         ],
         tools: {
-            // Rsbuild's default 'js' rule (builtin:swc-loader, its 'js' oneOf branch) matches every
-            // .js/.ts/.jsx/.tsx file, including everything our own module rules below already handle. Rules
-            // declared later in `module.rules` run their loaders FIRST (closest to raw source), and
-            // our custom rules are added via `addRules` (which appends after Rsbuild's defaults), so
-            // without this exclude, swc-loader would strip JSX/TypeScript before the Fullstory
-            // annotation loader or OXC's React Compiler ever see the original JSX — silently
-            // defeating both. Only the 'js' oneOf branch is touched, so worker/raw/text imports
-            // (other oneOf branches on the same parent rule) are unaffected.
+            // Skip default .js loader that strips JSX/TypeScript and breaks Fullstory/React Compiler transforms we add later via rules
             bundlerChain: (chain) => {
                 chain.module
                     .rule('js')
@@ -210,19 +202,14 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                     __dirname: 'mock',
                 };
                 // We can ignore the "module not installed" warning from lottie-react-native because we
-                // are not using the library for JSON format of Lottie animations. We also ignore
-                // oxc-react-compiler-loader's demoted React Compiler diagnostics (see that file) —
-                // they're deliberately warnings, not errors, matching babel-plugin-react-compiler's
-                // default bailout behaviour, so Storybook's `--smoke-test` shouldn't fail the build on them.
+                // are not using the library for JSON format of Lottie animations.
+                // We also ignore React Compiler errors - they're deliberately warnings, not errors.
                 // eslint-disable-next-line no-param-reassign
                 config.ignoreWarnings = [...(config.ignoreWarnings ?? []), /lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/, /oxc-react-compiler-loader:/];
 
-                // A list of paths rspack trusts would not be modified while rspack is running.
-                // Onyx and react-native-live-markdown can be modified on the fly, changes to other
-                // node_modules would not be reflected live. Applies to `dev`, `build`, and Storybook
-                // alike: persisting the module graph + OXC/Fullstory loader outputs to disk on every
-                // command (not just `dev`) is what makes repeated local `npm run build` runs fast —
-                // without it, every build re-runs every loader from scratch regardless of what changed.
+                // Cache rules:
+                // - Onyx and react-native-live-markdown can be modified on the fly, changes to other node_modules are not reflected live
+                // - Applies to `dev`, `build`, and Storybook alike
                 // eslint-disable-next-line no-param-reassign
                 config.cache ??= {type: 'persistent'};
                 if (typeof config.cache === 'object' && config.cache.type === 'persistent') {
@@ -282,13 +269,6 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                         // Exclude ALL node_modules (including the included-node_modules allowlist, handled below).
                         exclude: [/node_modules/, /\.native\.(js|jsx|ts|tsx)$/],
                         use: [
-                            // Worklets, then React Compiler + all other OXC transforms (see
-                            // getOxcAndWorkletsLoaders). worklets-loader skips the Babel
-                            // parse/transform/codegen cycle for files that can't reference a
-                            // worklet (see that file) — ~97.5% of src/, verified by grep.
-                            // oxc-react-compiler-loader calls oxc-transform directly and demotes
-                            // non-fatal React Compiler diagnostics to warnings instead of hard build
-                            // errors (workaround for oxc-project/oxc#23587).
                             ...getOxcAndWorkletsLoaders(),
                             // Fullstory annotation.
                             {
@@ -296,11 +276,8 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                             },
                         ],
                     },
-                    // Included node_modules (see includedNodeModulesRegex above). Same OXC + React
-                    // Compiler pass as app source above (oxc-react-compiler-loader's per-file
-                    // bailout, see that file, handles any Rules-of-React violations in these
-                    // packages) minus the Fullstory pass, which only makes sense for our own
-                    // components.
+                    // Included node_modules: Same OXC + React Compiler pass as app source above,
+                    // minus the Fullstory pass, which only makes sense for our own components.
                     {
                         test: /\.(js|ts)x?$/,
                         include: [includedNodeModulesRegex],
@@ -441,9 +418,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             },
         },
         tools: {
-            // getSharedConfiguration's own `tools.bundlerChain` (JSX/TS rule excludes) isn't otherwise
-            // inherited here since the explicit `tools: {...}` below replaces (rather than merges with)
-            // `...shared`'s tools object.
             bundlerChain: shared.tools?.bundlerChain,
             rspack: (config, utils) => {
                 // `sharedRspackTool`'s declared return type includes `Promise<void | RspackOptions>` because
