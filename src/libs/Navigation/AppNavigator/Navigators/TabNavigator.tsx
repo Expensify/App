@@ -4,6 +4,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {setTabNavigatorMounted, setTabNavigatorUnmounted} from '@libs/Navigation/helpers/tabNavigatorReadiness';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import {getSpan} from '@libs/telemetry/activeSpans';
 
@@ -96,6 +97,14 @@ function TabNavigator() {
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
+
+    // Signal that TAB_NAVIGATOR's child router has mounted (and reset on unmount/logout) so deep-link
+    // and notification navigation waits for it before dispatching a nested NAVIGATE action.
+    useEffect(() => {
+        setTabNavigatorMounted();
+        return setTabNavigatorUnmounted;
+    }, []);
+
     useEffect(() => {
         if (!shouldUseNarrowLayout || !parentNavigation) {
             return;
