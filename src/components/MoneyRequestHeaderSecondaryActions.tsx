@@ -149,7 +149,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const rawTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`];
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     // NVP subscriptions
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -204,6 +203,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, parentOwnerLogin, transaction, transactionViolations, policy, false)
     );
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [activePolicyExpenseChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${activePolicyExpenseChat?.reportID}`);
     const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
     const isParentChatReportDM = isDM(chatIOUReport);
@@ -264,7 +264,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 targetPolicyTags,
                 currentUser: {accountID, email: currentUserLogin ?? ''},
                 currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
-                chatReportActions: activePolicyExpenseChat?.reportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${activePolicyExpenseChat.reportID}`] : undefined,
+                chatReportActions: activePolicyExpenseChatReportActions,
                 delegateAccountID,
                 policyTagList,
             });

@@ -50,7 +50,6 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`);
     const [targetPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy?.id}`);
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     const sourcePolicyIDMap: Record<string, string | undefined> = {};
     for (const transactionID of selectedTransactionsKeys) {
@@ -64,6 +63,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     }
 
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [activePolicyExpenseChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${activePolicyExpenseChat?.reportID}`);
     const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
 
     const handleDuplicate = () => {
@@ -86,7 +86,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             recentWaypoints,
             currentUser: {accountID, email: currentUserLogin ?? ''},
             currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
-            chatReportActions: activePolicyExpenseChat?.reportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${activePolicyExpenseChat.reportID}`] : undefined,
+            chatReportActions: activePolicyExpenseChatReportActions,
             delegateAccountID,
             policyTagList,
         });
