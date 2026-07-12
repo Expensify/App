@@ -230,6 +230,9 @@ const ONYXKEYS = {
     /** This NVP contains the training modals the user denied showing again */
     NVP_HAS_SEEN_TRACK_TRAINING: 'nvp_hasSeenTrackTraining',
 
+    /** Whether the "For You" section has ever shown an actionable to-do (keeps the section visible once seen) */
+    NVP_HAS_SEEN_FOR_YOU_TODO: 'nvp_hasSeenForYouTodo',
+
     /** Indicates which locale should be used */
     NVP_PREFERRED_LOCALE: 'nvp_preferredLocale',
 
@@ -928,6 +931,9 @@ const ONYXKEYS = {
         /** Errors related to a domain */
         DOMAIN_ERRORS: 'domainErrors_',
 
+        /** Newly added domain item identifiers pending a scroll-and-highlight animation */
+        DOMAIN_HIGHLIGHT_ITEMS: 'domainHighlightItems_',
+
         /**
          * Local passkeys storage for WebAuthn/Passkeys authentication.
          * Stores passkey credentials registered on this specific browser/device.
@@ -1439,6 +1445,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
+    [ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS]: OnyxTypes.DomainHighlightItems;
     [ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION]: OnyxTypes.CodingRuleMatchingTransaction;
     [ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS]: OnyxTypes.LocalPasskeyCredentialsEntry;
     [ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
@@ -1576,6 +1583,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
+    [ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
     [ONYXKEYS.IS_BETA]: boolean;
