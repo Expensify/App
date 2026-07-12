@@ -514,11 +514,21 @@ const config = defineConfig([
     },
 
     // Node.js ESM requires relative imports to include a file extension (unlike
-    // bundled `.js`/`.ts`, which are resolved by webpack/metro). Relax the
+    // bundled `.js`/`.ts`, which are resolved by Rspack/metro). Relax the
     // airbnb-inherited `import/extensions` rule for `.mjs`/`.cjs` so it stops
     // flagging legitimate ESM imports like `import x from './foo.mjs'`.
     {
         files: ['**/*.mjs', '**/*.cjs'],
+        rules: {
+            'import/extensions': 'off',
+        },
+    },
+
+    // Storybook (loaded as native ESM by Storybook 10) and our Rspack/Rsbuild config
+    // entry points load .ts files directly and require explicit .ts extensions on
+    // relative imports — the opposite of bundled src/ code.
+    {
+        files: ['.storybook/**/*.ts', '.storybook/**/*.tsx', 'config/rsbuild/**/*.ts'],
         rules: {
             'import/extensions': 'off',
         },
