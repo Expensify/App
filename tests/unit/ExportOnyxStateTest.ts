@@ -1,4 +1,4 @@
-import {emailRegex, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/common';
+import {emailRegex, keysToMask, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/common';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
@@ -396,5 +396,38 @@ describe('Onyx key export coverage', () => {
         for (const key of removeKeys) {
             expect(onyxKeysToMaskFragileData.has(key)).toBe(false);
         }
+    });
+});
+
+describe('Onyx key export bucket ordering', () => {
+    // The buckets are written as ONYXKEYS.X references and kept in order of that name, not of the string it
+    // resolves to. BETAS is listed before BETA_CONFIGURATION even though their values sort the other way
+    // round, so comparing the values would flag correct code. A Set only remembers the values, so map each
+    // one back to the name it was written as before checking the order.
+    const nameByValue = new Map<string, string>();
+    for (const [name, value] of Object.entries(ONYXKEYS)) {
+        if (typeof value !== 'string') {
+            continue;
+        }
+        nameByValue.set(value, name);
+    }
+    for (const [name, value] of Object.entries(ONYXKEYS.COLLECTION)) {
+        nameByValue.set(value, `COLLECTION.${name}`);
+    }
+
+    it.each([
+        ['safeOnyxKeys', safeOnyxKeys],
+        ['onyxKeysToMaskFragileData', onyxKeysToMaskFragileData],
+    ])('%s should list its keys alphabetically', (_bucketName, bucket) => {
+        // A Set keeps insertion order, so this is the order the keys appear in the source
+        const names = Array.from(bucket).map((value) => nameByValue.get(value) ?? value);
+
+        expect(names).toEqual([...names].sort());
+    });
+
+    it('keysToMask should list its field names alphabetically', () => {
+        const fieldNames = Array.from(keysToMask);
+
+        expect(fieldNames).toEqual([...fieldNames].sort());
     });
 });
