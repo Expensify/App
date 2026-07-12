@@ -39,6 +39,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
+import type {SearchTask} from '@src/types/onyx/SearchResults';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
@@ -46,6 +47,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -729,7 +731,8 @@ const searchResultsGroupByCategory: OnyxTypes.SearchResults = {
     },
 };
 
-const reportActionListItems: ReportActionListItemType[] = [
+const reportActionListItems = createMock<ReportActionListItemType[]>([
+    // @ts-expect-error -- these fixtures intentionally include the minimal report-action fields consumed by the search helpers.
     {
         ...reportAction1,
         date: '2024-12-21 13:05:21',
@@ -778,6 +781,7 @@ const reportActionListItems: ReportActionListItemType[] = [
         reportName: report1.reportName,
         reportID: '123456789',
     },
+    // @ts-expect-error -- this fixture intentionally includes the minimal report-action fields consumed by the search helpers.
     {
         ...reportAction2,
         date: '2024-12-21 13:05:22',
@@ -796,6 +800,7 @@ const reportActionListItems: ReportActionListItemType[] = [
         reportName: report2.reportName,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
+    // @ts-expect-error -- this fixture intentionally includes the minimal report-action fields consumed by the search helpers.
     {
         ...reportAction3,
         date: '2024-12-21 13:05:23',
@@ -814,6 +819,7 @@ const reportActionListItems: ReportActionListItemType[] = [
         reportName: report3.reportName,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
+    // @ts-expect-error -- this fixture intentionally includes the minimal report-action fields consumed by the search helpers.
     {
         ...reportAction4,
         date: '2024-12-21 13:05:24',
@@ -832,9 +838,9 @@ const reportActionListItems: ReportActionListItemType[] = [
         reportName: report3.reportName,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
-];
+]);
 
-const transactionsListItems: TransactionListItemType[] = [
+const transactionsListItems = createMock<TransactionListItemType[]>([
     {
         action: 'submit',
         allActions: ['submit'],
@@ -1111,7 +1117,7 @@ const transactionsListItems: TransactionListItemType[] = [
         groupAmount: -5000,
         groupCurrency: 'USD',
     },
-];
+]);
 
 function getTransactionListItem(index: number): TransactionListItemType {
     const transaction = transactionsListItems.at(index);
@@ -1121,7 +1127,7 @@ function getTransactionListItem(index: number): TransactionListItemType {
     return transaction;
 }
 
-const transactionReportGroupListItems: TransactionReportGroupListItemType[] = [
+const transactionReportGroupListItems = createMock<Array<TransactionReportGroupListItemType & {private_isArchived?: string}>>([
     {
         groupedBy: 'expense-report',
         accountID: 18439984,
@@ -1651,7 +1657,7 @@ const transactionReportGroupListItems: TransactionReportGroupListItemType[] = [
         type: 'expense',
         unheldTotal: 0,
     },
-];
+]);
 
 const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
     {
@@ -2385,13 +2391,13 @@ describe('SearchUIUtils', () => {
 
         test('Should return EXPORT_TO_ACCOUNTING action when report is approved and policy has verified accounting integration', () => {
             const exportReportID = 'report_export';
-            const localSearchResults = {
+            const localSearchResults = createMock<OnyxTypes.SearchResults['data']>({
                 ...searchResults.data,
                 [`policy_${policyID}`]: {
                     ...searchResults.data[`policy_${policyID}`],
                     role: CONST.POLICY.ROLE.ADMIN,
                     exporter: adminEmail,
-                    connections: {
+                    connections: createMock<Connections>({
                         [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                             verified: true,
                             lastSync: {
@@ -2404,7 +2410,7 @@ describe('SearchUIUtils', () => {
                                 successfulDate: '',
                             },
                         },
-                    } satisfies Connections,
+                    }),
                 },
                 [`report_${exportReportID}`]: {
                     ...searchResults.data[`report_${reportID2}`],
@@ -2412,7 +2418,7 @@ describe('SearchUIUtils', () => {
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 },
-            };
+            });
 
             const actions = SearchUIUtils.getActions(localSearchResults, {}, `report_${exportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminEmail, adminAccountID, {}, {});
 
@@ -3170,16 +3176,13 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getCardSections result when type is EXPENSE and groupBy is card', () => {
-            const mockCardFeeds = {
-                policy1: {
-                    settings: {
-                        companyCards: {
-                            [CONST.BANK_NAMES.CHASE]: {} as CustomCardFeedData,
-                            [CONST.BANK_NAMES.AMERICAN_EXPRESS]: {} as CustomCardFeedData,
-                        },
-                    },
-                } satisfies OnyxTypes.CardFeeds,
-            };
+            const mockCardFeed = createMock<OnyxTypes.CardFeeds>({settings: {companyCards: {}}});
+            const companyCards = mockCardFeed.settings.companyCards ?? {};
+            Object.assign(companyCards, {
+                [CONST.BANK_NAMES.CHASE]: createMock<CustomCardFeedData>({}),
+                [CONST.BANK_NAMES.AMERICAN_EXPRESS]: createMock<CustomCardFeedData>({}),
+            });
+            const mockCardFeeds: OnyxCollection<OnyxTypes.CardFeeds> = {policy1: mockCardFeed};
             expect(
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -3228,7 +3231,7 @@ describe('SearchUIUtils', () => {
                 },
                 [`${CONST.SEARCH.GROUP_PREFIX}${deletedFeedCardID}` as const]: {
                     accountID: adminAccountID,
-                    bank: CONST.BANK_NAMES.CITIBANK,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK,
                     cardID: deletedFeedCardID,
                     cardName: 'Removed company card',
                     count: 1,
@@ -3251,28 +3254,28 @@ describe('SearchUIUtils', () => {
             // Personal cards have no fundID; the deleted company feed card keeps its fundID so it is not personal.
             // The workspace-feed company card also has no fundID (company-feed cards never carry one), so it must be
             // distinguished from a personal card via the non-personal card list rather than `isPersonalCard` alone.
-            const cardList: OnyxTypes.CardList = {
+            const cardList = createMock<OnyxTypes.CardList>({
                 [personalCardID]: {cardID: personalCardID, bank: CONST.PERSONAL_CARDS.BANK_NAME.CHASE},
                 [csvPersonalCardID]: {cardID: csvPersonalCardID, bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV, fundID: '123'},
-                [deletedFeedCardID]: {cardID: deletedFeedCardID, bank: CONST.BANK_NAMES.CITIBANK, fundID: '456'},
+                [deletedFeedCardID]: {cardID: deletedFeedCardID, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK, fundID: '456'},
                 [workspaceFeedCardID]: {cardID: workspaceFeedCardID, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA},
-            };
+            });
 
             // The non-personal list keeps every company/workspace-feed card while filtering personal cards out.
-            const nonPersonalAndWorkspaceCardList: OnyxTypes.CardList = {
+            const nonPersonalAndWorkspaceCardList = createMock<OnyxTypes.CardList>({
                 [workspaceFeedCardID]: {cardID: workspaceFeedCardID, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA},
-            };
+            });
 
             // The VISA feed exists in the workspace, so it should resolve to a real feed name (not "Deleted feed").
             const cardFeeds = {
                 policy1: {
                     settings: {
                         companyCards: {
-                            [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: {} as CustomCardFeedData,
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: createMock<CustomCardFeedData>({}),
                         },
                     },
-                } satisfies OnyxTypes.CardFeeds,
-            };
+                },
+            } satisfies OnyxCollection<OnyxTypes.CardFeeds>;
 
             const [sections] = getSectionsByType(
                 SearchUIUtils.getSections({
@@ -3291,7 +3294,7 @@ describe('SearchUIUtils', () => {
                     convertToDisplayString,
                     reportAttributesDerivedValue: undefined,
                 }),
-                SearchUIUtils.isTransactionGroupListItemType,
+                (item): item is TransactionCardGroupListItemType => SearchUIUtils.isTransactionGroupListItemType(item) && 'cardID' in item,
             );
 
             const feedNameByCardID = new Map(sections.map((section) => [section.cardID, section.formattedFeedName]));
@@ -5138,20 +5141,20 @@ describe('SearchUIUtils', () => {
             const taskCreatorAccountID = 11111;
             const taskAssigneeAccountID = 22222;
 
-            const taskReport: OnyxTypes.Report = {
+            const taskReport = createMock<SearchTask>({
                 type: CONST.REPORT.TYPE.TASK,
+                accountID: taskCreatorAccountID,
                 reportID: taskReportID,
                 reportName: 'Fix the login bug',
                 description: 'The login page has a bug that needs fixing',
-                accountID: taskCreatorAccountID,
                 managerID: taskAssigneeAccountID,
                 parentReportID,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 created: '2025-01-15 10:00:00',
-            };
+            });
 
-            const taskData: OnyxTypes.SearchResults['data'] = {
+            const taskData = createMock<OnyxTypes.SearchResults['data']>({
                 personalDetailsList: {
                     [taskCreatorAccountID]: {
                         accountID: taskCreatorAccountID,
@@ -5167,7 +5170,7 @@ describe('SearchUIUtils', () => {
                     },
                 },
                 [`report_${taskReportID}`]: taskReport,
-            };
+            });
 
             const [result, count] = getSectionsByType(
                 SearchUIUtils.getSections({
@@ -5200,20 +5203,20 @@ describe('SearchUIUtils', () => {
             const taskCreatorAccountID = 11111;
             const taskAssigneeAccountID = 22222;
 
-            const taskReport: OnyxTypes.Report = {
+            const taskReport = createMock<SearchTask>({
                 type: CONST.REPORT.TYPE.TASK,
+                accountID: taskCreatorAccountID,
                 reportID: taskReportID,
                 reportName: 'Fix the login bug',
                 description: 'The login page has a bug that needs fixing',
-                accountID: taskCreatorAccountID,
                 managerID: taskAssigneeAccountID,
                 parentReportID,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 created: '2025-01-15 10:00:00',
-            };
+            });
 
-            const parentReport: OnyxTypes.Report = {
+            const parentReport = createMock<OnyxTypes.Report>({
                 type: CONST.REPORT.TYPE.CHAT,
                 reportID: parentReportID,
                 reportName: 'Parent chat',
@@ -5221,9 +5224,9 @@ describe('SearchUIUtils', () => {
                     [taskCreatorAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     [taskAssigneeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
-            };
+            });
 
-            const taskData: OnyxTypes.SearchResults['data'] = {
+            const taskData = createMock<OnyxTypes.SearchResults['data']>({
                 personalDetailsList: {
                     [taskCreatorAccountID]: {
                         accountID: taskCreatorAccountID,
@@ -5240,7 +5243,7 @@ describe('SearchUIUtils', () => {
                 },
                 [`report_${taskReportID}`]: taskReport,
                 [`report_${parentReportID}`]: parentReport,
-            };
+            });
 
             const [result] = SearchUIUtils.getSections({
                 type: CONST.SEARCH.DATA_TYPES.TASK,
@@ -5266,18 +5269,18 @@ describe('SearchUIUtils', () => {
 
         it('resolves task assignee and creator fallback names through the provided translate function', () => {
             const taskReportID = 'task_report_hidden_members';
-            const taskReport: OnyxTypes.Report = {
+            const taskReport = createMock<SearchTask>({
                 type: CONST.REPORT.TYPE.TASK,
+                accountID: 33333,
                 reportID: taskReportID,
                 reportName: 'Task without known members',
                 description: '',
-                accountID: 33333,
                 managerID: 44444,
                 parentReportID: 'parent_report_hidden_members',
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 created: '2025-01-15 10:00:00',
-            };
+            });
             const taskData: OnyxTypes.SearchResults['data'] = {
                 personalDetailsList: {},
                 [`report_${taskReportID}`]: taskReport,
@@ -5332,33 +5335,33 @@ describe('SearchUIUtils', () => {
             const creatorID = 33333;
             const assigneeID = 44444;
 
-            const taskReportA: OnyxTypes.Report = {
+            const taskReportA = createMock<SearchTask>({
                 type: CONST.REPORT.TYPE.TASK,
+                accountID: creatorID,
                 reportID: taskReportID1,
                 reportName: 'First task',
                 description: 'First task description',
-                accountID: creatorID,
                 managerID: assigneeID,
                 parentReportID: 'parent_1',
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 created: '2025-01-10 10:00:00',
-            };
+            });
 
-            const taskReportB: OnyxTypes.Report = {
+            const taskReportB = createMock<SearchTask>({
                 type: CONST.REPORT.TYPE.TASK,
+                accountID: creatorID,
                 reportID: taskReportID2,
                 reportName: 'Second task',
                 description: 'Second task description',
-                accountID: assigneeID,
                 managerID: creatorID,
                 parentReportID: 'parent_2',
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 created: '2025-01-11 10:00:00',
-            };
+            });
 
-            const multiTaskData: OnyxTypes.SearchResults['data'] = {
+            const multiTaskData = createMock<OnyxTypes.SearchResults['data']>({
                 personalDetailsList: {
                     [creatorID]: {
                         accountID: creatorID,
@@ -5375,7 +5378,7 @@ describe('SearchUIUtils', () => {
                 },
                 [`report_${taskReportID1}`]: taskReportA,
                 [`report_${taskReportID2}`]: taskReportB,
-            };
+            });
 
             const [result, count] = getSectionsByType(
                 SearchUIUtils.getSections({
@@ -5404,20 +5407,20 @@ describe('SearchUIUtils', () => {
             const creatorID = 55555;
             const assigneeID = 66666;
 
-            const htmlTaskReport: OnyxTypes.Report = {
+            const htmlTaskReport = createMock<SearchTask>({
                 type: CONST.REPORT.TYPE.TASK,
+                accountID: creatorID,
                 reportID: taskReportID,
                 reportName: '<b>Bold task name</b>',
                 description: '<i>Italic description</i>',
-                accountID: creatorID,
                 managerID: assigneeID,
                 parentReportID: 'parent_html',
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 created: '2025-01-20 10:00:00',
-            };
+            });
 
-            const taskDataWithHTML: OnyxTypes.SearchResults['data'] = {
+            const taskDataWithHTML = createMock<OnyxTypes.SearchResults['data']>({
                 personalDetailsList: {
                     [creatorID]: {
                         accountID: creatorID,
@@ -5433,7 +5436,7 @@ describe('SearchUIUtils', () => {
                     },
                 },
                 [`report_${taskReportID}`]: htmlTaskReport,
-            };
+            });
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
@@ -5462,20 +5465,20 @@ describe('SearchUIUtils', () => {
             const nonTaskReportID = 'non_task_report_501';
             const creatorID = 77777;
 
-            const realTaskReport: OnyxTypes.Report = {
+            const realTaskReport = createMock<SearchTask>({
                 type: CONST.REPORT.TYPE.TASK,
+                accountID: creatorID,
                 reportID: taskReportID,
                 reportName: 'A real task',
                 description: 'This is a task',
-                accountID: creatorID,
                 managerID: creatorID,
                 parentReportID: 'parent_mixed',
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 created: '2025-01-25 10:00:00',
-            };
+            });
 
-            const mixedData: OnyxTypes.SearchResults['data'] = {
+            const mixedData = createMock<OnyxTypes.SearchResults['data']>({
                 personalDetailsList: {
                     [creatorID]: {
                         accountID: creatorID,
@@ -5490,7 +5493,7 @@ describe('SearchUIUtils', () => {
                     reportID: nonTaskReportID,
                     reportName: 'Not a task',
                 },
-            };
+            });
 
             const [result, count] = getSectionsByType(
                 SearchUIUtils.getSections({
@@ -5519,20 +5522,20 @@ describe('SearchUIUtils', () => {
             const creatorID = 88888;
             const assigneeID = 99999;
 
-            const noConciergeTaskReport: OnyxTypes.Report = {
+            const noConciergeTaskReport = createMock<SearchTask>({
                 type: CONST.REPORT.TYPE.TASK,
+                accountID: creatorID,
                 reportID: taskReportID,
                 reportName: 'Task without concierge',
                 description: 'No concierge here',
-                accountID: creatorID,
                 managerID: assigneeID,
                 parentReportID: 'parent_no_concierge',
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 created: '2025-02-01 10:00:00',
-            };
+            });
 
-            const taskData: OnyxTypes.SearchResults['data'] = {
+            const taskData = createMock<OnyxTypes.SearchResults['data']>({
                 personalDetailsList: {
                     [creatorID]: {
                         accountID: creatorID,
@@ -5548,7 +5551,7 @@ describe('SearchUIUtils', () => {
                     },
                 },
                 [`report_${taskReportID}`]: noConciergeTaskReport,
-            };
+            });
 
             // conciergeReportID is undefined, simulating the case where it hasn't been loaded from Onyx yet
             const [result, count] = getSectionsByType(
@@ -5961,7 +5964,12 @@ describe('SearchUIUtils', () => {
             });
 
             it('should return empty sections when data has no transaction keys', () => {
-                const data: typeof searchResults.data = Object.fromEntries(Object.entries(searchResults.data).filter(([key]) => !key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)));
+                const data = {...searchResults.data};
+                for (const key of Object.keys(data)) {
+                    if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+                        Reflect.deleteProperty(data, key);
+                    }
+                }
                 const [sections, count] = callGetTransactionsSections(data);
                 expect(sections).toEqual([]);
                 expect(count).toBe(0);
@@ -8426,23 +8434,21 @@ describe('SearchUIUtils', () => {
         const {shouldShowAmountInWideColumn} = SearchUIUtils.getWideAmountIndicators(transactionsListItems);
         expect(shouldShowAmountInWideColumn).toBe(false);
 
-        const transaction = transactionsListItems.at(0);
+        const transaction = getTransactionListItem(0);
 
         // Test case 2: `isAmountLengthLong` should be true when the current symbol + amount length exceeds 11 characters
         // `isTaxAmountLengthLong` should be false if current symbol + tax amount length does not exceed 11 characters
-        const {shouldShowAmountInWideColumn: isAmountLengthLong2, shouldShowTaxAmountInWideColumn} = SearchUIUtils.getWideAmountIndicators([
-            ...transactionsListItems,
-            {...transaction, amount: 99999999.99, taxAmount: 2332.77, modifiedAmount: undefined},
-        ] satisfies TransactionListItemType[]);
+        const {shouldShowAmountInWideColumn: isAmountLengthLong2, shouldShowTaxAmountInWideColumn} = SearchUIUtils.getWideAmountIndicators(
+            createMock<TransactionListItemType[]>([...transactionsListItems, {...transaction, amount: 99999999.99, taxAmount: 2332.77, modifiedAmount: undefined}]),
+        );
         expect(isAmountLengthLong2).toBe(true);
         expect(shouldShowTaxAmountInWideColumn).toBe(false);
 
         // Test case 3: Both `isAmountLengthLong` and `isTaxAmountLengthLong` should be true
         // when the current symbol + amount and current symbol + tax amount lengths exceed 11 characters
-        const {shouldShowAmountInWideColumn: isAmountLengthLong3, shouldShowTaxAmountInWideColumn: isTaxAmountLengthLong2} = SearchUIUtils.getWideAmountIndicators([
-            ...transactionsListItems,
-            {...transaction, amount: 99999999.99, taxAmount: 45555555.55, modifiedAmount: undefined},
-        ] satisfies TransactionListItemType[]);
+        const {shouldShowAmountInWideColumn: isAmountLengthLong3, shouldShowTaxAmountInWideColumn: isTaxAmountLengthLong2} = SearchUIUtils.getWideAmountIndicators(
+            createMock<TransactionListItemType[]>([...transactionsListItems, {...transaction, amount: 99999999.99, taxAmount: 45555555.55, modifiedAmount: undefined}]),
+        );
         expect(isAmountLengthLong3).toBe(true);
         expect(isTaxAmountLengthLong2).toBe(true);
     });
@@ -8454,13 +8460,13 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     exporter: adminEmail,
                     approver: adminEmail,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                     role: CONST.POLICY.ROLE.ADMIN,
                     // Failed connection
-                    connections: {
+                    connections: createMock<Connections>({
                         [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                             verified: false,
                             lastSync: {
@@ -8473,8 +8479,8 @@ describe('SearchUIUtils', () => {
                                 successfulDate: '',
                             },
                         },
-                    } satisfies Connections,
-                } satisfies OnyxTypes.Policy,
+                    }),
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
@@ -8499,12 +8505,12 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     areCategoriesEnabled: true,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
@@ -8515,12 +8521,12 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     areCategoriesEnabled: false,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
@@ -8531,12 +8537,12 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     areCategoriesEnabled: undefined,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
@@ -8547,12 +8553,12 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.PERSONAL,
                     role: CONST.POLICY.ROLE.ADMIN,
                     areCategoriesEnabled: true,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
@@ -8561,18 +8567,18 @@ describe('SearchUIUtils', () => {
 
         test('Should show Top Categories if at least one policy has categories enabled', () => {
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                policyOne: {
+                policyOne: createMock<OnyxTypes.Policy>({
                     id: 'policyOne',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     areCategoriesEnabled: false,
-                } satisfies OnyxTypes.Policy,
-                policyTwo: {
+                }),
+                policyTwo: createMock<OnyxTypes.Policy>({
                     id: 'policyTwo',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     areCategoriesEnabled: true,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
@@ -8581,18 +8587,18 @@ describe('SearchUIUtils', () => {
 
         test('Should hide Top Categories if all policies have categories disabled', () => {
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                policyOne: {
+                policyOne: createMock<OnyxTypes.Policy>({
                     id: 'policyOne',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     areCategoriesEnabled: false,
-                } satisfies OnyxTypes.Policy,
-                policyTwo: {
+                }),
+                policyTwo: createMock<OnyxTypes.Policy>({
                     id: 'policyTwo',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     areCategoriesEnabled: false,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
@@ -8603,11 +8609,11 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
@@ -8618,11 +8624,11 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.AUDITOR,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility('auditor@policy.com', {}, policies, undefined);
@@ -8633,11 +8639,11 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     approver: approverEmail,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(approverEmail, {}, policies, undefined);
@@ -8648,11 +8654,11 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.USER,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility('user@policy.com', {}, policies, undefined);
@@ -8663,11 +8669,11 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.PERSONAL,
                     role: CONST.POLICY.ROLE.ADMIN,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
@@ -8676,16 +8682,16 @@ describe('SearchUIUtils', () => {
 
         test('Should show Spend Over Time if at least one policy has Admin/Auditor/Approver role', () => {
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                policyOne: {
+                policyOne: createMock<OnyxTypes.Policy>({
                     id: 'policyOne',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.USER,
-                } satisfies OnyxTypes.Policy,
-                policyTwo: {
+                }),
+                policyTwo: createMock<OnyxTypes.Policy>({
                     id: 'policyTwo',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
@@ -8694,16 +8700,16 @@ describe('SearchUIUtils', () => {
 
         test('Should hide Spend Over Time if all policies have User role', () => {
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                policyOne: {
+                policyOne: createMock<OnyxTypes.Policy>({
                     id: 'policyOne',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.USER,
-                } satisfies OnyxTypes.Policy,
-                policyTwo: {
+                }),
+                policyTwo: createMock<OnyxTypes.Policy>({
                     id: 'policyTwo',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.USER,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility('user@policy.com', {}, policies, undefined);
@@ -8787,7 +8793,7 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     approver: 'someone-else@policy.com',
@@ -8795,7 +8801,7 @@ describe('SearchUIUtils', () => {
                         'employee1@policy.com': {submitsTo: workflowApproverEmail, forwardsTo: ''},
                         'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
                     },
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(workflowApproverEmail, {}, policies, undefined);
@@ -8807,7 +8813,7 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     approver: 'someone-else@policy.com',
@@ -8815,7 +8821,7 @@ describe('SearchUIUtils', () => {
                         'employee1@policy.com': {submitsTo: '', forwardsTo: workflowApproverEmail},
                         'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
                     },
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(workflowApproverEmail, {}, policies, undefined);
@@ -8827,7 +8833,7 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     approver: 'someone-else@policy.com',
@@ -8835,7 +8841,7 @@ describe('SearchUIUtils', () => {
                         'employee1@policy.com': {submitsTo: 'someone-else@policy.com', forwardsTo: ''},
                         [regularEmail]: {submitsTo: '', forwardsTo: ''},
                     },
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(regularEmail, {}, policies, undefined);
@@ -8847,12 +8853,12 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.AUDITOR,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(auditorEmail, {}, policies, undefined);
@@ -8864,12 +8870,12 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.AUDITOR,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(auditorEmail, {}, policies, mockDefaultExpensifyCard);
@@ -8881,12 +8887,12 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.AUDITOR,
                     areExpensifyCardsEnabled: true,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(auditorEmail, {}, policies, undefined);
@@ -8898,13 +8904,13 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.USER,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     areExpensifyCardsEnabled: true,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(userEmail, {}, policies, mockDefaultExpensifyCard);
@@ -8917,13 +8923,13 @@ describe('SearchUIUtils', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyKey]: {
+                [policyKey]: createMock<OnyxTypes.Policy>({
                     id: policyID,
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     areExpensifyCardsEnabled: true,
-                } satisfies OnyxTypes.Policy,
+                }),
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, mockDefaultExpensifyCard);
@@ -10272,8 +10278,8 @@ describe('SearchUIUtils', () => {
         });
 
         it('returns the shared policy when all selected transactions match', () => {
-            const transaction1: OnyxTypes.Transaction = {transactionID: 't1', reportID: 'r1'};
-            const transaction2: OnyxTypes.Transaction = {transactionID: 't2', reportID: 'r2'};
+            const transaction1 = createMock<OnyxTypes.Transaction>({transactionID: 't1', reportID: 'r1'});
+            const transaction2 = createMock<OnyxTypes.Transaction>({transactionID: 't2', reportID: 'r2'});
             const transactions: OnyxCollection<OnyxTypes.Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
@@ -10290,8 +10296,8 @@ describe('SearchUIUtils', () => {
         });
 
         it('falls back to the active policy when selected transactions are from different policies', () => {
-            const transaction1: OnyxTypes.Transaction = {transactionID: 't1', reportID: 'r1'};
-            const transaction2: OnyxTypes.Transaction = {transactionID: 't2', reportID: 'r2'};
+            const transaction1 = createMock<OnyxTypes.Transaction>({transactionID: 't1', reportID: 'r1'});
+            const transaction2 = createMock<OnyxTypes.Transaction>({transactionID: 't2', reportID: 'r2'});
             const transactions: OnyxCollection<OnyxTypes.Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
@@ -10322,7 +10328,7 @@ describe('SearchUIUtils', () => {
             const TEST_AMOUNT = 23897;
             const TEST_DISTANCE = 341.38;
 
-            const currentSearchResults: OnyxTypes.SearchResults['data'] = {
+            const currentSearchResults = createMock<OnyxTypes.SearchResults['data']>({
                 [TEST_GROUP_KEY]: {
                     accountID: TEST_ACCOUNT_ID,
                     count: 1,
@@ -10334,17 +10340,16 @@ describe('SearchUIUtils', () => {
                         accountID: TEST_ACCOUNT_ID,
                         avatar: '',
                         displayName: 'Test User',
-                        email: 'test@example.com',
                         firstName: 'Test',
                         lastName: 'User',
                         login: 'test@example.com',
                     },
                 },
-            };
+            });
 
-            const selectedTransactions: Record<string, SelectedTransactionInfo> = {
+            const selectedTransactions = createMock<Record<string, SelectedTransactionInfo>>({
                 [TEST_TRANSACTION_ID]: {
-                    transaction: {
+                    transaction: createMock<OnyxTypes.Transaction>({
                         amount: -TEST_AMOUNT,
                         bank: '',
                         billable: false,
@@ -10358,7 +10363,7 @@ describe('SearchUIUtils', () => {
                         currency: 'USD',
                         groupAmount: -TEST_AMOUNT,
                         groupCurrency: 'USD',
-                        groupExchangeRate: '1.0',
+                        groupExchangeRate: 1,
                         hasEReceipt: false,
                         managedCard: false,
                         merchant: '',
@@ -10369,9 +10374,8 @@ describe('SearchUIUtils', () => {
                         originalAmount: -TEST_AMOUNT,
                         originalCurrency: 'USD',
                         parentTransactionID: '',
-                        policyID: TEST_POLICY_ID,
                         transactionID: TEST_TRANSACTION_ID,
-                    },
+                    }),
                     action: 'approve',
                     canHold: true,
                     isHeld: false,
@@ -10386,7 +10390,7 @@ describe('SearchUIUtils', () => {
                     amount: -TEST_AMOUNT,
                     groupAmount: -TEST_AMOUNT,
                     groupCurrency: 'USD',
-                    groupExchangeRate: '1.0',
+                    groupExchangeRate: 1,
                     currency: 'USD',
                     ownerAccountID: TEST_ACCOUNT_ID,
                     reportAction: {
@@ -10406,7 +10410,6 @@ describe('SearchUIUtils', () => {
                                 whisperedTo: [],
                                 isDeletedParentAction: false,
                                 deleted: '',
-                                reactions: [],
                             },
                         ],
                         originalMessage: {
@@ -10434,17 +10437,14 @@ describe('SearchUIUtils', () => {
                         childType: 'chat',
                         childCommenterCount: 0,
                         childVisibleActionCount: 0,
-                        submitterEmail: 'test@example.com',
                         whisperedToAccountIDs: [],
                     },
                     isFromOneTransactionReport: true,
                     report: {
                         approved: '',
                         chatReportID: TEST_CHAT_REPORT_ID,
-                        chatType: '',
                         created: '2024-01-01 00:00:00',
                         currency: 'USD',
-                        isOneTransactionReport: true,
                         isOwnPolicyExpenseChat: false,
                         isWaitingOnBankAccount: false,
                         managerID: TEST_ACCOUNT_ID,
@@ -10465,7 +10465,7 @@ describe('SearchUIUtils', () => {
                         unheldTotal: -TEST_AMOUNT,
                     },
                 },
-            };
+            });
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
@@ -10484,13 +10484,12 @@ describe('SearchUIUtils', () => {
             const TEST_DATE = '2024-01-01';
             const TEST_DATETIME = '2024-01-01 08:00:00';
 
-            const currentSearchResults: OnyxTypes.SearchResults['data'] = {
+            const currentSearchResults = createMock<OnyxTypes.SearchResults['data']>({
                 personalDetailsList: {
                     [TEST_ACCOUNT_ID]: {
                         accountID: TEST_ACCOUNT_ID,
                         avatar: '',
                         displayName: 'Test User',
-                        email: submitterEmail,
                         firstName: 'Test',
                         lastName: 'User',
                         login: submitterEmail,
@@ -10514,7 +10513,7 @@ describe('SearchUIUtils', () => {
                     comment: {
                         comment: '',
                         customUnit: {
-                            attributes: [],
+                            attributes: {dates: {start: TEST_DATE, end: TEST_DATE}},
                             customUnitID: '_FAKE_P2P_ID_',
                             customUnitRateID: '_FAKE_P2P_ID_',
                             defaultP2PRate: TEST_RATE_PER_KM,
@@ -10529,7 +10528,7 @@ describe('SearchUIUtils', () => {
                     currency: 'HKD',
                     groupAmount: -TEST_GROUP_AMOUNT_USD,
                     groupCurrency: 'USD',
-                    groupExchangeRate: '0.1282',
+                    groupExchangeRate: 0.1282,
                     hasEReceipt: false,
                     managedCard: false,
                     merchant: '1,212.00 km @ HK$9.086 / km',
@@ -10540,7 +10539,6 @@ describe('SearchUIUtils', () => {
                     originalAmount: -TEST_AMOUNT_HKD,
                     originalCurrency: 'HKD',
                     parentTransactionID: '',
-                    policyID: '',
                     posted: '',
                     reimbursable: true,
                     reportID: '0',
@@ -10550,11 +10548,11 @@ describe('SearchUIUtils', () => {
                     transactionID: TEST_TRANSACTION_ID,
                     transactionType: 'distance',
                 },
-            };
+            });
 
-            const selectedTransactions: Record<string, SelectedTransactionInfo> = {
+            const selectedTransactions = createMock<Record<string, SelectedTransactionInfo>>({
                 [TEST_TRANSACTION_ID]: {
-                    transaction: {
+                    transaction: createMock<OnyxTypes.Transaction>({
                         amount: -TEST_AMOUNT_HKD,
                         bank: '',
                         billable: false,
@@ -10564,7 +10562,7 @@ describe('SearchUIUtils', () => {
                         comment: {
                             comment: '',
                             customUnit: {
-                                attributes: [],
+                                attributes: {dates: {start: TEST_DATE, end: TEST_DATE}},
                                 customUnitID: '_FAKE_P2P_ID_',
                                 customUnitRateID: '_FAKE_P2P_ID_',
                                 defaultP2PRate: TEST_RATE_PER_KM,
@@ -10579,7 +10577,7 @@ describe('SearchUIUtils', () => {
                         currency: 'HKD',
                         groupAmount: -TEST_GROUP_AMOUNT_USD,
                         groupCurrency: 'USD',
-                        groupExchangeRate: '0.1282',
+                        groupExchangeRate: 0.1282,
                         hasEReceipt: false,
                         managedCard: false,
                         merchant: '1,212.00 km @ HK$9.086 / km',
@@ -10590,7 +10588,6 @@ describe('SearchUIUtils', () => {
                         originalAmount: -TEST_AMOUNT_HKD,
                         originalCurrency: 'HKD',
                         parentTransactionID: '',
-                        policyID: '',
                         posted: '',
                         reimbursable: true,
                         reportID: '0',
@@ -10599,78 +10596,7 @@ describe('SearchUIUtils', () => {
                         taxCode: '',
                         transactionID: TEST_TRANSACTION_ID,
                         transactionType: 'distance',
-                        keyForList: TEST_TRANSACTION_ID,
-                        action: 'view',
-                        allActions: ['view'],
-                        canPay: false,
-                        canApprove: false,
-                        canSubmit: false,
-                        canChangeApprover: false,
-                        reportAction: {
-                            actionName: 'IOU',
-                            actorAccountID: TEST_ACCOUNT_ID,
-                            avatar: '',
-                            childReportID: TEST_CHILD_REPORT_ID,
-                            reportID: '0',
-                            created: TEST_DATETIME,
-                            lastModified: TEST_DATETIME,
-                            originalMessage: {
-                                IOUTransactionID: TEST_TRANSACTION_ID,
-                                amount: TEST_AMOUNT_HKD,
-                                comment: `${TEST_DISTANCE_KM} kilometers`,
-                                currency: 'HKD',
-                                isNewDot: true,
-                                lastModified: TEST_DATETIME,
-                                participantAccountIDs: [TEST_ACCOUNT_ID],
-                                type: 'track',
-                            },
-                            person: [
-                                {
-                                    style: 'strong',
-                                    text: 'Test User',
-                                    type: 'TEXT',
-                                },
-                            ],
-                            reportActionID: TEST_REPORT_ACTION_ID,
-                            shouldShow: true,
-                        },
-                        from: {
-                            accountID: TEST_ACCOUNT_ID,
-                            avatar: '',
-                            displayName: 'Test User',
-                            email: submitterEmail,
-                            firstName: 'Test',
-                            lastName: 'User',
-                            login: submitterEmail,
-                            pronouns: '',
-                            timezone: {
-                                automatic: true,
-                                selected: 'America/New_York',
-                            },
-                            phoneNumber: '',
-                            validated: true,
-                            localCurrencyCode: 'HKD',
-                        },
-                        to: {
-                            accountID: 0,
-                            avatar: '',
-                        },
-                        formattedFrom: 'Test User',
-                        formattedTo: '',
-                        formattedTotal: TEST_AMOUNT_HKD,
-                        formattedMerchant: '1,212.00 km @ HK$9.086 / km',
-                        date: TEST_DATE,
-                        exported: '',
-                        shouldShowMerchant: true,
-                        shouldShowYear: false,
-                        shouldShowYearSubmitted: false,
-                        shouldShowYearApproved: false,
-                        shouldShowYearPosted: false,
-                        shouldShowYearExported: false,
-                        isAmountColumnWide: false,
-                        isTaxAmountColumnWide: false,
-                        violations: [],
-                    },
+                    }),
                     action: 'view',
                     canHold: false,
                     isHeld: false,
@@ -10684,7 +10610,7 @@ describe('SearchUIUtils', () => {
                     amount: -TEST_AMOUNT_HKD,
                     groupAmount: -TEST_GROUP_AMOUNT_USD,
                     groupCurrency: 'USD',
-                    groupExchangeRate: '0.1282',
+                    groupExchangeRate: 0.1282,
                     currency: 'HKD',
                     ownerAccountID: TEST_ACCOUNT_ID,
                     reportAction: {
@@ -10725,7 +10651,7 @@ describe('SearchUIUtils', () => {
                     },
                     isFromOneTransactionReport: false,
                 },
-            };
+            });
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
@@ -10738,7 +10664,6 @@ describe('SearchUIUtils', () => {
             amount: 1000,
             currency: 'USD',
             reportID,
-            accountID: adminAccountID,
             created: '2024-12-21 13:05:20',
             merchant: 'Test Merchant',
         };
@@ -11131,9 +11056,9 @@ describe('getCardDescriptionForSearchTable', () => {
         const card: OnyxTypes.Card = {
             ...baseCompanyCard,
             bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
-            nameValuePairs: {
+            nameValuePairs: createMock<OnyxTypes.Card['nameValuePairs']>({
                 cardTitle: 'Uploaded spend card',
-            } satisfies OnyxTypes.Card['nameValuePairs'],
+            }),
         };
         expect(getCardDescriptionForSearchTable(card, translateLocal)).toBe('Uploaded spend card');
     });
@@ -11143,9 +11068,9 @@ describe('getCardDescriptionForSearchTable', () => {
             ...baseCompanyCard,
             bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV,
             cardName: 'CSV_CARD_ID_123',
-            nameValuePairs: {
+            nameValuePairs: createMock<OnyxTypes.Card['nameValuePairs']>({
                 cardTitle: 'Marketing Team Card',
-            } satisfies OnyxTypes.Card['nameValuePairs'],
+            }),
         };
         expect(getCardDescriptionForSearchTable(card, translateLocal)).toBe('Marketing Team Card');
     });
@@ -11220,11 +11145,10 @@ describe('getViolationsFromSearchData', () => {
     const violation: OnyxTypes.TransactionViolation = {name: 'missingCategory', type: 'violation'};
 
     it('returns only the violation keys, narrowed to a typed violations collection', () => {
-        const data: OnyxTypes.SearchResults['data'] = {
-            [`${ONYXKEYS.COLLECTION.REPORT}1`]: {reportID: '1'},
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}tx_1`]: {transactionID: 'tx_1'},
-            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}tx_1`]: [violation],
-        };
+        const data = createMock<OnyxTypes.SearchResults['data']>({});
+        Reflect.set(data, `${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1'});
+        Reflect.set(data, `${ONYXKEYS.COLLECTION.TRANSACTION}tx_1`, {transactionID: 'tx_1'});
+        Reflect.set(data, `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}tx_1`, [violation]);
 
         const result = SearchUIUtils.getViolationsFromSearchData(data);
 
@@ -11233,7 +11157,8 @@ describe('getViolationsFromSearchData', () => {
     });
 
     it('returns an empty collection when there are no violation keys', () => {
-        const data: OnyxTypes.SearchResults['data'] = {[`${ONYXKEYS.COLLECTION.REPORT}1`]: {reportID: '1'}};
+        const data = createMock<OnyxTypes.SearchResults['data']>({});
+        Reflect.set(data, `${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1'});
         expect(SearchUIUtils.getViolationsFromSearchData(data)).toEqual({});
     });
 });
