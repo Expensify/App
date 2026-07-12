@@ -1,19 +1,16 @@
 import {sendMoneyElsewhere} from '@libs/actions/IOU/SendMoney';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import type * as ReportActions from '@libs/actions/Report';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
-import type ReportAction from '@src/types/onyx/ReportAction';
 
 import Onyx from 'react-native-onyx';
 
-import type {MockFetch} from '../../utils/TestHelper';
-
-import getOnyxValue from '../../utils/getOnyxValue';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -40,8 +37,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const originalModule = jest.requireActual<typeof ReportActions>('@src/libs/actions/Report');
     return {
         ...originalModule,
         notifyNewAction: jest.fn(),
@@ -50,6 +46,15 @@ jest.mock('@src/libs/actions/Report', () => {
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
+jest.mock('@libs/Sound', () => ({
+    __esModule: true,
+    default: jest.fn(),
+    SOUNDS: {DONE: 'DONE'},
+}));
+jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
+    startTracking: jest.fn(),
+    addOptimization: jest.fn(),
+}));
 jest.mock('@libs/deferredLayoutWrite', () => ({
     registerDeferredWrite: (_key: string, callback: () => void) => callback(),
     flushDeferredWrite: jest.fn(),
@@ -69,8 +74,6 @@ const RORY_ACCOUNT_ID = 3;
 OnyxUpdateManager();
 
 describe('actions/IOU/SendMoney', () => {
-    let mockFetch: MockFetch;
-
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -90,7 +93,6 @@ describe('actions/IOU/SendMoney', () => {
     beforeEach(async () => {
         jest.clearAllTimers();
         global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
         await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -103,7 +105,7 @@ describe('actions/IOU/SendMoney', () => {
         describe('delegateAccountID forwarding', () => {
             it('sets delegateAccountID on the pay IOU action when delegateAccountID is provided', async () => {
                 const DELEGATE_ACCOUNT_ID = 999;
-                mockFetch?.pause?.();
+                const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
                 sendMoneyElsewhere({
                     report: {reportID: ''},
@@ -118,17 +120,21 @@ describe('actions/IOU/SendMoney', () => {
 
                 await waitForBatchedUpdates();
 
-                const allReports = (await getOnyxValue(ONYXKEYS.COLLECTION.REPORT)) as unknown as Record<string, Report>;
-                const iouReport = Object.values(allReports).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
-                expect(iouReport?.reportID).toBeTruthy();
-
-                const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`);
-                const payAction = Object.values(reportActions ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-                    isMoneyRequestAction(reportAction),
-                );
+                expect(writeSpy).toHaveBeenCalled();
+                const optimisticData = writeSpy.mock.calls.at(0)?.[2]?.optimisticData;
+                const payAction = optimisticData
+                    ?.filter((update) => String(update.key).startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
+                    .flatMap((update) => {
+                        const {value} = update;
+                        if (!value || typeof value !== 'object') {
+                            return [];
+                        }
+                        return Object.values(value).filter(isMoneyRequestAction);
+                    })
+                    .at(0);
                 expect(payAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
 
-                mockFetch?.resume?.();
+                writeSpy.mockRestore();
             });
         });
     });
