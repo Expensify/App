@@ -9,8 +9,6 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
-
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
@@ -26,10 +24,9 @@ type WorkspaceExpenseDefaultsTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    emptyStateContent?: React.ReactElement;
 };
 
-function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyStateContent}: WorkspaceExpenseDefaultsTableProps) {
+function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceExpenseDefaultsTableProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -43,9 +40,22 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             width: variables.tableTypeColumnWidth,
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
-        {key: 'condition', label: translate('workspace.rules.expenseDefaultsTable.tableColumnCondition'), sortable: true},
-        {key: 'rule', label: translate('workspace.rules.expenseDefaultsTable.tableColumnRule'), sortable: true},
-        {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
+        {
+            key: 'condition',
+            label: translate('workspace.rules.expenseDefaultsTable.tableColumnCondition'),
+            sortable: true,
+        },
+        {
+            key: 'rule',
+            label: translate('workspace.rules.expenseDefaultsTable.tableColumnRule'),
+            sortable: true,
+        },
+        {
+            key: 'actions',
+            label: '',
+            sortable: false,
+            width: variables.tableCaretColumnWidth,
+        },
     ];
 
     const compareItems: CompareItemsCallback<ExpenseDefaultTableItem, ExpenseDefaultsTableColumnKey> = (a, b, activeSorting) => {
@@ -90,9 +100,6 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
         />
     );
 
-    const shouldShowSearchBar = rulesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const isEmpty = rulesData.length === 0;
-
     return (
         <Table
             data={rulesData}
@@ -108,14 +115,10 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             narrowLayoutSortColumn="condition"
             title={translate('workspace.rules.tabs.expenseDefaults')}
         >
-            {isEmpty && emptyStateContent}
-            {(!isEmpty || !emptyStateContent) && (
-                <>
-                    {shouldShowSearchBar && !isEmpty && <Table.SearchBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.FilterBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }
