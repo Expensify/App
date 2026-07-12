@@ -51,7 +51,7 @@ function SubmitPlanWelcomeModal() {
         // The user has already completed onboarding, so we skip CompleteGuidedSetup and just create the
         // Submit workspace. autoCreateSubmitWorkspace then dismisses this modal and navigates to Categories
         // with #admins in the RHP, which triggers the useBeforeRemove persistence above.
-        autoCreateSubmitWorkspace(firstName ?? '', lastName ?? '', {shouldCompleteOnboarding: false});
+        autoCreateSubmitWorkspace(firstName ?? '', lastName ?? '', false);
     };
 
     return (

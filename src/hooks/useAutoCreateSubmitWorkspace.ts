@@ -18,11 +18,6 @@ import {useCallback, useMemo} from 'react';
 import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
 import useOnyx from './useOnyx';
 
-type AutoCreateSubmitWorkspaceOptions = {
-    /** Whether to run the CompleteGuidedSetup request. Defaults to `true` for the onboarding flow. */
-    shouldCompleteOnboarding?: boolean;
-};
-
 /**
  * Hook that provides a function to auto-create a Submit workspace for EMPLOYER
  * users during onboarding and complete the onboarding flow.
@@ -58,10 +53,9 @@ function useAutoCreateSubmitWorkspace() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const autoCreateSubmitWorkspace = useCallback(
-        async (firstName: string, lastName: string, options?: AutoCreateSubmitWorkspaceOptions) => {
-            // Callers that already finished onboarding (e.g. the Submit plan welcome modal) don't need to
-            // run guided setup again, so they can skip the CompleteGuidedSetup request entirely.
-            const shouldCompleteOnboarding = options?.shouldCompleteOnboarding ?? true;
+        // Callers that already finished onboarding (e.g. the Submit plan welcome modal) don't need to
+        // run guided setup again, so they can skip the CompleteGuidedSetup request by passing `false`.
+        async (firstName: string, lastName: string, shouldCompleteOnboarding = true) => {
             const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasEditableGroupPolicy;
             const displayName = createDisplayName(currentUserEmail, {firstName, lastName}, formatPhoneNumber);
 
