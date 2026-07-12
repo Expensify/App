@@ -24,8 +24,11 @@ const loadReportScreen = () => require<ReactComponentModule>('@pages/inbox/Repor
 const loadSidebarScreen = () => require<ReactComponentModule>('@pages/inbox/sidebar/BaseSidebarScreen').default;
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 
-// Track the pending signed-out public-room deeplink reportID via a module-level listener
-// (not useOnyx) so it is available synchronously inside the initialReportID useState initializer below.
+// Track the pending signed-out public-room deeplink reportID via a module-level listener rather than useOnyx.
+// The initialReportID useState initializer below runs on the first render and must pick the initial report
+// synchronously; useOnyx returns undefined on that first render (its value arrives a render later), which is too
+// late — the initializer would already have fallen back to the last-accessed (Concierge) report. A module-level
+// connectWithoutView keeps the value in scope so the initializer can read it synchronously.
 let pendingPublicRoomDeepLinkReportID: string | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID,

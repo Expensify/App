@@ -12,9 +12,12 @@ import Onyx from 'react-native-onyx';
 let queuedOnyxUpdates: AnyOnyxUpdate[] = [];
 let currentAccountID: number | undefined;
 
-// Collections that OpenReport returns for a public room the anonymous (signed-out) deeplink is opening.
-// When the flushed batch itself establishes the anonymous session we widen the stale-data allow-list to these keys
-// (plus PERSONAL_DETAILS_LIST) so the room renders, while every unrelated collection stays filtered.
+// A signed-out public-room deeplink is served by OpenReport, which returns the anonymous SESSION and the room's
+// data in one batch. flushQueue() processes that batch while there's still no account, where the stale-data filter
+// below would otherwise drop the room's data and leave the deeplink stuck. These are the collections OpenReport
+// delivers for the room — the report, its actions/metadata/name-value-pairs, and its policy (plus PERSONAL_DETAILS_LIST
+// for participants) — so they're allow-listed to survive the filter and let the room render. Add a key here only if
+// OpenReport starts returning another collection the room needs; everything that isn't the room's own data stays filtered.
 const ANONYMOUS_SESSION_ALLOWED_COLLECTIONS: OnyxKey[] = [
     ONYXKEYS.COLLECTION.REPORT,
     ONYXKEYS.COLLECTION.REPORT_ACTIONS,
