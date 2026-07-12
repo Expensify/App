@@ -686,5 +686,107 @@ describe('Middleware', () => {
             });
             expect(personalDetails?.[knownAccountID]?.login).toBe(invitedEmail);
         });
+
+        test('OpenPublicProfilePage does not blank out a login the client already knows', async () => {
+            const knownAccountID = 333;
+            const knownLogin = 'known@example.com';
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [knownAccountID]: {
+                    accountID: knownAccountID,
+                    login: knownLogin,
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            SequentialQueue.push({
+                command: 'OpenPublicProfilePage',
+                data: {authToken: 'testToken', accountID: knownAccountID},
+                requestIndex: 16,
+            });
+
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [knownAccountID]: {
+                                accountID: knownAccountID,
+                                login: '',
+                            },
+                        },
+                    },
+                ],
+            });
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[knownAccountID]?.login).toBe(knownLogin);
+        });
+
+        test('A command other than OpenPublicProfilePage is not touched by the empty-login sanitizer', async () => {
+            const knownAccountID = 333;
+            const knownLogin = 'known@example.com';
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [knownAccountID]: {
+                    accountID: knownAccountID,
+                    login: knownLogin,
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            SequentialQueue.push({
+                command: 'SomeOtherCommand',
+                data: {authToken: 'testToken'},
+                requestIndex: 17,
+            });
+
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [knownAccountID]: {
+                                accountID: knownAccountID,
+                                login: '',
+                            },
+                        },
+                    },
+                ],
+            });
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[knownAccountID]?.login).toBe('');
+        });
     });
 });

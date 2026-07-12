@@ -1,5 +1,5 @@
 import {prepareOnyxDataForCleanUpOptimisticParticipants} from '@libs/actions/Report';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import type {Middleware} from '@libs/Request';
@@ -171,16 +171,19 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
                 });
             }
         }
-        // Drop explicitly empty logins some commands echo (e.g. OpenPublicProfilePage) so they can't blank out a login the client already knows
-        for (const update of response?.onyxData ?? []) {
-            if (update.key !== ONYXKEYS.PERSONAL_DETAILS_LIST || !isRecord(update.value)) {
-                continue;
-            }
-            for (const [accountID, detail] of Object.entries(update.value)) {
-                if (!isRecord(detail) || detail.login !== '' || !getLoginByAccountID(Number(accountID))) {
+        // OpenPublicProfilePage can echo back an explicitly empty login for an account the client
+        // already knows a login for; drop that so it can't blank out the value we already have.
+        if (request?.command === READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE) {
+            for (const update of response?.onyxData ?? []) {
+                if (update.key !== ONYXKEYS.PERSONAL_DETAILS_LIST || !isRecord(update.value)) {
                     continue;
                 }
-                delete detail.login;
+                for (const [accountID, detail] of Object.entries(update.value)) {
+                    if (!isRecord(detail) || detail.login !== '' || !getLoginByAccountID(Number(accountID))) {
+                        continue;
+                    }
+                    delete detail.login;
+                }
             }
         }
         return response;
