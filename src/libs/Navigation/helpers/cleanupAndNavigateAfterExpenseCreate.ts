@@ -39,8 +39,8 @@ function cleanupAndNavigateAfterExpenseCreate({
     });
 
     const finalActiveReportID = backToReport ?? report?.reportID ?? optimisticChatReportID;
-    const finalActiveReport = finalActiveReportID === report?.reportID ? report : getReportOrDraftReport(finalActiveReportID);
-    const hasMultipleTransactions = isMoneyRequestReport(finalActiveReport);
+    // Skip the deprecated report lookup for invoices — an invoice room is never a money-request report.
+    const hasMultipleTransactions = !isInvoice && isMoneyRequestReport(finalActiveReportID === report?.reportID ? report : getReportOrDraftReport(finalActiveReportID));
     // This flag is consumed only by the chat preview card, so add it only for a chat destination — not a money-request report or an invoice room, neither of which renders that card.
     const shouldAddPendingNewTransactionIDs =
         action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE ? true : !isInvoice && !!finalActiveReportID && !hasMultipleTransactions;

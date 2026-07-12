@@ -268,9 +268,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false}));
         });
 
-        it('should be false for an invoice', () => {
-            jest.mocked(isMoneyRequestReport).mockReturnValue(false);
-
+        it('should be false for an invoice without looking up the report (invoice rooms are never money-request reports)', () => {
             cleanupAndNavigateAfterExpenseCreate({
                 action: CONST.IOU.ACTION.CREATE,
                 report: undefined,
@@ -281,7 +279,9 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
                 isInvoice: true,
             });
 
-            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false}));
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false, hasMultipleTransactions: false}));
+            expect(getReportOrDraftReport).not.toHaveBeenCalled();
+            expect(isMoneyRequestReport).not.toHaveBeenCalled();
         });
     });
 });
