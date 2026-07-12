@@ -32,13 +32,11 @@ function traceTransformer() {
 // this file entirely. This config object is still read, though — ESLint's
 // @babel/eslint-parser loads babel.config.js for every file it lints (caller name is
 // always undefined or '@babel/eslint-parser', never 'metro'/'babel-jest', so it always
-// falls into this branch below) to resolve syntax plugins needed to parse the same syntax
-// the web bundle uses. OXC handles JSX/TypeScript/env-target transforms natively for the
-// web build, so this branch only lists the plugins ESLint's parser needs for syntax it
-// wouldn't otherwise recognize.
-const eslint = {
-    plugins: [['babel-plugin-react-compiler', ReactCompilerConfig]],
-};
+// falls into this branch below). It's empty because none of the .js/.jsx/.mjs/.cjs files
+// ESLint parses via this route (.ts/.tsx go through @typescript-eslint/parser instead)
+// currently need a syntax plugin the parser doesn't already support by default — this
+// object only exists as the fallback `module.exports` below must return.
+const eslint = {};
 
 const metro = {
     presets: [require('@react-native/babel-preset')],
