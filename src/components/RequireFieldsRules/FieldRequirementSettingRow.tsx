@@ -25,24 +25,25 @@ import FieldRequirementsDirectionToggle from './FieldRequirementsDirectionToggle
 type FieldRequirementSettingRowProps = {
     fieldKey: RequireFieldsRuleSettingFieldKey;
     label: string;
-    setting: FieldRequirementsDirection;
+    setting?: FieldRequirementsDirection;
     effectiveForm: RequireFieldsRuleForm | undefined;
     category: PolicyCategory | undefined;
     touchedFields: Set<RequireFieldsRuleSettingFieldKey>;
+    isEditing: boolean;
     canWriteRules: boolean;
     onSelectSetting: (fieldKey: RequireFieldsRuleSettingFieldKey, setting: FieldRequirementsDirection) => void;
 };
 
-function FieldRequirementSettingRow({fieldKey, label, setting, effectiveForm, category, touchedFields, canWriteRules, onSelectSetting}: FieldRequirementSettingRowProps) {
+function FieldRequirementSettingRow({fieldKey, label, setting, effectiveForm, category, touchedFields, isEditing, canWriteRules, onSelectSetting}: FieldRequirementSettingRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb']);
     const [dismissedCouplingTooltipKey, setDismissedCouplingTooltipKey] = useState<string | undefined>();
 
-    const isCouplingDisabled = isRequireFieldsFieldCouplingDisabled(fieldKey, effectiveForm, category, touchedFields);
+    const isCouplingDisabled = isRequireFieldsFieldCouplingDisabled(fieldKey, effectiveForm, category, touchedFields, isEditing);
     const isReadOnly = !canWriteRules;
-    const couplingTooltipKey = getRequireFieldsFieldCouplingTooltipKey(fieldKey, effectiveForm, category, touchedFields);
+    const couplingTooltipKey = getRequireFieldsFieldCouplingTooltipKey(fieldKey, effectiveForm, category, touchedFields, isEditing);
     const couplingTooltip = couplingTooltipKey ? translate(`workspace.rules.requireFieldsRule.${couplingTooltipKey}`) : undefined;
     const shouldMountCouplingTooltip = !!couplingTooltip;
     const shouldDisplayCouplingTooltip = shouldMountCouplingTooltip && dismissedCouplingTooltipKey !== couplingTooltipKey;

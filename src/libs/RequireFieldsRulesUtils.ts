@@ -474,18 +474,32 @@ function getRequireFieldsRuleValidationError(
         return '';
     }
 
-    const hasRequireSetting =
-        effectiveForm[INPUT_IDS.DESCRIPTION_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE ||
-        effectiveForm[INPUT_IDS.ATTENDEES_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE ||
-        effectiveForm[INPUT_IDS.RECEIPT_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE ||
-        effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
+    if (!touchedFields || touchedFields.size === 0) {
+        return translate('workspace.rules.requireFieldsRule.confirmErrorDoNotRequireField');
+    }
+
+    const hasRequireSetting = ([INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const).some(
+        (fieldKey) => touchedFields.has(fieldKey) && effectiveForm[fieldKey] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
+    );
 
     const hasExplicitWaiveIntent =
-        (!!touchedFields?.has(INPUT_IDS.RECEIPT_SETTING) && effectiveForm[INPUT_IDS.RECEIPT_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE) ||
-        (!!touchedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING) && effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE);
+        hasExplicitReceiptWaiveIntentForCategory(
+            category,
+            effectiveForm[INPUT_IDS.RECEIPT_SETTING],
+            touchedFields.has(INPUT_IDS.RECEIPT_SETTING),
+            isReceiptWaivedForCategory,
+            isReceiptRequireOverrideForCategory,
+        ) ||
+        hasExplicitReceiptWaiveIntentForCategory(
+            category,
+            effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING],
+            touchedFields.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING),
+            isItemizedReceiptWaivedForCategory,
+            isItemizedReceiptRequireOverrideForCategory,
+        );
 
     if (!hasRequireSetting && !hasExplicitWaiveIntent) {
-        return translate('workspace.rules.requireFieldsRule.confirmErrorField');
+        return translate('workspace.rules.requireFieldsRule.confirmErrorDoNotRequireField');
     }
 
     return '';
@@ -712,22 +726,37 @@ function getRequireFieldsRuleBackToRoute({policyID, isEditing, categoryName}: Re
     return ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID);
 }
 
-function getRequireFieldsFieldSettingUpdate(fieldKey: RequireFieldsRuleSettingFieldKey, setting: FieldRequirementsDirection): Partial<RequireFieldsRuleForm> {
+function getRequireFieldsFieldSettingUpdate(
+    fieldKey: RequireFieldsRuleSettingFieldKey,
+    setting: FieldRequirementsDirection,
+): {
+    formUpdate: Partial<RequireFieldsRuleForm>;
+    touchedFieldKeys: RequireFieldsRuleSettingFieldKey[];
+} {
     if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING && setting === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE) {
         return {
-            [INPUT_IDS.ITEMIZED_RECEIPT_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
-            [INPUT_IDS.RECEIPT_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
+            formUpdate: {
+                [INPUT_IDS.ITEMIZED_RECEIPT_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
+                [INPUT_IDS.RECEIPT_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
+            },
+            touchedFieldKeys: [INPUT_IDS.ITEMIZED_RECEIPT_SETTING, INPUT_IDS.RECEIPT_SETTING],
         };
     }
 
     if (fieldKey === INPUT_IDS.RECEIPT_SETTING && setting === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE) {
         return {
-            [INPUT_IDS.RECEIPT_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
-            [INPUT_IDS.ITEMIZED_RECEIPT_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
+            formUpdate: {
+                [INPUT_IDS.RECEIPT_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
+                [INPUT_IDS.ITEMIZED_RECEIPT_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
+            },
+            touchedFieldKeys: [INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING],
         };
     }
 
-    return {[fieldKey]: setting};
+    return {
+        formUpdate: {[fieldKey]: setting},
+        touchedFieldKeys: [fieldKey],
+    };
 }
 
 function isRequireFieldsFieldCouplingDisabled(
@@ -735,9 +764,14 @@ function isRequireFieldsFieldCouplingDisabled(
     effectiveForm: RequireFieldsRuleForm | undefined,
     category: PolicyCategory | undefined,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+    isEditing = false,
 ): boolean {
     if (fieldKey === INPUT_IDS.RECEIPT_SETTING) {
-        return effectiveForm?.[INPUT_IDS.ITEMIZED_RECEIPT_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
+        if (effectiveForm?.[INPUT_IDS.ITEMIZED_RECEIPT_SETTING] !== CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE) {
+            return false;
+        }
+
+        return isEditing || !!touchedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING);
     }
 
     if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING) {
@@ -745,7 +779,7 @@ function isRequireFieldsFieldCouplingDisabled(
             return false;
         }
 
-        if (category && isReceiptWaivedForCategory(category)) {
+        if (isEditing && category && isReceiptWaivedForCategory(category)) {
             return true;
         }
 
@@ -762,16 +796,20 @@ function getRequireFieldsFieldCouplingTooltipKey(
     effectiveForm: RequireFieldsRuleForm | undefined,
     category: PolicyCategory | undefined,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+    isEditing = false,
 ): RequireFieldsFieldCouplingTooltipKey | undefined {
-    if (!isRequireFieldsFieldCouplingDisabled(fieldKey, effectiveForm, category, touchedFields)) {
+    if (!isRequireFieldsFieldCouplingDisabled(fieldKey, effectiveForm, category, touchedFields, isEditing)) {
         return undefined;
     }
 
-    if (fieldKey === INPUT_IDS.RECEIPT_SETTING && touchedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING)) {
+    if (
+        fieldKey === INPUT_IDS.RECEIPT_SETTING &&
+        (touchedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING) || (isEditing && effectiveForm?.[INPUT_IDS.ITEMIZED_RECEIPT_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE))
+    ) {
         return 'receiptDisabledWhenItemizedRequired';
     }
 
-    if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING && touchedFields?.has(INPUT_IDS.RECEIPT_SETTING)) {
+    if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING && (touchedFields?.has(INPUT_IDS.RECEIPT_SETTING) || (isEditing && !!category && isReceiptWaivedForCategory(category)))) {
         return 'itemizedDisabledWhenReceiptWaived';
     }
 

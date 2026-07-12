@@ -84,12 +84,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
-                setDraftRequireFieldsRule({
-                    [INPUT_IDS.DESCRIPTION_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
-                    [INPUT_IDS.ATTENDEES_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
-                    [INPUT_IDS.RECEIPT_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
-                    [INPUT_IDS.ITEMIZED_RECEIPT_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
-                });
+                setDraftRequireFieldsRule({});
             }
             return;
         }
@@ -160,9 +155,25 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
 
     const errorMessage = getRequireFieldsRuleValidationError(form, selectedCategory, translate, isEditing, touchedFields);
 
+    const getFieldDisplaySetting = (fieldKey: RequireFieldsRuleSettingFieldKey): FieldRequirementsDirection | undefined => {
+        if (isEditing || touchedFields.has(fieldKey)) {
+            return effectiveForm?.[fieldKey];
+        }
+
+        return undefined;
+    };
+
     const handleSelectFieldSetting = (fieldKey: RequireFieldsRuleSettingFieldKey, setting: FieldRequirementsDirection) => {
-        setTouchedFields((previousTouchedFields) => new Set(previousTouchedFields).add(fieldKey));
-        updateDraftRequireFieldsRule(getRequireFieldsFieldSettingUpdate(fieldKey, setting));
+        const {formUpdate, touchedFieldKeys} = getRequireFieldsFieldSettingUpdate(fieldKey, setting);
+
+        setTouchedFields((previousTouchedFields) => {
+            const nextTouchedFields = new Set(previousTouchedFields);
+            for (const touchedFieldKey of touchedFieldKeys) {
+                nextTouchedFields.add(touchedFieldKey);
+            }
+            return nextTouchedFields;
+        });
+        updateDraftRequireFieldsRule(formUpdate);
         setShouldShowError(false);
     };
 
@@ -265,10 +276,11 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                                 key={field.key}
                                 fieldKey={field.key}
                                 label={field.label}
-                                setting={effectiveForm?.[field.key] ?? CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE}
+                                setting={getFieldDisplaySetting(field.key)}
                                 effectiveForm={effectiveForm}
                                 category={selectedCategory}
                                 touchedFields={touchedFields}
+                                isEditing={isEditing}
                                 canWriteRules={canWriteRules}
                                 onSelectSetting={handleSelectFieldSetting}
                             />

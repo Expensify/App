@@ -11,7 +11,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type FieldRequirementsDirectionToggleProps = {
-    direction: FieldRequirementsDirection;
+    direction?: FieldRequirementsDirection;
     disabled?: boolean;
     onSelect: (direction: FieldRequirementsDirection) => void;
 };

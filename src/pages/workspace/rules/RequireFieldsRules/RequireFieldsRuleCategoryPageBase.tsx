@@ -56,6 +56,14 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
         });
 
     const onSave = (value?: string) => {
+        if (!isEditing) {
+            updateDraftRequireFieldsRule({
+                ...form,
+                [INPUT_IDS.CATEGORY]: value,
+            });
+            return;
+        }
+
         const selectedCategory = value ? policyCategories?.[value] : undefined;
         const draftForm = {
             ...form,
