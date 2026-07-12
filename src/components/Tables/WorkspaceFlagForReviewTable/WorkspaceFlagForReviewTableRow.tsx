@@ -49,7 +49,11 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                 <>
                     {shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                            <TextWithTooltip
+                                text={item.conditionText}
+                                style={[styles.optionDisplayName, styles.pre]}
+                            />
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt1, styles.gap2]}>
                                 <Badge
                                     text={item.typeLabel}
                                     icon={Expensicons.Flag}
@@ -65,16 +69,11 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                                     isCondensed
                                 />
                                 <TextWithTooltip
-                                    text={item.conditionText}
+                                    text={item.ruleDescription}
                                     numberOfLines={1}
-                                    style={[styles.optionDisplayName, styles.pre, styles.flexShrink1]}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
                                 />
                             </View>
-                            <TextWithTooltip
-                                text={item.ruleDescription}
-                                numberOfLines={1}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mt1]}
-                            />
                         </View>
                     )}
 

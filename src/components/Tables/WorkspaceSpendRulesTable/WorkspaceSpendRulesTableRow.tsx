@@ -90,7 +90,11 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                     <>
                         {shouldUseNarrowTableLayout && (
                             <View style={[styles.flex1, styles.justifyContentCenter]}>
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                <TextWithTooltip
+                                    text={item.cardSummary}
+                                    style={[styles.optionDisplayName, styles.pre]}
+                                />
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt1, styles.gap2]}>
                                     <Badge
                                         text={item.actionLabel}
                                         icon={item.isBlock ? Expensicons.CircleSlash : Expensicons.Checkmark}
@@ -100,16 +104,11 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                                         isCondensed
                                     />
                                     <TextWithTooltip
-                                        text={item.cardSummary}
+                                        text={item.ruleSummary}
                                         numberOfLines={1}
-                                        style={[styles.optionDisplayName, styles.pre, styles.flexShrink1]}
+                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
                                     />
                                 </View>
-                                <TextWithTooltip
-                                    text={item.ruleSummary}
-                                    numberOfLines={1}
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mt1]}
-                                />
                             </View>
                         )}
 

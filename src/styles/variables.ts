@@ -140,6 +140,7 @@ export default {
     tableCheckboxColumnWidth: 20,
     tableStatusColumnWidth: 56,
     tableTypeColumnWidth: 84,
+    tableRequireFieldsTypeColumnWidth: 112,
     tableSwitchColumnWidth: 58,
     tableCaretColumnWidth: 20,
     workspaceTagsTableCountColumnWidth: 100,

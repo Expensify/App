@@ -6,6 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 
 import type {RequireFieldsTableItem} from '@libs/RequireFieldsRulesUtils';
 
+import variables from '@styles/variables';
+
 import React from 'react';
 
 import WorkspaceRequireFieldsTableRow from './WorkspaceRequireFieldsTableRow';
@@ -43,6 +45,7 @@ function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys,
             conditionColumnLabel={translate('workspace.rules.requireFieldsTable.tableColumnCondition')}
             ruleColumnLabel={translate('workspace.rules.requireFieldsTable.tableColumnRule')}
             renderRow={renderRow}
+            typeColumnWidth={variables.tableRequireFieldsTypeColumnWidth}
         />
     );
 }
