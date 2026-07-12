@@ -9,43 +9,8 @@
  * We need the workaround for now until a new oxc release containing the fix adds back `reactCompiler`.
  */
 
-import {getTsconfig} from 'get-tsconfig';
 import path from 'node:path';
 import {transform} from 'oxc-transform';
-
-function extractTsconfigOptions(rootContext) {
-    try {
-        const tsconfig = getTsconfig(rootContext);
-        if (!tsconfig) {
-            return {};
-        }
-        const {compilerOptions} = tsconfig.config;
-        if (!compilerOptions) {
-            return {};
-        }
-        const opts = {};
-        if (compilerOptions.target) {
-            const map = {
-                ES2015: 'es2015',
-                ES2016: 'es2016',
-                ES2017: 'es2017',
-                ES2018: 'es2018',
-                ES2019: 'es2019',
-                ES2020: 'es2020',
-                ES2021: 'es2021',
-                ES2022: 'es2022',
-                ESNEXT: 'esnext',
-            };
-            const t = map[compilerOptions.target.toUpperCase()];
-            if (t) {
-                opts.target = t;
-            }
-        }
-        return opts;
-    } catch {
-        return {};
-    }
-}
 
 function getLang(ext) {
     if (ext === 'tsx') {
@@ -64,14 +29,12 @@ export default async function oxcReactCompilerLoader(source) {
     try {
         const options = this.getOptions() || {};
         const sourceMaps = options.sourcemap !== undefined ? options.sourcemap : !!this.sourceMap;
-        const tsconfigOptions = extractTsconfigOptions(this.rootContext);
 
         const resourcePath = this.resourcePath;
         const ext = path.extname(resourcePath).slice(1);
         const lang = getLang(ext);
 
         const transformOptions = {
-            ...tsconfigOptions,
             lang,
             target: options.target,
             jsx: options.jsx,
