@@ -1,18 +1,18 @@
 import type {RootStackNavigatorAction} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
 import addRootHistoryRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtension';
 import type {CustomHistoryEntry} from '@libs/Navigation/AppNavigator/routerExtensions/types';
-import type {PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationState, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
-import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
+import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions} from '@react-navigation/native';
 
 import createMock from '../../../utils/createMock';
 
-type TestState = StackNavigationState<ParamListBase> & {history?: CustomHistoryEntry[]};
+type TestState = PlatformStackNavigationState<ParamListBase>;
 
 const SIDE_PANEL = CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL;
 const REVEAL_PADDING = CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_REVEAL_PADDING;
@@ -45,6 +45,10 @@ function makeState(routes: Array<NavigationRoute<ParamListBase, string>>, overri
     };
 }
 
+function isCustomHistoryEntry(entry: unknown): entry is CustomHistoryEntry {
+    return typeof entry === 'string' || (typeof entry === 'object' && entry !== null && 'key' in entry && 'name' in entry);
+}
+
 const CONFIG_OPTIONS: RouterConfigOptions = {
     routeNames: ['ScreenA', 'ScreenB'],
     routeParamList: {},
@@ -68,7 +72,7 @@ function createMockRouterFactory(actionHandler?: (state: TestState, action: Root
                     params: r.params,
                 }));
                 return makeState(routes, {
-                    history: partialState.history as CustomHistoryEntry[] | undefined,
+                    history: partialState.history?.filter(isCustomHistoryEntry),
                 });
             },
 
@@ -104,12 +108,12 @@ function createMockRouterFactory(actionHandler?: (state: TestState, action: Root
     return mockRouterFactory;
 }
 
-function expectRouteEntry(entry: CustomHistoryEntry | undefined): asserts entry is NavigationRoute<ParamListBase, string> {
+function expectRouteEntry(entry: unknown): asserts entry is NavigationRoute<ParamListBase, string> {
     expect(entry).toBeDefined();
     expect(typeof entry).not.toBe('string');
 }
 
-function expectTestState(state: TestState | null): asserts state is TestState {
+function expectTestState(state: unknown): asserts state is TestState {
     expect(state).not.toBeNull();
 }
 
