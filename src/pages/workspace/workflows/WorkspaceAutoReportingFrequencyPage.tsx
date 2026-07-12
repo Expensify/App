@@ -29,7 +29,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type AutoReportingFrequencyKey = ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
@@ -116,7 +116,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     );
 
     const isSubmitWorkspace = isSubmitPolicy(policy);
-    const autoReportingFrequencyDisplayNames = useMemo(() => getAutoReportingFrequencyDisplayNames(translate, isSubmitWorkspace), [translate, isSubmitWorkspace]);
+    const autoReportingFrequencyDisplayNames = getAutoReportingFrequencyDisplayNames(translate, isSubmitWorkspace);
 
     const autoReportingFrequencyItems: WorkspaceAutoReportingFrequencyPageItem[] = Object.keys(autoReportingFrequencyDisplayNames).map((frequencyKey) => ({
         text: autoReportingFrequencyDisplayNames[frequencyKey as AutoReportingFrequencyKey] ?? '',
