@@ -27,17 +27,6 @@ function traceTransformer() {
     };
 }
 
-// Rsbuild's web build no longer reads this: its JS/TS/JSX pipeline (see
-// config/rsbuild/rsbuild.common.ts) calls OXC directly with configFile:false, bypassing
-// this file entirely. This config object is still read, though — ESLint's
-// @babel/eslint-parser loads babel.config.js for every file it lints (caller name is
-// always undefined or '@babel/eslint-parser', never 'metro'/'babel-jest', so it always
-// falls into this branch below). It's empty because none of the .js/.jsx/.mjs/.cjs files
-// ESLint parses via this route (.ts/.tsx go through @typescript-eslint/parser instead)
-// currently need a syntax plugin the parser doesn't already support by default — this
-// object only exists as the fallback `module.exports` below must return.
-const eslint = {};
-
 const metro = {
     presets: [require('@react-native/babel-preset')],
     plugins: [
@@ -160,5 +149,5 @@ module.exports = (api) => {
         console.debug('  - running in: ', runningIn);
     }
 
-    return ['metro', 'babel-jest'].includes(runningIn) ? metro : eslint;
+    return ['metro', 'babel-jest'].includes(runningIn) ? metro : {};
 };
