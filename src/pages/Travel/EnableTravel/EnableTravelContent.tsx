@@ -83,6 +83,25 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
         return travelProvisioning?.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN;
     }, [isProvisioned, adminDomains, travelProvisioning?.domain]);
 
+    const firstIncompletePrerequisitePageName = useMemo(() => {
+        if (legalNameMissing) {
+            return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME;
+        }
+        if (needsVerify) {
+            return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.VERIFY_ACCOUNT;
+        }
+        if (needsDomainSelector && !travelProvisioning?.domain) {
+            return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR;
+        }
+        if (needsAddress) {
+            return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS;
+        }
+        if (needsTaxID && !travelProvisioning?.taxID) {
+            return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID;
+        }
+        return undefined;
+    }, [legalNameMissing, needsVerify, needsDomainSelector, needsAddress, needsTaxID, travelProvisioning?.domain, travelProvisioning?.taxID]);
+
     // Each step of this flow is a separate navigation push (a fresh mount of this component, not an in-place
     // update), and completing a step (e.g. saving the legal name) flips the very Onyx flag that decided whether
     // that step was included. So the step list can't just be frozen in local component state — it has to be
@@ -188,6 +207,7 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
                 policy={policy}
                 policyID={policyID}
                 resolvedDomain={resolvedDomain}
+                firstIncompletePrerequisitePageName={firstIncompletePrerequisitePageName}
             />
         </ScreenWrapper>
     );

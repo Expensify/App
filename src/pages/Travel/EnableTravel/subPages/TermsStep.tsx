@@ -45,7 +45,7 @@ function getProvisioningErrorCode(value: unknown): string | undefined {
     return typeof error === 'string' ? error : undefined;
 }
 
-function TermsStep({policyID, resolvedDomain}: EnableTravelSubPageProps) {
+function TermsStep({policyID, resolvedDomain, firstIncompletePrerequisitePageName, resetToPage}: EnableTravelSubPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -86,6 +86,13 @@ function TermsStep({policyID, resolvedDomain}: EnableTravelSubPageProps) {
     };
 
     const acceptTermsAndOpenTravelDot = () => {
+        // subPage is URL-controlled, so a direct/deep link could reach Terms without having gone through every
+        // required step (e.g. a missing legal name). Redirect to the first genuinely incomplete one instead of
+        // calling the API with incomplete data.
+        if (firstIncompletePrerequisitePageName) {
+            resetToPage?.(firstIncompletePrerequisitePageName);
+            return;
+        }
         acceptSpotnanaTerms(domain, policyID, travelProvisioning?.taxID)
             .then((response) => {
                 // Extract the error code from onyxData - the backend sets errors in TRAVEL_PROVISIONING via onyxData
