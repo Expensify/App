@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -61,8 +62,9 @@ function getValidModalBasePath(): string {
         if (focusedRouteName && SUBMIT_PLAN_WELCOME_ENTRY_SCREENS.has(focusedRouteName)) {
             return activeRoute;
         }
-    } catch {
+    } catch (error) {
         // getStateFromPath can throw for paths it cannot parse; fall back to HOME below.
+        Log.warn('[SubmitPlanWelcomeModalGuard] Failed to resolve modal base path, falling back to HOME', {activeRoute, error});
     }
     return ROUTES.HOME;
 }
@@ -124,24 +126,11 @@ function navigateToSubmitPlanWelcomeModalIfReady() {
 
 /**
  * Coalesce the proactive-navigation decision onto a microtask so it runs once, after the current Onyx
- * update batch has fully applied.
- *
- * OpenApp is a write command, so its server `onyxData` (which carries NVP_SUBMIT_MIGRATION_MODAL_SHOWN
- * and the beta/intro/policy data) and its finallyData (IS_LOADING_APP=false) are queued and flushed
- * together in a single combined Onyx.update. The order in which per-key subscriber callbacks fire within
- * that batch is not guaranteed, so evaluating synchronously from the IS_LOADING_APP callback could read a
- * stale (undefined) `hasShownSubmitMigrationModal` while the positive conditions are already set, and
- * incorrectly redirect a user who has already seen the modal (most visible right after "clear cache and
- * restart", when Onyx starts empty). Deferring the decision guarantees every cached value reflects the
- * just-applied OpenApp data before we decide.
- *
- * The decision additionally waits for HAS_LOADED_APP, which covers the sign-in flow: SignInUser can deliver
- * the eligibility NVPs (beta/intro/onboarding) and authenticate the session before OpenApp has fetched
- * NVP_SUBMIT_MIGRATION_MODAL_SHOWN. In that window IS_LOADING_APP is still the stale `false` preserved from
- * before sign-in and the shown-flag reads as a stale `undefined`, so without HAS_LOADED_APP we'd redirect a
- * user who has already seen the modal. HAS_LOADED_APP is cleared on sign-out and only set (in OpenApp's
- * queueFlushedData) after the response NVPs land, so it is a reliable "this session's account data, including
- * the shown-flag, has loaded" signal.
+ * update batch has fully applied. OpenApp batches its NVPs and IS_LOADING_APP=false into one Onyx.update
+ * with no guaranteed callback order, so deciding synchronously could read a stale `hasShownSubmitMigrationModal`
+ * and redirect a user who already saw the modal. The decision also waits for HAS_LOADED_APP, which (unlike the
+ * pre-sign-in-stale IS_LOADING_APP) only flips true once this session's account data — including the shown-flag —
+ * has loaded, covering the sign-in race where eligibility NVPs arrive before the shown-flag.
  */
 function scheduleSubmitPlanWelcomeModalEvaluation() {
     if (isEvaluationScheduled) {
@@ -256,14 +245,16 @@ function shouldBlockWhileModalActive(state: NavigationState, action: NavigationA
     return hasRedirectedToSubmitPlanModal && !hasShownSubmitMigrationModal && state.routes.at(-1)?.name === NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR && !isAllowedAction;
 }
 
+/** Narrows an unknown action payload to a navigation state so we can inspect its focused route without an unsafe cast. */
+function isNavigationStatePayload(payload: unknown): payload is NavigationState {
+    return !!payload && typeof payload === 'object' && 'routes' in payload && Array.isArray(payload.routes);
+}
+
 /** Prevents redirect loops by detecting when we're already on or resetting to the modal. */
 function isNavigatingToSubmitPlanModal(state: NavigationState, action: NavigationAction): boolean {
     const isOnModal = findFocusedRoute(state)?.name === SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT;
     const isResettingToModal =
-        action.type === 'RESET' &&
-        !!action.payload &&
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the RESET action payload is a navigation state (mirrors MigratedUserWelcomeModalGuard)
-        findFocusedRoute(action.payload as NavigationState)?.name === SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT;
+        action.type === 'RESET' && isNavigationStatePayload(action.payload) && findFocusedRoute(action.payload)?.name === SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT;
 
     return isOnModal || isResettingToModal;
 }
