@@ -56,6 +56,8 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
+    /** Chat report the transaction's report belongs to. Passed to the Pay action so flat transaction rows resolve the invoice room the same way grouped report rows do. */
+    chatReport?: Report;
     policy?: Policy;
     policyCategories?: PolicyCategories;
     policyTagLists?: PolicyTagLists;

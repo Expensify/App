@@ -8,13 +8,17 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {View} from 'react-native';
 
@@ -57,6 +61,10 @@ function TransactionListItemWide<TItem extends ListItem>({
 
     const transactionItem = item as unknown as TransactionListItemType;
     const {isSelected} = useRowSelection(item.keyForList);
+
+    // Resolve the transaction's chat report (e.g. the invoice room) and pass it to the Pay action, mirroring the grouped
+    // report rows in ReportListItemHeader. Without it, Pay from a flat transaction row (e.g. `type:invoice columns:...`) is a no-op.
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.report?.chatReportID ?? transactionItem.report?.parentReportID)}`);
 
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
     const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
@@ -178,6 +186,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                     <TransactionItemRow
                         transactionItem={transactionItem}
                         report={transactionItem.report}
+                        chatReport={chatReport}
                         policy={transactionItem.policy}
                         policyCategories={policyCategories}
                         policyTagLists={policyTagLists}

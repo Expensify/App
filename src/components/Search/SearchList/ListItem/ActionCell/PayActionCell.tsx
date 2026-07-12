@@ -37,7 +37,7 @@ type PayActionCellProps = {
     chatReport: OnyxEntry<Report>;
 };
 
-function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisablePointerEvents, chatReport: chatReportProp}: PayActionCellProps) {
+function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisablePointerEvents, chatReport}: PayActionCellProps) {
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
@@ -49,10 +49,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    // The grouped report rows pass `chatReport` down as a prop, but the flat transaction-row path (e.g. `type:invoice columns:...`)
-    // renders this cell without it. Fall back to the report's own chat report so the payment flow (guard + payInvoice/payMoneyRequest)
-    // has the invoice room it needs instead of silently doing nothing.
-    const chatReport = chatReportProp ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`];
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const {

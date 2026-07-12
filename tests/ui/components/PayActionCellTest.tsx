@@ -9,7 +9,6 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import {payInvoice} from '@userActions/IOU/PayMoneyRequest';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
 import type {UseOnyxResult} from 'react-native-onyx';
@@ -120,15 +119,10 @@ describe('PayActionCell', () => {
         jest.clearAllMocks();
         mockOnPressHolder.current = undefined;
         mockedUseReportWithTransactionsAndViolations.mockReturnValue([invoiceReport, [], undefined]);
-        mockedUseOnyx.mockImplementation((key) => {
-            if (key === ONYXKEYS.COLLECTION.REPORT) {
-                return createOnyxResult({[`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`]: chatReport});
-            }
-            return createOnyxResult(undefined);
-        });
+        mockedUseOnyx.mockImplementation(() => createOnyxResult(undefined));
     });
 
-    it('resolves the chat report from Onyx and calls payInvoice when the chatReport prop is missing (flat transaction row)', () => {
+    it('calls payInvoice with the chatReport supplied as a prop (the flat `type:invoice columns:...` transaction row now resolves and passes it)', () => {
         render(
             <PayActionCell
                 isLoading={false}
@@ -136,8 +130,7 @@ describe('PayActionCell', () => {
                 reportID={TEST_INVOICE_REPORT_ID}
                 hash={TEST_HASH}
                 amount={5000}
-                // No chatReport prop — this is the flat `type:invoice columns:...` transaction-row path that regressed.
-                chatReport={undefined}
+                chatReport={chatReport}
             />,
         );
 
@@ -157,9 +150,7 @@ describe('PayActionCell', () => {
         );
     });
 
-    it('does not call payInvoice when the chat report cannot be resolved from the prop or Onyx', () => {
-        mockedUseOnyx.mockImplementation(() => createOnyxResult(undefined));
-
+    it('does not call payInvoice when no chatReport prop is supplied', () => {
         render(
             <PayActionCell
                 isLoading={false}

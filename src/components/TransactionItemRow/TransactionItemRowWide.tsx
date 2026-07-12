@@ -66,6 +66,7 @@ type TransactionItemRowWideProps = Omit<TransactionItemRowProps, 'shouldUseNarro
 function TransactionItemRowWide({
     transactionItem,
     report,
+    chatReport,
     policy,
     policyCategories,
     policyTagLists,
@@ -327,6 +328,7 @@ function TransactionItemRowWide({
                                 policyID={report?.policyID}
                                 hash={transactionItem?.hash}
                                 amount={getReimbursableTotal(report)}
+                                chatReport={chatReport}
                                 shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
                                 isMarkAsDone={isMarkAsDone}
                             />
