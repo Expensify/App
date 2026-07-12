@@ -29,26 +29,15 @@ function traceTransformer() {
 
 // Rsbuild's web build no longer reads this: its JS/TS/JSX pipeline (see
 // config/rsbuild/rsbuild.common.ts) calls OXC directly with configFile:false, bypassing
-// this file entirely. This `web` config object is still read, though — ESLint's
+// this file entirely. This config object is still read, though — ESLint's
 // @babel/eslint-parser loads babel.config.js for every file it lints (caller name is
 // always undefined or '@babel/eslint-parser', never 'metro'/'babel-jest', so it always
-// falls into this branch below) to resolve syntax plugins like `exportNamespaceFrom`
-// needed to parse the same syntax the web bundle uses. OXC handles JSX/TypeScript/env-target
-// transforms natively for the web build, so this branch only lists the plugins ESLint's
-// parser needs for syntax it wouldn't otherwise recognize.
-const web = {
-    presets: [],
-    plugins: [
-        ['babel-plugin-react-compiler', ReactCompilerConfig],
-        'react-native-worklets/plugin',
-        '@babel/plugin-transform-export-namespace-from',
-        [
-            '@fullstory/babel-plugin-annotate-react',
-            {
-                native: true,
-            },
-        ],
-    ],
+// falls into this branch below) to resolve syntax plugins needed to parse the same syntax
+// the web bundle uses. OXC handles JSX/TypeScript/env-target transforms natively for the
+// web build, so this branch only lists the plugins ESLint's parser needs for syntax it
+// wouldn't otherwise recognize.
+const eslint = {
+    plugins: [['babel-plugin-react-compiler', ReactCompilerConfig]],
 };
 
 const metro = {
@@ -173,5 +162,5 @@ module.exports = (api) => {
         console.debug('  - running in: ', runningIn);
     }
 
-    return ['metro', 'babel-jest'].includes(runningIn) ? metro : web;
+    return ['metro', 'babel-jest'].includes(runningIn) ? metro : eslint;
 };
