@@ -34,7 +34,7 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
-import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
+import {getKnownAccountIDByLogin, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getAccountIDForSubmitManagerEmail, getSubmitReportManagerAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled, isSubmitPolicy} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
@@ -311,6 +311,7 @@ function handleActionButtonPress({
                 policy,
                 searchData,
                 chatReportActions,
+                delegateAccountID: delegateEmail ? getPersonalDetailByEmail(delegateEmail)?.accountID : undefined,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -515,6 +516,7 @@ type GetPayActionCallbackParams = {
     policy: OnyxEntry<Policy>;
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
+    delegateAccountID: number | undefined;
 };
 
 function getPayActionCallback({
@@ -541,6 +543,7 @@ function getPayActionCallback({
     policy,
     searchData,
     chatReportActions,
+    delegateAccountID,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
@@ -588,6 +591,7 @@ function getPayActionCallback({
         methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
+        delegateAccountID,
     });
 }
 

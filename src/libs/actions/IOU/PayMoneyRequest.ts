@@ -71,6 +71,7 @@ type PayInvoiceArgs = {
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
+    delegateAccountID: number | undefined;
 };
 
 type PayMoneyRequestData = {
@@ -117,8 +118,7 @@ type PayMoneyRequestFunctionParams = {
     onPaid?: () => void;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
-    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
@@ -185,8 +185,7 @@ function getPayMoneyRequestParams({
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
     currentUserLocalCurrency: string | undefined;
-    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
@@ -1063,6 +1062,7 @@ function payInvoice({
     chatReportActions,
     additionalOnyxData,
     shouldPlaySuccessSound = true,
+    delegateAccountID,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -1098,6 +1098,7 @@ function payInvoice({
         isSelfTourViewed,
         defaultWorkspaceName,
         chatReportActions,
+        delegateAccountID,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;

@@ -14,6 +14,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpenseActions from '@hooks/useExpenseActions';
 import useExportActions from '@hooks/useExportActions';
@@ -138,6 +139,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
+    const delegateAccountID = useDelegateAccountID();
 
     const {isOffline} = useNetwork();
     const activePolicy = usePolicy(activePolicyID);
@@ -215,6 +217,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
+                delegateAccountID,
             });
         } else {
             startAnimation();
@@ -239,6 +242,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                     startAnimation();
                 },
                 chatReportActions: getChatReportActions(false),
+                delegateAccountID,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

@@ -959,6 +959,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
                 shouldHandleNavigation,
+                delegateAccountID,
             });
             markSubmitExpenseEnd();
             return;
@@ -1048,6 +1049,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             optimisticChatReportID,
             shouldStartTracking,
             shouldDeferForSearch,
+            delegateAccountID,
         };
 
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {

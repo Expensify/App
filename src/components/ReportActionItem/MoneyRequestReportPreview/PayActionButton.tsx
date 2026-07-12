@@ -4,6 +4,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -47,6 +48,7 @@ function PayActionButton() {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -148,6 +150,7 @@ function PayActionButton() {
                     isSelfTourViewed,
                     defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),
                     chatReportActions: getChatReportActions(payAsBusiness),
+                    delegateAccountID,
                 });
             } else {
                 payMoneyRequest({
@@ -169,6 +172,7 @@ function PayActionButton() {
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                     onPaid: startAnimation,
                     chatReportActions: getChatReportActions(false),
+                    delegateAccountID,
                 });
             }
         }

@@ -172,6 +172,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: existingRecentlyUsedCategories,
                 senderPolicyTags: baseSenderPolicyTags,
+                delegateAccountID: undefined,
             });
 
             // Then: Verify optimistic data is generated when policyRecentlyUsedCategories are provided
@@ -197,6 +198,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: undefined,
                 senderPolicyTags: baseSenderPolicyTags,
+                delegateAccountID: undefined,
             });
 
             expect(result.onyxData.optimisticData).toBeDefined();
@@ -248,6 +250,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: 'https://testcompany.com',
                 policyRecentlyUsedCategories: ['Services', 'Consulting'],
                 senderPolicyTags: mockPolicyTagList as PolicyTagLists,
+                delegateAccountID: undefined,
             });
 
             // Then: Verify the result structure and key values
@@ -325,6 +328,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: 'https://clientcompany.com',
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                delegateAccountID: undefined,
             });
 
             // Then: Verify the result uses existing chat report
@@ -361,6 +365,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                delegateAccountID: undefined,
             });
 
             // Then: Verify receipt handling
@@ -410,6 +415,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                delegateAccountID: undefined,
             });
 
             // Then: Verify function handles missing data gracefully
@@ -440,6 +446,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                delegateAccountID: undefined,
             });
 
             expect(result.invoiceRoom).toBeDefined();
@@ -492,6 +499,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                delegateAccountID: undefined,
             });
 
             expect(result.invoiceRoom).toBeDefined();
@@ -545,6 +553,7 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderPolicyTags ?? {},
+                delegateAccountID: undefined,
             });
 
             // Then: optimisticData should contain a POLICY_RECENTLY_USED_TAGS update with the transaction tag prepended
@@ -592,6 +601,7 @@ describe('actions/SendInvoice', () => {
                 currentUserAccountID: 123,
                 policyRecentlyUsedCurrencies: [],
                 senderPolicyTags: senderPolicyTags ?? {},
+                delegateAccountID: undefined,
             });
 
             // Then: No POLICY_RECENTLY_USED_TAGS update should be in optimisticData
@@ -624,6 +634,7 @@ describe('actions/SendInvoice', () => {
                 companyName,
                 companyWebsite,
                 senderPolicyTags: undefined,
+                delegateAccountID: undefined,
             });
 
             // Then a new invoice chat is created instead of incorrectly using the invoice chat which has been converted from individual to business
@@ -652,6 +663,7 @@ describe('actions/SendInvoice', () => {
                 transaction,
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 senderPolicyTags: undefined,
+                delegateAccountID: undefined,
             });
 
             mockFetch?.fail?.();
@@ -692,6 +704,7 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedCategories,
                 senderPolicyTags: undefined,
+                delegateAccountID: undefined,
             });
 
             // Then onyxData should be passed to API.write
@@ -733,6 +746,7 @@ describe('actions/SendInvoice', () => {
                         orderWeight: 0,
                     },
                 },
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -768,6 +782,7 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReportID: preGeneratedReportID,
                 senderPolicyTags: undefined,
+                delegateAccountID: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(
