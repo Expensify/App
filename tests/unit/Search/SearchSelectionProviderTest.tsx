@@ -6,6 +6,7 @@ import {SearchSelectionProvider} from '@components/Search/SearchSelectionProvide
 import type {SearchQueryContextValue, SelectedTransactions} from '@components/Search/types';
 
 import CONST from '@src/CONST';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 
@@ -14,7 +15,7 @@ const queryContextValue: SearchQueryContextValue = {
     currentSimilarSearchHash: 1,
     currentSearchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
     currentSearchQueryJSON: undefined,
-    suggestedSearches: {} as SearchQueryContextValue['suggestedSearches'],
+    suggestedSearches: getEmptyObject<SearchQueryContextValue['suggestedSearches']>(),
     shouldResetSearchQuery: false,
 };
 
@@ -106,10 +107,17 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
             });
         });
         act(() => {
-            result.current.actions.applySelection((selectedTransactions) => ({...selectedTransactions, tx_1: tx1}), {
-                totalSelectableItemsCount: 2,
-                shouldPreserveAllMatchingSelection: true,
-            });
+            result.current.actions.applySelection(
+                (selectedTransactions) => {
+                    const nextSelection = {...selectedTransactions};
+                    nextSelection.tx_1 = tx1;
+                    return nextSelection;
+                },
+                {
+                    totalSelectableItemsCount: 2,
+                    shouldPreserveAllMatchingSelection: true,
+                },
+            );
         });
 
         expect(result.current.state.areAllMatchingItemsSelected).toBe(true);

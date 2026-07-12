@@ -1,20 +1,27 @@
 import {render} from '@testing-library/react-native';
 
 import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
-import type {SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
+import type {SelectedTransactions} from '@components/Search/types';
+
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
 
-const mockButtonWithDropdownMenu = jest.fn((_props: unknown) => null);
+type MockButtonProps = {
+    customText: string;
+    isLoading: boolean;
+};
+
+const mockButtonWithDropdownMenu = jest.fn<null, [MockButtonProps]>(() => null);
 let mockExcludedTransactions: SelectedTransactions = {};
 let mockSearchCount: number | undefined;
 let mockSearchIsLoading = false;
 
 jest.mock('@components/ButtonWithDropdownMenu', () => ({
     __esModule: true,
-    default: (props: unknown) => mockButtonWithDropdownMenu(props),
+    default: (props: MockButtonProps) => mockButtonWithDropdownMenu(props),
 }));
 jest.mock('@components/DecisionModal', () => () => null);
 jest.mock('@components/HoldOrRejectEducationalModal', () => () => null);
@@ -64,7 +71,7 @@ jest.mock('@hooks/useSearchBulkActions', () => ({
 }));
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
-        selectedTransactions: {tx_1: {isSelected: true}},
+        selectedTransactions: {tx1: {isSelected: true}},
         excludedTransactions: mockExcludedTransactions,
         selectedReports: [],
         areAllMatchingItemsSelected: true,
@@ -73,20 +80,39 @@ jest.mock('@components/Search/SearchContext', () => ({
         currentSearchResults: {search: {count: mockSearchCount, isLoading: mockSearchIsLoading}},
     }),
 }));
-jest.mock('@libs/ReportUtils', () => ({...jest.requireActual('@libs/ReportUtils'), isExpenseReport: () => false}));
+jest.mock('@libs/ReportUtils', () => ({...jest.requireActual<typeof import('@libs/ReportUtils')>('@libs/ReportUtils'), isExpenseReport: () => false}));
 jest.mock('@libs/shouldPopoverUseScrollView', () => ({__esModule: true, default: () => false}));
 
-const queryJSON = {
-    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-    hash: 1,
-} as SearchQueryJSON;
+const queryJSON = buildSearchQueryJSON('type:expense');
+if (!queryJSON) {
+    throw new Error('Expected the expense query to be valid');
+}
+
+function makeTransaction(): SelectedTransactions[string] {
+    return {
+        isSelected: true,
+        canReject: false,
+        canHold: false,
+        canSplit: false,
+        hasBeenSplit: false,
+        canChangeReport: false,
+        isHeld: false,
+        canUnhold: false,
+        isFromOneTransactionReport: false,
+        action: CONST.SEARCH.ACTION_TYPES.VIEW,
+        reportID: 'report1',
+        policyID: 'policy1',
+        amount: 100,
+        currency: 'USD',
+    };
+}
 
 function getButtonProps(): {customText: string; isLoading: boolean} {
     const props = mockButtonWithDropdownMenu.mock.calls.at(-1)?.at(0);
-    if (!props || typeof props !== 'object' || !('customText' in props) || !('isLoading' in props)) {
+    if (!props) {
         throw new Error('ButtonWithDropdownMenu was not rendered');
     }
-    return {customText: props.customText as string, isLoading: props.isLoading as boolean};
+    return {customText: props.customText, isLoading: props.isLoading};
 }
 
 describe('SearchBulkActionsButton all-matching label', () => {
@@ -115,7 +141,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
     it('shows the exact count after an item is excluded', () => {
         mockSearchCount = 172;
-        mockExcludedTransactions = {tx_2: {isSelected: true} as SelectedTransactions[string]};
+        mockExcludedTransactions = {tx2: makeTransaction()};
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
@@ -124,7 +150,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
     it('loads only when an exclusion exists before the count arrives', () => {
         mockSearchIsLoading = true;
-        mockExcludedTransactions = {tx_2: {isSelected: true} as SelectedTransactions[string]};
+        mockExcludedTransactions = {tx2: makeTransaction()};
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 

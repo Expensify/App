@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 
+import type SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
 import type {SelectedTransactions} from '@components/Search/types';
 
@@ -10,7 +11,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-const mockSearchPageFooter = jest.fn((_props: unknown) => null);
+type MockSearchPageFooterProps = React.ComponentProps<typeof SearchPageFooter>;
+
+const mockSearchPageFooter = jest.fn<null, [MockSearchPageFooterProps]>(() => null);
 let mockExcludedTransactions: SelectedTransactions = {};
 let mockSearchType: SearchResults['search']['type'] = CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -21,7 +24,7 @@ jest.mock('@hooks/useSearchShouldCalculateTotals', () => ({
 
 jest.mock('@components/Search/SearchPageFooter', () => ({
     __esModule: true,
-    default: (props: unknown) => mockSearchPageFooter(props),
+    default: (props: MockSearchPageFooterProps) => mockSearchPageFooter(props),
 }));
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -81,7 +84,7 @@ describe('SearchSelectionFooter all-matching exclusions', () => {
     });
 
     it('subtracts excluded expenses from the server count and total', () => {
-        mockExcludedTransactions = {tx_1: makeTransaction('report_1')};
+        mockExcludedTransactions = {tx1: makeTransaction('report1')};
 
         render(<SearchSelectionFooter searchResults={makeSearchResults(172, 36000)} />);
 
@@ -91,8 +94,8 @@ describe('SearchSelectionFooter all-matching exclusions', () => {
     it('counts multiple excluded transactions from one expense report as one excluded report', () => {
         mockSearchType = CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
         mockExcludedTransactions = {
-            tx_1: makeTransaction('report_1'),
-            tx_2: makeTransaction('report_1'),
+            tx1: makeTransaction('report1'),
+            tx2: makeTransaction('report1'),
         };
 
         render(<SearchSelectionFooter searchResults={makeSearchResults(10, 36000)} />);

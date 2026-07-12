@@ -189,7 +189,8 @@ function Search({
         if (searchRequestOffset === offset) {
             return;
         }
-        setOffset(searchRequestOffset);
+        const timeoutID = setTimeout(() => setOffset(searchRequestOffset), 0);
+        return () => clearTimeout(timeoutID);
     }, [offset, searchRequestOffset]);
 
     const previousReportActions = usePrevious(reportActions);

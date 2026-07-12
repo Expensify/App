@@ -1,9 +1,8 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-
 import {exportSearchItemsToCSV, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import fileDownload from '@libs/fileDownload';
+import {translateLocal} from '@libs/Localize';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -118,7 +117,7 @@ describe('exportSearchItemsToCSV', () => {
                 exportName: 'Basic export',
             },
             jest.fn(),
-            jest.fn((key: string) => key) as unknown as LocalizedTranslate,
+            translateLocal,
         );
 
         expect(appendSpy).toHaveBeenCalledWith('excludedTransactionIDList', 'tx2');

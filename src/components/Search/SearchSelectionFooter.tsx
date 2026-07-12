@@ -4,10 +4,13 @@ import {isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {SearchResults} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+
+import type {SelectedTransactions} from './types';
 
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
 import SearchPageFooter from './SearchPageFooter';
@@ -20,7 +23,7 @@ type SearchSelectionFooterProps = {
 // Self-subscribing footer leaf. Owns the `selectedTransactions` read so a checkbox press re-renders only this
 // footer — not SearchPage and the <Search> list it contains.
 function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
-    const {selectedTransactions, excludedTransactions = {}, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true, areAllMatchingItemsSelected);
@@ -62,11 +65,12 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         transactions.reduce((acc, transaction) => acc - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0);
     const excludedCount = getTransactionCount(excludedTransactionsKeys, excludedTransactions);
     const count = shouldUseClientTotal ? getTransactionCount(selectedTransactionsKeys, selectedTransactions) : Math.max((metadata?.count ?? 0) - excludedCount, 0);
-    const total = shouldUseClientTotal
-        ? getTransactionTotal(selectedTransactionItems)
-        : metadata?.total === undefined
-          ? undefined
-          : metadata.total - getTransactionTotal(Object.values(excludedTransactions));
+    let total: number | undefined;
+    if (shouldUseClientTotal) {
+        total = getTransactionTotal(selectedTransactionItems);
+    } else if (metadata?.total !== undefined) {
+        total = metadata.total - getTransactionTotal(Object.values(excludedTransactions));
+    }
 
     return (
         <SearchPageFooter
