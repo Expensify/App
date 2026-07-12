@@ -3,7 +3,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
 import NAVIGATORS from '@src/NAVIGATORS';
 
 import {useRoute} from '@react-navigation/native';
-import {useCallback, useEffect} from 'react';
+import {useEffect} from 'react';
 
 import type {RHPWidth} from '..';
 
@@ -25,7 +25,7 @@ function useRHPWidth(width: RHPWidth) {
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
     const {setRHPWidth, removeRHPRouteKey, getReportRHPWidthHint, unmarkReportRHPWidth} = useWideRHPActions();
 
-    const onClose = useCallback(() => {
+    const onClose = () => {
         removeRHPRouteKey(route);
         // Clear the one-shot hint on unmount so it can't pin the report wide on a later visit.
         if (reportID) {
@@ -35,7 +35,7 @@ function useRHPWidth(width: RHPWidth) {
         if (navigationRef?.getRootState()?.routes?.at(-1)?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             expandedRHPProgress.setValue(0);
         }
-    }, [removeRHPRouteKey, route, reportID, unmarkReportRHPWidth]);
+    };
 
     useEffect(() => () => onClose(), [onClose]);
 
