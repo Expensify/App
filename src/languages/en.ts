@@ -2820,10 +2820,9 @@ const translations = {
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Currency conversion fees',
+        subtitle: 'When reimbursing in a different currency, conversion fees may apply. Select who will pay the fees below. This only applies to cross-border conversions.',
         companyPays: 'Company pays',
-        companyPaysSubtitle: 'Your company covers the conversion fee so employees are reimbursed the full amount in their local currency.',
         employeePays: 'Employee pays',
-        employeePaysSubtitle: 'The conversion fee is deducted from the employee reimbursement.',
         errorMessage: "Currency conversion fee preference couldn't be changed. Please try again or contact support.",
     },
     workflowsCreateApprovalsPage: {

@@ -2730,10 +2730,9 @@ ${amount} dla ${merchant} - ${date}`,
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Opłaty za przewalutowanie',
+        subtitle: 'Przy zwrocie w innej walucie mogą obowiązywać opłaty za przewalutowanie. Wybierz poniżej, kto zapłaci opłaty. Dotyczy to wyłącznie przewalutowań transgranicznych.',
         companyPays: 'Płaci firma',
-        companyPaysSubtitle: 'Twoja firma pokrywa opłatę za przewalutowanie, dzięki czemu pracownicy otrzymują pełną kwotę w swojej walucie lokalnej.',
         employeePays: 'Płaci pracownik',
-        employeePaysSubtitle: 'Opłata za przewalutowanie jest potrącana z kwoty zwrotu dla pracownika.',
         errorMessage: 'Nie udało się zmienić preferencji dotyczącej opłat za przewalutowanie. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
     },
     workflowsCreateApprovalsPage: {

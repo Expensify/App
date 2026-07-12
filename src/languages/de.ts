@@ -2749,10 +2749,10 @@ ${amount} für ${merchant} – ${date}`,
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Währungsumrechnungsgebühren',
+        subtitle:
+            'Bei Erstattungen in einer anderen Währung können Umrechnungsgebühren anfallen. Wähle unten aus, wer die Gebühren zahlt. Dies gilt nur für grenzüberschreitende Umrechnungen.',
         companyPays: 'Unternehmen zahlt',
-        companyPaysSubtitle: 'Dein Unternehmen übernimmt die Umrechnungsgebühr, damit Mitarbeitende den vollen Betrag in ihrer Landeswährung erstattet bekommen.',
         employeePays: 'Mitarbeitende zahlen',
-        employeePaysSubtitle: 'Die Umrechnungsgebühr wird von der Erstattung der Mitarbeitenden abgezogen.',
         errorMessage: 'Die Einstellung für Währungsumrechnungsgebühren konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
     },
     workflowsCreateApprovalsPage: {

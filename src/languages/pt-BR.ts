@@ -2731,10 +2731,9 @@ ${amount} para ${merchant} - ${date}`,
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Taxas de conversão de moeda',
+        subtitle: 'Ao reembolsar em uma moeda diferente, taxas de conversão podem ser aplicadas. Selecione abaixo quem pagará as taxas. Isso se aplica apenas a conversões internacionais.',
         companyPays: 'A empresa paga',
-        companyPaysSubtitle: 'Sua empresa cobre a taxa de conversão para que os funcionários sejam reembolsados pelo valor total na moeda local.',
         employeePays: 'O funcionário paga',
-        employeePaysSubtitle: 'A taxa de conversão é descontada do reembolso do funcionário.',
         errorMessage: 'Não foi possível alterar a preferência de taxas de conversão de moeda. Tente novamente ou entre em contato com o suporte.',
     },
     workflowsCreateApprovalsPage: {

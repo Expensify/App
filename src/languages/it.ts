@@ -2743,10 +2743,10 @@ ${amount} per ${merchant} - ${date}`,
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Commissioni di conversione valuta',
+        subtitle:
+            'Quando rimborsi in una valuta diversa, potrebbero essere applicate commissioni di conversione. Seleziona di seguito chi pagherà le commissioni. Questo vale solo per le conversioni transfrontaliere.',
         companyPays: "Paga l'azienda",
-        companyPaysSubtitle: 'La tua azienda copre la commissione di conversione così i dipendenti vengono rimborsati per intero nella loro valuta locale.',
         employeePays: 'Paga il dipendente',
-        employeePaysSubtitle: 'La commissione di conversione viene detratta dal rimborso del dipendente.',
         errorMessage: 'Impossibile modificare la preferenza sulle commissioni di conversione valuta. Riprova oppure contatta l’assistenza.',
     },
     workflowsCreateApprovalsPage: {

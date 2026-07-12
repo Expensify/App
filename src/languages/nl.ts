@@ -2741,10 +2741,10 @@ ${amount} voor ${merchant} - ${date}`,
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Valutaomrekeningskosten',
+        subtitle:
+            'Bij vergoedingen in een andere valuta kunnen omrekeningskosten van toepassing zijn. Selecteer hieronder wie de kosten betaalt. Dit geldt alleen voor grensoverschrijdende omrekeningen.',
         companyPays: 'Bedrijf betaalt',
-        companyPaysSubtitle: 'Je bedrijf dekt de omrekeningskosten zodat werknemers het volledige bedrag in hun lokale valuta vergoed krijgen.',
         employeePays: 'Werknemer betaalt',
-        employeePaysSubtitle: 'De omrekeningskosten worden ingehouden op de vergoeding van de werknemer.',
         errorMessage: 'De voorkeur voor valutaomrekeningskosten kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
     },
     workflowsCreateApprovalsPage: {

@@ -2755,10 +2755,10 @@ ${amount} pour ${merchant} - ${date}`,
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Frais de conversion de devise',
+        subtitle:
+            "Lors d'un remboursement dans une autre devise, des frais de conversion peuvent s'appliquer. Sélectionnez ci-dessous qui paiera les frais. Cela s'applique uniquement aux conversions transfrontalières.",
         companyPays: "L'entreprise paie",
-        companyPaysSubtitle: 'Votre entreprise prend en charge les frais de conversion afin que les employés soient remboursés du montant total dans leur devise locale.',
         employeePays: "L'employé paie",
-        employeePaysSubtitle: 'Les frais de conversion sont déduits du remboursement de l’employé.',
         errorMessage: "La préférence de frais de conversion de devise n'a pas pu être modifiée. Veuillez réessayer ou contacter l'assistance.",
     },
     workflowsCreateApprovalsPage: {

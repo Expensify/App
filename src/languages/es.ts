@@ -2611,10 +2611,10 @@ ${amount} para ${merchant} - ${date}`,
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Comisiones por conversión de moneda',
+        subtitle:
+            'Al reembolsar en una moneda diferente, pueden aplicarse comisiones de conversión. Selecciona a continuación quién pagará las comisiones. Esto solo se aplica a conversiones transfronterizas.',
         companyPays: 'Paga la empresa',
-        companyPaysSubtitle: 'Tu empresa cubre la comisión de conversión para que los empleados reciban el importe completo en su moneda local.',
         employeePays: 'Paga el empleado',
-        employeePaysSubtitle: 'La comisión de conversión se descuenta del reembolso del empleado.',
         errorMessage: 'La preferencia de comisiones por conversión de moneda no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
     },
     workflowsCreateApprovalsPage: {

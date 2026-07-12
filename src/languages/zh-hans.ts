@@ -2649,10 +2649,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     workflowsCurrencyConversionFeesPage: {
         title: '货币兑换费用',
+        subtitle: '以不同货币报销时，可能会产生兑换费用。请在下方选择由谁支付这些费用。此设置仅适用于跨境兑换。',
         companyPays: '公司支付',
-        companyPaysSubtitle: '公司承担兑换费用，使员工以其本地货币获得全额报销。',
         employeePays: '员工支付',
-        employeePaysSubtitle: '兑换费用将从员工报销金额中扣除。',
         errorMessage: '无法更改货币兑换费用偏好设置。请重试或联系支持团队。',
     },
     workflowsCreateApprovalsPage: {
