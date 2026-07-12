@@ -93,7 +93,7 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX)}
+            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS) || !isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
