@@ -501,6 +501,7 @@ describe('actions/Transaction', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -682,6 +683,7 @@ describe('actions/Transaction', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -868,6 +870,7 @@ describe('actions/Transaction', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -1064,6 +1067,7 @@ describe('actions/Transaction', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -1092,7 +1096,7 @@ describe('actions/Transaction', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, []);
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false);
                 }
                 await waitForBatchedUpdates();
 

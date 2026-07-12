@@ -505,6 +505,7 @@ describe('actions/IOU', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             participantsPolicyTags: overrides.participantsPolicyTags ?? {},
+            isTrackIntentUser: false,
         });
 
         it('returns valid splitData with chatReportID, transactionID, and reportActionID', () => {

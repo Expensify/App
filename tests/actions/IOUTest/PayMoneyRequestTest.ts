@@ -165,6 +165,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -438,6 +439,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -606,6 +608,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -798,7 +801,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
+                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, []);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -1435,6 +1438,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1563,6 +1567,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }
             await waitForBatchedUpdates();
@@ -1814,6 +1819,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }
             await waitForBatchedUpdates();

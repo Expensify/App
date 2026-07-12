@@ -101,7 +101,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     optimisticChatReportID: string | undefined;
     reportDraft: OnyxEntry<Report> | undefined;
     action: IOUAction;
-    isTrackIntentUser?: boolean;
+    isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: PolicyTagLists;
 };

@@ -142,7 +142,7 @@ type CreateDistanceRequestInformation = {
     shouldDeferAutoSubmit?: boolean;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     delegateAccountID: number | undefined;
-    isTrackIntentUser?: boolean;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -168,6 +168,7 @@ type CreateSplitsAndOnyxDataParams = {
     participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
     // TODO: delegateAccountID will be made required in PR 11 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type StartSplitBilActionParams = {
@@ -227,6 +228,21 @@ type SplitBillActionsParams = {
     shouldDeferForSearch?: boolean;
     // TODO: delegateAccountID will be made required in PR 11 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    isTrackIntentUser: boolean | undefined;
+};
+
+type CompleteSplitBillInformation = {
+    chatReportID: string;
+    reportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    sessionAccountID: number;
+    isASAPSubmitBetaEnabled: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    isTrackIntentUser: boolean | undefined;
+    sessionEmail?: string;
 };
 
 /**
@@ -263,6 +279,7 @@ function splitBill({
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
     delegateAccountID,
+    isTrackIntentUser,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -297,6 +314,7 @@ function splitBill({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         participantsPolicyTags: buildParticipantsPolicyTags(participants),
         delegateAccountID,
+        isTrackIntentUser,
     });
 
     const parameters: SplitBillParams = {
@@ -375,6 +393,7 @@ function splitBillAndOpenReport({
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
     delegateAccountID,
+    isTrackIntentUser,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -409,6 +428,7 @@ function splitBillAndOpenReport({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         participantsPolicyTags: buildParticipantsPolicyTags(participants),
         delegateAccountID,
+        isTrackIntentUser,
     });
 
     const parameters: SplitBillParams = {
@@ -859,18 +879,19 @@ function startSplitBill({
  * @param sessionAccountID - accountID of the current user
  * @param sessionEmail - email of the current user
  */
-function completeSplitBill(
-    chatReportID: string,
-    reportAction: OnyxEntry<OnyxTypes.ReportAction>,
-    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
-    sessionAccountID: number,
-    isASAPSubmitBetaEnabled: boolean,
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
-    sessionEmail?: string,
-) {
+function completeSplitBill({
+    chatReportID,
+    reportAction,
+    updatedTransaction,
+    sessionAccountID,
+    isASAPSubmitBetaEnabled,
+    quickAction,
+    transactionViolations,
+    betas,
+    personalDetails,
+    isTrackIntentUser,
+    sessionEmail,
+}: CompleteSplitBillInformation) {
     if (!reportAction) {
         return;
     }
@@ -1120,6 +1141,7 @@ function completeSplitBill(
             personalDetails,
             // delegateAccountID: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
             delegateAccountID: undefined,
+            isTrackIntentUser,
         });
 
         splits.push({
@@ -1402,6 +1424,7 @@ function createSplitsAndOnyxData({
     personalDetails,
     participantsPolicyTags,
     delegateAccountID,
+    isTrackIntentUser,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -1855,6 +1878,7 @@ function createSplitsAndOnyxData({
             quickAction,
             personalDetails,
             delegateAccountID,
+            isTrackIntentUser,
         });
 
         const individualSplit = {
@@ -2026,6 +2050,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             participantsPolicyTags: buildParticipantsPolicyTags(participants),
             delegateAccountID,
+            isTrackIntentUser,
         });
         onyxData = splitOnyxData;
 

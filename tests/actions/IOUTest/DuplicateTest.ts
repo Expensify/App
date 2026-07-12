@@ -1345,6 +1345,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1411,6 +1412,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1469,6 +1471,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1520,6 +1523,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1571,6 +1575,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1625,6 +1630,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1689,6 +1695,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1738,6 +1745,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1780,6 +1788,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1825,6 +1834,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1876,6 +1886,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1943,6 +1954,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2010,6 +2022,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2061,6 +2074,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2123,6 +2137,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2867,6 +2882,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2983,6 +2999,7 @@ describe('actions/Duplicate', () => {
             translate: mockTranslate,
             recentWaypoints: [],
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
             ...overrides,
         });
 

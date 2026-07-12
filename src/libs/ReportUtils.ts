@@ -5408,7 +5408,7 @@ const changeMoneyRequestHoldStatus = (
     currentUserLogin: string,
     currentUserAccountID: number,
     transactionViolations: OnyxEntry<TransactionViolations>,
-    isTrackIntentUser?: boolean,
+    isTrackIntentUser: boolean | undefined,
 ): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;

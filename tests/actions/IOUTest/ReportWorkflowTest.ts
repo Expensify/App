@@ -210,6 +210,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -362,6 +363,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -443,6 +445,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 betas: [],
                                 personalDetails: {},
                                 delegateAccountID: undefined,
+                                isTrackIntentUser: false,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -491,6 +494,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 betas: [],
                                 personalDetails: {},
                                 delegateAccountID: undefined,
+                                isTrackIntentUser: false,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -721,6 +725,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 betas: [],
                                 personalDetails: {},
                                 delegateAccountID: undefined,
+                                isTrackIntentUser: false,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -769,6 +774,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 betas: [],
                                 personalDetails: {},
                                 delegateAccountID: undefined,
+                                isTrackIntentUser: false,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -968,6 +974,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1178,6 +1185,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }
             await waitForBatchedUpdates();

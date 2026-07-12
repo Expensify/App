@@ -902,6 +902,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     personalDetails,
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
+                    isTrackIntentUser,
                 });
             }
             markSubmitExpenseEnd();
@@ -939,6 +940,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     personalDetails,
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
+                    isTrackIntentUser,
                 });
             }
             markSubmitExpenseEnd();

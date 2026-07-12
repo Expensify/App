@@ -755,7 +755,7 @@ type DuplicateExpenseTransactionParams = {
     optimisticReportPreviewActionID?: string;
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
-    isTrackIntentUser?: boolean;
+    isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
 };
@@ -1113,7 +1113,7 @@ type BulkDuplicateExpensesParams = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
-    isTrackIntentUser?: boolean;
+    isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
 };
@@ -1273,7 +1273,7 @@ type BulkDuplicateReportsParams = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUserLogin: string;
     currentUserAccountID: number;
-    isTrackIntentUser?: boolean;
+    isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
 };
 

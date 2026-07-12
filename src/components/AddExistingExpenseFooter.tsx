@@ -89,6 +89,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         betas,
                         policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
                         delegateAccountID,
+                        isTrackIntentUser,
                     });
                 } else {
                     changeTransactionsReport({

@@ -1948,6 +1948,7 @@ function convertBulkTrackedExpensesToIOU({
     betas,
     policyTagList,
     delegateAccountID,
+    isTrackIntentUser,
 }: {
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -1962,6 +1963,7 @@ function convertBulkTrackedExpensesToIOU({
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -2083,6 +2085,7 @@ function convertBulkTrackedExpensesToIOU({
                 policyTagList,
             },
             delegateAccountID,
+            isTrackIntentUser,
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);

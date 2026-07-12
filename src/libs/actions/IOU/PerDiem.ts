@@ -242,7 +242,7 @@ type PerDiemExpenseInformation = {
     optimisticTransactionID?: string;
     // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
-    isTrackIntentUser?: boolean;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -266,7 +266,7 @@ type PerDiemExpenseInformationParams = {
     optimisticTransactionID?: string;
     // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
-    isTrackIntentUser?: boolean;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -280,7 +280,7 @@ type PerDiemExpenseInformationForSelfDM = {
     optimisticChatReportID: string;
     // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
-    isTrackIntentUser?: boolean;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type PerDiemExpenseInformationForSelfDMResult = {

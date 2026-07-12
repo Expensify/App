@@ -97,7 +97,7 @@ type CreateTransactionParams = {
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
     currentUserLocalCurrency: string | undefined;
-    isTrackIntentUser?: boolean;
+    isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
 };
 

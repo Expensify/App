@@ -187,7 +187,7 @@ type RequestMoneyInformation = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;
     delegateAccountID: number | undefined;
-    isTrackIntentUser?: boolean;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type MoneyRequestInformationParams = {
@@ -221,7 +221,7 @@ type MoneyRequestInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    isTrackIntentUser?: boolean;
+    isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
 };
 
@@ -276,7 +276,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     isSelfDMSplit?: boolean;
     /** The selfDM report ID for split transactions */
     selfDMReportID?: string;
-    isTrackIntentUser?: boolean;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type BuildOnyxDataForTestDriveIOUParams = {

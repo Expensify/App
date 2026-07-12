@@ -412,6 +412,7 @@ describe('split expense', () => {
                         policyRecentlyUsedTags: undefined,
                         betas: [CONST.BETAS.ALL],
                         personalDetails: mockPersonalDetails,
+                        isTrackIntentUser: false,
                     },
                 );
                 return waitForBatchedUpdates();
@@ -747,6 +748,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -796,6 +798,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -819,6 +822,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -849,6 +853,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -884,6 +889,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -905,6 +911,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -970,6 +977,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -1020,6 +1028,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -1081,6 +1090,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         waitForBatchedUpdates();
@@ -1153,7 +1163,19 @@ describe('split expense', () => {
         expect(iouAction).toBeTruthy();
 
         // Complete this split bill without changing the description
-        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], mockPersonalDetails, RORY_EMAIL);
+        completeSplitBill({
+            chatReportID: reportID,
+            reportAction: iouAction,
+            updatedTransaction: updatedSplitTransaction,
+            sessionAccountID: RORY_ACCOUNT_ID,
+            isASAPSubmitBetaEnabled: false,
+            quickAction: undefined,
+            transactionViolations: {},
+            betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
+            sessionEmail: RORY_EMAIL,
+        });
 
         await waitForBatchedUpdates();
 
@@ -1363,6 +1385,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: testPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -1424,6 +1447,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: participantPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -1551,7 +1575,19 @@ describe('split expense', () => {
             },
         };
 
-        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], completeSplitPersonalDetails, RORY_EMAIL);
+        completeSplitBill({
+            chatReportID: reportID,
+            reportAction: iouAction,
+            updatedTransaction: updatedSplitTransaction,
+            sessionAccountID: RORY_ACCOUNT_ID,
+            isASAPSubmitBetaEnabled: false,
+            quickAction: undefined,
+            transactionViolations: {},
+            betas: [CONST.BETAS.ALL],
+            personalDetails: completeSplitPersonalDetails,
+            isTrackIntentUser: false,
+            sessionEmail: RORY_EMAIL,
+        });
 
         await waitForBatchedUpdates();
 
@@ -2139,6 +2175,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             existingTransactionDraft: undefined,
             personalDetails: {},
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -2370,6 +2407,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             existingTransactionDraft: undefined,
             personalDetails: {},
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -2961,6 +2999,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -3142,6 +3181,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -3328,6 +3368,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -3524,6 +3565,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -3552,7 +3594,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Put the expense on hold
         if (originalTransactionID && transactionThreadReportID) {
-            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
+            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, []);
         }
         await waitForBatchedUpdates();
 
@@ -3785,6 +3827,7 @@ describe('updateSplitTransactions', () => {
             personalDetails: {},
             existingTransactionDraft: undefined,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -3921,6 +3964,7 @@ describe('updateSplitTransactions', () => {
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -4057,6 +4101,7 @@ describe('updateSplitTransactions', () => {
             personalDetails: {},
             existingTransactionDraft: undefined,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -4204,6 +4249,7 @@ describe('updateSplitTransactions', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -4412,7 +4458,7 @@ describe('updateSplitTransactions', () => {
         // Put the original transaction on hold before splitting it.
         const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
         const ancestors = getAncestors(transactionThreadReport, allReports, {}, allReportActions);
-        putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, ancestors);
+        putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, ancestors);
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
@@ -4579,7 +4625,7 @@ describe('updateSplitTransactions', () => {
         // Put the split transaction 1 on hold before reverting it
         const {allReports: allReports2, allReportActions: allReportActions2} = await getCollections();
         const ancestors2 = getAncestors(split1ThreadReport, allReports2, {}, allReportActions2);
-        putOnHold(splitTransactionID1, 'Test hold reason', split1ThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, ancestors2);
+        putOnHold(splitTransactionID1, 'Test hold reason', split1ThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, ancestors2);
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID1);
@@ -7528,6 +7574,7 @@ describe('createDistanceRequest', () => {
             personalDetails: distanceMockPersonalDetails,
             betas: [CONST.BETAS.ALL],
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         };
     }
 

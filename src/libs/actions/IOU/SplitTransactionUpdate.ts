@@ -594,6 +594,7 @@ function updateSplitTransactions({
             personalDetails,
             // TODO: delegateAccountID will be threaded in PR 11 (https://github.com/Expensify/App/issues/66425)
             delegateAccountID: undefined,
+            isTrackIntentUser,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -708,6 +709,7 @@ function updateSplitTransactions({
             personalDetails,
             // TODO: delegateAccountID will be threaded in PR 11 (https://github.com/Expensify/App/issues/66425)
             delegateAccountID: undefined,
+            isTrackIntentUser,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};
