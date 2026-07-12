@@ -13,7 +13,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {Participant as IOUParticipant} from '@src/types/onyx/IOU';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
-import type ReportAction from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -64,6 +63,10 @@ jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
+function isRecord(input: unknown): input is Record<string, unknown> {
+    return typeof input === 'object' && input !== null;
+}
+
 OnyxUpdateManager();
 describe('actions/SendInvoice', () => {
     let currencyListProvider: RenderAPI;
@@ -78,8 +81,8 @@ describe('actions/SendInvoice', () => {
     let mockFetch: MockFetch;
     beforeEach(async () => {
         jest.clearAllTimers();
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = getGlobalFetchMock() as unknown as MockFetch;
+        global.fetch = mockFetch;
         await Onyx.clear();
         currencyListProvider = await initCurrencyListContext({
             keys: ONYXKEYS,
@@ -305,8 +308,15 @@ describe('actions/SendInvoice', () => {
                 });
 
                 const reportActionsUpdate = result.onyxData.optimisticData?.find((update) => String(update.key) === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.invoiceReportID}`);
-                const iouAction = (reportActionsUpdate?.value as Record<string, ReportAction> | undefined)?.[result.reportActionID];
-                expect(iouAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+                const reportActionValue: unknown = reportActionsUpdate?.value;
+                let delegateAccountID: number | undefined;
+                if (isRecord(reportActionValue) && result.reportActionID in reportActionValue) {
+                    const action = reportActionValue[result.reportActionID];
+                    if (typeof action === 'object' && action !== null && 'delegateAccountID' in action) {
+                        delegateAccountID = (action as {delegateAccountID?: number}).delegateAccountID;
+                    }
+                }
+                expect(delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
             });
         });
 
@@ -340,12 +350,14 @@ describe('actions/SendInvoice', () => {
 
             const currentUserAccountID = 123;
 
+            const transaction = {
+                ...baseTransaction,
+                participants: [{...baseParticipants.at(0), policyID: 'workspace_456'}, baseParticipants.at(1)],
+            };
+
             // When: Call getSendInvoiceInformation with existing chat report
             const result = getSendInvoiceInformation({
-                transaction: {
-                    ...baseTransaction,
-                    participants: [{...baseParticipants.at(0), policyID: 'workspace_456'}, baseParticipants.at(1)],
-                } as OnyxEntry<Transaction>,
+                transaction: transaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
@@ -670,7 +682,7 @@ describe('actions/SendInvoice', () => {
             expect(writeSpy).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.objectContaining({
-                    invoiceRoomReportID: expect.not.stringMatching(convertedInvoiceChat.reportID) as string,
+                    invoiceRoomReportID: expect.not.stringMatching(convertedInvoiceChat.reportID),
                 }),
                 expect.anything(),
             );
@@ -679,10 +691,10 @@ describe('actions/SendInvoice', () => {
 
         it('should not clear transaction pending action when send invoice fails', async () => {
             const testCurrency = CONST.CURRENCY.EUR;
-            const transaction = {
+            const transaction: Transaction = {
                 ...createRandomTransaction(1),
                 currency: testCurrency,
-            } as unknown as OnyxEntry<Transaction>;
+            };
             const initialCurrencies: string[] = [];
             await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
 
@@ -719,7 +731,7 @@ describe('actions/SendInvoice', () => {
 
         it('should handle policyRecentlyUsedCategories when provided', () => {
             // Given a basic transaction and policyRecentlyUsedCategories
-            const transaction = createRandomTransaction(1) as unknown as OnyxEntry<Transaction>;
+            const transaction = createRandomTransaction(1);
             const currentUserAccountID = 1;
             const policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories> = [];
 
@@ -787,7 +799,7 @@ describe('actions/SendInvoice', () => {
 
         it('should use invoiceChatReportID when creating new invoice chat via sendInvoice', () => {
             const preGeneratedReportID = 'pre_generated_report_id_456';
-            const transaction = {
+            const transaction: Transaction = {
                 ...createRandomTransaction(1),
                 participants: [
                     {
@@ -800,7 +812,7 @@ describe('actions/SendInvoice', () => {
                         isSender: false,
                     },
                 ],
-            } as unknown as OnyxEntry<Transaction>;
+            };
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
