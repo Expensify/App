@@ -356,8 +356,8 @@ function getReportLinkRoute(
     // On narrow layouts (e.g. mobile web) the RHP is full-screen, so preserving the background Inbox does not apply
     // and report links are kept on the standard navigation as a safeguard. Regular internal report links return
     // undefined so they fall through to the standard internal-link handling, exactly as before this feature. Legacy
-    // Concierge (`newdotreport`) links have no parseable internal path, so they keep the explicit report route to
-    // stay on the pre-existing internal navigation instead of falling back to OldDot link handling.
+    // Concierge (`newdotreport`) links have no internal path that can be parsed, so they keep the explicit report
+    // route to stay on the pre-existing internal navigation instead of falling back to OldDot link handling.
     if (isNarrowLayout) {
         return reportRouteParams.isLegacyNewDotReportLink ? reportRouteParams.route : undefined;
     }

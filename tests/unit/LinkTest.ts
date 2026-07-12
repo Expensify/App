@@ -238,8 +238,8 @@ describe('Link.openLink', () => {
 
         openLink(`${CONFIG.EXPENSIFY.EXPENSIFY_URL}/newdotreport?reportID=legacy-report`, environmentURL);
 
-        // Legacy `newdotreport` links have no parseable internal path, so on narrow layouts they must keep the
-        // explicit report navigation instead of falling back to OldDot link handling.
+        // Legacy `newdotreport` links have no internal path that can be parsed, so on narrow layouts they must keep
+        // the explicit report navigation instead of falling back to OldDot link handling.
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('legacy-report'));
     });
 
