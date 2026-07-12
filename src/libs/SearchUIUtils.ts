@@ -214,6 +214,7 @@ import {
     shouldShowAttendees as shouldShowAttendeesUtils,
     shouldShowViolation,
 } from './TransactionUtils';
+import getFormattedPostedDate from './TransactionUtils/getFormattedPostedDate';
 import shouldShowTransactionPostedYear from './TransactionUtils/shouldShowTransactionPostedYear';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
@@ -1214,8 +1215,7 @@ function getTransactionItemCommonFormattedProperties(
     const submitted = report?.submitted;
     const approved = report?.approved;
 
-    // Posted date is in the YYYYMMDD format, so we format it to YYYY-MM-DD here since JS's Date constructor interprets it as an invalid date.
-    const posted = !transactionItem?.posted ? '' : `${transactionItem?.posted.slice(0, 4)}-${transactionItem?.posted.slice(4, 6)}-${transactionItem?.posted.slice(6, 8)}`;
+    const posted = getFormattedPostedDate(transactionItem?.posted);
 
     return {
         formattedFrom,
