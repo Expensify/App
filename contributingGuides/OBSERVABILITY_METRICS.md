@@ -154,7 +154,10 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - User sees: Their message appears in chat
 - Technical: Message text rendered in report ([`src/pages/home/report/comment/TextCommentFragment.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/pages/home/report/comment/TextCommentFragment.tsx#L70))
 **Span ID**: Based on reportID
-**Attributes**: `report_id`, `message_length`
+**Attributes**: `report_id`, `message_length`, `canceled_by_skeleton`
+**Cancellation (report-actions skeleton)**: While a report-actions skeleton is on screen, we listen for `ManualSendMessage` spans started for that report and cancel them immediately, tagging `canceled: true` plus `canceled_by_skeleton` with the skeleton that caused it.
+- `canceled_by_skeleton` values (`CONST.TELEMETRY.CANCELED_BY_SKELETON`) based on skeleton condition
+**Cancellation (report unmount / navigate away)**: If the user leaves the report before their message renders, any pending `ManualSendMessage` span is cancelled via `cancelSpansByPrefix()` to avoid orphaned spans. Cancelled this way the span gets `canceled: true` but **no** `canceled_by_skeleton` (a blanket cancel by span-id prefix, not scoped to one `report_id`).
 
 ## Failure Rates
 

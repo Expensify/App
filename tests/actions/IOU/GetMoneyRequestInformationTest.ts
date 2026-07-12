@@ -68,6 +68,7 @@ const baseParams = {
     quickAction: undefined,
     policyRecentlyUsedCurrencies: [] as string[],
     personalDetails: {},
+    delegateAccountID: undefined,
 } as const;
 
 describe('getMoneyRequestInformation', () => {
