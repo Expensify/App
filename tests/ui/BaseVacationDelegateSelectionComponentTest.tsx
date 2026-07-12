@@ -78,6 +78,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
+        formatPhoneNumber: (value: string) => value,
     })),
 );
 jest.mock('@hooks/useOnyx', () => jest.fn((key: string) => (key === 'countryCode' ? ['US'] : [false])));
@@ -97,9 +98,6 @@ jest.mock('@hooks/useThemeStyles', () =>
 );
 jest.mock('@libs/actions/Report', () => ({
     searchUserInServer: jest.fn(),
-}));
-jest.mock('@libs/LocalePhoneNumber', () => ({
-    formatPhoneNumber: jest.fn((value: string) => value),
 }));
 jest.mock('@libs/OptionsListUtils', () => {
     const actualOptionsListUtils: typeof OptionsListUtils = jest.requireActual('@libs/OptionsListUtils');

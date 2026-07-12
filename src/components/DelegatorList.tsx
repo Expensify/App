@@ -1,8 +1,7 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 
 import CONST from '@src/CONST';
 
@@ -20,6 +19,7 @@ type DelegatorListProps = {
 
 function DelegatorList({delegators, message}: DelegatorListProps) {
     const styles = useThemeStyles();
+    const {formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const personalDetailsByLogin = usePersonalDetailsByLogin();
