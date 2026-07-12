@@ -139,7 +139,7 @@ function WorkflowsLoadMoreCard({count, onPress}: {count: number; onPress: () => 
                 <Icon
                     src={expensifyIcons.CircularArrowBackwards}
                     fill={theme.textSupporting}
-                    extraSmall
+                    size={CONST.ICON_SIZE.EXTRA_SMALL}
                     additionalStyles={styles.mr1}
                 />
                 <Text style={[styles.buttonSmallText, styles.textSupporting]}>{label}</Text>
@@ -223,7 +223,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         getPaymentMethods();
     }, [route.params.policyID]);
 
-    const showNotAllowedToAddBankAccountModal = useCallback(() => {
+    const showAddBankAccountPermissionModal = useCallback(() => {
         if (!policy) {
             return;
         }
@@ -767,7 +767,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                   }
                                                   if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
                                                       if (!isPolicyAdmin(policy, currentUserLogin)) {
-                                                          showNotAllowedToAddBankAccountModal();
+                                                          showAddBankAccountPermissionModal();
                                                           return;
                                                       }
                                                       showConfirmModal({
@@ -896,6 +896,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         isSelfTourViewed,
         hasValidExistingAccounts,
         shouldShowContinueModal,
+        showAddBankAccountPermissionModal,
         confirmCurrencyChangeAndHideModal,
         delegateAccountID,
         canAccessSubmit2026Features,
