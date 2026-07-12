@@ -8,6 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {buildOptimisticDetachReceipt, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
 import {resolveDetachReceiptConflicts} from '@userActions/RequestConflictUtils';
@@ -194,6 +195,9 @@ function replaceReceipt({
         return;
     }
 
+    const receiptTraceId = mintAndStampReceiptTraceId(file);
+    logReceiptCaptured({file, captureSource: 'replace', receiptTraceId});
+
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
 
@@ -205,6 +209,7 @@ function replaceReceipt({
         localSource: null,
         state: state ?? CONST.IOU.RECEIPT_STATE.OPEN,
         filename: file.name,
+        receiptTraceId,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
     const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicy, transactionPolicyCategories, transactionPolicyTagList, transactionViolations};
@@ -315,10 +320,11 @@ function setMoneyRequestReceipt(
     isTestReceipt = false,
     isTestDriveReceipt = false,
     thumbnail?: string,
+    receiptTraceId?: string,
 ) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         // isTestReceipt = false and isTestDriveReceipt = false are being converted to null because we don't really need to store it in Onyx in those cases
-        receipt: {source, filename, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null, thumbnail},
+        receipt: {source, filename, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null, thumbnail, receiptTraceId},
     });
 }
 

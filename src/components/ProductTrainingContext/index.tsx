@@ -283,7 +283,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     <Icon
                         src={expensifyIcons.Lightbulb}
                         fill={theme.tooltipHighlightText}
-                        medium
+                        size={CONST.ICON_SIZE.MEDIUM}
                     />
                     <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
                         <RenderHTML html={translate(tooltip.content)} />

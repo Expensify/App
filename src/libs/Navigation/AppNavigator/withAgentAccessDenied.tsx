@@ -31,27 +31,36 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                 // rendering a blank pane.
                 useFocusEffect(
                     useCallback(() => {
-                        if (!isAgent || Navigation.isActiveRoute(ROUTES.SETTINGS_PROFILE.route)) {
+                        if (!isAgent) {
                             return;
                         }
 
-                        // forceReplace REPLACEs the stale guarded central-pane route instead of PUSHing Profile on
-                        // top of it, so back from Profile pops to the unguarded Account sidebar rather than the
-                        // guarded route that would re-fire this redirect.
-                        const redirectToProfile = () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(), {forceReplace: true});
+                        // On a cold deep-link the effect can run before the NavigationContainer is ready, so the
+                        // redirect is silently dropped and leaves a blank central pane. Wait for readiness before
+                        // reading navigation state or dispatching.
+                        Navigation.isNavigationReady().then(() => {
+                            if (Navigation.isActiveRoute(ROUTES.SETTINGS_PROFILE.route)) {
+                                return;
+                            }
 
-                        // The guarded screen can be open inside a modal/RHP (e.g. the agent-edit page the owner was
-                        // on when they tapped "Copilot into account"). Navigating straight to the tab-nested Profile
-                        // route while an RHP is focused gets forced to PUSH (see linkTo), stacking Profile on top of
-                        // the still-guarded route and trapping the user in a Profile <-> Profile loop on back. Dismiss
-                        // the modal first, then redirect once it's closed (the underlying pane may be unguarded, so we
-                        // can't rely on its guard to redirect).
-                        if (Navigation.isTopmostRouteModalScreen()) {
-                            Navigation.dismissModal({afterTransition: redirectToProfile});
-                            return;
-                        }
+                            // forceReplace REPLACEs the stale guarded central-pane route instead of PUSHing Profile on
+                            // top of it, so back from Profile pops to the unguarded Account sidebar rather than the
+                            // guarded route that would re-fire this redirect.
+                            const redirectToProfile = () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(), {forceReplace: true});
 
-                        redirectToProfile();
+                            // The guarded screen can be open inside a modal/RHP (e.g. the agent-edit page the owner was
+                            // on when they tapped "Copilot into account"). Navigating straight to the tab-nested Profile
+                            // route while an RHP is focused gets forced to PUSH (see linkTo), stacking Profile on top of
+                            // the still-guarded route and trapping the user in a Profile <-> Profile loop on back. Dismiss
+                            // the modal first, then redirect once it's closed (the underlying pane may be unguarded, so we
+                            // can't rely on its guard to redirect).
+                            if (Navigation.isTopmostRouteModalScreen()) {
+                                Navigation.dismissModal({afterTransition: redirectToProfile});
+                                return;
+                            }
+
+                            redirectToProfile();
+                        });
                     }, [isAgent]),
                 );
 

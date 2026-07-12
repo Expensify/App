@@ -25,6 +25,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
     isActiveRoute: jest.fn(() => false),
     isTopmostRouteModalScreen: jest.fn(() => false),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@react-navigation/native', () => {
