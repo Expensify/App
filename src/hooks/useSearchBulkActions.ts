@@ -1307,6 +1307,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             allReportNameValuePairs,
             currentSearchKey,
             searchResults?.data,
+            delegateAccountID,
         ],
     );
 
