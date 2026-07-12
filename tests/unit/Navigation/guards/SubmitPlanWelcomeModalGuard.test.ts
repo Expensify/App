@@ -1,4 +1,4 @@
-import SubmitPlanWelcomeModalGuard, {onSessionOrLoadingAppChanged, resetSessionFlag} from '@libs/Navigation/guards/SubmitPlanWelcomeModalGuard';
+import SubmitPlanWelcomeModalGuard, {resetSessionFlag} from '@libs/Navigation/guards/SubmitPlanWelcomeModalGuard';
 import type {GuardContext} from '@libs/Navigation/guards/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 // eslint-disable-next-line no-restricted-imports -- type-only namespace import used solely to type jest.requireActual for the module mock below
@@ -44,6 +44,15 @@ async function setUpEligibleUser() {
     await waitForBatchedUpdates();
 }
 
+/** Simulates the session/app-load signal the guard subscribes to for the proactive redirect. */
+async function markSessionReady(sessionValue?: {authToken: string; accountID: number; email?: string}) {
+    if (sessionValue) {
+        await Onyx.merge(ONYXKEYS.SESSION, sessionValue);
+    }
+    await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+    await waitForBatchedUpdates();
+}
+
 describe('SubmitPlanWelcomeModalGuard', () => {
     const mockState: NavigationState = {
         key: 'root',
@@ -66,7 +75,6 @@ describe('SubmitPlanWelcomeModalGuard', () => {
     };
 
     beforeEach(async () => {
-        onSessionOrLoadingAppChanged(undefined, true);
         resetSessionFlag();
         mockNavigate.mockClear();
         mockGetGroupPoliciesWhereReportCanBeCreated.mockReset();
@@ -133,9 +141,8 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         await Onyx.merge(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {[restrictedDomain]: 'group1'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SECURITY_GROUP}group1`, {enableRestrictedPolicyCreation: true});
         await waitForBatchedUpdates();
-        // The guard reads the email from its cached session, populated via onSessionOrLoadingAppChanged.
-        onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123, email: `employee@${restrictedDomain}`}, false);
-        await waitForBatchedUpdates();
+        // The guard reads the email from its cached session, populated via its SESSION subscription.
+        await markSessionReady({authToken: 'test-token', accountID: 123, email: `employee@${restrictedDomain}`});
 
         const result = SubmitPlanWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
         expect(result.type).toBe('ALLOW');
@@ -183,14 +190,13 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         expect(result.type).toBe('ALLOW');
     });
 
-    describe('proactive navigation via onSessionOrLoadingAppChanged', () => {
+    describe('proactive navigation on session/app-load', () => {
         it('should navigate when all conditions are met and session becomes ready', async () => {
             await setUpEligibleUser();
             mockNavigate.mockClear();
 
             // Proactive navigation is coalesced onto a microtask, so wait for it to flush before asserting.
-            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
-            await waitForBatchedUpdates();
+            await markSessionReady({authToken: 'test-token', accountID: 123});
 
             expect(mockNavigate).toHaveBeenCalledWith(submitPlanWelcomeRoute);
         });
@@ -199,8 +205,7 @@ describe('SubmitPlanWelcomeModalGuard', () => {
             await setUpEligibleUser();
             mockNavigate.mockClear();
 
-            onSessionOrLoadingAppChanged(undefined, false);
-            await waitForBatchedUpdates();
+            await markSessionReady();
 
             expect(mockNavigate).not.toHaveBeenCalled();
         });
@@ -210,8 +215,7 @@ describe('SubmitPlanWelcomeModalGuard', () => {
             mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([{id: 'policy1'}]);
             mockNavigate.mockClear();
 
-            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
-            await waitForBatchedUpdates();
+            await markSessionReady({authToken: 'test-token', accountID: 123});
 
             expect(mockNavigate).not.toHaveBeenCalled();
         });
@@ -222,8 +226,7 @@ describe('SubmitPlanWelcomeModalGuard', () => {
             await waitForBatchedUpdates();
             mockNavigate.mockClear();
 
-            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
-            await waitForBatchedUpdates();
+            await markSessionReady({authToken: 'test-token', accountID: 123});
 
             expect(mockNavigate).not.toHaveBeenCalled();
         });
@@ -234,8 +237,7 @@ describe('SubmitPlanWelcomeModalGuard', () => {
             await waitForBatchedUpdates();
             mockNavigate.mockClear();
 
-            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
-            await waitForBatchedUpdates();
+            await markSessionReady({authToken: 'test-token', accountID: 123});
 
             expect(mockNavigate).not.toHaveBeenCalled();
         });

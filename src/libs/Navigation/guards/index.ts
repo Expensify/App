@@ -12,7 +12,7 @@ import type {GuardContext, GuardResult, NavigationGuard} from './types';
 
 import MigratedUserWelcomeModalGuard, {onSessionOrLoadingAppChanged} from './MigratedUserWelcomeModalGuard';
 import OnboardingGuard from './OnboardingGuard';
-import SubmitPlanWelcomeModalGuard, {onSessionOrLoadingAppChanged as onSessionOrLoadingAppChangedForSubmitPlanModal} from './SubmitPlanWelcomeModalGuard';
+import SubmitPlanWelcomeModalGuard from './SubmitPlanWelcomeModalGuard';
 
 /**
  * Module-level Onyx subscriptions for common guard context values
@@ -26,7 +26,6 @@ Onyx.connectWithoutView({
     callback: (value) => {
         session = value;
         onSessionOrLoadingAppChanged(session, isLoadingApp);
-        onSessionOrLoadingAppChangedForSubmitPlanModal(session, isLoadingApp);
     },
 });
 
@@ -35,7 +34,6 @@ Onyx.connectWithoutView({
     callback: (value) => {
         isLoadingApp = value ?? true;
         onSessionOrLoadingAppChanged(session, isLoadingApp);
-        onSessionOrLoadingAppChangedForSubmitPlanModal(session, isLoadingApp);
     },
 });
 

@@ -143,20 +143,27 @@ function scheduleSubmitPlanWelcomeModalEvaluation() {
     });
 }
 
-/**
- * Called by guards/index.ts when session or loading app state changes.
- * Reuses the shared Onyx subscriptions from guards/index.ts to avoid duplicate connections.
- */
-function onSessionOrLoadingAppChanged(sessionValue: OnyxEntry<Session>, isLoadingAppValue: boolean) {
-    session = sessionValue;
-    isLoadingApp = isLoadingAppValue;
-    scheduleSubmitPlanWelcomeModalEvaluation();
-}
+// Session/app-load state drive the one-shot proactive redirect: they are the boot-time signal by which point
+// every eligibility value below has already landed in the same OpenApp batch, so re-evaluating here is safe.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        session = value;
+        scheduleSubmitPlanWelcomeModalEvaluation();
+    },
+});
 
-// These subscriptions only keep the guard's cached copies in sync for the synchronous `evaluate` and the
-// proactive check. They intentionally do NOT drive navigation: the one-shot proactive redirect is a
-// boot-time decision triggered solely by the app-load/session signal (onSessionOrLoadingAppChanged), by
-// which point every value below has already landed in the same OpenApp batch. Driving navigation from these
+Onyx.connectWithoutView({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (value) => {
+        isLoadingApp = value ?? true;
+        scheduleSubmitPlanWelcomeModalEvaluation();
+    },
+});
+
+// The remaining subscriptions only keep the guard's cached copies in sync for the synchronous `evaluate` and
+// the proactive check. They intentionally do NOT drive navigation: by the time the session/app-load signal
+// fires, every value below has already landed in the same OpenApp batch. Driving navigation from these
 // (especially the high-churn POLICY collection) would recompute eligibility on every unrelated mutation for
 // the whole session.
 Onyx.connectWithoutView({
@@ -303,4 +310,4 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
 };
 
 export default SubmitPlanWelcomeModalGuard;
-export {resetSessionFlag, onSessionOrLoadingAppChanged};
+export {resetSessionFlag};
