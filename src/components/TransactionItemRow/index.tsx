@@ -37,6 +37,7 @@ const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
 function TransactionItemRow({
     transactionItem,
     report,
+    chatReport,
     policy,
     policyCategories,
     policyTagLists,
@@ -182,6 +183,7 @@ function TransactionItemRow({
     const wideForwardedProps = {
         transactionItem,
         report,
+        chatReport,
         policy,
         policyCategories,
         policyTagLists,
