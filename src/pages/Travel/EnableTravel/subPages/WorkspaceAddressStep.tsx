@@ -1,5 +1,4 @@
 import AddressForm from '@components/AddressForm';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 
 import useLocalize from '@hooks/useLocalize';
@@ -86,20 +85,18 @@ function WorkspaceAddressStep({policy, policyID, onNext, resetToPage}: EnableTra
     };
 
     return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-            <AddressForm
-                formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
-                onSubmit={handleSubmit}
-                submitButtonText={translate('common.save')}
-                city={city}
-                country={getCountryCode(currentCountry)}
-                onAddressChanged={handleAddressChange}
-                state={state}
-                street1={address?.addressStreet}
-                street2={address?.addressStreet2}
-                zip={zipcode}
-            />
-        </DelegateNoAccessWrapper>
+        <AddressForm
+            formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
+            onSubmit={handleSubmit}
+            submitButtonText={translate('common.save')}
+            city={city}
+            country={getCountryCode(currentCountry)}
+            onAddressChanged={handleAddressChange}
+            state={state}
+            street1={address?.addressStreet}
+            street2={address?.addressStreet2}
+            zip={zipcode}
+        />
     );
 }
 
