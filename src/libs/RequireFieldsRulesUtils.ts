@@ -802,14 +802,11 @@ function getRequireFieldsFieldCouplingTooltipKey(
         return undefined;
     }
 
-    if (
-        fieldKey === INPUT_IDS.RECEIPT_SETTING &&
-        (touchedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING) || (isEditing && effectiveForm?.[INPUT_IDS.ITEMIZED_RECEIPT_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE))
-    ) {
+    if (fieldKey === INPUT_IDS.RECEIPT_SETTING && touchedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING)) {
         return 'receiptDisabledWhenItemizedRequired';
     }
 
-    if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING && (touchedFields?.has(INPUT_IDS.RECEIPT_SETTING) || (isEditing && !!category && isReceiptWaivedForCategory(category)))) {
+    if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING && touchedFields?.has(INPUT_IDS.RECEIPT_SETTING)) {
         return 'itemizedDisabledWhenReceiptWaived';
     }
 
