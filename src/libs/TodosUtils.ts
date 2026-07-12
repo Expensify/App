@@ -7,6 +7,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchKey} from './SearchUIUtils';
 
 import {getLoginByAccountID} from './PersonalDetailsUtils';
+import {isPreferredExporter} from './PolicyUtils';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from './ReportPrimaryActionUtils';
 import {hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions} from './ReportUtils';
 
@@ -122,7 +123,7 @@ function reportMatchesTodoBucket(
             );
         case CONST.SEARCH.SEARCH_KEYS.EXPORT: {
             const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
-            return isExportAction(report, login, policy, reportActions) && policy?.exporter === login;
+            return isExportAction(report, login, policy, reportActions) && !!policy && isPreferredExporter(policy, login);
         }
         default:
             return false;
