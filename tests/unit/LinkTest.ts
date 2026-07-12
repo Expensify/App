@@ -223,12 +223,35 @@ describe('Link.openLink', () => {
         );
     });
 
-    it('keeps report links as full-screen report routes on narrow layout', () => {
+    it('keeps report links on the standard full-screen navigation on narrow layout', () => {
         mockedGetIsNarrowLayout.mockReturnValue(true);
 
         openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/123456789`, environmentURL);
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('regular-report', '123456789'));
+        // On narrow layouts the report-link RHP handling does not apply; the link falls through to the standard
+        // internal-link handling and navigates exactly as it did before this feature.
+        expect(Navigation.navigate).toHaveBeenCalledWith('/r/regular-report/123456789');
+    });
+
+    it('keeps legacy Concierge report links navigating internally on narrow layout', () => {
+        mockedGetIsNarrowLayout.mockReturnValue(true);
+
+        openLink(`${CONFIG.EXPENSIFY.EXPENSIFY_URL}/newdotreport?reportID=legacy-report`, environmentURL);
+
+        // Legacy `newdotreport` links have no parseable internal path, so on narrow layouts they must keep the
+        // explicit report navigation instead of falling back to OldDot link handling.
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('legacy-report'));
+    });
+
+    it('does not update the focused RHP report action on narrow layout and keeps the standard navigation', () => {
+        mockedGetIsNarrowLayout.mockReturnValue(true);
+        mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true, rhpReportID: 'regular-report', rhpReportActionID: '123456789'}));
+
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/987654321`, environmentURL);
+
+        expect(Navigation.setParams).not.toHaveBeenCalled();
+        expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith('/r/regular-report/987654321');
     });
 
     it('keeps report links as full-screen report routes for anonymous users on wide layout', () => {

@@ -308,20 +308,16 @@ function ReportFetchHandler() {
     }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
 
     useEffect(() => {
-        if (!shouldReplaceWithExpenseReportRHP || !report || !reportIDFromRoute) {
+        // Both `Navigation.setParams` and `forceReplace` below act on the currently focused route, but this effect
+        // can fire late (after a slow `OpenReport`) while this SearchReport RHP has been blurred but is still mounted.
+        // Bail while blurred so we never clear the flag on, or replace, whatever route the user has since navigated
+        // to; the effect re-runs if focus returns to this screen.
+        if (!shouldReplaceWithExpenseReportRHP || !report || !reportIDFromRoute || !isFocused) {
             return;
         }
 
         if (!isMoneyRequestReport(report)) {
             Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP]: undefined});
-            return;
-        }
-
-        // `forceReplace` replaces whatever route is currently focused. This effect can fire late (after a slow
-        // `OpenReport` resolves the report as a money request) while this SearchReport RHP has been blurred but is
-        // still mounted, which would replace the route the user has since navigated to. Only replace while focused;
-        // the effect re-runs if focus returns to this screen.
-        if (!isFocused) {
             return;
         }
 
