@@ -73,7 +73,7 @@ describe('SubmitPlanWelcomeModal', () => {
 
         fireEvent.press(screen.getByText('submitPlanWelcomeModal.confirmText'));
 
-        expect(mockAutoCreateSubmitWorkspace).toHaveBeenCalledWith('John', 'Doe', {shouldCompleteOnboarding: false});
+        expect(mockAutoCreateSubmitWorkspace).toHaveBeenCalledWith('John', 'Doe', false);
     });
 
     it('navigates back (dismissing the modal) when "No thanks" is pressed', () => {
