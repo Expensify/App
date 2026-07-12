@@ -4,8 +4,11 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -33,7 +36,6 @@ type WorkspaceWorkflowsCurrencyConversionFeesPageProps = WithPolicyOnyxProps &
 
 type CurrencyConversionFeesItem = {
     text: string;
-    alternateText: string;
     keyForList: CurrencyConversionFeesPreferenceKey;
     isSelected: boolean;
 };
@@ -41,6 +43,7 @@ type CurrencyConversionFeesItem = {
 function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: WorkspaceWorkflowsCurrencyConversionFeesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
 
     const selectedPreference = policy?.globalReimbursementFXPreferCompany
         ? CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY
@@ -49,13 +52,11 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
     const items: CurrencyConversionFeesItem[] = [
         {
             text: translate('workflowsCurrencyConversionFeesPage.companyPays'),
-            alternateText: translate('workflowsCurrencyConversionFeesPage.companyPaysSubtitle'),
             keyForList: CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY,
             isSelected: selectedPreference === CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY,
         },
         {
             text: translate('workflowsCurrencyConversionFeesPage.employeePays'),
-            alternateText: translate('workflowsCurrencyConversionFeesPage.employeePaysSubtitle'),
             keyForList: CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE,
             isSelected: selectedPreference === CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE,
         },
@@ -74,10 +75,25 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
         Navigation.goBack();
     };
 
+    const listHeaderContent = (
+        <Text style={[styles.mh5, styles.mv3, styles.textLabelSupportingNormal]}>
+            {translate('workflowsCurrencyConversionFeesPage.subtitle')}{' '}
+            <TextLink
+                style={styles.link}
+                href={CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}
+            >
+                {translate('common.learnMore')}
+            </TextLink>
+        </Text>
+    );
+
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -106,6 +122,7 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
                             data={items}
                             onSelectRow={onSelectPreference}
                             initiallyFocusedItemKey={selectedPreference}
+                            customListHeaderContent={listHeaderContent}
                             addBottomSafeAreaPadding
                         />
                     </OfflineWithFeedback>
