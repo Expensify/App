@@ -11,6 +11,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import React, {createContext, useContext} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -32,6 +33,7 @@ type PaymentContextValue = {
     conciergeReportID: string | undefined;
     defaultWorkspaceName: string;
     delegateEmail: string | undefined;
+    delegateAccountID: number | undefined;
 };
 
 type ReportPaymentContextValue = PaymentContextValue & {
@@ -63,6 +65,7 @@ function usePaymentContextValues(): PaymentContextValue {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const delegateAccountID = useDelegateAccountID();
     const activePolicy = usePolicy(activePolicyID);
 
     const defaultWorkspaceName = generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate);
@@ -83,6 +86,7 @@ function usePaymentContextValues(): PaymentContextValue {
         conciergeReportID,
         defaultWorkspaceName,
         delegateEmail,
+        delegateAccountID,
     };
 }
 

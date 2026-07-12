@@ -34,7 +34,7 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
-import {getKnownAccountIDByLogin, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {getAccountIDForSubmitManagerEmail, getSubmitReportManagerAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled, isSubmitPolicy} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
@@ -225,6 +225,7 @@ type HandleActionButtonPressParams = {
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
     delegateEmail?: string;
+    delegateAccountID: number | undefined;
 };
 
 function handleActionButtonPress({
@@ -261,6 +262,7 @@ function handleActionButtonPress({
     searchData,
     chatReportActions,
     delegateEmail,
+    delegateAccountID,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -311,7 +313,7 @@ function handleActionButtonPress({
                 policy,
                 searchData,
                 chatReportActions,
-                delegateAccountID: delegateEmail ? getPersonalDetailByEmail(delegateEmail)?.accountID : undefined,
+                delegateAccountID,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:

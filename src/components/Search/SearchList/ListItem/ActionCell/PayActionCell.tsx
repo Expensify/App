@@ -4,7 +4,6 @@ import SettlementButton from '@components/SettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {getParticipantsInvoiceReport} from '@hooks/useParticipantsInvoiceReport';
@@ -42,7 +41,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
-    const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
@@ -69,6 +67,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         defaultWorkspaceName,
         nextStep,
         chatReportPolicy,
+        delegateAccountID,
     } = useReportPaymentContext({
         reportID,
         chatReportPolicyID: chatReport?.policyID,

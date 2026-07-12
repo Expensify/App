@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {Participant as IOUParticipant} from '@src/types/onyx/IOU';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
+import type ReportAction from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -279,6 +280,34 @@ describe('actions/SendInvoice', () => {
             expect(result.onyxData.optimisticData).toBeDefined();
             expect(result.onyxData.successData).toBeDefined();
             expect(result.onyxData.failureData).toBeDefined();
+        });
+
+        describe('delegateAccountID forwarding', () => {
+            it('sets delegateAccountID on the IOU action when delegateAccountID is provided', () => {
+                const DELEGATE_ACCOUNT_ID = 999;
+                const mockPolicy = createRandomPolicy(0);
+                mockPolicy.id = 'workspace_test';
+
+                const result = getSendInvoiceInformation({
+                    transaction: baseTransaction as OnyxEntry<Transaction>,
+                    currentUserAccountID: 123,
+                    policyRecentlyUsedCurrencies: [],
+                    invoiceChatReport: undefined,
+                    receiptFile: undefined,
+                    policy: mockPolicy,
+                    policyTagList: undefined,
+                    policyCategories: undefined,
+                    companyName: 'Test Company Inc.',
+                    companyWebsite: 'https://testcompany.com',
+                    policyRecentlyUsedCategories: [],
+                    senderPolicyTags: baseSenderPolicyTags,
+                    delegateAccountID: DELEGATE_ACCOUNT_ID,
+                });
+
+                const reportActionsUpdate = result.onyxData.optimisticData?.find((update) => String(update.key) === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.invoiceReportID}`);
+                const iouAction = (reportActionsUpdate?.value as Record<string, ReportAction> | undefined)?.[result.reportActionID];
+                expect(iouAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            });
         });
 
         it('should return correct invoice information with existing chat report', () => {

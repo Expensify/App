@@ -234,10 +234,11 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const snapshotTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const liveViolationsSelector = transactionViolationsByIDsSelector(snapshotTransactionIDs);
     const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: liveViolationsSelector}, [liveViolationsSelector]);
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail} = useReportPaymentContext({
-        reportID: reportItem.reportID,
-        chatReportPolicyID: chatReport?.policyID,
-    });
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID} =
+        useReportPaymentContext({
+            reportID: reportItem.reportID,
+            chatReportPolicyID: chatReport?.policyID,
+        });
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -292,6 +293,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             searchData,
             chatReportActions,
             delegateEmail,
+            delegateAccountID,
         });
     }, [
         currentSearchHash,
@@ -330,6 +332,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         nextStep,
         chatReportActions,
         delegateEmail,
+        delegateAccountID,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {
