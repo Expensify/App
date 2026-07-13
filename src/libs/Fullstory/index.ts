@@ -2,6 +2,7 @@ import {isSupportAuthToken} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
+import type UserMetadata from '@src/types/onyx/UserMetadata';
 
 import {FullStory, init, isInitialized} from '@fullstory/browser';
 
@@ -13,6 +14,12 @@ import {getChatFSClass, shouldInitializeFullstory} from './common';
 class FSPage implements FSPageLike {
     start() {}
 }
+
+// The latest metadata received for the current user. UserMetadata is populated by the backend in stages
+// (for a new account, `accountID` arrives before `email`), so multiple identification chains can be in
+// flight at once. Reading this reference at resolve time ensures a late-resolving chain that was started
+// with stale metadata cannot overwrite a newer, more complete identity.
+let latestUserMetadata: UserMetadata = {};
 
 const FS: Fullstory = {
     Page: FSPage,
@@ -59,6 +66,8 @@ const FS: Fullstory = {
             return;
         }
 
+        latestUserMetadata = userMetadata;
+
         try {
             // We only use FullStory in production environment. We need to check this here
             // after the init function since this function is also called on updates for
@@ -80,9 +89,9 @@ const FS: Fullstory = {
 
                 FS.onReady().then(() => {
                     FS.consent(true);
-                    const localMetadata = userMetadata;
-                    localMetadata.environment = envName;
-                    FS.identify(localMetadata);
+                    // Identify with the freshest metadata rather than the value captured when this chain
+                    // started, so an email-less chain that resolves late does not clobber the identity.
+                    FS.identify({...latestUserMetadata, environment: envName});
                 });
             });
         } catch (e) {
