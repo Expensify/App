@@ -90,6 +90,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, currentStepAcc
                     total: stepNames.length,
                 });
                 const stepAccessibilityLabel = isCurrentStep && currentStepAccessibilityDescription ? `${stepPositionLabel}, ${currentStepAccessibilityDescription}` : stepPositionLabel;
+                const stepAccessibilityState = {selected: isCurrentStep};
 
                 const moveToStep = () => {
                     if (isLockedStep || !onStepSelected) {
@@ -149,6 +150,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, currentStepAcc
                                 disabled={isLockedStep}
                                 role={CONST.ROLE.BUTTON}
                                 aria-current={isCurrentStep ? 'step' : undefined}
+                                accessibilityState={stepAccessibilityState}
                                 sentryLabel={CONST.SENTRY_LABEL.INTERACTIVE_STEP_SUB_HEADER.STEP_BUTTON}
                             >
                                 {stepAccessibilityContent}
@@ -158,6 +160,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, currentStepAcc
                                 style={stepButtonStyle}
                                 accessible
                                 accessibilityLabel={stepAccessibilityLabel}
+                                accessibilityState={stepAccessibilityState}
                                 aria-current={isCurrentStep ? 'step' : undefined}
                                 tabIndex={0}
                             >
