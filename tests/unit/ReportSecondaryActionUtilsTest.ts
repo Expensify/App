@@ -3748,6 +3748,25 @@ describe('getSecondaryExportReportActions', () => {
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
     });
 
+    it('includes MARK_AS_EXPORTED option for payments admin when auto-sync is disabled', () => {
+        jest.mocked(isPreferredExporter).mockReturnValue(false);
+
+        const report: Report = {
+            reportID: `${REPORT_ID}`,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+        const policy: Policy = {
+            ...createQBOPolicy(CONST.POLICY.ROLE.PAYMENTS_ADMIN, false, ADMIN_EMAIL),
+            type: CONST.POLICY.TYPE.CORPORATE,
+        };
+
+        const result = getSecondaryExportReportActions(ADMIN_ACCOUNT_ID, ADMIN_EMAIL, report, {}, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
     it('does not include EXPORT option for user without export permissions', () => {
         jest.mocked(isPreferredExporter).mockReturnValue(false);
 
