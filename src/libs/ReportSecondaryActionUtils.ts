@@ -25,7 +25,6 @@ import {
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
-    hasIntegrationAutoSync,
     isGroupPolicy,
     isInstantSubmitEnabled,
     isPolicyAdmin,
