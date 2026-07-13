@@ -12,7 +12,7 @@ import type {ValidateDeviceInput} from './types';
  * to the failure outcome. A rejection therefore always means the platform check itself threw
  * unexpectedly.
  */
-const validateDevice = fromPromise<MFAResult, ValidateDeviceInput>(({input}) => checkDeviceEligibility(input.scenario?.allowedAuthenticationMethods ?? []));
+const validateDevice = fromPromise<MFAResult, ValidateDeviceInput>(({input}) => checkDeviceEligibility(input.allowedAuthenticationMethods));
 
 /**
  * Builds the machine's real side-effect actors. Each slice adds the actors its states invoke, so

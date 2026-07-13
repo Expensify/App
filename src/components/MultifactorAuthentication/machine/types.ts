@@ -1,3 +1,4 @@
+import type {AllowedAuthenticationMethods} from '@components/MultifactorAuthentication/biometrics/checkDeviceEligibility';
 import type {MultifactorAuthenticationScenarioConfigFor} from '@components/MultifactorAuthentication/config';
 import type {
     MultifactorAuthenticationScenario,
@@ -64,7 +65,7 @@ type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScena
  */
 type MfaEvent = MultifactorAuthenticationInitEvent | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'};
 
-/** Input for the device-check actor. The scenario's allowed methods decide whether this device qualifies. */
-type ValidateDeviceInput = Pick<MfaContext, 'scenario'>;
+/** Input for the device-check actor. */
+type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationMethods};
 
 export type {MfaContext, MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent, ValidateDeviceInput};

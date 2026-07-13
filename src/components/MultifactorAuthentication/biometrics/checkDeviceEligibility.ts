@@ -9,6 +9,8 @@ import type {ValueOf} from 'type-fest';
 
 import {deviceCheckFailureReason, deviceVerificationType, doesDeviceSupportAuthenticationMethod} from './operations';
 
+type AllowedAuthenticationMethods = ReadonlyArray<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>;
+
 /**
  * Confirms the device can complete a biometric ceremony through two ordered gates that mirror the
  * legacy flow. The first gate refuses a device whose verification type the caller does not allow, and
@@ -18,7 +20,7 @@ import {deviceCheckFailureReason, deviceVerificationType, doesDeviceSupportAuthe
  * failed result carrying the blocking MFAError. A rejection therefore always means the platform
  * check itself threw unexpectedly.
  */
-async function checkDeviceEligibility(allowedAuthenticationMethods: ReadonlyArray<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>): Promise<MFAResult> {
+async function checkDeviceEligibility(allowedAuthenticationMethods: AllowedAuthenticationMethods): Promise<MFAResult> {
     if (!allowedAuthenticationMethods.includes(deviceVerificationType)) {
         const error = createLocalMFAError(
             CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED,
@@ -38,3 +40,4 @@ async function checkDeviceEligibility(allowedAuthenticationMethods: ReadonlyArra
 }
 
 export default checkDeviceEligibility;
+export type {AllowedAuthenticationMethods};

@@ -114,7 +114,12 @@ const MFAMachine = setup({
                             invoke: {
                                 id: 'validateDevice',
                                 src: 'validateDevice',
-                                input: ({context}) => ({scenario: context.scenario}),
+                                input: ({context}) => {
+                                    if (!context.scenario) {
+                                        throw new Error('MFA scenario must be initialized before device validation');
+                                    }
+                                    return {allowedAuthenticationMethods: context.scenario.allowedAuthenticationMethods};
+                                },
                                 // The actor settles with an MFAResult, so its done event routes on
                                 // `success`. The device passing both gates lands on the success outcome
                                 // until the registration and authorization slices insert their steps
