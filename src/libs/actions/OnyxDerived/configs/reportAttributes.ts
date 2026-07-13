@@ -30,14 +30,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
-// Per-account signature of the fields that feed a report's display name, keyed by accountID. See
-// snapshotDisplayNames for which fields, and getDisplayNameForParticipant/getDisplayNameOrDefault for why.
+// The name-related fields we saw for each account last time, so we can spot which accounts changed.
 let previousDisplayNames: Record<string, string> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
 let previousPolicies: OnyxCollection<Policy>;
 
-// Sentinel returned by getDisplayNameChanges when we can't scope the change to specific accounts
-// (first load this session) and must recompute every report's name.
 const RECOMPUTE_ALL = 'all' as const;
 
 const prepareReportKeys = (keys: string[]) => {
@@ -70,11 +67,7 @@ const hasPolicyRelevantFieldChanged = (prev: Policy | null | undefined, next: Po
     );
 };
 
-// Signature of the fields that independently affect a report's display name: displayName (primary) and
-// firstName (used directly for group-chat short names, even when displayName is set — see getDisplayNameForParticipant).
-// login is intentionally excluded: it only feeds a name as a fallback when displayName is empty, and such
-// accounts keep displayName in sync with login, so a real login-driven name change always arrives with a
-// displayName change. Tracking login would just cause wasted recomputes on the common (named-account) path.
+// A short string built from the fields a report name can come from: displayName and firstName.
 const displayNameSignature = (details: PersonalDetails | null): string => JSON.stringify([details?.displayName ?? '', details?.firstName ?? '']);
 
 const snapshotDisplayNames = (personalDetails: PersonalDetailsList): Record<string, string> => {
@@ -85,17 +78,16 @@ const snapshotDisplayNames = (personalDetails: PersonalDetailsList): Record<stri
     return snapshot;
 };
 
-// Records the personal-details snapshot that report names were last computed against. Kept as a single
-// helper so the two correlated module vars can't drift out of sync.
+// Remembers the personal details we just used, so the next change can be compared against them.
+// Updating both variables together here keeps them from getting out of sync.
 const commitDisplayNamesBaseline = (personalDetails: OnyxEntry<PersonalDetailsList>, snapshot: Record<string, string>) => {
     previousDisplayNames = snapshot;
     previousPersonalDetails = personalDetails;
 };
 
-// Seeds the display-name baseline from the current personal details without recomputing. Used on the first
-// pass that has personal details but wasn't triggered by them: currentValue's names were already computed
-// against these same details, so establishing the baseline here lets the *next* personal-details change be
-// diffed and scoped to affected reports, instead of hitting the empty-baseline full-recompute path.
+// Records the current names the first time we have them on a pass that wasn't itself a personal-details
+// change. The report names already match these names, so there's nothing to recompute — we just save them
+// so the next personal-details change can be compared and narrowed to the reports it actually affects.
 const seedDisplayNamesBaseline = (personalDetails: OnyxEntry<PersonalDetailsList>) => {
     if (!personalDetails || previousPersonalDetails === personalDetails || Object.keys(previousDisplayNames).length > 0) {
         return;
@@ -103,17 +95,14 @@ const seedDisplayNamesBaseline = (personalDetails: OnyxEntry<PersonalDetailsList
     commitDisplayNamesBaseline(personalDetails, snapshotDisplayNames(personalDetails));
 };
 
-// Returns the set of accountIDs whose display-name signature changed since the last compute, or:
-//   - null   → nothing changed (caller can early-return)
-//   - 'all'  → no baseline to diff against yet; recompute every report
-// Scoping to changed accountIDs lets the caller recompute only the reports that reference them,
-// instead of every report in the store.
+// Works out which accounts had a name change since last time. Returns the set of those accountIDs, or null
+// when nothing changed, or 'all' when there's no previous data to compare against yet and every report needs
+// refreshing.
 const getDisplayNameChanges = (personalDetails: OnyxEntry<PersonalDetailsList>): Set<number> | typeof RECOMPUTE_ALL | null => {
     if (!personalDetails) {
         return null;
     }
 
-    // Fast path: if reference hasn't changed, display names are definitely the same
     if (previousPersonalDetails === personalDetails) {
         return null;
     }
@@ -122,7 +111,7 @@ const getDisplayNameChanges = (personalDetails: OnyxEntry<PersonalDetailsList>):
     const nextSnapshot: Record<string, string> = {};
     const changedAccountIDs = new Set<number>();
 
-    // Single pass: build the new baseline signature and diff it against the previous one at the same time.
+    // Build the new snapshot and compare it against the old one in the same loop.
     for (const [key, value] of Object.entries(personalDetails)) {
         const signature = displayNameSignature(value);
         nextSnapshot[key] = signature;
@@ -130,7 +119,7 @@ const getDisplayNameChanges = (personalDetails: OnyxEntry<PersonalDetailsList>):
             changedAccountIDs.add(Number(key));
         }
     }
-    // Account IDs present before but gone now also invalidate any report name that referenced them.
+    // An account that existed before but is gone now also affects any report name that used it.
     if (hadBaseline) {
         for (const key of Object.keys(previousDisplayNames)) {
             if (!(key in nextSnapshot)) {
@@ -147,9 +136,7 @@ const getDisplayNameChanges = (personalDetails: OnyxEntry<PersonalDetailsList>):
     return changedAccountIDs.size > 0 ? changedAccountIDs : null;
 };
 
-// The report-record fields whose accountIDs feed a report's display name: owner, manager, individual invoice
-// receiver, and participants. This intentionally does not cover thread names derived from parent-report data
-// (see computeReportNameBasedOnReportAction) — those are re-evaluated when the parent's own data changes.
+// True when the report's name could depend on one of these accounts. We look at the accounts stored on the report itself.
 const reportReferencesAccountIDs = (report: Report, accountIDs: Set<number>): boolean => {
     if (report.ownerAccountID !== undefined && accountIDs.has(report.ownerAccountID)) {
         return true;
@@ -259,15 +246,13 @@ export default createOnyxDerivedValueConfig({
             previousDisplayNames = {};
             previousPersonalDetails = undefined;
         } else {
-            // Establish the baseline early (before the first personal-details change) so that change can be scoped.
+            // Save the current names now, so the first real name change can be narrowed to the reports it affects.
             seedDisplayNamesBaseline(personalDetails);
         }
 
-        // A full recompute is needed when locale changes (report names are locale-dependent) or on the first
-        // personal-details load (no baseline to diff against). A scoped display-name change does NOT force a
-        // full recompute — only the reports referencing the changed accounts are recomputed (see below).
-        // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
-        // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
+        // Refresh every report when the language changes (names depend on it) or on the very first personal-details
+        // load, when there's nothing to compare against. A normal name change does not land here — it only refreshes
+        // the reports that use the changed accounts (further down).
         let needsFullRecompute =
             (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) ||
             displayNameChanges === RECOMPUTE_ALL ||
@@ -332,10 +317,9 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
-        // When display names changed for a specific set of accounts, only the reports that reference one of
-        // those accounts need their name recomputed — mirrors the incremental treatment of POLICY above.
-        // Skipped when a full recompute is already scheduled (e.g. first personal-details load or locale change).
-        // useIncrementalUpdates already implies !needsFullRecompute; when it's false we do a full scan anyway.
+        // When only some accounts changed their name, refresh just the reports that use those accounts
+        // Skipped when we're already refreshing everything (first load or a
+        // locale change); in that case useIncrementalUpdates is false and the full scan below handles it.
         const personalDetailsChangedReportKeys: string[] = [];
         if (displayNameChanges instanceof Set && useIncrementalUpdates) {
             for (const [reportKey, report] of Object.entries(reports)) {
