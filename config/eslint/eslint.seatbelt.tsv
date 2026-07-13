@@ -1059,6 +1059,8 @@
 "../../src/libs/telemetry/forwardLogsToSentry.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/updateMultilineInputRange/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/AddExistingExpense.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
+"../../src/pages/AddPersonalBankAccountPage/substeps/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
+"../../src/pages/AddPersonalBankAccountPage/substeps/AddressStep.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/AddressPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/AddressPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Debug/ConstantPicker.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1470,9 +1472,6 @@
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/settings/Wallet/ImportTransactionsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/PersonalInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
-"../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/substeps/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
-"../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/substeps/AddressStep.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Wallet/InternationalDepositAccount/subPages/Confirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/InternationalDepositAccount/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
