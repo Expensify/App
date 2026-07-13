@@ -14,6 +14,7 @@ import type {Timezone} from '@src/types/onyx/PersonalDetails';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 type ChronosTimerOnyxUpdate = OnyxUpdate<
@@ -140,7 +141,10 @@ const startOrStopChronosTimer = (report: Report, currentUserAccountID: number, t
     const parameters: AddCommentOrAttachmentParams = {
         reportID,
         reportActionID,
+        commentReportActionID: null,
         reportComment: commentText,
+        clientCreatedTime: reportAction.created,
+        idempotencyKey: Str.guid(),
     };
 
     // Refresh the user's timezone if it's been long enough since the last comment (mirrors addComment).
