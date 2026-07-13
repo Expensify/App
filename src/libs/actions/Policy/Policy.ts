@@ -1301,7 +1301,12 @@ function setWorkspaceReimbursement({
         });
     }
 
-    const params: SetWorkspaceReimbursementParams = {policyID, reimbursementChoice, bankAccountID};
+    const shouldClearBankAccountID = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    const params: SetWorkspaceReimbursementParams = {
+        policyID,
+        reimbursementChoice,
+        bankAccountID: shouldClearBankAccountID ? 0 : bankAccountID,
+    };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
 }

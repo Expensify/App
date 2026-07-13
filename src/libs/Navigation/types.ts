@@ -434,7 +434,7 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.PAY_AND_DOWNGRADE]: {
+    [SCREENS.WORKSPACE.DYNAMIC_PAY_AND_DOWNGRADE]: {
         policyID?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: {
@@ -669,24 +669,18 @@ type SettingsNavigatorParamList = {
         accountID: string;
         customFieldType: CustomFieldType;
     };
-    [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
+    [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_SUCCESS]: {
         policyID: string;
         accountID: number;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: {
+    [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_ERROR]: {
         policyID: string;
         accountID: number;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
+    [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK]: {
         policyID: string;
         accountID: number;
         error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
         policyID: string;
@@ -2846,10 +2840,8 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
         firstApproverEmail: string;
     };
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
+    [SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
         policyID: string;
