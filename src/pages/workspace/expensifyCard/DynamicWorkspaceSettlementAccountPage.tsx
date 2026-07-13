@@ -11,12 +11,13 @@ import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getCardProgramKey, getCardSettings, getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
+import {getCardSettingsForSelectedProgram, getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
@@ -56,8 +57,8 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const programKey = getCardProgramKey(cardSettings);
-    const settings = getCardSettings(cardSettings, programKey);
+    const programKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
+    const settings = getCardSettingsForSelectedProgram(cardSettings, programKey);
     const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${defaultFundID}`, {
         selector: isExpensifyCardContinuousReconciliationEnabledSelector,
     });
