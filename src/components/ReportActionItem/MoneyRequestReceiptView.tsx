@@ -193,6 +193,9 @@ function MoneyRequestReceiptView({
     // While the receipt is regenerating (e.g. after an offline waypoint edit) the stored map is stale and can't be
     // redrawn locally, so don't surface the e-receipt overlay — the receipt box already shows the pending map.
     const canShowDistanceEReceipt = isMapDistanceRequest && !isPendingReceiptRegeneration;
+    // The Expand button opens the full-screen receipt on the stored map. While regeneration is pending that map is
+    // stale and can't be redrawn locally, so disable Expand for map distance requests until the refreshed receipt arrives.
+    const shouldDisableExpandReceipt = isMapDistanceRequest && isPendingReceiptRegeneration;
     const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
     const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
@@ -258,6 +261,7 @@ function MoneyRequestReceiptView({
             currentUserAccountID,
             timezone: currentUserTimezone,
             delegateAccountID,
+            conciergeReportID,
         });
     };
 
@@ -472,6 +476,7 @@ function MoneyRequestReceiptView({
                     isChatIOUReportArchived,
                     originalReportID,
                     true,
+                    policy,
                 );
                 return;
             }
@@ -729,7 +734,9 @@ function MoneyRequestReceiptView({
                                                     ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly || !canEditReceipt),
                                                 )
                                             }
+                                            disabled={shouldDisableExpandReceipt}
                                             style={styles.receiptActionButton}
+                                            disabledStyle={styles.buttonOpacityDisabled}
                                             hoverStyle={styles.buttonDefaultHovered}
                                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                                             role={CONST.ROLE.BUTTON}
