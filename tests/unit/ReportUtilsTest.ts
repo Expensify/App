@@ -161,7 +161,6 @@ import {
     isUnread,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseReportRouteParams,
-    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     pushTransactionAutoSelectionsOnyxData,
     pushTransactionViolationsOnyxData,
@@ -10299,29 +10298,6 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('populateOptimisticReportFormula', () => {
-        it('resolves {user:email} from the explicitly passed currentUserEmail param', () => {
-            // Given an optimistic report and an explicit currentUserEmail param
-            const report = {...createRandomReport(70001), reportName: 'Test report', total: 0, currency: CONST.CURRENCY.USD};
-
-            // When the {user:email} formula is populated
-            const result = populateOptimisticReportFormula('{user:email}', report, undefined, false, 'passed@example.com');
-
-            // Then it uses the passed email rather than the session email
-            expect(result).toBe('passed@example.com');
-        });
-        it('resolves {user:email|frontPart} from the explicitly passed currentUserEmail param', () => {
-            // Given an optimistic report and an explicit currentUserEmail param
-            const report = {...createRandomReport(70002), reportName: 'Test report', total: 0, currency: CONST.CURRENCY.USD};
-
-            // When the {user:email|frontPart} formula is populated
-            const result = populateOptimisticReportFormula('{user:email|frontPart}', report, undefined, false, 'passed@example.com');
-
-            // Then it uses the front part of the passed email
-            expect(result).toBe('passed');
-        });
-    });
-
     describe('current user account ID predicates', () => {
         it('isReportManager uses the explicitly passed currentUserAccountID', () => {
             // Given a report managed by account 999
@@ -14088,6 +14064,89 @@ describe('ReportUtils', () => {
             });
 
             expect(reasonForOptionList).toBe(null);
+
+            await Onyx.clear();
+        });
+
+        it('should prefer the real display name of an optimistic imported device contact over the phone login', async () => {
+            await Onyx.clear();
+
+            const importedContactAccountID = 987001;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [importedContactAccountID]: {
+                    accountID: importedContactAccountID,
+                    login: '+15551234567@expensify.sms',
+                    displayName: 'John Doe',
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    isOptimisticPersonalDetail: true,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: importedContactAccountID});
+            expect(displayName).toBe('John Doe');
+
+            await Onyx.clear();
+        });
+
+        it('should return the first name for an optimistic imported device contact when short form is requested', async () => {
+            await Onyx.clear();
+
+            const importedContactAccountID = 987002;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [importedContactAccountID]: {
+                    accountID: importedContactAccountID,
+                    login: '+15551234567@expensify.sms',
+                    displayName: 'John Doe',
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    isOptimisticPersonalDetail: true,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: importedContactAccountID, shouldUseShortForm: true});
+            expect(displayName).toBe('John');
+
+            await Onyx.clear();
+        });
+
+        it('should fall back to the login for an optimistic invite/new-user stub whose display name equals the login', async () => {
+            await Onyx.clear();
+
+            const newUserAccountID = 987003;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [newUserAccountID]: {
+                    accountID: newUserAccountID,
+                    login: 'newuser@example.com',
+                    displayName: 'newuser@example.com',
+                    isOptimisticPersonalDetail: true,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: newUserAccountID});
+            expect(displayName).toBe('newuser@example.com');
+
+            await Onyx.clear();
+        });
+
+        it('should fall back to the formatted login (not "Hidden") for an optimistic record without a display name', async () => {
+            await Onyx.clear();
+
+            const newUserAccountID = 987004;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [newUserAccountID]: {
+                    accountID: newUserAccountID,
+                    login: 'newuser2@example.com',
+                    isOptimisticPersonalDetail: true,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: newUserAccountID});
+            expect(displayName).toBe('newuser2@example.com');
 
             await Onyx.clear();
         });

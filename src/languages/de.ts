@@ -990,8 +990,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Geldbörse',
             },
             addVirtualCardPersonalDetails: {
-                title: 'Fügen Sie Ihre persönlichen Daten hinzu',
-                subtitle: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzusehen und zu verwenden.',
+                title: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzuzeigen und zu verwenden.',
+                subtitle: 'Expensify Karte',
                 cta: 'Details hinzufügen',
             },
             enterSignerInfo: {title: 'Unterzeichnerdaten erforderlich', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto ${bankAccountLastFour}`},
@@ -9229,6 +9229,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     },
     actionableMentionTrackExpense: {
         submit: 'An jemanden senden',
+        submitToFriend: 'An einen Freund senden',
+        submitToEmployer: 'An meinen Arbeitgeber senden',
         categorize: 'Kategorisieren',
         share: 'Mit meinem Steuerberater teilen',
         nothing: 'Im Moment nichts',
