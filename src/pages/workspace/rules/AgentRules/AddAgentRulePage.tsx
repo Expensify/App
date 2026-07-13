@@ -10,6 +10,7 @@ import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -62,6 +63,7 @@ function AddAgentRulePage({
 }: AddAgentRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const policy = usePolicy(policyID);
@@ -73,9 +75,11 @@ function AddAgentRulePage({
 
     useEffect(() => {
         Tab.setSelectedTab(CONST.TAB.AGENT_RULE_TAB_TYPE, CONST.TAB.AGENT_RULE.SUGGESTIONS);
-        getAgentRuleSuggestions(policyID);
+        if (!isOffline) {
+            getAgentRuleSuggestions(policyID);
+        }
         return () => clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM);
-    }, [policyID]);
+    }, [policyID, isOffline]);
 
     const tabs: TabSelectorBaseItem[] = [
         {
