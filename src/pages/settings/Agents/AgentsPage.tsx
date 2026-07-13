@@ -17,6 +17,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -25,6 +26,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -54,12 +56,13 @@ function AgentsPage() {
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const {showConfirmModal} = useConfirmModal();
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     useDocumentTitle(translate('agentsPage.title'));
 
     const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetailsList = usePersonalDetails();
-    const canSelectMultiple = !shouldUseNarrowLayout;
+    const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
 
     useEffect(() => {
         if (!isCustomAgentEnabled) {
@@ -172,7 +175,8 @@ function AgentsPage() {
     ];
 
     const hasAgents = agents.length > 0;
-    const shouldShowBulkActionsButton = canSelectMultiple && selectedAgentKeys.length > 0;
+    const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;
+    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
     const newAgentButton = (
         <Button
@@ -213,17 +217,24 @@ function AgentsPage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <HeaderWithBackButton
-                icon={illustrations.AiBot}
-                onBackButtonPress={() => Navigation.goBack()}
+                icon={!selectionModeHeader ? illustrations.AiBot : undefined}
+                onBackButtonPress={() => {
+                    if (isMobileSelectionModeEnabled) {
+                        clearSelectedAgents();
+                        turnOffMobileSelectionMode();
+                        return;
+                    }
+                    Navigation.goBack();
+                }}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                shouldUseHeadlineHeader
+                shouldUseHeadlineHeader={!selectionModeHeader}
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
-                title={translate('agentsPage.title')}
+                title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
             >
                 {!shouldUseNarrowLayout && headerButtons}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
+            {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
             {hasAgents ? (
                 <>
                     <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
@@ -231,7 +242,7 @@ function AgentsPage() {
                     </View>
                     <AgentsTable
                         agents={agents}
-                        canSelectAgents={canSelectMultiple}
+                        canSelectAgents
                         selectedKeys={selectedAgentKeys}
                         onRowSelectionChange={setSelectedAgents}
                     />
