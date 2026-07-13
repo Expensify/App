@@ -197,7 +197,6 @@ function SearchAutocompleteList({
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
-    const isInputAheadOfDebounce = effectiveInputQueryValue !== autocompleteQueryValue;
     const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -277,6 +276,13 @@ function SearchAutocompleteList({
     const prevQueryRef = useRef(effectiveInputQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const hasSetInitialFocusRef = useRef(false);
+    // Tracks the row key we last focused programmatically (reset-to-top below), so the auto-highlight
+    // effect can tell whether the user has since navigated away with the arrow keys. Without this,
+    // auto-highlight would silently snap focus back once the debounce settles even if the user had
+    // already moved to a different row (e.g. Ask Concierge) in the meantime.
+    const lastProgrammaticFocusKeyRef = useRef<string | undefined>(undefined);
+    const searchQueryItemsRef = useRef(searchQueryItems);
+    searchQueryItemsRef.current = searchQueryItems;
 
     // Callback ref to set both inner ref and forward to external ref
     const setListRef = (instance: SelectionListWithSectionsHandle | null) => {
@@ -307,6 +313,7 @@ function SearchAutocompleteList({
             } else {
                 // When query changes to a non-empty value, focus on the search query item (index 0) and scroll to top.
                 // The highlight effect below switches focus to the first result when there's a good match.
+                lastProgrammaticFocusKeyRef.current = searchQueryItemsRef.current?.at(0)?.keyForList;
                 innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
             }
         }
@@ -404,11 +411,9 @@ function SearchAutocompleteList({
             return searchOptions.recentReports;
         }
 
-        // User typed but debounce has not emitted yet; avoid showing stale results from the previous query.
-        if (isInputAheadOfDebounce) {
-            return [];
-        }
-
+        // searchOptions/autocompleteQueryValue are debounced, so during the debounce window this still
+        // returns the previous query's matches instead of blanking the list. Keeping rows visible (rather
+        // than emptying them) is what preserves focus, Enter, and arrow-key navigation while typing.
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
@@ -420,7 +425,7 @@ function SearchAutocompleteList({
         }
 
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, hasEffectiveInputQuery, isInputAheadOfDebounce, searchOptions]);
+    }, [autocompleteQueryValue, hasEffectiveInputQuery, searchOptions]);
 
     // Locked rank map (stable key -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
@@ -451,9 +456,12 @@ function SearchAutocompleteList({
         setFrozenLocalRank(buildRankMap(recentReportsOptions));
     }
 
-    // Debounce the server search so callers that don't already debounce upstream
-    // (e.g. the main Spend page header via useSearchPageInput) don't fire a request per keystroke.
-    // For SearchRouter the upstream value is already debounced, so this just adds a no-op coalescing layer.
+    // Callers that pass a distinct inputQueryValue (e.g. SearchRouter) already debounce autocompleteQueryValue
+    // upstream, so firing handleSearch immediately here avoids stacking a second debounce on top and doubling
+    // the delay. Callers that don't pass inputQueryValue (e.g. the Spend page header) still get the local
+    // debounce below so they don't fire a server request on every keystroke.
+    const hasUpstreamDebounce = inputQueryValue !== undefined;
+
     const debounceHandleSearch = useDebounce(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
             return;
@@ -463,8 +471,17 @@ function SearchAutocompleteList({
     }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
     useEffect(() => {
+        if (!handleSearch || !autocompleteQueryWithoutFilters) {
+            return;
+        }
+
+        if (hasUpstreamDebounce) {
+            handleSearch(autocompleteQueryWithoutFilters);
+            return;
+        }
+
         debounceHandleSearch();
-    }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
+    }, [autocompleteQueryWithoutFilters, debounceHandleSearch, handleSearch, hasUpstreamDebounce]);
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SearchAutocompleteList',
@@ -579,7 +596,7 @@ function SearchAutocompleteList({
             }
         }
 
-        if (!isInputAheadOfDebounce && autocompleteSuggestions.length > 0) {
+        if (autocompleteSuggestions.length > 0) {
             const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
                 return {
                     text: getAutocompleteDisplayText(filterKey, text),
@@ -598,7 +615,6 @@ function SearchAutocompleteList({
         return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
     }, [
         hasEffectiveInputQuery,
-        isInputAheadOfDebounce,
         autocompleteSuggestions,
         expensifyIcons,
         frozenLocalRank,
@@ -663,8 +679,9 @@ function SearchAutocompleteList({
         }
         hasSetInitialFocusRef.current = true;
 
+        lastProgrammaticFocusKeyRef.current = firstRecentReportKey;
         innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, false);
-    }, [isLoadingOptions, firstRecentReportFlatIndex, shouldUseNarrowLayout]);
+    }, [isLoadingOptions, firstRecentReportFlatIndex, firstRecentReportKey, shouldUseNarrowLayout]);
 
     useEffect(() => {
         const targetText = autocompleteQueryValue;
@@ -672,10 +689,20 @@ function SearchAutocompleteList({
         if (!shouldHighlightFirstItem || firstRecentReportFlatIndex === -1 || !shouldHighlight(normalizedReferenceText, targetText)) {
             return;
         }
+
+        // Don't override focus if the user has already navigated away (e.g. via arrow keys) from the row we
+        // last set programmatically. Otherwise this settle-triggered auto-highlight would silently steal focus
+        // back from a manual selection made during the debounce window.
+        const currentFocusedKey = innerListRef.current?.getFocusedOption?.()?.keyForList;
+        if (lastProgrammaticFocusKeyRef.current !== undefined && currentFocusedKey !== lastProgrammaticFocusKeyRef.current) {
+            return;
+        }
+
         // Focus the header-aware flat index of the first result. A fixed index (e.g. searchQueryItems.length)
         // lands on the "Recent chats" section header row after the two-section switcher was introduced.
+        lastProgrammaticFocusKeyRef.current = firstRecentReportKey;
         innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, true);
-    }, [autocompleteQueryValue, firstRecentReportFlatIndex, normalizedReferenceText, shouldHighlightFirstItem]);
+    }, [autocompleteQueryValue, firstRecentReportFlatIndex, firstRecentReportKey, normalizedReferenceText, shouldHighlightFirstItem]);
 
     if (isLoading) {
         return (
