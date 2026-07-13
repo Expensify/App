@@ -155,8 +155,8 @@ import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} fr
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
+import {formatInTimeZone} from 'date-fns-tz';
 import {addDays} from 'date-fns/addDays';
-import {formatDate} from 'date-fns/format';
 import {subMinutes} from 'date-fns/subMinutes';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -189,6 +189,18 @@ type WorkspaceMembersChats = {
     reportCreationData: ReportCreationData;
 };
 
+type CreatePolicyExpenseChatsParams = {
+    policyID: string;
+    invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs;
+    currentUser: CurrentUser;
+    // TODO: Remove optional (?) once all is updated (https://github.com/Expensify/App/issues/66578)
+    reportActionsList?: OnyxCollection<ReportActions>;
+    hasOutstandingChildRequest?: boolean;
+    notificationPreference?: NotificationPreference;
+    // Remove optional (?) and the deprecatedAllPersonalDetails fallback once all callers pass this (https://github.com/Expensify/App/issues/66580)
+    doesPersonalDetailExistByAccountID?: Record<number, boolean>;
+};
+
 type OptimisticCustomUnits = {
     customUnits: Record<string, CustomUnit>;
     customUnitID: string;
@@ -201,6 +213,19 @@ type WorkspaceFromIOUCreationData = {
     workspaceChatReportID: string;
     reportPreviewReportActionID?: string;
     adminsChatReportID: string;
+};
+
+type CreateWorkspaceFromIOUPaymentOptions = {
+    iouReport: OnyxEntry<Report>;
+    reportPreviewAction: ReportAction | undefined;
+    currentUserAccountID: number;
+    currentUserEmail: string;
+    iouReportOwnerEmail: string;
+    currentUserLocalCurrency: string;
+    lastWorkspaceNumber: number | undefined;
+    localeTranslate: LocalizedTranslate;
+    reportActionsList: OnyxCollection<ReportActions>;
+    doesEmployeePersonalDetailExist: boolean;
 };
 
 type PolicyCashExpenseMode = ValueOf<typeof CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES>;
@@ -285,15 +310,6 @@ type SetWorkspaceApprovalModeAdditionalData = {
     transactionViolations?: OnyxCollection<TransactionViolations>;
     betas?: Beta[];
 };
-
-let deprecatedAllReportActions: OnyxCollection<ReportActions>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
-    callback: (actions) => {
-        deprecatedAllReportActions = actions;
-    },
-});
 
 let deprecatedAllPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
@@ -1058,6 +1074,7 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string, currentRei
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                reimburser: currentReimburser ?? null,
                 achAccount: {reimburser: currentReimburser ?? null},
                 errorFields: {reimburser: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsPayerPage.genericErrorMessage')},
                 pendingFields: {reimburser: null},
@@ -1284,7 +1301,12 @@ function setWorkspaceReimbursement({
         });
     }
 
-    const params: SetWorkspaceReimbursementParams = {policyID, reimbursementChoice, bankAccountID};
+    const shouldClearBankAccountID = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    const params: SetWorkspaceReimbursementParams = {
+        policyID,
+        reimbursementChoice,
+        bankAccountID: shouldClearBankAccountID ? 0 : bankAccountID,
+    };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
 }
@@ -1576,16 +1598,15 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentU
  *
  * @returns - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
  */
-function createPolicyExpenseChats(
-    policyID: string,
-    invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    currentUser: CurrentUser,
-    // TODO: Remove optional (?) once all is updated (https://github.com/Expensify/App/issues/66578)
-    reportActionsList?: OnyxCollection<ReportActions>,
+function createPolicyExpenseChats({
+    policyID,
+    invitedEmailsToAccountIDs,
+    currentUser,
+    reportActionsList,
     hasOutstandingChildRequest = false,
-    notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-    doesPersonalDetailExistByAccountID?: Record<number, boolean>,
-): WorkspaceMembersChats {
+    notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    doesPersonalDetailExistByAccountID,
+}: CreatePolicyExpenseChatsParams): WorkspaceMembersChats {
     const {accountID: currentUserAccountID, displayName: currentUserDisplayName, email: currentUserEmail, avatar: currentUserAvatar} = currentUser;
     const workspaceMembersChats: WorkspaceMembersChats = {
         onyxSuccessData: [],
@@ -1622,7 +1643,7 @@ function createPolicyExpenseChats(
                 },
             });
             const currentTime = DateUtils.getDBTime();
-            const reportActions = (reportActionsList ?? deprecatedAllReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChat.reportID}`] ?? {};
+            const reportActions = reportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChat.reportID}`] ?? {};
             for (const action of Object.values(reportActions)) {
                 if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     continue;
@@ -3110,14 +3131,13 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
     }
 
     if (adminParticipant?.login) {
-        const employeeWorkspaceChat = createPolicyExpenseChats(
+        const employeeWorkspaceChat = createPolicyExpenseChats({
             policyID,
-            {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID},
-            {accountID: currentUserAccountIDParam},
-            // reportActionsList is intentionally undefined. See https://github.com/Expensify/App/pull/88312#issuecomment-4286942084
-            undefined,
+            invitedEmailsToAccountIDs: {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID},
+            currentUser: {accountID: currentUserAccountIDParam},
+            // reportActionsList is intentionally omitted. See https://github.com/Expensify/App/pull/88312#issuecomment-4286942084
             hasOutstandingChildRequest,
-        );
+        });
         params.memberData = JSON.stringify({
             accountID: Number(adminParticipant.accountID),
             email: adminParticipant.login,
@@ -4185,17 +4205,18 @@ function dismissAddedWithPrimaryLoginMessages(policyID: string) {
  * @returns policyID of the workspace we have created
  */
 
-function createWorkspaceFromIOUPayment(
-    iouReport: OnyxEntry<Report>,
-    reportPreviewAction: ReportAction | undefined,
-    currentUserAccountID: number,
-    currentUserEmail: string,
-    iouReportOwnerEmail: string,
-    currentUserLocalCurrency: string,
-    lastWorkspaceNumber: number | undefined,
-    localeTranslate: LocalizedTranslate,
-    reportActionsList: OnyxCollection<ReportActions>,
-): WorkspaceFromIOUCreationData | undefined {
+function createWorkspaceFromIOUPayment({
+    iouReport,
+    reportPreviewAction,
+    currentUserAccountID,
+    currentUserEmail,
+    iouReportOwnerEmail,
+    currentUserLocalCurrency,
+    lastWorkspaceNumber,
+    localeTranslate,
+    reportActionsList,
+    doesEmployeePersonalDetailExist,
+}: CreateWorkspaceFromIOUPaymentOptions): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
         return;
@@ -4227,7 +4248,14 @@ function createWorkspaceFromIOUPayment(
     }
 
     // Create the expense chat for the employee whose IOU is being paid
-    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[iouReportOwnerEmail]: employeeAccountID}, {accountID: currentUserAccountID}, reportActionsList, true);
+    const employeeWorkspaceChat = createPolicyExpenseChats({
+        policyID,
+        invitedEmailsToAccountIDs: {[iouReportOwnerEmail]: employeeAccountID},
+        currentUser: {accountID: currentUserAccountID},
+        reportActionsList,
+        hasOutstandingChildRequest: true,
+        doesPersonalDetailExistByAccountID: {[employeeAccountID]: doesEmployeePersonalDetailExist},
+    });
     const newWorkspace = {
         id: policyID,
 
@@ -5787,6 +5815,59 @@ function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
 }
 
 /**
+ * Upgrades several workspaces to Corporate (Control) in a single `UpgradeToCorporate` call by passing
+ * `policyIDList` instead of `policyID`. Used by the copy-settings flow when Control-only settings are
+ * being copied onto Collect (Team) targets.
+ */
+function bulkUpgradeToCorporate(policies: Policy[]) {
+    const policiesToUpgrade = policies.filter((policy): policy is Policy => !!policy);
+    if (policiesToUpgrade.length === 0) {
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+
+    for (const policy of policiesToUpgrade) {
+        const policyID = policy.id;
+        const {optimistic: corporateUpgradeOptimistic, failure: corporateUpgradeFailureRevert} = getCorporateUpgradeOnyxFields(policy);
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isPendingUpgrade: true,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                ...corporateUpgradeOptimistic,
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isPendingUpgrade: false,
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isPendingUpgrade: false,
+                type: policy.type,
+                ...corporateUpgradeFailureRevert,
+            },
+        });
+    }
+
+    const parameters: UpgradeToCorporateParams = {policyIDList: policiesToUpgrade.map((policy) => policy.id).join(',')};
+
+    API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
+}
+
+/**
  * Handle the upgrade from submit to corporate or control based on the target type
  * @param policy - Workspace policy being upgraded
  * @param targetType - the type to upgrade to, either team or corporate
@@ -5812,8 +5893,9 @@ function upgradeSubmit(
     type UpgradeSubmitOnyxKey = typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL | typeof ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL;
 
     const now = new Date();
-    const optimisticFirstDayFreeTrial = formatDate(subMinutes(now, 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
-    const optimisticLastDayFreeTrial = formatDate(addDays(now, 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+    // Match the backend's UTC DB timestamp format for optimistic trial dates.
+    const optimisticFirstDayFreeTrial = formatInTimeZone(subMinutes(now, 1), 'UTC', CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+    const optimisticLastDayFreeTrial = formatInTimeZone(addDays(now, 30), 'UTC', CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
 
     const policyID = policy?.id ?? CONST.POLICY.ID_FAKE;
     const currentUserLogin = currentUserEmail ?? '';
@@ -6590,6 +6672,31 @@ function disableWorkspaceBillableExpenses(policyID: string) {
     };
 
     API.write(WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE, parameters, onyxData);
+}
+
+/**
+ * The pending state might be set by either setPolicyBillableMode or disableWorkspaceBillableExpenses.
+ * setPolicyBillableMode changes disabledFields and defaultBillable and is called when disabledFields.defaultBillable is set.
+ * Otherwise, disableWorkspaceBillableExpenses is used and it changes only disabledFields
+ */
+function getBillableExpensesPendingAction(policy: OnyxEntry<Policy>): PendingAction | undefined {
+    if (policy?.pendingFields?.defaultBillable) {
+        return policy.pendingFields.defaultBillable;
+    }
+
+    if (policy?.disabledFields?.defaultBillable && policy?.pendingFields?.disabledFields) {
+        return policy.pendingFields.disabledFields;
+    }
+
+    return undefined;
+}
+
+function toggleBillableExpenses(policy: OnyxEntry<Policy>) {
+    if (policy?.disabledFields?.defaultBillable) {
+        setPolicyBillableMode(policy.id, false, policy?.defaultBillable, true);
+    } else if (policy) {
+        disableWorkspaceBillableExpenses(policy.id);
+    }
 }
 
 function getWorkspaceEReceiptsEnabledOnyxData(policyID: string, enabled: boolean, currentEnabled: boolean | undefined): OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> {
@@ -7637,6 +7744,7 @@ export {
     enableExpensifyCard,
     createPolicyExpenseChats,
     upgradeToCorporate,
+    bulkUpgradeToCorporate,
     openPolicyExpensifyCardsPage,
     updateMemberCustomField,
     openPolicyEditCardLimitTypePage,
@@ -7663,6 +7771,8 @@ export {
     clearDuplicateWorkspace,
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
+    getBillableExpensesPendingAction,
+    toggleBillableExpenses,
     setWorkspaceEReceiptsEnabled,
     verifySetupIntentAndRequestPolicyOwnerChange,
     updateInvoiceCompanyName,
