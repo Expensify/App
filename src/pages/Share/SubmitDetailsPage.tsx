@@ -5,6 +5,7 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useNetwork from '@hooks/useNetwork';
@@ -74,6 +75,7 @@ function SubmitDetailsPage({
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
@@ -296,6 +298,7 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 optimisticTransactionID,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                delegateAccountID,
                 reportActionsList: undefined,
             });
         } else {
@@ -341,6 +344,7 @@ function SubmitDetailsPage({
                 betas,
                 personalDetails,
                 optimisticTransactionID,
+                delegateAccountID,
             });
         }
         cleanupAndNavigateAfterExpenseCreate({
