@@ -157,6 +157,7 @@ const translations = {
         signInWithApple: 'Sign in with Apple',
         signInWith: 'Sign in with',
         continue: 'Continue',
+        tryAgain: 'Try again',
         firstName: 'First name',
         lastName: 'Last name',
         scanning: 'Scanning',
@@ -3862,7 +3863,6 @@ const translations = {
         facialScan: 'Onfido’s Facial Scan Policy and Release',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfido’s Facial Scan Policy and Release</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Privacy</a> and <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Terms of Service</a>.</muted-text-micro>`,
-        tryAgain: 'Try again',
         verifyIdentity: 'Verify identity',
         letsVerifyIdentity: "Let's verify your identity",
         butFirst: `But first, the boring stuff. Read up on the legalese in the next step and click "Accept" when you're ready.`,
@@ -5726,7 +5726,6 @@ const translations = {
                 workspaceFeedsCouldNotBeLoadedMessage: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',
                 feedCouldNotBeLoadedTitle: "Couldn't load this feed",
                 feedCouldNotBeLoadedMessage: 'An error occurred while loading this feed. Please try again or contact your administrator.',
-                tryAgain: 'Try again',
             },
             addNewCard: {
                 other: 'Other',
@@ -6525,6 +6524,7 @@ const translations = {
                 conciergeNotificationTitle: 'Concierge will let you know',
                 conciergeNotificationDescription: 'When the process is completed, Concierge will send you a message.',
                 copyCompleted: 'Your workspace settings have been copied.',
+                copyFailedTitle: 'Copy failed',
             },
         },
         emptyWorkspace: {
