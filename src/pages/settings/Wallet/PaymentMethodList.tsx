@@ -5,6 +5,7 @@ import Text from '@components/Text';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -193,6 +194,7 @@ function PaymentMethodList({
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const {translate, datetimeToRelative} = useLocalize();
+    const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines']);
@@ -325,15 +327,13 @@ function PaymentMethodList({
 
                     let cardConnectionMessage: string | undefined;
                     if (shouldShowCardConnectionMessage) {
-                        let messageKey: 'walletPage.cardStatus.fixConnectionIn' | 'walletPage.cardStatus.fixConnection' | 'walletPage.cardStatus.askAdminToFixConnection';
-                        if (!isUserPersonalCard && isAdminForCardPolicy) {
-                            messageKey = 'walletPage.cardStatus.fixConnectionIn';
+                        if (!isUserPersonalCard && isAdminForCardPolicy && policyIDForCard) {
+                            cardConnectionMessage = translate('walletPage.cardStatus.fixConnectionIn', `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard)}`);
                         } else if (isUserPersonalCard) {
-                            messageKey = 'walletPage.cardStatus.fixConnection';
+                            cardConnectionMessage = translate('walletPage.cardStatus.fixConnection');
                         } else {
-                            messageKey = 'walletPage.cardStatus.askAdminToFixConnection';
+                            cardConnectionMessage = translate('walletPage.cardStatus.askAdminToFixConnection');
                         }
-                        cardConnectionMessage = translate(messageKey);
                     }
 
                     cardConnectionStatus = {
@@ -345,10 +345,11 @@ function PaymentMethodList({
                             isUserPersonalCard && shouldShowCardConnectionMessage
                                 ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID)))
                                 : undefined,
-                        linkText: !isUserPersonalCard && isAdminForCardPolicy && shouldShowCardConnectionMessage ? translate('walletPage.cardStatus.companyCardsLink') : undefined,
                         onLinkPress:
                             !isUserPersonalCard && isAdminForCardPolicy && policyIDForCard && shouldShowCardConnectionMessage
-                                ? () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard))
+                                ? () => {
+                                      Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard));
+                                  }
                                 : undefined,
                     };
                 }

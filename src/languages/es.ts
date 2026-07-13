@@ -2474,8 +2474,7 @@ const translations: TranslationDeepObject<typeof en> = {
             active: 'Activo',
             inactive: 'Inactivo',
             fixConnection: 'Por favor, corrige esta conexión',
-            fixConnectionIn: 'Por favor, corrige esta conexión en',
-            companyCardsLink: 'tarjetas de la empresa',
+            fixConnectionIn: (companyCardsRoute) => `Por favor, corrige esta conexión en <a href="${companyCardsRoute}">tarjetas de la empresa</a>`,
             askAdminToFixConnection: 'Pídele a un administrador que solucione esta conexión',
         },
         bankAccountStatus: {

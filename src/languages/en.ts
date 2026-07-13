@@ -2647,8 +2647,7 @@ const translations = {
             active: 'Active',
             inactive: 'Inactive',
             fixConnection: 'Please fix this connection',
-            fixConnectionIn: 'Please fix this connection in',
-            companyCardsLink: 'company cards',
+            fixConnectionIn: (companyCardsRoute: string) => `Please fix this connection in <a href="${companyCardsRoute}">company cards</a>`,
             askAdminToFixConnection: 'Please ask an admin to fix this connection',
         },
         bankAccountStatus: {

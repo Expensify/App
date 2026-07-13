@@ -8,6 +8,7 @@ import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import type RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
@@ -35,7 +36,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {KeyboardEvent as ReactKeyboardEvent} from 'react';
+import type {ComponentProps, KeyboardEvent as ReactKeyboardEvent} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -50,8 +51,7 @@ type ConnectionStatusDetails = {
     actionText?: string;
     onActionPress?: (e: GestureResponderEvent | ReactKeyboardEvent | undefined) => void;
     isActionDisabled?: boolean;
-    linkText?: string;
-    onLinkPress?: (e: GestureResponderEvent | ReactKeyboardEvent) => void;
+    onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -296,7 +296,6 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                         onActionPress={connectionStatus.onActionPress ? () => connectionStatus.onActionPress?.(undefined) : undefined}
                                         isActionDisabled={connectionStatus.isActionDisabled}
                                         statusTone={connectionStatus.statusTone}
-                                        linkText={connectionStatus.linkText}
                                         onLinkPress={connectionStatus.onLinkPress}
                                     />
                                 </View>

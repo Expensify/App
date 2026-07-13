@@ -2503,8 +2503,7 @@ const translations: TranslationDeepObject<typeof en> = {
             active: '活跃',
             inactive: '未激活',
             fixConnection: '请修复此连接',
-            fixConnectionIn: '请修复此连接，位于',
-            companyCardsLink: '公司卡',
+            fixConnectionIn: (companyCardsRoute: string) => `请在<a href="${companyCardsRoute}">公司卡</a>中修复此连接`,
             askAdminToFixConnection: '请联系管理员修复此连接',
         },
         bankAccountStatus: {

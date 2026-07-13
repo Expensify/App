@@ -3,15 +3,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {KeyboardEvent as ReactKeyboardEvent} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import type {ComponentProps} from 'react';
 
 import React from 'react';
 import {View} from 'react-native';
 
 import Button from './Button';
 import Icon from './Icon';
-import InlineTextWithOptionalLink from './InlineTextWithOptionalLink';
+import RenderHTML from './RenderHTML';
 
 type ConnectionStatusMessageProps = {
     message?: string;
@@ -19,8 +18,7 @@ type ConnectionStatusMessageProps = {
     onActionPress?: () => void;
     isActionDisabled?: boolean;
     statusTone?: 'default' | 'success' | 'danger';
-    linkText?: string;
-    onLinkPress?: (event: GestureResponderEvent | ReactKeyboardEvent) => void;
+    onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
     shouldIncludeHorizontalPadding?: boolean;
 };
 
@@ -30,7 +28,6 @@ function ConnectionStatusMessage({
     onActionPress,
     isActionDisabled = false,
     statusTone = 'default',
-    linkText,
     onLinkPress,
     shouldIncludeHorizontalPadding = true,
 }: ConnectionStatusMessageProps) {
@@ -49,6 +46,8 @@ function ConnectionStatusMessage({
     }
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';
+    const messageTag = isDangerStatus ? 'rbr' : 'muted-text-label';
+    const messageHTML = `<${messageTag}>${message ?? ''}</${messageTag}>`;
     const messageContent = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
             {isDangerStatus && (
@@ -59,12 +58,12 @@ function ConnectionStatusMessage({
                     />
                 </View>
             )}
-            <InlineTextWithOptionalLink
-                message={message ?? ''}
-                linkText={linkText}
-                onLinkPress={onLinkPress}
-                textStyle={[isDangerStatus ? styles.textLabelError : styles.textLabelSupporting, styles.flex1]}
-            />
+            <View style={styles.flex1}>
+                <RenderHTML
+                    html={messageHTML}
+                    onLinkPress={onLinkPress}
+                />
+            </View>
         </View>
     );
 
