@@ -164,6 +164,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -435,6 +436,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            delegateAccountID: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -601,6 +603,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            delegateAccountID: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1419,6 +1422,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            delegateAccountID: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1545,6 +1549,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    delegateAccountID: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -1795,6 +1800,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    delegateAccountID: undefined,
                 });
             }
             await waitForBatchedUpdates();
