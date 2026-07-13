@@ -183,6 +183,7 @@ import {
     temporary_getMoneyRequestOptions,
     updateReportPreview,
 } from '@libs/ReportUtils';
+import {buildTransactionsByReportID} from '@libs/TodosUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -328,6 +329,7 @@ const computeReportName = (
         currentUserLogin: currentUserEmail,
         translate: translateLocal,
         conciergeReportID,
+        reportTransactions: buildTransactionsByReportID(transactions),
         isTrackIntentUser: false,
     });
 const participantsPersonalDetails: PersonalDetailsList = {
@@ -18621,7 +18623,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(1)};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal);
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, [], translateLocal);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -18635,7 +18637,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(2)};
-            const result = getChatListItemReportName(action, regularReport, conciergeReportID, translateLocal);
+            const result = getChatListItemReportName(action, regularReport, conciergeReportID, [], translateLocal);
             expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -18645,7 +18647,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal);
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, [], translateLocal);
             expect(result).toBe('Custom Action Name');
         });
 
@@ -18659,7 +18661,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(4)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, translateLocal);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, [], translateLocal);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -18675,7 +18677,7 @@ describe('ReportUtils', () => {
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
 
             const action = {...createRandomReportAction(5)};
-            const result = getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker);
+            const result = getChatListItemReportName(action, invoiceReport, undefined, [], translateWithMarker);
 
             expect(result).toBe('PayerOwesMarker');
         });
@@ -18690,7 +18692,7 @@ describe('ReportUtils', () => {
             };
 
             const action = {...createRandomReportAction(6)};
-            const result = getChatListItemReportName(action, invoiceReport, undefined, translateLocal);
+            const result = getChatListItemReportName(action, invoiceReport, undefined, [], translateLocal);
 
             expect(result).toBe('Invoice #42');
         });

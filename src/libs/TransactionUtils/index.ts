@@ -1240,6 +1240,10 @@ function getReimbursable(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return transaction?.reimbursable ?? true;
 }
 
+function hasNonReimbursableTransactions(transactions?: Transaction[]): boolean {
+    return !!transactions?.some((transaction) => !getReimbursable(transaction));
+}
+
 /**
  * Return the mccGroup field from the transaction, return the modifiedMCCGroup if present.
  */
@@ -2962,19 +2966,6 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, origina
 }
 
 /**
- * Determines whether a report should display the expense breakdown.
- */
-function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
-    if (!transactions || transactions.length === 0) {
-        return false;
-    }
-
-    // Show breakdown if there is ANY non-reimbursable expense.
-    // If there are no non-reimbursable expenses (i.e., all are reimbursable), do not show the breakdown.
-    return transactions.some((transaction) => !getReimbursable(transaction));
-}
-
-/**
  * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
  */
 function createUnreportedExpenses(transactions: Array<OnyxEntry<Transaction> | undefined>): UnreportedExpenseListItemType[] {
@@ -3222,6 +3213,7 @@ export {
     buildNewTransactionAfterReviewingDuplicates,
     buildMergeDuplicatesParams,
     getReimbursable,
+    hasNonReimbursableTransactions,
     isPayAtEndExpense,
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
@@ -3270,7 +3262,6 @@ export {
     getMCCForDisplay,
     hasDisplayableMCC,
     getConvertedAmount,
-    shouldShowExpenseBreakdown,
     isTimeRequest,
     getExpenseTypeTranslationKey,
     getReceiptTypeTranslationKey,

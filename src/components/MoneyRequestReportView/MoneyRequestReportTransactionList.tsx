@@ -35,7 +35,7 @@ import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getReportLayoutGroupBy, getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {resolveTransactionCardFields} from '@libs/CardUtils';
-import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -57,7 +57,7 @@ import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
-import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
+import {getTransactionPendingAction, getVisibleTransactionViolations, hasNonReimbursableTransactions, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
@@ -202,7 +202,7 @@ function MoneyRequestReportTransactionList({
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
     const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
-    const shouldShowExpenseReportBreakDown = shouldShowExpenseBreakdown(transactions);
+    const shouldShowExpenseReportBreakDown = hasNonReimbursableTransactions(transactions);
     const shouldShowBreakdown = shouldShowExpenseReportBreakDown || !!billableTotal || (!!taxTotal && isTaxEnabled);
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -422,11 +422,21 @@ function MoneyRequestReportTransactionList({
             isExpenseReportViewFromIOUReport,
             shouldShowBillableColumn,
             shouldShowCommentsColumn,
-            shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
+            shouldShowReimbursableColumn: shouldShowExpenseReportBreakDown,
             reportCurrency: report?.currency,
             isPolicyTaxEnabled: isTaxEnabled,
         });
-    }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn, shouldShowCommentsColumn, reportDetailsColumns, report, isTaxEnabled]);
+    }, [
+        transactions,
+        currentUserDetails?.accountID,
+        isExpenseReportViewFromIOUReport,
+        shouldShowBillableColumn,
+        shouldShowCommentsColumn,
+        reportDetailsColumns,
+        report,
+        isTaxEnabled,
+        shouldShowExpenseReportBreakDown,
+    ]);
 
     const {windowWidth, windowHeight} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columnsToShow);

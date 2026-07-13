@@ -12740,12 +12740,18 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
     return chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled;
 }
 
-function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, conciergeReportID: string | undefined, translate: LocalizedTranslate): string {
+function getChatListItemReportName(
+    action: ReportAction & {reportName?: string},
+    report: Report | undefined,
+    conciergeReportID: string | undefined,
+    linkedTransactions: Transaction[],
+    translate: LocalizedTranslate,
+): string {
     if (report && isInvoiceReport(report)) {
         const properInvoiceReport = report;
         properInvoiceReport.chatReportID = report.parentReportID;
 
-        return getInvoiceReportName(properInvoiceReport, translate);
+        return getInvoiceReportName(properInvoiceReport, linkedTransactions, translate);
     }
 
     if (action?.reportName) {

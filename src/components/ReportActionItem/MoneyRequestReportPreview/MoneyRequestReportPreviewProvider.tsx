@@ -11,7 +11,6 @@ import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     getMoneyRequestSpendBreakdown,
     getTransactionsWithReceipts,
-    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isReportApproved,
@@ -21,7 +20,7 @@ import {
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {hasPendingUI, isPending} from '@libs/TransactionUtils';
+import {hasPendingUI, isPending, hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -179,7 +178,7 @@ function MoneyRequestReportPreviewProvider({
     // recompute these values when the report's transactions change.
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, allReportTransactions);
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction)).length;
-    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReportID, allReportTransactions);
+    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
     const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);

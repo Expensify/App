@@ -146,7 +146,6 @@ import {
     getTransactionReportName,
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
-    hasNonReimbursableTransactions,
     isAdminRoom,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
@@ -174,6 +173,7 @@ import {
     shouldShowMarkAsDone,
 } from './ReportUtils';
 import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from './SpendRuleChangeLogUtils';
+import {hasNonReimbursableTransactions} from './TransactionUtils';
 
 type ComputeReportName = {
     report?: Report;
@@ -190,6 +190,7 @@ type ComputeReportName = {
     // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
     conciergeReportID?: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    reportTransactions: Record<string, Transaction[]>;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -353,8 +354,14 @@ function getInvoicesChatName({
     return getPolicyName({report, policy: receiverPolicy});
 }
 
-function getInvoiceReportName(report: OnyxEntry<Report>, translate: LocalizedTranslate, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
-    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy, translate});
+function getInvoiceReportName(
+    report: OnyxEntry<Report>,
+    linkedTransactions: Transaction[],
+    translate: LocalizedTranslate,
+    policy?: OnyxEntry<Policy>,
+    invoiceReceiverPolicy?: OnyxEntry<Policy>,
+): string {
+    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy, linkedTransactions, translate});
     const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
 }
@@ -388,11 +395,13 @@ function getMoneyRequestReportName({
     report,
     policy,
     invoiceReceiverPolicy,
+    linkedTransactions,
     translate,
 }: {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    linkedTransactions: Transaction[];
     translate: LocalizedTranslate;
 }): string {
     // For expense reports with empty fieldList and empty reportName, return "New Report" (matches OldDot behavior)
@@ -428,8 +437,7 @@ function getMoneyRequestReportName({
     if (report?.isWaitingOnBankAccount) {
         return `${payerPaidAmountMessage} ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
     }
-
-    if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
+    if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(linkedTransactions)) {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
         return translate('iou.payerSpentAmount', formattedAmount, payerOrApproverName);
     }
@@ -952,6 +960,7 @@ function computeReportName({
     allPolicyTags,
     conciergeReportID,
     reportAttributes,
+    reportTransactions,
     isTrackIntentUser,
 }: ComputeReportName): string {
     if (!report?.reportID) {
@@ -998,6 +1007,7 @@ function computeReportName({
             translate,
             conciergeReportID,
             reportAttributes,
+            reportTransactions,
             isTrackIntentUser,
         });
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translate);
@@ -1048,7 +1058,7 @@ function computeReportName({
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName({report, policy, translate});
+        formattedName = getMoneyRequestReportName({report, policy, linkedTransactions: reportTransactions[report.reportID] ?? [], translate});
     }
 
     if (isInvoiceReport(report)) {
@@ -1059,7 +1069,7 @@ function computeReportName({
             chatReceiverPolicyID = (chatReceiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = chatReceiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicyID}`] : undefined;
-        formattedName = getInvoiceReportName(report, translate, policy, invoiceReceiverPolicy);
+        formattedName = getInvoiceReportName(report, reportTransactions[report.reportID] ?? [], translate, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {

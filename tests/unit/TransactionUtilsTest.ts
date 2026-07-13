@@ -2018,28 +2018,30 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('shouldShowExpenseBreakdown', () => {
-        it('should return false when transactions array is undefined', () => {
-            expect(TransactionUtils.shouldShowExpenseBreakdown(undefined)).toBe(false);
+    describe('hasNonReimbursableTransactions', () => {
+        it('returns false when transactions array is undefined', () => {
+            expect(TransactionUtils.hasNonReimbursableTransactions(undefined)).toBe(false);
         });
 
-        it('should return false when transactions array is empty', () => {
-            expect(TransactionUtils.shouldShowExpenseBreakdown([])).toBe(false);
+        it('returns false when transactions array is empty', () => {
+            expect(TransactionUtils.hasNonReimbursableTransactions([])).toBe(false);
         });
 
-        it('should return false when all transactions are reimbursable', () => {
-            const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: true})];
-            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(false);
+        it('returns false when all transactions are reimbursable by default', () => {
+            const t1 = generateTransaction({reimbursable: undefined});
+            const t2 = generateTransaction({reimbursable: true});
+            expect(TransactionUtils.hasNonReimbursableTransactions([t1, t2])).toBe(false);
         });
 
-        it('should return true when all transactions are non-reimbursable', () => {
+        it('returns true when all transactions are non-reimbursable', () => {
             const transactions = [generateTransaction({reimbursable: false}), generateTransaction({reimbursable: false})];
-            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
+            expect(TransactionUtils.hasNonReimbursableTransactions(transactions)).toBe(true);
         });
 
-        it('should return true when there are both reimbursable and non-reimbursable transactions', () => {
-            const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: false})];
-            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
+        it('returns true when any transaction is non-reimbursable', () => {
+            const reimbursable = generateTransaction({reimbursable: true});
+            const nonReimbursable = generateTransaction({reimbursable: false});
+            expect(TransactionUtils.hasNonReimbursableTransactions([reimbursable, nonReimbursable])).toBe(true);
         });
     });
 
