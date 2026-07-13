@@ -24,8 +24,8 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
     const enableNewCategories = rilletConfig?.enableNewCategories ?? false;
-    const hasTaxRates = !!rilletData?.taxRates.length;
-    const syncTaxRates = rilletConfig?.coding.syncTaxRates ?? false;
+    const hasTaxRates = !!rilletData?.taxRates?.length;
+    const syncTaxRates = rilletConfig?.coding?.syncTaxRates ?? false;
 
     return (
         <ConnectionLayout
@@ -68,8 +68,8 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
             <View style={[styles.mv3, styles.mh5]}>
                 <Text>{translate('workspace.rillet.dimensionsImport')}</Text>
             </View>
-            {rilletData?.fields.map((field) => {
-                const mapping = rilletConfig?.coding.fieldMappings[field.id];
+            {rilletData?.fields?.map((field) => {
+                const mapping = rilletConfig?.coding?.fieldMappings?.[field.id];
                 const isImported = mapping === CONST.RILLET_MAPPING_VALUE.TAG;
                 return (
                     <ToggleSettingOptionRow
