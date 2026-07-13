@@ -920,7 +920,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Proporciona una dirección para recibir tu Tarjeta Expensify.',
                 cta: 'Añade dirección',
             },
-            addVirtualCardPersonalDetails: {title: 'Añade tus datos personales', subtitle: 'Añade tus datos para ver y empezar a usar tu Tarjeta Expensify.', cta: 'Añade detalles'},
+            addVirtualCardPersonalDetails: {title: 'Añade tus datos para ver y empezar a usar tu Tarjeta Expensify.', subtitle: 'Tarjeta Expensify', cta: 'Añade detalles'},
             addPaymentCard: {
                 title: 'Añade una tarjeta de pago para seguir usando Expensify',
                 subtitle: 'Cuenta > Suscripción',
@@ -2031,7 +2031,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstall: 'Por favor, actualiza a la última versión de New Expensify',
         pleaseInstallExpensifyClassic: 'Por favor, instala la última versión de Expensify',
         toGetLatestChanges: 'Para móvil, descarga e instala la última versión. Para la web, actualiza tu navegador.',
-        newAppNotAvailable: 'La App New Expensify ya no está disponible.',
+        newAppNotAvailable: 'Actualiza ahora y nos lo agradecerás más tarde.',
     },
     initialSettingsPage: {
         about: 'Acerca de',
@@ -9447,6 +9447,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
     },
     actionableMentionTrackExpense: {
         submit: 'Pedirle a alguien que lo pague',
+        submitToFriend: 'Enviar a un amigo',
+        submitToEmployer: 'Enviar a mi empleador',
         categorize: 'Categorizarlo',
         share: 'Compartirlo con mi contador',
         nothing: 'Por ahora, nada',

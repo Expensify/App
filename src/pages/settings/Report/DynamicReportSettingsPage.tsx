@@ -77,7 +77,12 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                             shouldShowRightIcon
                             title={notificationPreference}
                             description={translate('notificationPreferencesPage.label')}
-                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.path))}
+                            onPress={() => {
+                                if (!reportID) {
+                                    return;
+                                }
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(reportID)));
+                            }}
                         />
                     )}
                     {shouldShowWriteCapability &&

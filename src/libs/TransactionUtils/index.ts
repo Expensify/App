@@ -1160,13 +1160,8 @@ function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): A
     const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
     return {
         email: creatorLogin,
-        login: creatorLogin,
         displayName: creatorDisplayName,
-        accountID: creatorDetails?.accountID,
-        text: creatorDisplayName,
-        searchText: creatorDisplayName,
         avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
-        selected: true,
     };
 }
 
@@ -1216,7 +1211,7 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsA
  * Strips the SMS domain so phone-login attendees render the same as in the rendered pills.
  */
 function getAttendeesListDisplayString(attendees: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): string {
-    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.login ?? '');
+    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.email ?? '');
     const ordered = localeCompare
         ? // Lowercase to match sortAlphabetically (the pill sort) so joined string and pill order never disagree on case.
           [...attendees].sort((a, b) => localeCompare(getName(a).toLowerCase(), getName(b).toLowerCase()))
@@ -1259,17 +1254,14 @@ function hasDisplayableMCC(mcc: number | string | null | undefined): boolean {
     return getMCCForDisplay(mcc) !== '';
 }
 
-/**
- * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
- */
-/**
- * Whether a draft holds tab-entered input that is lost when the flow is abandoned (drafts are not restored on the next open).
- * Forward-navigation fields (amount, receipt, ...) are deliberately excluded; extend per-field as new tabs persist input to the draft.
- */
+/** Whether the draft holds tab-entered input (waypoints) that is lost when the flow is abandoned. */
 function doesMoneyRequestDraftHaveUserInput(transaction: OnyxEntry<Transaction>): boolean {
     return Object.keys(getValidWaypoints(getWaypoints(transaction))).length > 0;
 }
 
+/**
+ * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
+ */
 function getWaypoints(transaction: OnyxEntry<Transaction>): WaypointCollection | undefined {
     return transaction?.modifiedWaypoints ?? transaction?.comment?.waypoints;
 }

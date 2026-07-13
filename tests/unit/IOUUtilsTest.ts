@@ -1077,13 +1077,8 @@ describe('formatCurrentUserToAttendee', () => {
         expect(attendees).toEqual([
             {
                 email: 'john.smith@example.com',
-                login: 'john.smith@example.com',
                 displayName: 'John Smith',
                 avatarUrl: '',
-                accountID: 2840332,
-                text: 'John Smith',
-                selected: true,
-                reportID: undefined,
             },
         ]);
     });
@@ -1100,13 +1095,8 @@ describe('formatCurrentUserToAttendee', () => {
         expect(attendees).toEqual([
             {
                 email: 'john.smith@example.com',
-                login: 'john.smith@example.com',
                 displayName: 'john.smith@example.com',
                 avatarUrl: '',
-                accountID: 2840332,
-                text: 'john.smith@example.com',
-                selected: true,
-                reportID: undefined,
             },
         ]);
     });

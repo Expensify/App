@@ -1,11 +1,12 @@
-import React, {useCallback, useMemo, useState} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
 import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -13,11 +14,16 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getXeroSuppliers, isXeroVendorMatchingActive, settingsPendingAction} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React, {useCallback, useMemo, useState} from 'react';
 
 // Sentinel value persisted to defaultVendor when the admin wants to disable the fallback
 // supplier altogether — gives them a way out when a previously chosen Xero contact was deleted

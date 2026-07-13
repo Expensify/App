@@ -2669,7 +2669,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         chatReportIDAnnounce?: string | number;
 
         /** All the integration connections attached to the policy */
-        connections?: Connections;
+        connections?: Partial<Connections>;
 
         /** Report fields attached to the policy */
         fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
@@ -2821,9 +2821,13 @@ type PolicyConnectionSyncProgress = {
     result?: HrSyncResult;
 };
 
+/** Workspace types a user can create directly (Team/Corporate/Submit), e.g. when creating a draft workspace on the fly. */
+type CreatableWorkspaceType = typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
+
 export default Policy;
 
 export type {
+    CreatableWorkspaceType,
     AutoReportingOffset,
     PolicyReportField,
     PolicyReportFieldType,

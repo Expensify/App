@@ -92,6 +92,7 @@ import Onyx from 'react-native-onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport, createRegularChat} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -5820,6 +5821,42 @@ describe('OptionsListUtils', () => {
                         policyName: policy.name,
                     }),
                 );
+            });
+
+            it('resolves the workspace-unavailable fallback through the provided translate function when the archived policy is unavailable', async () => {
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    // No resolvable policy, so the archived preview name falls back to the unavailable label.
+                    policyID: 'missing-archive-policy',
+                    policyName: undefined,
+                    reportName: undefined,
+                };
+                const closedAction = createMock<ReportAction>({
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                    originalMessage: {
+                        reason: CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY,
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [closedAction.reportActionID]: closedAction,
+                });
+                const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                    path === 'workspace.common.unavailable' ? 'UnavailableMarker' : translateLocal(path, ...parameters);
+
+                const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
+                    translate: translateWithUnavailableMarker,
+                    report,
+                    lastActorDetails: null,
+                    policy: undefined,
+                    isReportArchived: true,
+
+                    currentUserLogin: '',
+                });
+
+                expect(lastMessage).toContain('UnavailableMarker');
             });
         });
         describe('UPDATE_CATEGORY_TAX_RATE action', () => {
