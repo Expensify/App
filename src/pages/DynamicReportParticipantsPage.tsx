@@ -91,7 +91,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = isGroupChatUtils(report);
     const policy = usePolicy(report.policyID);
-    const isReportSubmitterOrAdmin = isCurrentUserSubmitter(report) || isPolicyAdmin(policy);
+    const isReportSubmitterOrAdmin = isCurrentUserSubmitter(report) || isPolicyAdmin(policy) || (isGroupChat && isCurrentUserAdmin);
     const shouldShowInviteButton = isReportSubmitterOrAdmin && (isGroupChat || (isMoneyRequestReport(report) && isOpenExpenseReport(report)));
     const isCurrentUserGroupChatAdmin = isGroupChat && isCurrentUserAdmin;
     const {isOffline} = useNetwork();

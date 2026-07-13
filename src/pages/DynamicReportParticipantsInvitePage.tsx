@@ -12,6 +12,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {inviteToGroupChat, searchUserInServer} from '@libs/actions/Report';
@@ -24,7 +25,7 @@ import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getParticipantsAccountIDsForDisplay, isGroupChat, isMoneyRequestReport, isOpenExpenseReport} from '@libs/ReportUtils';
+import {getParticipantsAccountIDsForDisplay, isCurrentUserSubmitter, isGroupChat, isGroupChatAdmin, isMoneyRequestReport, isOpenExpenseReport, isPolicyAdmin} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
@@ -55,7 +56,11 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         selector: reportAttributesSelector,
     });
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
-    const shouldShowInvitePage = isGroupChat(report) || (isMoneyRequestReport(report) && isOpenExpenseReport(report));
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const currentUserAccountID = Number(session?.accountID);
+    const policy = usePolicy(report.policyID);
+    const isReportSubmitterOrAdmin = isCurrentUserSubmitter(report) || isPolicyAdmin(policy) || (isGroupChat(report) && isGroupChatAdmin(report, currentUserAccountID));
+    const shouldShowInvitePage = isReportSubmitterOrAdmin && (isGroupChat(report) || (isMoneyRequestReport(report) && isOpenExpenseReport(report)));
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {
