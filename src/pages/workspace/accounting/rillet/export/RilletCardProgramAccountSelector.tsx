@@ -24,7 +24,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CardFeed} from '@src/types/onyx';
 import type {RilletAccount} from '@src/types/onyx/Policy';
 
 import React from 'react';
@@ -49,12 +48,12 @@ function RilletCardProgramAccountSelector({
     const policyID = policy?.id;
     const [cardFeeds] = useCardFeeds(policyID);
     const cardFeed = cardFeeds?.[feedWithDomainID];
-    const feedKey = splitCardFeedWithDomainID(feedWithDomainID)?.feedName as CardFeed;
+    const feedKey = splitCardFeedWithDomainID(feedWithDomainID)?.feedName;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
     const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
     const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
-    const cardProgramAccountCode = cardProgramsUsingCustomAccounts?.[feedKey] ?? creditCardAccountCode;
+    const cardProgramAccountCode = (feedKey ? cardProgramsUsingCustomAccounts?.[feedKey] : undefined) ?? creditCardAccountCode;
     const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.getRoute(policyID) : undefined;
 
@@ -91,7 +90,7 @@ function RilletCardProgramAccountSelector({
     );
 
     const selectCreditCardAccount = (item: AccountListItem) => {
-        if (item.value !== cardProgramAccountCode && policyID) {
+        if (item.value !== cardProgramAccountCode && policyID && feedKey) {
             // Choosing the default account clears the custom account
             const value = item.value === creditCardAccountCode ? '' : item.value;
             const oldValue = cardProgramAccountCode === creditCardAccountCode ? undefined : cardProgramAccountCode;

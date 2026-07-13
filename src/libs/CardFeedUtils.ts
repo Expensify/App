@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, Domain, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
-import type {CardFeed, CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
+import type {CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -472,12 +472,12 @@ function getCombinedCardFeedsFromAllFeeds(
     }, {});
 }
 
-function findMatchingCards(cardFeeds: CombinedCardFeeds, cardLists: Record<string, WorkspaceCardsList | undefined>, cardFeed?: CardFeed, cardID?: number) {
+function findMatchingCards(cardFeeds: CombinedCardFeeds, cardLists: Record<string, WorkspaceCardsList | undefined>, cardFeed?: CardFeedWithNumber, cardID?: number) {
     const feedKeys = Object.values(cardFeeds).map((feed) => feed.feed);
     return Object.values(cardLists)
         .flatMap((cardList) => Object.values(cardList ?? {}))
         .filter((card) => {
-            const feedKey = card.bank as CardFeed;
+            const feedKey = card.bank as CardFeedWithNumber;
             if (!feedKeys.some((key) => key === feedKey)) {
                 return false;
             }
@@ -496,13 +496,13 @@ function getCardsUsingCustomExportCount(
     cardLists: Record<string, WorkspaceCardsList | undefined>,
     exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
 ): {
-    perFeedCount: Partial<Record<CardFeed, number>>;
+    perFeedCount: Partial<Record<CardFeedWithNumber, number>>;
     totalCount: number;
 } {
-    const perFeedCount: Partial<Record<CardFeed, number>> = {};
+    const perFeedCount: Partial<Record<CardFeedWithNumber, number>> = {};
     let totalCount = 0;
     for (const card of findMatchingCards(cardFeeds, cardLists)) {
-        const feedKey = card.bank as CardFeed;
+        const feedKey = card.bank as CardFeedWithNumber;
         if (typeof card.nameValuePairs !== 'object') {
             continue;
         }
@@ -519,11 +519,11 @@ function getCardsCustomExportPendingAction(
     cardFeeds: CombinedCardFeeds,
     cardLists: Record<string, WorkspaceCardsList | undefined>,
     exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
-    cardFeed?: CardFeed,
+    cardFeed?: CardFeedWithNumber,
     cardID?: number,
 ): PendingAction | undefined {
     for (const card of findMatchingCards(cardFeeds, cardLists, cardFeed, cardID)) {
-        const feedKey = card.bank as CardFeed;
+        const feedKey = card.bank as CardFeedWithNumber;
         if (typeof card.nameValuePairs !== 'object') {
             continue;
         }
@@ -539,7 +539,7 @@ function areCardsCustomExportInErrorFields(
     cardFeeds: CombinedCardFeeds,
     cardLists: Record<string, WorkspaceCardsList | undefined>,
     exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
-    cardFeed?: CardFeed,
+    cardFeed?: CardFeedWithNumber,
     cardID?: number,
 ): boolean {
     for (const card of findMatchingCards(cardFeeds, cardLists, cardFeed, cardID)) {

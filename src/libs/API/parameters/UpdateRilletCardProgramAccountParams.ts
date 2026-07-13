@@ -1,9 +1,9 @@
-import type {CardFeed} from '@src/types/onyx';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {RilletAccount} from '@src/types/onyx/Policy';
 
 type UpdateRilletCardProgramAccountParams = {
     policyID: string;
-    feedKey: CardFeed;
+    feedKey: CardFeedWithNumber;
     accountCode: RilletAccount['code'];
 };
 

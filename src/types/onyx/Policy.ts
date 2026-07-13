@@ -8,6 +8,7 @@ import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 
 import type * as OnyxTypes from '.';
+import type {CardFeedWithNumber} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
 
@@ -1804,7 +1805,7 @@ type RilletExport = {
     /**
      * Mapping of card program identifiers to account codes.
      */
-    cardProgramAccounts: Record<OnyxTypes.CardFeed, string>;
+    cardProgramAccounts: Record<CardFeedWithNumber, string>;
 
     /** Accounting method used during export. */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;

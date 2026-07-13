@@ -22,7 +22,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Card, CardFeed} from '@src/types/onyx';
+import type {Card} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -41,12 +41,12 @@ function RilletCardAccountCardList({
     const [cardList] = useCardsList(feedWithDomainID);
     const [cardFeeds] = useCardFeeds(policyID);
     const cardFeed = cardFeeds?.[feedWithDomainID];
-    const feedKey = splitCardFeedWithDomainID(feedWithDomainID)?.feedName as CardFeed;
+    const feedKey = splitCardFeedWithDomainID(feedWithDomainID)?.feedName;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
     const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
     const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
-    const cardProgramAccountCode = cardProgramsUsingCustomAccounts?.[feedKey] ?? creditCardAccountCode;
+    const cardProgramAccountCode = (feedKey ? cardProgramsUsingCustomAccounts?.[feedKey] : undefined) ?? creditCardAccountCode;
     const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
 
     return (
