@@ -19,7 +19,7 @@
 "../../.github/libs/DeployChecklistUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/libs/GithubUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../.github/libs/sanitizeJSONStringValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../.github/scripts/createDocsRoutes.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../.github/scripts/createDocsRoutes.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../__mocks__/@pusher/pusher-websocket-react-native/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../__mocks__/@react-native-camera-roll/camera-roll.ts"	"@typescript-eslint/no-deprecated/CameraRoll.save"	1
 "../../__mocks__/@react-native-community/netinfo.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -66,7 +66,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	110
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	105
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -594,7 +594,6 @@
 "../../src/hooks/useLifecycleActions.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useListKeyboardNav.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useNativeCamera.ts"	"react-hooks/refs"	1
-"../../src/hooks/useNewTransactions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useNewTransactions.ts"	"react-hooks/refs"	2
 "../../src/hooks/useOnboardingTaskInformation.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useOnyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
@@ -1658,7 +1657,7 @@
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/workspace/downgrade/DowngradeIntro.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/downgrade/PayAndDowngradePage.tsx"	"no-restricted-imports"	1
+"../../src/pages/workspace/downgrade/DynamicPayAndDowngradePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/expensifyCard/DynamicExpensifyCardLimitTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1676,6 +1675,9 @@
 "../../src/pages/workspace/hr/merge/MergeHRGroupsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/hr/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/invoices/WorkspaceInvoiceVBASection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/workspace/members/DynamicWorkspaceOwnerChangeErrorPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/workspace/members/DynamicWorkspaceOwnerChangeErrorPage.tsx"	"react-hooks/refs"	2
+"../../src/pages/workspace/members/DynamicWorkspaceOwnerChangeSuccessPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"rulesdir/no-default-id-values"	1
@@ -1687,9 +1689,6 @@
 "../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/WorkspaceOwnerChangeCheck.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/WorkspaceOwnerChangeCheck.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/members/WorkspaceOwnerChangeErrorPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/members/WorkspaceOwnerChangeErrorPage.tsx"	"react-hooks/refs"	2
-"../../src/pages/workspace/members/WorkspaceOwnerChangeSuccessPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/workspace/members/WorkspaceOwnerPaymentCardForm.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/pages/workspace/receiptPartners/DynamicEditInviteReceiptPartnerPolicyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/receiptPartners/WorkspaceReceiptPartnersPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
