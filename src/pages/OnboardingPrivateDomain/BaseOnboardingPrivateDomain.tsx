@@ -25,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -65,7 +66,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         if (!email) {
             return;
         }
-        resendValidateCode(email);
+        resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT}, email);
     }, [email]);
 
     const handleBackButtonPress = useCallback(() => {
