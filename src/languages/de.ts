@@ -518,6 +518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Beschränkungen',
+        tryAgain: 'Erneut versuchen',
         tagGLCode: 'GL-Code taggen',
         off: 'Aus',
         noResultsFoundSubtitle: 'Keine Ergebnisse. Bitte passen Sie Ihre Filter oder Suchanfrage an',
@@ -990,8 +991,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Geldbörse',
             },
             addVirtualCardPersonalDetails: {
-                title: 'Fügen Sie Ihre persönlichen Daten hinzu',
-                subtitle: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzusehen und zu verwenden.',
+                title: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzuzeigen und zu verwenden.',
+                subtitle: 'Expensify Karte',
                 cta: 'Details hinzufügen',
             },
             enterSignerInfo: {title: 'Unterzeichnerdaten erforderlich', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto ${bankAccountLastFour}`},
@@ -1618,6 +1619,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: 'geändert',
         removed: 'entfernt',
         transactionPending: 'Transaktion ausstehend.',
+        transactionPendingDescription: 'Transaktion ausstehend. Es kann einige Tage dauern, bis sie verbucht wird.',
         chooseARate: 'Wähle einen Rückerstattungssatz pro Meile oder Kilometer für den Workspace aus',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} bis ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Gültig ab ${startDate}`,
@@ -2153,7 +2155,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstall: 'Bitte auf die neueste Version von New Expensify aktualisieren',
         pleaseInstallExpensifyClassic: 'Bitte installiere die neueste Version von Expensify',
         toGetLatestChanges: 'Für Mobilgeräte lade die neueste Version herunter und installiere sie. Für das Web aktualisiere deinen Browser.',
-        newAppNotAvailable: 'Die New-Expensify-App ist nicht mehr verfügbar.',
+        newAppNotAvailable: 'Jetzt aktualisieren, und Sie werden es uns später danken.',
     },
     initialSettingsPage: {
         about: 'Info',
@@ -3766,7 +3768,6 @@ ${amount} für ${merchant} – ${date}`,
         facialScan: 'Richtlinie und Einverständniserklärung zur Gesichtserfassung von Onfido',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfidos Richtlinie und Einverständniserklärung zur Gesichtserkennung</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Datenschutz</a> und <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Nutzungsbedingungen</a>.</muted-text-micro>`,
-        tryAgain: 'Erneut versuchen',
         verifyIdentity: 'Identität bestätigen',
         letsVerifyIdentity: 'Lass uns deine Identität bestätigen',
         butFirst: `Aber zuerst das Langweilige. Lies dir im nächsten Schritt den Rechtstext durch und klicke auf „Akzeptieren“, wenn du bereit bist.`,
@@ -5640,7 +5641,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 feedCouldNotBeLoadedTitle: 'Dieser Feed konnte nicht geladen werden',
                 feedCouldNotBeLoadedMessage:
                     'Beim Laden dieses Feeds ist ein Fehler aufgetreten. Bitte versuche es erneut oder wende dich an deine Administratorin bzw. deinen Administrator.',
-                tryAgain: 'Erneut versuchen',
             },
             addNewCard: {
                 other: 'Sonstiges',
@@ -6435,6 +6435,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 conciergeNotificationTitle: 'Concierge wird Sie benachrichtigen',
                 conciergeNotificationDescription: 'Wenn der Vorgang abgeschlossen ist, sendet Concierge Ihnen eine Nachricht.',
                 copyCompleted: 'Ihre Workspace-Einstellungen wurden kopiert.',
+                copyFailedTitle: 'Kopieren fehlgeschlagen',
             },
             upgrade: {
                 title: 'Einige Funktionen erfordern einen Control-Tarif',
@@ -9229,6 +9230,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     },
     actionableMentionTrackExpense: {
         submit: 'An jemanden senden',
+        submitToFriend: 'An einen Freund senden',
+        submitToEmployer: 'An meinen Arbeitgeber senden',
         categorize: 'Kategorisieren',
         share: 'Mit meinem Steuerberater teilen',
         nothing: 'Im Moment nichts',
