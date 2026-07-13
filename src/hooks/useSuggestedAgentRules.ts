@@ -8,7 +8,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
 
 type UseSuggestedAgentRulesResult = {
-    /** Suggested rules from Onyx, or an empty array while loading or when no suggestion exist */
+    /** Suggested rules from Onyx, or an empty array while loading or when no suggestions exist */
     data: SuggestedAgentRule[];
 
     /** Whether Onyx is hydrating or the suggestions request is fetching data */
