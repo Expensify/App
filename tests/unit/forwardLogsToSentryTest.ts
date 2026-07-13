@@ -48,7 +48,7 @@ describe('forwardLogsToSentry', () => {
         const packet = packetWith('[info] [MFA] verifying code', {
             event: 'something-unrelated',
             transactionID: 'should-not-leak',
-            command: 'ValidateTwoFactorAuth',
+            command: 'TestCommand',
         });
 
         // When the packet is mirrored to Sentry
@@ -56,7 +56,7 @@ describe('forwardLogsToSentry', () => {
 
         // Then the globally whitelisted key is forwarded, but the receipt-scoped keys are not
         const breadcrumb = jest.mocked(Sentry.addBreadcrumb).mock.calls.at(0)?.[0];
-        expect(breadcrumb?.data).toEqual(expect.objectContaining({command: 'ValidateTwoFactorAuth'}));
+        expect(breadcrumb?.data).toEqual(expect.objectContaining({command: 'TestCommand'}));
         expect(breadcrumb?.data).not.toHaveProperty('event');
         expect(breadcrumb?.data).not.toHaveProperty('transactionID');
     });
