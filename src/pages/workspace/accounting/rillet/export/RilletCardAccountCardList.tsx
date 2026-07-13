@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {areCardsCustomExportInErrorFields, getCardsCustomExportPendingAction} from '@libs/CardFeedUtils';
-import {getCardDescription, getCustomOrFormattedFeedName, splitCardFeedWithDomainID} from '@libs/CardUtils';
+import {getCardDescription, getCustomOrFormattedFeedName, isCard, splitCardFeedWithDomainID} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -86,7 +86,7 @@ function RilletCardAccountCardList({
                     >
                         <MenuItemWithTopDescription
                             title={cardAccountDisplayName}
-                            description={getCardDescription(card as Card, translate)}
+                            description={isCard(card) ? getCardDescription(card, translate) : undefined}
                             onPress={() => Navigation.navigate(appendParam(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.path), 'cardID', cardID.toString()))}
                             shouldShowRightIcon
                             brickRoadIndicator={

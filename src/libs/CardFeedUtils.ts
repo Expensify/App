@@ -523,7 +523,6 @@ function getCardsCustomExportPendingAction(
     cardID?: number,
 ): PendingAction | undefined {
     for (const card of findMatchingCards(cardFeeds, cardLists, cardFeed, cardID)) {
-        const feedKey = card.bank as CardFeedWithNumber;
         if (typeof card.nameValuePairs !== 'object') {
             continue;
         }
