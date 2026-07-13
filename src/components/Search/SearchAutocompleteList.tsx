@@ -281,8 +281,6 @@ function SearchAutocompleteList({
     // auto-highlight would silently snap focus back once the debounce settles even if the user had
     // already moved to a different row (e.g. Ask Concierge) in the meantime.
     const lastProgrammaticFocusKeyRef = useRef<string | undefined>(undefined);
-    const searchQueryItemsRef = useRef(searchQueryItems);
-    searchQueryItemsRef.current = searchQueryItems;
 
     // Callback ref to set both inner ref and forward to external ref
     const setListRef = (instance: SelectionListWithSectionsHandle | null) => {
@@ -313,11 +311,11 @@ function SearchAutocompleteList({
             } else {
                 // When query changes to a non-empty value, focus on the search query item (index 0) and scroll to top.
                 // The highlight effect below switches focus to the first result when there's a good match.
-                lastProgrammaticFocusKeyRef.current = searchQueryItemsRef.current?.at(0)?.keyForList;
+                lastProgrammaticFocusKeyRef.current = searchQueryItems?.at(0)?.keyForList;
                 innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
             }
         }
-    }, [effectiveInputQueryValue, isInitialRender]);
+    }, [effectiveInputQueryValue, isInitialRender, searchQueryItems]);
 
     // Track external text input focus to prevent list items from stealing focus while typing
     useEffect(() => {
