@@ -222,6 +222,7 @@ export default {
     tabSelectorButtonPadding: 12,
     tabSelectorScrollMarginInline: 20,
     tabSelectorMaxTabLabelWidth: 256,
+    filterPillMaxWidth: 256,
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
     signInLogoWidthLargeScreenPill: 162,
