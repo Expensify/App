@@ -1,3 +1,7 @@
+/**
+ * Metro resolves Sentry's optional expo-updates import to this stub. Expensify does not use
+ * Expo Updates, so this keeps native bundles from failing resolution without adding that native dependency.
+ */
 type Subscription = {
     remove: () => void;
 };
