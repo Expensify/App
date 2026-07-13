@@ -473,7 +473,7 @@ function getCombinedCardFeedsFromAllFeeds(
 }
 
 function findMatchingCards(cardFeeds: CombinedCardFeeds, cardLists: Record<string, WorkspaceCardsList | undefined>, cardFeed?: CardFeed, cardID?: number) {
-    const feedKeys = Object.values(cardFeeds).map((feed) => feed.feed as CardFeed);
+    const feedKeys = Object.values(cardFeeds).map((feed) => feed.feed);
     return Object.values(cardLists)
         .flatMap((cardList) => Object.values(cardList ?? {}))
         .filter((card) => {

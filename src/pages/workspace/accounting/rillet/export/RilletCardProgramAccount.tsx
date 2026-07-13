@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
-import {getCustomOrFormattedFeedName} from '@libs/CardUtils';
+import {getCardFeedWithDomainID, getCustomOrFormattedFeedName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
@@ -19,7 +19,6 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CardFeed, CardFeedWithDomainID} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -51,9 +50,11 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
             <View>
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.cardProgramAccount.description')}</Text>
             </View>
-            {Object.entries(cardFeeds ?? {}).map(([feedWithDomainID, cardFeed]) => {
-                const feedKey = cardFeed.feed as CardFeed;
+            {Object.values(cardFeeds ?? {}).map((cardFeed) => {
+                const feedKey = cardFeed.feed;
                 const feedName = getCustomOrFormattedFeedName(translate, feedKey, cardFeed.customFeedName, false);
+                const feedDomainID = cardFeed.domainID ?? CONST.DEFAULT_MISSING_ID;
+                const feedWithDomainID = getCardFeedWithDomainID(feedKey, feedDomainID);
                 const isUsingCustomAccount = !!cardProgramsUsingCustomAccounts?.[feedKey];
                 const cardProgramAccountCode = cardProgramsUsingCustomAccounts?.[feedKey] ?? creditCardAccountCode;
                 const cardProgramAccount = rilletData?.accounts?.find((account) => account.code === cardProgramAccountCode);
@@ -73,11 +74,7 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
                                     ? translate('workspace.rillet.cardAccount.countInfo', cardsUsingCustomAccountsCount.perFeedCount[feedKey])
                                     : undefined
                             }
-                            onPress={() =>
-                                policyID
-                                    ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID as CardFeedWithDomainID))
-                                    : undefined
-                            }
+                            onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined)}
                             shouldShowRightIcon
                             brickRoadIndicator={
                                 areSettingsInErrorFields([`${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], rilletConfig?.errorFields)
