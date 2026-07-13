@@ -677,7 +677,6 @@ const SCREENS = {
             RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR: 'Policy_Accounting_Rillet_Card_Program_Account_Selector',
             RILLET_CARD_ACCOUNT: 'Policy_Accounting_Rillet_Card_Account',
             RILLET_CARD_ACCOUNT_CARD_LIST: 'Policy_Accounting_Rillet_Card_Account_Card_List',
-            RILLET_CARD_ACCOUNT_SELECTOR: 'Policy_Accounting_Rillet_Card_Account_Selector',
             RILLET_ADVANCED: 'Policy_Accounting_Rillet_Advanced',
             RILLET_EXPORT_METHOD: 'Policy_Accounting_Rillet_Export_Method',
             RILLET_BILL_PAYMENT_ACCOUNT: 'Policy_Accounting_Rillet_Bill_Payment_Account',

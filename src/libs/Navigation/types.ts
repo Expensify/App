@@ -1215,11 +1215,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         feed: CardFeedWithDomainID;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_SELECTOR]: {
-        policyID: string;
-        feed: CardFeedWithDomainID;
-        cardID: string;
-    };
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_ADVANCED]: {
         policyID: string;
     };
