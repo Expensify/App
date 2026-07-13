@@ -238,8 +238,8 @@ export default function WorkspaceExpensifyCardsTable({
             onRowSelectionChange={onRowSelectionChange}
             ListFooterComponent={listFooterComponent}
             ListFooterComponentStyle={listFooterComponentStyle}
-            ListHeaderComponent={cardListHeaderContent}
         >
+            {cardListHeaderContent}
             <Table.Body contentContainerStyle={listContentContainerStyle} />
         </Table>
     );
