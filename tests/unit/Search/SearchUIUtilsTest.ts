@@ -6343,7 +6343,6 @@ describe('SearchUIUtils', () => {
 
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 [reportedTransaction, noPolicyTransaction],
                 localeCompare,
                 translateWithUnavailableMarker,
