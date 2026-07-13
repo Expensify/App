@@ -446,8 +446,6 @@ function MoneyRequestReportTransactionList({
         if (!shouldGroupTransactions) {
             return [];
         }
-        // The helpers only need the currency; passing the primitive (not the full report) avoids recomputing on
-        // unrelated report changes. `shouldGroupTransactions` already implies `report` exists (it derives from isExpenseReport).
         if (currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG) {
             return groupTransactionsByTag(resolvedTransactions, report?.currency, localeCompare);
         }

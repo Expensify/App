@@ -67,9 +67,8 @@ const defaultReportLoadingState = {
     hasOnceLoadedReportActions: false,
 };
 
-// Hoisted to module scope so the array identity is stable across renders. Passing an inline array here
-// would give `useSubmitToDestinationVisible`'s `tryEnd` useCallback a fresh dependency every render,
-// which churns the returned `onLayout` callback and re-renders the memoized report list on every parent render.
+// Module-scoped for a stable array identity: an inline array would churn useSubmitToDestinationVisible's `tryEnd`
+// useCallback and its `onLayout`, re-rendering the memoized report list on every parent render.
 const SUBMIT_TO_DESTINATION_FOLLOW_UP_ACTIONS = [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY] as const;
 const SUBMIT_TO_DESTINATION_TRIGGERS = [CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.LAYOUT, CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS] as const;
 

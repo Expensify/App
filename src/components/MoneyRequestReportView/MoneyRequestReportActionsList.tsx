@@ -128,10 +128,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const {reportActions: unfilteredReportActionsLive, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID);
 
-    // Freeze the raw report actions while this screen is blurred. When a transaction RHP is layered on top and the
-    // user sends a message there, Onyx still hands this array a fresh reference every render. Freezing it BEFORE
-    // getFilteredReportActionsForReportView means that filter — and every downstream useMemo/memo() child that
-    // depends on it — sees stable deps and bails, so the offscreen list does no work until the report is refocused.
     const unfilteredReportActions = useFrozenWhileBlurred(unfilteredReportActionsLive, isFocused);
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
 
@@ -177,9 +173,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
-    // Scope the derived VISIBLE_REPORT_ACTIONS to this report only. Subscribing to the whole collection
-    // re-rendered this list whenever ANY report's visibility changed; every action here belongs to `reportID`
-    // (they come from usePaginatedReportActions(reportID)), so isReportActionVisible only ever reads this slice.
+    // Scope to this report: subscribing to the whole collection re-rendered the list on ANY report's visibility
+    // change, but every action here belongs to `reportID` (via usePaginatedReportActions).
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
         selector: reportVisibleActionsSelector(reportID),
     });
@@ -219,9 +214,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         return filteredActions.slice().reverse();
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID]);
 
-    // Freeze the FlatList's data while blurred so a message sent in an RHP on top doesn't re-render the offscreen
-    // chat rows. Combined with the frozen parentReportAction, every renderItem dependency stays stable, so the
-    // VirtualizedList cells skip. Resyncs to live on refocus.
     const visibleReportActions = useFrozenWhileBlurred(visibleReportActionsLive, isFocused);
 
     const shouldShowOpenReportLoadingSkeleton = !isOffline && !!showReportActionsLoadingState && visibleReportActions.length === 0;
@@ -710,10 +702,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState;
     const showEmptyState = isReportEmpty;
 
-    // This component bails the React Compiler (refs read during render), so inline props are NOT auto-memoized and
-    // would hand fresh references to FlatListWithScrollKey (which IS compiled) every render, defeating its
-    // memoization. Memoize them manually. While blurred every dep here is frozen/stable, so the FlatList subtree
-    // work is skipped on send.
     const listContentContainerStyle = useMemo(() => [shouldUseNarrowLayout ? styles.pt4 : styles.pt3], [shouldUseNarrowLayout, styles.pt3, styles.pt4]);
 
     const listHeaderComponent = useMemo(
