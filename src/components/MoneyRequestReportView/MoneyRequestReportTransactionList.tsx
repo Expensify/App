@@ -57,7 +57,7 @@ import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
-import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
+import {compareScanningPriority, getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
@@ -383,8 +383,8 @@ function MoneyRequestReportTransactionList({
         return ids;
     }, [isDefaultSort, allTransactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, transactions, report, policy, reportActionsMap]);
 
-    const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
-        return [...transactions].sort((a, b) => {
+    const compareTransactionsByColumn = useCallback(
+        (a: OnyxTypes.Transaction, b: OnyxTypes.Transaction) => {
             // When on default sort (Date/ASC), prioritize RBR-flagged transactions
             if (rbrTransactionIDs) {
                 const aHasRBR = rbrTransactionIDs.has(a.transactionID);
@@ -401,8 +401,19 @@ function MoneyRequestReportTransactionList({
                 localeCompare,
                 true,
             );
+        },
+        [rbrTransactionIDs, sortBy, sortOrder, report, policy, policyCategories, policyTagLists, localeCompare],
+    );
+
+    const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
+        return [...transactions].sort((a, b) => {
+            const scanningComparison = compareScanningPriority(a, b);
+            if (scanningComparison !== 0) {
+                return scanningComparison;
+            }
+            return compareTransactionsByColumn(a, b);
         });
-    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, policyCategories, policyTagLists, rbrTransactionIDs]);
+    }, [transactions, compareTransactionsByColumn]);
 
     const resolvedTransactions = useMemo(() => resolveTransactionCardFields(sortedTransactions, cardList, translate), [sortedTransactions, cardList, translate]);
 
@@ -469,6 +480,8 @@ function MoneyRequestReportTransactionList({
         if (!shouldGroupTransactions) {
             return [];
         }
+        // Scanning expenses are pinned to the top of their section (e.g. the "Uncategorized" section), matching
+        // Expensify Classic — resolvedTransactions already sorts scanning rows first and grouping preserves that order.
         if (currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG) {
             return groupTransactionsByTag(resolvedTransactions, report, localeCompare);
         }

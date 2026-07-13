@@ -14,7 +14,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 
 import {selectFilteredReportActions} from '@libs/ReportUtils';
 import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getSections, getSortedSections, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {getColumnsToShow, getSections, getSortedSections, getValidGroupBy, isSearchDataLoaded, sortTransactionsScanningFirst} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -278,7 +278,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             return {
                 ...item,
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
-                transactions: groupTransactions as TransactionListItemType[],
+                transactions: sortTransactionsScanningFirst(groupTransactions as TransactionListItemType[]),
             };
         });
     }, [

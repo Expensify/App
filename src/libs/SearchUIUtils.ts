@@ -189,6 +189,7 @@ import {
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
+    compareScanningPriority,
     getAmount,
     getAttendees,
     getCategory,
@@ -3899,7 +3900,7 @@ function getTransactionTagGLCodeSortValue(transaction: TransactionListItemType, 
  * @private
  * Sorts transaction sections based on a specified column and sort order.
  */
-function getSortedTransactionData(
+function getColumnSortedTransactionData(
     data: TransactionListItemType[],
     localeCompare: LocaleContextProps['localeCompare'],
     translate: LocaleContextProps['translate'],
@@ -4079,6 +4080,31 @@ function getSortedTransactionData(
 
         return compareValues(a.transactionID, b.transactionID, sortOrder, 'transactionID', localeCompare);
     });
+}
+
+/**
+ * Pins in-progress scans to the top of a transaction list, preserving the existing order otherwise.
+ * Reused for grouped Search children, which are rebuilt from a per-group snapshot and never pass
+ * through getSortedTransactionData.
+ */
+function sortTransactionsScanningFirst<T extends TransactionListItemType>(transactions: T[]): T[] {
+    return [...transactions].sort(compareScanningPriority);
+}
+
+/**
+ * Sorts transactions by the selected column, then pins in-progress scans to the top. A scan has no
+ * confirmed date or amount yet, so a plain column sort buries it (e.g. amount 0 sinks under real
+ * amounts); pinning keeps it at the top for every column and sort direction.
+ */
+function getSortedTransactionData(
+    data: TransactionListItemType[],
+    localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocaleContextProps['translate'],
+    sortBy?: SearchSortBy,
+    sortOrder?: SortOrder,
+    options?: SortSectionsOptions,
+) {
+    return sortTransactionsScanningFirst(getColumnSortedTransactionData(data, localeCompare, translate, sortBy, sortOrder, options));
 }
 
 function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchSortBy, sortOrder?: SortOrder) {
@@ -6485,6 +6511,7 @@ export {
     getSections,
     getSuggestedSearchesVisibility,
     getSortedSections,
+    sortTransactionsScanningFirst,
     getViolationsFromSearchData,
     isTransactionMatchWithGroupItem,
     isTransactionGroupListItemType,

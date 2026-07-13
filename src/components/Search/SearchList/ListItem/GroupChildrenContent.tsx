@@ -8,7 +8,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
-import {getSections} from '@libs/SearchUIUtils';
+import {getSections, sortTransactionsScanningFirst} from '@libs/SearchUIUtils';
 import {mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -77,7 +77,7 @@ function GroupChildrenContent({
             convertToDisplayString,
             reportAttributesDerivedValue: undefined,
         }) as [TransactionListItemType[], number, boolean];
-        return sectionData.map((transactionItem) => ({
+        return sortTransactionsScanningFirst(sectionData).map((transactionItem) => ({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
         }));

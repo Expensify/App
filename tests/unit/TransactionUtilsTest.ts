@@ -679,6 +679,33 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('compareScanningPriority', () => {
+        const scanningValues: Partial<Transaction> = {
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            amount: 0,
+            modifiedAmount: '',
+            receipt: {
+                state: CONST.IOU.RECEIPT_STATE.SCANNING,
+            },
+        };
+
+        it('should sort a scanning transaction above a non-scanning one in both argument orders', () => {
+            const scanningTransaction = generateTransaction(scanningValues);
+            const completedTransaction = generateTransaction();
+
+            expect(TransactionUtils.compareScanningPriority(scanningTransaction, completedTransaction)).toBeLessThan(0);
+            expect(TransactionUtils.compareScanningPriority(completedTransaction, scanningTransaction)).toBeGreaterThan(0);
+        });
+
+        it('should return 0 when both transactions are scanning', () => {
+            expect(TransactionUtils.compareScanningPriority(generateTransaction(scanningValues), generateTransaction(scanningValues))).toBe(0);
+        });
+
+        it('should return 0 when neither transaction is scanning', () => {
+            expect(TransactionUtils.compareScanningPriority(generateTransaction(), generateTransaction())).toBe(0);
+        });
+    });
+
     describe('getTransactionType', () => {
         it('returns card when the transaction is null', () => {
             expect(TransactionUtils.getTransactionType(null as unknown as Transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
