@@ -15,6 +15,7 @@ import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
+import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
 import {
     isChatThread,
@@ -91,6 +92,7 @@ function ReportFetchHandler() {
     const didSubscribeToReportLeavingEvents = useRef(false);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [reportDraftOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
@@ -134,9 +136,21 @@ function ReportFetchHandler() {
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
+    const isRegularOnboardingPending = !!introSelected && !introSelected.inviteType && isSupportedInviteOnboardingChoice(introSelected.choice) && !isOnboardingCompleted;
+    const isPendingInviteOnboarding = isSupportedPendingInviteOnboarding(introSelected);
+    const onboardingSignal = introSelected ? `${introSelected.choice ?? ''}:${introSelected.inviteType ?? ''}:${isInviteOnboardingComplete ? 'complete' : 'pending'}` : '';
+    const shouldDeferGuidedSetupOpenReport = !!isLoadingApp && (isRegularOnboardingPending || isPendingInviteOnboarding);
 
     const fetchReport = useEffectEvent(() => {
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
+            return;
+        }
+
+        // A draft-only report (created optimistically via createDraftWorkspace, e.g. the "Submit to my employer" Submit
+        // workspace when the user has none) exists only in REPORT_DRAFT and has no server counterpart. openReport would
+        // 403 "Report not found" and merge an errorFields.notFound stub into REPORT, shadowing the draft. It's persisted
+        // later by the confirmation's AddTrackedExpenseToPolicy request, so never openReport it here.
+        if (!reportOnyx?.reportID && !!reportDraftOnyx?.reportID) {
             return;
         }
 
@@ -144,18 +158,12 @@ function ReportFetchHandler() {
             return;
         }
 
-        // When a user goes through onboarding for the first time, various tasks are created for chatting with Concierge.
+        // When a user goes through guided setup, various tasks are created for chatting with Concierge.
         // If this function is called too early (while the application is still loading), we will not have information about policies,
         // which means we will not be able to obtain the correct link for one of the tasks.
         // More information here: https://github.com/Expensify/App/issues/71742
-        if (isLoadingApp && introSelected && !isOnboardingCompleted && !isInviteOnboardingComplete) {
-            const {choice, inviteType} = introSelected;
-            const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
-            const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
-
-            if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
-                return;
-            }
+        if (shouldDeferGuidedSetupOpenReport) {
+            return;
         }
 
         openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas});
@@ -305,9 +313,10 @@ function ReportFetchHandler() {
     useEffect(() => {
         // This function is triggered when a user clicks on a link to navigate to a report.
         // For each link click, we retrieve the report data again, even though it may already be cached.
-        // There should be only one openReport execution per page start or navigating
+        // Usually this triggers one openReport execution per page start or navigation. If guided setup is deferred while app data loads,
+        // rerun once the defer signal clears so openReport includes the loaded onboarding data.
         fetchReport();
-    }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
+    }, [route, isLinkedMessagePageReady, reportActionIDFromRoute, shouldDeferGuidedSetupOpenReport, onboardingSignal]);
 
     useEffect(() => {
         // This function is only triggered when a user is invited to a room after opening the link.

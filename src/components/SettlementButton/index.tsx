@@ -59,6 +59,7 @@ import type {TupleToUnion} from 'type-fest';
 
 import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import truncate from 'lodash/truncate';
 import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
@@ -81,14 +82,13 @@ function SettlementButton({
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, // caret for dropdown is at right, so horizontal anchor is at RIGHT
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
-    buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
-    extraSmall = false,
+    size = CONST.BUTTON_SIZE.MEDIUM,
     chatReportID = '',
     currency = CONST.CURRENCY.USD,
     enablePaymentsRoute,
     iouReport,
     isDisabled = false,
-    shouldStayNormalOnDisable = false,
+    stayNormalOnDisable = false,
     isLoading = false,
     formattedAmount = '',
     onPress,
@@ -125,6 +125,7 @@ function SettlementButton({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
@@ -524,6 +525,7 @@ function SettlementButton({
                     userBillingGracePeriodEnds,
                     amountOwed,
                     ownerBillingGracePeriodEnd,
+                    ownerLogin,
                     full: false,
                     delegateEmail,
                 });
@@ -686,12 +688,11 @@ function SettlementButton({
                     menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
                     isSplitButton={shouldUseSplitButton}
                     isDisabled={isDisabled}
-                    shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+                    stayNormalOnDisable={stayNormalOnDisable}
                     isLoading={isLoading}
                     defaultSelectedIndex={defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0}
                     onPress={(event, iouPaymentType) => handlePaymentSelection(event, iouPaymentType, triggerKYCFlow)}
-                    success={!hasOnlyHeldExpenses}
-                    extraSmall={extraSmall}
+                    variant={!hasOnlyHeldExpenses ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                     secondLineText={secondaryText}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
@@ -708,7 +709,7 @@ function SettlementButton({
                     containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
                     wrapperStyle={[wrapperStyle, shouldLimitWidth ? styles.settlementButtonShortFormWidth : {}]}
                     disabledStyle={disabledStyle}
-                    buttonSize={buttonSize}
+                    size={size}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     useKeyboardShortcuts={useKeyboardShortcuts}

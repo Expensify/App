@@ -3,16 +3,13 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import type {PersonalExpenseRuleRowData} from '@components/Tables/PersonalExpenseRulesTable';
 import PersonalExpenseRulesTable from '@components/Tables/PersonalExpenseRulesTable';
 import Text from '@components/Text';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -50,7 +47,6 @@ function ExpenseRulesPage() {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const genericIllustration = useGenericEmptyStateIllustration();
     const illustrations = useMemoizedLazyIllustrations(['Flash']);
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
     const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
@@ -140,7 +136,8 @@ function ExpenseRulesPage() {
 
     const headerButton = isInSelectionMode ? (
         <ButtonWithDropdownMenu
-            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.MEDIUM}
             customText={translate('workspace.common.selected', {count: selectedRules.length})}
             isDisabled={!selectedRules.length}
             isSplitButton={false}
@@ -161,25 +158,6 @@ function ExpenseRulesPage() {
                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
             />
         </View>
-    );
-
-    const emptyStateComponent = (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-            <GenericEmptyStateComponent
-                {...genericIllustration}
-                title={translate('expenseRulesPage.emptyRules.title')}
-                subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
-                headerStyles={styles.emptyStateCardIllustrationContainer}
-                buttons={[
-                    {
-                        success: true,
-                        buttonAction: navigateToNewRulePage,
-                        icon: icons.Plus,
-                        buttonText: translate('expenseRulesPage.newRule'),
-                    },
-                ]}
-            />
-        </ScrollView>
     );
 
     const loadingReasonAttributes: SkeletonSpanReasonAttributes = {
@@ -232,7 +210,6 @@ function ExpenseRulesPage() {
                     selectedKeys={selectedRules}
                     personalExpenseRules={personalExpenseRules}
                     onRowSelectionChange={setSelectedRules}
-                    EmptyStateComponent={emptyStateComponent}
                 />
             )}
 
