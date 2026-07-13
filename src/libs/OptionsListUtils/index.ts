@@ -251,16 +251,10 @@ const deprecatedCachedOneTransactionThreadReportIDs: Record<string, string | und
 /** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 
-// The sorted report-actions objects above are mutated in place (their references never change),
-// so this version number is the only signal that their contents were updated.
-let deprecatedReportActionsVersion = 0;
-
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
     callback: (actions) => {
-        // Bump before the empty guard so clearing the collection also invalidates caches keyed on this version.
-        deprecatedReportActionsVersion++;
         if (!actions) {
             return;
         }
@@ -1540,6 +1534,8 @@ function processReport(
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     isTrackIntentUser?: boolean,
+    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
+    sortedActions?: Record<string, ReportAction[]>,
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
@@ -1563,7 +1559,18 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption({accountIDs, personalDetails, report, privateIsArchived, policy, reportAttributesDerived, policyTags, visibleReportActionsData, isTrackIntentUser}),
+            ...createOption({
+                accountIDs,
+                personalDetails,
+                report,
+                privateIsArchived,
+                policy,
+                reportAttributesDerived,
+                policyTags,
+                visibleReportActionsData,
+                isTrackIntentUser,
+                sortedActions,
+            }),
         },
     };
 }
@@ -1685,6 +1692,8 @@ function createFilteredOptionList(
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = EMPTY_VISIBLE_REPORT_ACTIONS,
     isTrackIntentUser?: boolean,
+    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
+    sortedActions?: Record<string, ReportAction[]>,
 ): OptionList {
     const {maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
 
@@ -1710,9 +1719,9 @@ function createFilteredOptionList(
         isTrackIntentUser,
         // Option building translates strings imperatively (translateLocal), so the active locale is part of the output.
         locale ?? IntlStore.getCurrentLocale(),
-        // Option building reads module-level sorted report actions (getLastMessageTextForReport) that are
-        // mutated in place, so their version stands in for the never-changing object reference.
-        deprecatedReportActionsVersion,
+        // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
+        // so its reference signals that the underlying report actions changed.
+        sortedActions,
     ];
     const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
     if (cachedEntry && cacheInputs.every((value, index) => value === cachedEntry.inputs.at(index))) {
@@ -1775,6 +1784,7 @@ function createFilteredOptionList(
             reportPolicyTags,
             visibleReportActionsData,
             isTrackIntentUser,
+            sortedActions,
         );
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;

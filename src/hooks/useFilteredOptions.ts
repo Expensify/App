@@ -10,6 +10,7 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePrivateIsArchivedMap from './usePrivateIsArchivedMap';
 import useReportAttributes from './useReportAttributes';
+import useSortedActions from './useSortedActions';
 
 type UseFilteredOptionsConfig = {
     /** Maximum number of recent reports to pre-filter and process (default: 500). */
@@ -85,6 +86,10 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     // Option building is locale-dependent, so a consumer that stays mounted through a language switch recomputes.
     const {preferredLocale} = useLocalize();
 
+    // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
+    // every recompute, so it doubles as the report-actions invalidation signal for the option-list cache.
+    const sortedActions = useSortedActions();
+
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
@@ -109,6 +114,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
                       undefined,
                       undefined,
                       isTrackIntentUser,
+                      sortedActions,
                   )
                 : null,
         [
@@ -124,6 +130,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             deferContactsUntilSearch,
             preferredLocale,
             isTrackIntentUser,
+            sortedActions,
         ],
     );
 
