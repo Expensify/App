@@ -3729,23 +3729,6 @@ describe('getSecondaryExportReportActions', () => {
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
     });
 
-    it('includes EXPORT option for report manager who is not a workspace admin', () => {
-        jest.mocked(isPreferredExporter).mockReturnValue(false);
-
-        const report: Report = {
-            reportID: `${REPORT_ID}`,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            managerID: MANAGER_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-        };
-        const policy = createQBOPolicy(CONST.POLICY.ROLE.USER, false, ADMIN_EMAIL);
-
-        const result = getSecondaryExportReportActions(MANAGER_ACCOUNT_ID, MANAGER_EMAIL, report, {}, policy);
-        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
-    });
-
     it('includes EXPORT option for payments admin when auto-sync is disabled', () => {
         jest.mocked(isPreferredExporter).mockReturnValue(false);
 
@@ -3765,7 +3748,7 @@ describe('getSecondaryExportReportActions', () => {
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
     });
 
-    it('does not include EXPORT option for user without export permissions who is not report manager', () => {
+    it('does not include EXPORT option for user without export permissions', () => {
         jest.mocked(isPreferredExporter).mockReturnValue(false);
 
         const report: Report = {

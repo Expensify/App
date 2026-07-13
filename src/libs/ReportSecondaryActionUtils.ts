@@ -529,7 +529,7 @@ function isExportAction(currentAccountID: number, currentUserLogin: string, repo
     const hasAccountingExportPermission =
         canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.ACCOUNTING) || canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 
-    return hasAccountingExportPermission || isReportManagerUtils(report, currentAccountID) || isPreferredExporter(policy, currentUserLogin);
+    return hasAccountingExportPermission || isPreferredExporter(policy, currentUserLogin);
 }
 
 function isMarkAsExportedAction(currentAccountID: number, currentUserLogin: string, report: Report, bankAccountList: OnyxEntry<BankAccountList>, policy?: Policy): boolean {
