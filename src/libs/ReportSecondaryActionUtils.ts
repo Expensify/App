@@ -492,7 +492,7 @@ function isReceivedPaymentAction(report: Report, reportTransactions: Transaction
     return !hasBankPaymentAction;
 }
 
-function isExportAction(currentAccountID: number, currentUserLogin: string, report: Report, bankAccountList: OnyxEntry<BankAccountList>, policy?: Policy): boolean {
+function isExportAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -570,11 +570,10 @@ function isMarkAsExportedAction(currentAccountID: number, currentUserLogin: stri
         return true;
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const hasAccountingExportPermission =
+        canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.ACCOUNTING) || canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 
-    const isExporter = isPreferredExporter(policy, currentUserLogin);
-
-    return isAdmin || isExporter;
+    return hasAccountingExportPermission || isPreferredExporter(policy, currentUserLogin);
 }
 
 function isHoldAction(
@@ -1118,7 +1117,7 @@ function getSecondaryExportReportActions(
     exportTemplates: ExportTemplate[] = [],
 ): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
-    if (isExportAction(currentUserAccountID, currentUserLogin, report, bankAccountList, policy)) {
+    if (isExportAction(currentUserLogin, report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
 
