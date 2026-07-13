@@ -19,6 +19,7 @@ import type {ValueOf} from 'type-fest';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
+    canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     getSubmitToAccountID,
@@ -525,9 +526,10 @@ function isExportAction(currentAccountID: number, currentUserLogin: string, repo
         return false;
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const hasAccountingExportPermission =
+        canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.ACCOUNTING) || canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 
-    return isAdmin || isPreferredExporter(policy, currentUserLogin);
+    return hasAccountingExportPermission || isReportManagerUtils(report, currentAccountID) || isPreferredExporter(policy, currentUserLogin);
 }
 
 function isMarkAsExportedAction(currentAccountID: number, currentUserLogin: string, report: Report, bankAccountList: OnyxEntry<BankAccountList>, policy?: Policy): boolean {
