@@ -166,12 +166,4 @@ function buildOOOCommand({date, time, durationAmount, durationUnit, reason, work
     return command;
 }
 
-export {
-    buildOOOCommand,
-    computeDurationDays,
-    computeEndDate,
-    isChronosOOOListAction,
-    isChronosStartOrStopMessage,
-    isConsecutiveChronosAutomaticTimerAction,
-    parseDate,
-};
+export {buildOOOCommand, computeDurationDays, computeEndDate, isChronosOOOListAction, isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction, parseDate};
