@@ -20,7 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getSuggestedAgentRuleIcon} from '@libs/PolicyRulesUtils';
+import {getSuggestedAgentRuleIcon, SUGGESTED_AGENT_RULE_ICON_NAMES} from '@libs/PolicyRulesUtils';
 
 import variables from '@styles/variables';
 
@@ -36,8 +36,6 @@ type AddAgentRuleSuggestionsTabProps = {
     onSelectSuggestion: (suggestion: SuggestedAgentRule) => void;
 };
 
-const SUGGESTION_ICON_NAMES = ['ThumbsUp', 'CircleSlash', 'Flag', 'Coins'] as const;
-
 function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestionsTabProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -45,7 +43,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
     const {isOffline} = useNetwork();
     const {data, isLoading} = useSuggestedAgentRules();
     const illustrations = useMemoizedLazyIllustrations(['Lightbulb']);
-    const icons = useMemoizedLazyExpensifyIcons([...SUGGESTION_ICON_NAMES]);
+    const icons = useMemoizedLazyExpensifyIcons([...SUGGESTED_AGENT_RULE_ICON_NAMES]);
     const [searchValue, setSearchValue] = useState('');
     const [selectedSuggestionID, setSelectedSuggestionID] = useState<string | undefined>();
 
@@ -55,6 +53,9 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
         : data.filter((suggestion) => suggestion.title.toLowerCase().includes(trimmedSearch) || suggestion.prompt.toLowerCase().includes(trimmedSearch));
 
     const selectedSuggestion = filteredSuggestions.find((suggestion) => suggestion.id === selectedSuggestionID);
+    const hasNoSuggestions = data.length === 0;
+    const shouldShowLoadingIndicator = isLoading && hasNoSuggestions;
+    const shouldShowEmptyState = !isLoading && hasNoSuggestions;
 
     const goToConcierge = () => {
         Navigation.navigate(ROUTES.CONCIERGE);
@@ -67,7 +68,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
         onSelectSuggestion(selectedSuggestion);
     };
 
-    if (isLoading && data.length === 0) {
+    if (shouldShowLoadingIndicator) {
         return (
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <ActivityIndicator
@@ -78,7 +79,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
         );
     }
 
-    if (!isLoading && data.length === 0) {
+    if (shouldShowEmptyState) {
         return (
             <BlockingView
                 icon={illustrations.Lightbulb}
