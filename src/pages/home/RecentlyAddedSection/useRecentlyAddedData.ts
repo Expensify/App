@@ -14,7 +14,6 @@ import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import {useIsFocused} from '@react-navigation/native';
-import {deepEqual} from 'fast-equals';
 import {useEffect, useEffectEvent, useMemo, useState} from 'react';
 
 /** A single expense row surfaced by the Recently added slot. */
@@ -228,7 +227,9 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
         return {transactions: transactionsList, nextUnconfirmedTransactionIDs: nextUnconfirmed};
     }, [snapshotData, unconfirmedTransactionIDs, accountID, localTransactions, localTransactionByID, translate]);
 
-    if (!deepEqual(nextUnconfirmedTransactionIDs, unconfirmedTransactionIDs)) {
+    const hasSameUnconfirmedIDs =
+        nextUnconfirmedTransactionIDs.size === unconfirmedTransactionIDs.size && [...nextUnconfirmedTransactionIDs].every((id) => unconfirmedTransactionIDs.has(id));
+    if (!hasSameUnconfirmedIDs) {
         setUnconfirmedTransactionIDs(nextUnconfirmedTransactionIDs);
     }
 
