@@ -549,7 +549,7 @@ const searchResults: OnyxTypes.SearchResults = {
         hasMoreResults: false,
         hasResults: true,
         offset: 0,
-        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        hash: 0,
         isLoading: false,
         type: 'expense',
     },
@@ -590,7 +590,7 @@ const searchResultsGroupByFrom: OnyxTypes.SearchResults = {
         hasMoreResults: false,
         hasResults: true,
         offset: 0,
-        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+        hash: 0,
         total: 100,
         isLoading: false,
         type: 'expense',
@@ -640,7 +640,7 @@ const searchResultsGroupByCard: OnyxTypes.SearchResults = {
         hasMoreResults: false,
         hasResults: true,
         offset: 0,
-        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+        hash: 0,
         total: 60,
         isLoading: false,
         type: 'expense',
@@ -677,7 +677,7 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
         hasMoreResults: false,
         hasResults: true,
         offset: 0,
-        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        hash: 0,
         total: 60,
         isLoading: false,
         type: 'expense',
@@ -709,7 +709,7 @@ const searchResultsGroupByCategory: OnyxTypes.SearchResults = {
         hasMoreResults: false,
         hasResults: true,
         offset: 0,
-        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        hash: 0,
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -1924,7 +1924,7 @@ const searchResultsGroupByMerchant: OnyxTypes.SearchResults = {
         hasMoreResults: false,
         hasResults: true,
         offset: 0,
-        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        hash: 0,
         total: 470,
         isLoading: false,
         type: 'expense',
@@ -1981,7 +1981,7 @@ const searchResultsGroupByTag: OnyxTypes.SearchResults = {
         hasMoreResults: false,
         hasResults: true,
         offset: 0,
-        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        hash: 0,
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -2062,7 +2062,7 @@ const searchResultsGroupByMonth: OnyxTypes.SearchResults = {
         hasMoreResults: false,
         hasResults: true,
         offset: 0,
-        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        hash: 0,
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -2091,7 +2091,7 @@ const searchResultsGroupByYear: OnyxTypes.SearchResults = {
         hasMoreResults: false,
         hasResults: true,
         offset: 0,
-        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        hash: 0,
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -2122,7 +2122,7 @@ const searchResultsGroupByQuarter: OnyxTypes.SearchResults = {
         hasMoreResults: false,
         hasResults: true,
         offset: 0,
-        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        hash: 0,
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -2151,7 +2151,7 @@ const searchResultsGroupByWeek: OnyxTypes.SearchResults = {
         hasMoreResults: false,
         hasResults: true,
         offset: 0,
-        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        hash: 0,
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -4168,7 +4168,6 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    status: '',
                     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                     view: CONST.SEARCH.VIEW.TABLE,
@@ -4433,7 +4432,6 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    status: '',
                     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                     view: CONST.SEARCH.VIEW.TABLE,
@@ -4483,7 +4481,6 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    status: '',
                     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                     view: CONST.SEARCH.VIEW.TABLE,
@@ -4533,7 +4530,6 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    status: '',
                     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                     view: CONST.SEARCH.VIEW.TABLE,
@@ -4583,7 +4579,6 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    status: '',
                     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                     view: CONST.SEARCH.VIEW.TABLE,
@@ -4654,7 +4649,6 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    status: '',
                     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                     view: CONST.SEARCH.VIEW.TABLE,
@@ -4966,7 +4960,6 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    status: '',
                     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                     view: CONST.SEARCH.VIEW.TABLE,
@@ -5645,15 +5638,23 @@ describe('SearchUIUtils', () => {
         const TEST_QUERY_HASH = 99999;
         const expenseType: typeof CONST.SEARCH.DATA_TYPES.EXPENSE = CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-        function makeExpenseQueryJSON(status: string | string[]) {
+        function makeExpenseQueryJSON(status: string[] | undefined, isNegated = false) {
+            const operator = isNegated ? CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+            const flatFilters = status
+                ? [
+                      {
+                          key: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                          filters: status.map((value) => ({operator, value})),
+                      },
+                  ]
+                : [];
             return {
                 type: expenseType,
-                status,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 view: CONST.SEARCH.VIEW.TABLE,
                 hash: TEST_QUERY_HASH,
-                flatFilters: [],
+                flatFilters,
                 inputQuery: 'type:expense' as const,
                 recentSearchHash: TEST_QUERY_HASH,
                 similarSearchHash: TEST_QUERY_HASH,
@@ -5706,13 +5707,13 @@ describe('SearchUIUtils', () => {
 
             it('should include transactions when queryJSON status matches report state (DRAFTS)', () => {
                 const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
-                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.DRAFTS)});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS])});
                 expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
             });
 
             it('should exclude transactions when queryJSON status does not match report state', () => {
                 const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
-                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING)});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING])});
                 expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
             });
 
@@ -5734,7 +5735,7 @@ describe('SearchUIUtils', () => {
 
             it('should exclude transactions when queryJSON status is an invalid string', () => {
                 const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
-                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON('not_a_valid_status')});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['not_a_valid_status'])});
                 expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
             });
 
@@ -5746,8 +5747,33 @@ describe('SearchUIUtils', () => {
 
             it('should include transactions when queryJSON status is ALL', () => {
                 const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
-                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.ALL)});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(undefined)});
                 expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should include transactions when negated status excludes a different status than the report state', () => {
+                // Report is OUTSTANDING but we negate DRAFTS, so OUTSTANDING is not excluded and the transaction is shown.
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS], true)});
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should include transactions when negated status array excludes statuses other than the report state', () => {
+                // Report is OUTSTANDING and we negate DRAFTS + APPROVED, so OUTSTANDING is not excluded and the transaction is shown.
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [sections] = callGetTransactionsSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.APPROVED], true),
+                });
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should exclude transactions when negated status excludes every status matching the report (including ALL)', () => {
+                // Report is OUTSTANDING and we negate both OUTSTANDING and ALL, so no non-excluded predicate matches and the transaction is hidden.
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [sections] = callGetTransactionsSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING], true),
+                });
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
             });
 
             it('should include UNREPORTED transactions when there is no associated report', () => {
@@ -5760,7 +5786,7 @@ describe('SearchUIUtils', () => {
                         reportID: 'nonexistent-report',
                     },
                 };
-                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.UNREPORTED)});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.UNREPORTED])});
                 expect(sections.some((s) => s.transactionID === unreportedTxID)).toBe(true);
             });
 
@@ -5774,7 +5800,7 @@ describe('SearchUIUtils', () => {
 
                 for (const {status, stateNum, statusNum} of statusToReportState) {
                     const data = makeFilterTestData({stateNum, statusNum});
-                    const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(status)});
+                    const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON([status])});
                     expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
                 }
             });
@@ -5783,7 +5809,7 @@ describe('SearchUIUtils', () => {
                 const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
                 const loadingSet = new Set([`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${filterTestReportID}`]);
                 const [sections] = callGetTransactionsSections(data, {
-                    queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING),
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]),
                     isActionLoadingSet: loadingSet,
                 });
                 expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
@@ -5964,13 +5990,13 @@ describe('SearchUIUtils', () => {
 
             it('should include report when queryJSON status matches report state (DRAFTS)', () => {
                 const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
-                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.DRAFTS)});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS])});
                 expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
             });
 
             it('should exclude report when queryJSON status does not match', () => {
                 const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
-                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING)});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING])});
                 expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
             });
 
@@ -5990,11 +6016,36 @@ describe('SearchUIUtils', () => {
                 expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
             });
 
+            it('should include report when negated status excludes a different status than the report state', () => {
+                // Report is OUTSTANDING but we negate DRAFTS, so OUTSTANDING is not excluded and the report is shown.
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS], true)});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
+            });
+
+            it('should include report when negated status array excludes statuses other than the report state', () => {
+                // Report is OUTSTANDING and we negate DRAFTS + APPROVED, so OUTSTANDING is not excluded and the report is shown.
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.APPROVED], true),
+                });
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
+            });
+
+            it('should exclude report when negated status excludes every status matching the report (including ALL)', () => {
+                // Report is OUTSTANDING and we negate both OUTSTANDING and ALL, so no non-excluded predicate matches and the report is hidden.
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING], true),
+                });
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
+            });
+
             it('should bypass status filter when isActionLoadingSet contains the report metadata key', () => {
                 const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
                 const loadingSet = new Set([`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${rptFilterReportID}`]);
                 const [sections] = callGetReportSections(data, {
-                    queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING),
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]),
                     isActionLoadingSet: loadingSet,
                 });
                 expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
@@ -6002,7 +6053,7 @@ describe('SearchUIUtils', () => {
 
             it('should drop transactions when their parent report is filtered out', () => {
                 const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
-                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING)});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING])});
                 expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
                 const allTxIDs = sections.flatMap((s) => s.transactions?.map((t) => t.transactionID) ?? []);
                 expect(allTxIDs).not.toContain(rptFilterTxID);
@@ -6253,13 +6304,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test getSortedSections', () => {
         it('should return getSortedReportActionData result when type is CHAT', () => {
-            const sortedActions = SearchUIUtils.getSortedSections(
-                CONST.SEARCH.DATA_TYPES.CHAT,
-                CONST.SEARCH.STATUS.EXPENSE.ALL,
-                reportActionListItems,
-                localeCompare,
-                translateLocal,
-            ) as ReportActionListItemType[];
+            const sortedActions = SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.CHAT, reportActionListItems, localeCompare, translateLocal) as ReportActionListItemType[];
             // Should return all report actions sorted by creation date in descending order (newest first)
             expect(sortedActions).toHaveLength(5);
             expect(sortedActions.at(0)?.created).toBe('2024-12-21 13:05:24'); // reportAction4 (newest)
@@ -6267,7 +6312,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getSortedTransactionData result when groupBy is undefined', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionsListItems, localeCompare, translateLocal, 'date', 'asc', undefined)).toStrictEqual(
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, transactionsListItems, localeCompare, translateLocal, 'date', 'asc', undefined)).toStrictEqual(
                 transactionsListItems,
             );
         });
@@ -6336,7 +6381,6 @@ describe('SearchUIUtils', () => {
 
             const ascendingResult = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 [...unorderedTransactions],
                 localeCompare,
                 translateLocal,
@@ -6347,7 +6391,6 @@ describe('SearchUIUtils', () => {
             );
             const descendingResult = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 [...unorderedTransactions],
                 localeCompare,
                 translateLocal,
@@ -6378,7 +6421,6 @@ describe('SearchUIUtils', () => {
 
             const ascendingResult = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 [...emptyPostedTransactions],
                 localeCompare,
                 translateLocal,
@@ -6388,7 +6430,6 @@ describe('SearchUIUtils', () => {
             );
             const descendingResult = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 [...emptyPostedTransactions],
                 localeCompare,
                 translateLocal,
@@ -6404,23 +6445,22 @@ describe('SearchUIUtils', () => {
         it.each([
             {columnName: 'Reimbursable', sortBy: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, boolOverride: {reimbursable: true}},
             {columnName: 'Billable', sortBy: CONST.SEARCH.TABLE_COLUMNS.BILLABLE, boolOverride: {billable: true}},
-        ])('should still tie-break tied $columnName rows by created honoring sortOrder (boolean-column behavior from #77800 is preserved)', ({sortBy, boolOverride}) => {
+        ])('should still tie-break tied $columnName rows by inserted honoring sortOrder', ({sortBy, boolOverride}) => {
             // Guards against this fix over-reaching: boolean columns resolve to a non-empty "yes"/"no" value, so every row
-            // ties on the primary comparison but is NOT empty — the created/transactionID tie breaker must still run and
-            // still honor sortOrder. `created` is intentionally unsorted in the input.
+            // ties on the primary comparison but is NOT empty — the inserted/transactionID tie breaker must still run and
+            // still honor sortOrder. `inserted` is intentionally unsorted in the input.
             const baseTransaction = transactionsListItems.at(0);
             if (!baseTransaction) {
                 throw new Error('Missing base transaction fixture');
             }
             const tiedTransactions = [
-                {...baseTransaction, ...boolOverride, transactionID: 'bool-mar', keyForList: 'bool-mar', created: '2024-03-03'},
-                {...baseTransaction, ...boolOverride, transactionID: 'bool-jan', keyForList: 'bool-jan', created: '2024-01-01'},
-                {...baseTransaction, ...boolOverride, transactionID: 'bool-feb', keyForList: 'bool-feb', created: '2024-02-02'},
+                {...baseTransaction, ...boolOverride, transactionID: 'bool-mar', keyForList: 'bool-mar', inserted: '2024-03-03'},
+                {...baseTransaction, ...boolOverride, transactionID: 'bool-jan', keyForList: 'bool-jan', inserted: '2024-01-01'},
+                {...baseTransaction, ...boolOverride, transactionID: 'bool-feb', keyForList: 'bool-feb', inserted: '2024-02-02'},
             ] as TransactionListItemType[];
 
             const ascendingResult = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 [...tiedTransactions],
                 localeCompare,
                 translateLocal,
@@ -6430,7 +6470,6 @@ describe('SearchUIUtils', () => {
             );
             const descendingResult = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 [...tiedTransactions],
                 localeCompare,
                 translateLocal,
@@ -6444,41 +6483,32 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getSortedReportData result when type is expense-report', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, '', transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getSortedReportData result when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getSortedReportData result when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should sort member group data when type is EXPENSE and groupBy is member', () => {
             expect(
-                SearchUIUtils.getSortedSections(
-                    CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    '',
-                    transactionMemberGroupListItems,
-                    localeCompare,
-                    translateLocal,
-                    'date',
-                    'asc',
-                    CONST.SEARCH.GROUP_BY.FROM,
-                ),
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, transactionMemberGroupListItems, localeCompare, translateLocal, 'date', 'asc', CONST.SEARCH.GROUP_BY.FROM),
             ).toStrictEqual(transactionMemberGroupListItemsSorted);
         });
 
         it('should sort card group data when type is EXPENSE and groupBy is card', () => {
             expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionCardGroupListItems, localeCompare, translateLocal, 'date', 'asc', CONST.SEARCH.GROUP_BY.CARD),
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, transactionCardGroupListItems, localeCompare, translateLocal, 'date', 'asc', CONST.SEARCH.GROUP_BY.CARD),
             ).toStrictEqual(transactionCardGroupListItemsSorted);
         });
 
@@ -6486,7 +6516,6 @@ describe('SearchUIUtils', () => {
             expect(
                 SearchUIUtils.getSortedSections(
                     CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    '',
                     transactionWithdrawalIDGroupListItems,
                     localeCompare,
                     translateLocal,
@@ -6501,7 +6530,6 @@ describe('SearchUIUtils', () => {
             expect(
                 SearchUIUtils.getSortedSections(
                     CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    '',
                     transactionCategoryGroupListItems,
                     localeCompare,
                     translateLocal,
@@ -6515,7 +6543,6 @@ describe('SearchUIUtils', () => {
         it('should sort category data by category name in ascending order', () => {
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 transactionCategoryGroupListItems,
                 localeCompare,
                 translateLocal,
@@ -6532,7 +6559,6 @@ describe('SearchUIUtils', () => {
         it('should sort category data by category name in descending order', () => {
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 transactionCategoryGroupListItems,
                 localeCompare,
                 translateLocal,
@@ -6549,7 +6575,6 @@ describe('SearchUIUtils', () => {
         it('should sort category data by total amount', () => {
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 transactionCategoryGroupListItems,
                 localeCompare,
                 translateLocal,
@@ -6568,7 +6593,6 @@ describe('SearchUIUtils', () => {
             // This test verifies that the sorting works with the parser's default value
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 transactionCategoryGroupListItems,
                 localeCompare,
                 translateLocal,
@@ -6585,7 +6609,6 @@ describe('SearchUIUtils', () => {
         it('should sort category data by expenses count', () => {
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 transactionCategoryGroupListItems,
                 localeCompare,
                 translateLocal,
@@ -6604,7 +6627,6 @@ describe('SearchUIUtils', () => {
             expect(
                 SearchUIUtils.getSortedSections(
                     CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    '',
                     transactionMerchantGroupListItems,
                     localeCompare,
                     translateLocal,
@@ -6618,7 +6640,6 @@ describe('SearchUIUtils', () => {
         it('should sort merchant data by merchant name in ascending order', () => {
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 transactionMerchantGroupListItems,
                 localeCompare,
                 translateLocal,
@@ -6635,7 +6656,6 @@ describe('SearchUIUtils', () => {
         it('should sort merchant data by merchant name in descending order', () => {
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 transactionMerchantGroupListItems,
                 localeCompare,
                 translateLocal,
@@ -6652,7 +6672,6 @@ describe('SearchUIUtils', () => {
         it('should sort merchant data by total amount', () => {
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 transactionMerchantGroupListItems,
                 localeCompare,
                 translateLocal,
@@ -6671,7 +6690,6 @@ describe('SearchUIUtils', () => {
             // This test verifies that the sorting works with the parser's default value
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 transactionMerchantGroupListItems,
                 localeCompare,
                 translateLocal,
@@ -6688,7 +6706,6 @@ describe('SearchUIUtils', () => {
         it('should sort merchant data by expenses count', () => {
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 transactionMerchantGroupListItems,
                 localeCompare,
                 translateLocal,
@@ -6742,7 +6759,6 @@ describe('SearchUIUtils', () => {
 
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 merchantDataWithEmpty,
                 localeCompare,
                 translateLocal,
@@ -6762,7 +6778,6 @@ describe('SearchUIUtils', () => {
             expect(
                 SearchUIUtils.getSortedSections(
                     CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    '',
                     transactionTagGroupListItems,
                     localeCompare,
                     translateLocal,
@@ -6776,7 +6791,6 @@ describe('SearchUIUtils', () => {
         it('should sort tag data by tag name in ascending order', () => {
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 transactionTagGroupListItems,
                 localeCompare,
                 translateLocal,
@@ -6793,7 +6807,6 @@ describe('SearchUIUtils', () => {
         it('should sort tag data by tag name in descending order', () => {
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 transactionTagGroupListItems,
                 localeCompare,
                 translateLocal,
@@ -6810,7 +6823,6 @@ describe('SearchUIUtils', () => {
         it('should sort tag data by total amount', () => {
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 transactionTagGroupListItems,
                 localeCompare,
                 translateLocal,
@@ -6870,7 +6882,6 @@ describe('SearchUIUtils', () => {
             // Then sort the sections
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
-                '',
                 sections,
                 localeCompare,
                 translateLocal,
@@ -8020,6 +8031,61 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('Test isSearchDataLoaded', () => {
+        const queryJSON = buildSearchQueryJSON('type:expense');
+
+        function makeSearchResults(overrides: Partial<OnyxTypes.SearchResults> = {}): OnyxTypes.SearchResults {
+            return {
+                data: {personalDetailsList: {}},
+                search: {
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                },
+                ...overrides,
+            };
+        }
+
+        it('should return true when data is present and search type and hash match the query', () => {
+            expect(SearchUIUtils.isSearchDataLoaded(makeSearchResults(), queryJSON)).toBe(true);
+        });
+
+        it('should return true when data is absent but errors are present and type and hash match', () => {
+            const results = makeSearchResults({data: undefined, errors: {error: 'Something went wrong'}});
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
+        });
+
+        it('should return false when both data and errors are absent', () => {
+            const results = makeSearchResults({data: undefined, errors: undefined});
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
+        it('should return false when the search type does not match the query type', () => {
+            const results = makeSearchResults({
+                search: {hasMoreResults: false, hasResults: true, offset: 0, hash: queryJSON?.hash ?? 0, isLoading: false, type: CONST.SEARCH.DATA_TYPES.CHAT},
+            });
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
+        it('should return false when the search hash does not match the query hash', () => {
+            const results = makeSearchResults({
+                search: {hasMoreResults: false, hasResults: true, offset: 0, hash: (queryJSON?.hash ?? 0) + 1, isLoading: false, type: CONST.SEARCH.DATA_TYPES.EXPENSE},
+            });
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
+        it('should return false when searchResults is undefined', () => {
+            expect(SearchUIUtils.isSearchDataLoaded(undefined, queryJSON)).toBe(false);
+        });
+
+        it('should return false when queryJSON is undefined but searchResults has a concrete type and hash', () => {
+            expect(SearchUIUtils.isSearchDataLoaded(makeSearchResults(), undefined)).toBe(false);
+        });
+    });
+
     describe('Test isSearchResultsEmpty', () => {
         it('should return true when all transactions have delete pending action', () => {
             const results: OnyxTypes.SearchResults = {
@@ -8055,7 +8121,7 @@ describe('SearchUIUtils', () => {
                 },
                 search: {
                     type: 'expense',
-                    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                    hash: 0,
                     offset: 0,
                     hasMoreResults: false,
                     hasResults: true,
@@ -8187,7 +8253,7 @@ describe('SearchUIUtils', () => {
             },
             search: {
                 type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                hash: 0,
                 offset: 0,
                 hasMoreResults: false,
                 hasResults: true,
@@ -8258,7 +8324,7 @@ describe('SearchUIUtils', () => {
                                 successfulDate: '',
                             },
                         },
-                    } as Connections,
+                    },
                 } as OnyxTypes.Policy,
             };
 
@@ -8266,7 +8332,7 @@ describe('SearchUIUtils', () => {
             expect(response.visibility.export).toBe(false);
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            policies[policyKey]!.connections![CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastSync = {
+            policies[policyKey]!.connections![CONST.POLICY.CONNECTIONS.NAME.NETSUITE]!.lastSync = {
                 errorDate: '',
                 errorMessage: '',
                 isAuthenticationError: false,

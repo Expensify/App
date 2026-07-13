@@ -161,7 +161,6 @@ import {
     isUnread,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseReportRouteParams,
-    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     pushTransactionAutoSelectionsOnyxData,
     pushTransactionViolationsOnyxData,
@@ -9877,6 +9876,71 @@ describe('ReportUtils', () => {
             expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
+        it('uses the policies param over the deprecated module-level policy cache to decide the Approve badge', async () => {
+            const policyID = 'policy-for-policies-param-test';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(2),
+                id: policyID,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                type: CONST.POLICY.TYPE.TEAM,
+            };
+
+            // A processing expense report where the current user is the manager - eligible for the Approve badge
+            // as long as canApproveIOU can see the policy
+            const expenseReport: Report = {
+                ...createExpenseReport(60001),
+                policyID,
+                hasParentAccess: false,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+            };
+
+            // Deliberately do NOT set the policy in Onyx - only the report and transaction - to simulate a client
+            // whose policy_<policyID> merge hasn't landed yet even though the report itself is already present
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
+
+            // Without a policies param, resolution falls back to the deprecated module-level policy cache, which
+            // was never populated with this policyID in this test - canApproveIOU bails out on the missing policy,
+            // so the GBR shows without an Approve badge, exactly like a client whose policy merge hasn't landed yet
+            const resultWithoutParam = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            expect(resultWithoutParam?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            expect(resultWithoutParam?.actionBadge).toBeUndefined();
+
+            // With a policies param carrying the same policy, the Approve badge must reflect that immediately using
+            // the caller's own snapshot, without waiting for a separate Onyx.connect callback on the deprecated
+            // cache to catch up
+            const policiesParam: OnyxCollection<Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: fakePolicy,
+            };
+            const resultWithParam = getReasonAndReportActionThatRequiresAttention(
+                expenseReport,
+                currentUserEmail,
+                currentUserAccountID,
+                undefined,
+                isReportArchived.current,
+                undefined,
+                undefined,
+                policiesParam,
+            );
+            expect(resultWithParam?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            expect(resultWithParam?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+        });
+
         it('should return the Task badge when the task action is older than the IOU action', async () => {
             const iouReportID = 'iou-report-for-priority-2';
 
@@ -10231,29 +10295,6 @@ describe('ReportUtils', () => {
 
             // Then the short mention is not expanded because public domains have no mention domain
             expect(result).not.toContain('ragnar@vikings.net');
-        });
-    });
-
-    describe('populateOptimisticReportFormula', () => {
-        it('resolves {user:email} from the explicitly passed currentUserEmail param', () => {
-            // Given an optimistic report and an explicit currentUserEmail param
-            const report = {...createRandomReport(70001), reportName: 'Test report', total: 0, currency: CONST.CURRENCY.USD};
-
-            // When the {user:email} formula is populated
-            const result = populateOptimisticReportFormula('{user:email}', report, undefined, false, 'passed@example.com');
-
-            // Then it uses the passed email rather than the session email
-            expect(result).toBe('passed@example.com');
-        });
-        it('resolves {user:email|frontPart} from the explicitly passed currentUserEmail param', () => {
-            // Given an optimistic report and an explicit currentUserEmail param
-            const report = {...createRandomReport(70002), reportName: 'Test report', total: 0, currency: CONST.CURRENCY.USD};
-
-            // When the {user:email|frontPart} formula is populated
-            const result = populateOptimisticReportFormula('{user:email|frontPart}', report, undefined, false, 'passed@example.com');
-
-            // Then it uses the front part of the passed email
-            expect(result).toBe('passed');
         });
     });
 
@@ -14023,6 +14064,89 @@ describe('ReportUtils', () => {
             });
 
             expect(reasonForOptionList).toBe(null);
+
+            await Onyx.clear();
+        });
+
+        it('should prefer the real display name of an optimistic imported device contact over the phone login', async () => {
+            await Onyx.clear();
+
+            const importedContactAccountID = 987001;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [importedContactAccountID]: {
+                    accountID: importedContactAccountID,
+                    login: '+15551234567@expensify.sms',
+                    displayName: 'John Doe',
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    isOptimisticPersonalDetail: true,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: importedContactAccountID});
+            expect(displayName).toBe('John Doe');
+
+            await Onyx.clear();
+        });
+
+        it('should return the first name for an optimistic imported device contact when short form is requested', async () => {
+            await Onyx.clear();
+
+            const importedContactAccountID = 987002;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [importedContactAccountID]: {
+                    accountID: importedContactAccountID,
+                    login: '+15551234567@expensify.sms',
+                    displayName: 'John Doe',
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    isOptimisticPersonalDetail: true,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: importedContactAccountID, shouldUseShortForm: true});
+            expect(displayName).toBe('John');
+
+            await Onyx.clear();
+        });
+
+        it('should fall back to the login for an optimistic invite/new-user stub whose display name equals the login', async () => {
+            await Onyx.clear();
+
+            const newUserAccountID = 987003;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [newUserAccountID]: {
+                    accountID: newUserAccountID,
+                    login: 'newuser@example.com',
+                    displayName: 'newuser@example.com',
+                    isOptimisticPersonalDetail: true,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: newUserAccountID});
+            expect(displayName).toBe('newuser@example.com');
+
+            await Onyx.clear();
+        });
+
+        it('should fall back to the formatted login (not "Hidden") for an optimistic record without a display name', async () => {
+            await Onyx.clear();
+
+            const newUserAccountID = 987004;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [newUserAccountID]: {
+                    accountID: newUserAccountID,
+                    login: 'newuser2@example.com',
+                    isOptimisticPersonalDetail: true,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: newUserAccountID});
+            expect(displayName).toBe('newuser2@example.com');
 
             await Onyx.clear();
         });

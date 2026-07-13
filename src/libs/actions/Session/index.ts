@@ -102,7 +102,7 @@ Onyx.connect({
             authPromiseResolver(true);
             authPromiseResolver = null;
         }
-        if (CONFIG.IS_HYBRID_APP && isHybridAppSetupFinished && session.authToken && session.authToken !== INVALID_TOKEN && !isAnonymousUser(value)) {
+        if (CONFIG.IS_HYBRID_APP && isHybridAppSetupFinished && session.authToken && !isAnonymousUser(value)) {
             HybridAppModule.sendAuthToken({authToken: session.authToken});
         }
     },
