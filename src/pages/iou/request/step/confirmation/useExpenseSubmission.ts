@@ -357,6 +357,22 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         });
     }
 
+    /**
+     * Emits the `[Receipt] submitted` log for one expense as it leaves the confirmation page.
+     */
+    function logSubmittedReceiptMilestone(item: Transaction, receipt: Receipt | undefined, optimisticTransactionID: string, command: string) {
+        if (!receipt?.receiptTraceId) {
+            return;
+        }
+        logReceiptSubmitted({
+            receiptTraceId: receipt.receiptTraceId,
+            draftTransactionID: item.transactionID,
+            transactionID: getExistingTransactionID(item.linkedTrackedExpenseReportAction) ?? optimisticTransactionID,
+            command,
+            iouType,
+        });
+    }
+
     function requestMoney(shouldHandleNavigation: boolean, gpsPoint?: GpsPoint) {
         if (!transactions.length) {
             return;
@@ -382,15 +398,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         for (const item of transactions) {
             lastOptimisticTransactionID = rand64();
             const receipt = receiptFiles[item.transactionID];
-            if (receipt?.receiptTraceId) {
-                logReceiptSubmitted({
-                    receiptTraceId: receipt.receiptTraceId,
-                    draftTransactionID: item.transactionID,
-                    transactionID: lastOptimisticTransactionID,
-                    command: WRITE_COMMANDS.REQUEST_MONEY,
-                    iouType,
-                });
-            }
+            logSubmittedReceiptMilestone(
+                item,
+                receipt,
+                lastOptimisticTransactionID,
+                isMovingTransactionFromTrackExpense ? WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST : WRITE_COMMANDS.REQUEST_MONEY,
+            );
             const isTestReceipt = receipt?.isTestReceipt ?? false;
             const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
             const isLinkedTrackedExpenseReportArchived =
@@ -649,19 +662,17 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
         const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
+        let submittedCommand: string = WRITE_COMMANDS.TRACK_EXPENSE;
+        if (isCategorizingTrackExpense) {
+            submittedCommand = WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE;
+        } else if (isSharingTrackExpense) {
+            submittedCommand = WRITE_COMMANDS.SHARE_TRACKED_EXPENSE;
+        }
         let lastOptimisticTransactionID: string | undefined;
         for (const item of transactions) {
             lastOptimisticTransactionID = rand64();
             const trackReceipt = receiptFiles[item.transactionID];
-            if (trackReceipt?.receiptTraceId) {
-                logReceiptSubmitted({
-                    receiptTraceId: trackReceipt.receiptTraceId,
-                    draftTransactionID: item.transactionID,
-                    transactionID: lastOptimisticTransactionID,
-                    command: WRITE_COMMANDS.TRACK_EXPENSE,
-                    iouType,
-                });
-            }
+            logSubmittedReceiptMilestone(item, trackReceipt, lastOptimisticTransactionID, submittedCommand);
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
@@ -690,7 +701,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     created: item.created,
                     merchant: item.merchant,
                     comment: item?.comment?.comment?.trim() ?? '',
-                    receipt: receiptFiles[item.transactionID],
+                    receipt: trackReceipt,
                     category: item.category,
                     tag: item.tag,
                     taxCode: transactionTaxCode,
