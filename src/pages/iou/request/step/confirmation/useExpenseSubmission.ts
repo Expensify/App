@@ -14,6 +14,7 @@ import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -37,6 +38,7 @@ import {
 } from '@libs/ReportUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
+import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
 import {
     getDefaultTaxCode,
     getDistanceRequestType,
@@ -380,6 +382,15 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         for (const item of transactions) {
             lastOptimisticTransactionID = rand64();
             const receipt = receiptFiles[item.transactionID];
+            if (receipt?.receiptTraceId) {
+                logReceiptSubmitted({
+                    receiptTraceId: receipt.receiptTraceId,
+                    draftTransactionID: item.transactionID,
+                    transactionID: lastOptimisticTransactionID ?? item.transactionID,
+                    command: WRITE_COMMANDS.REQUEST_MONEY,
+                    iouType,
+                });
+            }
             const isTestReceipt = receipt?.isTestReceipt ?? false;
             const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
             const isLinkedTrackedExpenseReportArchived =
@@ -641,6 +652,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         let lastOptimisticTransactionID: string | undefined;
         for (const item of transactions) {
             lastOptimisticTransactionID = rand64();
+            const trackReceipt = receiptFiles[item.transactionID];
+            if (trackReceipt?.receiptTraceId) {
+                logReceiptSubmitted({
+                    receiptTraceId: trackReceipt.receiptTraceId,
+                    draftTransactionID: item.transactionID,
+                    transactionID: lastOptimisticTransactionID ?? item.transactionID,
+                    command: WRITE_COMMANDS.TRACK_EXPENSE,
+                    iouType,
+                });
+            }
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
