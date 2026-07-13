@@ -1686,6 +1686,7 @@ const translations = {
         changed: 'changed',
         removed: 'removed',
         transactionPending: 'Transaction pending.',
+        transactionPendingDescription: 'Transaction pending. It may take a few days to post.',
         chooseARate: 'Select a workspace reimbursement rate per mile or kilometer',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} to ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Valid from ${startDate}`,

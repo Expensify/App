@@ -1613,6 +1613,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: 'gewijzigd',
         removed: 'verwijderd',
         transactionPending: 'Transactie in behandeling.',
+        transactionPendingDescription: 'Transactie in behandeling. Het kan een paar dagen duren voordat deze wordt geboekt.',
         chooseARate: 'Selecteer een workspace-vergoeding per mijl of kilometer',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} tot ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Geldig vanaf ${startDate}`,

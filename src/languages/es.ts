@@ -1577,6 +1577,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: 'cambió',
         removed: 'eliminó',
         transactionPending: 'Transacción pendiente.',
+        transactionPendingDescription: 'Transacción pendiente. Puede tardar unos días en contabilizarse.',
         chooseARate: 'Selecciona una tasa de reembolso por milla o kilómetro para el espacio de trabajo',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} a ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Válido desde ${startDate}`,

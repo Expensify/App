@@ -1597,6 +1597,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: '変更済み',
         removed: '削除済み',
         transactionPending: '取引は保留中です。',
+        transactionPendingDescription: '取引は保留中です。処理に数日かかる場合があります。',
         chooseARate: 'ワークスペースの払い戻しレートをマイルまたはキロメートルごとに選択してください',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate}から${endDate}まで有効`,
         rateValidFrom: ({startDate}: {startDate: string}) => `${startDate}から有効`,
