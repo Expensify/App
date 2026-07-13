@@ -4,13 +4,21 @@ import ImageSVG from '@components/ImageSVG';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {Dimensions} from '@src/types/utils/Layout';
+
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ContentSizedIconProps} from './types';
+import type {BaseIconProps} from './types';
+
+/** Shared props for primitives that also receive a measured or layout content size. */
+type ContentSizedIcon = {
+    /** Layout size for inline icons. */
+    contentSize: Dimensions;
+};
 
 /** Renders an icon positioned inline within surrounding text. */
-function InlineIcon({testID, additionalStyles, src, contentSize, iconWidth, iconHeight, fill, isHovered, isPressed, contentFit}: ContentSizedIconProps) {
+function InlineIcon({testID, additionalStyles, src, contentSize, iconWidth, iconHeight, fill, isHovered, isPressed, contentFit}: BaseIconProps & ContentSizedIcon) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(contentSize.width ?? 0, contentSize.height), IconWrapperStyles, styles.pAbsolute, additionalStyles];

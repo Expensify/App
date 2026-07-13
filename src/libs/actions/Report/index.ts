@@ -1,6 +1,6 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import * as ActiveClientManager from '@libs/ActiveClientManager';
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import {waitForWrites} from '@libs/API';
@@ -374,6 +374,7 @@ type OpenReportActionParams = {
 
 type PregeneratedResponseParams = {
     optimisticConciergeReportActionID: string;
+    optimisticConciergeCreated: string;
     pregeneratedResponse: string;
 };
 
@@ -854,7 +855,7 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
  * @param report - The report where the comment should be added
  * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
  * @param isInSidePanel - Whether the comment is being added from the side panel
- * @param pregeneratedResponseParams - Optional params for pre-generated response (API only, no optimistic action - used when response display is delayed)
+ * @param pregeneratedResponseParams - Optional params for pre-generated response (API only; the optimistic action is queued by SuggestedFollowup)
  */
 function addActions({
     report,
@@ -1016,6 +1017,7 @@ function addActions({
     // Add pregenerated params
     if (pregeneratedResponseParams) {
         parameters.optimisticConciergeReportActionID = pregeneratedResponseParams.optimisticConciergeReportActionID;
+        parameters.optimisticConciergeCreated = pregeneratedResponseParams.optimisticConciergeCreated;
         parameters.pregeneratedResponse = pregeneratedResponseParams.pregeneratedResponse;
     }
 
@@ -4637,7 +4639,7 @@ function shouldShowReportActionNotification(
         return false;
     }
 
-    if (!ActiveClientManager.isClientTheLeader()) {
+    if (!isClientTheLeader()) {
         Log.info(`${tag} Skipping notification because this client is not the leader`);
         return false;
     }
