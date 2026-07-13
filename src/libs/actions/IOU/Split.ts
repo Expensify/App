@@ -9,6 +9,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -87,7 +88,7 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import {dismissModalAndOpenReportInInboxTab, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
@@ -129,12 +130,15 @@ type CreateDistanceRequestInformation = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionParams: DistanceRequestTransactionParams;
     policyParams?: BasePolicyParams;
+    backToReport?: string;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     customUnitPolicyID?: string;
+    shouldHandleNavigation?: boolean;
+    shouldDeferForSearch?: boolean;
     shouldPlaySound?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -333,11 +337,9 @@ function splitBill({
         },
     );
     if (shouldHandleNavigation) {
-        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(existingSplitChatReportID);
-    } else {
-        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
+    TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID)});
 
     notifyNewAction(splitData.chatReportID, undefined, true);
 }
@@ -445,11 +447,9 @@ function splitBillAndOpenReport({
         },
     );
     if (shouldHandleNavigation) {
-        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(splitData.chatReportID);
-    } else {
-        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
+    TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID)});
     notifyNewAction(splitData.chatReportID, undefined, true);
 }
 
@@ -1175,8 +1175,8 @@ function completeSplitBill(
 
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
-    TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
     dismissModalAndOpenReportInInboxTab(chatReportID);
+    TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID)});
     notifyNewAction(chatReportID, undefined, true);
 }
 
@@ -1921,12 +1921,15 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         existingTransaction,
         transactionParams,
         policyParams = {},
+        backToReport,
         isASAPSubmitBetaEnabled,
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
         recentWaypoints = [],
         customUnitPolicyID,
+        shouldHandleNavigation = true,
+        shouldDeferForSearch = false,
         shouldPlaySound: shouldPlaySoundParam = true,
         personalDetails,
         betas,
@@ -2211,12 +2214,22 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     }
 
     deferOrExecuteWrite(apiWrite, {
-        shouldDeferForSearch: false,
+        shouldDeferForSearch: shouldDeferForSearch || !!(shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    if (shouldHandleNavigation) {
+        const navigationActiveReportID = backToReport ?? activeReportID;
+        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+        handleNavigateAfterExpenseCreate({
+            activeReportID: navigationActiveReportID,
+            isFromGlobalCreate,
+            transactionID: parameters.transactionID,
+            shouldAddPendingNewTransactionIDs: navigationActiveReportID === parameters.chatReportID,
+        });
+    }
+    TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID)});
 
     if (!isMoneyRequestReport) {
         notifyNewAction(activeReportID, undefined, true);
