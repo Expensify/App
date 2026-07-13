@@ -6842,7 +6842,6 @@ const CONST = {
         },
         STATUS: {
             EXPENSE: {
-                ALL: '',
                 UNREPORTED: 'unreported',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
@@ -6852,7 +6851,6 @@ const CONST = {
                 DELETED: 'deleted',
             },
             EXPENSE_REPORT: {
-                ALL: '',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
@@ -6860,18 +6858,15 @@ const CONST = {
                 PAID: 'paid',
             },
             INVOICE: {
-                ALL: '',
                 OUTSTANDING: 'outstanding',
                 PAID: 'paid',
             },
             TRIP: {
-                ALL: '',
                 CURRENT: 'current',
                 PAST: 'past',
             },
             CHAT: {},
             TASK: {
-                ALL: '',
                 OUTSTANDING: 'outstanding',
                 COMPLETED: 'completed',
             },
@@ -6961,7 +6956,6 @@ const CONST = {
         },
         SYNTAX_ROOT_KEYS: {
             TYPE: 'type',
-            STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             VIEW: 'view',
