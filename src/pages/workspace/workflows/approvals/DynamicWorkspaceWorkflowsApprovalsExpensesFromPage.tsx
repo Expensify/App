@@ -6,6 +6,7 @@ import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -32,7 +33,6 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Member} from '@src/types/onyx/ApprovalWorkflow';
@@ -42,8 +42,8 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
-type WorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenLoadingProps &
-    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM>;
+type DynamicWorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenLoadingProps &
+    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM>;
 
 // A user invited by phone is stored in the workflow with the raw login the admin typed, but the workspace
 // keys its members by the canonical SMS login (e164@expensify.sms). Normalize before any membership or
@@ -53,9 +53,10 @@ function normalizeLogin(login: string | null | undefined): string {
     return addSMSDomainIfPhoneNumber(login ?? '');
 }
 
-function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsExpensesFromPageProps) {
+function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: DynamicWorkspaceWorkflowsApprovalsExpensesFromPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path);
     const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
@@ -97,7 +98,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
     const hasAnyEligibleMember = Object.values(policy?.employeeList ?? {}).some((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && !hasAnyEligibleMember;
-    const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
     const isCreateAction = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE;
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
 
@@ -166,7 +166,14 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         keyForList: member.email,
                         isSelected: true,
                         login: member.email,
-                        icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(displayName), id: accountID}],
+                        icons: [
+                            {
+                                source: avatar ?? icons.FallbackAvatar,
+                                type: CONST.ICON_TYPE_AVATAR,
+                                name: Str.removeSMSDomain(displayName),
+                                id: accountID,
+                            },
+                        ],
                         // Only show right element for policy members
                         rightElement: isPolicyMember ? (
                             <MemberRightIcon
@@ -213,7 +220,14 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     keyForList: member.email,
                     isSelected: false,
                     login: member.email,
-                    icons: [{source: member.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
+                    icons: [
+                        {
+                            source: member.avatar ?? icons.FallbackAvatar,
+                            type: CONST.ICON_TYPE_AVATAR,
+                            name: Str.removeSMSDomain(member.displayName),
+                            id: accountID,
+                        },
+                    ],
                     rightElement: (
                         <MemberRightIcon
                             role={policy?.employeeList?.[member.email]?.role}
@@ -298,32 +312,24 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     const goBack = useCallback(() => {
         dropUnconfirmedStagedMembers();
-
-        let backTo;
-        if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
-            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
-        } else if (!isInitialCreationFlow) {
-            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
-        }
         // Don't compare params: the edit screen may carry "Add agent" seed params, so a strict param
         // match would miss it and REPLACE would mount a fresh edit screen that wipes the unsaved draft.
-        Navigation.goBack(backTo, {compareParams: false});
-    }, [isInitialCreationFlow, route.params.policyID, firstApprover, approvalWorkflow?.action, dropUnconfirmedStagedMembers]);
+        Navigation.goBack(backPath, {compareParams: false});
+    }, [backPath, dropUnconfirmedStagedMembers]);
 
     // Fall back to goBack — plain Navigation.goBack() closes the modal after a refresh.
     const onBackButtonPress = () => {
-        const {backTo} = route.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM];
-        if (backTo) {
-            dropUnconfirmedStagedMembers();
-            Navigation.goBack(backTo);
-            return;
-        }
         goBack();
     };
 
     const nextStep = useCallback(() => {
         const existingMembers: Member[] = [];
-        const usersToInvite: Array<{email: string; accountID?: number; displayName?: string; avatar?: AvatarSource}> = [];
+        const usersToInvite: Array<{
+            email: string;
+            accountID?: number;
+            displayName?: string;
+            avatar?: AvatarSource;
+        }> = [];
 
         for (const member of selectedMembers) {
             if (!member.login) {
@@ -399,15 +405,13 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
         if (isInitialCreationFlow) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
-        } else if (route.params.backTo) {
+        } else {
             // Use goBack so we return to the existing parent (e.g. the workflow edit page) in the stack
             // instead of pushing a new instance. A fresh mount of the edit page would re-derive members
             // from policy.employeeList via its useEffect and overwrite the selection we just saved.
-            Navigation.goBack(route.params.backTo as Route);
-        } else {
-            goBack();
+            Navigation.goBack(backPath, {compareParams: false});
         }
-    }, [route.params.policyID, route.params.backTo, selectedMembers, isInitialCreationFlow, goBack, policy?.employeeList]);
+    }, [route.params.policyID, selectedMembers, isInitialCreationFlow, backPath, policy?.employeeList]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
@@ -508,7 +512,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ApproverSelectionList
-                testID="WorkspaceWorkflowsApprovalsExpensesFromPage"
+                testID="DynamicWorkspaceWorkflowsApprovalsExpensesFromPage"
                 headerTitle={translate('workflowsExpensesFromPage.title')}
                 onBackButtonPress={onBackButtonPress}
                 subtitle={
@@ -536,4 +540,4 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     );
 }
 
-export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsExpensesFromPage);
+export default withPolicyAndFullscreenLoading(DynamicWorkspaceWorkflowsApprovalsExpensesFromPage);
