@@ -65,3 +65,22 @@
 - PR Introducing Patch: [#22437](https://github.com/Expensify/App/pull/22437)
 - PR Updating Patch: [#33280](https://github.com/Expensify/App/pull/33280) [#37421](https://github.com/Expensify/App/pull/37421) [#49539](https://github.com/Expensify/App/pull/49539) [#64155](https://github.com/Expensify/App/pull/64155) [#65119](https://github.com/Expensify/App/issues/65119)
 - Note: Not fully covered by the public `detachPreviousScreen` option (this also forces `activityState`). v8 replaces `detachInactiveScreens`/`detachPreviousScreen`/`freezeOnBlur` with a single `inactiveBehavior` option — re-evaluate this patch then.
+
+### [@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch](@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch)
+
+- Reason:
+
+    ```
+    createMemoryHistory.go() waits for the browser's popstate after history.go(n) but gives up
+    after a 100ms fallback timer and deletes its pending record of the traversal. Firefox can
+    take 500ms+ to deliver the popstate when the main thread is busy (e.g. rendering the newly
+    created group chat report). Once the record is deleted, the late popstate is misclassified
+    by listen() as a user-initiated back/forward navigation and react-navigation resets state
+    to the previous route. Raising the timeout to 1000ms keeps the pending record alive until
+    the traversal actually settles. Fixes group/DM creation not opening the new report on
+    Firefox (#94571).
+    ```
+
+- Upstream PR/issue: TODO — file against react-navigation (createMemoryHistory.tsx has the same 100ms timeout upstream)
+- E/App issue: [#94571](https://github.com/Expensify/App/issues/94571) + TODO — patch-tracking issue via [NewPatchTemplate](../../.github/ISSUE_TEMPLATE/NewPatchTemplate.md)
+- PR Introducing Patch: TODO — this PR

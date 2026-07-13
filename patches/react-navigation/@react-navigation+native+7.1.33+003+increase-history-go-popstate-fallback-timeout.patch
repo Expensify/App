@@ -1,0 +1,29 @@
+diff --git a/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js b/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js
+--- a/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js
++++ b/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js
+@@ -189,10 +189,14 @@
+           cb: done
+         });
+ 
+-        // If navigation didn't happen within 100ms, assume that it won't happen
++        // If navigation didn't happen within 1000ms, assume that it won't happen
+         // This may not be accurate, but hopefully it won't take so much time
+         // In Chrome, navigation seems to happen instantly in next microtask
+-        // But on Firefox, it seems to take much longer, around 50ms from our testing
++        // But on Firefox the traversal can take 500ms+ when the main thread is busy
++        // (measured up to ~900ms while rendering a newly pushed screen). A 100ms timeout
++        // routinely resolved before the traversal finished and removed the pending entry,
++        // so the late `popstate` was misclassified by `listen` as a user-initiated
++        // back/forward navigation and reset the app to a stale route
+         // We're using a hacky timeout since there doesn't seem to be way to know for sure
+         const timer = setTimeout(() => {
+           const foundIndex = pending.findIndex(it => it.ref === done);
+@@ -201,7 +205,7 @@
+             pending.splice(foundIndex, 1);
+           }
+           index = this.index;
+-        }, 100);
++        }, 1000);
+         const onPopState = () => {
+           // Fix createMemoryHistory.index variable's value
+           // as it may go out of sync when navigating in the browser.
