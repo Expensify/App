@@ -734,6 +734,7 @@ const searchResultsGroupByCategory: OnyxTypes.SearchResults = {
 const reportActionListItems = createMock<ReportActionListItemType[]>([
     {
         ...reportAction1,
+        errors: undefined,
         date: '2024-12-21 13:05:21',
         formattedFrom: 'Admin',
         from: {
@@ -782,6 +783,7 @@ const reportActionListItems = createMock<ReportActionListItemType[]>([
     },
     {
         ...reportAction2,
+        errors: undefined,
         date: '2024-12-21 13:05:22',
         formattedFrom: 'Admin',
         from: {
@@ -800,6 +802,7 @@ const reportActionListItems = createMock<ReportActionListItemType[]>([
     },
     {
         ...reportAction3,
+        errors: undefined,
         date: '2024-12-21 13:05:23',
         formattedFrom: 'Admin',
         from: {
@@ -818,6 +821,7 @@ const reportActionListItems = createMock<ReportActionListItemType[]>([
     },
     {
         ...reportAction4,
+        errors: undefined,
         date: '2024-12-21 13:05:24',
         formattedFrom: 'Admin',
         from: {
