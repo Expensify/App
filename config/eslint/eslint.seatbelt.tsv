@@ -1657,7 +1657,7 @@
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/workspace/downgrade/DowngradeIntro.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/downgrade/PayAndDowngradePage.tsx"	"no-restricted-imports"	1
+"../../src/pages/workspace/downgrade/DynamicPayAndDowngradePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/expensifyCard/DynamicExpensifyCardLimitTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1686,9 +1686,9 @@
 "../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/WorkspaceOwnerChangeCheck.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/WorkspaceOwnerChangeCheck.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/members/WorkspaceOwnerChangeErrorPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/members/WorkspaceOwnerChangeErrorPage.tsx"	"react-hooks/refs"	2
-"../../src/pages/workspace/members/WorkspaceOwnerChangeSuccessPage.tsx"	"react-hooks/refs"	2
+"../../src/pages/workspace/members/DynamicWorkspaceOwnerChangeErrorPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/workspace/members/DynamicWorkspaceOwnerChangeErrorPage.tsx"	"react-hooks/refs"	2
+"../../src/pages/workspace/members/DynamicWorkspaceOwnerChangeSuccessPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/workspace/members/WorkspaceOwnerPaymentCardForm.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/pages/workspace/receiptPartners/DynamicEditInviteReceiptPartnerPolicyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/receiptPartners/WorkspaceReceiptPartnersPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
