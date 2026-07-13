@@ -95,8 +95,9 @@ function createAgent(
     ];
 
     write(
+        // Flag this as the user's personal agent; the backend makes personal agents a full co-pilot of the creator.
         WRITE_COMMANDS.CREATE_AGENT,
-        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID)},
+        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true},
         {optimisticData, successData, failureData},
     );
 
@@ -265,7 +266,7 @@ function updateAgentAvatar(
     write(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, params, {optimisticData, successData, failureData});
 }
 
-function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>) {
+function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>, shouldNavigateBack = true) {
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -324,7 +325,11 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
     }
 
     write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: accountID}, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_AGENTS);
+    // Callers that end the copilot session right after deleting (e.g. deleting the agent you're copiloting into)
+    // don't want the extra navigation, since the delegate transition resets navigation on its own.
+    if (shouldNavigateBack) {
+        Navigation.goBack(ROUTES.SETTINGS_AGENTS);
+    }
 }
 
 export {

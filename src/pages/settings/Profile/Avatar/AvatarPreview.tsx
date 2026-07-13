@@ -14,9 +14,7 @@ import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {isCatalogAvatar, isGeneratedLetterAvatarURL, isLetterAvatar} from '@libs/UserAvatarUtils';
-
-import {deleteAvatar} from '@userActions/PersonalDetails';
+import {getDefaultAvatarURL, isCatalogAvatar, isGeneratedLetterAvatarURL, isLetterAvatar} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -32,22 +30,18 @@ import AvatarCapture from './AvatarCapture';
 type AvatarPreviewProps = {
     /** The selected avatar ID */
     selected: string | undefined;
-    /** The function to set the selected avatar ID */
-    setSelected: (selected: string | undefined) => void;
+    /** Whether the current avatar is staged for removal */
+    isRemoved: boolean;
+    /** Callback when the current avatar photo is removed */
+    onImageRemoved: () => void;
     /** The ref to the avatar capture component */
     avatarCaptureRef: React.RefObject<AvatarCaptureHandle | null>;
     /** The image data */
     imageData: ImageData;
-    /** The function to set the image data */
-    setImageData: (imageData: ImageData) => void;
     /** The function to set the error */
     setError: (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => void;
-    /** The function to set the crop image data */
-    setCropImageData: (cropImageData: ImageData) => void;
-    /** Whether the avatar crop modal is open */
-    isAvatarCropModalOpen: boolean;
-    /** The function to set whether the avatar crop modal is open */
-    setIsAvatarCropModalOpen: (isAvatarCropModalOpen: boolean) => void;
+    /** Opens the avatar crop screen for the picked image */
+    openCropper: (image: FileObject) => void;
 };
 
 type ImageData = {
@@ -57,9 +51,7 @@ type ImageData = {
     file: File | CustomRNImageManipulatorResult | null;
 };
 
-const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
-
-function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropModalOpen, setIsAvatarCropModalOpen, imageData, setImageData, setError, setCropImageData}: AvatarPreviewProps) {
+function AvatarPreview({selected, isRemoved, onImageRemoved, avatarCaptureRef, imageData, setError, openCropper}: AvatarPreviewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -78,6 +70,11 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
         avatarURL = avatars[selected];
     } else if (imageData.uri) {
         avatarURL = imageData.uri;
+    } else if (isRemoved) {
+        avatarURL = getDefaultAvatarURL({
+            accountID,
+            accountEmail: currentUserPersonalDetails?.email,
+        });
     } else {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
     }
@@ -87,7 +84,8 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
             (isCatalogAvatar(currentUserPersonalDetails?.avatar) ||
                 isGeneratedLetterAvatarURL(currentUserPersonalDetails?.avatar) ||
                 isLetterAvatar(currentUserPersonalDetails?.originalFileName))) ||
-        !!selected;
+        !!selected ||
+        isRemoved;
 
     /**
      * Validates an image and opens avatar crop modal if valid
@@ -100,24 +98,12 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
                     return;
                 }
 
-                setIsAvatarCropModalOpen(true);
                 setError(null, {});
-                setCropImageData({
-                    uri: image.uri ?? '',
-                    name: image.name ?? '',
-                    type: image.type ?? '',
-                    file: null,
-                });
+                openCropper(image);
             })
             .catch(() => {
                 setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
             });
-    };
-
-    const onImageRemoved = () => {
-        deleteAvatar(currentUserPersonalDetails);
-        setSelected(undefined);
-        setImageData({...EMPTY_FILE});
     };
 
     const clearError = () => {
@@ -162,7 +148,6 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
                                 icon={icons.Upload}
                                 text={translate('avatarPage.uploadPhoto')}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
-                                isDisabled={isAvatarCropModalOpen}
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
@@ -174,11 +159,12 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
 
                     return (
                         <ButtonWithDropdownMenu
-                            success={false}
                             shouldUseOptionIcon
-                            isDisabled={isAvatarCropModalOpen}
                             onPress={() => {}}
-                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
                             customText={translate('common.edit')}
                             options={menuItems}
                             isSplitButton={false}

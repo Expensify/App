@@ -113,9 +113,6 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     // Get the active chat members by filtering out the pending members with delete action
     const activeParticipants = participantsForDisplay.filter((participant) => isOffline || !participant.isPendingDelete);
 
-    // Include the search bar when there are STANDARD_LIST_ITEM_LIMIT or more active members in the list
-    const shouldShowSearchBar = activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-
     useEffect(() => {
         if (!isAnnounceRoom(report)) {
             return;
@@ -257,10 +254,11 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                         <View style={styles.w100}>
                             {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
                                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     shouldAlwaysShowDropdownMenu
                                     pressOnEnter
                                     customText={translate('workspace.common.selected', {count: selectedMembers.length})}
-                                    buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+                                    size={CONST.BUTTON_SIZE.MEDIUM}
                                     onPress={() => null}
                                     isSplitButton={false}
                                     options={bulkActionsButtonOptions}
@@ -287,7 +285,6 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                         isGroupChat={isGroupChat}
                         selectionEnabled={isCurrentUserGroupChatAdmin}
                         selectedKeys={selectedKeys}
-                        shouldShowSearchBar={shouldShowSearchBar}
                         onRowSelectionChange={onRowSelectionChange}
                     />
                 </View>
