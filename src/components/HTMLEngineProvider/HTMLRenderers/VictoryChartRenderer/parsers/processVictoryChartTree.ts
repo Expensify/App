@@ -1,5 +1,6 @@
 import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import resolvePadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolvePadding';
 
 import type {SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
@@ -20,6 +21,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
     let domain: ProcessNodeResult['domain'];
     let domainPadding: ProcessNodeResult['domainPadding'];
     let padding: ProcessNodeResult['padding'];
+    let leftAxisLabelSpace: ProcessNodeResult['leftAxisLabelSpace'];
     let isHorizontal: ProcessNodeResult['isHorizontal'];
     let categories: ProcessNodeResult['categories'];
     const labelItems: ProcessNodeResult['labelItems'] = [];
@@ -49,6 +51,9 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         if (result.padding) {
             padding = result.padding;
         }
+        if (result.leftAxisLabelSpace !== undefined) {
+            leftAxisLabelSpace = result.leftAxisLabelSpace;
+        }
         if (result.isHorizontal) {
             isHorizontal = result.isHorizontal;
         }
@@ -64,7 +69,21 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
     }
 
     // If we have `rootProcessedResult` then forward it as is, otherwise we must be the root so pass the data that we just built
-    const rootProcessedNodeResult = rootProcessedResult ?? {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems};
+    const rootProcessedNodeResult = rootProcessedResult ?? {
+        data,
+        xKey: X_KEY,
+        yKeys,
+        xAxis,
+        yAxis,
+        domain,
+        domainPadding,
+        padding,
+        leftAxisLabelSpace,
+        isHorizontal,
+        categories,
+        labelItems,
+        legendItems,
+    };
 
     for (const child of tnode.children) {
         const childResult = processVictoryChartTree(child, typeface, rootProcessedNodeResult);
@@ -85,6 +104,9 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         if (childResult.padding) {
             padding = childResult.padding;
         }
+        if (childResult.leftAxisLabelSpace !== undefined) {
+            leftAxisLabelSpace = childResult.leftAxisLabelSpace;
+        }
         if (childResult.isHorizontal) {
             isHorizontal = childResult.isHorizontal;
         }
@@ -95,7 +117,21 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         legendItems.push(...childResult.legendItems);
     }
 
-    return {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems};
+    return {
+        data,
+        xKey: X_KEY,
+        yKeys,
+        xAxis,
+        yAxis,
+        domain,
+        domainPadding,
+        padding: resolvePadding(padding, leftAxisLabelSpace),
+        leftAxisLabelSpace,
+        isHorizontal,
+        categories,
+        labelItems,
+        legendItems,
+    };
 }
 
 export default processVictoryChartTree;

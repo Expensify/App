@@ -163,6 +163,8 @@ type ProcessNodeResult = {
     domain: CartesianChartProps['domain'];
     domainPadding: CartesianChartProps['domainPadding'];
     padding: CartesianChartProps['padding'];
+    /** Pixel width the left y-axis actually needs for its widest label, used to shrink `padding.left` when it's larger than the content requires. */
+    leftAxisLabelSpace: number | undefined;
     isHorizontal: boolean | undefined;
     categories: string[] | undefined;
     labelItems: LabelItem[];

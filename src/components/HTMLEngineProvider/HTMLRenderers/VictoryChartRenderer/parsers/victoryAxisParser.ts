@@ -1,4 +1,5 @@
 import type {PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import getFontGlyphWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getFontGlyphWidth';
 import {
     parseAttributeAsNumber,
     parseAttributeAsNumberArray,
@@ -7,10 +8,23 @@ import {
 } from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseRawAxisStyle from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawAxisStyle';
 
-import type {SkTypeface} from '@shopify/react-native-skia';
+import type {SkFont, SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
 
 import {Skia} from '@shopify/react-native-skia';
+
+/**
+ * The widest rendered label on a left-side y-axis, plus its offset from the axis line —
+ * i.e. how much horizontal space the axis actually needs for its labels. Used to shrink
+ * the chart's `padding.left` when the configured value is more than the content needs.
+ */
+function computeLeftAxisLabelSpace(axisSide: 'left' | 'right', labels: Array<string | number> | undefined, font: SkFont | null, labelOffset: number | undefined): number | undefined {
+    if (axisSide !== 'left' || !font || !labels?.length) {
+        return undefined;
+    }
+    const maxLabelWidth = Math.max(...labels.map((label) => getFontGlyphWidth(String(label), font)));
+    return maxLabelWidth + (labelOffset ?? 0);
+}
 
 /**
  * Parse axis config from a `<victoryaxis>` node.
@@ -34,6 +48,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     const labelOffset = style?.tickLabels?.padding !== undefined ? Number(style.tickLabels.padding) : undefined;
     const fontSize = style?.tickLabels?.fontSize !== undefined ? Number(style.tickLabels.fontSize) : undefined;
     const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
+    const labelsForMeasurement = tickFormat ?? tickValues;
 
     if (isDependentAxis) {
         return isHorizontal
@@ -66,35 +81,38 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
                   ],
               };
     }
-    return isHorizontal
-        ? {
-              yAxis: [
-                  {
-                      tickCount,
-                      tickValues,
-                      formatYLabel: formatLabel,
-                      axisSide: orientation === 'top' ? 'right' : 'left',
-                      lineColor,
-                      lineWidth,
-                      labelColor,
-                      labelOffset,
-                      font,
-                  },
-              ],
-          }
-        : {
-              xAxis: {
-                  tickCount,
-                  tickValues,
-                  formatXLabel: formatLabel,
-                  axisSide: orientation === 'top' ? 'top' : 'bottom',
-                  lineColor,
-                  lineWidth,
-                  labelColor,
-                  labelOffset,
-                  font,
-              },
-          };
+    if (isHorizontal) {
+        const axisSide = orientation === 'top' ? 'right' : 'left';
+        return {
+            yAxis: [
+                {
+                    tickCount,
+                    tickValues,
+                    formatYLabel: formatLabel,
+                    axisSide,
+                    lineColor,
+                    lineWidth,
+                    labelColor,
+                    labelOffset,
+                    font,
+                },
+            ],
+            leftAxisLabelSpace: computeLeftAxisLabelSpace(axisSide, labelsForMeasurement, font, labelOffset),
+        };
+    }
+    return {
+        xAxis: {
+            tickCount,
+            tickValues,
+            formatXLabel: formatLabel,
+            axisSide: orientation === 'top' ? 'top' : 'bottom',
+            lineColor,
+            lineWidth,
+            labelColor,
+            labelOffset,
+            font,
+        },
+    };
 }
 
 export default parseVictoryAxisNode;

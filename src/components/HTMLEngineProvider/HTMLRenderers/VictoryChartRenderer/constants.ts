@@ -12,4 +12,7 @@ const CHART_TYPE = {
     POLAR: 'polar',
 } as const;
 
-export {X_KEY, Y_KEY_PREFIX, LABEL_KEY, VALUE_KEY, COLOR_KEY, CHART_TYPE};
+/** Gap left between a left-axis label and the chart's outer edge when `padding.left` is shrunk to fit the label content. */
+const LEFT_AXIS_LABEL_EDGE_BUFFER = 8;
+
+export {X_KEY, Y_KEY_PREFIX, LABEL_KEY, VALUE_KEY, COLOR_KEY, CHART_TYPE, LEFT_AXIS_LABEL_EDGE_BUFFER};
