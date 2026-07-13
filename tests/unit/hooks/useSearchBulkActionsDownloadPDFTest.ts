@@ -204,6 +204,7 @@ function makeCurrentSearchResults(groups: Record<string, SearchWithdrawalIDGroup
         search: {
             offset: 0,
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            hash: 67890,
             hasMoreResults: false,
             hasResults: true,
             isLoading: false,
