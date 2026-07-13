@@ -56,5 +56,5 @@ const Scheduler = {
     scheduleWhenIdle,
 };
 
-export {Scheduler, scheduleWhenIdle};
+export {Scheduler};
 export type {IdleTask};
