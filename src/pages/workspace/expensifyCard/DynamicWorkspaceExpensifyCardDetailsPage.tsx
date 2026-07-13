@@ -31,7 +31,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {getAllCardsForWorkspace, getCardFeedTextColor, getCardHintText, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
+import {getAllCardsForWorkspace, getCardFeedTextColor, getCardHintText, getProgramKeyForCard, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -119,12 +119,18 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
 
     const workspaceCard = workspaceCards?.[cardID];
     const card = workspaceCard ?? cardFromCardList;
+    // Resolve currency from the card's own program (feedCountry). A feed can hold both a US and a GB program, so the
+    // selected feed's default program is not necessarily this card's program.
     const currency = useCurrencyForExpensifyCard({
         policyID,
         fundID: defaultFundID,
+        programKey: getProgramKeyForCard(card),
     });
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
+    // Surface the card's issuing country so cards on different programs (e.g. US vs GB) of the same feed are distinguishable.
+    const cardCountryCode = card?.nameValuePairs?.country;
+    const cardCountryName = cardCountryCode ? (CONST.ALL_COUNTRIES as Record<string, string>)[cardCountryCode] : undefined;
     const formattedAvailableSpendAmount = convertToDisplayString(card?.availableSpend, currency);
     const formattedLimit = convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency);
     const displayName = temporaryGetDisplayNameOrDefault({
@@ -378,6 +384,13 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                         interactive={false}
                         titleStyle={styles.walletCardNumber}
                     />
+                    {!!cardCountryName && (
+                        <MenuItemWithTopDescription
+                            description={translate('common.country')}
+                            title={cardCountryName}
+                            interactive={false}
+                        />
+                    )}
                     {spendRulesSummary.length > 0 && (
                         <MenuItemWithTopDescription
                             interactive={false}
