@@ -9,6 +9,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDBTimeWithSkew} from '@libs/NetworkState';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -387,11 +388,16 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     if (!isCreatedUsingMarkdown) {
-        Navigation.dismissModalWithReport({reportID: parentReportID}, undefined, {
-            afterTransition: () => {
-                clearOutTaskInfo();
-            },
-        });
+        if (isSearchTopmostFullScreenRoute()) {
+            Navigation.closeRHPFlow();
+            clearOutTaskInfo();
+        } else {
+            Navigation.dismissModalWithReport({reportID: parentReportID}, undefined, {
+                afterTransition: () => {
+                    clearOutTaskInfo();
+                },
+            });
+        }
     }
     notifyNewAction(parentReportID, optimisticAddCommentReport.reportAction, true);
 }
