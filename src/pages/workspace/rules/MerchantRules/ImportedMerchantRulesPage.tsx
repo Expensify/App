@@ -7,6 +7,7 @@ import useCloseImportPage from '@hooks/useCloseImportPage';
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 
 import type {ImportedMerchantRule} from '@libs/actions/Policy/Rules';
 import {importMerchantRulesSpreadsheet} from '@libs/actions/Policy/Rules';
@@ -24,7 +25,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {CodingRule} from '@src/types/onyx/Policy';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useState} from 'react';
@@ -38,6 +41,24 @@ const ACTION_COLUMNS: string[] = [
     CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE,
     CONST.CSV_IMPORT_COLUMNS.BILLABLE,
 ];
+
+/**
+ * Serializes the importable fields of a rule so identical rules can be detected. Used to skip
+ * spreadsheet rows that would recreate a rule the policy already has (e.g. the same spreadsheet
+ * imported twice) as well as duplicate rows within the same spreadsheet.
+ */
+function getRuleContentKey(rule: Pick<CodingRule, 'filters' | 'merchant' | 'category' | 'tag' | 'comment' | 'reimbursable' | 'billable'>): string {
+    return JSON.stringify([
+        rule.filters.operator,
+        rule.filters.right.toLowerCase(),
+        rule.merchant ?? '',
+        rule.category ?? '',
+        rule.tag ?? '',
+        rule.comment ?? '',
+        rule.reimbursable ?? null,
+        rule.billable ?? null,
+    ]);
+}
 
 /** Parses a CSV cell into a boolean, or undefined when the cell is empty or unrecognized so the field is left unset */
 function parseCsvBooleanValue(raw: string | undefined): boolean | undefined {
@@ -60,6 +81,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
 
     const {setIsClosing} = useCloseImportPage();
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
@@ -132,6 +154,14 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
             return spreadsheet?.data.at(columnIndex)?.at(dataIndex)?.toString().trim() ?? '';
         };
 
+        // Seed the duplicate check with the policy's current rules so re-importing a spreadsheet doesn't recreate them
+        const seenRuleKeys = new Set(
+            Object.values(policy?.rules?.codingRules ?? {})
+                .filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && rule.filters?.right)
+                .map(getRuleContentKey),
+        );
+        let skippedDuplicateCount = 0;
+
         const rules: Record<string, ImportedMerchantRule> = {};
         for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
             // "Merchant is" wins when both filter columns have a value for the same row
@@ -153,7 +183,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
                 continue;
             }
 
-            rules[rand64()] = {
+            const rule: ImportedMerchantRule = {
                 filters: {
                     left: 'merchant',
                     operator: merchantIsValue ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
@@ -167,10 +197,23 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
                 ...(billable !== undefined && {billable}),
                 created: new Date().toISOString(),
             };
+
+            const ruleKey = getRuleContentKey(rule);
+            if (seenRuleKeys.has(ruleKey)) {
+                skippedDuplicateCount++;
+                continue;
+            }
+            seenRuleKeys.add(ruleKey);
+
+            rules[rand64()] = rule;
         }
 
         setIsImportingRules(true);
-        const importFinalModal = await importMerchantRulesSpreadsheet(policyID, rules);
+        // When every row duplicates an existing rule, skip the API call and confirm that nothing was added
+        const importFinalModal: ImportFinalModal =
+            Object.keys(rules).length === 0 && skippedDuplicateCount > 0
+                ? {titleKey: 'spreadsheet.importSuccessfulTitle', promptKey: 'spreadsheet.importMerchantRulesSuccessfulDescription', promptKeyParams: {rules: 0}}
+                : await importMerchantRulesSpreadsheet(policyID, rules);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImportingRules(false);

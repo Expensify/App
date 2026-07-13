@@ -1160,7 +1160,12 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} Tags wurden hinzugefügt.` : '1 Tag wurde hinzugefügt.'),
         importMultiLevelTagsSuccessfulDescription: 'Mehrstufige Tags wurden hinzugefügt.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} Tagessätze wurden hinzugefügt.` : '1 Tagegeldsatz wurde hinzugefügt.'),
-        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => (rules > 1 ? `${rules} Händlerregeln wurden hinzugefügt.` : '1 Händlerregel wurde hinzugefügt.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'Es wurden keine Händlerregeln hinzugefügt, da sie alle bereits existieren.';
+            }
+            return rules > 1 ? `${rules} Händlerregeln wurden hinzugefügt.` : '1 Händlerregel wurde hinzugefügt.';
+        },
         importMerchantRulesRequiredColumns:
             'Ups! Du musst mindestens eine Spalte („Händler ist“ oder „Händler enthält“) zuordnen sowie mindestens ein zu aktualisierendes Feld. Bitte überprüfe es und versuche es erneut.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>

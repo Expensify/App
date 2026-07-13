@@ -1143,7 +1143,12 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} 個のタグを追加しました。` : 'タグを1件追加しました。'),
         importMultiLevelTagsSuccessfulDescription: 'マルチレベルタグが追加されました。',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates}件の日当レートが追加されました。` : '1件の日当レートが追加されました。'),
-        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => (rules > 1 ? `${rules}件の加盟店ルールが追加されました。` : '1件の加盟店ルールが追加されました。'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'すべての加盟店ルールが既に存在するため、追加されませんでした。';
+            }
+            return rules > 1 ? `${rules}件の加盟店ルールが追加されました。` : '1件の加盟店ルールが追加されました。';
+        },
         importMerchantRulesRequiredColumns:
             'おっと！「加盟店が一致」または「加盟店を含む」の列を少なくとも1つ、さらに更新するフィールドを少なくとも1つマッピングしてください。確認してもう一度お試しください。',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>

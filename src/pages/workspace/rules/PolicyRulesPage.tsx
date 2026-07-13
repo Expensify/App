@@ -84,7 +84,6 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
 
     const headerButtons = (
         <ButtonWithDropdownMenu
-            success={false}
             onPress={() => {}}
             shouldAlwaysShowDropdownMenu
             customText={translate('common.more')}

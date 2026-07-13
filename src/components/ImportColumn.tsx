@@ -35,7 +35,6 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
             attribute = CONST.CSV_IMPORT_COLUMNS.CATEGORY;
             break;
 
-        case 'description':
         case 'updateddescription':
             attribute = CONST.CSV_IMPORT_COLUMNS.COMMENT;
             break;
@@ -200,6 +199,13 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
 
         default:
             break;
+    }
+
+    // A bare "Description" header is ambiguous across import flows (e.g. bank CSVs use it for the
+    // transaction descriptor), so it only auto-maps to the updated-description action in the merchant
+    // rules import, which is the only flow offering the MERCHANT_IS column role.
+    if (!attribute && formattedHeader === 'description' && columnRoles?.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS)) {
+        attribute = CONST.CSV_IMPORT_COLUMNS.COMMENT;
     }
 
     // If the detected attribute isn't available in the current context but a semantic equivalent is,

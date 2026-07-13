@@ -250,18 +250,16 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return null;
         }
 
-        const addRuleButton = (
-            <Button
-                success
-                onPress={handleNewRule}
-                text={translate('workspace.rules.merchantRules.addRuleTitle')}
-                icon={icons.Plus}
-                style={[shouldDisplayButtonsInSeparateLine && styles.w100]}
-            />
-        );
-
         if (activeTab !== RULES_TAB.EXPENSE_DEFAULTS) {
-            return addRuleButton;
+            return (
+                <Button
+                    success
+                    onPress={handleNewRule}
+                    text={translate('workspace.rules.merchantRules.addRuleTitle')}
+                    icon={icons.Plus}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.w100]}
+                />
+            );
         }
 
         const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
@@ -270,9 +268,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
         return (
             <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.w100]}>
-                {addRuleButton}
+                <Button
+                    success
+                    onPress={handleNewRule}
+                    text={translate('workspace.rules.merchantRules.addRuleTitle')}
+                    icon={icons.Plus}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
+                />
                 <ButtonWithDropdownMenu
-                    success={false}
                     // onPress is required by ButtonWithDropdownMenu but never fires for a non-split button, where pressing only opens the dropdown menu
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
