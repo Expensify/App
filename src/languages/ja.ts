@@ -9088,6 +9088,8 @@ ${reportName}`,
     },
     actionableMentionTrackExpense: {
         submit: '誰かに送信する',
+        submitToFriend: '友達に送信する',
+        submitToEmployer: '勤務先に送信する',
         categorize: '仕分けする',
         share: '会計士と共有する',
         nothing: '今のところ何もありません',

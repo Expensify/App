@@ -65,7 +65,7 @@ import type {
     PaymentMethodType,
 } from '@src/types/onyx/OriginalMessage';
 import type {Status, Timezone} from '@src/types/onyx/PersonalDetails';
-import type {AllConnectionName, ConnectionName} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, CreatableWorkspaceType} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, OldDotReportAction, ReportActions} from '@src/types/onyx/ReportAction';
 import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
@@ -1398,7 +1398,13 @@ function getPolicyName(params: GetPolicyNameParams): string {
     const noPolicyFound = params.returnEmptyIfNotFound ? '' : (params.unavailableTranslation ?? unavailableTranslation);
     const parentReport = report ? getRootParentReport({report, reports}) : undefined;
 
-    if ((!report?.policyName && !parentReport?.policyName && isEmptyObject(policies) && isEmptyObject(allPolicies)) || isEmptyObject(report)) {
+    // Bail only when none of the sources used below can resolve a name. oldPolicyName is included because it's a valid
+    // fallback (see below) and is the only name a draft workspace's expense chat carries (e.g. "Submit to my employer"
+    // with no persisted policies) — without it this returned "Unavailable workspace" for those drafts.
+    if (
+        (!report?.policyName && !report?.oldPolicyName && !parentReport?.policyName && !parentReport?.oldPolicyName && isEmptyObject(policies) && isEmptyObject(allPolicies)) ||
+        isEmptyObject(report)
+    ) {
         return noPolicyFound;
     }
     const finalPolicy = (() => {
@@ -11364,6 +11370,8 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     currentUserAccountID: number,
     currentUserEmail: string,
     currentUserLocalCurrency: string,
+    policyType?: CreatableWorkspaceType,
+    backToReportID?: string,
 ): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
     const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
@@ -11372,6 +11380,7 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
         currentUserAccountID,
         currentUserEmail,
         currency: currentUserLocalCurrency,
+        type: policyType,
     });
     setMoneyRequestParticipants(transactionID, [
         {
@@ -11387,7 +11396,11 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     if (isCategorizing) {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
     } else {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true));
+        // The confirmation route needs a `:reportID`, so it points at the (draft) workspace expense chat to resolve the
+        // draft policy/destination. That report only lives in REPORT_DRAFT. Send back to the origin report (e.g. the
+        // self-DM the track expense came from) so navigateBack returns there instead of the draft report's start step.
+        const backTo = backToReportID ? ROUTES.REPORT_WITH_ID.getRoute(backToReportID) : undefined;
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true, backTo));
     }
 }
 
@@ -11407,6 +11420,14 @@ type CreateDraftTransactionParams = {
     currentUserAccountID: number;
     currentUserEmail: string;
     currentUserLocalCurrency: string;
+    /**
+     * For the SUBMIT action, which destination the user picked from the track-expense whisper:
+     * - 'friend' (default): show the existing recipient picker (individuals + workspaces).
+     * - 'employer': route to a submit-enabled workspace, auto-selecting/creating one as needed.
+     */
+    submitDestination?: ValueOf<typeof CONST.IOU.SUBMIT_DESTINATION>;
+    /** Localized default name for a workspace created on the fly (e.g. "Submit to my employer" with no existing workspace). */
+    defaultWorkspaceName?: string;
     filteredPoliciesCount: number;
     firstPolicyID: string | undefined;
 };
@@ -11427,6 +11448,8 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     currentUserAccountID,
     currentUserEmail,
     currentUserLocalCurrency,
+    submitDestination = CONST.IOU.SUBMIT_DESTINATION.FRIEND,
+    defaultWorkspaceName = '',
     filteredPoliciesCount,
     firstPolicyID,
 }: CreateDraftTransactionParams): void {
@@ -11538,6 +11561,42 @@ function createDraftTransactionAndNavigateToParticipantSelector({
 
     if (actionName === CONST.IOU.ACTION.SHARE) {
         Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, Navigation.getActiveRoute()));
+        return;
+    }
+
+    // "Submit to my employer" routes the expense into a workspace the user can submit to, based on how many they belong to.
+    // Per issue #92704 the count spans every paid workspace the user is a member of (Collect/Control/Submit), so we reuse the
+    // shared shouldShowPolicy-based count (filteredPoliciesCount/firstPolicyID) that also backs the workspaces-only picker.
+    if (actionName === CONST.IOU.ACTION.SUBMIT && submitDestination === CONST.IOU.SUBMIT_DESTINATION.EMPLOYER) {
+        // No accessible workspace: spin up a new Submit (submit2026) workspace and drop the expense into its draft report.
+        if (filteredPoliciesCount === 0) {
+            createDraftWorkspaceAndNavigateToConfirmationScreen(
+                introSelected,
+                transactionID,
+                actionName,
+                defaultWorkspaceName,
+                currentUserAccountID,
+                currentUserEmail,
+                currentUserLocalCurrency,
+                CONST.POLICY.TYPE.SUBMIT,
+                reportID,
+            );
+            return;
+        }
+
+        // Exactly one accessible workspace: skip the destination picker and submit straight to that workspace.
+        if (filteredPoliciesCount === 1 && firstPolicyID) {
+            const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, firstPolicyID);
+            if (policyExpenseReport) {
+                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, deprecatedCurrentUserAccountID).then(() => {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReport.reportID));
+                });
+                return;
+            }
+        }
+
+        // Multiple accessible workspaces: show the destination picker limited to workspaces only (no individual recipients).
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName, true));
         return;
     }
 

@@ -3720,6 +3720,11 @@ const CONST = {
             CATEGORIZE: 'categorize',
             SHARE: 'share',
         },
+        // Destination chosen from the track-expense "Submit" whisper on the Submit (submit2026) plan.
+        SUBMIT_DESTINATION: {
+            FRIEND: 'friend',
+            EMPLOYER: 'employer',
+        },
         DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
