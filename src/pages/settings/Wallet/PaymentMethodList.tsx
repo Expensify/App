@@ -450,11 +450,8 @@ function PaymentMethodList({
                     card?.nameValuePairs?.issuedBy && card?.lastFourPAN
                         ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`
                         : getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
-                let cardTitle = card?.nameValuePairs?.cardTitle ?? card.bank;
-                if (!shouldShowConnectionStatus) {
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    cardTitle = card?.nameValuePairs?.cardTitle || card.bank;
-                }
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                const cardTitle = card?.nameValuePairs?.cardTitle || card.bank;
 
                 let itemDescription = cardDescription;
                 if (shouldShowConnectionStatus && cardLastSyncText) {
