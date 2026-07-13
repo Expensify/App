@@ -95,7 +95,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {windowHeight} = useWindowDimensions();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const {canWrite: canWriteExpensifyCard, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
-    const headerHeight = useEmptyViewHeaderHeight(shouldDisplayButtonsInSeparateLine, isBankAccountVerified);
+    // Only the page header stays fixed above the card list; the header buttons scroll away with the table rows.
+    const headerHeight = useEmptyViewHeaderHeight(false, isBankAccountVerified);
     const [footerHeight, setFooterHeight] = useState(0);
     const cardFeedIcon = (
         <CardFeedIcon
@@ -291,6 +292,26 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         </Text>
     );
 
+    // Page controls rendered between the page header and the card list. They stay fixed above the
+    // empty-card view, but scroll away with the rows when the table is shown.
+    let pageHeaderContent: React.ReactElement | undefined;
+    if (!shouldShowSelector && shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons) {
+        pageHeaderContent = <View style={styles.ph5}>{getHeaderButtons()}</View>;
+    } else if (shouldShowSelector) {
+        pageHeaderContent = (
+            <View style={[styles.w100, styles.ph5, styles.pb3, (!shouldChangeLayout || isInLandscapeMode) && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
+                <FeedSelector
+                    wrapperStyle={isInLandscapeMode ? styles.flex1 : undefined}
+                    onFeedSelect={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path))}
+                    CardFeedIcon={cardFeedIcon}
+                    feedName={translate('workspace.common.expensifyCard')}
+                    supportingText={getExpensifyCardFeedDescription(cardSettings, allPolicies, domains, fundID, cardList)}
+                />
+                {isBankAccountVerified && (canWriteExpensifyCard || secondaryActions.length > 0 || !isCardListEmpty) && getHeaderButtons()}
+            </View>
+        );
+    }
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -309,37 +330,28 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             >
                 {!shouldShowSelector && !shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons && getHeaderButtons()}
             </HeaderWithBackButton>
-            {!shouldShowSelector && shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons && <View style={styles.ph5}>{getHeaderButtons()}</View>}
-            {shouldShowSelector && (
-                <View style={[styles.w100, styles.ph5, styles.pb3, (!shouldChangeLayout || isInLandscapeMode) && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
-                    <FeedSelector
-                        wrapperStyle={isInLandscapeMode ? styles.flex1 : undefined}
-                        onFeedSelect={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path))}
-                        CardFeedIcon={cardFeedIcon}
-                        feedName={translate('workspace.common.expensifyCard')}
-                        supportingText={getExpensifyCardFeedDescription(cardSettings, allPolicies, domains, fundID, cardList)}
-                    />
-                    {isBankAccountVerified && (canWriteExpensifyCard || secondaryActions.length > 0 || !isCardListEmpty) && getHeaderButtons()}
-                </View>
-            )}
             {isCardListEmpty ? (
-                <EmptyCardView
-                    isBankAccountVerified={isBankAccountVerified}
-                    policyID={policyID}
-                    buttons={[
-                        {
-                            buttonText: translate('workspace.expensifyCard.issueCard'),
-                            buttonAction: handleIssueCardPress,
-                            success: true,
-                            innerStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
-                            hoverStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
-                        },
-                    ]}
-                />
+                <>
+                    {pageHeaderContent}
+                    <EmptyCardView
+                        isBankAccountVerified={isBankAccountVerified}
+                        policyID={policyID}
+                        buttons={[
+                            {
+                                buttonText: translate('workspace.expensifyCard.issueCard'),
+                                buttonAction: handleIssueCardPress,
+                                success: true,
+                                innerStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
+                                hoverStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
+                            },
+                        ]}
+                    />
+                </>
             ) : (
                 <View style={styles.flex1}>
                     <WorkspaceExpensifyCardsTable
                         policyID={policyID}
+                        headerComponent={pageHeaderContent}
                         cards={cardRows}
                         selectionEnabled={cardRows.length > 0}
                         selectedKeys={validatedSelectedCardKeys}

@@ -1,5 +1,5 @@
 import FormHelpMessage from '@components/FormHelpMessage';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
@@ -53,6 +53,9 @@ type WorkspaceExpensifyCardsTableProps = {
     /** Policy ID */
     policyID: string;
 
+    /** Optional page-level content rendered above the card labels that scrolls with the rows */
+    headerComponent?: ReactElement;
+
     /** List of Expensify cards to display in the table */
     cards: WorkspaceExpensifyCardTableRowData[];
 
@@ -86,6 +89,7 @@ type WorkspaceExpensifyCardsTableProps = {
 
 export default function WorkspaceExpensifyCardsTable({
     policyID,
+    headerComponent,
     cards,
     selectionEnabled,
     selectedKeys,
@@ -200,27 +204,23 @@ export default function WorkspaceExpensifyCardsTable({
         />
     );
 
-    const cardListHeaderContent = (
-        <>
-            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1, styles.mb5]}>
-                <WorkspaceCardListLabels
-                    policyID={policyID}
-                    cardSettings={cardSettingsBase}
-                />
-                {!!errorMessage && (
-                    <View style={[styles.mh5, styles.pr4, styles.mt2]}>
-                        <FormHelpMessage
-                            isError
-                            message={errorMessage}
-                        />
-                    </View>
-                )}
-            </View>
-            <Table.FilterBar label={translate('workspace.expensifyCard.findCard')} />
-            <Table.NoResultsState />
-            <Table.Header />
-        </>
+    const cardListLabelsContent = (
+        <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1, styles.mb5]}>
+            <WorkspaceCardListLabels
+                policyID={policyID}
+                cardSettings={cardSettingsBase}
+            />
+            {!!errorMessage && (
+                <View style={[styles.mh5, styles.pr4, styles.mt2]}>
+                    <FormHelpMessage
+                        isError
+                        message={errorMessage}
+                    />
+                </View>
+            )}
+        </View>
     );
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, cardListLabelsContent, <Table.FilterBar label={translate('workspace.expensifyCard.findCard')} />);
 
     return (
         <Table
@@ -238,8 +238,10 @@ export default function WorkspaceExpensifyCardsTable({
             onRowSelectionChange={onRowSelectionChange}
             ListFooterComponent={listFooterComponent}
             ListFooterComponentStyle={listFooterComponentStyle}
-            ListHeaderComponent={cardListHeaderContent}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
+            <Table.NoResultsState />
             <Table.Body contentContainerStyle={listContentContainerStyle} />
         </Table>
     );
