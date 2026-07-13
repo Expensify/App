@@ -2,23 +2,22 @@
 
 /**
  * Fails the install/lint run when a patch-package patch targets the native code of an Expo module
- * that ships as a PRECOMPILED binary and is not opted into building from source.
+ * that ships as a precompiled binary and is not opted into building from source.
  *
- * Why this exists: since Expo SDK 53, feature modules (expo-video, expo-location, expo-task-manager,
- * ...) are distributed prebuilt — as `.aar` files on Android (linked via a `publication` block in the
+ * Why this exists: Expo uses prebuilt modules — as `.aar` files on Android (linked via a `publication` block in the
  * module's `expo-module.config.json`, resolved by expo autolinking as a Maven dependency) and as
  * `.xcframework` binaries on iOS. When a module is consumed prebuilt, its source under `node_modules`
  * is NEVER compiled, so a patch-package patch to that source applies to `node_modules` cleanly, the
- * build succeeds, and the patch is SILENTLY IGNORED. This is a documented design flaw
- * (https://docs.expo.dev/guides/prebuilt-expo-modules/) with no build-time error.
+ * build succeeds, and the patch is silently ignored.
  *
  * The escape hatch is `expo.autolinking.<platform>.buildFromSource` in package.json: listing the
  * package there forces autolinking to compile it from source instead of pulling the prebuilt binary,
- * which lets the patch take effect. This script cross-references every patch against the precompiled
- * state of the module and the buildFromSource opt-out, and fails loudly on any at-risk patch so the
- * dev finds out at `npm install` / CI time rather than by debugging a no-op patch on device.
+ * which lets the patch take effect.
  *
- * iOS is resolved per PRODUCT, not per package: a module's `spm.config.json` splits its source into
+ * This script cross-references every patch against the prebuilt state of the module and
+ * the buildFromSource opt-out, and fails on any at-risk patch so the dev finds out at `npm install` / CI time.
+ *
+ * iOS is resolved per product, not per package: a module's `spm.config.json` splits its source into
  * products (each its own pod + `.xcframework`), some of which may be `sourceOnly` (never prebuilt, so
  * a patch to them still applies). We map each patched iOS file to its product and only flag files that
  * land in a non-sourceOnly product with an actual prebuilt binary.
@@ -27,14 +26,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const projectRoot = path.resolve(__dirname, '..');
-/**
- * Escape hatch for false positives. Detection is static, so it cannot see Expo's runtime
- * `shouldUsePublicationScript` decision — a module with a `publication` block can still build from
- * source (e.g. on a React Native version the prebuilt artifact is incompatible with), in which case
- * the patch DOES apply and the guard would nag wrongly. A dev who has verified a patch applies can
- * list the patch's path relative to `patches/` here (one path per line, `#` comments allowed) to
- * suppress the check for that specific patch.
- */
+
 type Platform = 'android' | 'ios';
 
 type ExpoModuleConfig = {
@@ -43,6 +35,7 @@ type ExpoModuleConfig = {
     ios?: unknown;
 };
 
+/** The `expo.autolinking` config from package.json. */
 type AutolinkingConfig = {
     exclude?: string[];
     buildFromSource?: string[];
