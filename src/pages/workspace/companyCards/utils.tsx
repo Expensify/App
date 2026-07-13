@@ -374,7 +374,10 @@ function getExportMenuItem(
             const exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT;
             const exportReimbursable = rilletConfig?.export?.reimbursable ?? CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL;
             const exportCompanyCard = rilletConfig?.export?.companyCard ?? CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
-            const shouldShowMenuItem = exportReimbursable === CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL && exportCompanyCard === CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
+            const shouldShowMenuItem =
+                rilletConfig?.export?.exportToMultipleAccounts &&
+                exportReimbursable === CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL &&
+                exportCompanyCard === CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
             const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
             const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
             const cardProgramAccountCode = (companyCard?.bank ? cardProgramsUsingCustomAccounts?.[companyCard.bank as CardFeed] : undefined) ?? creditCardAccountCode;
