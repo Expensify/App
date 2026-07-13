@@ -291,3 +291,10 @@
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/56680 / https://github.com/facebook/react-native/commit/aadbe965792bd900ca70412d6704b76e339d1aca
 - E/App issue: https://github.com/Expensify/App/issues/92412
 - PR introducing patch: 🛑
+
+### [react-native+0.85.3+038+fix-android15-text-clipping.patch](react-native+0.85.3+038+fix-android15-text-clipping.patch)
+
+- Reason: Fixes text clipping on Android (e.g. the "offline" word missing from the `OfflineIndicator` message). The OSS Android "Experimental" release-level feature-flag overrides turn on `fixTextClippingAndroid15useBoundsForWidth`, which makes `TextLayoutManager.createLayout()` take a buggy two-pass measurement path on API 35+ (measuring an unconstrained layout's visual glyph bounds, then rebuilding the final layout with `StaticLayout.Builder.setUseBoundsForWidth(true)`). That bounds-based path has been implicated in multiple clipping regressions upstream. This patch ports upstream's resolution: it removes the flag-gated bounds-based branch from `createLayout()`/`buildLayout()` so the old advance-based `Layout.getDesiredWidth()` logic is always used, and removes the flag override (Kotlin `ReactNativeFeatureFlagsOverrides_RNOSS_Experimental_Android` and the C++ `ReactNativeFeatureFlagsOverridesOSSExperimental` equivalent) so it can't be re-enabled. The rest of the upstream PR's diff (~20 files) is just generated feature-flag-registry plumbing (JNI/C++/JS accessors) for deleting the flag outright; that's skipped here since nothing else reads the flag, so leaving it declared (but always false/unused) is behavior-equivalent with far less risk to the generated registry's JNI/C++ consistency.
+- Upstream PR/issue: https://github.com/facebook/react-native/pull/56282
+- E/App issue: https://github.com/Expensify/App/issues/76531
+- PR introducing patch: 🛑

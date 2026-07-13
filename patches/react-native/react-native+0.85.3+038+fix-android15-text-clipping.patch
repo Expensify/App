@@ -1,0 +1,114 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+index ec6b8de..102d146 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+@@ -650,63 +650,14 @@ internal object TextLayoutManager {
+       )
+     }
+ 
+-    // Pre-Android 15: Use existing advance-based logic
+-    if (
+-        Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM ||
+-            !ReactNativeFeatureFlags.fixTextClippingAndroid15useBoundsForWidth()
+-    ) {
+-      val desiredWidth = ceil(Layout.getDesiredWidth(text, paint)).toInt()
+-
+-      val layoutWidth =
+-          when (widthYogaMeasureMode) {
+-            YogaMeasureMode.EXACTLY -> floor(width).toInt()
+-            YogaMeasureMode.AT_MOST -> min(desiredWidth, floor(width).toInt())
+-            else -> desiredWidth
+-          }
+-      return buildLayout(
+-          text,
+-          layoutWidth,
+-          includeFontPadding,
+-          textBreakStrategy,
+-          hyphenationFrequency,
+-          alignment,
+-          justificationMode,
+-          ellipsizeMode,
+-          maxNumberOfLines,
+-          paint,
+-      )
+-    }
+-
+-    // Android 15+: Need to account for visual bounds
+-    // Step 1: Create unconstrained layout to get visual bounds width
+-    val unconstrainedLayout =
+-        buildLayout(
+-            text,
+-            Int.MAX_VALUE / 2,
+-            includeFontPadding,
+-            textBreakStrategy,
+-            hyphenationFrequency,
+-            alignment,
+-            justificationMode,
+-            null,
+-            ReactConstants.UNSET,
+-            paint,
+-        )
+-
+-    // Calculate visual bounds width from unconstrained layout
+-    var desiredVisualWidth = 0f
+-    for (i in 0 until unconstrainedLayout.lineCount) {
+-      val lineWidth = unconstrainedLayout.getLineRight(i) - unconstrainedLayout.getLineLeft(i)
+-      desiredVisualWidth = max(desiredVisualWidth, lineWidth)
+-    }
++    val desiredWidth = ceil(Layout.getDesiredWidth(text, paint)).toInt()
+ 
+     val layoutWidth =
+         when (widthYogaMeasureMode) {
+-          YogaMeasureMode.AT_MOST -> min(ceil(desiredVisualWidth).toInt(), floor(width).toInt())
+-          else -> ceil(desiredVisualWidth).toInt()
++          YogaMeasureMode.EXACTLY -> floor(width).toInt()
++          YogaMeasureMode.AT_MOST -> min(desiredWidth, floor(width).toInt())
++          else -> desiredWidth
+         }
+-
+-    // Step 2: Create final layout with correct width
+     return buildLayout(
+         text,
+         layoutWidth,
+@@ -753,13 +704,6 @@ internal object TextLayoutManager {
+       builder.setUseLineSpacingFromFallbacks(true)
+     }
+ 
+-    if (
+-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM &&
+-            ReactNativeFeatureFlags.fixTextClippingAndroid15useBoundsForWidth()
+-    ) {
+-      builder.setUseBoundsForWidth(true)
+-    }
+-
+     return builder.build()
+   }
+ 
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/internal/featureflags/ReactNativeFeatureFlagsOverrides_RNOSS_Experimental_Android.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/internal/featureflags/ReactNativeFeatureFlagsOverrides_RNOSS_Experimental_Android.kt
+index d740c6f..2fffcd0 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/internal/featureflags/ReactNativeFeatureFlagsOverrides_RNOSS_Experimental_Android.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/internal/featureflags/ReactNativeFeatureFlagsOverrides_RNOSS_Experimental_Android.kt
+@@ -29,8 +29,6 @@ public open class ReactNativeFeatureFlagsOverrides_RNOSS_Experimental_Android :
+ 
+   override fun enableSwiftUIBasedFilters(): Boolean = true
+ 
+-  override fun fixTextClippingAndroid15useBoundsForWidth(): Boolean = true
+-
+   override fun preventShadowTreeCommitExhaustion(): Boolean = true
+ 
+   override fun useSharedAnimatedBackend(): Boolean = true
+diff --git a/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSExperimental.h b/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSExperimental.h
+index b97ed6d..d5045cc 100644
+--- a/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSExperimental.h
++++ b/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSExperimental.h
+@@ -39,10 +39,6 @@ class ReactNativeFeatureFlagsOverridesOSSExperimental : public ReactNativeFeatur
+     return true;
+   }
+ 
+-  bool fixTextClippingAndroid15useBoundsForWidth() override {
+-    return true;
+-  }
+-
+   bool preventShadowTreeCommitExhaustion() override {
+     return true;
+   }
