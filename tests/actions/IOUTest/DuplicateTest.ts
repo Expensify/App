@@ -38,6 +38,7 @@ import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -73,20 +74,12 @@ jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
-type WriteMockCall = [string, Record<string, unknown>, unknown?];
-
-const isObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
+type WriteMockCall = [string, Record<PropertyKey, unknown>, unknown?];
 
 const isWriteMockCallForCommand =
     (command: string) =>
     (call: unknown[]): call is WriteMockCall =>
         call.at(0) === command && isObject(call.at(1));
-
-const omitComment = (transaction: Transaction): Transaction => {
-    const transactionWithoutComment = {...transaction};
-    delete transactionWithoutComment.comment;
-    return transactionWithoutComment;
-};
 
 OnyxUpdateManager();
 describe('actions/Duplicate', () => {
@@ -2853,9 +2846,9 @@ describe('actions/Duplicate', () => {
                 currency: 'USD',
             };
             const allTransactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_1`]: omitComment(tx1),
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_2`]: omitComment(tx2),
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_3`]: omitComment(tx3),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_1`]: tx1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_2`]: tx2,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_3`]: tx3,
             };
 
             bulkDuplicateExpenses({
