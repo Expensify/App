@@ -194,6 +194,15 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
 
     // Card state pills (below title, next to description)
     const descriptionAddon = useMemo(() => {
+        if (isNeedingAction && shouldShowDefaultBadge) {
+            return (
+                <Badge
+                    text={translate('paymentMethodList.defaultPaymentMethod')}
+                    isCondensed
+                    badgeStyles={[styles.ml0]}
+                />
+            );
+        }
         if (item.isCardFrozen) {
             return (
                 <Badge
@@ -214,15 +223,6 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 />
             );
         }
-        if (isNeedingAction && shouldShowDefaultBadge) {
-            return (
-                <Badge
-                    text={translate('paymentMethodList.defaultPaymentMethod')}
-                    isCondensed
-                    badgeStyles={[styles.ml0]}
-                />
-            );
-        }
         if (item.isInactive) {
             return (
                 <Badge
@@ -234,6 +234,57 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         }
         return undefined;
     }, [isNeedingAction, shouldShowDefaultBadge, item.connectionStatus, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
+
+    const rightComponent = showThreeDotsMenu ? (
+        <View style={styles.alignSelfCenter}>
+            <ThreeDotsMenu
+                shouldSelfPosition
+                onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
+                menuItems={threeDotsMenuItems}
+                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                shouldOverlay
+                isNested
+                threeDotsMenuRef={threeDotsMenuRef}
+                disabled={item.disabled}
+            />
+        </View>
+    ) : undefined;
+    const menuItemProps: React.ComponentProps<typeof MenuItem> = {
+        onPress: handleRowPress,
+        title: item.title,
+        description: item.description,
+        descriptionAddon,
+        icon: item.icon,
+        plaidUrl: item.plaidUrl,
+        disabled: item.disabled,
+        iconType: item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON,
+        displayInDefaultIconColor: !item.iconFill,
+        iconHeight: item.iconHeight ?? item.iconSize,
+        iconWidth: item.iconWidth ?? item.iconSize,
+        iconStyles: item.iconStyles,
+        iconFill: item.iconFill,
+        badgeText,
+        badgeIcon,
+        wrapperStyle: [styles.paymentMethod, listItemStyle],
+        iconRight: isNeedingAction ? undefined : item.iconRight,
+        shouldShowRightIcon: !showThreeDotsMenu && item.shouldShowRightIcon,
+        shouldShowRightComponent: showThreeDotsMenu,
+        rightComponent,
+        interactive: item.interactive,
+        success: item.isMethodActive,
+        ...(connectionStatus
+            ? {
+                  shouldRemoveBackground: true,
+                  shouldRemoveHoverBackground: true,
+                  brickRoadIndicator: connectionStatus.message ? undefined : item.brickRoadIndicator,
+              }
+            : {
+                  isBadgeSuccess: isNeedingAction ? true : undefined,
+                  isBadgeError: isInLockedState,
+                  brickRoadIndicator: item.brickRoadIndicator,
+              }),
+    };
+    const menuItem = <MenuItem {...menuItemProps} />;
 
     return (
         <OfflineWithFeedback
@@ -247,48 +298,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 <Hoverable>
                     {(isHovered) => (
                         <View style={[isHovered && styles.hoveredComponentBG]}>
-                            <MenuItem
-                                onPress={handleRowPress}
-                                title={item.title}
-                                description={item.description}
-                                descriptionAddon={descriptionAddon}
-                                icon={item.icon}
-                                plaidUrl={item.plaidUrl}
-                                disabled={item.disabled}
-                                iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
-                                displayInDefaultIconColor={!item.iconFill}
-                                iconHeight={item.iconHeight ?? item.iconSize}
-                                iconWidth={item.iconWidth ?? item.iconSize}
-                                iconStyles={item.iconStyles}
-                                iconFill={item.iconFill}
-                                badgeText={badgeText}
-                                badgeIcon={badgeIcon}
-                                wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                                iconRight={isNeedingAction ? undefined : item.iconRight}
-                                shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
-                                shouldShowRightComponent={showThreeDotsMenu}
-                                rightComponent={
-                                    showThreeDotsMenu ? (
-                                        <View style={styles.alignSelfCenter}>
-                                            <ThreeDotsMenu
-                                                shouldSelfPosition
-                                                onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
-                                                menuItems={threeDotsMenuItems}
-                                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                                shouldOverlay
-                                                isNested
-                                                threeDotsMenuRef={threeDotsMenuRef}
-                                                disabled={item.disabled}
-                                            />
-                                        </View>
-                                    ) : undefined
-                                }
-                                interactive={item.interactive}
-                                shouldRemoveBackground
-                                shouldRemoveHoverBackground
-                                brickRoadIndicator={connectionStatus.message ? undefined : item.brickRoadIndicator}
-                                success={item.isMethodActive}
-                            />
+                            {menuItem}
                             {!!connectionStatus.message && (
                                 <View style={styles.mb2}>
                                     <ConnectionStatusMessage
@@ -305,48 +315,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     )}
                 </Hoverable>
             ) : (
-                <MenuItem
-                    onPress={handleRowPress}
-                    title={item.title}
-                    description={item.description}
-                    descriptionAddon={descriptionAddon}
-                    icon={item.icon}
-                    plaidUrl={item.plaidUrl}
-                    disabled={item.disabled}
-                    iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
-                    displayInDefaultIconColor={!item.iconFill}
-                    iconHeight={item.iconHeight ?? item.iconSize}
-                    iconWidth={item.iconWidth ?? item.iconSize}
-                    iconStyles={item.iconStyles}
-                    iconFill={item.iconFill}
-                    badgeText={badgeText}
-                    badgeIcon={badgeIcon}
-                    isBadgeSuccess={isNeedingAction ? true : undefined}
-                    isBadgeError={isInLockedState}
-                    wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                    iconRight={isNeedingAction ? undefined : item.iconRight}
-                    shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
-                    shouldShowRightComponent={showThreeDotsMenu}
-                    rightComponent={
-                        showThreeDotsMenu ? (
-                            <View style={styles.alignSelfCenter}>
-                                <ThreeDotsMenu
-                                    shouldSelfPosition
-                                    onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
-                                    menuItems={threeDotsMenuItems}
-                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                    shouldOverlay
-                                    isNested
-                                    threeDotsMenuRef={threeDotsMenuRef}
-                                    disabled={item.disabled}
-                                />
-                            </View>
-                        ) : undefined
-                    }
-                    interactive={item.interactive}
-                    brickRoadIndicator={item.brickRoadIndicator}
-                    success={item.isMethodActive}
-                />
+                menuItem
             )}
             {!!item.shouldShowMissingPersonalDetailsAction && !!item.cardID && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
