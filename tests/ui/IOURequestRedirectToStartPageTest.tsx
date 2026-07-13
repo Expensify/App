@@ -83,11 +83,9 @@ describe('IOURequestRedirectToStartPage', () => {
         });
     });
 
-    // Regression test for https://github.com/Expensify/App/issues/88183
-    // A launcher quick-action deeplink ("Scan receipt" then "Track distance") used to leave the scan flow's draft
-    // (which has no `comment.waypoints`) under OPTIMISTIC_TRANSACTION_ID, so tapping a distance waypoint opened the
-    // "Not here" page. The redirect now clears that stale draft before navigating so the distance start page can
-    // rebuild a fresh draft with the correct shape.
+    // Covers the quick-action deeplink hand-off: a leftover "Scan receipt" draft under OPTIMISTIC_TRANSACTION_ID
+    // has no waypoints, so if the redirect doesn't clear it the distance start page reads the wrong shape and the
+    // waypoint flow opens "Not here". Checks that the redirect clears that draft before navigating.
     it('clears a stale scan draft when a quick-action deeplink starts a distance request', async () => {
         // Given a leftover "Scan receipt" draft under OPTIMISTIC_TRANSACTION_ID that has no distance waypoints
         await act(async () => {
@@ -136,10 +134,9 @@ describe('IOURequestRedirectToStartPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
     });
 
-    // PR review (codex P1): on a cold start / hard-refresh the draft collection may not be hydrated when this
-    // effect runs, and `validTransactionDraftIDsSelector` maps that to `[]` (not `undefined`). So the clear must
-    // ALWAYS include OPTIMISTIC_TRANSACTION_ID — a `?? [...]` fallback alone would pass an empty list and remove
-    // nothing, letting the stale scan draft survive and reopen the "Not here" page.
+    // Covers the cold-start / hard-refresh case where the draft collection isn't hydrated yet, so the selector
+    // returns [] instead of undefined. Checks the clear still includes OPTIMISTIC_TRANSACTION_ID, since an empty
+    // list would remove nothing and leave the stale draft behind.
     it('always clears the OPTIMISTIC_TRANSACTION_ID draft even when the selector returns an empty list', async () => {
         const clearSpy = jest.spyOn(MoneyRequestActions, 'clearMoneyRequest');
 
