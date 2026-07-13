@@ -335,6 +335,71 @@ describe('Transaction', () => {
             mockAPIWrite.mockRestore();
         });
 
+        it('keeps sibling duplicate violations cleaned after moving a duplicate transaction to unreported', async () => {
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            const transaction = generateTransaction({
+                transactionID: 'txn_a',
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const siblingTransaction = generateTransaction({
+                transactionID: 'txn_b',
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const oldIOUAction = createIOUAction(transaction);
+
+            const duplicateViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {duplicates: [siblingTransaction.transactionID]},
+            };
+            const siblingDuplicateViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {duplicates: [transaction.transactionID]},
+            };
+            const missingCategoryViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${siblingTransaction.transactionID}`, siblingTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                policy: undefined,
+                allTransactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                },
+                policyTagList: undefined,
+                transactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicateViolation],
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`]: [siblingDuplicateViolation, missingCategoryViolation],
+                },
+                allReports: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+            const onyxData = apiWriteCall?.[2] as {
+                optimisticData?: Array<{key: string; value: unknown}>;
+                successData?: Array<{key: string; value: unknown}>;
+                failureData?: Array<{key: string; value: unknown}>;
+            };
+            const siblingViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`;
+
+            expect(onyxData.optimisticData?.find((data) => data.key === siblingViolationsKey)?.value).toEqual([missingCategoryViolation]);
+            expect(onyxData.successData?.find((data) => data.key === siblingViolationsKey)?.value).toEqual([missingCategoryViolation]);
+            expect(onyxData.failureData?.find((data) => data.key === siblingViolationsKey)?.value).toEqual([siblingDuplicateViolation, missingCategoryViolation]);
+
+            mockAPIWrite.mockRestore();
+        });
+
         it('correctly handles undefined reportNextStep parameter', async () => {
             const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
