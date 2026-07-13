@@ -9060,7 +9060,7 @@ const CONST = {
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
         ANNOUNCEMENTS: [
             {
-                title: 'Consolidated Travel Billing simplifies business travel',
+                title: 'New feature: Consolidated travel billing',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
                 publishedDate: '2026-07-13',
