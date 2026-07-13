@@ -9,4 +9,4 @@
 
 - Upstream PR/issue: https://github.com/mrousavy/react-native-vision-camera/issues/3636, https://github.com/mrousavy/react-native-vision-camera/pull/3664
 - E/App issue: https://github.com/Expensify/App/issues/91293
-- PR introducing patch: 
+- PR introducing patch: https://github.com/Expensify/App/pull/95984
