@@ -821,6 +821,9 @@ const ONYXKEYS = {
         /** Session-scoped loading/error flags for a report's action list.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_REPORT_LOADING_STATE: 'reportLoadingState_',
+        /** Session-scoped loading flags for company cards page and feeds.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_COMPANY_CARDS_LOADING_STATE: 'companyCardsLoadingState_',
         /** Pagination cursors for a report's action list. */
         REPORT_PAGINATION_STATE: 'reportPaginationState_',
         REPORT_ACTIONS: 'reportActions_',
@@ -930,6 +933,9 @@ const ONYXKEYS = {
 
         /** Errors related to a domain */
         DOMAIN_ERRORS: 'domainErrors_',
+
+        /** Newly added domain item identifiers pending a scroll-and-highlight animation */
+        DOMAIN_HIGHLIGHT_ITEMS: 'domainHighlightItems_',
 
         /**
          * Local passkeys storage for WebAuthn/Passkeys authentication.
@@ -1389,6 +1395,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_DRAFT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
     [ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE]: OnyxTypes.ReportPaginationState;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
@@ -1442,6 +1449,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
+    [ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS]: OnyxTypes.DomainHighlightItems;
     [ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION]: OnyxTypes.CodingRuleMatchingTransaction;
     [ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS]: OnyxTypes.LocalPasskeyCredentialsEntry;
     [ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
