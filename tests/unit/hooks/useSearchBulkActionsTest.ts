@@ -267,6 +267,18 @@ describe('useSearchBulkActions - CSV export flow', () => {
         expect(result.current.exportDownloadStatusModal).not.toBeNull();
     });
 
+    it('keeps export available when every loaded transaction is excluded from an all-matching selection', async () => {
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {};
+        mockExcludedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
+        });
+    });
+
     it('handleBasicExport with manual selection does not track any export', async () => {
         mockAreAllMatchingItemsSelected = false;
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};

@@ -1462,7 +1462,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions]);
 
     const headerButtonsOptions = useMemo(() => {
-        if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
+        if ((!areAllMatchingItemsSelected && selectedTransactionsKeys.length === 0) || status == null || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 

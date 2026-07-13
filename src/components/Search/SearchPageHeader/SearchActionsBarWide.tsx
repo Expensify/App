@@ -1,5 +1,5 @@
 import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
-import {useSelectionCounts} from '@components/Search/SearchSelectionProvider';
+import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,12 +26,11 @@ type SearchActionsBarWideProps = {
 
 function SearchActionsBarWide({queryJSON, searchResults, onSort}: SearchActionsBarWideProps) {
     const styles = useThemeStyles();
-    const {selected} = useSelectionCounts();
-    const hasSelectedItems = selected > 0;
+    const {hasSelectedTransactions} = useSearchSelectionContext();
 
     return (
         <View style={[styles.searchActionsBarContainer]}>
-            {hasSelectedItems ? (
+            {hasSelectedTransactions ? (
                 <View style={styles.searchBulkActionsButton}>
                     <SearchBulkActionsButton queryJSON={queryJSON} />
                 </View>
