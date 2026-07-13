@@ -80,6 +80,9 @@ jest.mock('@components/Table', () => {
         __esModule: true,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         default: MockTable,
+        // The wrapper composes its scrolling header with this helper, so the real implementation is kept.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        composeTableHeaderComponent: jest.requireActual('@components/Table/composeTableHeaderComponent').default,
     };
 });
 
