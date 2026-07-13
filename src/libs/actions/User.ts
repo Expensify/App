@@ -1413,10 +1413,6 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, isDebugModeEnabled);
 }
 
-function setShouldHideHeavyLists(shouldHideHeavyLists: boolean) {
-    Onyx.set(ONYXKEYS.SHOULD_HIDE_HEAVY_LISTS, shouldHideHeavyLists);
-}
-
 function setShouldShowBranchNameInTitle(value: boolean) {
     Onyx.set(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE, value);
 }
@@ -2042,7 +2038,6 @@ export {
     requestValidateCodeAction,
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
-    setShouldHideHeavyLists,
     setShouldShowBranchNameInTitle,
     lockAccount,
     requestUnlockAccount,

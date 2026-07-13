@@ -9,7 +9,7 @@ import {useIsAgentAccount} from '@libs/SessionUtils';
 
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
-import {setIsDebugModeEnabled, setShouldHideHeavyLists, setShouldShowBranchNameInTitle, setShouldUseStagingServer} from '@userActions/User';
+import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldUseStagingServer} from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,7 +30,6 @@ function TestToolMenu() {
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    const [shouldHideHeavyLists = false] = useOnyx(ONYXKEYS.SHOULD_HIDE_HEAVY_LISTS);
     const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -61,18 +60,6 @@ function TestToolMenu() {
                             accessibilityLabel={translate('initialSettingsPage.troubleshoot.debugMode')}
                             isOn={isDebugModeEnabled}
                             onToggle={() => setIsDebugModeEnabled(!isDebugModeEnabled)}
-                        />
-                    </TestToolRow>
-
-                    {/* DEV-ONLY: when toggled, heavy lists are not rendered so we can measure message-send perf without them. */}
-                    <TestToolRow
-                        title="Hide heavy lists (perf test)"
-                        isTitleAccessible={false}
-                    >
-                        <Switch
-                            accessibilityLabel="Hide heavy lists (perf test)"
-                            isOn={shouldHideHeavyLists}
-                            onToggle={() => setShouldHideHeavyLists(!shouldHideHeavyLists)}
                         />
                     </TestToolRow>
 

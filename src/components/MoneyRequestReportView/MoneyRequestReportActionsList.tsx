@@ -19,7 +19,6 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWhyDidIRender from '@hooks/useWhyDidIRender';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
@@ -127,9 +126,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const reportID = report?.reportID;
 
-    // THIS
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID);
-    // THIS
     const reportActionsLive = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const {draftReportAction} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
@@ -145,12 +142,9 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     // the OnyxEntry<Report> prop type is satisfied and no report field is missing.
     const reportForFields = useFrozenWhileBlurred(report, isFocused);
 
-    const [shouldHideHeavyLists] = useOnyx(ONYXKEYS.SHOULD_HIDE_HEAVY_LISTS);
-
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true), [allReportTransactions, reportActions, isOffline]);
 
-    // THIS
     const transactionsLive = useMemo(
         () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) ?? [],
         [reportTransactions, isOffline],
@@ -188,7 +182,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
-    // THIS
     // Scope the derived VISIBLE_REPORT_ACTIONS to this report only. Subscribing to the whole collection
     // re-rendered this list whenever ANY report's visibility changed; every action here belongs to `reportID`
     // (they come from usePaginatedReportActions(reportID)), so isReportActionVisible only ever reads this slice.
@@ -205,7 +198,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
 
     const visibleReportActionsData = useFrozenWhileBlurred(visibleReportActionsDataLive, isFocused);
-    // const transactionsForList = useFrozenWhileBlurred(transactions, isFocused);
 
     const visibleReportActionsLive = useMemo(() => {
         const filteredActions = reportActions.filter((reportAction) => {
@@ -770,51 +762,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             showReportActionsLoadingState,
         ],
     );
-
-    // DEV-ONLY re-render diagnostic (PoC — remove before merge). Focus: onLayout, transactions,
-    // reportActions. Upstream sources are tracked too so we can see the causal chain when sending a
-    // message (addComment -> optimistic report action + report.lastVisibleActionCreated update).
-    useWhyDidIRender('MoneyRequestReportActionsList', {
-        // freeze gate — if this flips true on some sends, useFrozenWhileBlurred releases and the heavy tree re-renders (slow path)
-        isFocused,
-        shouldUseNarrowLayout,
-        // suspects flagged by the profiler
-        onLayout,
-        transactions,
-        reportActions,
-        // frozen-while-blurred versions actually handed to MoneyRequestReportTransactionList
-        // transactionsForList,
-        // reportActionsForList,
-        visibleReportActionsDataLive,
-
-        // upstream of `reportActions`
-        unfilteredReportActions,
-        // upstream of `transactions`
-        reportTransactions,
-        allReportTransactions,
-        // the render list actually fed to the FlatList
-        visibleReportActions,
-        // report subscriptions: full `report` churns on lastVisibleActionCreated on send; stable should not
-        report,
-        reportStable,
-        // other row props / inputs
-        parentReportAction,
-        chatReport,
-        transactionThreadReport,
-        visibleReportActionsData,
-        draftReportActionID,
-        unreadMarkerReportActionID,
-        isOffline,
-        reportLoadingState,
-        reportPaginationState,
-        // remaining renderItem deps — the last two not yet tracked; if renderItem churns it must be one of these
-        firstVisibleReportActionID,
-        shouldShowHarvestCreatedAction,
-    });
-
-    if (shouldHideHeavyLists) {
-        return null;
-    }
 
     if (!report) {
         return null;

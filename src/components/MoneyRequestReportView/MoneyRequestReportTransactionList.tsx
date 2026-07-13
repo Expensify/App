@@ -29,7 +29,6 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWhyDidIRender from '@hooks/useWhyDidIRender';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -221,8 +220,6 @@ function MoneyRequestReportTransactionList({
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    // DEV-ONLY perf-test toggle: when enabled, skip rendering this heavy list.
-    const [shouldHideHeavyLists] = useOnyx(ONYXKEYS.SHOULD_HIDE_HEAVY_LISTS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
 
@@ -247,27 +244,6 @@ function MoneyRequestReportTransactionList({
     const {setSelectedTransactions, clearSelectedTransactions} = useSearchSelectionActions();
     useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-
-    // DEV-ONLY re-render diagnostic (PoC — remove before merge). This header child hosts
-    // useHandleSelectionMode; track its input (selectedTransactionIDs) plus the props/subscriptions that
-    // change when a message is sent, to see whether selection state or the transactions/reportActions
-    // props are what re-render this subtree.
-    useWhyDidIRender('MoneyRequestReportTransactionList', {
-        selectedTransactionIDs,
-        isMobileSelectionModeEnabled,
-        transactions,
-        reportActions,
-        newTransactions,
-        hasPendingDeletionTransaction,
-        report,
-        policy,
-        onLayout,
-        // previously-untracked props — a churn in any of these shows up as "no tracked value changed"
-        scrollToNewTransaction,
-        isReportVisible,
-        hasComments,
-        isLoadingInitialReportActions,
-    });
 
     const toggleTransaction = (transactionID: string) => {
         let newSelectedTransactionIDs = selectedTransactionIDs;
@@ -832,11 +808,6 @@ function MoneyRequestReportTransactionList({
             </View>
         </OfflineWithFeedback>
     );
-
-    // DEV-ONLY perf-test toggle: hide this heavy list entirely (placed after all hooks to satisfy rules of hooks).
-    if (shouldHideHeavyLists) {
-        return null;
-    }
 
     if (isEmptyTransactions) {
         return (
