@@ -5,7 +5,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 
-import type {CardList, PolicyCategories, PolicyTagLists, ReportAction, TransactionViolation} from '@src/types/onyx';
+import type {CardList, PolicyCategories, PolicyTagLists, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 
 type TransactionListItemSharedProps<TItem extends ListItem> = {
     item: TItem;
@@ -32,6 +32,9 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     policyTagLists?: PolicyTagLists;
     nonPersonalAndWorkspaceCards?: CardList;
     isAttendeesEnabledForMovingPolicy?: boolean;
+
+    /** The chat report (e.g. the invoice room) the transaction's report belongs to, forwarded to the Pay action cell */
+    chatReport?: Report;
 };
 
 type TransactionListItemWideProps<TItem extends ListItem> = TransactionListItemSharedProps<TItem> & {

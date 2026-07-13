@@ -138,7 +138,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         transactionItem,
     ]);
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID)}`);
+    const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? snapshotReport?.parentReportID)}`);
     const [chatReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? snapshotReport?.parentReportID)}`);
     const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, delegateEmail} = useReportPaymentContext({
         reportID: transactionItem.reportID,
@@ -257,6 +257,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         policyTagLists,
         nonPersonalAndWorkspaceCards,
         isAttendeesEnabledForMovingPolicy,
+        chatReport: parentChatReport,
     };
 
     if (!isLargeScreenWidth) {
