@@ -38,6 +38,7 @@
     "createDocsRoutes": "ts-node .github/scripts/createDocsRoutes.ts",
     "generateAllowedUrls": "ts-node .github/scripts/generateAllowedUrls.ts",
     "detectRedirectCycle": "ts-node .github/scripts/detectRedirectCycle.ts",
+    "smoke:android:llm": "ts-node .github/scripts/agent-device-llm-driver.ts",
     "ios-build": "bundle exec fastlane ios build_unsigned",
     "ios-hybrid-build": "bundle exec fastlane ios build_unsigned_hybrid",
     "android-build": "bundle exec fastlane android build_local",
