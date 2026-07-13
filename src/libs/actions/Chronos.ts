@@ -3,7 +3,7 @@ import type {AddCommentOrAttachmentParams, ChronosRemoveOOOEventParams} from '@l
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {getReportActionMessage} from '@libs/ReportActionsUtils';
+import {getLastVisibleAction, getLastVisibleMessage, getReportActionMessage} from '@libs/ReportActionsUtils';
 import {buildOptimisticAddCommentReportAction, formatReportLastMessageText} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -15,6 +15,8 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
+
+import {notifyNewAction} from './Report';
 
 type ChronosTimerOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_CHRONOS_TIME_TRACKING>;
 
@@ -88,6 +90,13 @@ const startOrStopChronosTimer = (report: Report, currentUserAccountID: number, p
     const reportActionID = reportAction.reportActionID;
     const lastMessageText = formatReportLastMessageText(getReportActionMessage(reportAction)?.text ?? '');
 
+    // Capture the report's current last-visible message so we can restore it if the optimistic comment fails to send.
+    const previousLastVisibleAction = getLastVisibleAction(reportID);
+    const {lastMessageText: previousLastMessageText = ''} = getLastVisibleMessage(reportID);
+    const failureReport: Partial<Report> = previousLastMessageText
+        ? {lastMessageText: previousLastMessageText, lastVisibleActionCreated: previousLastVisibleAction?.created, lastActorAccountID: previousLastVisibleAction?.actorAccountID}
+        : {lastMessageText: '', lastVisibleActionCreated: ''};
+
     // A running timer has a non-empty `startTime`; stopping clears it to an empty string (mirrors the Auth backend).
     const optimisticStartTime = isStarting ? DateUtils.getDBTime() : '';
 
@@ -130,6 +139,11 @@ const startOrStopChronosTimer = (report: Report, currentUserAccountID: number, p
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: failureReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_CHRONOS_TIME_TRACKING,
             value: {startTime: previousStartTime ?? ''},
         },
@@ -145,6 +159,9 @@ const startOrStopChronosTimer = (report: Report, currentUserAccountID: number, p
     };
 
     API.write(WRITE_COMMANDS.ADD_COMMENT, parameters, {optimisticData, successData, failureData});
+
+    // Mirror addComment/addActions: notify mounted report action lists so they auto-scroll to the optimistic comment.
+    notifyNewAction(reportID, reportAction, reportAction.actorAccountID === currentUserAccountID);
 };
 
 export {removeEvent, startOrStopChronosTimer};
