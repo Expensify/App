@@ -126,31 +126,26 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const reportID = report?.reportID;
 
-    const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID);
-    const reportActionsLive = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
+    const {reportActions: unfilteredReportActionsLive, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID);
+
+    // Freeze the raw report actions while this screen is blurred. When a transaction RHP is layered on top and the
+    // user sends a message there, Onyx still hands this array a fresh reference every render. Freezing it BEFORE
+    // getFilteredReportActionsForReportView means that filter — and every downstream useMemo/memo() child that
+    // depends on it — sees stable deps and bails, so the offscreen list does no work until the report is refocused.
+    const unfilteredReportActions = useFrozenWhileBlurred(unfilteredReportActionsLive, isFocused);
+    const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
+
     const {draftReportAction} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
 
-    // Freeze the two array props handed to the memoized MoneyRequestReportTransactionList while this screen is
-    // blurred. When a transaction RHP is layered on top and the user sends a message there, Onyx still hands these
-    // derived arrays fresh references, which would break the child's memo() and re-render the offscreen list.
-    // Freezing keeps the references stable until the report is refocused, at which point they resync to live data.
-    const reportActions = useFrozenWhileBlurred(reportActionsLive, isFocused);
-
-    // Frozen full-fidelity report for the memoized MoneyRequestViewReportFields sibling. The raw `report` churns on
-    // send (last* fields); freezing while blurred lets that sibling's memo() hold. Full report (not reportStable) so
-    // the OnyxEntry<Report> prop type is satisfied and no report field is missing.
-    const reportForFields = useFrozenWhileBlurred(report, isFocused);
-
-    const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
+    const allReportTransactionsLive = useReportTransactionsCollection(reportIDFromRoute);
+    const allReportTransactions = useFrozenWhileBlurred(allReportTransactionsLive, isFocused);
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true), [allReportTransactions, reportActions, isOffline]);
 
-    const transactionsLive = useMemo(
+    const transactions = useMemo(
         () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) ?? [],
         [reportTransactions, isOffline],
     );
-
-    const transactions = useFrozenWhileBlurred(transactionsLive, isFocused);
 
     const hasPendingDeletionTransaction = useMemo(
         () => Object.values(allReportTransactions ?? {}).some((transaction) => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
@@ -185,7 +180,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     // Scope the derived VISIBLE_REPORT_ACTIONS to this report only. Subscribing to the whole collection
     // re-rendered this list whenever ANY report's visibility changed; every action here belongs to `reportID`
     // (they come from usePaginatedReportActions(reportID)), so isReportActionVisible only ever reads this slice.
-    const [visibleReportActionsDataLive] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
         selector: reportVisibleActionsSelector(reportID),
     });
 
@@ -196,8 +191,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
-
-    const visibleReportActionsData = useFrozenWhileBlurred(visibleReportActionsDataLive, isFocused);
 
     const visibleReportActionsLive = useMemo(() => {
         const filteredActions = reportActions.filter((reportAction) => {
@@ -727,7 +720,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         () => (
             <>
                 <MoneyRequestViewReportFields
-                    report={reportForFields}
+                    report={reportStable}
                     policy={policy}
                 />
                 {!!reportStable && (
@@ -748,7 +741,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             </>
         ),
         [
-            reportForFields,
             policy,
             reportStable,
             onLayout,
@@ -796,7 +788,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 {showEmptyState && (
                     <ScrollView contentContainerStyle={styles.flexGrow1}>
                         <MoneyRequestViewReportFields
-                            report={reportForFields}
+                            report={report}
                             policy={policy}
                         />
                         <SearchMoneyRequestReportEmptyState
