@@ -40,7 +40,7 @@ const mockState: MockOnyxState = {
 };
 
 const mockUseOnyx = jest.fn();
-const mockMarkReportIDAsExpense = jest.fn();
+const mockMarkReportRHPWidth = jest.fn();
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
@@ -64,7 +64,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 }));
 
 jest.mock('@components/WideRHPContextProvider', () => ({
-    useWideRHPActions: () => ({markReportIDAsExpense: mockMarkReportIDAsExpense}),
+    useWideRHPActions: () => ({markReportRHPWidth: mockMarkReportRHPWidth}),
 }));
 
 type ReactActual = {createElement: typeof React.createElement; Fragment: typeof React.Fragment};
@@ -211,7 +211,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             press('next-button');
 
             expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rNext', reportActionID: undefined}));
-            expect(mockMarkReportIDAsExpense).toHaveBeenCalledWith('rNext');
+            expect(mockMarkReportRHPWidth).toHaveBeenCalledWith('rNext', 'wide');
         });
 
         it('navigates previous to the parent reportID', () => {
@@ -220,7 +220,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             press('prev-button');
 
             expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rPrev', reportActionID: undefined}));
-            expect(mockMarkReportIDAsExpense).toHaveBeenCalledWith('rPrev');
+            expect(mockMarkReportRHPWidth).toHaveBeenCalledWith('rPrev', 'wide');
         });
     });
 
@@ -279,7 +279,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             press('next-button');
 
             expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadNext'}));
-            expect(mockMarkReportIDAsExpense).toHaveBeenCalledWith('threadNext');
+            expect(mockMarkReportRHPWidth).toHaveBeenCalledWith('threadNext', 'wide');
         });
 
         it('navigates previous to the existing transaction thread reportID', () => {
@@ -288,7 +288,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             press('prev-button');
 
             expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadPrev'}));
-            expect(mockMarkReportIDAsExpense).toHaveBeenCalledWith('threadPrev');
+            expect(mockMarkReportRHPWidth).toHaveBeenCalledWith('threadPrev', 'wide');
         });
     });
 

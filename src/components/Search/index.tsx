@@ -100,7 +100,7 @@ import ExpenseReportSearchView from './ExpenseReportSearchView';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
-import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from './SearchContext';
+import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
@@ -148,13 +148,14 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
-    const {markReportIDAsExpense, markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
+    const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
     const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
     const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
 
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {areAllMatchingItemsSelected} = useSearchSelectionContext();
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -180,7 +181,7 @@ function Search({
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0, areAllMatchingItemsSelected);
 
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
@@ -611,9 +612,9 @@ function Search({
                 }
 
                 if (item.transactions.length > 1) {
-                    markReportIDAsMultiTransactionExpense(reportID);
+                    markReportRHPWidth(reportID, 'super-wide');
                 } else {
-                    unmarkReportIDAsMultiTransactionExpense(reportID);
+                    unmarkReportRHPWidth(reportID, 'super-wide');
                 }
 
                 // Persist the current search context so prev/next navigation arrows
@@ -658,7 +659,7 @@ function Search({
                 return;
             }
 
-            markReportIDAsExpense(reportID);
+            markReportRHPWidth(reportID, 'wide');
 
             if (isTransactionItem && transactionPreviewData) {
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
@@ -671,10 +672,9 @@ function Search({
             requestAnimationFrame(() => Navigation.navigate(route));
         },
         [
-            markReportIDAsExpense,
+            markReportRHPWidth,
             handleSearch,
-            markReportIDAsMultiTransactionExpense,
-            unmarkReportIDAsMultiTransactionExpense,
+            unmarkReportRHPWidth,
             introSelected,
             betas,
             isSelfTourViewed,

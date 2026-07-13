@@ -22,7 +22,7 @@ import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useState} from 'react';
+import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type MoneyRequestReportNavigationProps = {
@@ -193,10 +193,12 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             name: 'ReportNavigation',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
-        Navigation.setParams({
-            reportID: reportId,
-            reportActionID: undefined,
-            referrer: undefined,
+        startTransition(() => {
+            Navigation.setParams({
+                reportID: reportId,
+                reportActionID: undefined,
+                referrer: undefined,
+            });
         });
     };
 
@@ -208,14 +210,17 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
 
         if (currentIndex + 1 >= threshold && lastSearchQuery?.hasMoreResults) {
             const newOffset = (lastSearchQuery.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE;
-            search({
-                queryJSON: lastSearchQuery.queryJSON,
-                offset: newOffset,
-                prevReportsLength: effectiveAllReports.length,
-                shouldCalculateTotals: false,
-                searchKey: lastSearchQuery.searchKey,
-                isLoading: isSearchLoading,
-                shouldUpdateLastSearchParams: true,
+            const queryJSON = lastSearchQuery.queryJSON;
+            requestAnimationFrame(() => {
+                search({
+                    queryJSON,
+                    offset: newOffset,
+                    prevReportsLength: effectiveAllReports.length,
+                    shouldCalculateTotals: false,
+                    searchKey: lastSearchQuery.searchKey,
+                    isLoading: isSearchLoading,
+                    shouldUpdateLastSearchParams: true,
+                });
             });
         }
 

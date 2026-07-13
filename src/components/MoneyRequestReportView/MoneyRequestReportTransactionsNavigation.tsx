@@ -29,7 +29,7 @@ import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
@@ -61,7 +61,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     // Snapshot-backed flows (e.g. Home "Recently added") seed a descriptor per sibling so the carousel can
     // resolve (and lazily create) each sibling's thread on demand even when the sibling isn't in the live collection.
     const [siblingDescriptorsByTransactionID] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     // Values required to create a transaction thread on the fly when paging onto a multi-transaction
     // (batched) parent report that has no existing thread yet (see onNext/onPrevious fallbacks).
     const {accountID, email} = useCurrentUserPersonalDetails();
@@ -197,8 +197,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         // their transaction thread (handled below).
         if (isOneTransactionReport(nextTransactionParentReport) && nextTransaction?.reportID && nextTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
             const targetReportID = nextTransaction.reportID;
-            markReportIDAsExpense(targetReportID);
-            requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, backTo}));
+            markReportRHPWidth(targetReportID, 'wide');
+            requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, backTo})));
             return;
         }
 
@@ -209,8 +209,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const nextDescriptor = nextTransactionID ? siblingDescriptorsByTransactionID?.[nextTransactionID] : undefined;
         if (nextDescriptor) {
             const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID});
-            markReportIDAsExpense(nextReportID);
-            requestAnimationFrame(() => Navigation.setParams({reportID: nextReportID, reportActionID: undefined, backTo}));
+            markReportRHPWidth(nextReportID, 'wide');
+            requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: nextReportID, reportActionID: undefined, backTo})));
             return;
         }
 
@@ -237,13 +237,13 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                 hasCompletedGuidedSetupFlow,
             });
             const targetReportID = optimisticThread?.reportID ?? nextTransaction.reportID;
-            markReportIDAsExpense(targetReportID);
-            requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, anchorTransactionID: nextTransactionID, backTo}));
+            markReportRHPWidth(targetReportID, 'wide');
+            requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, anchorTransactionID: nextTransactionID, backTo})));
             return;
         }
 
         if (nextThreadReportID) {
-            markReportIDAsExpense(nextThreadReportID);
+            markReportRHPWidth(nextThreadReportID, 'wide');
         }
         // We know that the next thread report exists, it just wasn't fetched to Onyx yet, so we set it optimistically.
         // Important: use nextTransactionParentReport (the NEXT transaction's own parent), NOT parentReport
@@ -253,9 +253,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             setOptimisticTransactionThread(nextThreadReportID, nextTransactionParentReport?.reportID, nextParentReportAction?.reportActionID, nextTransactionParentReport?.policyID);
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread before navigating
-        requestAnimationFrame(() => {
-            Navigation.setParams(navigationParams);
-        });
+        requestAnimationFrame(() => startTransition(() => Navigation.setParams(navigationParams)));
     };
 
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
@@ -265,8 +263,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         // See onNext for the rationale behind the one-transaction-parent branch (and the unreported skip).
         if (isOneTransactionReport(prevTransactionParentReport) && prevTransaction?.reportID && prevTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
             const targetReportID = prevTransaction.reportID;
-            markReportIDAsExpense(targetReportID);
-            requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, backTo}));
+            markReportRHPWidth(targetReportID, 'wide');
+            requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, backTo})));
             return;
         }
 
@@ -274,8 +272,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const prevDescriptor = prevTransactionID ? siblingDescriptorsByTransactionID?.[prevTransactionID] : undefined;
         if (prevDescriptor) {
             const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID});
-            markReportIDAsExpense(prevReportID);
-            requestAnimationFrame(() => Navigation.setParams({reportID: prevReportID, reportActionID: undefined, backTo}));
+            markReportRHPWidth(prevReportID, 'wide');
+            requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: prevReportID, reportActionID: undefined, backTo})));
             return;
         }
 
@@ -297,13 +295,13 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                 hasCompletedGuidedSetupFlow,
             });
             const targetReportID = optimisticThread?.reportID ?? prevTransaction.reportID;
-            markReportIDAsExpense(targetReportID);
-            requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, anchorTransactionID: prevTransactionID, backTo}));
+            markReportRHPWidth(targetReportID, 'wide');
+            requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, anchorTransactionID: prevTransactionID, backTo})));
             return;
         }
 
         if (prevThreadReportID) {
-            markReportIDAsExpense(prevThreadReportID);
+            markReportRHPWidth(prevThreadReportID, 'wide');
         }
         // See onNext for the rationale: use prevTransactionParentReport (the PREV transaction's own parent)
         // instead of parentReport (the CURRENT transaction's parent) so the optimistic linkage matches the server.
@@ -311,7 +309,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             setOptimisticTransactionThread(prevThreadReportID, prevTransactionParentReport?.reportID, prevParentReportAction?.reportActionID, prevTransactionParentReport?.policyID);
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread before navigating
-        requestAnimationFrame(() => Navigation.setParams(navigationParams));
+        requestAnimationFrame(() => startTransition(() => Navigation.setParams(navigationParams)));
     };
 
     return (
