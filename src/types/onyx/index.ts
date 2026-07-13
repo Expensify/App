@@ -42,6 +42,7 @@ import type {
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
+import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
 import type CopyPolicySettings from './CopyPolicySettings';
 import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
@@ -373,6 +374,7 @@ export type {
     CardFeeds,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
+    CompanyCardsLoadingState,
     WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
