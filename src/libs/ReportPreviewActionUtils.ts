@@ -63,7 +63,7 @@ function canSubmit(
         return false;
     }
 
-    if (transactions?.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+    if (transactions?.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, ownerLogin, policy))) {
         return false;
     }
 
