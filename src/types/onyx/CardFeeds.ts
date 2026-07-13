@@ -338,7 +338,7 @@ type CombinedCardFeed = CustomCardFeedData &
         customFeedName?: string;
 
         /** Feed name */
-        feed: CardFeed;
+        feed: CardFeedWithNumber;
 
         /** Card feed status */
         status?: CardFeedsStatus;
