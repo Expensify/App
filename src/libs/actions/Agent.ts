@@ -326,6 +326,8 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
 
     write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: accountID}, {optimisticData, successData, failureData});
 
+    // Callers that end the copilot session right after deleting (e.g. deleting the agent you're copiloting into)
+    // don't want the extra navigation, since the delegate transition resets navigation on its own.
     if (shouldNavigateBack) {
         Navigation.goBack(ROUTES.SETTINGS_AGENTS);
     }
