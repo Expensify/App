@@ -1,14 +1,14 @@
-import type {SearchFilterCommonProps} from '@components/Search/types';
+import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {PolicyCategories} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -18,10 +18,10 @@ import React from 'react';
 import MultiSelect from './MultiSelect';
 
 type CategorySelectorProps = SearchFilterCommonProps<string[] | undefined> & {
-    policyIDs: string[] | undefined;
+    policyID: Filter | undefined;
 };
 
-function CategorySelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
+function CategorySelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
     const {translate, localeCompare} = useLocalize();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
@@ -50,23 +50,13 @@ function CategorySelector({value = [], policyIDs = [], selectionListTextInputSty
         },
         [availableNonPersonalPolicyCategoriesSelector],
     );
-    const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
-        .filter((key) => policyIDs.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key))
-        .map((key) => Object.values(allPolicyCategories?.[key] ?? {}))
-        .flat();
 
     const categoryItems = [{text: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
-    const uniqueCategoryNames = new Set<string>();
-    if (policyIDs.length === 0) {
-        const categories = Object.values(allPolicyCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
-        for (const category of categories) {
-            uniqueCategoryNames.add(category.name);
-        }
-    } else if (selectedPoliciesCategories.length > 0) {
-        for (const category of selectedPoliciesCategories) {
-            uniqueCategoryNames.add(category.name);
-        }
-    }
+    const uniqueCategoryNames = new Set<string>(
+        getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories).flatMap((policyCategories) =>
+            Object.values(policyCategories ?? {}).map((category) => category.name),
+        ),
+    );
     categoryItems.push(
         ...Array.from(uniqueCategoryNames)
             .filter(Boolean)

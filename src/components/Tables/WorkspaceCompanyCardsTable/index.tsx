@@ -5,6 +5,7 @@ import CardFeedIcon from '@components/CardFeedIcon';
 import ScrollView from '@components/ScrollView';
 import Table from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
@@ -22,7 +23,6 @@ import {getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
-import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
 
 import variables from '@styles/variables';
@@ -105,15 +105,20 @@ function WorkspaceCompanyCardsTable({
     } = companyCards;
 
     const {cardFeedErrors} = useCardFeedErrors();
+    const illustrations = useMemoizedLazyIllustrations(['LaptopAssignCard', 'BrokenMagnifyingGlass']);
     const isFeedConnectionBroken = feedName ? cardFeedErrors[feedName]?.isFeedConnectionBroken : false;
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
+    const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
+
+    const hasOnceLoadedPage = !!companyCardsLoadingState?.hasOnceLoadedPage;
+    const hasOnceLoadedSelectedFeed = !!(bankName && companyCardsLoadingState?.feeds?.[bankName]?.hasOnceLoaded);
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
-    const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading;
+    const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading && !hasOnceLoadedPage;
 
     // Synthesize error locally since Onyx discards writes to collection keys with member ID '0'.
     const shouldShowWorkspaceFeedsLoadError = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !isOffline;
@@ -144,7 +149,11 @@ function WorkspaceCompanyCardsTable({
     const hasCards = (companyCardEntries ?? []).length > 0;
     // When the last feed is removed, card data already implies no feed (isNoFeed); lastSelectedFeed Onyx metadata can still report loading after optimistic clear.
     const isLoadingFeed =
-        !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || (!isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata)) || !!selectedFeedStatus?.isLoading);
+        !hasCards &&
+        ((!feedName && isInitiallyLoadingFeeds && !hasOnceLoadedPage) ||
+            !isPolicyLoaded ||
+            (!isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata)) ||
+            (!!selectedFeedStatus?.isLoading && !hasOnceLoadedSelectedFeed));
     const isLoadingCards = !hasCards && isLoadingOnyxValue(cardListMetadata);
     const isLoadingPage = !isOffline && !hasCards && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
 
@@ -322,7 +331,6 @@ function WorkspaceCompanyCardsTable({
         />
     );
 
-    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
     });
@@ -367,11 +375,10 @@ function WorkspaceCompanyCardsTable({
             isItemInFilter={isItemInFilter}
             initialSortColumn="member"
             title={translate('workspace.common.companyCards')}
-            ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
             {headerButtonsComponent}
 
-            {isLoading && !feedErrorKey && <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>}
+            {isLoading && <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>}
 
             {!isLoading && isFeedPending && !feedErrorKey && (
                 <ScrollView addBottomSafeAreaPadding>
@@ -409,7 +416,7 @@ function WorkspaceCompanyCardsTable({
                             subtitleStyle={styles.textSupporting}
                         />
                         <Button
-                            text={translate('workspace.companyCards.error.tryAgain')}
+                            text={translate('common.tryAgain')}
                             isDisabled={isOffline}
                             onPress={feedErrorReloadAction}
                         />
@@ -420,6 +427,17 @@ function WorkspaceCompanyCardsTable({
             {showCards && (
                 <>
                     <Table.FilterBar label={translate('workspace.companyCards.findCard')} />
+                    <Table.EmptyState
+                        headerMedia={illustrations.LaptopAssignCard}
+                        containerStyles={styles.mt5}
+                        headerStyles={styles.emptyStateCardIllustrationContainer}
+                        headerContentStyles={styles.pendingStateCardIllustration}
+                        title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
+                        subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}
+                    >
+                        {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
+                    </Table.EmptyState>
+                    <Table.NoResultsState />
                     <Table.Header />
                     <Table.Body />
                 </>

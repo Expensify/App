@@ -59,7 +59,7 @@ import {
     isIOUReport as isIOUReportUtil,
     navigateToDetailsPage,
 } from '@libs/ReportUtils';
-import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
+import {isPending} from '@libs/TransactionUtils';
 
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
@@ -258,7 +258,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const onlyShowPayElsewhere =
         !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, undefined, invoiceReceiverPolicy);
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
-    const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+    const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => isPending(t));
     const shouldShowApproveButton =
         (canApproveIOU(moneyRequestReport, policy, reportMetadata, currentUserPersonalDetails.accountID, allTransactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning;
     const isApproveDisabled = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);

@@ -143,6 +143,25 @@ describe('TransitionTracker', () => {
             drainTransitions();
         });
 
+        it('waitForUpcomingTransition supports a custom transition start timeout', async () => {
+            const callback = jest.fn();
+            const maxWaitForUpcomingTransitionMs = 500;
+
+            TransitionTracker.runAfterTransitions({callback, maxWaitForUpcomingTransitionMs, waitForUpcomingTransition: true});
+            expect(callback).not.toHaveBeenCalled();
+
+            jest.advanceTimersByTime(maxWaitForUpcomingTransitionMs - 1);
+            await Promise.resolve();
+            await Promise.resolve();
+            expect(callback).not.toHaveBeenCalled();
+
+            jest.advanceTimersByTime(1);
+            await Promise.resolve();
+            await Promise.resolve();
+            expect(callback).toHaveBeenCalledTimes(1);
+            drainTransitions();
+        });
+
         it('cancel prevents waitForUpcomingTransition callback from running after transition starts', () => {
             const callback = jest.fn();
             const cancelHandle = TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
