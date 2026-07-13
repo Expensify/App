@@ -13,6 +13,7 @@ import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
@@ -47,7 +48,7 @@ const POLICY_ID = 'POLICY_ID';
 const OLD_POLICY_ID = 'OLD_POLICY_ID';
 const ORIGINAL_TRANSACTION_ID = 'ORIGINAL_TRANSACTION_ID';
 const SPLIT_TRANSACTION_ID = 'SPLIT_TRANSACTION_ID';
-type QBOConfig = NonNullable<Policy['connections']>[typeof CONST.POLICY.CONNECTIONS.NAME.QBO]['config'];
+type QBOConfig = Connections[typeof CONST.POLICY.CONNECTIONS.NAME.QBO]['config'];
 
 const createQBOConfig = (autoSyncEnabled: boolean, exporter = EMPLOYEE_EMAIL): QBOConfig => ({
     realmId: 'realm-id',
@@ -81,14 +82,11 @@ const createQBOConfig = (autoSyncEnabled: boolean, exporter = EMPLOYEE_EMAIL): Q
     },
 });
 
-const createQBOConnections = (autoSyncEnabled: boolean, exporter = EMPLOYEE_EMAIL) =>
-    // The test only needs the QBO connection branch, while Policy['connections'] is typed as the full integration map.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    ({
-        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-            config: createQBOConfig(autoSyncEnabled, exporter),
-        },
-    }) as NonNullable<Policy['connections']>;
+const createQBOConnections = (autoSyncEnabled: boolean, exporter = EMPLOYEE_EMAIL) => ({
+    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+        config: createQBOConfig(autoSyncEnabled, exporter),
+    },
+});
 
 const createQBOPolicy = (role: Policy['role'], autoSyncEnabled: boolean, exporter = EMPLOYEE_EMAIL): Policy => ({
     id: POLICY_ID,

@@ -1,5 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
@@ -18,6 +19,7 @@ import {
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
 import {
     getCategoryTaxDetails,
     getDefaultTaxCode,
@@ -64,9 +66,10 @@ import type {ValueOf} from 'type-fest';
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
+import type BasePolicyParams from './types/BasePolicyParams';
 import type {GPSPoint as GpsPoint} from './types/TrackExpenseTransactionParams';
 
-import {getAllTransactionDrafts, getMoneyRequestPolicyTags} from './index';
+import {getAllTransactionDrafts} from './index';
 import {requestMoney, trackExpense} from './TrackExpense';
 
 type CreateTransactionParams = {
@@ -84,7 +87,7 @@ type CreateTransactionParams = {
     files: ReceiptFile[];
     participant: Participant;
     gpsPoint?: GpsPoint;
-    policyParams?: {policy: OnyxEntry<Policy>};
+    policyParams?: BasePolicyParams;
     billable?: boolean;
     reimbursable?: boolean;
     allTransactionDrafts: OnyxCollection<Transaction>;
@@ -95,6 +98,7 @@ type CreateTransactionParams = {
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
     currentUserLocalCurrency: string | undefined;
+    delegateAccountID: number | undefined;
 };
 
 function createTransaction({
@@ -123,17 +127,9 @@ function createTransaction({
     optimisticTransactionIDs,
     optimisticChatReportID,
     currentUserLocalCurrency,
+    delegateAccountID,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
-    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : undefined;
-    const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyTagList = getMoneyRequestPolicyTags({
-        moneyRequestReportID,
-        parentChatReport,
-        participant,
-    });
 
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -145,6 +141,14 @@ function createTransaction({
         const taxCode = (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '';
         const taxAmount = transaction?.taxAmount ?? 0;
         const optimisticTransactionID = optimisticTransactionIDs.at(index);
+        const submittedCommand = iouType === CONST.IOU.TYPE.TRACK && report ? WRITE_COMMANDS.TRACK_EXPENSE : WRITE_COMMANDS.REQUEST_MONEY;
+        logReceiptSubmitted({
+            receiptTraceId: receipt.receiptTraceId,
+            draftTransactionID: receiptFile.transactionID,
+            transactionID: optimisticTransactionID ?? receiptFile.transactionID,
+            command: submittedCommand,
+            iouType,
+        });
         if (iouType === CONST.IOU.TYPE.TRACK && report) {
             trackExpense({
                 report,
@@ -167,7 +171,7 @@ function createTransaction({
                     taxAmount,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 },
-                ...(policyParams ?? {}),
+                policyParams: policyParams ?? {},
                 draftTransactionIDs,
                 isASAPSubmitBetaEnabled,
                 currentUser: {
@@ -182,6 +186,7 @@ function createTransaction({
                 optimisticChatReportID,
                 optimisticTransactionID,
                 currentUserLocalCurrency,
+                delegateAccountID,
                 reportActionsList: undefined,
             });
         } else {
@@ -196,7 +201,7 @@ function createTransaction({
                     payeeAccountID: currentUserAccountID,
                     participant,
                 },
-                policyParams: {...(policyParams ?? {}), policyTagList},
+                policyParams: policyParams ?? {},
                 gpsPoint,
                 transactionParams: {
                     amount: 0,
@@ -225,6 +230,7 @@ function createTransaction({
                 personalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,
+                delegateAccountID,
             });
         }
     }

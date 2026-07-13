@@ -270,6 +270,7 @@ function MoneyRequestReceiptView({
             currentUserAccountID,
             timezone: currentUserTimezone,
             delegateAccountID,
+            conciergeReportID,
         });
     };
 
@@ -484,6 +485,7 @@ function MoneyRequestReceiptView({
                     isChatIOUReportArchived,
                     originalReportID,
                     true,
+                    policy,
                 );
                 return;
             }

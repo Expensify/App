@@ -42,6 +42,7 @@ import type {
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
+import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
 import type CopyPolicySettings from './CopyPolicySettings';
 import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
@@ -67,6 +68,7 @@ import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
 import type {DomainSecurityGroup, SamlMetadata, UserSecurityGroupData} from './Domain';
 import type DomainErrors from './DomainErrors';
+import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
@@ -372,6 +374,7 @@ export type {
     CardFeeds,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
+    CompanyCardsLoadingState,
     WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
@@ -413,6 +416,7 @@ export type {
     AppReview,
     SamlMetadata,
     DomainErrors,
+    DomainHighlightItems,
     DomainPendingActions,
     DomainSecurityGroup,
     CodingRuleMatchingTransaction,
