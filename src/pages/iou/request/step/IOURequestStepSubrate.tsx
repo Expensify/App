@@ -260,7 +260,7 @@ function IOURequestStepSubrate({
                                     waitForUpcomingTransition: true,
                                 });
                             }}
-                            onModalShow={() => {
+                            onOpen={() => {
                                 textInputRef.current?.blur();
                             }}
                         />

@@ -19,7 +19,7 @@ function ValuePicker({
     placeholder = '',
     errorText = '',
     onInputChange,
-    onModalShow,
+    onOpen,
     furtherDetails,
     shouldShowTooltips = true,
     shouldShowModal = true,
@@ -33,7 +33,7 @@ function ValuePicker({
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
-        onModalShow?.();
+        onOpen?.();
     };
 
     const hidePickerModal = () => {
