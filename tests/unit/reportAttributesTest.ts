@@ -182,7 +182,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             null, // reportMetadata
         ] as unknown as Parameters<ReportAttributesConfig['compute']>[0];
 
-    it('triggers full recompute when policies are loaded for the first time', () => {
+    it('computes every report on a cold start (no currentValue) when policies load', () => {
         const result = config.compute(buildArgs(), {
             currentValue: undefined,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies as never},
@@ -190,6 +190,36 @@ describe('reportAttributes compute — policy change code flow', () => {
 
         expect(result?.reports).toHaveProperty('r1');
         expect(result?.reports).toHaveProperty('r2');
+    });
+
+    it('scopes the first policy load to reports referencing the loaded policies when currentValue is already populated', () => {
+        // Reproduces the ReconnectApp-after-open case: attributes were already computed, then ~1k policies
+        // land. Only reports whose policy actually arrived should recompute — not every report.
+        const report3: Report = {...createRandomReport(12, undefined), reportID: 'r3', policyID: 'policyOther', chatReportID: undefined};
+        const reportsWithUnrelated: OnyxCollection<Report> = {
+            ...reports,
+            [`${ONYXKEYS.COLLECTION.REPORT}r3`]: report3,
+        };
+
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                r1: {reportName: 'Old Name 1', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                r2: {reportName: 'Old Name 2', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                r3: {reportName: 'Old Name 3', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+        };
+
+        const result = config.compute(buildArgs(policies, reportsWithUnrelated), {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
+        });
+
+        // r1/r2 reference the loaded policies → recomputed (default mock name).
+        expect(result?.reports.r1?.reportName).toBe('Test Report');
+        expect(result?.reports.r2?.reportName).toBe('Test Report');
+        // r3 references a policy that did not load → keeps its existing value (not recomputed).
+        expect(result?.reports.r3?.reportName).toBe('Old Name 3');
     });
 
     it('only recomputes reports for the changed policy when a tracked field changes', () => {

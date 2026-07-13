@@ -189,19 +189,21 @@ export default createOnyxDerivedValueConfig({
         // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
         // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
         // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
-        let needsFullRecompute =
+        const needsFullRecompute =
             (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) ||
             displayNamesChanged ||
             hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues) ||
             hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, sourceValues);
 
-        // if policies are loaded first time, we need to recompute all report attributes to get correct action badge in LHN, such as Approve because it depends on policy's type (see canApproveIOU function)
+        // Policies loaded or updated — recompute only the reports that reference a policy whose
+        // relevant fields actually changed. A brand-new policy (previous undefined) counts as changed
+        // (see hasPolicyRelevantFieldChanged), so the first policy load — e.g. the ~1k policies
+        // ReconnectApp merges after open — scopes to the reports that reference those policies instead
+        // of recomputing every report. Badges like Approve depend on the report's own policy type (see
+        // canApproveIOU); the invoice PAY badge depends on the receiver workspace policy (see canIOUBePaid).
         const policyChangedReportKeys: string[] = [];
         if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
-            if (Object.keys(previousPolicies ?? {}).length === 0 && Object.keys(policies ?? {}).length > 0) {
-                needsFullRecompute = true;
-            } else if (!needsFullRecompute) {
-                // Policy updated — only recompute reports whose relevant fields actually changed
+            if (!needsFullRecompute) {
                 const changedPolicyIDs = new Set<string>();
                 for (const key of Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {})) {
                     if (hasPolicyRelevantFieldChanged(previousPolicies?.[key], policies?.[key])) {
@@ -210,7 +212,9 @@ export default createOnyxDerivedValueConfig({
                 }
                 if (changedPolicyIDs.size > 0) {
                     for (const [reportKey, report] of Object.entries(reports ?? {})) {
-                        if (report?.policyID && changedPolicyIDs.has(report.policyID)) {
+                        // Invoice reports' PAY badge depends on the receiver workspace policy, which differs from policyID.
+                        const invoiceReceiverPolicyID = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
+                        if ((report?.policyID && changedPolicyIDs.has(report.policyID)) || (invoiceReceiverPolicyID && changedPolicyIDs.has(invoiceReceiverPolicyID))) {
                             policyChangedReportKeys.push(reportKey);
                         }
                     }
