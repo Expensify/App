@@ -120,6 +120,8 @@ function InteractiveStepSubPageHeader({stepNames, currentStepIndex, currentStepA
                         ) : (
                             <View
                                 style={stepButtonStyle}
+                                accessible
+                                accessibilityLabel={stepAccessibilityLabel}
                                 aria-current={isCurrentStep ? 'step' : undefined}
                                 tabIndex={0}
                             >

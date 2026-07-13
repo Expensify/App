@@ -156,6 +156,8 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, currentStepAcc
                         ) : (
                             <View
                                 style={stepButtonStyle}
+                                accessible
+                                accessibilityLabel={stepAccessibilityLabel}
                                 aria-current={isCurrentStep ? 'step' : undefined}
                                 tabIndex={0}
                             >
