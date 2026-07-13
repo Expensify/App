@@ -380,7 +380,7 @@ function getExportMenuItem(
                 exportCompanyCard === CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
             const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
             const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
-            const cardProgramAccountCode = (companyCard?.bank ? cardProgramsUsingCustomAccounts?.[companyCard.bank as CardFeed] : undefined) ?? creditCardAccountCode;
+            const cardProgramAccountCode = (companyCard?.bank ? cardProgramsUsingCustomAccounts?.[companyCard.bank] : undefined) ?? creditCardAccountCode;
             const isUsingCustomAccount = companyCard?.nameValuePairs && CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT in companyCard.nameValuePairs;
             const cardAccountCode =
                 (companyCard?.nameValuePairs && CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT in companyCard.nameValuePairs

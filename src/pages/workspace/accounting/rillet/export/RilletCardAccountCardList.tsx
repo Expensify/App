@@ -22,7 +22,6 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Card} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
