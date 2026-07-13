@@ -363,6 +363,9 @@ type OpenReportActionParams = {
     /** Whether the report has report actions or not */
     hasReportActions?: boolean;
 
+    /** Whether opening the report should update its read state. Set to false when fetching report data without the user actually viewing the conversation */
+    shouldMarkAsRead?: boolean;
+
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
 };
@@ -1508,6 +1511,7 @@ function openReport(params: OpenReportActionParams) {
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         hasReportActions,
+        shouldMarkAsRead = true,
     } = params;
     if (!reportID) {
         return;
@@ -1627,7 +1631,7 @@ function openReport(params: OpenReportActionParams) {
         parentReportActionID,
         transactionID: transaction?.transactionID,
         includePartiallySetupBankAccounts: true,
-        useLastUnreadReportAction: true,
+        useLastUnreadReportAction: shouldMarkAsRead ? true : undefined,
         includeLockedBankAccounts: true,
     };
 
@@ -1878,7 +1882,9 @@ function openReport(params: OpenReportActionParams) {
         }
     }
 
-    parameters.clientLastReadTime = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.lastReadTime ?? '';
+    if (shouldMarkAsRead) {
+        parameters.clientLastReadTime = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.lastReadTime ?? '';
+    }
 
     const paginationConfig = {
         resourceID: reportID,

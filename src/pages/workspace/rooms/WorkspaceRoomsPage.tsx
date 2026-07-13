@@ -80,7 +80,8 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
             if (isAdmin) {
                 // Admins open the details RHP directly instead of the room report, so the report is never fetched via ReportScreen.
                 // Fetch it here so the RHP has full data (participants, metadata) for Join, Invite and renaming.
-                openReport({reportID: report.reportID, introSelected, betas});
+                // shouldMarkAsRead is false because the user only views the room details, not the conversation itself.
+                openReport({reportID: report.reportID, introSelected, betas, shouldMarkAsRead: false});
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)));
                 return;
             }
