@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 
-import ReportActionsListHeader from '@pages/inbox/report/ReportActionsListHeader';
+import ReportActionsListTailIndicator from '@pages/inbox/report/ReportActionsListTailIndicator';
 
 import React from 'react';
 
@@ -15,19 +15,19 @@ jest.mock('@pages/home/report/ConciergeThinkingMessage', () => {
     };
 });
 
-describe('ReportActionsListHeader', () => {
+describe('ReportActionsListTailIndicator', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
     it('renders ConciergeThinkingMessage when there is no active draft', () => {
-        render(<ReportActionsListHeader reportID={REPORT_ID} />);
+        render(<ReportActionsListTailIndicator reportID={REPORT_ID} />);
         expect(screen.getByTestId('ConciergeThinkingMessage')).toBeTruthy();
     });
 
     it('renders nothing when there is an active draft', () => {
         render(
-            <ReportActionsListHeader
+            <ReportActionsListTailIndicator
                 reportID={REPORT_ID}
                 hasActiveDraft
             />,

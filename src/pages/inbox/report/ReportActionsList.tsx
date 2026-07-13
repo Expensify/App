@@ -66,9 +66,9 @@ import React, {useEffect, useRef, useState} from 'react';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
-import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import ReportActionsListPaddingView from './ReportActionsListPaddingView';
+import ReportActionsListTailIndicator from './ReportActionsListTailIndicator';
 import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
@@ -396,7 +396,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const extraData = [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportActionID, draftMessageHTML];
 
     const listHeaderComponent = (
-        <ReportActionsListHeader
+        <ReportActionsListTailIndicator
             reportID={reportID}
             hasActiveDraft={hasActiveDraft}
         />

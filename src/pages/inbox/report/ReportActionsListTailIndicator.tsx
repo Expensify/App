@@ -2,15 +2,15 @@ import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessag
 
 import React from 'react';
 
-type ReportActionsListHeaderProps = {
+type ReportActionsListTailIndicatorProps = {
     /** The ID of the report being displayed */
     reportID: string;
 
-    /** Whether the user has an active Concierge draft response — hides the thinking indicator */
+    /** Whether the user has an active Concierge draft response - hides the thinking indicator */
     hasActiveDraft?: boolean;
 };
 
-function ReportActionsListHeader({reportID, hasActiveDraft}: ReportActionsListHeaderProps) {
+function ReportActionsListTailIndicator({reportID, hasActiveDraft}: ReportActionsListTailIndicatorProps) {
     if (hasActiveDraft) {
         return null;
     }
@@ -18,4 +18,4 @@ function ReportActionsListHeader({reportID, hasActiveDraft}: ReportActionsListHe
     return <ConciergeThinkingMessage reportID={reportID} />;
 }
 
-export default ReportActionsListHeader;
+export default ReportActionsListTailIndicator;
