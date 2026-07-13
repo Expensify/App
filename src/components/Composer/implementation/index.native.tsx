@@ -42,6 +42,7 @@ function Composer({
     selection,
     value,
     isGroupPolicyReport = false,
+    preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
     ref,
     ...props
 }: ComposerProps) {
@@ -115,7 +116,7 @@ function Composer({
             const clipboardContent = e.nativeEvent.items.at(0);
             if (clipboardContent?.type === 'text/plain') {
                 // Native paste only provides plain text, so convert pasted emoji shortcodes before the composer stores them.
-                const convertedText = convertEmojiShortcodesToUnicode(clipboardContent.data);
+                const convertedText = convertEmojiShortcodesToUnicode(clipboardContent.data, preferredSkinTone);
 
                 if (convertedText === clipboardContent.data) {
                     return;
@@ -147,7 +148,7 @@ function Composer({
                 .then((size) => (file = {...file, size}))
                 .finally(() => onPasteFile(file));
         },
-        [onChangeText, onPasteFile],
+        [onChangeText, onPasteFile, preferredSkinTone],
     );
 
     const handleChangeText = useCallback(

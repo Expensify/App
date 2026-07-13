@@ -159,6 +159,14 @@ describe('EmojiTest', () => {
             expect(EmojiUtils.convertEmojiShortcodesToUnicode('Hi :smile:')).toBe('Hi 😄');
         });
 
+        it('uses preferred skin tone when converting pasted shortcodes', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode('Hi :+1:', 2)).toBe('Hi 👍🏽');
+        });
+
+        it('converts Slack skin tone shortcodes', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode('Hi :raised_hands::skin-tone-5:')).toBe('Hi 🙌🏾');
+        });
+
         it('preserves emoji shortcodes inside inline code and code fences', () => {
             const text = 'Hi :smile: and `:wave:`\n```\n:joy:\n```';
             expect(EmojiUtils.convertEmojiShortcodesToUnicode(text)).toBe('Hi 😄 and `:wave:`\n```\n:joy:\n```');

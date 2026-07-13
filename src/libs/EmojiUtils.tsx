@@ -40,20 +40,41 @@ const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
 const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
 
 // Used for paste paths where shortcode text must be converted before the lazy emoji trie is ready.
-function convertEmojiShortcodesToUnicode(text: string): string {
+function convertEmojiShortcodesToUnicode(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE): string {
     if (!text.match(CONST.REGEX.EMOJI_NAME)) {
         return text;
     }
 
     const codeRanges = getCodeRanges(text);
 
-    return text.replace(CONST.REGEX.EMOJI_NAME, (shortcode, position: number) => {
-        if (isPositionInsideCodeRanges(codeRanges, position)) {
-            return shortcode;
-        }
+    return text
+        .replace(CONST.REGEX.SLACK_EMOJI_NAME_WITH_SKIN_TONE, (match, emojiName: string, slackSkinTone: string, position: number) => {
+            if (isPositionInsideCodeRanges(codeRanges, position)) {
+                return match;
+            }
 
-        return Emojis.emojiNameTable[shortcode.slice(1, -1)]?.code ?? shortcode;
-    });
+            const emoji = Emojis.emojiNameTable[emojiName];
+
+            if (!emoji) {
+                return match;
+            }
+
+            const skinToneIndex = 6 - Number(slackSkinTone);
+            return emoji.types?.at(skinToneIndex) ?? emoji.code;
+        })
+        .replace(CONST.REGEX.EMOJI_NAME, (shortcode, position: number) => {
+            if (isPositionInsideCodeRanges(codeRanges, position)) {
+                return shortcode;
+            }
+
+            const emoji = Emojis.emojiNameTable[shortcode.slice(1, -1)];
+
+            if (!emoji) {
+                return shortcode;
+            }
+
+            return getEmojiCodeWithSkinColor(emoji, preferredSkinTone);
+        });
 }
 
 // 'code' = inline code, 'pre' = code fence content. Excludes 'codeblock' to avoid overlapping ranges.

@@ -4,6 +4,8 @@ import Parser from '@libs/Parser';
 
 import CONST from '@src/CONST';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {useCallback, useEffect, useRef} from 'react';
 
 import type UseHtmlPaste from './types';
@@ -70,14 +72,14 @@ const isEmojiImage = (image: HTMLImageElement): boolean => {
     );
 };
 
-const getEmojiReplacementText = (image: HTMLImageElement): string => {
+const getEmojiReplacementText = (image: HTMLImageElement, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE): string => {
     const emojiFromImageAlt = getEmojiFromImageAlt(image.alt);
     if (emojiFromImageAlt) {
         return emojiFromImageAlt;
     }
 
     // Slack can put shortcode text in emoji image alt text, e.g. ":tada:".
-    const emojiFromShortcode = convertEmojiShortcodesToUnicode(image.alt);
+    const emojiFromShortcode = convertEmojiShortcodesToUnicode(image.alt, preferredSkinTone);
     if (emojiFromShortcode !== image.alt) {
         return emojiFromShortcode;
     }
@@ -89,7 +91,7 @@ const getEmojiReplacementText = (image: HTMLImageElement): string => {
     return '';
 };
 
-const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
+const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE) => {
     /**
      * Set pasted text to clipboard
      * @param {String} text
@@ -170,9 +172,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
             }
 
             // Plain-text paste has no image metadata, so convert shortcodes before inserting.
-            paste(convertEmojiShortcodesToUnicode(clipboardText));
+            paste(convertEmojiShortcodesToUnicode(clipboardText, preferredSkinTone));
         },
-        [paste],
+        [paste, preferredSkinTone],
     );
 
     const handlePaste = useCallback(
@@ -205,7 +207,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
 
                 // Replace emoji images before parsing HTML so they do not become inaccessible markdown image URLs.
                 for (const image of embeddedImages) {
-                    const emojiText = getEmojiReplacementText(image);
+                    const emojiText = getEmojiReplacementText(image, preferredSkinTone);
 
                     if (!emojiText) {
                         continue;
@@ -226,7 +228,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
             handlePastePlainText(event);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [handlePastedHTML, handlePastePlainText, preHtmlPasteCallback],
+        [handlePastedHTML, handlePastePlainText, preHtmlPasteCallback, preferredSkinTone],
     );
 
     const handlePasteRef = useRef<(event: ClipboardEvent) => void>(handlePaste);
