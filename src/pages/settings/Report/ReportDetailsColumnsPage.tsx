@@ -1,10 +1,9 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import ColumnsSettingsList from '@components/ColumnsSettingsList';
 import type {SearchCustomColumnIds} from '@components/Search/types';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+
 import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -12,12 +11,19 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
+
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import arraysEqual from '@src/utils/arraysEqual';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useMemo} from 'react';
 
 /**
  * Default selected columns for the report details table.
@@ -30,7 +36,7 @@ const REPORT_DETAILS_DEFAULT_COLUMNS: SearchCustomColumnIds[] = [
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
-    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+    CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
 ];
 
 function ReportDetailsColumnsPage() {
@@ -39,7 +45,6 @@ function ReportDetailsColumnsPage() {
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     // Selector keeps re-renders scoped to this report's transactions. We intentionally return undefined
     // while the collection is loading so the caller can distinguish "loading" from "no transactions".
     const reportTransactionsSelector = useCallback(
@@ -77,20 +82,20 @@ function ReportDetailsColumnsPage() {
         const visibleColumns = getColumnsToShow({
             currentAccountID: currentUserDetails?.accountID,
             data: reportTransactions,
+            report,
             isExpenseReportView: true,
             isExpenseReportViewFromIOUReport: isIOUReport(report),
             shouldShowBillableColumn: isBillableEnabledOnPolicy(policy),
             shouldShowReimbursableColumn: hasNonReimbursableTransactions(reportTransactions),
             reportCurrency: report?.currency,
             isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
-            policyCategories,
         });
 
         // Filter to only columns available in the custom columns list (drops RECEIPT/TYPE/COMMENTS etc.)
         return visibleColumns.filter((col) => allTypeCustomColumns.includes(col as SearchCustomColumnIds)) as SearchCustomColumnIds[];
-    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy, policyCategories, allTypeCustomColumns]);
+    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy, allTypeCustomColumns]);
 
-    const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+    const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
 
     const handleSave = (selectedColumnIds: SearchCustomColumnIds[]) => {
         // Skip saving if columns haven't changed from the effective state, to avoid

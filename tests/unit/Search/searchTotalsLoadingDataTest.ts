@@ -1,7 +1,8 @@
 import {search} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
-import {buildFlatQueryWithoutGroupBy, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -38,18 +39,12 @@ type SearchRequestData = {
     }>;
 };
 
-type SearchRequestParams = {
-    hash: number;
-    jsonQuery: string;
-};
-
 function getMakeRequestWithSideEffectsMock() {
     return makeRequestWithSideEffects as unknown as {
         mock: {
-            calls: Array<[unknown, SearchRequestParams, SearchRequestData?]>;
+            calls: Array<[unknown, unknown, SearchRequestData?]>;
         };
         mockResolvedValue: (value: {onyxData: Array<{value: {search: {offset: number; hasMoreResults: boolean}; data: Record<string, unknown>}}>; jsonCode: number}) => void;
-        mockReturnValue: (value: Promise<unknown>) => void;
     };
 }
 
@@ -64,16 +59,6 @@ function getSearchLoadingUpdateForHash(hash: number) {
     const [, , requestData] = makeRequestWithSideEffectsMock.mock.calls.at(-1) ?? [];
     const optimisticData = requestData?.optimisticData ?? [];
     return optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` && !!update.value?.search?.isLoading)?.value?.search;
-}
-
-function getLastSearchRequestParams() {
-    const makeRequestWithSideEffectsMock = getMakeRequestWithSideEffectsMock();
-    const [, requestParams] = makeRequestWithSideEffectsMock.mock.calls.at(-1) ?? [];
-    if (!requestParams) {
-        throw new Error('Search request params should be defined');
-    }
-
-    return requestParams;
 }
 
 describe('search loading totals handling', () => {
@@ -148,128 +133,5 @@ describe('search loading totals handling', () => {
         expect(loadingSearchData?.count).toBeUndefined();
         expect(loadingSearchData?.total).toBeUndefined();
         expect(loadingSearchData?.currency).toBeUndefined();
-    });
-
-    it('passes targetCurrency in the serialized search query', async () => {
-        const queryJSON = getQueryJSON();
-
-        await search({
-            queryJSON,
-            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-            offset: 0,
-            shouldCalculateTotals: true,
-            isLoading: false,
-            targetCurrency: 'AUD',
-        });
-
-        expect(JSON.parse(getLastSearchRequestParams().jsonQuery)).toMatchObject({
-            targetCurrency: 'AUD',
-            shouldCalculateTotals: true,
-        });
-    });
-
-    it('removes grouping filters when building a flat footer totals query', () => {
-        const queryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} group-by:${CONST.SEARCH.GROUP_BY.CATEGORY} group-currency:AUD`);
-        if (!queryJSON) {
-            throw new Error('Grouped query JSON should be defined for test setup');
-        }
-
-        const flatQueryJSON = buildFlatQueryWithoutGroupBy(queryJSON);
-
-        expect(flatQueryJSON?.groupBy).toBeUndefined();
-        expect(flatQueryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY)).toBe(false);
-    });
-
-    it('scopes the flat footer totals query hash by target currency to avoid colliding with the ungrouped search snapshot', () => {
-        // Given a grouped search and the equivalent user-facing ungrouped search
-        const groupedQueryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} group-by:${CONST.SEARCH.GROUP_BY.CATEGORY}`);
-        const ungroupedQueryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`);
-        if (!groupedQueryJSON || !ungroupedQueryJSON) {
-            throw new Error('Query JSON should be defined for test setup');
-        }
-
-        // When the footer requests converted totals for two different currencies
-        const flatQueryForAUD = buildFlatQueryWithoutGroupBy(groupedQueryJSON, 'AUD');
-        const flatQueryForEUR = buildFlatQueryWithoutGroupBy(groupedQueryJSON, 'EUR');
-        const flatQueryWithoutCurrency = buildFlatQueryWithoutGroupBy(groupedQueryJSON);
-
-        // Then each currency yields a distinct hash that does not match the ungrouped search snapshot hash
-        expect(flatQueryForAUD?.hash).not.toBe(ungroupedQueryJSON.hash);
-        expect(flatQueryForEUR?.hash).not.toBe(ungroupedQueryJSON.hash);
-        expect(flatQueryForAUD?.hash).not.toBe(flatQueryForEUR?.hash);
-        expect(flatQueryWithoutCurrency?.hash).toBe(ungroupedQueryJSON.hash);
-    });
-
-    it('scopes an already-ungrouped footer totals query hash by target currency without colliding with the live snapshot', () => {
-        // Given an ungrouped search
-        const ungroupedQueryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`);
-        if (!ungroupedQueryJSON) {
-            throw new Error('Query JSON should be defined for test setup');
-        }
-
-        // When the footer requests converted totals for two different currencies
-        const footerQueryForAUD = buildFlatQueryWithoutGroupBy(ungroupedQueryJSON, 'AUD');
-        const footerQueryForEUR = buildFlatQueryWithoutGroupBy(ungroupedQueryJSON, 'EUR');
-        const footerQueryWithoutCurrency = buildFlatQueryWithoutGroupBy(ungroupedQueryJSON);
-
-        // Then each currency yields a distinct hash that does not match the live ungrouped snapshot hash
-        expect(footerQueryForAUD?.hash).not.toBe(ungroupedQueryJSON.hash);
-        expect(footerQueryForEUR?.hash).not.toBe(ungroupedQueryJSON.hash);
-        expect(footerQueryForAUD?.hash).not.toBe(footerQueryForEUR?.hash);
-        // And requesting without a currency leaves the live snapshot hash untouched
-        expect(footerQueryWithoutCurrency?.hash).toBe(ungroupedQueryJSON.hash);
-    });
-
-    it('preserves the original sort in the flat footer totals query when a limit restricts which rows are summed', () => {
-        // Given a grouped search with a non-default sort and a limit
-        const sortedLimitedQueryJSON = buildSearchQueryJSON(
-            `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} group-by:${CONST.SEARCH.GROUP_BY.CATEGORY} sort-by:${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT} sort-order:${CONST.SEARCH.SORT_ORDER.ASC} limit:10`,
-        );
-        if (!sortedLimitedQueryJSON) {
-            throw new Error('Query JSON should be defined for test setup');
-        }
-
-        // When the footer builds the flat totals query
-        const flatQueryJSON = buildFlatQueryWithoutGroupBy(sortedLimitedQueryJSON);
-
-        // Then the original sort is kept so the totals cover the same first-N rows the search shows
-        expect(flatQueryJSON?.sortBy).toBe(sortedLimitedQueryJSON.sortBy);
-        expect(flatQueryJSON?.sortOrder).toBe(sortedLimitedQueryJSON.sortOrder);
-        expect(flatQueryJSON?.limit).toBe(sortedLimitedQueryJSON.limit);
-    });
-
-    it('dedupes concurrent search requests by hash and offset', async () => {
-        const queryJSON = getQueryJSON();
-        let resolveSearch: (value: unknown) => void = () => {};
-        const pendingSearch = new Promise((resolve) => {
-            resolveSearch = resolve;
-        });
-        getMakeRequestWithSideEffectsMock().mockReturnValue(pendingSearch);
-
-        const firstSearch = search({
-            queryJSON,
-            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-            offset: 0,
-            shouldCalculateTotals: true,
-            isLoading: false,
-            skipWaitForWrites: true,
-            targetCurrency: 'AUD',
-        });
-        const secondSearch = search({
-            queryJSON,
-            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-            offset: 0,
-            shouldCalculateTotals: true,
-            isLoading: false,
-            skipWaitForWrites: true,
-            targetCurrency: 'USD',
-        });
-
-        expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(1);
-        expect(JSON.parse(getLastSearchRequestParams().jsonQuery)).toMatchObject({targetCurrency: 'AUD'});
-        expect(secondSearch).toBeUndefined();
-
-        resolveSearch({jsonCode: CONST.JSON_CODE.SUCCESS});
-        await firstSearch;
     });
 });
