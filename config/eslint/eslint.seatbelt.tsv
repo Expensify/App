@@ -1827,6 +1827,7 @@
 "../../tests/actions/IOU/SplitReportTotalsTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/BulkEditTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	25
 "../../tests/actions/IOUTest/DeleteMoneyRequestTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../tests/actions/IOUTest/DuplicateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	21
 "../../tests/actions/IOUTest/GetUpdateMoneyRequestParamsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/actions/IOUTest/HoldTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/actions/IOUTest/HoldTest.ts"	"no-restricted-imports"	1
