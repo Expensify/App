@@ -149,6 +149,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, currentStepAcc
                                 onPress={moveToStep}
                                 disabled={isLockedStep}
                                 role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={stepAccessibilityLabel}
                                 aria-current={isCurrentStep ? 'step' : undefined}
                                 accessibilityState={stepAccessibilityState}
                                 sentryLabel={CONST.SENTRY_LABEL.INTERACTIVE_STEP_SUB_HEADER.STEP_BUTTON}
