@@ -56,7 +56,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             formID={ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM}
             validate={validate}
             onSubmit={onSave}
-            submitButtonText={translate('common.next')}
+            submitButtonText={translate('common.save')}
             style={[styles.flex1, styles.ph5]}
             shouldUseScrollView={shouldUseScrollableLayout}
             submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
@@ -69,24 +69,24 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             <View style={styles.flex1}>
                 <Text style={[styles.textHeadlineH1, styles.mv2]}>{translate('workspace.rules.agentRules.describeRuleHeadline')}</Text>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('workspace.rules.agentRules.describeRuleSubtitle')}</Text>
-                <View style={styles.flex1}>
-                    <View style={[styles.flex2, shouldUseScrollableLayout && styles.minHeight42]}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.PROMPT}
-                            accessibilityLabel={translate('workspace.rules.agentRules.describeRuleHeadline')}
-                            role={CONST.ROLE.PRESENTATION}
-                            onKeyPress={submitFormOnModEnter}
-                            multiline
-                            shouldSaveDraft
-                            containerStyles={[styles.flex1]}
-                            touchableInputWrapperStyle={[styles.flex1]}
-                            textInputContainerStyles={[styles.flex1]}
-                            inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
-                        />
-                    </View>
-                    <View style={styles.flex1} />
+                <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.PROMPT}
+                        label={translate('workspace.rules.agentRules.describeRuleTitle')}
+                        accessibilityLabel={translate('workspace.rules.agentRules.describeRuleTitle')}
+                        role={CONST.ROLE.PRESENTATION}
+                        onKeyPress={submitFormOnModEnter}
+                        multiline
+                        shouldSaveDraft
+                        shouldLabelStayOnSingleLine
+                        containerStyles={[styles.flex1]}
+                        touchableInputWrapperStyle={[styles.flex1]}
+                        textInputContainerStyles={[styles.flex1]}
+                        inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                    />
                 </View>
+                <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             </View>
         </FormProvider>
     );
