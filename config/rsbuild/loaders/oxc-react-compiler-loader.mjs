@@ -9,6 +9,7 @@
  * We need the workaround for now until a new oxc release containing the fix adds back `reactCompiler`.
  */
 
+import remapping from '@jridgewell/remapping';
 import path from 'node:path';
 import {transform} from 'oxc-transform';
 
@@ -24,7 +25,7 @@ function getLang(ext) {
     return 'jsx';
 }
 
-export default async function oxcReactCompilerLoader(source) {
+export default async function oxcReactCompilerLoader(source, inputSourceMap) {
     const callback = this.async();
     try {
         const options = this.getOptions() || {};
@@ -68,7 +69,12 @@ export default async function oxcReactCompilerLoader(source) {
         }
 
         if (sourceMaps && result.map) {
-            callback(null, result.code, result.map);
+            // oxc-transform has no equivalent of Babel's `inputSourceMap` option, so a map from an
+            // earlier loader (e.g. fullstory-annotation-loader) has to be composed in manually —
+            // otherwise it'd be discarded and stack traces would point into fullstory's intermediate
+            // output instead of the original source.
+            const map = inputSourceMap ? remapping([result.map, inputSourceMap], () => null) : result.map;
+            callback(null, result.code, map);
         } else {
             callback(null, result.code);
         }
