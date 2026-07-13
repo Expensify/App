@@ -70,10 +70,12 @@ const hasPolicyRelevantFieldChanged = (prev: Policy | null | undefined, next: Po
     );
 };
 
-// Signature of the fields a report's display name is derived from: displayName (primary), firstName
-// (group-chat short form), and login (fallback when no name is set). A change to any of them can change a
-// report name, so all three are diffed — not just displayName. See getDisplayNameForParticipant/getDisplayNameOrDefault.
-const displayNameSignature = (details: PersonalDetails | null): string => JSON.stringify([details?.displayName ?? '', details?.firstName ?? '', details?.login ?? '']);
+// Signature of the fields that independently affect a report's display name: displayName (primary) and
+// firstName (used directly for group-chat short names, even when displayName is set — see getDisplayNameForParticipant).
+// login is intentionally excluded: it only feeds a name as a fallback when displayName is empty, and such
+// accounts keep displayName in sync with login, so a real login-driven name change always arrives with a
+// displayName change. Tracking login would just cause wasted recomputes on the common (named-account) path.
+const displayNameSignature = (details: PersonalDetails | null): string => JSON.stringify([details?.displayName ?? '', details?.firstName ?? '']);
 
 const snapshotDisplayNames = (personalDetails: PersonalDetailsList): Record<string, string> => {
     const snapshot: Record<string, string> = {};
