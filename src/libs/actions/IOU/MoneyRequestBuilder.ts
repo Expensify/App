@@ -168,22 +168,20 @@ type RequestMoneyInformation = {
     transactionParams: RequestMoneyTransactionParams;
     isRetry?: boolean;
     shouldPlaySound?: boolean;
+    /**
+     * Whether this action owns the post-create flow: dismiss the money request screens, navigate to the
+     * destination and surface the "Expense added" feedback. Defaults to true.
+     */
     shouldHandleNavigation?: boolean;
     /**
      * Only read when shouldHandleNavigation is false. Defaults to true: navigation is owned by the
      * orchestrator (dismiss-first paths), which has already navigated, so the action surfaces the
      * post-create feedback (growl/row highlight). Pass false when the caller owns the whole
      * post-create flow - navigation AND feedback - and the action must stay fully silent
-     * (e.g. the Share flow, which navigates after the action returns).
+     * (e.g. the Share flow, which navigates after the action returns, or a non-final write in a
+     * multi-transaction batch whose feedback must fire only once).
      */
     shouldShowPostCreateFeedback?: boolean;
-    /**
-     * When a confirmation submits several transactions, the orchestrator calls this action once per
-     * transaction in a loop. Post-create navigation + the "Expense added" growl are owned by the
-     * action, so they must fire only once - for the final transaction of the batch. Defaults to true
-     * so single-transaction callers keep their existing behavior.
-     */
-    isLastTransactionOfBatch?: boolean;
     /** Report the money request flow started from; post-create navigation returns there instead of the written-to chat. */
     backToReport?: string;
     /** Retry-path cleanup only; the action itself never reads this. */

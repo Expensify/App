@@ -136,6 +136,10 @@ type CreateDistanceRequestInformation = {
     policyRecentlyUsedCurrencies: string[];
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     customUnitPolicyID?: string;
+    /**
+     * Whether this action owns the post-create flow: dismiss the money request screens, navigate to the
+     * destination and surface the "Expense added" feedback. Defaults to true.
+     */
     shouldHandleNavigation?: boolean;
     shouldDeferForSearch?: boolean;
     shouldPlaySound?: boolean;

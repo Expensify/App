@@ -200,9 +200,9 @@ function createTransaction({
                 optimisticChatReportID,
                 optimisticTransactionID,
                 currentUserLocalCurrency,
-                shouldHandleNavigation,
                 // Navigation/growl must fire once per multi-receipt batch, on its final transaction.
-                isLastTransactionOfBatch: index === files.length - 1,
+                shouldHandleNavigation: shouldHandleNavigation && index === files.length - 1,
+                shouldShowPostCreateFeedback: index === files.length - 1,
                 delegateAccountID,
                 reportActionsList: undefined,
             });
@@ -247,8 +247,10 @@ function createTransaction({
                 personalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,
-                shouldHandleNavigation,
-                isLastTransactionOfBatch: index === files.length - 1,
+                // Navigation/growl must fire once per multi-receipt batch, on its final transaction: silence
+                // every non-final write so the action surfaces feedback only for the last one.
+                shouldHandleNavigation: shouldHandleNavigation && index === files.length - 1,
+                shouldShowPostCreateFeedback: index === files.length - 1,
                 backToReport,
                 delegateAccountID,
             });

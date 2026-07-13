@@ -25,6 +25,10 @@ type CreateTrackExpenseParams = {
     accountantParams?: TrackExpenseAccountantParams;
     isRetry?: boolean;
     shouldPlaySound?: boolean;
+    /**
+     * Whether this action owns the post-create flow: dismiss the money request screens, navigate to the
+     * destination and surface the "Expense added" feedback. Defaults to true.
+     */
     shouldHandleNavigation?: boolean;
     /**
      * Only read when shouldHandleNavigation is false. Defaults to true: navigation is owned by the
@@ -34,13 +38,6 @@ type CreateTrackExpenseParams = {
      * (e.g. the Share flow, which navigates after the action returns).
      */
     shouldShowPostCreateFeedback?: boolean;
-    /**
-     * When a confirmation submits several transactions, the orchestrator calls this action once per
-     * transaction in a loop. Post-create navigation + the "Expense added" growl are owned by the
-     * action, so they must fire only once - for the final transaction of the batch. Defaults to true
-     * so single-transaction callers keep their existing behavior.
-     */
-    isLastTransactionOfBatch?: boolean;
     /** Retry-path cleanup only; the action itself never reads this. */
     draftTransactionIDs?: string[];
     optimisticChatReportID?: string;

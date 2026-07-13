@@ -444,9 +444,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 optimisticTransactionID,
                 // The action owns post-create navigation + growl, but only when the caller permits it
                 // (dismiss-first orchestrators pass shouldHandleNavigation=false after revealing/dismissing
-                // the destination themselves) and only for the final transaction of the batch.
-                shouldHandleNavigation,
-                isLastTransactionOfBatch: index === transactions.length - 1,
+                // the destination themselves). Silence every non-final write of a multi-transaction batch so
+                // the feedback fires once, for the last transaction only.
+                shouldHandleNavigation: shouldHandleNavigation && index === transactions.length - 1,
+                shouldShowPostCreateFeedback: index === transactions.length - 1,
                 // Post-create navigation must return to the report the flow started from, not the chat the expense was written to.
                 backToReport,
                 shouldGenerateTransactionThreadReport,
@@ -681,9 +682,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 optimisticTransactionID,
                 // The action owns post-create navigation + growl, but only when the caller permits it
                 // (dismiss-first orchestrators pass shouldHandleNavigation=false after revealing/dismissing
-                // the destination themselves) and only for the final transaction of the batch.
-                shouldHandleNavigation,
-                isLastTransactionOfBatch: index === transactions.length - 1,
+                // the destination themselves). Silence every non-final write of a multi-transaction batch so
+                // the feedback fires once, for the last transaction only.
+                shouldHandleNavigation: shouldHandleNavigation && index === transactions.length - 1,
+                shouldShowPostCreateFeedback: index === transactions.length - 1,
                 isASAPSubmitBetaEnabled,
                 currentUser: {accountID: currentUserPersonalDetails.accountID, email},
                 introSelected,

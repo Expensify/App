@@ -1632,7 +1632,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         shouldPlaySound = true,
         shouldHandleNavigation = true,
         shouldShowPostCreateFeedback = true,
-        isLastTransactionOfBatch = true,
         backToReport,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
@@ -1914,9 +1913,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         });
     }
 
-    // Gate post-create navigation/growl to the final transaction of a multi-transaction batch so a
-    // multi-receipt submit fires a single dismiss/navigate and a single "Expense added" toast.
-    if (!requestMoneyInformation.isRetry && isLastTransactionOfBatch) {
+    if (!requestMoneyInformation.isRetry) {
         if (shouldHandleNavigation) {
             const navigationReportID = backToReport ?? activeReportID;
             handleNavigateAfterExpenseCreate({
@@ -2420,7 +2417,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         accountantParams,
         shouldHandleNavigation = true,
         shouldShowPostCreateFeedback = true,
-        isLastTransactionOfBatch = true,
         shouldPlaySound = true,
         optimisticChatReportID,
         optimisticTransactionID,
@@ -2878,9 +2874,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
 
-    // Gate post-create navigation/growl to the final transaction of a multi-transaction batch so a
-    // multi-receipt submit fires a single dismiss/navigate and a single "Expense added" toast.
-    if (!params.isRetry && isLastTransactionOfBatch) {
+    if (!params.isRetry) {
         if (shouldHandleNavigation) {
             handleNavigateAfterExpenseCreate({
                 activeReportID,
