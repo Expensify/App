@@ -3,7 +3,7 @@ import AvatarSelector from '@components/AvatarSelector';
 
 import CONST from '@src/CONST';
 
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React, {useState} from 'react';
 
