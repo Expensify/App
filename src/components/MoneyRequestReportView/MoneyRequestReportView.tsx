@@ -27,6 +27,8 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 
 import Navigation from '@navigation/Navigation';
 
+import {AgentZeroStatusProvider} from '@pages/inbox/AgentZeroStatusContext';
+import {ConciergeDraftProvider} from '@pages/inbox/ConciergeDraftContext';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
 import UserTypingEventListener from '@pages/inbox/report/UserTypingEventListener';
@@ -275,25 +277,29 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                             </ScrollView>
                         </Animated.View>
                     )}
-                    <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
-                        {shouldDisplayMoneyRequestActionsList ? (
-                            <MoneyRequestReportActionsList onLayout={onLayout} />
-                        ) : (
-                            <>
-                                <ReportActionsList
-                                    reportID={report.reportID}
-                                    onLayout={onLayout}
-                                />
-                                <UserTypingEventListener report={report} />
-                            </>
-                        )}
-                        {shouldDisplayReportFooter ? (
-                            <>
-                                <ReportFooter />
-                                <PortalHost name="suggestions" />
-                            </>
-                        ) : null}
-                    </View>
+                    <AgentZeroStatusProvider reportID={report.reportID}>
+                        <ConciergeDraftProvider reportID={report.reportID}>
+                            <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
+                                {shouldDisplayMoneyRequestActionsList ? (
+                                    <MoneyRequestReportActionsList onLayout={onLayout} />
+                                ) : (
+                                    <>
+                                        <ReportActionsList
+                                            reportID={report.reportID}
+                                            onLayout={onLayout}
+                                        />
+                                        <UserTypingEventListener report={report} />
+                                    </>
+                                )}
+                                {shouldDisplayReportFooter ? (
+                                    <>
+                                        <ReportFooter />
+                                        <PortalHost name="suggestions" />
+                                    </>
+                                ) : null}
+                            </View>
+                        </ConciergeDraftProvider>
+                    </AgentZeroStatusProvider>
                 </View>
             </OfflineWithFeedback>
         </View>
