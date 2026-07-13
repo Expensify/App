@@ -7548,6 +7548,7 @@ describe('createDistanceRequest', () => {
 
     it('builds the optimistic chat report at the provided optimisticChatReportID for a brand-new P2P recipient — so it matches the id the confirmation screen already subscribed to', async () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
         // The confirmation screen commits the draft transaction to this generated id before submit. The action must
         // create the optimistic chat at the same id, otherwise the screen hangs waiting on a report that never exists.
         const optimisticChatReportID = '987654321';
