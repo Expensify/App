@@ -731,10 +731,15 @@ const searchResultsGroupByCategory: OnyxTypes.SearchResults = {
     },
 };
 
+const withoutReportActionErrors = <T extends OnyxTypes.ReportAction>(reportAction: T): Omit<T, 'errors'> => {
+    const reportActionWithoutErrors = {...reportAction};
+    delete reportActionWithoutErrors.errors;
+    return reportActionWithoutErrors;
+};
+
 const reportActionListItems = createMock<ReportActionListItemType[]>([
     {
-        ...reportAction1,
-        errors: undefined,
+        ...withoutReportActionErrors(reportAction1),
         date: '2024-12-21 13:05:21',
         formattedFrom: 'Admin',
         from: {
@@ -782,8 +787,7 @@ const reportActionListItems = createMock<ReportActionListItemType[]>([
         reportID: '123456789',
     },
     {
-        ...reportAction2,
-        errors: undefined,
+        ...withoutReportActionErrors(reportAction2),
         date: '2024-12-21 13:05:22',
         formattedFrom: 'Admin',
         from: {
@@ -801,8 +805,7 @@ const reportActionListItems = createMock<ReportActionListItemType[]>([
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
     {
-        ...reportAction3,
-        errors: undefined,
+        ...withoutReportActionErrors(reportAction3),
         date: '2024-12-21 13:05:23',
         formattedFrom: 'Admin',
         from: {
@@ -820,8 +823,7 @@ const reportActionListItems = createMock<ReportActionListItemType[]>([
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
     {
-        ...reportAction4,
-        errors: undefined,
+        ...withoutReportActionErrors(reportAction4),
         date: '2024-12-21 13:05:24',
         formattedFrom: 'Admin',
         from: {
