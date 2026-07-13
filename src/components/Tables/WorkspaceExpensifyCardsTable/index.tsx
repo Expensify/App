@@ -216,9 +216,6 @@ export default function WorkspaceExpensifyCardsTable({
                     </View>
                 )}
             </View>
-            <Table.FilterBar label={translate('workspace.expensifyCard.findCard')} />
-            <Table.NoResultsState />
-            <Table.Header />
         </>
     );
 
@@ -240,6 +237,9 @@ export default function WorkspaceExpensifyCardsTable({
             ListFooterComponentStyle={listFooterComponentStyle}
             ListHeaderComponent={cardListHeaderContent}
         >
+            <Table.FilterBar label={translate('workspace.expensifyCard.findCard')} />
+            <Table.NoResultsState />
+            <Table.Header />
             <Table.Body contentContainerStyle={listContentContainerStyle} />
         </Table>
     );
