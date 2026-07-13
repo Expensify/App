@@ -2212,18 +2212,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Afmelden',
         restoreStashed: 'Opgeslagen login herstellen',
         signOutConfirmationText: 'Je verliest alle offline wijzigingen als je je afmeldt.',
-        saveReceiptsConfirmation: {
-            title: 'Bonnen opslaan?',
-            prompt: ({count}: {count: number}) =>
-                `Er ${count === 1 ? 'wordt nog 1 bon' : `worden nog ${count} bonnen`} geüpload. Als je je nu afmeldt, slaan we ${count === 1 ? 'deze' : 'ze'} op in je foto's zodat je ${count === 1 ? 'deze' : 'ze'} later aan een nieuwe uitgave kunt toevoegen.`,
-            confirm: 'Opslaan en afmelden',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Bonnen opslaan?',
-            prompt: ({count}: {count: number}) =>
-                `Er ${count === 1 ? 'wordt nog 1 bon' : `worden nog ${count} bonnen`} geüpload. Als je je nu afmeldt, slaan we ${count === 1 ? 'deze' : 'ze'} op in je foto's zodat je ${count === 1 ? 'deze' : 'ze'} later aan een nieuwe uitgave kunt toevoegen. Je verliest alle andere offline wijzigingen.`,
-            confirm: 'Opslaan en afmelden',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Lees de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Servicevoorwaarden</a> en het <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacybeleid</a>.`,
         help: 'Help',
