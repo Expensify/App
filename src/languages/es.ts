@@ -1,5 +1,3 @@
-import DateUtils from '@libs/DateUtils';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -8529,10 +8527,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 subtitle: 'Sin resultados. Intenta ajustar tus filtros.',
             },
             emptyViolationSnapshotResults: {
-                subtitle: ({violationSnapshotStartedAt, timezone}: EmptyViolationSnapshotResultsSubtitleParams) => {
-                    const formattedDate = DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone);
-                    return `Las violaciones solo se registran a partir del ${formattedDate}. Intenta ajustar tus filtros de fecha.`;
-                },
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) =>
+                    `Las violaciones solo se registran a partir del ${formattedDate}. Intenta ajustar tus filtros de fecha.`,
             },
             emptyUnapprovedResults: {
                 title: 'No hay gastos para aprobar',

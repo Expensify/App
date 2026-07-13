@@ -10,7 +10,6 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import DateUtils from '@libs/DateUtils';
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
@@ -8407,10 +8406,7 @@ ${reportName}`,
                 subtitle: '没有结果。请尝试调整筛选条件。',
             },
             emptyViolationSnapshotResults: {
-                subtitle: ({violationSnapshotStartedAt, timezone}: EmptyViolationSnapshotResultsSubtitleParams) => {
-                    const formattedDate = DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone);
-                    return `违规记录仅从${formattedDate}开始追踪。请尝试调整日期筛选条件。`;
-                },
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `违规记录仅从${formattedDate}开始追踪。请尝试调整日期筛选条件。`,
             },
             emptyUnapprovedResults: {
                 title: '没有报销可审批',

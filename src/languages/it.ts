@@ -10,7 +10,6 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import DateUtils from '@libs/DateUtils';
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
@@ -8712,10 +8711,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 subtitle: 'Nessun risultato. Prova a modificare i filtri.',
             },
             emptyViolationSnapshotResults: {
-                subtitle: ({violationSnapshotStartedAt, timezone}: EmptyViolationSnapshotResultsSubtitleParams) => {
-                    const formattedDate = DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone);
-                    return `Le violazioni vengono tracciate solo dal ${formattedDate} in poi. Prova a modificare i filtri data.`;
-                },
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) =>
+                    `Le violazioni vengono tracciate solo dal ${formattedDate} in poi. Prova a modificare i filtri data.`,
             },
             emptyUnapprovedResults: {
                 title: 'Nessuna spesa da approvare',

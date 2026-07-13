@@ -10,7 +10,6 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import DateUtils from '@libs/DateUtils';
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
@@ -8723,10 +8722,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 subtitle: 'Keine Ergebnisse. Bitte passe deine Filter an.',
             },
             emptyViolationSnapshotResults: {
-                subtitle: ({violationSnapshotStartedAt, timezone}: EmptyViolationSnapshotResultsSubtitleParams) => {
-                    const formattedDate = DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone);
-                    return `Verstöße werden nur ab dem ${formattedDate} erfasst. Versuche, deine Datumsfilter anzupassen.`;
-                },
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `Verstöße werden nur ab dem ${formattedDate} erfasst. Versuche, deine Datumsfilter anzupassen.`,
             },
             emptyUnapprovedResults: {
                 title: 'Keine Ausgaben zum Genehmigen',

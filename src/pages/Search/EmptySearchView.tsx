@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import {startTestDrive} from '@libs/actions/Tour';
+import DateUtils from '@libs/DateUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
@@ -215,8 +216,7 @@ function EmptySearchViewContent({
             ...defaultViewItemHeader.folder,
             title: translate('search.searchResults.emptyStatementsResults.title'),
             subtitle: translate('search.searchResults.emptyViolationSnapshotResults.subtitle', {
-                violationSnapshotStartedAt,
-                timezone,
+                formattedDate: DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone),
             }),
         };
     }

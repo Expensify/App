@@ -10,7 +10,6 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import DateUtils from '@libs/DateUtils';
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
@@ -8681,10 +8680,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 subtitle: 'Geen resultaten. Pas je filters aan en probeer het opnieuw.',
             },
             emptyViolationSnapshotResults: {
-                subtitle: ({violationSnapshotStartedAt, timezone}: EmptyViolationSnapshotResultsSubtitleParams) => {
-                    const formattedDate = DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone);
-                    return `Overtredingen worden alleen bijgehouden vanaf ${formattedDate}. Probeer je datumfilters aan te passen.`;
-                },
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) =>
+                    `Overtredingen worden alleen bijgehouden vanaf ${formattedDate}. Probeer je datumfilters aan te passen.`,
             },
             emptyUnapprovedResults: {
                 title: 'Geen declaraties om goed te keuren',

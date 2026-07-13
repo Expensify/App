@@ -6556,6 +6556,7 @@ export {
     getSelectedGroupFilterEntry,
     adjustTimeRangeToDateFilters,
     getDateDisplayValue,
+    getDisplayValue,
     getFilterNegatableValue,
     shouldShowFilter,
     mapFiltersFormToLabelValueList,

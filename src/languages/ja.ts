@@ -10,7 +10,6 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import DateUtils from '@libs/DateUtils';
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
@@ -8593,10 +8592,7 @@ ${reportName}`,
                 subtitle: '結果がありません。フィルターの条件を調整してください。',
             },
             emptyViolationSnapshotResults: {
-                subtitle: ({violationSnapshotStartedAt, timezone}: EmptyViolationSnapshotResultsSubtitleParams) => {
-                    const formattedDate = DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone);
-                    return `違反は${formattedDate}以降のみ追跡されます。日付フィルターを調整してみてください。`;
-                },
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `違反は${formattedDate}以降のみ追跡されます。日付フィルターを調整してみてください。`,
             },
             emptyUnapprovedResults: {
                 title: '承認する経費はありません',
