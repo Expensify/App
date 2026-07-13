@@ -347,7 +347,7 @@ export default createOnyxDerivedValueConfig({
         // even though the grouping it produces couldn't have changed. `!sourceValues` also forces a rebuild:
         // it signals a full recompute (e.g. Onyx.clear() on logout), and without it this cache would keep
         // serving the previous session's stale transaction groupings until a TRANSACTION update happened to fire.
-        if (!previousReportsTransactions || !sourceValues || hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.TRANSACTION, triggeredKeys)) {
+        if (!previousReportsTransactions || !sourceValues || hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.TRANSACTION, sourceValues)) {
             previousReportsTransactions = buildTransactionsByReportID(transactions);
         }
         const reportsTransactions = previousReportsTransactions;
