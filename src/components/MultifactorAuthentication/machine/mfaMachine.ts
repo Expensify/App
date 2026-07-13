@@ -62,13 +62,13 @@ const MFAMachine = setup({
                 payload: event.payload,
             };
         }),
-        // Navigates to the outcome route that matches the error in context. OutcomePage reads the same
-        // error to render the specific success or failure screen, so the route only labels the outcome
-        // in the stack. runAfterTransition defers the push until the modal-open transition settles, which
-        // lets the screen slide in with a measured width and avoids the Android animation race.
-        navigateToOutcome: ({context}) => {
-            const screen = context.error ? SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE : SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS;
-            Navigation.runAfterTransition(() => mfaNavigate(screen));
+        // Deferring the outcome push until the modal-open transition settles lets the screen slide in
+        // with a measured width and avoids the Android animation race.
+        navigateToSuccessOutcome: () => {
+            Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS));
+        },
+        navigateToFailureOutcome: () => {
+            Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE));
         },
         // Runs on CLOSE_MODAL: drops the cancel-confirmation modal so it cannot linger over the
         // closing navigator (CLOSE_MODAL can fire without the flow completing, e.g. an offline cancel).
@@ -139,15 +139,10 @@ const MFAMachine = setup({
                     },
                 },
                 [MFA_STATE.OUTCOME]: {
-                    // Entering the outcome navigates once to the route matching the error. The success
-                    // and failure children are the finite states the flow settles on, which the tests and
-                    // later slices read. Their `id` lets the device check target them from the `preparing`
-                    // branch.
-                    entry: ['navigateToOutcome'],
                     initial: MFA_STATE.SUCCESS,
                     states: {
-                        [MFA_STATE.SUCCESS]: {id: MFA_STATE.SUCCESS},
-                        [MFA_STATE.FAILURE]: {id: MFA_STATE.FAILURE},
+                        [MFA_STATE.SUCCESS]: {id: MFA_STATE.SUCCESS, entry: ['navigateToSuccessOutcome']},
+                        [MFA_STATE.FAILURE]: {id: MFA_STATE.FAILURE, entry: ['navigateToFailureOutcome']},
                     },
                 },
             },
