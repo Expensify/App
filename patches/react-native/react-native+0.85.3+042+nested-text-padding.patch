@@ -172,7 +172,7 @@ index 73d21c90cfb..aa3c836e7e5 100644
  
  #endif
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-index 466efb284d9..fc8387762b8 100644
+index 466efb284d9..892dcb72f62 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
 @@ -220,7 +220,7 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
@@ -230,7 +230,7 @@ index 466efb284d9..fc8387762b8 100644
 +    const BOOL atParagraphEnd =
 +        NSMaxRange(range) >= fullLength || [plainString characterAtIndex:NSMaxRange(range)] == '\n';
 +
-+    if (leftW > 0) {
++    if (leftReserve > 0) {
 +      if (atParagraphStart) {
 +        NSRange paragraphRange = [plainString paragraphRangeForRange:NSMakeRange(range.location, 0)];
 +        NSParagraphStyle *existing = [nsAttributedString attribute:NSParagraphStyleAttributeName
@@ -252,7 +252,7 @@ index 466efb284d9..fc8387762b8 100644
 +      }
 +    }
 +
-+    if (rightW > 0 && !atParagraphEnd) {
++    if (rightReserve > 0 && !atParagraphEnd) {
 +      const NSUInteger lastIndex = NSMaxRange(range) - 1;
 +      NSNumber *existingKern = [nsAttributedString attribute:NSKernAttributeName
 +                                                     atIndex:lastIndex
@@ -495,7 +495,7 @@ index 86dd1fc7386..2be0a2fd350 100644
        }
  
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
-index e3f19473554..7db47187ad8 100644
+index e3f19473554..55c4e22aeab 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 @@ -8,7 +8,9 @@
@@ -561,7 +561,7 @@ index e3f19473554..7db47187ad8 100644
  /** Class responsible of creating [Spanned] object for the JS representation of Text */
  internal object TextLayoutManager {
  
-@@ -226,11 +260,37 @@ internal object TextLayoutManager {
+@@ -226,11 +260,56 @@ internal object TextLayoutManager {
    ) {
      for (i in 0 until fragments.count) {
        val fragment = fragments.getMapBuffer(i)
@@ -580,7 +580,26 @@ index e3f19473554..7db47187ad8 100644
 +      val trailingPaddingDip = textAttributes.paddingRight.takeIf { !it.isNaN() } ?: 0f
 +      val leadingReserveDip = leadingPaddingDip + leadingBorderDip
 +      val trailingReserveDip = trailingPaddingDip + trailingBorderDip
-+      if (leadingReserveDip > 0f) {
++      // Only reserve advance when this fragment is actually drawn with a custom bordered / background
++      // span (ReactBackgroundDrawSpan) whose fill box is extended by the padding below. Otherwise a
++      // plain padded <Text> (paddingHorizontal with no background/border) would get invisible spacer
++      // advance on top of its normal view padding, shifting/widening its text. This mirrors the span
++      // selection condition further down.
++      val hasBorderRadius = !textAttributes.borderTopLeftRadius.isNaN() ||
++          !textAttributes.borderTopRightRadius.isNaN() ||
++          !textAttributes.borderBottomLeftRadius.isNaN() ||
++          !textAttributes.borderBottomRightRadius.isNaN()
++      val hasBorderWidth = !textAttributes.borderTopWidth.isNaN() ||
++          !textAttributes.borderRightWidth.isNaN() ||
++          !textAttributes.borderBottomWidth.isNaN() ||
++          !textAttributes.borderLeftWidth.isNaN()
++      val hasBorderColor = textAttributes.isBorderTopColorSet ||
++          textAttributes.isBorderRightColorSet ||
++          textAttributes.isBorderBottomColorSet ||
++          textAttributes.isBorderLeftColorSet
++      val drawsCustomBackground = (textAttributes.isBackgroundColorSet || hasBorderColor) &&
++          (hasBorderRadius || hasBorderWidth || hasBorderColor)
++      if (drawsCustomBackground && leadingReserveDip > 0f) {
 +        val spacerStart = sb.length
 +        sb.append("\u2060")
 +        ops.add(
@@ -600,7 +619,7 @@ index e3f19473554..7db47187ad8 100644
        sb.append(
            TextTransform.apply(fragment.getString(FR_KEY_STRING), textAttributes.textTransform)
        )
-@@ -299,6 +359,8 @@ internal object TextLayoutManager {
+@@ -299,6 +378,8 @@ internal object TextLayoutManager {
                  PixelUtil.toPixelFromDIP(textAttributes.borderRightWidth.takeIf { r -> !r.isNaN() } ?: 0f),
                  PixelUtil.toPixelFromDIP(textAttributes.borderBottomWidth.takeIf { r -> !r.isNaN() } ?: 0f),
                  PixelUtil.toPixelFromDIP(textAttributes.borderLeftWidth.takeIf { r -> !r.isNaN() } ?: 0f),
@@ -609,12 +628,12 @@ index e3f19473554..7db47187ad8 100644
              )
            } else if (textAttributes.isBackgroundColorSet) {
              textAttributes.backgroundColor?.let { ReactBackgroundColorSpan(it) }
-@@ -373,6 +435,18 @@ internal object TextLayoutManager {
+@@ -373,6 +454,18 @@ internal object TextLayoutManager {
            ops.add(SetSpanOperation(start, end, ReactTagSpan(reactTag)))
          }
        }
 +
-+      if (trailingReserveDip > 0f) {
++      if (drawsCustomBackground && trailingReserveDip > 0f) {
 +        val spacerStart = sb.length
 +        sb.append("\u2060")
 +        ops.add(
@@ -628,7 +647,7 @@ index e3f19473554..7db47187ad8 100644
      }
    }
  
-@@ -502,6 +576,8 @@ internal object TextLayoutManager {
+@@ -502,6 +595,8 @@ internal object TextLayoutManager {
                  PixelUtil.toPixelFromDIP(fragment.props.borderRightWidth.takeIf { r -> !r.isNaN() } ?: 0f),
                  PixelUtil.toPixelFromDIP(fragment.props.borderBottomWidth.takeIf { r -> !r.isNaN() } ?: 0f),
                  PixelUtil.toPixelFromDIP(fragment.props.borderLeftWidth.takeIf { r -> !r.isNaN() } ?: 0f),
@@ -637,7 +656,7 @@ index e3f19473554..7db47187ad8 100644
              )
            } else if (fragment.props.isBackgroundColorSet) {
              fragment.props.backgroundColor?.let { ReactBackgroundColorSpan(it) }
-@@ -509,6 +585,20 @@ internal object TextLayoutManager {
+@@ -509,6 +604,20 @@ internal object TextLayoutManager {
              null
            }
            spannable.setSpan(bgSpan, start, end, spanFlags)
