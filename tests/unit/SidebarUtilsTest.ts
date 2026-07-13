@@ -1245,6 +1245,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result.shouldDisplay).toBe(true);
@@ -1275,6 +1276,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result.shouldDisplay).toBe(false);
@@ -1305,6 +1307,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    conciergeReportID: undefined,
                 });
 
                 expect(result.shouldDisplay).toBe(false);
