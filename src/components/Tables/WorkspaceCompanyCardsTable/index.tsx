@@ -112,7 +112,6 @@ function WorkspaceCompanyCardsTable({
     const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
 
     const hasOnceLoadedPage = !!companyCardsLoadingState?.hasOnceLoadedPage;
-    const hasOnceLoadedSelectedFeed = !!(bankName && companyCardsLoadingState?.feeds?.[bankName]?.hasOnceLoaded);
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
     const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading && !hasOnceLoadedPage;
@@ -148,10 +147,9 @@ function WorkspaceCompanyCardsTable({
     const isLoadingOnyxCardList = !hasCards && isLoadingOnyxValue(cardListMetadata);
     const isLoadingOnyxPersonalDetails = isLoadingOnyxValue(personalDetailsMetadata);
     const isLoadingOnyxFeed = !isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata);
-    const isLoadingSelectedFeed = !!selectedFeedStatus?.isLoading && !hasOnceLoadedSelectedFeed;
 
     const isLoadingPage = !isOffline && !hasCards && (isLoadingOnyxPersonalDetails || areWorkspaceCardFeedsLoading);
-    const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds && !hasOnceLoadedPage) || !isPolicyLoaded || isLoadingOnyxFeed || isLoadingSelectedFeed);
+    const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxFeed || !!selectedFeedStatus?.isLoading);
     const isLoading = isLoadingPage || isLoadingFeed || isLoadingOnyxCardList;
 
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoading && !hasFeedErrors;

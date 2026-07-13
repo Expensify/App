@@ -9,6 +9,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type TableLoadingStateProps = {
+    /** Describes where the component is rendered using component hierarchy. Use dot notation to show parent-child relationships  */
     context: string;
 };
 
