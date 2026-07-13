@@ -1,0 +1,43 @@
+name: Validate build request
+
+# Reusable workflow that gates a build before any untrusted App PR code is checked out or build secrets are exposed.
+# It mirrors the safeguards testBuild.yml historically ran inline in its `prep` job:
+#   1. The dispatching actor must be an Expensify employee with write access.
+#   2. The actor must confirm they reviewed the pull request for malicious code (REVIEWED_CODE).
+#
+# The checks only run for `workflow_dispatch`. On `push` the checked-out code is the pushed commit (already trusted,
+# and authored by someone with write access), so the gate is a no-op and downstream jobs proceed.
+
+on:
+  workflow_call:
+    inputs:
+      REVIEWED_CODE:
+        description: Whether the dispatcher confirmed they reviewed the pull request for malicious code.
+        type: boolean
+        required: false
+        default: false
+    secrets:
+      OS_BOTIFY_COMMIT_TOKEN:
+        description: OSBotify token used to check the actor's repository permissions.
+        required: true
+
+jobs:
+  validate:
+    name: Validate build request
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Validate that user is an Expensify employee
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: ./.github/actions/composite/validateActor
+        with:
+          REQUIRE_APP_DEPLOYER: false
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
+      - name: Validate that the user reviewed the pull request before running a build
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.REVIEWED_CODE }}
+        run: |
+          echo "::error::🕵️‍♀️ Please carefully review the pull request before running a build to ensure it does not contain any malicious code"
+          exit 1

@@ -1,6 +1,3 @@
-import {delegateEmailSelector} from '@selectors/Account';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {ActionHandledType} from '@components/Modal/Global/HoldMenuModalWrapper';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -8,6 +5,7 @@ import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/ty
 import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
@@ -22,14 +20,22 @@ import {
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import {delegateEmailSelector} from '@selectors/Account';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React from 'react';
+
 import useConfirmModal from './useConfirmModal';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -186,6 +192,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
+            ownerLogin: submitterLogin,
             full: true,
             onApproved: () => {
                 if (skipAnimation) {
@@ -292,7 +299,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     return;
                 }
 
-                const result = await showConfirmModal({
+                const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                     title: translate('iou.confirmPaymentReceivedModalTitle'),
                     prompt: translate('iou.receivedPaymentConfirmation'),
                     confirmText: translate('iou.confirmReceivedPayment'),
@@ -338,7 +345,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         </Text>
                     );
 
-                    const result = await showConfirmModal({
+                    const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('iou.unapproveReport'),
                         prompt: unapproveWarningText,
                         confirmText: translate('iou.unapproveReport'),
@@ -360,7 +367,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             icon: expensifyIcons.Clear,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.CANCEL_PAYMENT,
             onSelected: async () => {
-                const result = await showConfirmModal({
+                const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                     title: translate('iou.cancelPayment'),
                     prompt: translate('iou.cancelPaymentConfirmation'),
                     confirmText: translate('iou.cancelPayment'),
@@ -393,7 +400,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         </Text>
                     );
 
-                    const result = await showConfirmModal({
+                    const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('iou.reopenReport'),
                         prompt: reopenExportedReportWarningText,
                         confirmText: translate('iou.reopenReport'),
@@ -427,7 +434,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         </Text>
                     );
 
-                    const result = await showConfirmModal({
+                    const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('iou.reopenReport'),
                         prompt: reopenExportedReportWarningText,
                         confirmText: translate('iou.reopenReport'),

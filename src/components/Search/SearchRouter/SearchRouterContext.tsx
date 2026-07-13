@@ -1,9 +1,14 @@
-import React, {useContext, useRef, useState} from 'react';
 import useSyncModalWithHistory from '@components/Modal/useSyncModalWithHistory';
+
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
 import {close} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import React, {useContext, useRef, useState} from 'react';
+
 import {closeSearch, openSearch} from './toggleSearch';
 
 // Module-level pending query used to seed the SearchRouter input on open.

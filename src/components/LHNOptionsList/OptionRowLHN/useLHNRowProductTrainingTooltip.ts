@@ -1,8 +1,11 @@
-import {useMemo} from 'react';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import CONST from '@src/CONST';
+
+import {useMemo} from 'react';
 
 /**
  * Resolves the product-training tooltip state (CONCIERGE_LHN_GBR) for an LHN row.

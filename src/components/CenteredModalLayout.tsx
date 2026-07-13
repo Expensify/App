@@ -1,13 +1,18 @@
-import React from 'react';
-import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+
 import CONST from '@src/CONST';
+
+import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import CenteredModalLayoutOverlay from './CenteredModalLayoutOverlay';
 import FocusTrapForScreen from './FocusTrap/FocusTrapForScreen';
 

@@ -73,6 +73,9 @@ You can choose from a wide range of columns, including:
 - **MCC** – The Merchant Category Code from the transaction
 - **Tax code** – The tax code applied to the expense
 - **Category GL code** – The general ledger (GL) code from the expense's category
+- **Custom field 1** – The Custom field 1 value set for the report submitter
+- **Custom field 2** – The Custom field 2 value set for the report submitter
+- **International reimbursement IDs** – The reference IDs for international reimbursements on the report
 
 To view the full list of available columns, click the **Columns** icon in the **Spend** tab.
 
@@ -130,6 +133,8 @@ To view saved searches:
 
 - **Web:** Go to the **Saved** section in the left-hand sidebar.
 - **Mobile:** Tap the **Type** dropdown at the top and select **Saved**.
+
+Saved searches are listed in alphabetical order by name.
 
 To rename a saved search, click **Save** while viewing it and enter a new name. You can also rename, share, or delete a saved search by selecting the three dots **(⋮)** next to it. Selecting **Share** copies the search URL to your clipboard.
 
