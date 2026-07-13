@@ -155,7 +155,7 @@ function AddAgentRulePage({
                 includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate('workspace.rules.agentRules.addRuleTitle')} />
+                <HeaderWithBackButton title={translate('workspace.rules.agentRules.newRuleTitle')} />
                 <View style={[styles.flexShrink0, styles.w100]}>
                     <TabSelectorContextProvider activeTabKey={activeTab}>
                         <TabSelectorBase

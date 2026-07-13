@@ -7995,7 +7995,7 @@ const translations = {
                 ruleBotName: 'RuleBot',
                 addRule: 'Add agent rule',
                 findRule: 'Find agent rule',
-                addRuleTitle: 'New rule',
+                newRuleTitle: 'New rule',
                 editRuleTitle: 'Edit rule',
                 deleteRule: 'Delete rule',
                 deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
