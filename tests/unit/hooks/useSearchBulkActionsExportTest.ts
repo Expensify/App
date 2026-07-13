@@ -9,12 +9,13 @@ import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryAct
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, SearchResults} from '@src/types/onyx';
+import type {Policy, Report, SearchResults} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
+import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 
 // ---------------------------------------------------------------------------
@@ -54,7 +55,12 @@ jest.mock('@libs/actions/Search', () => ({
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
     getPayOption: jest.fn(() => ({shouldEnableBulkPayOption: false, isFirstTimePayment: false})),
-    getPolicyFromSearchSnapshot: jest.fn(),
+    // Faithful mock of the real helper: prefer live Onyx, fall back to the search snapshot.
+    // The fix routes the policy reads through this helper so the integration gate works on a fresh
+    // load when the policy is only present in the search snapshot.
+    getPolicyFromSearchSnapshot: jest.fn((policyID?: string, searchData?: Record<string, unknown>, policies?: Record<string, unknown>) =>
+        policyID ? (policies?.[`policy_${policyID}`] ?? searchData?.[`policy_${policyID}`]) : undefined,
+    ),
     // Faithful mock of the real helper: prefer the search snapshot, fall back to live Onyx.
     // This is exactly the resolution the fix relies on so the export gate works on a fresh load.
     getReportFromSearchSnapshot: jest.fn((reportID?: string, searchData?: Record<string, unknown>, allReports?: Record<string, unknown>) =>
@@ -407,6 +413,47 @@ describe('useSearchBulkActions - report export options resolve from the search s
             undefined,
             expect.objectContaining({id: 'policy1'}),
         );
+    });
+
+    it('offers the integration export options when the policy is only in the search snapshot (fresh load)', async () => {
+        /**
+         * Given: an exportable report plus its connected policy that both exist ONLY in the search
+         *        snapshot and are absent from the live Onyx POLICY collection.
+         *
+         * This is the policy-side of the same fresh-load bug: SearchBulkActionsButton renders outside
+         * SearchScopeProvider, so a policy that has not yet loaded into live Onyx previously made
+         * connectedIntegration undefined and dropped the entire integration block, hiding "Export to
+         * NetSuite" and "Mark as Exported".
+         *
+         * When: the export bulk-action menu is built.
+         *
+         * Then: the snapshot policy is resolved via getPolicyFromSearchSnapshot and both integration
+         *       options appear without the policy ever being present in live Onyx.
+         */
+        // Remove the live Onyx policy written in beforeEach so it lives ONLY in the search snapshot.
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, null);
+
+        const searchResults = makeSearchResults([makeSnapshotReport()]);
+        searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`] = {
+            ...createRandomPolicy(1),
+            id: POLICY_ID,
+            // Only the presence of the connection key matters for getConnectedIntegration.
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {}} as Policy['connections'],
+        };
+        mockCurrentSearchResults = searchResults;
+
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            const subMenuItems = getExportSubMenuItems(result.current.headerButtonsOptions);
+            expect(subMenuItems?.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(true);
+        });
+
+        const subMenuItems = getExportSubMenuItems(result.current.headerButtonsOptions);
+        expect(subMenuItems?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
     });
 
     it('does NOT offer the integration export options when the report is absent from both snapshot and live Onyx', async () => {
