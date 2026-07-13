@@ -137,6 +137,8 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                 'victory-native': path.resolve(dirname, '../../node_modules/victory-native/src/index.ts'),
                 // Required for @shopify/react-native-skia web support
                 'react-native/Libraries/Image/AssetRegistry': false,
+                // @sentry/react-native references the optional expo-updates module. We do not install it,
+                // so web/Storybook bundles should treat it as unavailable instead of failing resolution.
                 'expo-updates': false,
                 // Use legacy build of pdfjs-dist to support older browsers
                 'pdfjs-dist$': path.resolve(dirname, '../../node_modules/pdfjs-dist/legacy/build/pdf.mjs'),
