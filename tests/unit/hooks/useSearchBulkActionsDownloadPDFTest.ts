@@ -179,12 +179,10 @@ const expensifyCardStatementQueryJSON: SearchQueryJSON = {
         },
     ],
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
     view: CONST.SEARCH.VIEW.TABLE,
-    policyID: ['policy1'],
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense'},
 };
 
@@ -198,7 +196,6 @@ const unscopedExpensifyCardStatementQueryJSON: SearchQueryJSON = {
             filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD}],
         },
     ],
-    policyID: undefined,
 };
 
 function makeCurrentSearchResults(groups: Record<string, SearchWithdrawalIDGroup>, extraData: Record<string, unknown> = {}): SearchResults {
@@ -207,7 +204,6 @@ function makeCurrentSearchResults(groups: Record<string, SearchWithdrawalIDGroup
         search: {
             offset: 0,
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             hasMoreResults: false,
             hasResults: true,
             isLoading: false,

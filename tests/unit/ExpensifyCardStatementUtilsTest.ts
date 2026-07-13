@@ -32,7 +32,6 @@ const expensifyCardStatementQueryJSON: SearchQueryJSON = {
         },
     ],
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
@@ -51,7 +50,6 @@ const scopedQueryJSON: SearchQueryJSON = {
             filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'policy1'}],
         },
     ],
-    policyID: ['policy1'],
 };
 
 describe('ExpensifyCardStatementUtils', () => {
@@ -91,7 +89,19 @@ describe('ExpensifyCardStatementUtils', () => {
         const selectedTransactions = makeSettlementSelection(groupKey, 2);
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
         // policyID:A,B scopes the search to a subset of workspaces, which can't be honored as a statement scope.
-        const multiPolicyQueryJSON: SearchQueryJSON = {...scopedQueryJSON, policyID: ['policy1', 'policy2']};
+        const multiPolicyQueryJSON: SearchQueryJSON = {
+            ...expensifyCardStatementQueryJSON,
+            flatFilters: [
+                ...expensifyCardStatementQueryJSON.flatFilters,
+                {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'policy1'},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'policy2'},
+                    ],
+                },
+            ],
+        };
 
         expect(getExpensifyCardStatementSelection(multiPolicyQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES)).toBeUndefined();
     });
@@ -232,7 +242,13 @@ describe('ExpensifyCardStatementUtils', () => {
         const selectedTransactions = makeSettlementSelection(groupKey, 2);
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
         // status:unreported narrows which expenses are shown, so the PDF would not match the on-screen rows.
-        const narrowedStatusQueryJSON: SearchQueryJSON = {...expensifyCardStatementQueryJSON, status: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED};
+        const narrowedStatusQueryJSON: SearchQueryJSON = {
+            ...expensifyCardStatementQueryJSON,
+            flatFilters: [
+                ...expensifyCardStatementQueryJSON.flatFilters,
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED}]},
+            ],
+        };
 
         expect(getExpensifyCardStatementSelection(narrowedStatusQueryJSON, selectedTransactions, searchData, isAdminOfAnyPolicy, IS_ADMIN_OF_ALL_WORKSPACES)).toBeUndefined();
     });

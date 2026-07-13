@@ -9,6 +9,7 @@ import type EnvironmentType from './Environment/getEnvironment/types';
 import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getOldDotURLFromEnvironment} from './Environment/Environment';
 import fileDownload from './fileDownload';
+import {getFilterFromQuery} from './SearchQueryUtils';
 import {buildSecureDownloadURL} from './UrlUtils';
 
 type ExpensifyCardStatementFeed = {
@@ -63,6 +64,7 @@ function isExpensifyCardStatementSearch(queryJSON: SearchQueryJSON | undefined):
 // would make the on-screen rows disagree with the PDF - in that case we hide the export instead.
 const STATEMENT_SCOPE_FILTER_KEYS = new Set<string>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
@@ -72,21 +74,18 @@ const STATEMENT_SCOPE_FILTER_KEYS = new Set<string>([
 ]);
 
 // Returns the single workspace the search is filtered to, or undefined. We scope the statement to a workspace only
-// when the user filtered by one, so the PDF matches the on-screen rows; otherwise the whole settlement is exported.
-// policyID is a root-level search key (like type/groupBy), so it lives on queryJSON.policyID, not in flatFilters.
+// when the user filtered by one (a single, non-negated policyID), so the PDF matches the on-screen rows; otherwise the
+// whole settlement is exported.
 function getScopedPolicyID(queryJSON: SearchQueryJSON | undefined): string | undefined {
-    const policyID = queryJSON?.policyID;
-    if (typeof policyID === 'string') {
-        return policyID;
-    }
-    return policyID?.length === 1 ? policyID.at(0) : undefined;
+    const policyIDFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+    return policyIDFilter.value?.length === 1 && !policyIDFilter.isNegated ? policyIDFilter.value.at(0) : undefined;
 }
 
 // True when the search is filtered to more than one workspace. The statement can scope to one workspace or the whole
 // settlement, but not to an arbitrary subset, so a multi-workspace filter (e.g. policyID:A,B) cannot be honored - the
 // on-screen rows would be A/B while an unscoped export would include every workspace in the settlement.
 function hasMultipleScopedPolicies(queryJSON: SearchQueryJSON | undefined): boolean {
-    return Array.isArray(queryJSON?.policyID) && queryJSON.policyID.length > 1;
+    return (getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID).value?.length ?? 0) > 1;
 }
 
 function hasOnlyStatementScopeFilters(queryJSON: SearchQueryJSON | undefined): boolean {
@@ -94,9 +93,9 @@ function hasOnlyStatementScopeFilters(queryJSON: SearchQueryJSON | undefined): b
         return true;
     }
 
-    // Expense status (e.g. unreported, drafts) lives on `status`, not in flatFilters. Anything other than the
-    // single "all" status narrows which expenses are shown, so the rows would no longer be the whole settlement.
-    if (queryJSON.status !== CONST.SEARCH.STATUS.EXPENSE.ALL) {
+    // Any expense status filter (e.g. unreported, drafts) narrows which expenses are shown, so the rows would no
+    // longer be the whole settlement. "All" is the absence of a status filter, so only a present status narrows.
+    if (getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS).value) {
         return false;
     }
 
