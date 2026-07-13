@@ -1541,15 +1541,18 @@ describe('actions/Policy', () => {
         });
 
         it('should post onboarding tasks to the threaded conciergeChat instead of the deprecated CONCIERGE_REPORT_ID fallback', async () => {
+            mockFetch?.pause?.();
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             // Given the deprecated Onyx.connect fallback points at a DIFFERENT report than the threaded param,
-            // so the assertion below fails if buildPolicyData stops forwarding conciergeChat (#66411).
+            // so the assertions below fail if buildPolicyData stops forwarding conciergeChat (#66411).
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'deprecated-fallback-report');
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
-            const threadedConciergeChat = {reportID: 'threaded-concierge-report'} as Report;
+            const threadedConciergeChat: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: 'threaded-concierge-report',
+            };
 
             // When creating a workspace with an explicitly threaded conciergeChat (EMPLOYER posts tasks to Concierge)
             Policy.createWorkspace({
@@ -1570,18 +1573,12 @@ describe('actions/Policy', () => {
             });
             await waitForBatchedUpdates();
 
-            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.CREATE_WORKSPACE);
-            expect(apiCallArgs).toBeDefined();
-            const params = apiCallArgs?.[1] as {guidedSetupData?: string};
-            expect(params.guidedSetupData).toBeDefined();
+            // Then the onboarding task actions are written optimistically to the threaded report, never the fallback report
+            const threadedReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}threaded-concierge-report`);
+            expect(Object.keys(threadedReportActions ?? {}).length).toBeGreaterThan(0);
 
-            // Then the onboarding Onyx data targets the threaded report, never the deprecated fallback report
-            const onyxData = apiCallArgs?.[2] as {optimisticData?: Array<{key: string}>};
-            const optimisticKeys = (onyxData?.optimisticData ?? []).map((update) => update.key);
-            expect(optimisticKeys.some((key) => key.includes('threaded-concierge-report'))).toBe(true);
-            expect(optimisticKeys.some((key) => key.includes('deprecated-fallback-report'))).toBe(false);
-
-            apiWriteSpy.mockRestore();
+            const fallbackReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}deprecated-fallback-report`);
+            expect(fallbackReportActions).toBeUndefined();
         });
 
         it('should include memberData when adminParticipant is provided', async () => {
