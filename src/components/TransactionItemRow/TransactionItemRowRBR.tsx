@@ -18,6 +18,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, TransactionViolation} from '@src/types/onyx';
@@ -28,8 +29,6 @@ import type {ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
-
-const HTML_TAG_PATTERN = /<\/?[a-z][^>]*>/i;
 
 type TransactionItemRowRBRInnerProps = {
     /** Transaction item */
@@ -89,7 +88,7 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
         isMarkAsCash: isMarkAsCash || undefined,
         canEdit,
     });
-    const hasHTMLTags = HTML_TAG_PATTERN.test(RBRMessages);
+    const hasHTMLTags = CONST.HTML_TAG_REGEX.test(RBRMessages);
 
     return (
         RBRMessages.length > 0 && (

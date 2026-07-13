@@ -34,8 +34,6 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
-const HTML_TAG_PATTERN = /<\/?[a-z][^>]*>/i;
-
 type DeleteWorkspaceFlowProps = {
     /** ID of the workspace being deleted */
     policyID: string;
@@ -131,7 +129,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
                 return;
             }
 
-            const prompt = HTML_TAG_PATTERN.test(errorMessage) ? (
+            const prompt = CONST.HTML_TAG_REGEX.test(errorMessage) ? (
                 <View style={[styles.renderHTML, styles.flexRow]}>
                     <RenderHTML
                         html={errorMessage}
