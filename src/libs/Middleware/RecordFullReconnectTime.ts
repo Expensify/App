@@ -1,6 +1,7 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {recordFullReconnectTimeFromResponse} from '@libs/FullReconnectUtils';
 
+import CONST from '@src/CONST';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import type Middleware from './types';
@@ -18,7 +19,7 @@ const recordFullReconnectTime: Middleware = (requestResponse, request) =>
         if (request.command !== WRITE_COMMANDS.OPEN_APP && request.command !== SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP) {
             return response;
         }
-        if (!response?.onyxData || response.jsonCode !== 200) {
+        if (!response?.onyxData || response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
             return response;
         }
 
