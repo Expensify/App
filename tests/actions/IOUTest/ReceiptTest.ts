@@ -6,7 +6,6 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {detachReceipt, replaceReceipt} from '@libs/actions/IOU/Receipt';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -151,7 +150,10 @@ describe('actions/IOU/Receipt', () => {
         };
 
         beforeEach(() => {
-            transactionID = rand64().toString();
+            // Transaction IDs are converted to numbers by the test fixture. Keep this value
+            // within JavaScript's safe integer range so the transaction data and its Onyx key
+            // continue to refer to the same ID.
+            transactionID = Date.now().toString();
             getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue({hash: snapshotHash} as SearchQueryJSON);
         });
 
@@ -210,7 +212,7 @@ describe('actions/IOU/Receipt', () => {
 
         it('should add receipt if it does not exist', async () => {
             // Given a transaction with no receipt
-            const transaction = await setupTransactionWithSnapshot(transactionID);
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: null});
 
             // When replaceReceipt is called
             replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
@@ -332,7 +334,7 @@ describe('actions/IOU/Receipt', () => {
         it('should rollback the receipt to null in failure data when there was no previous receipt', async () => {
             // Given a transaction with no receipt
             const writeSpy = mockApiWrite();
-            const transaction = await setupTransactionWithSnapshot(transactionID);
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: null});
 
             try {
                 // When replaceReceipt is called

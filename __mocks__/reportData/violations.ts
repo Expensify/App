@@ -3,7 +3,6 @@ import type {TransactionViolations} from '@src/types/onyx';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 
 const RECEIPT_ERRORS_ID_R14932 = 1201421;
-const RECEIPT_ERRORS_TRANSACTION_ID_R14932 = 'IOU_TRANSACTION_ID_R14932';
 
 const violationsR14932: TransactionViolations = [
     {
