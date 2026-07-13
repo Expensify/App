@@ -246,12 +246,11 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         if (shouldShowBulkActions) {
             return (
                 <ButtonWithDropdownMenu
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {
-                        count: selectedRuleKeys.length,
-                    })}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    customText={translate('workspace.common.selected', {count: selectedRuleKeys.length})}
                     options={getBulkActionsButtonOptions()}
                     isSplitButton={false}
                     style={[shouldDisplayButtonsInSeparateLine && styles.w100, shouldDisplayButtonsInSeparateLine && styles.mb3]}
