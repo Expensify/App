@@ -4831,7 +4831,7 @@ SPEC CHECKSUMS:
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXConstants: 1c400bb9969f4c9e5ab324553138b74ae47b9efe
   expensify-react-native-background-task: 03c640e1f5649692d058cba48c0a138f024a6dd3
-  ExpensifyNitroUtils: 86109fe1ab88351ed63ffe11b760d537c70019d7
+  ExpensifyNitroUtils: b7225649e39a31eab926dc8551c9c64e15b98d47
   Expo: 844d649bc6228d8fa118f29984565b58745bc1d8
   ExpoAsset: c2e7b5ba1fe75be683282d6264e38fd7cd8defbb
   ExpoAudio: 7774082d316ceecc2b26efeb10480bea2fa4d67e
