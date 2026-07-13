@@ -287,9 +287,9 @@ describe('ExpensifyCardStatementUtils', () => {
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, policyID: 'policy1'})});
         // The statement is admin-only. A cardholder can see the settlement in search, but must not be offered the
         // export - the backend would reject it with a 401.
-        const isNotAdmin = () => false;
+        const denyAllPolicies = () => false;
 
-        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, isNotAdmin, false)).toBeUndefined();
+        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData, denyAllPolicies, false)).toBeUndefined();
     });
 
     it('includes the settlement when the user is an admin of its workspace', () => {
