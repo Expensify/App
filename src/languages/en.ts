@@ -1,4 +1,5 @@
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import DateUtils from '@libs/DateUtils';
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
@@ -19,6 +20,7 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
@@ -8838,6 +8840,12 @@ const translations = {
             emptyStatementsResults: {
                 title: 'No expenses to display',
                 subtitle: 'No results. Please try adjusting your filters.',
+            },
+            emptyViolationSnapshotResults: {
+                subtitle: ({violationSnapshotStartedAt, timezone}: EmptyViolationSnapshotResultsSubtitleParams) => {
+                    const formattedDate = DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone);
+                    return `Violations are only tracked from ${formattedDate} onwards. Try adjusting your date filters.`;
+                },
             },
             emptyUnapprovedResults: {
                 title: 'No expenses to approve',

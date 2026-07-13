@@ -10,6 +10,7 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import DateUtils from '@libs/DateUtils';
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
@@ -31,6 +32,7 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
@@ -8665,6 +8667,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             emptyStatementsResults: {
                 title: 'Nenhuma despesa para exibir',
                 subtitle: 'Nenhum resultado. Tente ajustar seus filtros.',
+            },
+            emptyViolationSnapshotResults: {
+                subtitle: ({violationSnapshotStartedAt, timezone}: EmptyViolationSnapshotResultsSubtitleParams) => {
+                    const formattedDate = DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone);
+                    return `As violações são rastreadas apenas a partir de ${formattedDate}. Tente ajustar seus filtros de data.`;
+                },
             },
             emptyUnapprovedResults: {
                 title: 'Nenhuma despesa para aprovar',

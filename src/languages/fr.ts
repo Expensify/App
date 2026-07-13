@@ -10,6 +10,7 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import DateUtils from '@libs/DateUtils';
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
@@ -31,6 +32,7 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
@@ -8755,6 +8757,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             emptyStatementsResults: {
                 title: 'Aucune dépense à afficher',
                 subtitle: 'Aucun résultat. Veuillez essayer de modifier vos filtres.',
+            },
+            emptyViolationSnapshotResults: {
+                subtitle: ({violationSnapshotStartedAt, timezone}: EmptyViolationSnapshotResultsSubtitleParams) => {
+                    const formattedDate = DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone);
+                    return `Les violations ne sont suivies qu'à partir du ${formattedDate}. Essayez d'ajuster vos filtres de date.`;
+                },
             },
             emptyUnapprovedResults: {
                 title: 'Aucune dépense à approuver',

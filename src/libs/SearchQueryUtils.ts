@@ -1137,6 +1137,90 @@ function getLaterDate(someDate: string | undefined, otherDate: string | undefine
     return someDate ?? otherDate;
 }
 
+type DateFilterRange = {
+    start?: string;
+    end?: string;
+};
+
+/**
+ * Extracts the effective start and end dates from date filters in a search query.
+ */
+function getDateFilterRange(queryJSON: SearchQueryJSON): DateFilterRange {
+    const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE).flatMap((filter) => filter.filters);
+    let start: string | undefined;
+    let end: string | undefined;
+
+    const equalToFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+    if (equalToFilter) {
+        const equalToValue = equalToFilter.value.toString();
+        if (isSearchDatePreset(equalToValue)) {
+            const presetRange = getDateRangeForPreset(equalToValue);
+            start = presetRange.start;
+            end = presetRange.end;
+        } else if (isValidDate(equalToValue)) {
+            start = equalToValue;
+            end = equalToValue;
+        }
+    }
+
+    const greaterThanOrEqualToFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO);
+    if (greaterThanOrEqualToFilter) {
+        const filterValue = greaterThanOrEqualToFilter.value.toString();
+        if (isValidDate(filterValue)) {
+            start = getLaterDate(start, filterValue);
+        }
+    }
+
+    const greaterThanFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
+    if (greaterThanFilter) {
+        const filterValue = greaterThanFilter.value.toString();
+        if (isValidDate(filterValue)) {
+            const nextDay = format(addDays(parse(filterValue, 'yyyy-MM-dd', new Date()), 1), 'yyyy-MM-dd');
+            start = getLaterDate(start, nextDay);
+        }
+    }
+
+    const lowerThanOrEqualToFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO);
+    if (lowerThanOrEqualToFilter) {
+        const filterValue = lowerThanOrEqualToFilter.value.toString();
+        if (isValidDate(filterValue)) {
+            end = getEarlierDate(end, filterValue);
+        }
+    }
+
+    const lowerThanFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN);
+    if (lowerThanFilter) {
+        const filterValue = lowerThanFilter.value.toString();
+        if (isValidDate(filterValue)) {
+            const previousDay = format(addDays(parse(filterValue, 'yyyy-MM-dd', new Date()), -1), 'yyyy-MM-dd');
+            end = getEarlierDate(end, previousDay);
+        }
+    }
+
+    return {start, end};
+}
+
+/**
+ * Returns whether the search query's date filters fall entirely or partially before violation snapshots were available.
+ */
+function isSearchBeforeViolationsSnapshotStarted(queryJSON: SearchQueryJSON | undefined, violationSnapshotStartedAt: string | undefined): boolean {
+    if (!violationSnapshotStartedAt || !queryJSON) {
+        return false;
+    }
+
+    const {start, end} = getDateFilterRange(queryJSON);
+
+    if (start && start < violationSnapshotStartedAt) {
+        return true;
+    }
+
+    if (end && end < violationSnapshotStartedAt) {
+        return true;
+    }
+
+    return false;
+}
+
 /**
  * Returns the start and end date range for a date preset.
  */
@@ -2454,6 +2538,8 @@ export {
     getRangeQueryValue,
     isSearchDatePreset,
     getDateRangeForPreset,
+    getDateFilterRange,
+    isSearchBeforeViolationsSnapshotStarted,
     isFilterSupported,
     buildSearchQueryJSON,
     buildSearchQueryString,

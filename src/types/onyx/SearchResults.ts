@@ -67,6 +67,9 @@ type SearchResultsInfo = {
 
     /** The currency of the total spend */
     currency?: string;
+
+    /** The date from which violation snapshots are available for search */
+    violationSnapshotStartedAt?: string;
 };
 
 /** The action that can be performed for the transaction */
