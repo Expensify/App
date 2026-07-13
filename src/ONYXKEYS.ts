@@ -931,6 +931,9 @@ const ONYXKEYS = {
         /** Errors related to a domain */
         DOMAIN_ERRORS: 'domainErrors_',
 
+        /** Newly added domain item identifiers pending a scroll-and-highlight animation */
+        DOMAIN_HIGHLIGHT_ITEMS: 'domainHighlightItems_',
+
         /**
          * Local passkeys storage for WebAuthn/Passkeys authentication.
          * Stores passkey credentials registered on this specific browser/device.
@@ -1442,6 +1445,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
+    [ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS]: OnyxTypes.DomainHighlightItems;
     [ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION]: OnyxTypes.CodingRuleMatchingTransaction;
     [ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS]: OnyxTypes.LocalPasskeyCredentialsEntry;
     [ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;

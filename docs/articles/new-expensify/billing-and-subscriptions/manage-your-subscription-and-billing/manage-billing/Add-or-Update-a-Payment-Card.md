@@ -16,7 +16,7 @@ Your Expensify subscription is paid using a single payment card stored under **A
 
 ## Who can add or update a payment card
 
-Only Workspace owners can add a payment card or update an existing one. If you're not the Workspace owner, the **Subscription** tab won't appear under **Account**.
+Only workspace owners can add a payment card or update an existing one. If you're not the Workspace owner, the **Subscription** tab won't appear under **Account**.
 
 ---
 
@@ -44,7 +44,7 @@ The new payment card replaces the previous one and will be used for future Expen
 
 ---
 
-## Related Articles
+## Related articles
 
 - [View Your Plan and Subscription](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/View-Your-Plan-and-Subscription)
 - [Learn About Billing Permissions](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions)
@@ -55,7 +55,7 @@ The new payment card replaces the previous one and will be used for future Expen
 
 ## Why don't I see the option to add or change a payment card?
 
-Only the workspace Owner can manage the payment card. If the **Subscription** tab or the **Payment** section isn't visible, you're not a Workspace owner. 
+Only the Workspace owner can manage the payment card. If the **Subscription** tab or the **Payment** section isn't visible, you're not a Workspace owner. 
 
 ## Do I need to remove my old card before adding a new one?
 
