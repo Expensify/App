@@ -10,25 +10,15 @@ platform: new
 
 # Cancel an Annual Subscription 
 
-If you're a Workspace owner, you can ask Expensify to end your workspace's Annual subscription and continue on Pay-per-use billing instead. Canceling the Annual subscription ends the 12-month commitment but doesn't delete your workspace or interrupt access. Your workspace continues on Pay-per-use billing.
+If you're a Workspace owner, you can request to end your workspace's Annual subscription and continue on Pay-per-use billing instead. Canceling the Annual subscription ends the 12-month commitment but doesn't delete your workspace or interrupt access. Your workspace continues on Pay-per-use billing.
 
-Selecting **Cancel subscription** submits a *request* to cancel. It does not cancel your subscription on its own. Because an Annual subscription is a 12-month commitment, requests are reviewed to determine whether they qualify for cancellation, and not all requests are approved.
+Most Annual subscriptions can't be canceled before the end of the 12-month commitment. Selecting **Cancel subscription** submits a _request_ that Expensify reviews. Only requests that meet the cancellation criteria are approved.
 
 For more details, see [When You Can Change Your Subscription](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Learn-About-Plan-and-Subscription-Management#when-you-can-change-your-subscription).
 
 ---
 
-## Before you cancel
-
-Before canceling, consider whether one of these alternatives fits your needs:
-
- - **Reduce your subscription size** at renewal so you're only billed for the members you need. See [Manage Annual Subscription Settings](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Manage-Annual-Subscription-Settings).
- - **Lower your cost with the Expensify Card**, which can reduce your bill by up to 50% on Control workspaces. See [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing#how-the-expensify-card-discount-works).
- - **Switch your plan tier** if you need fewer features. See [Change Your Workspace Plan](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Change-Your-Workspace-Plan).
-
----
-
-## Who can cancel an Annual subscription
+## Who can request Annual subscription cancellation
 
 Only the Workspace owner can request a cancellation, and only when the workspace is on an **Annual** subscription. **Cancel subscription** appears under **Account > Subscription** after your free trial ends and once a payment card has been added or you've been billed at least once.
 
