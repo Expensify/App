@@ -1235,7 +1235,8 @@ function createOption({
         const computedReportName = getReportName(report, reportAttributesDerived);
 
         reportName = showPersonalDetails
-            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
+            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils, translate: translateFn}) ||
+              formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
             : computedReportName;
     } else {
         reportName =
@@ -1243,6 +1244,7 @@ function createOption({
                 accountID: accountIDs.at(0),
                 personalDetailsData: personalDetails ?? undefined,
                 formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                translate: translateFn,
             }) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs.at(0));
 
