@@ -3715,7 +3715,14 @@ describe('getSecondaryExportReportActions', () => {
             ...createQBOPolicy(CONST.POLICY.ROLE.ADMIN, false),
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
             reimburser: MANAGER_EMAIL,
-            achAccount: {reimburser: MANAGER_EMAIL},
+            achAccount: {
+                bankAccountID: 1,
+                reimburser: MANAGER_EMAIL,
+                accountNumber: '1234567890',
+                routingNumber: '1234567890',
+                addressName: 'Test Address',
+                bankName: 'Test Bank',
+            },
         };
 
         const result = getSecondaryExportReportActions(ADMIN_ACCOUNT_ID, ADMIN_EMAIL, report, {}, policy);
