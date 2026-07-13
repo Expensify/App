@@ -65,7 +65,7 @@ type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScena
  */
 type MfaEvent = MultifactorAuthenticationInitEvent | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'};
 
-/** Input for the device-check actor. */
+/** Describes the input the machine passes to the device-check actor. */
 type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationMethods};
 
 export type {MfaContext, MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent, ValidateDeviceInput};

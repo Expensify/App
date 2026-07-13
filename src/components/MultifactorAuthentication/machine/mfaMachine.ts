@@ -14,7 +14,7 @@ import createActors from './mfaActors';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
-// Absolute targets for the two outcome leaves, whose ids are set on the leaves below. The device
+// Absolute targets for the outcome leaves, whose ids are set on the leaves below. The device
 // check runs under `preparing`, so reaching the sibling `outcome` branch needs an id target rather
 // than a relative one.
 const SUCCESS_TARGET = `#${MFA_STATE.SUCCESS}` as const;
@@ -104,9 +104,9 @@ const MFAMachine = setup({
                 CLOSE_MODAL: {target: MFA_STATE.CLOSING, actions: 'hideCancelConfirmModal'},
             },
             states: {
-                // The transparent initial screen. Its child states run the pre-screen work the user
-                // waits through. This slice adds the device check, and later slices add the
-                // registration and authorization steps as siblings.
+                // This is the transparent initial screen, and its child states run the pre-screen
+                // work the user waits through. This slice adds the device check, and later slices add
+                // the registration and authorization steps as siblings.
                 [MFA_STATE.PREPARING]: {
                     initial: MFA_STATE.VALIDATING_DEVICE,
                     states: {
@@ -121,10 +121,10 @@ const MFAMachine = setup({
                                     return {allowedAuthenticationMethods: context.scenario.allowedAuthenticationMethods};
                                 },
                                 // The actor settles with an MFAResult, so its done event routes on
-                                // `success`. The device passing both gates lands on the success outcome
-                                // until the registration and authorization slices insert their steps
-                                // before it; a refusal carries the blocking MFAError to the failure
-                                // outcome, where the screen is chosen from the error reason.
+                                // `success`. An eligible device lands on the success outcome until the
+                                // registration and authorization slices insert their steps before it,
+                                // while a refusal carries the blocking MFAError to the failure outcome,
+                                // where the screen is chosen from the error reason.
                                 onDone: [
                                     {guard: ({event}) => event.output.success, target: SUCCESS_TARGET},
                                     {target: FAILURE_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},

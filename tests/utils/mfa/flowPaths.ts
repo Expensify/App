@@ -76,15 +76,16 @@ type MfaActorDoneOutputFixtures = {
 };
 
 /**
- * Output variants for each invoked actor's done event, keyed by invoke id. The machine routes a done
- * event through guards on the actor's output, so the traversal must offer every output shape a branch
- * depends on; XState's bare `{type}` synthesis would make those guards read an undefined output. The
- * exhaustive keyed type makes a new actor fail compilation until its output variants are added.
+ * Holds the output variants for each invoked actor's done event, keyed by invoke id. The machine
+ * routes a done event through guards on the actor's output, so the traversal must offer every output
+ * shape a branch depends on. XState's bare `{type}` synthesis would make those guards read an
+ * undefined output. The exhaustive keyed type makes a new actor fail compilation until its output
+ * variants are added.
  */
 const MFA_ACTOR_DONE_OUTPUT_FIXTURES = {
-    // The two refusal variants mirror the actor's gates: the scenario disallowing the platform method
-    // and the device failing the capability check. Each reason maps to its own failure screen, so both
-    // need a graph branch for the walk to reach those screens.
+    // The refusal variants mirror the actor's gates, such as the scenario disallowing the platform
+    // method and the device failing the capability check. Each reason maps to its own failure screen,
+    // so every variant needs a graph branch for the walk to reach that screen.
     validateDevice: [
         {success: true},
         {success: false, error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED, 'Graph-traversal device-check refusal')},

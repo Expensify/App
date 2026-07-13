@@ -27,6 +27,7 @@ function createUnhandledExceptionMFAError(stepLabel: string, thrown: unknown): M
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- {} means "no additional data fields" as default generic parameter
 type MFAResult<TData = {}> = ({success: true} & TData) | {success: false; error: MFAError};
 
+/** Returns the error a failed result carries. It throws on a successful result, so callers must rule success out first. */
 function getMFAFailureError(result: MFAResult): MFAError {
     if (result.success) {
         throw new Error('Expected a failed MFA result');

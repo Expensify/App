@@ -31,7 +31,7 @@ import {matchesState} from 'xstate';
 jest.mock('@hooks/useResponsiveLayout');
 // This mock disables the dev-only Stately inspector so `useInspectedMachine` falls back to `useMachine`.
 jest.mock('@libs/XStateInspector', () => ({__esModule: true, default: {inspect: undefined}}));
-// The UI walk controls invoked actor outcomes; actor side effects are outside the modal lifecycle contract.
+// The UI walk needs to control invoked actor outcomes, and the actors' real side effects are outside the modal lifecycle contract.
 // Jest hoists every `jest.mock` call above the imports, so a factory cannot reference a top-of-file import
 // and each factory below loads the shared mock module through `jest.requireActual` instead.
 jest.mock('@components/MultifactorAuthentication/machine/mfaActors', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').mfaActorsMock());

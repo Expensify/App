@@ -7,10 +7,8 @@ import {fromPromise} from 'xstate';
 import type {ValidateDeviceInput} from './types';
 
 /**
- * Runs {@link checkDeviceEligibility} with the scenario's allowed methods. A refusal is an expected
- * outcome that resolves as a failed result carrying the blocking MFAError, which the machine routes
- * to the failure outcome. A rejection therefore always means the platform check itself threw
- * unexpectedly.
+ * Runs {@link checkDeviceEligibility} with the scenario's allowed methods. See its documentation for
+ * how a refusal settles as a failed result while a rejection means an unexpected platform error.
  */
 const validateDevice = fromPromise<MFAResult, ValidateDeviceInput>(({input}) => checkDeviceEligibility(input.allowedAuthenticationMethods));
 

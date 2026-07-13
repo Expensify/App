@@ -30,6 +30,9 @@ function MultifactorAuthenticationOutcomePage({route}: MultifactorAuthentication
         return <DefaultClientFailureScreen />;
     }
 
+    // The route reflects the outcome the machine navigated to. The success screen therefore renders
+    // only on the success route, and the failure route falls back to the default client failure
+    // screen even when no error was stored.
     if (route.name === SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS && !error) {
         return scenario.successScreen;
     }
