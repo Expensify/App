@@ -517,8 +517,8 @@ function Search({
             // When opening an expense from the Spend page (flat transaction list), populate the carousel
             // with all sibling transactions so prev/next navigation works in the RHP transaction view.
             if (isTransactionItem) {
-                const siblingTransactionIDs = (filteredData as TransactionListItemType[])
-                    .filter((t) => !!t && 'transactionID' in t && t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                const siblingTransactionIDs = (filteredData as SearchListItem[])
+                    .filter((t): t is TransactionListItemType => !!t && isTransactionListItemType(t) && t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
                     .map((t) => t.transactionID);
                 if (siblingTransactionIDs.length > 1) {
                     setActiveTransactionIDs(siblingTransactionIDs, hash);
