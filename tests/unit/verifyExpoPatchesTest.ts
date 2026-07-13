@@ -16,9 +16,9 @@ function writeJSON(rootDir: string, relativePath: string, value: unknown): void 
     writeFile(rootDir, relativePath, JSON.stringify(value));
 }
 
-function writePatch(rootDir: string, files: string[]): void {
+function writePatch(rootDir: string, files: string[], patchName = PATCH_NAME): void {
     const content = files.map((file) => `diff --git a/node_modules/${file} b/node_modules/${file}\n--- a/node_modules/${file}\n+++ b/node_modules/${file}\n`).join('');
-    writeFile(rootDir, PATCH_NAME, content);
+    writeFile(rootDir, patchName, content);
 }
 
 describe('verifyExpoPatches', () => {
@@ -73,17 +73,57 @@ describe('verifyExpoPatches', () => {
         expect(processExitSpy).not.toHaveBeenCalled();
     });
 
-    it('skips excluded and explicitly ignored packages', () => {
-        writePatch(rootDir, ['expo-location/android/src/main/java/expo/modules/location/LocationModule.kt', '@example/expo-camera/android/src/main/java/CameraModule.kt']);
+    it('skips excluded packages and explicitly ignored patches', () => {
+        writePatch(rootDir, ['@example/expo-camera/android/src/main/java/CameraModule.kt']);
+        writePatch(rootDir, ['expo-location/android/src/main/java/expo/modules/location/LocationModule.kt'], 'patches/excluded+1.0.0.patch');
         writeJSON(rootDir, 'node_modules/expo-location/expo-module.config.json', {android: {publication: {}}});
         writeJSON(rootDir, 'node_modules/@example/expo-camera/expo-module.config.json', {android: {publication: {}}});
         writeJSON(rootDir, 'package.json', {expo: {autolinking: {exclude: ['expo-location']}}});
-        writeFile(rootDir, 'patches/.expo-patch-ignore', '# Verified locally\n@example/expo-camera # scoped package\n');
+        writeFile(rootDir, 'patches/.expo-patch-ignore', '# Verified locally\nexample+1.0.0.patch # exact patch\n');
 
         verifyExpoPatches(rootDir);
 
         expect(processExitSpy).not.toHaveBeenCalled();
-        expect(consoleLogSpy).toHaveBeenCalledWith('  Ignored packages: @example/expo-camera');
+        expect(consoleLogSpy).toHaveBeenCalledWith('  Ignored patches: example+1.0.0.patch');
+    });
+
+    it('applies platform-specific excludes only to their platform', () => {
+        writePatch(rootDir, ['expo-video/android/src/main/java/expo/modules/video/VideoModule.kt', 'expo-video/ios/VideoPlayer.swift']);
+        writeJSON(rootDir, 'node_modules/expo-video/expo-module.config.json', {android: {publication: {}}});
+        writeJSON(rootDir, 'node_modules/expo-video/spm.config.json', {
+            products: [{name: 'ExpoVideo', targets: [{path: 'ios', pattern: '*.swift'}]}],
+        });
+        writeFile(rootDir, 'node_modules/expo-video/prebuilds/output/apple/xcframeworks/ExpoVideo.tar.gz', '');
+        writeJSON(rootDir, 'package.json', {expo: {autolinking: {android: {exclude: ['expo-video']}}}});
+
+        expect(() => verifyExpoPatches(rootDir)).toThrow('process.exit(1)');
+
+        const output = consoleErrorSpy.mock.calls.flat().join('\n');
+        expect(output).not.toContain('android ships a precompiled binary');
+        expect(output).toContain('ios ships a precompiled binary');
+    });
+
+    it.each(['ios', 'apple'])('honors an iOS platform-specific exclude in the %s block', (platform) => {
+        writePatch(rootDir, ['expo-video/ios/VideoPlayer.swift']);
+        writeJSON(rootDir, 'node_modules/expo-video/spm.config.json', {
+            products: [{name: 'ExpoVideo', targets: [{path: 'ios', pattern: '*.swift'}]}],
+        });
+        writeFile(rootDir, 'node_modules/expo-video/prebuilds/output/apple/xcframeworks/ExpoVideo.tar.gz', '');
+        writeJSON(rootDir, 'package.json', {expo: {autolinking: {[platform]: {exclude: ['expo-video']}}}});
+
+        verifyExpoPatches(rootDir);
+
+        expect(processExitSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not treat package names as patch ignore entries', () => {
+        writePatch(rootDir, ['expo-location/android/src/main/java/expo/modules/location/LocationModule.kt']);
+        writeJSON(rootDir, 'node_modules/expo-location/expo-module.config.json', {android: {publication: {}}});
+        writeFile(rootDir, 'patches/.expo-patch-ignore', 'expo-location\n');
+
+        expect(() => verifyExpoPatches(rootDir)).toThrow('process.exit(1)');
+
+        expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it('only reports patched files claimed by a prebuilt iOS product', () => {

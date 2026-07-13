@@ -32,7 +32,8 @@ const projectRoot = path.resolve(__dirname, '..');
  * `shouldUsePublicationScript` decision — a module with a `publication` block can still build from
  * source (e.g. on a React Native version the prebuilt artifact is incompatible with), in which case
  * the patch DOES apply and the guard would nag wrongly. A dev who has verified a patch applies can
- * list the package here (one name per line, `#` comments allowed) to suppress the check for it.
+ * list the patch's path relative to `patches/` here (one path per line, `#` comments allowed) to
+ * suppress the check for that specific patch.
  */
 type Platform = 'android' | 'ios';
 
@@ -45,9 +46,9 @@ type ExpoModuleConfig = {
 type AutolinkingConfig = {
     exclude?: string[];
     buildFromSource?: string[];
-    android?: {buildFromSource?: string[]};
-    ios?: {buildFromSource?: string[]};
-    apple?: {buildFromSource?: string[]};
+    android?: {exclude?: string[]; buildFromSource?: string[]};
+    ios?: {exclude?: string[]; buildFromSource?: string[]};
+    apple?: {exclude?: string[]; buildFromSource?: string[]};
 };
 
 type PackageJSON = {
@@ -68,7 +69,7 @@ type Violation = {
 
 /** Read the `expo.autolinking` config from the root package.json. */
 function readAutolinkingConfig(rootDir: string): AutolinkingConfig {
-    const pkgJson = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8')) as PackageJSON;
+    const pkgJson = readJsonIfExists<PackageJSON>(path.join(rootDir, 'package.json')) ?? {};
     return pkgJson.expo?.autolinking ?? {};
 }
 
@@ -142,7 +143,10 @@ function readJsonIfExists<T>(filePath: string): T | null {
     if (!fs.existsSync(filePath)) {
         return null;
     }
-    return JSON.parse(fs.readFileSync(filePath, 'utf8')) as T;
+    const parsed: unknown = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    // Config files are controlled by the repository or installed packages; validating every unused field would add no safety here.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return parsed as T;
 }
 
 /** Whether a third-party pod is registered for iOS prebuilt via autolinking's bundled external-configs. */
@@ -263,7 +267,7 @@ function iosPrebuiltProduct(pkg: string, rel: string, nodeModulesDir: string, ex
         }
         return null;
     }
-    // No spm.config.json but a binary is nonetheless present/registered — flag the whole package coarsely.
+    // No spm.config.json but a binary is nonetheless present/registered — flag the whole package.
     if (isExternalPrebuiltPod(pkg, externalConfigsDir) || shipsPrebuiltXcframework(pkg, nodeModulesDir)) {
         return pkg;
     }
@@ -307,7 +311,18 @@ function isBuiltFromSource(pkg: string, platform: Platform, config: AutolinkingC
     });
 }
 
-/** Read the suppression list: package names, one per line, `#` starts a comment. */
+/**
+ * Whether `pkg` is excluded from autolinking for `platform`.
+ *
+ * Platform precedence mirrors Expo's `parsePackageJsonOptions`: the platform-specific list replaces
+ * the root list, and for iOS `apple` takes precedence over the legacy `ios` block when present.
+ */
+function isExcluded(pkg: string, platform: Platform, config: AutolinkingConfig): boolean {
+    const platformBlock = platform === 'android' ? config.android : (config.apple ?? config.ios);
+    return (platformBlock?.exclude ?? config.exclude ?? []).includes(pkg);
+}
+
+/** Read the suppression list: patch paths relative to `patches/`, one per line, `#` starts a comment. */
 function readIgnoreList(ignoreFile: string): Set<string> {
     if (!fs.existsSync(ignoreFile)) {
         return new Set();
@@ -336,27 +351,28 @@ function main(rootDir = projectRoot): void {
     const externalConfigsDir = path.join(nodeModulesDir, 'expo-modules-autolinking', 'external-configs', 'ios');
     const ignoreFile = path.join(patchesDir, '.expo-patch-ignore');
     const autolinking = readAutolinkingConfig(rootDir);
-    const excluded = new Set(autolinking.exclude ?? []);
     const ignored = readIgnoreList(ignoreFile);
     const patchFiles = collectPatchFiles(patchesDir);
     const violations: Violation[] = [];
 
     for (const patchPath of patchFiles) {
+        const patchRelativePath = path.relative(patchesDir, patchPath);
+        if (ignored.has(patchRelativePath)) {
+            // Explicitly suppressed in patches/.expo-patch-ignore (dev verified this specific patch applies).
+            continue;
+        }
         const touched = analyzePatch(patchPath);
         for (const [pkg, relPaths] of touched) {
-            if (excluded.has(pkg)) {
-                // Excluded from autolinking entirely — not built by Expo, so not a silent-prebuilt case.
-                continue;
-            }
-            if (ignored.has(pkg)) {
-                // Explicitly suppressed in patches/.expo-patch-ignore (dev verified the patch applies).
-                continue;
-            }
             const config = readExpoModuleConfig(pkg, nodeModulesDir);
 
             // Android: coarse per-package signal — the module ships a prebuilt Maven AAR (publication block).
             const touchesAndroid = [...relPaths].some((rel) => getPlatformFromSegments(rel.split('/')) === 'android');
-            if (touchesAndroid && config?.android?.publication != null && !isBuiltFromSource(pkg, 'android', autolinking, nodeModulesDir, externalConfigsDir)) {
+            if (
+                touchesAndroid &&
+                !isExcluded(pkg, 'android', autolinking) &&
+                config?.android?.publication != null &&
+                !isBuiltFromSource(pkg, 'android', autolinking, nodeModulesDir, externalConfigsDir)
+            ) {
                 violations.push({
                     patch: path.relative(rootDir, patchPath),
                     pkg,
@@ -376,7 +392,7 @@ function main(rootDir = projectRoot): void {
                     iosProducts.add(product);
                 }
             }
-            if (iosProducts.size > 0 && !isBuiltFromSource(pkg, 'ios', autolinking, nodeModulesDir, externalConfigsDir)) {
+            if (iosProducts.size > 0 && !isExcluded(pkg, 'ios', autolinking) && !isBuiltFromSource(pkg, 'ios', autolinking, nodeModulesDir, externalConfigsDir)) {
                 violations.push({
                     patch: path.relative(rootDir, patchPath),
                     pkg,
@@ -390,7 +406,7 @@ function main(rootDir = projectRoot): void {
     if (violations.length === 0) {
         console.log('✓ verifyExpoPatches: no patches target a precompiled Expo module without a buildFromSource opt-out');
         if (ignored.size > 0) {
-            console.log(`  Ignored packages: ${[...ignored].join(', ')}`);
+            console.log(`  Ignored patches: ${[...ignored].join(', ')}`);
         }
         return;
     }
@@ -401,7 +417,7 @@ function main(rootDir = projectRoot): void {
         console.error(`  ${v.patch}`);
         console.error(`    ${v.pkg} — ${v.reason}`);
         console.error(`    Fix: add "${v.pkg}" to expo.autolinking.${key}.buildFromSource in package.json`);
-        console.error(`    Or, if you have verified the patch DOES apply, add "${v.pkg}" to patches/.expo-patch-ignore\n`);
+        console.error(`    Or, if you have verified the patch DOES apply, add "${path.relative(patchesDir, path.join(rootDir, v.patch))}" to patches/.expo-patch-ignore\n`);
     }
     console.error('See https://docs.expo.dev/guides/prebuilt-expo-modules/ for background.');
     process.exit(1);
