@@ -1016,6 +1016,10 @@ const DYNAMIC_ROUTES = {
         path: 'task-confirm',
         entryScreens: [SCREENS.NEW_TASK.DYNAMIC_TASK_DETAILS],
     },
+    NEW_TASK_SHARE_DESTINATION: {
+        path: 'task-share-destination',
+        entryScreens: [SCREENS.NEW_TASK.DYNAMIC_ROOT],
+    },
     PRIVATE_NOTES_LIST: {
         path: 'notes',
         entryScreens: [
@@ -1408,7 +1412,15 @@ const ROUTES = {
     SETTINGS_BANK_ACCOUNT_PURPOSE: 'settings/wallet/bank-account-purpose',
     SETTINGS_ENABLE_PAYMENTS: {
         route: 'settings/wallet/enable-payments/:page?/:subPage?/:action?',
-        getRoute: ({page, subPage, action}: {page?: EnablePaymentsPageType; subPage?: EnablePaymentsSubPageType; action?: 'edit'} = {}) => {
+        getRoute: ({
+            page,
+            subPage,
+            action,
+        }: {
+            page?: EnablePaymentsPageType;
+            subPage?: EnablePaymentsSubPageType;
+            action?: 'edit';
+        } = {}) => {
             const base = 'settings/wallet/enable-payments';
             // The interpolated values are cast to `string` to keep the resulting template literal type simple and avoid TS2590 union complexity errors.
             const pagePart = page ? `/${page as string}` : '';
@@ -2175,7 +2187,6 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam('new/task', backTo),
     },
-    NEW_TASK_SHARE_DESTINATION: 'new/task/share-destination',
 
     I_KNOW_A_TEACHER: 'settings/teachersunite/i-know-a-teacher',
     I_AM_A_TEACHER: 'settings/teachersunite/i-am-a-teacher',
@@ -4427,7 +4438,11 @@ function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAtt
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ExtractRouteName<TRoute> = TRoute extends {getRoute: (...args: any[]) => infer TRouteName} ? TRouteName : TRoute;
+type ExtractRouteName<TRoute> = TRoute extends {
+    getRoute: (...args: any[]) => infer TRouteName;
+}
+    ? TRouteName
+    : TRoute;
 
 /**
  * Represents all routes in the app as a union of literal strings.

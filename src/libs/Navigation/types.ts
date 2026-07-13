@@ -198,7 +198,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS]: undefined;
     [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_CARD_NAME]: undefined;
     [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_CURRENCY]: undefined;
-    [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_SPREADSHEET]: {cardID?: string};
+    [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_SPREADSHEET]: {
+        cardID?: string;
+    };
     [SCREENS.SETTINGS.WALLET.TRANSACTIONS_IMPORTED]: {cardID?: string};
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
         page?: EnablePaymentsPageType;
@@ -2382,7 +2384,7 @@ type NewTaskNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.NEW_TASK.DYNAMIC_TASK_ASSIGNEE]: undefined;
-    [SCREENS.NEW_TASK.TASK_SHARE_DESTINATION_SELECTOR]: undefined;
+    [SCREENS.NEW_TASK.DYNAMIC_TASK_SHARE_DESTINATION_SELECTOR]: undefined;
     [SCREENS.NEW_TASK.DYNAMIC_TASK_DETAILS]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
@@ -2666,7 +2668,9 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.AVATAR_CROP]: NavigatorScreenParams<AvatarCropNavigatorParamList>;
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: NavigatorScreenParams<SplitExpenseParamList>;
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
-    [SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
+    [SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE]: NavigatorScreenParams<{
+        reportId: string | undefined;
+    }>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;

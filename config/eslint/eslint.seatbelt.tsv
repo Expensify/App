@@ -1511,7 +1511,7 @@
 "../../src/pages/signin/ValidateCodeForm/BaseValidateCodeForm.tsx"	"no-restricted-imports"	1
 "../../src/pages/signin/ValidateCodeForm/BaseValidateCodeForm.tsx"	"react-hooks/set-state-in-effect"	4
 "../../src/pages/tasks/DynamicNewTaskDetailsPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
-"../../src/pages/tasks/TaskShareDestinationSelectorModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/tasks/DynamicTaskShareDestinationSelectorModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/wallet/WalletStatementPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/DynamicWorkspaceConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/DynamicWorkspaceOverviewPlanTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2

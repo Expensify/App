@@ -73,6 +73,7 @@ const oldRoutes: Record<string, string> = {
     '/new/task/title': '/task-details/task-confirm/task-title',
     '/new/task/description': '/task-details/task-confirm/task-description',
     '/new/task/assignee': '/task-details/task-confirm/task-assignee',
+    '/new/task/share-destination': '/task-details/task-confirm/task-share-destination',
     '/new/task': '/task-details/task-confirm',
     '/workspaces/*/company-cards/company-card-details/*/*/edit/export': '/workspaces/$1/company-cards/company-card-details/$2/$3/edit/export',
     '/workspaces/*/company-cards/company-card-details/*/*/edit/transaction-start-date': '/workspaces/$1/company-cards/company-card-details/$2/$3/edit/transaction-start-date',

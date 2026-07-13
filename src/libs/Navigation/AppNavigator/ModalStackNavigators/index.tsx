@@ -140,7 +140,10 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
             ({route: optionRoute}) => {
                 // Extend common options if they are defined for the screen.
                 if (OPTIONS_PER_SCREEN[optionRoute.name as Screen]) {
-                    return {...screenOptions({route: optionRoute}), ...OPTIONS_PER_SCREEN[optionRoute.name as Screen]};
+                    return {
+                        ...screenOptions({route: optionRoute}),
+                        ...OPTIONS_PER_SCREEN[optionRoute.name as Screen],
+                    };
                 }
                 return screenOptions({route: optionRoute});
             },
@@ -381,7 +384,7 @@ const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorPar
 const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorParamList>({
     [SCREENS.NEW_TASK.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicNewTaskPage').default,
     [SCREENS.NEW_TASK.DYNAMIC_TASK_ASSIGNEE]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicTaskAssigneeSelectorModal').default,
-    [SCREENS.NEW_TASK.TASK_SHARE_DESTINATION_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/tasks/TaskShareDestinationSelectorModal').default,
+    [SCREENS.NEW_TASK.DYNAMIC_TASK_SHARE_DESTINATION_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicTaskShareDestinationSelectorModal').default,
     [SCREENS.NEW_TASK.DYNAMIC_TASK_DETAILS]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicNewTaskDetailsPage').default,
     [SCREENS.NEW_TASK.DYNAMIC_TASK_TITLE]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicNewTaskTitlePage').default,
     [SCREENS.NEW_TASK.DYNAMIC_TASK_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicNewTaskDescriptionPage').default,

@@ -25,7 +25,7 @@ import {getDisplayNamesWithTooltips, isAllowedToComment} from '@libs/ReportUtils
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -189,7 +189,7 @@ function DynamicNewTaskPage() {
                                 title={shareDestination?.displayName ?? ''}
                                 description={shareDestination?.displayName ? shareDestination.subtitle : translate('common.share')}
                                 iconReportID={task?.shareDestination}
-                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_SHARE_DESTINATION.path))}
                                 interactive={!task?.parentReportID}
                                 shouldShowRightIcon={!task?.parentReportID}
                                 titleWithTooltips={shareDestination?.shouldUseFullTitleToDisplay ? undefined : shareDestination?.displayNamesWithTooltips}

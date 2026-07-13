@@ -458,7 +458,7 @@ const SCREENS = {
         DYNAMIC_TASK_TITLE: 'Dynamic_NewTask_Title',
         DYNAMIC_TASK_DESCRIPTION: 'Dynamic_NewTask_Description',
         DYNAMIC_TASK_DETAILS: 'Dynamic_NewTask_Details',
-        TASK_SHARE_DESTINATION_SELECTOR: 'NewTask_TaskShareDestinationSelector',
+        DYNAMIC_TASK_SHARE_DESTINATION_SELECTOR: 'Dynamic_NewTask_TaskShareDestinationSelector',
     },
 
     TASK: {
@@ -491,8 +491,15 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_Report_Change_Workspace_Root',
     },
 
-    WORKSPACE_CONFIRMATION: {DYNAMIC_ROOT: 'Dynamic_Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
-    WORKSPACE_DUPLICATE: {ROOT: 'Workspace_Duplicate_Root', SELECT_FEATURES: 'Workspace_Duplicate_Select_Features'},
+    WORKSPACE_CONFIRMATION: {
+        DYNAMIC_ROOT: 'Dynamic_Workspace_Confirmation_Root',
+        OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector',
+        SUCCESS: 'Workspace_Confirmation_Success',
+    },
+    WORKSPACE_DUPLICATE: {
+        ROOT: 'Workspace_Duplicate_Root',
+        SELECT_FEATURES: 'Workspace_Duplicate_Select_Features',
+    },
     POLICY_COPY_SETTINGS: {
         ROOT: 'Policy_Copy_Settings_Root',
         SELECT_FEATURES: 'Policy_Copy_Settings_Select_Features',
