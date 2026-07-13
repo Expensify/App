@@ -238,7 +238,7 @@ function isSubmitAction({
     }
 
     if (violations && currentUserLogin && currentUserAccountID !== undefined) {
-        if (reportTransactions.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserLogin, currentUserAccountID, report, policy))) {
+        if (reportTransactions.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserLogin, currentUserAccountID, report, ownerLogin, policy))) {
             return false;
         }
     }
@@ -347,7 +347,7 @@ function isApproveAction(
         return false;
     }
 
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserLogin, currentUserAccountID, report, policy);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserLogin, currentUserAccountID, report, ownerLogin, policy);
 
     if (hasAllPendingRTERViolations) {
         return true;
@@ -358,6 +358,7 @@ function isApproveAction(
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
         reportTransactions,
         report,
+        ownerLogin,
         policy,
         violations,
         currentUserLogin,
@@ -1142,6 +1143,7 @@ function getSecondaryTransactionThreadActions({
     policy,
     transactionThreadReport,
     outstandingReportsByPolicyID,
+    reportNameValuePairs,
     isChatReportArchived,
     grandParentReport,
     isProduction,
@@ -1155,7 +1157,8 @@ function getSecondaryTransactionThreadActions({
     policy: OnyxEntry<Policy>;
     transactionThreadReport?: OnyxEntry<Report>;
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
-    isChatReportArchived?: boolean;
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    isChatReportArchived: boolean;
     grandParentReport?: OnyxEntry<Report>;
     isProduction: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
@@ -1196,6 +1199,7 @@ function getSecondaryTransactionThreadActions({
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
             isChatReportArchived,
             outstandingReportsByPolicyID,
+            reportNameValuePairs,
             transaction: reportTransaction,
         }) &&
         canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)

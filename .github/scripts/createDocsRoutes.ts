@@ -24,6 +24,7 @@ type Hub = {
     icon: string;
     articles?: Article[];
     sections?: Section[];
+    flatSections?: Section[];
 };
 
 type Platform = {
@@ -36,6 +37,18 @@ type DocsRoutes = {
 };
 
 type HubEntriesKey = 'sections' | 'articles';
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function getOptionalString(value: unknown): string | undefined {
+    return typeof value === 'string' ? value : undefined;
+}
+
+function getOptionalNumber(value: unknown): number | undefined {
+    return typeof value === 'number' ? value : undefined;
+}
 
 const warnMessage = (platform: string): string => `Number of hubs in _routes.yml does not match number of hubs in docs/${platform}/articles. Please update _routes.yml with hub info.`;
 const disclaimer = '# This file is auto-generated. Do not edit it directly. Use npm run createDocsRoutes instead.\n';
@@ -110,8 +123,11 @@ function getOrderFromArticleFrontMatter(path: string): number | undefined {
         if (!frontmatter) {
             return undefined;
         }
-        const frontmatterObject = yaml.load(frontmatter) as Record<string, unknown>;
-        return frontmatterObject.order as number | undefined;
+        const frontmatterObject = yaml.load(frontmatter);
+        if (!isRecord(frontmatterObject)) {
+            return undefined;
+        }
+        return getOptionalNumber(frontmatterObject.order);
     } catch {
         return undefined;
     }
@@ -123,10 +139,13 @@ function getSectionMeta(sectionPath: string): {title?: string; order?: number} {
         if (!fs.existsSync(metaPath)) {
             return {};
         }
-        const meta = yaml.load(fs.readFileSync(metaPath, 'utf8')) as Record<string, unknown>;
+        const meta = yaml.load(fs.readFileSync(metaPath, 'utf8'));
+        if (!isRecord(meta)) {
+            return {};
+        }
         return {
-            title: meta.title as string | undefined,
-            order: meta.order as number | undefined,
+            title: getOptionalString(meta.title),
+            order: getOptionalNumber(meta.order),
         };
     } catch {
         return {};
@@ -137,6 +156,9 @@ function sortSectionsByOrder(sections: Section[]) {
     sections.sort((a, b) => (a.order ?? Number.POSITIVE_INFINITY) - (b.order ?? Number.POSITIVE_INFINITY));
 }
 
+/**
+ * Build a section from a directory path, with optional parent path for nested href
+ */
 function buildSection(platformName: string, hub: string, sectionPath: string, parentHref: string): Section {
     const sectionName = sectionPath.split('/').pop() ?? sectionPath;
     const fullPath = `${docsDir}/articles/${platformName}/${hub}/${sectionPath}`;
@@ -217,7 +239,7 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
         const hubObj = routeHubs.find((obj) => obj.href === hub);
         if (hubObj?.sections?.length) {
             sortSectionsByOrder(hubObj.sections);
-            (hubObj as Hub & {flatSections?: Section[]}).flatSections = flattenSections(hubObj.sections);
+            hubObj.flatSections = flattenSections(hubObj.sections);
         }
     }
 }
