@@ -2116,7 +2116,6 @@
 "../../tests/unit/Search/SearchQueryUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/unit/Search/SearchSingleSelectionPickerTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/Search/SearchUIUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	136
-"../../tests/unit/Search/buildCardFilterDataTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../tests/unit/Search/buildSubstitutionsMapTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/Search/handleActionButtonPressTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/Search/searchTotalsLoadingDataTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2

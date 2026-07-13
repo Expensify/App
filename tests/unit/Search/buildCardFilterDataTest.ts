@@ -5,52 +5,16 @@ import type {CompanyCardFeedIcons} from '@libs/CardUtils';
 
 import type IllustrationsType from '@styles/theme/illustrations/types';
 
-import CONST from '@src/CONST';
 import type {Card, CardList, WorkspaceCardsList} from '@src/types/onyx';
 
+import createMock from '../../utils/createMock';
+
 jest.mock('@src/components/ConfirmedRoute.tsx');
-
-type CardNameValuePairs = NonNullable<Card['nameValuePairs']>;
-type CardFixtureNameValuePairs = Pick<CardNameValuePairs, 'cardTitle' | 'isVirtual'>;
-type CardFixture = Omit<Card, 'fraud' | 'lastUpdated' | 'nameValuePairs' | 'state'> &
-    Partial<Pick<Card, 'fraud' | 'lastUpdated' | 'state'>> & {
-        nameValuePairs?: CardFixtureNameValuePairs;
-    };
-
-const createNameValuePairs = (nameValuePairs: CardFixtureNameValuePairs): CardNameValuePairs => ({
-    [CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT_DEBIT]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_ACCOUNT]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_VENDOR]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_XERO_EXPORT_BANK_ACCOUNT]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_INTACCT_EXPORT_CHARGE_CARD]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_INTACCT_EXPORT_VENDOR]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_FINANCIALFORCE_EXPORT_VENDOR]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT_POLICY_ID]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT_DEBIT_POLICY_ID]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES.NVP_NETSUITE_EXPORT_ACCOUNT_POLICY_ID]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES.NVP_NETSUITE_EXPORT_VENDOR_POLICY_ID]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES.NVP_XERO_EXPORT_BANK_ACCOUNT_POLICY_ID]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES.NVP_INTACCT_EXPORT_CHARGE_CARD_POLICY_ID]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES.NVP_INTACCT_EXPORT_VENDOR_POLICY_ID]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES.NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT_POLICY_ID]: '',
-    [CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES.NVP_FINANCIALFORCE_EXPORT_VENDOR_POLICY_ID]: '',
-    ...nameValuePairs,
-});
-
-const createCard = ({nameValuePairs, ...card}: CardFixture): Card => ({
-    fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
-    lastUpdated: '',
-    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-    ...(nameValuePairs ? {nameValuePairs: createNameValuePairs(nameValuePairs)} : {}),
-    ...card,
-});
 
 const illustrationComponentMock: IllustrationsType['EmptyStateBackgroundImage'] = () => null;
 
 const workspaceCardFeedWithMetadata: WorkspaceCardsList = {
-    '21593492': createCard({
+    '21593492': createMock<Card>({
         accountID: 1,
         bank: 'vcf',
         fundID: '18680694',
@@ -59,7 +23,7 @@ const workspaceCardFeedWithMetadata: WorkspaceCardsList = {
         domainName: 'expensify-policy1.exfy',
         lastFourPAN: '9411',
     }),
-    '21604933': createCard({
+    '21604933': createMock<Card>({
         accountID: 1,
         bank: 'vcf',
         fundID: '18680694',
@@ -68,7 +32,7 @@ const workspaceCardFeedWithMetadata: WorkspaceCardsList = {
         domainName: 'expensify-policy1.exfy',
         lastFourPAN: '1601',
     }),
-    '21638320': createCard({
+    '21638320': createMock<Card>({
         accountID: 1,
         bank: 'vcf',
         fundID: '18680694',
@@ -77,7 +41,7 @@ const workspaceCardFeedWithMetadata: WorkspaceCardsList = {
         domainName: 'expensify-policy1.exfy',
         lastFourPAN: '2617',
     }),
-    '21638598': createCard({
+    '21638598': createMock<Card>({
         accountID: 1,
         bank: 'vcf',
         fundID: '18680694',
@@ -94,7 +58,7 @@ workspaceCardFeedWithMetadata.cardList = {
 const workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> = {
     cards_18680694_vcf: workspaceCardFeedWithMetadata,
     'cards_18755165_Expensify Card': {
-        '21588678': createCard({
+        '21588678': createMock<Card>({
             accountID: 1,
             bank: 'Expensify Card',
             fundID: '18755165',
@@ -103,7 +67,7 @@ const workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> = {
             domainName: 'expensify-policy2.exfy',
             lastFourPAN: '1138',
         }),
-        '21588684': createCard({
+        '21588684': createMock<Card>({
             accountID: 1,
             bank: 'Expensify Card',
             fundID: '18755165',
@@ -114,7 +78,7 @@ const workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> = {
         }),
     },
     'cards_11111_Expensify Card': {
-        '21589168': createCard({
+        '21589168': createMock<Card>({
             accountID: 1,
             bank: 'Expensify Card',
             fundID: '18755166',
@@ -123,7 +87,7 @@ const workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> = {
             domainName: 'expensify-policy3.exfy',
             lastFourPAN: '4163',
         }),
-        '21589182': createCard({
+        '21589182': createMock<Card>({
             accountID: 1,
             bank: 'Expensify Card',
             fundID: '18755166',
@@ -132,7 +96,7 @@ const workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> = {
             domainName: 'expensify-policy3.exfy',
             lastFourPAN: '',
         }),
-        '21589202': createCard({
+        '21589202': createMock<Card>({
             accountID: 1,
             bank: 'Expensify Card',
             fundID: '18755166',
@@ -141,7 +105,7 @@ const workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> = {
             domainName: 'expensify-policy3.exfy',
             lastFourPAN: '6232',
         }),
-        '21638322': createCard({
+        '21638322': createMock<Card>({
             accountID: 1,
             bank: 'Expensify Card',
             fundID: '18755166',
@@ -152,7 +116,7 @@ const workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> = {
         }),
     },
     'cards_11111212_Expensify Card': {
-        '21589168': createCard({
+        '21589168': createMock<Card>({
             accountID: 1,
             bank: 'Expensify Card',
             fundID: '18755167',
@@ -161,7 +125,7 @@ const workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> = {
             domainName: 'mockDomain.com',
             lastFourPAN: '4163',
         }),
-        '21589182': createCard({
+        '21589182': createMock<Card>({
             accountID: 1,
             bank: 'Expensify Card',
             cardID: 21589182,
@@ -173,7 +137,7 @@ const workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> = {
 };
 
 const cardList: CardList = {
-    '21588678': createCard({
+    '21588678': createMock<Card>({
         accountID: 1,
         bank: 'Expensify Card',
         cardID: 21588678,
@@ -181,7 +145,7 @@ const cardList: CardList = {
         domainName: 'expensify-policy2.exfy',
         lastFourPAN: '1138',
     }),
-    '21588684': createCard({
+    '21588684': createMock<Card>({
         accountID: 1,
         bank: 'Expensify Card',
         cardID: 21588684,
@@ -189,7 +153,7 @@ const cardList: CardList = {
         domainName: 'expensify-policy2.exfy',
         lastFourPAN: '',
     }),
-    '21589202': createCard({
+    '21589202': createMock<Card>({
         accountID: 1,
         bank: 'Expensify Card',
         cardID: 21589202,
@@ -197,7 +161,7 @@ const cardList: CardList = {
         domainName: 'expensify-policy3.exfy',
         lastFourPAN: '6232',
     }),
-    '21604933': createCard({
+    '21604933': createMock<Card>({
         accountID: 1,
         bank: 'vcf',
         cardID: 21604933,
@@ -205,7 +169,7 @@ const cardList: CardList = {
         domainName: 'expensify-policy1.exfy',
         lastFourPAN: '1601',
     }),
-    '11111111': createCard({
+    '11111111': createMock<Card>({
         accountID: 1,
         bank: 'Expensify Card',
         cardID: 11111111,
@@ -217,7 +181,7 @@ const cardList: CardList = {
 
 const workspaceCardFeedsHiddenOnSearch: Record<string, WorkspaceCardsList | undefined> = {
     'cards_11111_Expensify Card': {
-        '21534278': createCard({
+        '21534278': createMock<Card>({
             accountID: 1,
             bank: 'Expensify Card',
             cardID: 21534278,
@@ -229,7 +193,7 @@ const workspaceCardFeedsHiddenOnSearch: Record<string, WorkspaceCardsList | unde
             lastFourPAN: '',
             state: 2, // STATE_NOT_ISSUED
         }),
-        '21539025': createCard({
+        '21539025': createMock<Card>({
             accountID: 1,
             bank: 'Expensify Card',
             cardID: 21539025,
@@ -245,7 +209,7 @@ const workspaceCardFeedsHiddenOnSearch: Record<string, WorkspaceCardsList | unde
 };
 
 const cardListHiddenOnSearch: CardList = {
-    '21534538': createCard({
+    '21534538': createMock<Card>({
         accountID: 1,
         bank: 'Expensify Card',
         cardID: 21534538,
@@ -257,7 +221,7 @@ const cardListHiddenOnSearch: CardList = {
         lastFourPAN: '',
         state: 2, // STATE_NOT_ISSUED
     }),
-    '21534525': createCard({
+    '21534525': createMock<Card>({
         accountID: 1,
         bank: 'Expensify Card',
         cardID: 21534525,
@@ -273,7 +237,7 @@ const cardListHiddenOnSearch: CardList = {
 
 const workspaceCardFeedsClosed: Record<string, WorkspaceCardsList | undefined> = {
     'cards_11111_Expensify Card': {
-        '21534278': createCard({
+        '21534278': createMock<Card>({
             accountID: 1,
             bank: 'Expensify Card',
             cardID: 21534278,
@@ -285,7 +249,7 @@ const workspaceCardFeedsClosed: Record<string, WorkspaceCardsList | undefined> =
             lastFourPAN: '1234',
             state: 6, // CLOSED
         }),
-        '21539012': createCard({
+        '21539012': createMock<Card>({
             accountID: 1,
             bank: 'Expensify Card',
             cardID: 21539012,
@@ -297,7 +261,7 @@ const workspaceCardFeedsClosed: Record<string, WorkspaceCardsList | undefined> =
             lastFourPAN: '3211',
             state: 6, // CLOSED
         }),
-        '21539027': createCard({
+        '21539027': createMock<Card>({
             accountID: 1,
             bank: 'Expensify Card',
             cardID: 21539027,
@@ -313,7 +277,7 @@ const workspaceCardFeedsClosed: Record<string, WorkspaceCardsList | undefined> =
 };
 
 const cardListClosed: CardList = {
-    '21534538': createCard({
+    '21534538': createMock<Card>({
         accountID: 1,
         bank: 'Expensify Card',
         cardID: 21534538,
@@ -325,7 +289,7 @@ const cardListClosed: CardList = {
         lastFourPAN: '',
         state: 6, // CLOSED
     }),
-    '21534525': createCard({
+    '21534525': createMock<Card>({
         accountID: 1,
         bank: 'Expensify Card',
         cardID: 21534525,
@@ -337,7 +301,7 @@ const cardListClosed: CardList = {
         lastFourPAN: '',
         state: 6, // CLOSED
     }),
-    '21534526': createCard({
+    '21534526': createMock<Card>({
         accountID: 1,
         bank: 'Expensify Card',
         cardID: 21534526,
