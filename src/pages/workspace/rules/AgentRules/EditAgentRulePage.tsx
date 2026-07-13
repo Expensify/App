@@ -52,11 +52,11 @@ function EditAgentRulePage({
     const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
 
-    const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
-        if (!('key' in e)) {
+    const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
+        if (!('key' in event)) {
             return;
         }
-        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
             formRef.current?.submit();
         }
     };
@@ -150,7 +150,7 @@ function EditAgentRulePage({
                                 label={translate('workspace.rules.agentRules.describeRuleTitle')}
                                 accessibilityLabel={translate('workspace.rules.agentRules.describeRuleTitle')}
                                 role={CONST.ROLE.PRESENTATION}
-                                onKeyPress={handleKeyPress}
+                                onKeyPress={submitFormOnModEnter}
                                 defaultValue={agentRule.prompt}
                                 multiline
                                 shouldLabelStayOnSingleLine

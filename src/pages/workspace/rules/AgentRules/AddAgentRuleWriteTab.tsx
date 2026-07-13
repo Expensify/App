@@ -33,11 +33,11 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
     const shouldUseScrollableLayout = useIsInLandscapeMode();
     const formRef = useRef<FormRef>(null);
 
-    const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
-        if (!('key' in e)) {
+    const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
+        if (!('key' in event)) {
             return;
         }
-        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
             formRef.current?.submit();
         }
     };
@@ -76,7 +76,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
                             inputID={INPUT_IDS.PROMPT}
                             accessibilityLabel={translate('workspace.rules.agentRules.describeRuleHeadline')}
                             role={CONST.ROLE.PRESENTATION}
-                            onKeyPress={handleKeyPress}
+                            onKeyPress={submitFormOnModEnter}
                             multiline
                             shouldSaveDraft
                             containerStyles={[styles.flex1]}
