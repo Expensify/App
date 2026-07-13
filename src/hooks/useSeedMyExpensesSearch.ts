@@ -21,7 +21,7 @@ function useSeedMyExpensesSearch() {
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const isSubmitterAndApproverSelector = useMemo(() => createIsSubmitterAndApproverSelector(currentUserEmail), [currentUserEmail]);
-    const [isSubmitterAndApproverUser] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isSubmitterAndApproverSelector}, [currentUserEmail]);
+    const [isSubmitterAndApproverUser] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isSubmitterAndApproverSelector});
     const hasSeededRef = useRef(false);
 
     useEffect(() => {
