@@ -111,6 +111,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
                 {
                     key: 'createWorkspace',
                     label: translate('homePage.gettingStartedSection.createWorkspace'),
+                    subText: translate('homePage.gettingStartedSection.createWorkspaceSubText'),
                     isComplete: false,
                     onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path)),
                 },
@@ -139,6 +140,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             items.push({
                 key: 'customizeSpendCategories',
                 label: translate('homePage.gettingStartedSection.customizeSpendCategories'),
+                subText: translate('homePage.gettingStartedSection.customizeSpendCategoriesSubText'),
                 isComplete: hasCustomCategories(policyCategories),
                 route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
                 isFeatureEnabled: true,
@@ -148,6 +150,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'createExpense',
             label: translate('homePage.gettingStartedSection.createExpense'),
+            subText: translate('homePage.gettingStartedSection.createExpenseSubText'),
             isComplete: hasCreatedExpense,
             onPress: () => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs),
         });
@@ -155,6 +158,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'linkPersonalCard',
             label: translate('homePage.gettingStartedSection.linkPersonalCard'),
+            subText: translate('homePage.gettingStartedSection.linkPersonalCardSubText'),
             isComplete: Object.keys(personalCards).length > 0,
             route: ROUTES.SETTINGS_WALLET,
         });
