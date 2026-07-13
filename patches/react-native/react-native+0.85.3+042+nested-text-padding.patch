@@ -75,7 +75,7 @@ index eb0d85b4b69..ed36f04509b 100644
        // Font
        debugStringConvertibleItem(
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
-index 3f7b4818f9e..dbdaaf71e39 100644
+index 978eea38d20..1b0beaf9f0b 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
 @@ -1039,6 +1039,8 @@ constexpr static MapBuffer::Key TA_KEY_BORDER_TOP_WIDTH = 38;
@@ -87,7 +87,7 @@ index 3f7b4818f9e..dbdaaf71e39 100644
  
  // constants for ParagraphAttributes serialization
  constexpr static MapBuffer::Key PA_KEY_MAX_NUMBER_OF_LINES = 0;
-@@ -1248,6 +1250,16 @@ inline MapBuffer toMapBuffer(const TextAttributes &textAttributes)
+@@ -1308,6 +1310,16 @@ inline MapBuffer toMapBuffer(const TextAttributes &textAttributes)
            textAttributes.borderLeftWidth.value_or(fallback));
      }
    }
@@ -105,7 +105,7 @@ index 3f7b4818f9e..dbdaaf71e39 100644
  }
  
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
-index b9ae418a0fa..fec56d7a118 100644
+index 73d21c90cfb..aa3c836e7e5 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
 @@ -312,6 +312,32 @@ static TextAttributes convertRawProp(
@@ -152,7 +152,7 @@ index b9ae418a0fa..fec56d7a118 100644
    }
  }
  
-@@ -756,6 +786,18 @@ void BaseTextProps::appendTextAttributesProps(
+@@ -757,6 +787,18 @@ void BaseTextProps::appendTextAttributesProps(
          ? textAttributes.borderLeftWidth.value()
          : folly::dynamic(nullptr);
    }
@@ -172,10 +172,10 @@ index b9ae418a0fa..fec56d7a118 100644
  
  #endif
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-index ed7ee76ce6a..2f22c72d271 100644
+index 466efb284d9..fc8387762b8 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-@@ -215,7 +215,7 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
+@@ -220,7 +220,7 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
  
          // attrs: @[bgColor, tlR, trR, blR, brR,
          //          topBorderColor, rightBorderColor, bottomBorderColor, leftBorderColor,
@@ -184,7 +184,7 @@ index ed7ee76ce6a..2f22c72d271 100644
          attributes[RCTTextBorderRadiusAttributeName] = @[
            bgColor,
            @(textAttributes.borderTopLeftRadius.value_or(radiusFallback)),
-@@ -230,6 +230,8 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
+@@ -235,6 +235,8 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
            @(textAttributes.borderRightWidth.value_or(widthFallback)),
            @(textAttributes.borderBottomWidth.value_or(widthFallback)),
            @(textAttributes.borderLeftWidth.value_or(widthFallback)),
@@ -193,7 +193,7 @@ index ed7ee76ce6a..2f22c72d271 100644
          ];
        } else {
          attributes[NSBackgroundColorAttributeName] = bgColor;
-@@ -473,6 +475,71 @@ NSAttributedString *RCTNSAttributedStringFromAttributedString(const AttributedSt
+@@ -478,6 +480,71 @@ NSAttributedString *RCTNSAttributedStringFromAttributedString(const AttributedSt
  
      [nsAttributedString appendAttributedString:nsAttributedStringFragment];
    }
@@ -266,7 +266,7 @@ index ed7ee76ce6a..2f22c72d271 100644
  
    return nsAttributedString;
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
-index d82b6a7062a..2ef8c0f6c5d 100644
+index f4b7d39cc7a..60ca85ef2a6 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
 @@ -375,6 +375,48 @@ static NSLineBreakMode RCTNSLineBreakModeFromEllipsizeMode(EllipsizeMode ellipsi
@@ -458,10 +458,10 @@ index c2320fe9792..4faca47e9b9 100644
        CGFloat y = CGRectGetMinY(spanRect);
        CGFloat w = CGRectGetWidth(spanRect);
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
-index 53faf049df6..a5be6d7d324 100644
+index 86dd1fc7386..2be0a2fd350 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
-@@ -128,6 +128,14 @@ public class TextAttributeProps private constructor() {
+@@ -127,6 +127,14 @@ public class TextAttributeProps private constructor() {
    public var borderLeftWidth: Float = Float.NaN
      private set
  
@@ -476,7 +476,7 @@ index 53faf049df6..a5be6d7d324 100644
    public var opacity: Float = Float.NaN
      private set
  
-@@ -448,6 +456,8 @@ public class TextAttributeProps private constructor() {
+@@ -447,6 +455,8 @@ public class TextAttributeProps private constructor() {
      public const val TA_KEY_BORDER_RIGHT_WIDTH: Int = 39
      public const val TA_KEY_BORDER_BOTTOM_WIDTH: Int = 40
      public const val TA_KEY_BORDER_LEFT_WIDTH: Int = 41
@@ -485,7 +485,7 @@ index 53faf049df6..a5be6d7d324 100644
  
      public const val UNSET: Int = -1
  
-@@ -522,6 +532,8 @@ public class TextAttributeProps private constructor() {
+@@ -521,6 +531,8 @@ public class TextAttributeProps private constructor() {
                result.borderBottomWidth = entry.doubleValue.toFloat()
            TA_KEY_BORDER_LEFT_WIDTH ->
                result.borderLeftWidth = entry.doubleValue.toFloat()
@@ -495,7 +495,7 @@ index 53faf049df6..a5be6d7d324 100644
        }
  
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
-index 7d2774b443f..932e26503b0 100644
+index e3f19473554..7db47187ad8 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 @@ -8,7 +8,9 @@
@@ -690,6 +690,7 @@ index 80f8d389475..5c188dc9330 100644
        drawBorder(canvas, rectF, isFirstLine, isLastLine)
      }
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
+index 5a84c014434..87af2566b04 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
 @@ -246,6 +246,8 @@ TextAttributes BaseTextInputProps::getEffectiveTextAttributes(
@@ -702,9 +703,10 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/tex
    return result;
  }
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+index 301bde7418c..a5677ac096d 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
-@@ -158,6 +158,10 @@
+@@ -158,6 +158,10 @@ AttributedString AndroidTextInputShadowNode::getAttributedString(
    // string. Android tries to render shadow of the background alongside the
    // shadow of the text which results in weird artifacts.
    childTextAttributes.backgroundColor = HostPlatformColor::UndefinedColor;
@@ -715,7 +717,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/tex
  
    auto attributedString = AttributedString{};
    auto attachments = BaseTextShadowNode::Attachments{};
-@@ -171,6 +175,8 @@
+@@ -171,6 +175,8 @@ AttributedString AndroidTextInputShadowNode::getAttributedString(
      auto textAttributes = TextAttributes::defaultTextAttributes();
      textAttributes.apply(getConcreteProps().textAttributes);
      textAttributes.fontSizeMultiplier = layoutContext.fontSizeMultiplier;

@@ -292,7 +292,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/92412
 - PR introducing patch: 🛑
 
-### [react-native+0.83.1+041+nested-text-border-width.patch](react-native+0.83.1+041+nested-text-border-width.patch)
+### [react-native+0.85.3+041+nested-text-border-width.patch](react-native+0.85.3+041+nested-text-border-width.patch)
 
 - Reason:
 
@@ -313,7 +313,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/57556
 - PR introducing patch: https://github.com/Expensify/App/pull/94332
 
-### [react-native+0.83.1+042+nested-text-padding.patch](react-native+0.83.1+042+nested-text-padding.patch)
+### [react-native+0.85.3+042+nested-text-padding.patch](react-native+0.85.3+042+nested-text-padding.patch)
 
 - Reason:
 
