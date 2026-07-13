@@ -12,6 +12,7 @@ import type {AgentRowData} from '@components/Tables/AgentsTable';
 import AgentsTable from '@components/Tables/AgentsTable';
 
 import useChatWithAgent from '@hooks/useChatWithAgent';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -128,6 +129,8 @@ function AgentsPage() {
         setSelectedAgents((prevSelectedAgents) => (prevSelectedAgents.length > 0 ? [] : prevSelectedAgents));
     };
 
+    useCleanupSelectedOptions(clearSelectedAgents);
+
     useSearchBackPress({
         onClearSelection: clearSelectedAgents,
         onNavigationCallBack: () => Navigation.goBack(),
@@ -185,7 +188,7 @@ function AgentsPage() {
         <ButtonWithDropdownMenu<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>
             shouldAlwaysShowDropdownMenu
             customText={translate('workspace.common.selected', {count: selectedAgentKeys.length})}
-            buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+            size={CONST.BUTTON_SIZE.MEDIUM}
             onPress={() => null}
             options={bulkActionsButtonOptions}
             isSplitButton={false}
