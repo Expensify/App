@@ -36,6 +36,7 @@ import {getExistingTransactionID} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {sortAndSectionPopoverMenuItems, TRANSACTION_MORE_MENU_SECTIONS} from '@libs/PopoverMenuSections';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -75,7 +76,7 @@ import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
-import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useRef, useState} from 'react';
@@ -168,7 +169,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, transaction);
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();

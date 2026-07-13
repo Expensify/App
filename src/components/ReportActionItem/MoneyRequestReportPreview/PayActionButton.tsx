@@ -17,6 +17,7 @@ import useReportTransactionViolations from '@hooks/useReportTransactionViolation
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {
     getReportOrDraftReport,
@@ -35,7 +36,7 @@ import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
-import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
@@ -80,7 +81,7 @@ function PayActionButton() {
     );
 
     const [transactionViolations] = useReportTransactionViolations(transactions);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);

@@ -25,6 +25,7 @@ import Log from '@libs/Log';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import {rand64} from '@libs/NumberUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
@@ -50,7 +51,6 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import {RESULTS} from 'react-native-permissions';
 
@@ -100,7 +100,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
         selector: shouldStartLocationPermissionFlowSelector,
     });
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();

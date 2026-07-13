@@ -16,7 +16,7 @@ import Onyx from 'react-native-onyx';
 
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
-import isTrackOnboardingChoice from './OnboardingUtils';
+import {isTrackOnboardingChoice} from './OnboardingUtils';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {

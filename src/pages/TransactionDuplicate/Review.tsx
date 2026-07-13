@@ -23,6 +23,7 @@ import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils';
 import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -37,7 +38,6 @@ import type {Transaction} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -89,7 +89,7 @@ function TransactionDuplicateReview() {
     const [selectedTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactionReport?.policyID}`);
     const [selectedTransactionPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${selectedTransactionReport?.policyID}`);
     const [selectedTransactionPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${selectedTransactionReport?.policyID}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const hasSettledOrApprovedTransaction = transactions.some((transaction) => isSettled(transaction?.reportID) || isReportIDApproved(transaction?.reportID));
     const hasLoadedThreadReportActions = hasLoadedReportActions(reportLoadingState, isOffline);
