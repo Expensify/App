@@ -1,9 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useMemo, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
@@ -18,6 +12,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -29,14 +24,17 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
+import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
+
 import {clearAgentAvatarUpdateError} from '@userActions/Agent';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +43,15 @@ import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useMemo, useRef} from 'react';
+import {View} from 'react-native';
+
 import AgentAIPromptSection from './AgentAIPromptSection';
 
 function ProfilePage() {
@@ -95,7 +102,7 @@ function ProfilePage() {
     }> = [
         {
             description: translate('displayNamePage.headerTitle'),
-            title: formatPhoneNumber(getDisplayNameOrDefault(currentUserPersonalDetails)),
+            title: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate})),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DISPLAY_NAME,
         },
@@ -105,9 +112,9 @@ function ProfilePage() {
                 .map((login) => login?.menuItemTitle)
                 .filter(Boolean)
                 .join(', '),
-            pageRoute: isAgentAccount ? undefined : ROUTES.SETTINGS_CONTACT_METHODS.route,
-            brickRoadIndicator: isAgentAccount ? undefined : contactMethodBrickRoadIndicator,
-            testID: isAgentAccount ? undefined : 'contact-method-menu-item',
+            pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
+            brickRoadIndicator: contactMethodBrickRoadIndicator,
+            testID: 'contact-method-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHODS,
         },
         {
@@ -277,41 +284,39 @@ function ProfilePage() {
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.SHARE_CODE}
                             />
                         </Section>
-                        {!isAgentAccount && (
-                            <Section
-                                title={translate('profilePage.privateSection.title')}
-                                subtitle={translate('profilePage.privateSection.subtitle')}
-                                isCentralPane
-                                subtitleMuted
-                                childrenStyles={styles.pt3}
-                                titleStyles={styles.accountSettingsSectionTitle}
-                            >
-                                {isLoadingApp ? (
-                                    <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
-                                        <ActivityIndicator
-                                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                            reasonAttributes={privateSectionReasonAttributes}
+                        <Section
+                            title={translate('profilePage.privateSection.title')}
+                            subtitle={translate('profilePage.privateSection.subtitle')}
+                            isCentralPane
+                            subtitleMuted
+                            childrenStyles={styles.pt3}
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
+                            {isLoadingApp ? (
+                                <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
+                                    <ActivityIndicator
+                                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                        reasonAttributes={privateSectionReasonAttributes}
+                                    />
+                                </View>
+                            ) : (
+                                <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
+                                    {privateOptions.map((detail, index) => (
+                                        <MenuItemWithTopDescription
+                                            // eslint-disable-next-line react/no-array-index-key
+                                            key={`${detail.title}_${index}`}
+                                            shouldShowRightIcon
+                                            title={detail.title}
+                                            description={detail.description}
+                                            wrapperStyle={styles.sectionMenuItemTopDescription}
+                                            onPress={detail.action}
+                                            brickRoadIndicator={detail.brickRoadIndicator}
+                                            sentryLabel={detail.sentryLabel}
                                         />
-                                    </View>
-                                ) : (
-                                    <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
-                                        {privateOptions.map((detail, index) => (
-                                            <MenuItemWithTopDescription
-                                                // eslint-disable-next-line react/no-array-index-key
-                                                key={`${detail.title}_${index}`}
-                                                shouldShowRightIcon
-                                                title={detail.title}
-                                                description={detail.description}
-                                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                                onPress={detail.action}
-                                                brickRoadIndicator={detail.brickRoadIndicator}
-                                                sentryLabel={detail.sentryLabel}
-                                            />
-                                        ))}
-                                    </MenuItemGroup>
-                                )}
-                            </Section>
-                        )}
+                                    ))}
+                                </MenuItemGroup>
+                            )}
+                        </Section>
                         {isAgentAccount && (
                             <AgentAIPromptSection
                                 accountID={accountID}

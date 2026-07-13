@@ -1,8 +1,7 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import type {TupleToUnion} from 'type-fest';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Section from '@components/Section';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,20 +10,28 @@ import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
+
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
+
 import {deletePaymentBankAccount} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
 import {setInvoicingTransferBankAccount} from '@userActions/PaymentMethods';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {TupleToUnion} from 'type-fest';
+
+import React, {useCallback, useMemo, useRef} from 'react';
 
 type WorkspaceInvoiceVBASectionProps = {
     /** The policy ID currently being configured */
@@ -137,7 +144,12 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
         const accountPolicyID = accountData?.additionalData?.policyID;
 
         if (accountPolicyID) {
-            navigateToBankAccountRoute({policyID: accountPolicyID, backTo: ROUTES.WORKSPACE_INVOICES.getRoute(policyID)});
+            navigateToBankAccountRoute({
+                policyID: accountPolicyID,
+                backTo: ROUTES.WORKSPACE_INVOICES.getRoute(policyID),
+                policyCurrency: accountData?.additionalData?.currency,
+                bankAccountState: accountData?.state,
+            });
         }
     };
 
