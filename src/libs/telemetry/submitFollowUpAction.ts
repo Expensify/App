@@ -1,3 +1,11 @@
+import Log from '@libs/Log';
+import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import navigationRef from '@libs/Navigation/navigationRef';
+
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+
 /**
  * Submit follow-up action span: measures time from expense submit until the follow-up action
  * (e.g. dismiss modal and open report, dismiss modal only, navigate to search) is complete and the target screen is visible.
@@ -11,12 +19,7 @@
  */
 import type {SpanAttributeValue} from '@sentry/core';
 import type {ValueOf} from 'type-fest';
-import Log from '@libs/Log';
-import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
-import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
-import navigationRef from '@libs/Navigation/navigationRef';
-import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
+
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from './activeSpans';
 
 type SubmitFollowUpAction = ValueOf<typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION>;
@@ -381,5 +384,15 @@ function cancelIfStaleForNavState() {
     }
 }
 
-export {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction, getPendingSubmitFollowUpAction, cancelSubmitFollowUpActionSpan, startTracking, setFastPath, addOptimization, isTracking};
+export {
+    endSubmitFollowUpActionSpan,
+    setPendingSubmitFollowUpAction,
+    getPendingSubmitFollowUpAction,
+    cancelSubmitFollowUpActionSpan,
+    cancelTracking,
+    startTracking,
+    setFastPath,
+    addOptimization,
+    isTracking,
+};
 export type {SubmitExpenseContext, SubmitFollowUpAction};

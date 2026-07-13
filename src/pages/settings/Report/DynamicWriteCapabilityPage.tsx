@@ -1,19 +1,24 @@
-import React, {useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import {updateWriteCapability as updateWriteCapabilityUtil} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {canEditWriteCapability} from '@libs/ReportUtils';
+
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React, {useState} from 'react';
 
 type DynamicWriteCapabilityPageProps = WithReportOrNotFoundProps;
 

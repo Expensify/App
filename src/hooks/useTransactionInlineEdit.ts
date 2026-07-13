@@ -1,14 +1,5 @@
-/**
- * Centralizes inline-editing logic for a transaction row so that permission
- * derivation, Onyx subscriptions, and edit handlers live in one place rather
- * than being duplicated across every surface that renders a transaction.
- */
-import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import {useCallback, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
+
 import type {TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
 import {
     editTransactionAmountInline,
@@ -20,14 +11,31 @@ import {
     getTransactionEditPermissions,
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isTrackExpenseReportNew} from '@libs/ReportUtils';
-import {isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
+import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+/**
+ * Centralizes inline-editing logic for a transaction row so that permission
+ * derivation, Onyx subscriptions, and edit handlers live in one place rather
+ * than being duplicated across every surface that renders a transaction.
+ */
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {useCallback, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+
+import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import usePolicyForTransaction from './usePolicyForTransaction';
 import useSelfDMReport from './useSelfDMReport';
@@ -133,7 +141,13 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const isTrackExpense = isTrackExpenseReportNew(transactionThreadReport, effectiveParentReport, parentReportAction);
 
+    const editPolicy = completePolicy ?? policy;
+    const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
+    const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(editPolicy, customUnitRateID);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
+
     const {isOffline} = useNetwork();
+    const personalPolicy = usePersonalPolicy();
 
     const permissions = getTransactionEditPermissions({
         transaction,
@@ -169,11 +183,12 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             isOffline,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed ?? false,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
+            distanceOriginalPolicy,
         };
     };
 
     const onEditDate = (newDate: string) => {
-        editTransactionDateInline(getEditParams(), newDate);
+        editTransactionDateInline(getEditParams(), newDate, personalPolicy?.outputCurrency);
     };
 
     const onEditMerchant = (newMerchant: string) => {
