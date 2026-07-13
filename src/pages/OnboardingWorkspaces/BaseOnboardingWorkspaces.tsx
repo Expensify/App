@@ -113,7 +113,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
             isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-            conciergeReportID ?? '',
+            conciergeReportID,
             reportNameValuePairs,
             policy.automaticJoiningEnabled ? policy.policyID : undefined,
             undefined,

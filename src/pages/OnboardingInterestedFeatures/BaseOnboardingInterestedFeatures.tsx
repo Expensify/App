@@ -260,7 +260,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             navigateAfterOnboardingWithMicrotaskQueue(
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                conciergeReportID ?? '',
+                conciergeReportID,
                 reportNameValuePairs,
                 policyID,
                 adminsChatReportID,
