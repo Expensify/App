@@ -28,17 +28,17 @@ int initialize(JavaVM* vm) {
 }
 
 struct JHybridContactsModuleSpecImpl: public jni::JavaClass<JHybridContactsModuleSpecImpl, JHybridContactsModuleSpec::JavaPart> {
-  static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridContactsModule;";
+  static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridContactsModule;";
   static std::shared_ptr<JHybridContactsModuleSpec> create() {
-    static const auto constructorFn = javaClassStatic()->getConstructor<JHybridContactsModuleSpecImpl::javaobject()>();
+    static auto constructorFn = javaClassStatic()->getConstructor<JHybridContactsModuleSpecImpl::javaobject()>();
     jni::local_ref<JHybridContactsModuleSpec::JavaPart> javaPart = javaClassStatic()->newObject(constructorFn);
     return javaPart->getJHybridContactsModuleSpec();
   }
 };
 struct JHybridAppStartTimeModuleSpecImpl: public jni::JavaClass<JHybridAppStartTimeModuleSpecImpl, JHybridAppStartTimeModuleSpec::JavaPart> {
-  static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridAppStartTimeModule;";
+  static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridAppStartTimeModule;";
   static std::shared_ptr<JHybridAppStartTimeModuleSpec> create() {
-    static const auto constructorFn = javaClassStatic()->getConstructor<JHybridAppStartTimeModuleSpecImpl::javaobject()>();
+    static auto constructorFn = javaClassStatic()->getConstructor<JHybridAppStartTimeModuleSpecImpl::javaobject()>();
     jni::local_ref<JHybridAppStartTimeModuleSpec::JavaPart> javaPart = javaClassStatic()->newObject(constructorFn);
     return javaPart->getJHybridAppStartTimeModuleSpec();
   }

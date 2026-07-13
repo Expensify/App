@@ -1,7 +1,7 @@
 ---
 title: Managing Workspace Members in New Expensify
 description: Learn how to add, remove, filter, and manage user roles in a New Expensify workspace.
-keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, invite users, filter members, role filter]
+keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, invite users, filter members, role filter]
 ---
 
 
@@ -10,9 +10,12 @@ Managing members in a workspace helps ensure that the right people can submit, a
 A **Workspace member** is anyone added to a workspace with one of the following roles:
 
 - **Member** – Can submit and/or approve expenses.
-- **Admin** – Can manage members, roles, workflows, and settings.
-- **Auditor** – Can view and comment on reports and has read-only access to all workspace editor pages (such as Categories, Tags, Rules, Workflows, and Accounting). Auditors cannot change any workspace settings or take workflow actions such as approving, paying, or taking control.
-- **Card Admin** – Can manage the Expensify Card and Company cards, including issuing cards, setting limits, and assigning company cards. Has read-only access to Overview and Members, and all other workspace settings pages are hidden.
+- **Workspace Admin** – Can manage members, roles, workflows, and settings.
+- **Card Admin** – Can manage the Expensify Card and Company cards, including issuing cards, setting limits, and assigning company cards. Has read-only access to Overview and Members, and all other workspace settings pages are hidden. (Control workspaces only)
+- **People Admin** – Can manage workspace membership and configure approval workflows. People Admins can add and remove Members and Auditors only, and cannot add or remove Admins or other scoped admin roles. They have read-only access to the workspace overview and edit access to Members and the Approvals section of Workflows. All other workspace editor pages are hidden. (Control workspaces only)
+- **Payments Admin** – Can manage workspace payment settings in the **Payments** section of **Workflows**, including business bank accounts, the authorized expense payer, and payment methods. Payment permissions are otherwise unchanged, so paying a report still depends on the relevant bank account being shared with the payer. Has read-only access to the workspace overview and Members, and all other workspace editor pages are hidden. (Control workspaces only)
+- **Auditor** – Can view and comment on reports and has read-only access to all workspace editor pages (such as Categories, Tags, Rules, Workflows, and Accounting). Auditors cannot change any workspace settings or take workflow actions such as approving, paying, or taking control. (Control workspaces only)
+- **Editor** – Can edit workspace settings, but cannot see all expenses associated with the workspace. They cannot add Admins to the workspace or change other users’ roles. (Submit workspaces only)
 
 ---
 
@@ -29,6 +32,8 @@ To invite someone to your workspace:
 
 **Tip:** You can also invite members under **Settings > Profile** by clicking **Share** to send the workspace’s URL or QR code.
 
+**Note:** Workspace Admins and People Admins can invite members. People Admins can only invite users as **Members** or **Auditors** — they cannot invite Admins or other scoped admin roles.
+
 ---
 
 # Filter Workspace Members by Role
@@ -41,9 +46,10 @@ You can filter the member list by role to quickly find specific groups of member
    - **All members** – Shows all workspace members (default).
    - **Approvers** – Shows only members who are designated approvers.
    - **Workspace Admins** – Shows only members with the Admin role (not available on Submit workspaces).
-   - **Editors** – Shows only members with the Editor role (Submit workspaces only).
    - **Card Admins** – Shows only members with the Card Admin role (Control workspaces only).
+   - **Payments Admins** – Shows only members with the Payments Admin role (Control workspaces only).
    - **Auditors** – Shows only members with the Auditor role (Control workspaces only).
+   - **Editors** – Shows only members with the Editor role (Submit workspaces only).
 
 The member list updates immediately to show only members matching the selected role. You can also combine the role filter with the search bar to narrow results further.
 
@@ -56,6 +62,8 @@ If no members match the selected filter, an empty state is displayed with the me
 # Remove Workspace Members
 
 If someone no longer needs access to your workspace, you can remove them individually or in bulk to keep your member list up to date.
+
+**Note:** Workspace Admins and People Admins can remove members. People Admins can only remove **Members** and **Auditors** — they cannot remove Admins or other scoped admin roles.
 
 ## Remove a Single Member
 
@@ -80,6 +88,8 @@ If someone no longer needs access to your workspace, you can remove them individ
 2. Click the member’s name.
 3. In the right-hand panel, click **Roles**.
 4. Select the new role and confirm.
+
+**Note:** People Admins can change a member’s role between **Member** and **Auditor** only. Granting or removing the Admin role or any scoped admin role (such as Card Admin, People Admin, or Payments Admin) requires a Workspace Admin.
 
 ---
 
@@ -106,8 +116,24 @@ After the transfer, the initiating user becomes the new **Owner**.
 2. Click the **three-dot menu** in the top-right.
 3. Select **Import via Spreadsheet**.
 4. Drag and drop your file or click **Upload File** to browse.
+5. Map each column in your file to a member field, then complete the import.
+
+When mapping columns, you can assign each one to any of the following member fields:
+
+- **Email** (required)
+- **Role**
+- **Submit to**
+- **Forward to**
+- **Over limit forward to**
+- **Approval limit**
+- **Custom field 1**
+- **Custom field 2**
+
+Mapping the **Submit to**, **Forward to**, **Over limit forward to**, and **Approval limit** fields sets up each member's approval workflow, which you can review under **Workflows** after the import completes.
 
 **Note:** Use this **[spreadsheet import template](https://docs.google.com/spreadsheets/d/19fjknN-KOS74RjXDccXZGUNTm-utdV7Gvveo5EyrJLE/edit?gid=0#gid=0)** to ensure proper formatting.
+
+**Control plan required:** The **Submit to**, **Forward to**, **Over limit forward to**, **Approval limit**, **Custom field 1**, and **Custom field 2** fields — along with specialized roles like **Auditor** and **Card Admin** — are only available on the Control plan. If your workspace isn't on the Control plan, you'll be prompted to upgrade before the import can finish.
 
 ---
 
@@ -120,4 +146,8 @@ You must be a **Workspace Admin**, and the email or phone number of the individu
 ## Can I invite multiple members to a workspace at the same time?
 
 Yes. Use the search tool during invite or import members using a spreadsheet (see the **Invite Multiple Members via Spreadsheet** section above.
+
+## Why am I prompted to upgrade when importing members from a spreadsheet?
+
+Your file maps an advanced field (**Submit to**, **Forward to**, **Over limit forward to**, **Approval limit**, **Custom field 1**, or **Custom field 2**) or assigns a specialized role like **Auditor** or **Card Admin**. These are only available on the Control plan, so you'll need to upgrade your workspace to the Control plan before the import can finish.
 

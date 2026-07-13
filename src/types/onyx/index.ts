@@ -9,6 +9,9 @@ import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
 import type Attachment from './Attachment';
+import type AvatarCropDraft from './AvatarCropDraft';
+import type {AvatarCropMaskType} from './AvatarCropDraft';
+import type AvatarCropResult from './AvatarCropResult';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type BankAccountShareDetails from './BankAccountShareDetails';
@@ -64,6 +67,7 @@ import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
 import type {DomainSecurityGroup, SamlMetadata, UserSecurityGroupData} from './Domain';
 import type DomainErrors from './DomainErrors';
+import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
@@ -199,6 +203,9 @@ export type {
     FileObject,
     TryNewDot,
     Attachment,
+    AvatarCropDraft,
+    AvatarCropMaskType,
+    AvatarCropResult,
     Account,
     AccountData,
     AssignCard,
@@ -407,6 +414,7 @@ export type {
     AppReview,
     SamlMetadata,
     DomainErrors,
+    DomainHighlightItems,
     DomainPendingActions,
     DomainSecurityGroup,
     CodingRuleMatchingTransaction,
