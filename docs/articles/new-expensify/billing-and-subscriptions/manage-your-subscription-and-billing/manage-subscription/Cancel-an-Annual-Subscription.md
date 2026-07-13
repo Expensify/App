@@ -18,6 +18,16 @@ For more details, see [When You Can Change Your Subscription](/articles/new-expe
 
 ---
 
+## Before you cancel
+
+Before canceling, consider whether one of these alternatives fits your needs:
+
+ - **Reduce your subscription size** at renewal so you're only billed for the members you need. See [Manage Annual Subscription Settings](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Manage-Annual-Subscription-Settings).
+ - **Lower your cost with the Expensify Card**, which can reduce your bill by up to 50% on Control workspaces. See [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing#how-the-expensify-card-discount-works).
+ - **Switch your plan tier** if you need fewer features. See [Change Your Workspace Plan](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Change-Your-Workspace-Plan).
+
+---
+
 ## Who can cancel an Annual subscription
 
 Only the Workspace owner can request a cancellation, and only when the workspace is on an **Annual** subscription. **Cancel subscription** appears under **Account > Subscription** after your free trial ends and once a payment card has been added or you've been billed at least once.

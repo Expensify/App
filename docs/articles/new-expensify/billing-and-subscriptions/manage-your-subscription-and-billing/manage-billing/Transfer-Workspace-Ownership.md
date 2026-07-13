@@ -91,3 +91,13 @@ You can take over an Annual subscription only if you're a Workspace Admin on eve
 Billing history only includes subscription charges made while you're the Workspace owner. Charges paid by the previous Workspace owner won't appear in your billing history.
 
 If you need to review previous subscription charges, ask the previous Workspace owner to follow the steps to [make billing receipts visible to other Workspace Admins](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Find-Your-Expensify-Billing-Receipt#how-can-i-make-billing-receipts-visible-to-other-workspace-admins). 
+
+## The transfer won't complete or keeps loading. What can I do?
+
+If the transfer doesn't complete or the screen loads indefinitely, try the following:
+
+ - Confirm you're a Workspace Admin on **every** workspace included in the subscription. To take over an Annual subscription, you must be an admin on all of its workspaces.
+ - Make sure you have a valid payment card on file before starting the transfer.
+ - Hard refresh the page or try again in an incognito/private browser window to rule out a caching issue.
+
+If the transfer still won't complete, contact Concierge for help.

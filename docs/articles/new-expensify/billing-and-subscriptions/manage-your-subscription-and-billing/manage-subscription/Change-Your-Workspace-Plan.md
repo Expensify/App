@@ -48,6 +48,10 @@ If you have an Annual subscription, changes to your plan may be restricted. To l
 
 Yes. You can upgrade a workspace to Control at any time by returning to the **Plan type** setting.
 
+## What happens to my bill when I downgrade to Collect?
+
+Your new plan's rate applies to your next monthly bill. The current billing period isn't pro-rated or refunded. If you have an outstanding balance, resolve it before downgrading—see [Fix a Billing Issue](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Fix-a-Billing-Issue).
+
 ## Why is my Plan type locked?
 
 This happens when you're on the Control plan with an Annual subscription. You've committed to your active members on Control until the subscription term ends, so you can't downgrade to Collect before that date. The locked message shows exactly when your term ends.
