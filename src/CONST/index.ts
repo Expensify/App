@@ -8142,6 +8142,7 @@ const CONST = {
         },
         TABLE: {
             FILTERS: 'Table-Filters',
+            SETTINGS: 'Table-Settings',
             EDITABLE_CELL: 'Table-EditableCell',
         },
         REPORT: {

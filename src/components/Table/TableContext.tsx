@@ -47,6 +47,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Currently active sorting configuration. */
     activeSorting: ActiveSorting<ColumnKey>;
 
+    /** The column the table is initially sorted by, used as the reset target for sort controls. */
+    initialSortColumn: ColumnKey | undefined;
+
     /** Currently active search string. */
     activeSearchString: string;
 
@@ -79,6 +82,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
         columnKey: undefined,
         order: 'asc',
     },
+    initialSortColumn: undefined,
     activeSearchString: '',
     tableMethods: {} as TableMethods<string, string>,
     filterConfig: undefined,

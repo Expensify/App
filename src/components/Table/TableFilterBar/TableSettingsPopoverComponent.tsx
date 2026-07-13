@@ -1,10 +1,6 @@
-import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import BasePopup from '@components/Search/FilterDropdowns/BasePopup';
-import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -12,9 +8,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {ActiveSorting} from '@components/Table/middlewares/sorting';
 import {useTableContext} from '@components/Table/TableContext';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -22,17 +16,13 @@ import CONST from '@src/CONST';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-const DEFAULT_COMPANY_CARDS_SORTING: ActiveSorting<string> = {
-    columnKey: 'member',
-    order: CONST.SEARCH.SORT_ORDER.ASC,
-};
-
-type WorkspaceCompanyCardsPopupProps = {
+type TableSettingsPopoverComponentProps = {
+    /** Function to call to close the overlay */
     closeOverlay: () => void;
 };
 
-type WorkspaceCompanyCardsSortByPopupProps = {
-    columns: Array<{key: string; label: string; sortable: boolean}>;
+type TableSettingsSortByPopupProps = {
+    columns: Array<{key: string; label: string}>;
     pendingSorting: ActiveSorting<string>;
     setPendingSorting: React.Dispatch<React.SetStateAction<ActiveSorting<string>>>;
     onSortOrderPress: () => void;
@@ -41,7 +31,7 @@ type WorkspaceCompanyCardsSortByPopupProps = {
     onReset: () => void;
 };
 
-function WorkspaceCompanyCardsSortByPopup({columns, pendingSorting, setPendingSorting, onSortOrderPress, onBackButtonPress, onApply, onReset}: WorkspaceCompanyCardsSortByPopupProps) {
+function TableSettingsSortByPopup({columns, pendingSorting, setPendingSorting, onSortOrderPress, onBackButtonPress, onApply, onReset}: TableSettingsSortByPopupProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const selectedColumn = columns.find((column) => column.key === pendingSorting.columnKey) ?? columns.at(0);
@@ -86,70 +76,75 @@ function WorkspaceCompanyCardsSortByPopup({columns, pendingSorting, setPendingSo
     );
 }
 
-function WorkspaceCompanyCardsDisplayPopover({closeOverlay}: WorkspaceCompanyCardsPopupProps) {
+export default function TableSettingsPopoverComponent({closeOverlay}: TableSettingsPopoverComponentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {
         columns,
         activeSorting,
+        initialSortColumn,
         tableMethods: {updateSorting},
     } = useTableContext();
-    const [selectedDisplayFilter, setSelectedDisplayFilter] = useState<'sortBy' | 'sortOrder' | null>(null);
-    const [pendingSorting, setPendingSorting] = useState<ActiveSorting<string>>(DEFAULT_COMPANY_CARDS_SORTING);
+    const [selectedSetting, setSelectedSetting] = useState<'sortBy' | 'sortOrder' | null>(null);
+
+    const defaultSorting: ActiveSorting<string> = {
+        columnKey: initialSortColumn,
+        order: CONST.SEARCH.SORT_ORDER.ASC,
+    };
+    const [pendingSorting, setPendingSorting] = useState<ActiveSorting<string>>(defaultSorting);
 
     const sortableColumns = columns
-        .filter((column) => column.sortable && column.key !== 'actions')
+        .filter((column) => column.sortable)
         .map((column) => ({
             key: column.key,
             label: column.label,
-            sortable: column.sortable,
         }));
 
     const activeColumn = sortableColumns.find((column) => column.key === activeSorting.columnKey) ?? sortableColumns.at(0);
-    const activeOrder = activeSorting.order ?? DEFAULT_COMPANY_CARDS_SORTING.order;
+    const activeOrder = activeSorting.order ?? defaultSorting.order;
     const sortByTitle = activeColumn ? `${activeColumn.label} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${activeOrder}`)}` : undefined;
 
-    const resetSorting = (closeDisplayMenu: () => void) => {
-        setPendingSorting(DEFAULT_COMPANY_CARDS_SORTING);
-        updateSorting(DEFAULT_COMPANY_CARDS_SORTING);
-        setSelectedDisplayFilter(null);
-        closeDisplayMenu();
+    const resetSorting = (closeSettingsMenu: () => void) => {
+        setPendingSorting(defaultSorting);
+        updateSorting(defaultSorting);
+        setSelectedSetting(null);
+        closeSettingsMenu();
     };
 
-    const applySorting = (closeDisplayMenu: () => void) => {
+    const applySorting = (closeSettingsMenu: () => void) => {
         updateSorting(pendingSorting);
-        setSelectedDisplayFilter(null);
-        closeDisplayMenu();
+        setSelectedSetting(null);
+        closeSettingsMenu();
     };
 
     const openSortBy = () => {
         setPendingSorting({
-            columnKey: activeSorting.columnKey ?? DEFAULT_COMPANY_CARDS_SORTING.columnKey,
-            order: activeSorting.order ?? DEFAULT_COMPANY_CARDS_SORTING.order,
+            columnKey: activeSorting.columnKey ?? defaultSorting.columnKey,
+            order: activeSorting.order ?? defaultSorting.order,
         });
-        setSelectedDisplayFilter('sortBy');
+        setSelectedSetting('sortBy');
     };
 
-    const closeDisplayOverlay = () => {
-        setSelectedDisplayFilter(null);
+    const closeSettingsOverlay = () => {
+        setSelectedSetting(null);
         closeOverlay();
     };
 
-    if (selectedDisplayFilter === 'sortBy') {
+    if (selectedSetting === 'sortBy') {
         return (
-            <WorkspaceCompanyCardsSortByPopup
+            <TableSettingsSortByPopup
                 columns={sortableColumns}
                 pendingSorting={pendingSorting}
                 setPendingSorting={setPendingSorting}
-                onSortOrderPress={() => setSelectedDisplayFilter('sortOrder')}
-                onBackButtonPress={() => setSelectedDisplayFilter(null)}
-                onApply={() => applySorting(closeDisplayOverlay)}
-                onReset={() => resetSorting(closeDisplayOverlay)}
+                onSortOrderPress={() => setSelectedSetting('sortOrder')}
+                onBackButtonPress={() => setSelectedSetting(null)}
+                onApply={() => applySorting(closeSettingsOverlay)}
+                onReset={() => resetSorting(closeSettingsOverlay)}
             />
         );
     }
 
-    if (selectedDisplayFilter === 'sortOrder') {
+    if (selectedSetting === 'sortOrder') {
         const selectedOrder = {
             text: translate(`search.filters.sortOrder.${pendingSorting.order}`),
             value: pendingSorting.order,
@@ -164,12 +159,12 @@ function WorkspaceCompanyCardsDisplayPopover({closeOverlay}: WorkspaceCompanyCar
                 value={selectedOrder}
                 label={translate('search.display.sortOrder')}
                 defaultValue={CONST.SEARCH.SORT_ORDER.ASC}
-                onBackButtonPress={() => setSelectedDisplayFilter('sortBy')}
-                closeOverlay={closeDisplayOverlay}
+                onBackButtonPress={() => setSelectedSetting('sortBy')}
+                closeOverlay={closeSettingsOverlay}
                 onChange={(item) => {
                     const nextSorting = {
                         ...pendingSorting,
-                        order: item?.value ?? DEFAULT_COMPANY_CARDS_SORTING.order,
+                        order: item?.value ?? defaultSorting.order,
                     };
                     setPendingSorting(nextSorting);
                     updateSorting(nextSorting);
@@ -190,51 +185,3 @@ function WorkspaceCompanyCardsDisplayPopover({closeOverlay}: WorkspaceCompanyCar
         </ScrollView>
     );
 }
-
-function renderWorkspaceCompanyCardsDisplayPopover({closeOverlay}: WorkspaceCompanyCardsPopupProps) {
-    return <WorkspaceCompanyCardsDisplayPopover closeOverlay={closeOverlay} />;
-}
-
-function WorkspaceCompanyCardsDisplayButton() {
-    const theme = useTheme();
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
-    const {shouldUseNarrowTableLayout} = useTableContext();
-
-    if (shouldUseNarrowTableLayout) {
-        return (
-            <FilterPopupButton
-                PopoverComponent={renderWorkspaceCompanyCardsDisplayPopover}
-                renderButton={({ref, onPress}) => (
-                    <PressableWithFeedback
-                        ref={ref}
-                        accessibilityLabel={translate('search.display.label')}
-                        role={CONST.ROLE.BUTTON}
-                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_DISPLAY}
-                        hoverStyle={styles.buttonHoveredBG}
-                        style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.componentSizeNormal, styles.borderRadiusCircle]}
-                        onPress={onPress}
-                    >
-                        <Icon
-                            size={CONST.ICON_SIZE.SMALL}
-                            src={icons.Gear}
-                            fill={theme.icon}
-                        />
-                    </PressableWithFeedback>
-                )}
-            />
-        );
-    }
-
-    return (
-        <DropdownButton
-            label={translate('search.display.label')}
-            sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_DISPLAY}
-            value={null}
-            PopoverComponent={renderWorkspaceCompanyCardsDisplayPopover}
-        />
-    );
-}
-
-export default WorkspaceCompanyCardsDisplayButton;

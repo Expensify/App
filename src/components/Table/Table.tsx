@@ -196,7 +196,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         methods: selectionMethods,
         mobileSelectionModalRowKey,
         middleware: selectionMiddleware,
-    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, selectedKeys, onRowSelectionChange, shouldEnableSelectionInNarrowPaneModal});
+    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, activeSearchString, selectedKeys, onRowSelectionChange, shouldEnableSelectionInNarrowPaneModal});
     const selectionData = selectionMiddleware(sortedData);
 
     const {methods: highlightingMethods, middleware: highlightMiddleware} = useHighlighting<DataType>();
@@ -255,6 +255,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         filterConfig: filters,
         activeFilters: currentFilters,
         activeSorting,
+        initialSortColumn,
         activeSearchString,
         tableMethods,
         hasActiveFilters,
