@@ -6404,18 +6404,18 @@ describe('SearchUIUtils', () => {
         it.each([
             {columnName: 'Reimbursable', sortBy: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, boolOverride: {reimbursable: true}},
             {columnName: 'Billable', sortBy: CONST.SEARCH.TABLE_COLUMNS.BILLABLE, boolOverride: {billable: true}},
-        ])('should still tie-break tied $columnName rows by created honoring sortOrder (boolean-column behavior from #77800 is preserved)', ({sortBy, boolOverride}) => {
+        ])('should still tie-break tied $columnName rows by inserted honoring sortOrder', ({sortBy, boolOverride}) => {
             // Guards against this fix over-reaching: boolean columns resolve to a non-empty "yes"/"no" value, so every row
-            // ties on the primary comparison but is NOT empty — the created/transactionID tie breaker must still run and
-            // still honor sortOrder. `created` is intentionally unsorted in the input.
+            // ties on the primary comparison but is NOT empty — the inserted/transactionID tie breaker must still run and
+            // still honor sortOrder. `inserted` is intentionally unsorted in the input.
             const baseTransaction = transactionsListItems.at(0);
             if (!baseTransaction) {
                 throw new Error('Missing base transaction fixture');
             }
             const tiedTransactions = [
-                {...baseTransaction, ...boolOverride, transactionID: 'bool-mar', keyForList: 'bool-mar', created: '2024-03-03'},
-                {...baseTransaction, ...boolOverride, transactionID: 'bool-jan', keyForList: 'bool-jan', created: '2024-01-01'},
-                {...baseTransaction, ...boolOverride, transactionID: 'bool-feb', keyForList: 'bool-feb', created: '2024-02-02'},
+                {...baseTransaction, ...boolOverride, transactionID: 'bool-mar', keyForList: 'bool-mar', inserted: '2024-03-03'},
+                {...baseTransaction, ...boolOverride, transactionID: 'bool-jan', keyForList: 'bool-jan', inserted: '2024-01-01'},
+                {...baseTransaction, ...boolOverride, transactionID: 'bool-feb', keyForList: 'bool-feb', inserted: '2024-02-02'},
             ] as TransactionListItemType[];
 
             const ascendingResult = SearchUIUtils.getSortedSections(
