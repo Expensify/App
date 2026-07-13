@@ -12,8 +12,8 @@ import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 
 import type {ListRenderItem} from '@shopify/flash-list';
-import type {StoryFn} from '@storybook/react-webpack5';
 import type {LayoutChangeEvent} from 'react-native';
+import type {StoryFn} from 'storybook-react-rsbuild';
 
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
