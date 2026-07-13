@@ -28,6 +28,7 @@ const LOADED_METADATA = {status: 'loaded'} as const;
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: () => ({}),
+    useMemoizedLazyExpensifyIcons: () => ({}),
 }));
 
 jest.mock('@hooks/useCardFeedErrors', () => ({
