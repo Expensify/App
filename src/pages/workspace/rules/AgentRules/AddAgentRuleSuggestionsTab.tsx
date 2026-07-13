@@ -50,7 +50,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
     const trimmedSearch = searchValue.trim().toLowerCase();
     const filteredSuggestions = !trimmedSearch
         ? data
-        : data.filter((suggestion) => suggestion.title.toLowerCase().includes(trimmedSearch) || suggestion.prompt.toLowerCase().includes(trimmedSearch));
+        : data.filter((suggestion) => suggestion.title?.toLowerCase().includes(trimmedSearch) || suggestion.prompt?.toLowerCase().includes(trimmedSearch));
 
     const selectedSuggestion = filteredSuggestions.find((suggestion) => suggestion.id === selectedSuggestionID);
     const hasNoSuggestions = data.length === 0;
@@ -99,7 +99,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                     value={searchValue}
                     onChangeText={setSearchValue}
                     autoGrowHeight={false}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ROLE.SEARCHBOX}
                 />
             </View>
             <ScrollView
@@ -123,6 +123,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                                 key={suggestion.id}
                                 accessibilityLabel={suggestion.title}
                                 accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityState={{selected: isSelected}}
                                 onPress={() => setSelectedSuggestionID(suggestion.id)}
                                 wrapperStyle={[styles.mh5]}
                                 style={[
