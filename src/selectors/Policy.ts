@@ -149,12 +149,7 @@ const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, l
 };
 
 const createPoliciesForDomainCardsSelector = (domainNames: string[]) => {
-    const policyIDs = new Set(
-        domainNames
-            .map(getPolicyIDFromDomainName)
-            .filter((policyID): policyID is string => !!policyID)
-            .map((policyID) => policyID.toUpperCase()),
-    );
+    const policyIDs = new Set(domainNames.map(getPolicyIDFromDomainName).filter((policyID): policyID is string => !!policyID));
 
     return (policies: OnyxCollection<Policy>) => {
         if (policyIDs.size === 0) {
