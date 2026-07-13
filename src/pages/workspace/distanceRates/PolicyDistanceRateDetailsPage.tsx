@@ -1,6 +1,3 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,24 +7,29 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolation from '@hooks/useTransactionViolation';
+
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {clearPolicyDistanceRateErrorFields, deletePolicyDistanceRates, setPolicyDistanceRatesEnabled} from '@userActions/Policy/DistanceRate';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,14 +37,17 @@ import type SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
 
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
 type PolicyDistanceRateDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS>;
 
 function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
-    const isDateBoundMileageRateEnabled = isBetaEnabled(CONST.BETAS.DATE_BOUND_MILEAGE_RATE);
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
     const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
@@ -235,40 +240,36 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             interactive={canWriteDistanceRates}
                         />
                     </OfflineWithFeedback>
-                    {isDateBoundMileageRateEnabled && (
-                        <OfflineWithFeedback
-                            errors={getLatestErrorField(rate ?? {}, 'startDate')}
-                            pendingAction={rate?.pendingFields?.startDate}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('startDate')}
-                        >
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={canWriteDistanceRates}
-                                title={rate.startDate ? DateUtils.formatToReadableString(rate.startDate) : ''}
-                                description={translate('workspace.distanceRates.startDate')}
-                                descriptionTextStyle={styles.textNormal}
-                                onPress={editStartDate}
-                                interactive={canWriteDistanceRates}
-                            />
-                        </OfflineWithFeedback>
-                    )}
-                    {isDateBoundMileageRateEnabled && (
-                        <OfflineWithFeedback
-                            errors={getLatestErrorField(rate ?? {}, 'endDate')}
-                            pendingAction={rate?.pendingFields?.endDate}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('endDate')}
-                        >
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={canWriteDistanceRates}
-                                title={rate.endDate ? DateUtils.formatToReadableString(rate.endDate) : ''}
-                                description={translate('workspace.distanceRates.endDate')}
-                                descriptionTextStyle={styles.textNormal}
-                                onPress={editEndDate}
-                                interactive={canWriteDistanceRates}
-                            />
-                        </OfflineWithFeedback>
-                    )}
+                    <OfflineWithFeedback
+                        errors={getLatestErrorField(rate ?? {}, 'startDate')}
+                        pendingAction={rate?.pendingFields?.startDate}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => clearErrorFields('startDate')}
+                    >
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={canWriteDistanceRates}
+                            title={rate.startDate ? DateUtils.formatToReadableString(rate.startDate) : ''}
+                            description={translate('workspace.distanceRates.startDate')}
+                            descriptionTextStyle={styles.textNormal}
+                            onPress={editStartDate}
+                            interactive={canWriteDistanceRates}
+                        />
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback
+                        errors={getLatestErrorField(rate ?? {}, 'endDate')}
+                        pendingAction={rate?.pendingFields?.endDate}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => clearErrorFields('endDate')}
+                    >
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={canWriteDistanceRates}
+                            title={rate.endDate ? DateUtils.formatToReadableString(rate.endDate) : ''}
+                            description={translate('workspace.distanceRates.endDate')}
+                            descriptionTextStyle={styles.textNormal}
+                            onPress={editEndDate}
+                            interactive={canWriteDistanceRates}
+                        />
+                    </OfflineWithFeedback>
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
                         <OfflineWithFeedback
                             errors={getLatestErrorField(rate, 'taxRateExternalID')}

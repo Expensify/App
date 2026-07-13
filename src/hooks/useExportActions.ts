@@ -1,9 +1,7 @@
-import type React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
+
 import {openOldDotLink} from '@libs/actions/Link';
 import {exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate} from '@libs/actions/Search';
@@ -12,9 +10,15 @@ import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/Polic
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {getSecondaryExportReportActions} from '@libs/ReportSecondaryActionUtils';
 import {getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDecisionModal from './useDecisionModal';
 import useExportAgainModal from './useExportAgainModal';
@@ -36,7 +40,7 @@ type UseExportActionsParams = {
 type UseExportActionsReturn = {
     exportActionEntries: Record<string, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>>;
     secondaryExportActions: Array<ValueOf<string>>;
-    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
+    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], exportName: string, policyID?: string) => void;
     showOfflineModal: () => void;
     showDownloadErrorModal: () => void;
 
@@ -70,7 +74,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
     const {showDecisionModal} = useDecisionModal();
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => clearSelectedTransactions(undefined, true));
+    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => clearSelectedTransactions(true));
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Table',
@@ -84,6 +88,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         'IntacctSquare',
         'QBDSquare',
         'CertiniaSquare',
+        'RilletSquare',
         'GustoSquare',
         'ArrowRight',
     ]);
@@ -104,7 +109,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         });
     };
 
-    const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
+    const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], exportName: string, policyID?: string) => {
         if (isOffline) {
             showOfflineModal();
             return;
@@ -122,6 +127,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                 reportIDList: [moneyRequestReport.reportID],
                 transactionIDList,
                 policyID,
+                exportName,
             },
             true,
         );
@@ -203,7 +209,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             value: template.templateName,
             description: template.description,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
-            onSelected: () => beginExportWithTemplate(template.templateName, template.type, transactionIDs, template.policyID),
+            onSelected: () => beginExportWithTemplate(template.templateName, template.type, transactionIDs, template.name, template.policyID),
         };
     }
 
