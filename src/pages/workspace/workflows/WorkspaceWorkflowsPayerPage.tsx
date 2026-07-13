@@ -26,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import {canMemberWrite, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -115,12 +115,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 continue;
             }
             const isOwner = policy?.owner === details?.login;
-            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
-            const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
+            const canBePayer = canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+            const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || isExpensifyTeam(details?.login) || !canBePayer;
             if (shouldSkipMember) {
                 continue;
             }
-            const roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
+            const roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('workspace.common.roleName', policyEmployee.role)} />;
             const isAuthorizedPayer = selectedPayer === details?.login;
             const formattedMember = {
                 keyForList: String(adminAccountID),
@@ -271,19 +271,20 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const shouldShowBlockingPage =
         (isEmptyObject(policy) && !isLoadingReportData) || isPendingDeletePolicy(policy) || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
-    const totalNumberOfEmployeesEitherOwnerOrAdmin = Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
-        const isOwner = policy?.owner === email;
-        const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
-        return !isDeletedPolicyEmployee(policyEmployee) && (isOwner || isAdmin);
+    const totalNumberOfPayerCandidates = Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
+        const canBePayer = canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+        return !isDeletedPolicyEmployee(policyEmployee) && canBePayer;
     });
 
-    const shouldShowSearchInput = totalNumberOfEmployeesEitherOwnerOrAdmin.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowSearchInput = totalNumberOfPayerCandidates.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <FullPageNotFoundView
                 shouldShow={shouldShowBlockingPage}
@@ -354,7 +355,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         <RenderHTML
                             onLinkPress={() => {
                                 setShowValidationModal(false);
-                                navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)});
+                                navigateToBankAccountRoute({
+                                    policyID,
+                                    backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID),
+                                    policyCurrency: policy?.outputCurrency,
+                                    bankAccountState: bankAccountInfo?.accountData?.state,
+                                });
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.validationDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',
