@@ -9331,6 +9331,8 @@ const translations = {
     },
     actionableMentionTrackExpense: {
         submit: 'Submit it to someone',
+        submitToFriend: 'Submit to a friend',
+        submitToEmployer: 'Submit to my employer',
         categorize: 'Categorize it',
         share: 'Share it with my accountant',
         nothing: 'Nothing for now',

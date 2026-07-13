@@ -3720,6 +3720,11 @@ const CONST = {
             CATEGORIZE: 'categorize',
             SHARE: 'share',
         },
+        // Destination chosen from the track-expense "Submit" whisper on the Submit (submit2026) plan.
+        SUBMIT_DESTINATION: {
+            FRIEND: 'friend',
+            EMPLOYER: 'employer',
+        },
         DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
@@ -6837,7 +6842,6 @@ const CONST = {
         },
         STATUS: {
             EXPENSE: {
-                ALL: '',
                 UNREPORTED: 'unreported',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
@@ -6847,7 +6851,6 @@ const CONST = {
                 DELETED: 'deleted',
             },
             EXPENSE_REPORT: {
-                ALL: '',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
@@ -6855,18 +6858,15 @@ const CONST = {
                 PAID: 'paid',
             },
             INVOICE: {
-                ALL: '',
                 OUTSTANDING: 'outstanding',
                 PAID: 'paid',
             },
             TRIP: {
-                ALL: '',
                 CURRENT: 'current',
                 PAST: 'past',
             },
             CHAT: {},
             TASK: {
-                ALL: '',
                 OUTSTANDING: 'outstanding',
                 COMPLETED: 'completed',
             },
@@ -6956,7 +6956,6 @@ const CONST = {
         },
         SYNTAX_ROOT_KEYS: {
             TYPE: 'type',
-            STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             VIEW: 'view',
