@@ -79,8 +79,8 @@ describe('Sidebar', () => {
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate
-    afterEach(() => {
-        Onyx.clear();
+    afterEach(async () => {
+        await Onyx.clear([ONYXKEYS.SESSION]);
     });
 
     describe('in default mode', () => {
@@ -157,6 +157,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report2,
@@ -166,6 +167,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report3,
@@ -175,6 +177,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -229,6 +232,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report2,
@@ -238,6 +242,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report3,
@@ -247,6 +252,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             const currentReportId = report1.reportID;
@@ -301,6 +307,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report2,
@@ -310,6 +317,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report3,
@@ -319,6 +327,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -387,6 +396,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report2,
@@ -396,6 +406,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report3,
@@ -405,6 +416,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -485,6 +497,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report3,
@@ -494,6 +507,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report2,
@@ -503,6 +517,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -588,6 +603,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report3,
@@ -597,6 +613,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report2,
@@ -606,6 +623,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -662,6 +680,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report2,
@@ -671,6 +690,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report3,
@@ -680,6 +700,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             const currentReportId = report2.reportID;
@@ -835,6 +856,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             const iouReport: OnyxTypes.Report = {
@@ -1051,6 +1073,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report2,
@@ -1060,6 +1083,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report3,
@@ -1069,6 +1093,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             // Given the user is in all betas
@@ -1129,6 +1154,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report2,
@@ -1138,6 +1164,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             addComment({
                 report: report3,
@@ -1147,6 +1174,7 @@ describe('Sidebar', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
