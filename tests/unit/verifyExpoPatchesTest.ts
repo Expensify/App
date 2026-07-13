@@ -146,6 +146,22 @@ describe('verifyExpoPatches', () => {
         expect(output).toContain('expo.autolinking.ios.buildFromSource');
     });
 
+    it('reports shared source paths claimed by external iOS prebuilt products', () => {
+        writePatch(rootDir, ['@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h', 'react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.cpp']);
+        writeJSON(rootDir, 'node_modules/expo-modules-autolinking/external-configs/ios/@shopify/react-native-skia/spm.config.json', {
+            products: [{name: 'RNSkia', podName: 'react-native-skia', targets: [{path: 'cpp', headerPattern: '**/*.h'}]}],
+        });
+        writeJSON(rootDir, 'node_modules/expo-modules-autolinking/external-configs/ios/react-native-reanimated/spm.config.json', {
+            products: [{name: 'RNReanimated', podName: 'RNReanimated', targets: [{path: 'Common/cpp/reanimated', pattern: '**/*.cpp'}]}],
+        });
+
+        expect(() => verifyExpoPatches(rootDir)).toThrow('process.exit(1)');
+
+        const output = consoleErrorSpy.mock.calls.flat().join('\n');
+        expect(output).toContain('@shopify/react-native-skia — ios ships a precompiled binary for product(s) RNSkia');
+        expect(output).toContain('react-native-reanimated — ios ships a precompiled binary for product(s) RNReanimated');
+    });
+
     it('honors an iOS buildFromSource entry that matches the product pod name', () => {
         writePatch(rootDir, ['react-native-maps/ios/AirMaps/AIRMap.m']);
         writeJSON(rootDir, 'node_modules/expo-modules-autolinking/external-configs/ios/react-native-maps/spm.config.json', {

@@ -434,6 +434,9 @@
       ],
       "android": {
         "buildFromSource": ["expo-task-manager", "unimodules-app-loader"]
+      },
+      "ios": {
+        "buildFromSource": ["@shopify/react-native-skia", "react-native-reanimated", "react-native-worklets"]
       }
     }
   },

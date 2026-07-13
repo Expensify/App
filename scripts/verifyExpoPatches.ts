@@ -288,8 +288,6 @@ function iosPodNames(pkg: string, nodeModulesDir: string, externalConfigsDir: st
  * Precedence mirrors expo-modules-autolinking `parsePackageJsonOptions`: the platform block overrides
  * the root-level list, and for iOS `apple` is the platform with `ios` as a legacy fallback used only
  * when the `apple` key is absent. A platform block that omits `buildFromSource` falls through to root.
- * Matching mirrors Ruby `build_from_source?`, which tests each pattern against BOTH the npm package name
- * and the pod/product name(s) — so an opt-out listed by pod name (e.g. `ExpoModulesCore`) is honored.
  */
 function isBuiltFromSource(pkg: string, platform: Platform, config: AutolinkingConfig, nodeModulesDir: string, externalConfigsDir: string): boolean {
     const platformBlock = platform === 'android' ? config.android : (config.apple ?? config.ios);
@@ -377,9 +375,6 @@ function main(rootDir = projectRoot): void {
             // iOS: per-product resolution — flag only files a prebuilt (non-sourceOnly) product would replace.
             const iosProducts = new Set<string>();
             for (const rel of relPaths) {
-                if (getPlatformFromSegments(rel.split('/')) !== 'ios') {
-                    continue;
-                }
                 const product = iosPrebuiltProduct(pkg, rel, nodeModulesDir, externalConfigsDir);
                 if (product) {
                     iosProducts.add(product);
