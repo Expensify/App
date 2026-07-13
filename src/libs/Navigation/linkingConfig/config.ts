@@ -53,6 +53,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT]: DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path,
             },
         },
+        [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT]: DYNAMIC_ROUTES.AI_FEATURES_PROMO.path,
+            },
+        },
 
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: {
             screens: {
@@ -947,9 +952,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.route,
                         },
-                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
-                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM]: DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path,
                         [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.route,
                         },
@@ -995,9 +998,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DOWNGRADE]: {
                             path: ROUTES.WORKSPACE_DOWNGRADE.route,
                         },
-                        [SCREENS.WORKSPACE.PAY_AND_DOWNGRADE]: {
-                            path: ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_PAY_AND_DOWNGRADE]: DYNAMIC_ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_TAG_CREATE]: DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path,
@@ -1017,17 +1018,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.route,
                         },
+                        [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_SUCCESS]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_ERROR]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.path,
                         [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
                             path: ROUTES.WORKSPACE_CUSTOM_FIELDS.route,
-                        },
-                        [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
-                            path: ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.route,
-                        },
-                        [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: {
-                            path: ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.route,
-                        },
-                        [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
-                            path: ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.route,
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_CREATE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_EDIT]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path,
