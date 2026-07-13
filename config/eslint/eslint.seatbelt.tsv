@@ -19,7 +19,7 @@
 "../../.github/libs/DeployChecklistUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/libs/GithubUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../.github/libs/sanitizeJSONStringValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../.github/scripts/createDocsRoutes.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../.github/scripts/createDocsRoutes.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../__mocks__/@pusher/pusher-websocket-react-native/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../__mocks__/@react-native-camera-roll/camera-roll.ts"	"@typescript-eslint/no-deprecated/CameraRoll.save"	1
 "../../__mocks__/@react-native-community/netinfo.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
