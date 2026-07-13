@@ -261,6 +261,7 @@ function MoneyRequestReceiptView({
             currentUserAccountID,
             timezone: currentUserTimezone,
             delegateAccountID,
+            conciergeReportID,
         });
     };
 
