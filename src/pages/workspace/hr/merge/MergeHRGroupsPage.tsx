@@ -8,7 +8,6 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -41,7 +40,6 @@ function MergeHRGroupsPage({
 }: MergeHRGroupsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
 
     const policy = usePolicy(policyID);
     const availableGroups = policy?.connections?.merge_hris?.data?.groups ?? [];
@@ -97,7 +95,7 @@ function MergeHRGroupsPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.MERGE_HR) || (!!policy && !isMergeHRConnected(policy))}
+            shouldBeBlocked={!!policy && !isMergeHRConnected(policy)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
