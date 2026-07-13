@@ -408,7 +408,7 @@ function getExportMenuItem(
                                 accountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE,
                         )
                         .map((accountItem) => ({
-                            value: accountItem.code,
+                            value: cardProgramAccountCode === accountItem.code ? defaultAccount : accountItem.code,
                             text: `${cardProgramAccountCode === accountItem.code ? `${translate('common.default')} - ` : ''}${accountItem.code} ${accountItem.name}`,
                             keyForList: accountItem.code,
                             isSelected: cardAccountCode === accountItem.code,
