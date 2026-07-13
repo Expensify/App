@@ -12,7 +12,7 @@ import {getValidConnectedIntegration, isPreferredExporter} from '@src/libs/Polic
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
@@ -2653,6 +2653,7 @@ describe('getSecondaryAction', () => {
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
             policy,
+            isChatReportArchived: false,
             isProduction: false,
         });
 
@@ -3832,6 +3833,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 reportAction: undefined,
                 originalTransaction: createMock<Transaction>({}),
                 policy,
+                isChatReportArchived: false,
                 isProduction: false,
             }),
         ).toEqual(result);
@@ -3862,6 +3864,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
+            isChatReportArchived: false,
             isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
@@ -3889,6 +3892,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             transactionThreadReport,
+            isChatReportArchived: false,
             isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
@@ -3904,6 +3908,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             transactionThreadReport,
+            isChatReportArchived: false,
             isProduction: false,
         });
         expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
@@ -3930,6 +3935,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
             policy,
+            isChatReportArchived: false,
             isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
@@ -3990,6 +3996,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: undefined,
             originalTransaction,
             policy,
+            isChatReportArchived: false,
             isProduction: false,
         });
 
@@ -4092,6 +4099,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
+            isChatReportArchived: false,
             isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
@@ -4154,6 +4162,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction,
             policy,
+            isChatReportArchived: false,
             isProduction: false,
         });
 
@@ -4201,6 +4210,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
+            isChatReportArchived: false,
             isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -4247,6 +4257,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
+            isChatReportArchived: false,
             isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -4297,6 +4308,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
+            isChatReportArchived: false,
             isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -4326,6 +4338,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
+            isChatReportArchived: false,
             isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
@@ -4362,6 +4375,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             grandParentReport: selfDMReport,
+            isChatReportArchived: false,
             isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
@@ -4391,6 +4405,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
+            isChatReportArchived: false,
             isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -4407,6 +4422,9 @@ describe('getSecondaryTransactionThreadActions', () => {
             transactionID: originalMessageR14932.IOUTransactionID,
         });
         const policy = createMock<Policy>({});
+        const reportNameValuePairs = {
+            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`]: createMock<ReportNameValuePairs>({}),
+        };
 
         jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
         jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
@@ -4419,10 +4437,18 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
+            reportNameValuePairs,
             isChatReportArchived: false,
             isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
+        expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                isChatReportArchived: false,
+                reportNameValuePairs,
+            }),
+        );
+        expect(ReportUtils.canUserPerformWriteAction).toHaveBeenCalledWith(parentReport, false);
     });
 
     it('does not include MOVE_EXPENSE option for transaction thread when canEditFieldOfMoneyRequest returns false', () => {
