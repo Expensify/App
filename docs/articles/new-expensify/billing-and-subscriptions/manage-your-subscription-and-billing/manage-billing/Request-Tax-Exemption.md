@@ -43,7 +43,7 @@ After your request is approved, sales tax will no longer be applied to future Ex
 
 ## How long does tax-exemption review take?
 
-Review typically takes {TODO: confirm SLA with billing team, e.g. X–Y business days}. Sales tax may continue to apply to bills issued while your request is under review; once approved, you can request a refund of any tax charged in the interim.
+Review can take up to 5 business days. Sales tax may continue to apply to bills issued while your request is under review. 
 
 ## What happens to bills that included tax before my exemption was approved?
 
