@@ -9,7 +9,8 @@ import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryAct
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Connections, Report, SearchResults} from '@src/types/onyx';
+import type {Report, SearchResults} from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
