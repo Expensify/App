@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import {accountIDSelector} from '@src/selectors/Session';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
@@ -50,6 +51,8 @@ function ForYouSection() {
     const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
     // The onboarding NVP defaults to "completed" before it loads, so only trust it once the value is present.
     const isOnboardingStatusKnown = onboarding !== undefined;
+    // Old/migrated accounts have an empty onboarding NVP; a non-empty record marks a NewDot-onboarded (new) user.
+    const isNewDotOnboardedUser = !isEmptyObject(onboarding);
     const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
 
@@ -211,6 +214,7 @@ function ForYouSection() {
             cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE,
             isOnboardingCompleted,
             isOnboardingStatusKnown,
+            isNewDotOnboardedUser,
         })
     ) {
         return null;
