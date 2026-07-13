@@ -61,7 +61,6 @@ describe('useAllTransactions', () => {
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 hasMoreResults: false,
                 hasResults: false,
                 isLoading: false,
@@ -90,7 +89,6 @@ describe('useAllTransactions', () => {
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 hasMoreResults: false,
                 hasResults: true,
                 isLoading: false,
@@ -126,7 +124,6 @@ describe('useAllTransactions', () => {
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 hasMoreResults: false,
                 hasResults: true,
                 isLoading: false,
@@ -155,7 +152,6 @@ describe('useAllTransactions', () => {
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 hasMoreResults: false,
                 hasResults: true,
                 isLoading: false,
@@ -184,7 +180,6 @@ describe('useAllTransactions', () => {
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 hasMoreResults: false,
                 hasResults: false,
                 isLoading: false,
@@ -209,7 +204,6 @@ describe('useAllTransactions', () => {
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 hasMoreResults: false,
                 hasResults: true,
                 isLoading: false,
@@ -274,7 +268,6 @@ describe('useAllTransactions', () => {
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 hasMoreResults: false,
                 hasResults: true,
                 isLoading: false,

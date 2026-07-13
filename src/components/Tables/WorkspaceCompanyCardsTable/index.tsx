@@ -109,9 +109,13 @@ function WorkspaceCompanyCardsTable({
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
+    const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
+
+    const hasOnceLoadedPage = !!companyCardsLoadingState?.hasOnceLoadedPage;
+    const hasOnceLoadedSelectedFeed = !!(bankName && companyCardsLoadingState?.feeds?.[bankName]?.hasOnceLoaded);
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
-    const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading;
+    const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading && !hasOnceLoadedPage;
 
     // Synthesize error locally since Onyx discards writes to collection keys with member ID '0'.
     const shouldShowWorkspaceFeedsLoadError = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !isOffline;
@@ -134,7 +138,7 @@ function WorkspaceCompanyCardsTable({
         feedErrorTitle = translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle');
         feedErrorReloadAction = onReloadPage;
     } else if (feedErrorKey === CONST.COMPANY_CARDS.FEED_LOAD_ERROR) {
-        feedErrorTitle = translate('workspace.companyCards.error.feedCouldNotBeLoadedTitle');
+        feedErrorTitle = translate('workspace.companyCards.error.feedCouldNotBeLoad edTitle');
         feedErrorReloadAction = onReloadFeed;
     }
 
@@ -144,9 +148,10 @@ function WorkspaceCompanyCardsTable({
     const isLoadingOnyxCardList = !hasCards && isLoadingOnyxValue(cardListMetadata);
     const isLoadingOnyxPersonalDetails = isLoadingOnyxValue(personalDetailsMetadata);
     const isLoadingOnyxFeed = !isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata);
+    const isLoadingSelectedFeed = !!selectedFeedStatus?.isLoading && !hasOnceLoadedSelectedFeed;
 
     const isLoadingPage = !isOffline && !hasCards && (isLoadingOnyxPersonalDetails || areWorkspaceCardFeedsLoading);
-    const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxFeed || !!selectedFeedStatus?.isLoading);
+    const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds && !hasOnceLoadedPage) || !isPolicyLoaded || isLoadingOnyxFeed || isLoadingSelectedFeed);
     const isLoading = isLoadingPage || isLoadingFeed || isLoadingOnyxCardList;
 
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoading && !hasFeedErrors;
