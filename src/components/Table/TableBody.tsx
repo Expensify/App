@@ -111,9 +111,9 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     // Tables without a scrolling page header keep the default contract: an empty table renders
     // nothing here so the declarative Table.EmptyState/Table.NoResultsState siblings take over.
-    // With a page header the list must stay mounted even when empty, otherwise the header
-    // (tabs, buttons, search) would disappear together with the rows.
-    if (!tableListMetadata.hasPageHeader && (isEmptyResult || (!originalDataLength && !ListEmptyComponent))) {
+    // With a page header (or a ListEmptyComponent) the list must stay mounted even when empty,
+    // otherwise the header (tabs, buttons, search) or the empty view would disappear with the rows.
+    if (!tableListMetadata.hasPageHeader && (isEmptyResult || !originalDataLength) && !ListEmptyComponent) {
         return null;
     }
 
