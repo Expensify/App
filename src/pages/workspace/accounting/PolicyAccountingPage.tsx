@@ -640,6 +640,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         translate,
         isBetaEnabled,
         accountingIcons,
+        cardFeeds,
+        cardList,
         connectionSyncProgress?.stageInProgress,
         icons.Pencil,
         icons.ArrowRight,
@@ -768,6 +770,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         accountingIcons,
+        cardFeeds,
+        cardList,
         canWriteAccounting,
         showReadOnlyModal,
     ]);

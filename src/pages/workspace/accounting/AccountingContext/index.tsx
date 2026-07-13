@@ -99,6 +99,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             hasReusablePoliciesConnectedToCertinia,
             hasReusablePoliciesConnectedToRillet,
             accountingIcons,
+            cardFeeds,
+            cardList,
         ],
     );
 
