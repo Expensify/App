@@ -515,6 +515,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: '限制',
         tagGLCode: '标记总账代码',
         off: '关',
+        noResultsFoundSubtitle: '无结果。请尝试调整筛选条件或搜索内容',
         unableToDisplayChart: '无法显示图表',
         webGLNotSupported: '您的浏览器不支持 WebGL。请启用该功能或更换浏览器。',
         apiKey: 'API 密钥',
@@ -1043,6 +1044,18 @@ const translations: TranslationDeepObject<typeof en> = {
             setupRules: '设置消费规则',
             inviteAccountant: '邀请你的会计',
             configureApprovals: '配置审批流程',
+            begin: '开始',
+            done: '完成',
+            createWorkspaceSubText: '工作区已准备好进行设置',
+            connectAccountingSubText: '同步您的会计科目表等信息',
+            customizeCategoriesSubText: '添加科目表',
+            inviteAccountantSubText: '加快月末核算',
+            linkCompanyCardsSubText: '自动导入报销费用',
+            setupRulesSubText: '要求收据、标记高额支出等',
+            needHelp: '需要帮助吗？',
+            talkToConcierge: '与 Concierge 对话',
+            talkToAccountExecutive: '联系您的客户经理',
+            forGuidedSetup: '以获取引导式设置。',
         },
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
@@ -2064,7 +2077,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstall: '请更新到最新版本的 New Expensify',
         pleaseInstallExpensifyClassic: '请安装最新版本的 Expensify',
         toGetLatestChanges: '在移动端，请下载并安装最新版本。在网页端，请刷新浏览器。',
-        newAppNotAvailable: 'New Expensify 应用已不再提供使用。',
+        newAppNotAvailable: '现在更新，以后你会感谢我们的。',
     },
     initialSettingsPage: {
         about: '关于',
@@ -2130,6 +2143,17 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: '退出登录',
         restoreStashed: '恢复暂存的登录',
         signOutConfirmationText: '如果你退出登录，所有离线更改都会丢失。',
+        saveReceiptsConfirmation: {
+            title: '保存你的收据？',
+            prompt: ({count}: {count: number}) => `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。`,
+            confirm: '保存并退出登录',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: '保存你的收据？',
+            prompt: ({count}: {count: number}) =>
+                `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。你的所有其他离线更改都会丢失。`,
+            confirm: '保存并退出登录',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `阅读<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>。`,
         help: '帮助',
@@ -4382,11 +4406,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
                     case CONST.POLICY.ROLE.EDITOR:
-                        return '编辑';
+                        return '编辑者';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return '卡片管理员';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return '人员管理';
+                        return '人员管理员';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '付款管理员';
                     case CONST.POLICY.ROLE.USER:
@@ -4597,12 +4621,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             classes: '类别',
             locations: '位置',
             customers: '客户/项目',
+            items: '项目',
             accountsDescription: '您的 QuickBooks Online 科目表将作为类别导入到 Expensify。',
             accountsSwitchTitle: '选择将新账户导入为启用或禁用的类别。',
             accountsSwitchDescription: '启用的类别将在成员创建报销时供其选择。',
             classesDescription: '选择如何在 Expensify 中处理 QuickBooks Online 类别。',
             customersDescription: '选择如何在 Expensify 中处理 QuickBooks Online 客户/项目。',
             locationsDescription: '选择如何在 Expensify 中处理 QuickBooks Online 位置。',
+            itemsDescription: '选择如何在 Expensify 中处理 QuickBooks Online 项目。',
             taxesDescription: '选择如何在 Expensify 中处理 QuickBooks Online 的税务。',
             locationsLineItemsRestrictionDescription:
                 'QuickBooks Online 不支持在支票或供应商账单的分录级别使用地点。如果你希望在分录级别使用地点，请确保使用的是日记账分录以及信用卡/借记卡报销。',
@@ -5385,6 +5411,28 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             exportCompanyCard: {label: '导出公司卡费用为', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: '信用卡'}}},
             defaultCompanyCardVendor: {label: '默认公司卡供应商', description: '为未自动匹配的报销选择一个默认的 Rillet 供应商。'},
             companyCardAccount: {label: '公司卡账户', description: '选择公司卡交易的导出位置。'},
+            noBankAccountsFound: '未找到银行账户',
+            noBankAccountsFoundDescription: '请在 Rillet 中添加银行账户，然后再次同步连接',
+            autoSyncDescription: '每天自动同步 Rillet 和 Expensify。报表实时同步。',
+            accountingMethods: {
+                label: '导出方式',
+                description: '选择导出报销的时间。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '应计',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付费用将在最终批准后导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付报销在支付后会导出',
+                },
+            },
+            syncReimbursedReports: '同步已报销报表',
+            syncReimbursedReportsDescription: '当报销单通过 ACH 支付时，将在此账户中生成一笔账单付款。',
+            billPaymentAccount: {label: '账单支付账户', description: '选择从哪里支付账单，我们会在 Rillet 中创建付款。'},
+            syncExpensifyCardSettlements: '同步 Expensify 卡结算',
+            settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
+            syncTravelInvoicingSettlements: '同步差旅发票结算',
+            travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
         },
         type: {
             free: '免费',
@@ -5575,6 +5623,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             newCard: '新卡片',
             name: '姓名',
             lastFour: '最后 4 位',
+            statusPendingOrder: '待下单',
+            statusShipped: '已发货',
+            statusActive: '有效',
+            statusInactive: '无效',
             limit: '限额',
             currentBalance: '当前余额',
             currentBalanceDescription: '当前余额是上次结算日期以来已入账的所有 Expensify 卡交易的总和。',
@@ -6673,7 +6725,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 optionFixedDistanceTitle: '为每笔报销排除固定距离',
                 optionFixedDistanceHelp: '从每笔报销中扣除相同的通勤距离。最适合每个工作日提交一笔报销的成员使用。',
                 distanceLabel: '距离',
-                errors: {distanceMustBePositive: '距离必须是一个正整数。'},
+                errors: {distanceMustBePositive: '距离必须是一个正整数。', distanceTooLarge: '距离过大。'},
             },
             distance: '距离',
             centrallyManage: '集中管理费率，以英里或公里跟踪，并设置默认类别。',
@@ -7614,6 +7666,7 @@ ${reportName}`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
                 groups: {title: '群组', description: '选择要与此工作区同步的员工分组'},
+                syncLimitReached: {title: '请明天再试', prompt: '您已达到今日的同步上限。'},
             },
             notSync: '未同步',
             authenticationError: (providerName: string) => `由于连接已过期，无法连接到 ${providerName}。`,
@@ -9657,7 +9710,7 @@ ${reportName}`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',
         saveSearchTooltip: '<tooltip>在这里<strong>重命名已保存的搜索</strong>！</tooltip>',
-        accountSwitcher: '<tooltip>您现在可以协同操作另一位用户的账户了！</tooltip>',
+        accountSwitcher: '<tooltip>在此访问你的<strong>Copilot 账户</strong></tooltip>',
         outstandingFilter: '<tooltip>筛选<strong>待审批</strong>的报销</tooltip>',
         scanTestDriveTooltip: '<tooltip>发送此收据以\n<strong>完成试用体验！</strong></tooltip>',
         gpsTooltip: '<tooltip>正在进行 GPS 跟踪！完成后，请在下方停止跟踪。</tooltip>',
@@ -9930,5 +9983,21 @@ ${reportName}`,
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},
     monthPickerPage: {month: '月份', selectMonth: '请选择月份'},
+    aiFeaturesPromoModal: {
+        subtitle: 'Concierge AI 新手指南',
+        confirmText: '出发吧！',
+        spendAnalysis: {
+            title: '交互式支出分析',
+            description: `<muted-text>Concierge 会提供每月支出洞察，并让你深入查看每个数字背后的详细信息。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">了解详情</a>。</muted-text>`,
+        },
+        expenseAssistant: {
+            title: '认识你的全新报销助手',
+            description: `<muted-text>在应用内或通过电子邮件、短信与 Concierge 聊天来创建和更新报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">了解更多</a>。</muted-text>`,
+        },
+        customAgents: {
+            title: '构建你自己的代理',
+            description: `<muted-text>创建自定义代理，根据你设置的规则审核、批准和分配报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">了解更多</a>。</muted-text>`,
+        },
+    },
 };
 export default translations;

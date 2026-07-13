@@ -1,5 +1,6 @@
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableRenderRowProps} from '@components/Table';
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -12,7 +13,6 @@ import variables from '@styles/variables';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type CategoryRulesTableColumnKey = 'type' | 'condition' | 'rule' | 'actions';
 
@@ -35,6 +35,7 @@ type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     typeColumnLabel: string;
     conditionColumnLabel: string;
     ruleColumnLabel: string;
+    emptyState: TableEmptyStateProps;
     renderRow: (props: TableRenderRowProps<TItem>) => React.ReactElement;
 };
 
@@ -43,12 +44,12 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
     selectionEnabled,
     selectedKeys,
     onRowSelectionChange,
-    emptyStateContent,
     tableTitle,
     findRuleLabel,
     typeColumnLabel,
     conditionColumnLabel,
     ruleColumnLabel,
+    emptyState,
     renderRow,
 }: WorkspaceCategoryRulesTableProps<TItem>) {
     const {localeCompare} = useLocalize();
@@ -94,8 +95,6 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
 
     const renderItem = ({item, index}: ListRenderItemInfo<TItem>) => renderRow({item, rowIndex: index, shouldUseNarrowTableLayout});
 
-    const isEmpty = rulesData.length === 0;
-
     return (
         <Table
             data={rulesData}
@@ -111,14 +110,11 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
             narrowLayoutSortColumn="condition"
             title={tableTitle}
         >
-            {isEmpty && !!emptyStateContent && <View style={[styles.flex1, styles.mnh0, styles.w100]}>{emptyStateContent}</View>}
-            {(!isEmpty || !emptyStateContent) && (
-                <>
-                    <Table.FilterBar label={findRuleLabel} />
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.FilterBar label={findRuleLabel} />
+            <Table.EmptyState {...emptyState} />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

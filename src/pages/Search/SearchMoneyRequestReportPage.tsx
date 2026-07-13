@@ -3,10 +3,9 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
-import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useShowSuperWideRHPVersion';
+import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 
-import useActionListContextValue from '@hooks/useActionListContextValue';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissOnMoneyRequestReportRemoval from '@hooks/useDismissOnMoneyRequestReportRemoval';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -36,10 +35,10 @@ import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionD
 
 import Navigation from '@navigation/Navigation';
 
+import {ActionListContextProvider} from '@pages/inbox/ActionListContext';
 import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
 import useClearReportActionDraftsOnReportChange from '@pages/inbox/report/useClearReportActionDraftsOnReportChange';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 
 import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
 
@@ -124,8 +123,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
-    const actionListValue = useActionListContextValue();
-
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {transactions: allReportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportIDFromRoute);
@@ -184,7 +181,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
     const shouldShowSuperWideRHP = visibleTransactions.length > 1;
 
-    useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
+    useRHPWidth(shouldShowSuperWideRHP ? 'super-wide' : 'wide');
 
     // Tracks initial mount to ensure openReport is called once for multi-transaction reports
     const isInitialMountRef = useRef(true);
@@ -388,7 +385,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             effectiveTransactionThreadReportID={effectiveTransactionThreadReportID}
         >
             <WideRHPOverlayWrapper>
-                <ActionListContext.Provider value={actionListValue}>
+                <ActionListContextProvider>
                     <ReactionListWrapper>
                         <ScreenWrapper
                             testID="SearchMoneyRequestReportPage"
@@ -417,7 +414,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                             </FullPageNotFoundView>
                         </ScreenWrapper>
                     </ReactionListWrapper>
-                </ActionListContext.Provider>
+                </ActionListContextProvider>
             </WideRHPOverlayWrapper>
         </ReportActionEditMessageContextProvider>
     );

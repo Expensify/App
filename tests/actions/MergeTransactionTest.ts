@@ -1145,6 +1145,7 @@ describe('mergeTransactionRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: undefined,
                 participants,
@@ -1330,6 +1331,7 @@ describe('mergeTransactionRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: undefined,
                 participants,
