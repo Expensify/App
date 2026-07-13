@@ -1,23 +1,28 @@
-import React from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getUserDetailTooltipText, sortIconsByName} from '@libs/ReportUtils';
 import {getDefaultAvatar} from '@libs/UserAvatarUtils';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type AttendeesCellProps = {
     attendees: Attendee[];
@@ -64,7 +69,6 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                     accountID={Number(icon.id)}
                     icon={icon}
                     fallbackUserDetails={{
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         displayName: icon.name,
                     }}
                     shouldRender

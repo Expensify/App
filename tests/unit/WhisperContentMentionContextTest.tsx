@@ -1,13 +1,17 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import ConfirmWhisperContent from '@pages/inbox/report/actionContents/ConfirmWhisperContent';
 import ReportMentionWhisperContent from '@pages/inbox/report/actionContents/ReportMentionWhisperContent';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -96,10 +100,7 @@ describe('Whisper content components provide MentionReportContext so room mentio
                 <ReportMentionWhisperContent
                     action={action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>}
                     reportID={REPORT_ID}
-                    report={report}
-                    originalReport={undefined}
-                    isReportArchived={false}
-                    resolveActionableReportMentionWhisper={jest.fn()}
+                    actionOwnerReportStable={report}
                 />
             </OnyxListItemProvider>,
         );
@@ -118,8 +119,7 @@ describe('Whisper content components provide MentionReportContext so room mentio
                     action={action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>}
                     reportID={REPORT_ID}
                     originalReportID={undefined}
-                    report={report}
-                    originalReport={undefined}
+                    actionOwnerReportStable={report}
                 />
             </OnyxListItemProvider>,
         );

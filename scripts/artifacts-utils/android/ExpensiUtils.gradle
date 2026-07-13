@@ -1,12 +1,11 @@
 import groovy.json.JsonSlurper
-import groovy.xml.XmlSlurper
 import java.util.concurrent.TimeUnit
 
 ext.ExpensiLog = new Object() {
-    private final String BLUE = "\u001B[34m"
-    private final String YELLOW = "\u001B[33m"
-    private final String RED = "\u001B[31m"
-    private final String RESET = "\u001B[0m"
+    private final String BLUE = "[34m"
+    private final String YELLOW = "[33m"
+    private final String RED = "[31m"
+    private final String RESET = "[0m"
 
     private String prefix = ""
     void setPrefix(String newPrefix) { this.prefix = newPrefix }
@@ -22,32 +21,11 @@ ext.ExpensiLog = new Object() {
 
 ext.ExpensiUtils = new Object() {
     String GITHUB_REPO = 'Expensify/App'
-    String GITHUB_OWNER = 'Expensify'
-    String ARTIFACT_ID = 'react-android'
 
-    String mavenPomUrl(String packageName, String version) {
-        return "https://maven.pkg.github.com/${GITHUB_REPO}/com/expensify/${packageName}/${ARTIFACT_ID}/${version}/${ARTIFACT_ID}-${version}.pom"
-    }
-
-    String mavenVersionsApiUrl(String packageName) {
-        return "/orgs/${GITHUB_OWNER}/packages/maven/com.expensify.${packageName}.${ARTIFACT_ID}/versions"
-    }
-
-    Map runCommand(List command) {
-        def process = command.execute()
-        process.waitFor(10, TimeUnit.SECONDS)
+    Map runCommand(List command, long timeoutSeconds = 10, File workingDir = null) {
+        def process = workingDir ? command.execute(null, workingDir) : command.execute()
+        process.waitFor(timeoutSeconds, TimeUnit.SECONDS)
         return [output: process.in.text?.trim(), exitCode: process.exitValue()]
-    }
-
-    // GitHub Packages returns 302 to a signed S3 URL, don't forward the token there.
-    InputStream fetch(String url, String githubToken) {
-        def conn = new URL(url).openConnection()
-        conn.setInstanceFollowRedirects(false)
-        conn.setRequestProperty("Authorization", "Bearer ${githubToken}")
-        if (conn.responseCode == 302) {
-            return new URL(conn.getHeaderField("Location")).openConnection().getInputStream()
-        }
-        return conn.getInputStream()
     }
 
     boolean hasGithubCLI() {
@@ -73,6 +51,8 @@ ext.ExpensiUtils = new Object() {
         return runCommand(["gh", "auth", "token"]).output
     }
 
+    // Credentials are resolved here (not in the shared resolver) because the
+    // authenticated Maven download in android/build.gradle needs them Gradle-side.
     Map getCredentials() {
         try {
             if (!hasGithubCLI()) {
@@ -99,54 +79,26 @@ ext.ExpensiUtils = new Object() {
         ExpensiLog.warn("For setup instructions, refer to: https://github.com/${GITHUB_REPO}/blob/main/contributingGuides/SETUP_ANDROID.md#enabling-prebuilt-react-native-artifacts")
     }
 
-    String getReactNativeVersion(String newDotRootDir) {
-        def packageJson = new File("${newDotRootDir}/package.json")
-        return new JsonSlurper().parse(packageJson).dependencies.'react-native'
-    }
-
-    String computePatchesHash(String newDotRootDir, boolean isHybrid) {
-        def script = "${newDotRootDir}/scripts/artifacts-utils/compute-patches-hash.sh"
-        def args = [script]
-
-        def propsFile = isHybrid
-            ? new File("${newDotRootDir}/Mobile-Expensify/Android/gradle.properties")
-            : new File("${newDotRootDir}/android/gradle.properties")
-        def props = new Properties()
-        if (propsFile.exists()) { propsFile.withInputStream { props.load(it) } }
-        if (props.getProperty('hermesV1Enabled') == 'true') {
-            args << "--hermes-v1"
-        }
-
-        args += isHybrid
-            ? ["${newDotRootDir}/patches", "${newDotRootDir}/Mobile-Expensify/patches"]
-            : ["${newDotRootDir}/patches"]
-        return runCommand(args).output.trim()
-    }
-
-    List getArtifactsCandidates(String packageName, String newDotRootDir) {
-        def rnVersion = getReactNativeVersion(newDotRootDir)
-        def result = runCommand(["gh", "api", "--paginate", mavenVersionsApiUrl(packageName), "--jq", ".[].name"])
-        return result.output.split("\n").findAll { it.startsWith(rnVersion) } as List
-    }
-
-    def getPomFile(String packageName, String version, String githubToken) {
-        return new XmlSlurper().parse(fetch(mavenPomUrl(packageName, version), githubToken))
-    }
-
-    String findMatchingArtifactsVersion(String packageName, String githubToken, String newDotRootDir, boolean isHybrid) {
+    // Resolve the prebuilt artifact version matching the local patches via the shared
+    // TS resolver (credentials + patches-hash match live there). Returns a map:
+    // [buildFromSource: Boolean, version: String|null]. Any failure -> build from source.
+    Map resolveArtifacts(String packageName, String newDotRootDir, boolean isHybrid) {
+        def cmd = [
+            "npx", "tsx", "${newDotRootDir}/scripts/artifacts-utils/resolve-artifacts.ts",
+            "--platform=android", "--package=${packageName}", "--hybrid=${isHybrid}", "--new-dot-root=${newDotRootDir}"
+        ]
         try {
-            def localPatchesHash = computePatchesHash(newDotRootDir, isHybrid)
-            def candidates = getArtifactsCandidates(packageName, newDotRootDir)
-            for (candidate in candidates) {
-                def remoteHash = getPomFile(packageName, candidate, githubToken).properties.patchesHash.text().trim()
-                if (remoteHash == localPatchesHash) {
-                    return candidate
-                }
+            // Runs from the repo root so `npx tsx` resolves node_modules. Generous
+            // timeout: npx/tsx startup + network POM lookups.
+            def result = runCommand(cmd, 120, new File(newDotRootDir))
+            if (result.exitCode != 0) {
+                ExpensiLog.error("Artifacts resolver failed (exit ${result.exitCode}). Building react-native from source.")
+                return [buildFromSource: true, version: null]
             }
-            return null
+            return new JsonSlurper().parseText(result.output)
         } catch (Exception e) {
-            ExpensiLog.error("Failed to find matching artifacts version for ${packageName}. Reason: $e")
-            return null
+            ExpensiLog.error("Artifacts resolver error: ${e}. Building react-native from source.")
+            return [buildFromSource: true, version: null]
         }
     }
 }

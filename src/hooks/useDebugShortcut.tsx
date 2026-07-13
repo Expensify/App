@@ -1,7 +1,10 @@
-import {useEffect} from 'react';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+
 import toggleTestToolsModal from '@userActions/TestTool';
+
 import CONST from '@src/CONST';
+
+import {useEffect} from 'react';
 
 function useDebugShortcut() {
     useEffect(() => {
@@ -19,7 +22,6 @@ function useDebugShortcut() {
         };
 
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 }
 

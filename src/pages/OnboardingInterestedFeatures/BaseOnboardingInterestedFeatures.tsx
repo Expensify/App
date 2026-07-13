@@ -1,6 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
@@ -12,7 +9,8 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import Text from '@components/Text';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+
+import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -25,18 +23,26 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
-import {completeOnboarding} from '@libs/actions/Report';
+import {completeOnboarding, extractRHPVariantFromResponse} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from './types';
 
 function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardingInterestedFeaturesProps) {
@@ -58,13 +64,15 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const [userReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [adminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
@@ -206,7 +214,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                       userReportedIntegration: newUserReportedIntegration,
                       featuresMap,
                       introSelected,
-                      activePolicyID,
+                      activePolicy,
                       currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                       currentUserEmailParam: email,
                       shouldAddGuideWelcomeMessage: false,
@@ -221,7 +229,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 setOnboardingPolicyID(policyID);
             }
 
-            await completeOnboarding({
+            const response = await completeOnboarding({
                 engagementChoice: onboardingPurposeSelected,
                 onboardingMessage: onboardingMessages[onboardingPurposeSelected],
                 adminsChatReportID,
@@ -234,14 +242,18 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
                 introSelected,
                 isSelfTourViewed,
-                betas,
+                conciergeChat,
+                adminsChatReport,
             });
+            const rhpVariant = isSidePanelReportSupported ? extractRHPVariantFromResponse(response) : undefined;
 
             // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                setOnboardingAdminsChatReportID();
-                setOnboardingPolicyID();
+            TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    setOnboardingAdminsChatReportID();
+                    setOnboardingPolicyID();
+                },
+                waitForUpcomingTransition: true,
             });
 
             // We need to wait the policy is created before navigating out the onboarding flow
@@ -249,12 +261,13 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 conciergeReportID,
-                archivedReportsIdSet,
+                reportNameValuePairs,
                 policyID,
                 adminsChatReportID,
                 // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
                 // See https://github.com/Expensify/App/issues/57167 for more details
                 (session?.email ?? '').includes('+'),
+                rhpVariant,
             );
         } catch (error) {
             Log.warn('[BaseOnboardingInterestedFeatures] Error completing onboarding', {error});
@@ -264,7 +277,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     }, [
         isBetaEnabled,
         isSmallScreenWidth,
-        archivedReportsIdSet,
+        reportNameValuePairs,
         onboardingAdminsChatReportID,
         onboardingCompanySize,
         onboardingMessages,
@@ -278,7 +291,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         currentUserPersonalDetails?.firstName,
         currentUserPersonalDetails?.lastName,
         currentUserPersonalDetails?.localCurrencyCode,
-        activePolicyID,
+        activePolicy,
         currentUserPersonalDetails.accountID,
         currentUserPersonalDetails.email,
         introSelected,
@@ -288,6 +301,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         hasActiveAdminPolicies,
         lastWorkspaceNumber,
         translate,
+        conciergeChat,
+        adminsChatReport,
     ]);
 
     // Create items for enabled features
@@ -339,12 +354,11 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     }}
                     accessibilityLabel={item.title}
                     accessible={false}
-                    hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
+                    hoverStyle={styles.hoveredComponentBG}
                     style={[
                         styles.onboardingInterestedFeaturesItem,
                         // 48.5% handles the gap between columns and keeps items aligned when the scrollbar appears
                         isSmallScreenWidth ? styles.flexBasis100 : {flexBasis: '48.5%', maxWidth: '48.5%'},
-                        isSelected && styles.activeComponentBG,
                     ]}
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM}
                 >

@@ -1,18 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {OptionData} from '@libs/ReportUtils';
-import type CONST from '@src/CONST';
+
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;
+    /** Whether to apply the theme fill color to the icon. Set to false for multi-colored icons like avatars. Defaults to true. */
+    shouldIconApplyFill?: boolean;
     searchItemType?: ValueOf<typeof CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE>;
     searchQuery?: string;
     autocompleteID?: string;
@@ -34,6 +41,10 @@ function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQu
     return 'searchItemType' in item;
 }
 
+/**
+ * A row with an optional icon, title, and subtitle used in the search router for autocomplete
+ * suggestions, saved searches, and recent queries.
+ */
 function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus, shouldDisableHoverStyle}: SearchQueryListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -51,14 +62,15 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             shouldSyncFocus={shouldSyncFocus}
             showTooltip={showTooltip}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
+            shouldHighlightSelectedItem
         >
             <>
                 {!!item.singleIcon && (
                     <Icon
                         src={item.singleIcon}
-                        fill={theme.icon}
+                        fill={item.shouldIconApplyFill !== false ? theme.icon : undefined}
                         additionalStyles={styles.mr3}
-                        medium
+                        size={CONST.ICON_SIZE.MEDIUM}
                     />
                 )}
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>

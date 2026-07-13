@@ -1,8 +1,10 @@
-import render from 'dom-serializer';
-import {DomUtils, parseDocument} from 'htmlparser2';
 import {getReportActionMessage, isActionOfType} from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
+
+import render from 'dom-serializer';
+import {DomUtils, parseDocument} from 'htmlparser2';
 
 type Followup = {
     text: string;
@@ -58,5 +60,6 @@ function parseFollowupsFromHtml(html: string): Followup[] | null {
         return {text, response};
     });
 }
+
 export {containsActionableFollowUps, parseFollowupsFromHtml};
 export type {Followup};

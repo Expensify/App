@@ -1,4 +1,3 @@
-import React from 'react';
 import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {
     DefaultClientFailureScreen,
@@ -8,16 +7,20 @@ import {
     UnsupportedDeviceFailureScreen,
 } from '@components/MultifactorAuthentication/components/OutcomeScreen';
 import type {MultifactorAuthenticationDefaultUIConfig, MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
+
 import type {MultifactorAuthenticationCallbackResponse} from '@libs/MultifactorAuthentication/shared/types';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 const DEFAULT_CONFIG = {
     successScreen: <DefaultSuccessScreen />,
     defaultClientFailureScreen: <DefaultClientFailureScreen />,
     defaultServerFailureScreen: <DefaultServerFailureScreen />,
     failureScreens: {
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED]: <NoEligibleMethodsFailureScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED]: <UnsupportedDeviceFailureScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED]: <NoEligibleMethodsFailureScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED]: <UnsupportedDeviceFailureScreen />,
     },
     modals: {
         cancelConfirmation: DefaultCancelConfirmModal,
@@ -39,5 +42,4 @@ function customConfig<const T extends MultifactorAuthenticationScenarioCustomCon
     } as const;
 }
 
-export default DEFAULT_CONFIG;
-export {customConfig};
+export default customConfig;

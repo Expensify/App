@@ -1,16 +1,21 @@
-import React, {useRef, useState} from 'react';
-import type {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
+
+import type {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React, {useRef, useState} from 'react';
+
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Modal from './Modal';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 import Text from './Text';
 
 type PlanTypeItem = {
@@ -110,7 +115,7 @@ function PlanTypeSelector({errorText = '', value: planType, onInputChange = () =
                     <Text style={[styles.ph5, styles.pb4, styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.planTypePage.description')}</Text>
                     <SelectionList
                         data={planTypeOptions}
-                        ListItem={RadioListItem}
+                        ListItem={SingleSelectListItem}
                         onSelectRow={handlePlanTypeSelect}
                         shouldSingleExecuteRowSelect
                         initiallyFocusedItemKey={planTypeOptions.find((option) => option.isSelected)?.keyForList}

@@ -7,7 +7,7 @@ title: React Compiler compliance
 
 ### Reasoning
 
-React Compiler is enabled in this codebase (`babel-plugin-react-compiler` runs first in both webpack and metro configs). It automatically memoizes components and hooks at the AST level — analyzing data flow, tracking dependencies, and inserting fine-grained caching that is more precise than any hand-written `useMemo`, `useCallback`, or `React.memo`.
+React Compiler is enabled in this codebase (`babel-plugin-react-compiler` runs first in both Rspack and metro configs). It automatically memoizes components and hooks at the AST level — analyzing data flow, tracking dependencies, and inserting fine-grained caching that is more precise than any hand-written `useMemo`, `useCallback`, or `React.memo`.
 
 Manual memoization is therefore:
 
@@ -17,7 +17,7 @@ Manual memoization is therefore:
 
 The codebase enforces this via:
 - **Babel plugin**: `babel-plugin-react-compiler` in `babel.config.js`
-- **ESLint processor**: `eslint-plugin-react-compiler-compat` suppresses redundant lint rules when files compile successfully
+- **ESLint processor**: `eslint-processor-react-compiler-compat` suppresses redundant lint rules when files compile successfully
 - **CI compliance check**: `scripts/react-compiler-compliance-check.ts` enforces that new components/hooks compile and that existing compiled files don't regress
 
 Reference: [React Compiler documentation](https://react.dev/learn/react-compiler)

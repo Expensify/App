@@ -1,6 +1,11 @@
-import React, {useContext, useMemo} from 'react';
 import Log from '@libs/Log';
+
 import SCREENS from '@src/SCREENS';
+
+import React, {useContext, useMemo} from 'react';
+
+import type {AttachmentModalScreenProps, AttachmentModalScreenType} from './types';
+
 import AttachmentModalContext from './AttachmentModalContext';
 import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
 import ReportAddAttachmentModalContent from './routes/report/ReportAddAttachmentModalContent';
@@ -9,7 +14,7 @@ import ReportAvatarModalContent from './routes/report/ReportAvatarModalContent';
 import ShareDetailsAttachmentModalContent from './routes/ShareDetailsAttachmentModalContent';
 import TransactionReceiptModalContent from './routes/TransactionReceiptModalContent';
 import WorkspaceAvatarModalContent from './routes/WorkspaceAvatarModalContent';
-import type {AttachmentModalScreenProps, AttachmentModalScreenType} from './types';
+import WorkspaceDocumentModalContent from './routes/WorkspaceDocumentModalContent';
 
 type RouteType<Screen extends AttachmentModalScreenType> = AttachmentModalScreenProps<Screen>['route'];
 type NavigationType<Screen extends AttachmentModalScreenType> = AttachmentModalScreenProps<Screen>['navigation'];
@@ -56,11 +61,11 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
         );
     }
 
-    if (route.name === SCREENS.PROFILE_AVATAR) {
+    if (route.name === SCREENS.DYNAMIC_PROFILE_AVATAR) {
         return (
             <ProfileAvatarModalContent
-                route={routeWithContext as RouteType<typeof SCREENS.PROFILE_AVATAR>}
-                navigation={navigation as NavigationType<typeof SCREENS.PROFILE_AVATAR>}
+                route={routeWithContext as RouteType<typeof SCREENS.DYNAMIC_PROFILE_AVATAR>}
+                navigation={navigation as NavigationType<typeof SCREENS.DYNAMIC_PROFILE_AVATAR>}
             />
         );
     }
@@ -70,6 +75,15 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
             <WorkspaceAvatarModalContent
                 route={routeWithContext as RouteType<typeof SCREENS.WORKSPACE_AVATAR>}
                 navigation={navigation as NavigationType<typeof SCREENS.WORKSPACE_AVATAR>}
+            />
+        );
+    }
+
+    if (route.name === SCREENS.WORKSPACE_DOCUMENT) {
+        return (
+            <WorkspaceDocumentModalContent
+                route={routeWithContext as RouteType<typeof SCREENS.WORKSPACE_DOCUMENT>}
+                navigation={navigation as NavigationType<typeof SCREENS.WORKSPACE_DOCUMENT>}
             />
         );
     }

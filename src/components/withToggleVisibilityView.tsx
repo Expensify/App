@@ -1,8 +1,11 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+
 import type {ComponentType, ReactElement} from 'react';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import getComponentDisplayName from '@libs/getComponentDisplayName';
 
 type WithToggleVisibilityViewProps = {
     /** Whether the content is visible. */
@@ -18,7 +21,6 @@ export default function withToggleVisibilityView<TProps>(WrappedComponent: Compo
                 collapsable={false}
             >
                 <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(rest as TProps)}
                     isVisible={isVisible}
                 />

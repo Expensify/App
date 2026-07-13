@@ -1,25 +1,24 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getExpensifyCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard, supportsPINManagementFeatures} from '@libs/CardUtils';
+import {hasAssignedCardMatching, isActiveCard, isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
-import Permissions from '@libs/Permissions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
-import type Beta from '@src/types/onyx/Beta';
+import type {CardFeeds, CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
  * Builds a lightweight map of "${domainID}_${feedName}" keys that have card entries.
  * A feed counts as having cards when:
  * - it has at least one assigned card object, OR
- * - it is a CSV feed, the CSV_CARD_IMPORT beta is enabled, and it has at least one entry in `cardList`.
+ * - it is a CSV feed, and it has at least one entry in `cardList`.
  *
  * Input key format: "cards_${domainID}_${feedName}" (e.g., "cards_12345_oauth.chase.com")
  * Output key format: "${domainID}_${feedName}" (e.g., "12345_oauth.chase.com")
  */
-const buildFeedKeysWithAssignedCards = (allWorkspaceCards: OnyxCollection<WorkspaceCardsList>, betas?: OnyxEntry<Beta[]>): Record<string, true> => {
+const buildFeedKeysWithAssignedCards = (allWorkspaceCards: OnyxCollection<WorkspaceCardsList>): Record<string, true> => {
     const result: Record<string, true> = {};
-    const isCSVCardImportBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT, betas);
 
     for (const [key, cards] of Object.entries(allWorkspaceCards ?? {})) {
         if (!cards || typeof cards !== 'object') {
@@ -30,7 +29,7 @@ const buildFeedKeysWithAssignedCards = (allWorkspaceCards: OnyxCollection<Worksp
         const cardFeedName = feedKey.split('_').slice(1).join('_');
         const hasAssignedCards = Object.keys(cards).some((k) => k !== 'cardList');
         const isCSVFeed = isCSVFeedOrExpensifyCard(cardFeedName);
-        const hasCardsToAssign = isCSVCardImportBetaEnabled && isCSVFeed && Object.keys(cards.cardList ?? {}).length > 0;
+        const hasCardsToAssign = isCSVFeed && Object.keys(cards.cardList ?? {}).length > 0;
         if (hasAssignedCards || hasCardsToAssign) {
             result[feedKey] = true;
         }
@@ -74,11 +73,11 @@ const getBankLinkedPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 };
 
 /**
- * Selects the Expensify Card feed from the card list and returns the first one.
+ * Selects the Expensify Card feed from the card list and returns the first regular (non-travel) one.
  */
 const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => {
-    const cards = getExpensifyCardFeedsForDisplay(allCards ?? undefined);
-    return Object.values(cards)?.at(0);
+    const cards = Object.values(getExpensifyCardFeedsForDisplay(allCards ?? undefined, undefined));
+    return cards.find((feed) => feed.country !== CONST.TRAVEL.PROGRAM_TRAVEL_US);
 };
 
 /**
@@ -96,9 +95,22 @@ const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
         .filter((card) => isCard(card) && isExpensifyCard(card))
         .every((card) => card.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
 
-/** Checks whether the Expensify card matching the given cardID supports UK/EU features (e.g. PIN management). */
-const isExpensifyCardUkEuSupportedSelector = (cardList: OnyxEntry<CardList>, cardID: string): boolean =>
-    !!cardID && Object.values(cardList ?? {}).some((card) => isCard(card) && card.cardID === Number(cardID) && supportsPINManagementFeatures(card ?? undefined));
+const isExpensifyCardContinuousReconciliationEnabledSelector = (value: boolean | string | undefined): boolean | undefined => {
+    return typeof value === 'string' ? value === '1' : value;
+};
+
+/** Picks the shared company card custom names from a domain's card feeds, avoiding a subscription to the entire CardFeeds object. */
+const companyCardCustomNamesSelector = (cardFeeds: OnyxEntry<CardFeeds>) => cardFeeds?.settings?.companyCardCustomNames;
+
+/**
+ * Determines whether a workspace has at least one active Expensify Card.
+ * Intended to run against a single WorkspaceCardsList entry subscribed by its exact
+ * `cards_${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}` key. It drops the `cardList` of cards still available to
+ * assign and any inactive cards, then checks whether an active Expensify Card remains. Reducing to a boolean in the
+ * selector keeps consumers from re-rendering on unrelated card changes.
+ */
+const hasIssuedExpensifyCardSelector = (cardsList: OnyxEntry<WorkspaceCardsList>): boolean =>
+    hasAssignedCardMatching(cardsList, (card) => card.bank === CONST.EXPENSIFY_CARD.BANK && isActiveCard(card));
 
 export {
     filterCardsHiddenFromSearch,
@@ -107,6 +119,8 @@ export {
     cardByIdSelector,
     areAllExpensifyCardsShipped,
     buildFeedKeysWithAssignedCards,
-    isExpensifyCardUkEuSupportedSelector,
     getBankLinkedPersonalCards,
+    isExpensifyCardContinuousReconciliationEnabledSelector,
+    companyCardCustomNamesSelector,
+    hasIssuedExpensifyCardSelector,
 };

@@ -1,12 +1,16 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
+
 import {getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
 import {getExportTemplates} from '@libs/actions/Search';
 import {getConnectedIntegrationNamesForPolicies} from '@libs/PolicyUtils';
 import {getAllPolicyValues} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExportTemplate, Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
@@ -40,7 +44,7 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
  * When currentSearchQueryJSON has policyID, options are scoped to those workspaces so form hydration and autocomplete stay consistent.
  */
 export default function useExportedToFilterOptions(): UseExportedToFilterDataResult {
-    const {currentSearchQueryJSON} = useSearchStateContext();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
     const policyIDs = currentSearchQueryJSON?.policyID;
 
     const {translate} = useLocalize();

@@ -1,26 +1,31 @@
-/* eslint-disable react/no-array-index-key */
-import {Str} from 'expensify-common';
-import type {ReactElement} from 'react';
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
+
 import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
+
+import type {ReactElement} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
+import Button from './Button';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
+
+const HTML_TAG_PATTERN = /<\/?[a-z][^>]*>/i;
 
 type DotIndicatorMessageProps = {
     /**
@@ -51,8 +56,8 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {showConfirmModal} = useConfirmModal();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isInNarrowPaneModal} = useResponsiveLayout();
 
     if (Object.keys(messages).length === 0) {
         return null;
@@ -68,53 +73,104 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
-    const handleLinkPress = (href: string) => {
-        if (!receiptError) {
-            return;
-        }
-
-        if (href.endsWith('retry')) {
-            handleRetryPress(receiptError, dismissError, () => {
-                showConfirmModal({
-                    prompt: translate('common.genericErrorMessage'),
-                    confirmText: translate('common.ok'),
-                    shouldShowCancelButton: false,
-                });
-            });
-        } else if (href.endsWith('download')) {
-            fileDownload(translate, receiptError.source, receiptError.filename).finally(() => dismissError());
-        }
-    };
 
     const isTextSelectable = !canUseTouchScreen() || !shouldUseNarrowLayout;
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
-            return (
-                <View style={[styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML
-                        html={translate('iou.error.receiptFailureMessage')}
-                        onLinkPress={(_evt, href) => handleLinkPress(href)}
-                    />
-                </View>
-            );
+            return null;
         }
 
         const displayMessage = isTranslationKeyError(message) ? translate(message.translationKey) : message;
-        const formattedMessage = typeof displayMessage === 'string' ? Str.htmlDecode(displayMessage) : displayMessage;
+
+        if (typeof displayMessage !== 'string') {
+            return (
+                <Text
+                    key={index}
+                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, isTextSelectable ? styles.userSelectText : styles.userSelectNone]}
+                    accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
+                    accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
+                >
+                    {displayMessage}
+                </Text>
+            );
+        }
+
+        if (HTML_TAG_PATTERN.test(displayMessage)) {
+            const html = isErrorMessage ? `<rbr>${displayMessage}</rbr>` : `<muted-text-label>${displayMessage}</muted-text-label>`;
+
+            return (
+                <RenderHTML
+                    key={index}
+                    html={html}
+                    isSelectable={isTextSelectable}
+                />
+            );
+        }
 
         return (
             <Text
-                // eslint-disable-next-line react/no-array-index-key
                 key={index}
                 style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, isTextSelectable ? styles.userSelectText : styles.userSelectNone]}
                 accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                 accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
             >
-                {formattedMessage}
+                {Str.htmlDecode(displayMessage)}
             </Text>
         );
     };
+
+    if (receiptError) {
+        const isStackedLayout = !(isInNarrowPaneModal && !isSmallScreenWidth);
+        const messageRow = (
+            <View style={[styles.dotIndicatorMessage, isStackedLayout && styles.alignItemsStart, styles.flex1]}>
+                <View style={styles.offlineFeedbackErrorDot}>
+                    <Icon
+                        src={expensifyIcons.DotIndicator}
+                        fill={isErrorMessage ? theme.danger : theme.success}
+                    />
+                </View>
+                <Text
+                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, styles.flex1]}
+                    accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
+                    accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
+                >
+                    {translate('iou.error.receiptUploadFailedMessage')}
+                </Text>
+            </View>
+        );
+        const buttonsRow = (
+            <View style={[styles.flexRow, styles.gap3]}>
+                <Button
+                    small
+                    text={translate('iou.error.saveReceipt')}
+                    onPress={() => {
+                        fileDownload(translate, receiptError.source, receiptError.filename);
+                    }}
+                />
+                <Button
+                    small
+                    danger
+                    text={translate('iou.deleteExpense', {count: 1})}
+                    onPress={dismissError}
+                />
+            </View>
+        );
+        if (!isStackedLayout) {
+            return (
+                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, style]}>
+                    {messageRow}
+                    {buttonsRow}
+                </View>
+            );
+        }
+        return (
+            <View style={style}>
+                {messageRow}
+                <View style={styles.mt3}>{buttonsRow}</View>
+            </View>
+        );
+    }
 
     return (
         <View style={[styles.dotIndicatorMessage, style]}>

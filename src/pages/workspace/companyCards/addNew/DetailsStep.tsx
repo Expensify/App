@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -9,20 +7,44 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import type {CombinedCardFeeds} from '@hooks/useCardFeeds';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {addNewCompanyCardsFeed} from '@libs/actions/CompanyCards';
+import {getBankName} from '@libs/CardUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import variables from '@styles/variables';
+
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
 
-function DetailsStep() {
+import React from 'react';
+import {View} from 'react-native';
+
+type DetailsStepProps = {
+    /** ID of the current policy */
+    policyID?: string;
+
+    /** Existing card feeds for the current policy */
+    cardFeeds?: CombinedCardFeeds;
+
+    /** Workspace account ID of the current policy */
+    workspaceAccountID: number;
+};
+
+function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -30,6 +52,7 @@ function DetailsStep() {
     const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
 
     const feedProvider = addNewCard?.data?.feedType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
@@ -37,16 +60,17 @@ function DetailsStep() {
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {
-        if (!addNewCard?.data) {
+        if (!addNewCard?.data?.feedType) {
             return;
         }
 
         const feedDetails = {
             ...values,
-            bankName: addNewCard.data.bankName ?? 'Amex',
+            bankName: addNewCard.data.bankName ?? getBankName(addNewCard.data.feedType),
         };
 
-        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE, data: {feedDetails}});
+        addNewCompanyCardsFeed(policyID, workspaceAccountID, addNewCard.data.feedType, feedDetails, cardFeeds, lastSelectedFeed);
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
     };
 
     const handleBackButtonPress = () => {
@@ -110,7 +134,7 @@ function DetailsStep() {
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
                             ref={inputCallbackRef}
-                            defaultValue={addNewCard?.data.feedDetails?.processorID}
+                            defaultValue={addNewCard?.data?.feedDetails?.processorID}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -118,7 +142,7 @@ function DetailsStep() {
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.bankLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
-                            defaultValue={addNewCard?.data.feedDetails?.bankID}
+                            defaultValue={addNewCard?.data?.feedDetails?.bankID}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -126,7 +150,7 @@ function DetailsStep() {
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.companyLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
-                            defaultValue={addNewCard?.data.feedDetails?.companyID}
+                            defaultValue={addNewCard?.data?.feedDetails?.companyID}
                         />
                     </>
                 );
@@ -139,7 +163,7 @@ function DetailsStep() {
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
-                        defaultValue={addNewCard?.data.feedDetails?.distributionID}
+                        defaultValue={addNewCard?.data?.feedDetails?.distributionID}
                     />
                 );
             case CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX:
@@ -151,7 +175,7 @@ function DetailsStep() {
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
-                        defaultValue={addNewCard?.data.feedDetails?.deliveryFileName}
+                        defaultValue={addNewCard?.data?.feedDetails?.deliveryFileName}
                     />
                 );
             default:
@@ -172,7 +196,7 @@ function DetailsStep() {
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
-                submitButtonText={translate('common.next')}
+                submitButtonText={translate('common.submit')}
                 onSubmit={submit}
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}

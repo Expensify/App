@@ -1,23 +1,29 @@
-import {useRoute} from '@react-navigation/native';
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReportOfflinePendingActionAndErrors, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {reportByIDsSelector} from '@src/selectors/Attributes';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
+import reportByIDsSelector from '@selectors/ReportAttributes';
+import React from 'react';
+
 import HeaderView from './HeaderView';
 
 /**
@@ -46,28 +52,28 @@ function ReportHeader() {
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
     const pendingAction = reportPendingAction ?? report?.pendingFields?.reimbursed;
 
-    const onBackButtonPress = (prioritizeBackTo = false) => {
+    const onBackButtonPress = (prioritizeBackTo = false, options?: {afterTransition?: () => void}) => {
         if (isInSidePanel) {
-            closeSidePanel();
+            closeSidePanel({afterTransition: options?.afterTransition});
             return;
         }
         if (backTo === SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
-            Navigation.goBack();
+            Navigation.goBack(undefined, options);
             return;
         }
         if (prioritizeBackTo && backTo) {
-            Navigation.goBack(backTo as Route);
+            Navigation.goBack(backTo as Route, options);
             return;
         }
         if (isInNarrowPaneModal) {
-            Navigation.goBack();
+            Navigation.goBack(undefined, options);
             return;
         }
         if (backTo) {
-            Navigation.goBack(backTo as Route);
+            Navigation.goBack(backTo as Route, options);
             return;
         }
-        Navigation.goBack();
+        Navigation.goBack(undefined, options);
     };
 
     if (isTransactionThreadView) {

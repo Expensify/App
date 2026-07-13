@@ -1,20 +1,24 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
+import {useMultifactorAuthenticationActions} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationActionsContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+
 import Parser from '@libs/Parser';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type OutcomeScreenBaseProps = {
     headerTitle: string;
@@ -25,6 +29,19 @@ type OutcomeScreenBaseProps = {
     subtitle?: string;
     customSubtitle?: React.ReactElement;
     padding?: ViewStyle;
+    /**
+     * Override the back/confirm button handler. Defaults to dispatching CLOSE_MODAL,
+     * which is correct when the screen is hosted inside the MFA modal navigator.
+     *
+     * Hosts that render the outcome inline inside the RHP (outside the MFA navigator)
+     * must supply their own dismiss callback (e.g. `Navigation.closeRHPFlow()`).
+     *
+     * Examples in this repo:
+     * - `src/pages/iou/AuthorizeTransactionPage.tsx` — deny outcome rendered inside RHP.
+     * - `src/pages/settings/Wallet/ExpensifyCardPage/ChangePINAtATMPage.tsx` — standalone RHP screen.
+     */
+    onClose?: () => void;
+    titleStyle?: StyleProp<TextStyle>;
 };
 
 function HTMLSubtitle({htmlString = '', style}: {htmlString?: string; style?: ViewStyle}) {
@@ -45,14 +62,17 @@ function HTMLSubtitle({htmlString = '', style}: {htmlString?: string; style?: Vi
     );
 }
 
-function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, padding}: OutcomeScreenBaseProps) {
+function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, padding, onClose: onCloseOverride, titleStyle}: OutcomeScreenBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(illustration));
+    const {dispatch} = useMultifactorAuthenticationActions();
 
-    const onClose = () => {
-        Navigation.closeRHPFlow();
-    };
+    const onClose =
+        onCloseOverride ??
+        (() => {
+            dispatch({type: 'CLOSE_MODAL'});
+        });
 
     const CustomSubtitle = customSubtitle ?? (
         <HTMLSubtitle
@@ -76,7 +96,7 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
                         iconWidth={iconWidth}
                         iconHeight={iconHeight}
                         title={title}
-                        titleStyles={styles.mb2}
+                        titleStyles={[styles.mb2, titleStyle]}
                         CustomSubtitle={CustomSubtitle}
                         containerStyle={[styles.ph5, padding]}
                         testID={OutcomeScreenBase.displayName}
@@ -99,4 +119,3 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
 OutcomeScreenBase.displayName = 'OutcomeScreenBase';
 
 export default OutcomeScreenBase;
-export type {OutcomeScreenBaseProps};

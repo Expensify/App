@@ -1,23 +1,29 @@
-import React, {useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
+
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
+
 import {updateRoomVisibility} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {RoomVisibility} from '@src/types/onyx/Report';
+
+import React, {useMemo} from 'react';
 
 type DynamicVisibilityProps = WithReportOrNotFoundProps;
 
@@ -92,7 +98,7 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
                     }}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={visibilityOptions.find((visibility) => visibility.isSelected)?.keyForList}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

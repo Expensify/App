@@ -335,6 +335,10 @@ export default {
         marginTop: 36,
     },
 
+    mt10: {
+        marginTop: 40,
+    },
+
     mt11: {
         marginTop: 44,
     },
@@ -619,6 +623,10 @@ export default {
         paddingRight: 4,
     },
 
+    pr1half: {
+        paddingRight: 6,
+    },
+
     pr2: {
         paddingRight: 8,
     },
@@ -821,6 +829,10 @@ export default {
 
     gapHalf: {
         gap: 2,
+    },
+
+    gap1Half: {
+        gap: 6,
     },
 
     gap2: {

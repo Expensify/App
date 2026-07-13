@@ -1,25 +1,30 @@
-import isEmpty from 'lodash/isEmpty';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import isEmpty from 'lodash/isEmpty';
+import React from 'react';
+
+import type SingleSelectWithAvatarListItem from './SelectionList/ListItem/SingleSelectWithAvatarListItem';
+import type {ListItem} from './SelectionList/types';
+
 import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
-import type RadioListItem from './SelectionList/ListItem/RadioListItem';
-import type TableListItem from './SelectionList/ListItem/TableListItem';
-import type UserListItem from './SelectionList/ListItem/UserListItem';
-import type {ListItem} from './SelectionList/types';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 
 type SelectorType<T = string> = ListItem & {
     value: T;
@@ -46,8 +51,8 @@ type SelectionScreenProps<T = string> = {
     /** Sections for the section list */
     data: Array<SelectorType<T>>;
 
-    /** Default renderer for every item in the list */
-    listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
+    /** Renderer for every item in the list. Defaults to SingleSelectListItem. */
+    ListItem?: typeof SingleSelectListItem | typeof SingleSelectWithAvatarListItem;
 
     /** The style is applied for the wrap component of list item */
     listItemWrapperStyle?: StyleProp<ViewStyle>;
@@ -100,6 +105,9 @@ type SelectionScreenProps<T = string> = {
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
+    /** Whether to allow each row's title to wrap onto multiple lines instead of truncating */
+    isRowMultilineSupported?: boolean;
+
     textInputOptions?: {
         /** Label for the text input */
         label?: string;
@@ -119,7 +127,7 @@ function SelectionScreen<T = string>({
     listEmptyContent,
     listFooterContent,
     data,
-    listItem,
+    ListItem = SingleSelectListItem,
     listItemWrapperStyle,
     initiallyFocusedOptionKey,
     onSelectRow,
@@ -138,6 +146,7 @@ function SelectionScreen<T = string>({
     shouldShowTextInput,
     textInputOptions,
     shouldUpdateFocusedIndex = false,
+    isRowMultilineSupported = false,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -169,7 +178,7 @@ function SelectionScreen<T = string>({
                 >
                     <SelectionList
                         data={data}
-                        ListItem={listItem}
+                        ListItem={ListItem}
                         onSelectRow={onSelectRow}
                         showScrollIndicator
                         shouldShowTooltips={false}
@@ -182,6 +191,7 @@ function SelectionScreen<T = string>({
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                         alternateNumberOfSupportedLines={2}
+                        isRowMultilineSupported={isRowMultilineSupported}
                         addBottomSafeAreaPadding
                     >
                         <ErrorMessageRow

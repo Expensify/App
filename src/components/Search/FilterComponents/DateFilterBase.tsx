@@ -1,5 +1,3 @@
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -7,12 +5,22 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScrollView from '@components/ScrollView';
 import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue, getEmptyDateValues} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from './DatePresetFilterBase';
+
 import DatePresetFilterBase from './DatePresetFilterBase';
 
 type DateFilterBaseHandle = {
@@ -20,6 +28,7 @@ type DateFilterBaseHandle = {
     getDateValues: () => SearchDateValues;
     /** Handles back navigation by closing the active date modifier before leaving the screen */
     goBack: () => void;
+    save: () => void;
 };
 
 type DateFilterBaseProps = {
@@ -45,12 +54,14 @@ type DateFilterBaseProps = {
     onSelectDateModifier?: (dateModifier: SearchDateModifier | null) => void;
     /** Callback when the date modifier screen is opened or closed (on/after/before) */
     onDateModifierChange?: (isOpen: boolean) => void;
+    shouldShowActionButtons?: boolean;
     /** If true, the Reset/Save buttons are only shown when a date modifier is selected. */
     shouldShowButtonsOnlyWithDateModifier?: boolean;
     /** Whether to render the built-in HeaderWithBackButton. Defaults to true. */
     shouldShowHeader?: boolean;
     /** The ref handle */
     ref?: React.Ref<DateFilterBaseHandle>;
+    style?: StyleProp<ViewStyle>;
 };
 
 // Component uses ref as a prop, which is supported in modern React.
@@ -64,11 +75,13 @@ function DateFilterBase({
     onReset,
     onDateValuesChange,
     onDateModifierChange,
+    shouldShowActionButtons: shouldShowActionButtonsProp = true,
     shouldShowButtonsOnlyWithDateModifier = false,
     shouldShowHeader = true,
     ref,
     selectedDateModifier: selectedDateModifierProp,
     onSelectDateModifier,
+    style,
 }: DateFilterBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -142,15 +155,6 @@ function DateFilterBase({
         onBackButtonPress?.();
     }, [onBackButtonPress, onDateModifierChange, selectedDateModifier, setSelectedDateModifier]);
 
-    useImperativeHandle(
-        ref,
-        () => ({
-            getDateValues: () => searchDatePresetFilterBaseRef.current?.getDateValues() ?? getEmptyDateValues(),
-            goBack,
-        }),
-        [goBack],
-    );
-
     const computedTitle = getDateModifierTitle(selectedDateModifier, title ?? '', translate);
 
     const reset = useCallback(() => {
@@ -196,11 +200,21 @@ function DateFilterBase({
         onSubmit(searchDatePresetFilterBaseRef.current.getDateValues());
     }, [onDateModifierChange, onSubmit, selectedDateModifier, setSelectedDateModifier]);
 
-    const shouldShowActionButtons = !shouldShowButtonsOnlyWithDateModifier || !!selectedDateModifier;
+    useImperativeHandle(
+        ref,
+        () => ({
+            getDateValues: () => searchDatePresetFilterBaseRef.current?.getDateValues() ?? getEmptyDateValues(),
+            goBack,
+            save,
+        }),
+        [goBack, save],
+    );
+
+    const shouldShowActionButtons = shouldShowActionButtonsProp && (!shouldShowButtonsOnlyWithDateModifier || !!selectedDateModifier);
     const shouldShowRangeSummary = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && !!rangeDisplayText;
 
     return (
-        <View style={styles.flex1}>
+        <View style={style}>
             {shouldShowHeader && (
                 <HeaderWithBackButton
                     title={computedTitle}

@@ -1,5 +1,6 @@
 import {registerAuthenticationKey} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
+
 import CONST from '@src/CONST';
 
 jest.mock('@userActions/MultifactorAuthentication');
@@ -182,7 +183,9 @@ describe('MultifactorAuthentication processing', () => {
             });
 
             expect(result.success).toBe(true);
-            expect(result.body).toEqual({pin: 1234});
+            if (result.success) {
+                expect(result.body).toEqual({pin: 1234});
+            }
         });
     });
 });

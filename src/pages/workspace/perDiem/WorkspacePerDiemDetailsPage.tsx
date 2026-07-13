@@ -1,29 +1,36 @@
-import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {deleteWorkspacePerDiemRates} from '@userActions/Policy/PerDiem';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
 
 type WorkspacePerDiemDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_DETAILS>;
 
@@ -36,8 +43,9 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencySymbol, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const customUnit = getPerDiemCustomUnit(policy);
+    const {canWrite: canWritePerDiem} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.PER_DIEM);
 
     const selectedRate = customUnit?.rates?.[rateID];
     const fetchedSubRate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
@@ -68,6 +76,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.PER_DIEM}
             shouldBeBlocked={isEmptyObject(selectedSubRate)}
         >
             <ScreenWrapper
@@ -85,42 +94,48 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                         title={selectedRate?.name}
                         description={translate('common.destination')}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_DESTINATION.getRoute(policyID, rateID, subRateID))}
-                        shouldShowRightIcon
+                        interactive={canWritePerDiem}
+                        shouldShowRightIcon={canWritePerDiem}
                     />
                     <MenuItemWithTopDescription
                         title={selectedSubRate?.name}
                         description={translate('common.subrate')}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_SUBRATE.getRoute(policyID, rateID, subRateID))}
-                        shouldShowRightIcon
+                        interactive={canWritePerDiem}
+                        shouldShowRightIcon={canWritePerDiem}
                     />
                     <MenuItemWithTopDescription
                         title={amountValue}
                         description={translate('workspace.perDiem.amount')}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_AMOUNT.getRoute(policyID, rateID, subRateID))}
-                        shouldShowRightIcon
+                        interactive={canWritePerDiem}
+                        shouldShowRightIcon={canWritePerDiem}
                     />
                     <MenuItemWithTopDescription
                         title={currencyValue}
                         description={translate('common.currency')}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.getRoute(policyID, rateID, subRateID))}
-                        shouldShowRightIcon
+                        interactive={canWritePerDiem}
+                        shouldShowRightIcon={canWritePerDiem}
                     />
-                    <MenuItem
-                        icon={icons.Trashcan}
-                        title={translate('common.delete')}
-                        onPress={async () => {
-                            const {action} = await showConfirmModal({
-                                title: translate('workspace.perDiem.deletePerDiemRate'),
-                                prompt: translate('workspace.perDiem.areYouSureDelete', {count: 1}),
-                                confirmText: translate('common.delete'),
-                                cancelText: translate('common.cancel'),
-                                danger: true,
-                            });
-                            if (action === ModalActions.CONFIRM) {
-                                handleDeletePerDiemRate();
-                            }
-                        }}
-                    />
+                    {canWritePerDiem && (
+                        <MenuItem
+                            icon={icons.Trashcan}
+                            title={translate('common.delete')}
+                            onPress={async () => {
+                                const {action} = await showConfirmModal({
+                                    title: translate('workspace.perDiem.deletePerDiemRate'),
+                                    prompt: translate('workspace.perDiem.areYouSureDelete', {count: 1}),
+                                    confirmText: translate('common.delete'),
+                                    cancelText: translate('common.cancel'),
+                                    danger: true,
+                                });
+                                if (action === ModalActions.CONFIRM) {
+                                    handleDeletePerDiemRate();
+                                }
+                            }}
+                        />
+                    )}
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

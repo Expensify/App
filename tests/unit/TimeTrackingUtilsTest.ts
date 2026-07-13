@@ -1,22 +1,30 @@
-import Onyx from 'react-native-onyx';
+import type {RenderAPI} from '@testing-library/react-native';
+
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {computeTimeAmount, formatTimeMerchant, isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
+import initCurrencyListContext from '../utils/initCurrencyListContext';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import currencyList from './currencyList.json';
 
 describe('TimeTrackingUtils', () => {
-    beforeAll(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
-            initialKeyStates: {
-                [ONYXKEYS.CURRENCY_LIST]: currencyList,
-            },
-        });
+    let currencyListProvider: RenderAPI;
+
+    beforeEach(async () => {
+        currencyListProvider = await initCurrencyListContext({keys: ONYXKEYS});
         IntlStore.load(CONST.LOCALES.EN);
-        return waitForBatchedUpdates();
+        await waitForBatchedUpdates();
+    });
+
+    afterEach(async () => {
+        currencyListProvider.unmount();
+        await Onyx.clear();
     });
 
     describe('computeTimeAmount', () => {
@@ -75,7 +83,7 @@ describe('TimeTrackingUtils', () => {
             const rate = 5000; // $50.00 in cents
             const currency = CONST.CURRENCY.USD;
 
-            const result = formatTimeMerchant(hours, rate, currency, translateLocal);
+            const result = formatTimeMerchant(hours, rate, currency, translateLocal, convertToDisplayString);
 
             expect(result).toContain('8 hours');
             expect(result).toContain('$50.00');
@@ -86,7 +94,7 @@ describe('TimeTrackingUtils', () => {
             const rate = 5000;
             const currency = CONST.CURRENCY.USD;
 
-            const result = formatTimeMerchant(hours, rate, currency, translateLocal);
+            const result = formatTimeMerchant(hours, rate, currency, translateLocal, convertToDisplayString);
 
             expect(result).toContain('2.5 hours');
         });
@@ -96,7 +104,7 @@ describe('TimeTrackingUtils', () => {
             const rate = 5000;
             const currency = CONST.CURRENCY.USD;
 
-            const result = formatTimeMerchant(hours, rate, currency, translateLocal);
+            const result = formatTimeMerchant(hours, rate, currency, translateLocal, convertToDisplayString);
 
             expect(result).toContain('1 hour');
         });
@@ -106,7 +114,7 @@ describe('TimeTrackingUtils', () => {
             const rate = 3000;
             const currency = CONST.CURRENCY.EUR;
 
-            const result = formatTimeMerchant(hours, rate, currency, translateLocal);
+            const result = formatTimeMerchant(hours, rate, currency, translateLocal, convertToDisplayString);
 
             expect(result).toContain('€');
         });
@@ -116,7 +124,7 @@ describe('TimeTrackingUtils', () => {
             const rate = 100;
             const currency = 'VND';
 
-            const result = formatTimeMerchant(hours, rate, currency, translateLocal);
+            const result = formatTimeMerchant(hours, rate, currency, translateLocal, convertToDisplayString);
 
             expect(result).toContain('₫1 ');
             expect(result).not.toContain('₫1.00');

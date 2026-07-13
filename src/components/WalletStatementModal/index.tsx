@@ -1,11 +1,17 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
+
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type {WalletStatementMessage, WalletStatementProps} from './types';
+
 import handleWalletStatementNavigation from './walletNavigationUtils';
 
 function WalletStatementModal({statementPageURL}: WalletStatementProps) {
@@ -37,27 +43,33 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     }, [navigate]);
 
     return (
-        <>
-            {isLoading && <FullScreenLoadingIndicator reasonAttributes={{context: 'WalletStatementModal'}} />}
-            <View style={[styles.flex1]}>
-                <iframe
-                    src={`${statementPageURL}&authToken=${authToken}`}
-                    title="Statements"
-                    height="100%"
-                    width="100%"
-                    seamless
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    frameBorder="0"
-                    onLoad={() => {
-                        setIsLoading(false);
+        <View style={styles.flex1}>
+            {isLoading && (
+                <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{context: 'WalletStatementModal'}}
+                    />
+                </View>
+            )}
+            <iframe
+                src={`${statementPageURL}&authToken=${authToken}`}
+                title="Statements"
+                height="100%"
+                width="100%"
+                seamless
+                // frameBorder is deprecated in HTML5 but needed for consistent cross-browser iframe border removal
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                frameBorder="0"
+                onLoad={() => {
+                    setIsLoading(false);
 
-                        // We listen to a message sent from the iframe to the parent component when a link is clicked.
-                        // This lets us handle navigation in the app, outside of the iframe.
-                        window.onmessage = (event: MessageEvent<WalletStatementMessage>) => navigateRef.current?.(event);
-                    }}
-                />
-            </View>
-        </>
+                    // We listen to a message sent from the iframe to the parent component when a link is clicked.
+                    // This lets us handle navigation in the app, outside of the iframe.
+                    window.onmessage = (event: MessageEvent<WalletStatementMessage>) => navigateRef.current?.(event);
+                }}
+            />
+        </View>
     );
 }
 

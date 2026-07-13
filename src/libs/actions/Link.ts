@@ -1,7 +1,3 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import {InteractionManager} from 'react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
@@ -9,9 +5,12 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
+import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
+import {whenTabNavigatorReady} from '@libs/Navigation/helpers/tabNavigatorReadiness';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -21,6 +20,7 @@ import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import * as Url from '@libs/Url';
 import addTrailingForwardSlash from '@libs/UrlUtils';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -28,7 +28,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Beta, IntroSelected, Report} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
+
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {setOnboardingErrorMessage} from './Welcome';
@@ -179,7 +186,15 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
     let shouldCloseRHP = false;
     if (!isNarrowLayout && isRHPOpen) {
-        shouldCloseRHP = !willRouteNavigateToRHP(internalNewExpensifyPath as Route);
+        const targetWillNavigateToRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
+        if (!targetWillNavigateToRHP) {
+            shouldCloseRHP = true;
+        } else if (hasSameOrigin) {
+            // Cross-tab RHP→RHP: swap the background tab in place so the RHP stays mounted and the
+            // user sees only the RHP content update + the underlying tab animate, no close+reopen
+            // flicker (issue: https://github.com/Expensify/App/issues/89710).
+            swapBackgroundTabForRHPTarget(currentState, internalNewExpensifyPath as Route);
+        }
     }
 
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
@@ -260,6 +275,12 @@ function openReportFromDeepLink(
         route = '';
     }
 
+    // React Navigation generates /Home (capitalized) for the root URL because PublicScreens uses SCREENS.HOME ('Home')
+    // at the root level without a path mapping. Treat it as empty route to avoid showing a “not found” page after sign-in.
+    if (normalizePath(route) === `/${SCREENS.HOME}`) {
+        route = '';
+    }
+
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
     if (!isAuthenticated && isPublicScreenRoute(route)) {
         return;
@@ -276,18 +297,30 @@ function openReportFromDeepLink(
     }
 
     // Navigate to the report after sign-in/sign-up.
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    InteractionManager.runAfterInteractions(() => {
-        waitForUserSignIn().then(() => {
-            // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
-            const connection = Onyx.connectWithoutView({
-                key: ONYXKEYS.NVP_ONBOARDING,
-                callback: (val) => {
-                    if (!val && !isAnonymousUser()) {
-                        return;
-                    }
+    waitForUserSignIn().then(() => {
+        // `false` when the user still had to onboard as this deep link was captured (fresh sign-up, or a
+        // stale react-native-web URL); honoring it after onboarding flashes the "Not here" page (#91437).
+        let initialHasCompletedGuidedSetupFlow: boolean | undefined;
+        // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.NVP_ONBOARDING,
+            callback: (val) => {
+                if (!val && !isAnonymousUser()) {
+                    return;
+                }
 
-                    Navigation.waitForProtectedRoutes().then(() => {
+                // Capture once. Use the raw flag, not the selector, which returns `true` for the empty NVP a fresh sign-up briefly has.
+                if (!isAuthenticated && initialHasCompletedGuidedSetupFlow === undefined && val && !isAnonymousUser()) {
+                    initialHasCompletedGuidedSetupFlow = val.hasCompletedGuidedSetupFlow;
+                }
+
+                // Wait for TAB_NAVIGATOR's child router to mount before navigating. waitForProtectedRoutes()
+                // resolves once the screen is declared on the root navigator, but the lazily-loaded
+                // TAB_NAVIGATOR may not have mounted yet, so a NAVIGATE targeting a screen inside it would
+                // be unhandled. The user is over the auth wall here, so TAB_NAVIGATOR is guaranteed to mount.
+                Navigation.waitForProtectedRoutes()
+                    .then(() => whenTabNavigatorReady())
+                    .then(() => {
                         if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
                             signOutAndRedirectToSignIn(true);
                             return;
@@ -321,6 +354,12 @@ function openReportFromDeepLink(
                                 return;
                             }
 
+                            // Drop a deep link captured before onboarding finished: navigateAfterOnboarding owns the
+                            // post-onboarding destination and overrides it anyway, so honoring it only risks the flash (#91437).
+                            if (initialHasCompletedGuidedSetupFlow === false) {
+                                return;
+                            }
+
                             // Navigation for signed users is handled by react-navigation.
                             if (isAuthenticated) {
                                 return;
@@ -334,7 +373,7 @@ function openReportFromDeepLink(
                                     const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), reportID)?.reportID;
                                     if (lastAccessedReportID) {
                                         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                                        Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
+                                        Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
                                         return;
                                     }
                                     navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true);
@@ -343,7 +382,7 @@ function openReportFromDeepLink(
 
                                 // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
                                 const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-                                Navigation.navigate(route as Route, {forceReplace});
+                                Navigation.navigate(route as Route, {forceReplace, waitForTransition: true});
                             };
                             // If we log with deeplink with reportID and data for this report is not available yet,
                             // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
@@ -352,7 +391,6 @@ function openReportFromDeepLink(
                                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                                     // eslint-disable-next-line rulesdir/prefer-early-return
                                     callback: (report) => {
-                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                         if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
                                             Onyx.disconnect(reportConnection);
                                             navigateHandler(report);
@@ -364,12 +402,11 @@ function openReportFromDeepLink(
                             }
                         };
 
-                        if (isAnonymousUser()) {
+                        if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser()) {
                             handleDeeplinkNavigation();
                         }
                     });
-                },
-            });
+            },
         });
     });
 }
@@ -392,6 +429,25 @@ function getTravelDotLink(policyID: OnyxEntry<string>) {
     });
 }
 
+/**
+ * Fetches a short-lived auth token and appends it to the given setup link.
+ * Falls back to returning the original link if the token request fails.
+ */
+function getShortLivedAuthTokenURL(setupLink: string): Promise<string> {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
+        .then((response) => {
+            if (!response?.shortLivedAuthToken) {
+                return setupLink;
+            }
+            return Url.appendParam(setupLink, 'authToken', response.shortLivedAuthToken);
+        })
+        .catch((error) => {
+            Log.warn('[Link] Failed to fetch short-lived auth token', {error});
+            return setupLink;
+        });
+}
+
 export {
     openOldDotLink,
     openExternalLink,
@@ -403,4 +459,5 @@ export {
     getTravelDotLink,
     buildOldDotURL,
     openReportFromDeepLink,
+    getShortLivedAuthTokenURL,
 };

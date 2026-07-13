@@ -1,19 +1,26 @@
 import {fireEvent, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import type Animated from 'react-native-reanimated';
-import {measureRenders} from 'reassure';
+
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {KeyboardStateProvider} from '@components/withKeyboardState';
+
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type Navigation from '@libs/Navigation/Navigation';
 import {setHasRadio} from '@libs/NetworkState';
+
 import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
-import ComposeProviders from '@src/components/ComposeProviders';
-import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
-import {KeyboardStateProvider} from '@src/components/withKeyboardState';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type Animated from 'react-native-reanimated';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+import {measureRenders} from 'reassure';
+
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -86,6 +93,8 @@ beforeEach(() => {
     } as Report);
 });
 
+const mockEvent = {preventDefault: jest.fn()};
+
 function ReportActionComposeWrapper() {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider]}>
@@ -93,7 +102,6 @@ function ReportActionComposeWrapper() {
         </ComposeProviders>
     );
 }
-const mockEvent = {preventDefault: jest.fn()};
 
 test('[ReportActionCompose] should render Composer with text input interactions', async () => {
     const scenario = async () => {
@@ -109,7 +117,7 @@ test('[ReportActionCompose] should render Composer with text input interactions'
 test('[ReportActionCompose] should press create button', async () => {
     const scenario = async () => {
         // Query for the create button
-        const hintAttachmentButtonText = translateLocal('common.create');
+        const hintAttachmentButtonText = translateLocal('accessibilityHints.openActionsMenu');
         const createButton = await screen.findByLabelText(hintAttachmentButtonText);
 
         fireEvent.press(createButton, mockEvent);

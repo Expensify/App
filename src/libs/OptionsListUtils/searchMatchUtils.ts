@@ -1,6 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
+
 import CONST from '@src/CONST';
+
 import type {SearchOptionData} from './types';
 
 type SearchMatchConfig = {
@@ -22,7 +23,6 @@ type SearchMatchConfig = {
  * login with dots stripped before @, and translated "You"/"Me".
  */
 function getCurrentUserSearchTerms(item: Partial<SearchOptionData>) {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return [item.text ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', translateLocal('common.you'), translateLocal('common.me')];
 }
 
@@ -63,4 +63,3 @@ function doesPersonalDetailMatchSearchTerm(
 }
 
 export {getCurrentUserSearchTerms, getPersonalDetailSearchTerms, doesPersonalDetailMatchSearchTerm};
-export type {SearchMatchConfig};

@@ -1,8 +1,10 @@
+import CONST from '@src/CONST';
+
+import type {ParsedPhoneNumber, ParsedPhoneNumberInvalid, PhoneNumberParseOptions} from 'awesome-phonenumber';
+
 // eslint-disable-next-line no-restricted-imports
 import {parsePhoneNumber as originalParsePhoneNumber} from 'awesome-phonenumber';
-import type {ParsedPhoneNumber, ParsedPhoneNumberInvalid, PhoneNumberParseOptions} from 'awesome-phonenumber';
 import {Str} from 'expensify-common';
-import CONST from '@src/CONST';
 
 /**
  * Wraps awesome-phonenumber's parsePhoneNumber function to handle the case where we want to treat
@@ -68,5 +70,4 @@ function addSMSDomainIfPhoneNumber(login = ''): string {
     return login;
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export {parsePhoneNumber, addSMSDomainIfPhoneNumber};

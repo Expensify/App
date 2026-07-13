@@ -1,11 +1,14 @@
-import Onyx from 'react-native-onyx';
 import {getMissingOnyxUpdates} from '@libs/actions/App';
 import Log from '@libs/Log';
+
 import type {AnyDeferredUpdatesDictionary, AnyDetectGapAndSplitResult} from '@userActions/OnyxUpdateManager/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import {applyUpdates} from './applyUpdates';
-// eslint-disable-next-line import/no-cycle
 import {clear, enqueue, getUpdates} from './DeferredOnyxUpdates';
 
 let lastUpdateIDAppliedToClient: number = CONST.DEFAULT_NUMBER_ID;

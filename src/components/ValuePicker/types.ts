@@ -1,7 +1,9 @@
+import type {ListItem} from '@components/SelectionList/types';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
-import type {ListItem} from '@components/SelectionList/types';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 type ValuePickerListItem = ListItem & {
     value?: string;
@@ -54,7 +56,10 @@ type ValueSelectorModalProps = {
 type ValueSelectionListProps = Pick<
     ValueSelectorModalProps,
     'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips' | 'addBottomSafeAreaPadding' | 'disableKeyboardShortcuts' | 'alternateNumberOfSupportedLines'
->;
+> & {
+    /** Whether the parent modal is visible */
+    isVisible?: boolean;
+};
 
 type ValuePickerProps = ForwardedFSClassProps & {
     /** Item to display */

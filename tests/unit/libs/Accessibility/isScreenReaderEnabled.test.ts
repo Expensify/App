@@ -14,7 +14,7 @@ describe('isScreenReaderEnabled (web)', () => {
         // Directly import the web module (index.ts, not index.native.ts).
         // jest-expo defaults to ios platform which would resolve index.native.ts,
         // but the fix lives in the web-specific index.ts.
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+
         const {default: isScreenReaderEnabled} = require('../../../../src/libs/Accessibility/isScreenReaderEnabled/index') as {default: () => Promise<boolean>};
 
         const result = await isScreenReaderEnabled();

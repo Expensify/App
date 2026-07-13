@@ -1,21 +1,29 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import WorkspaceCategoriesPage from '@pages/workspace/categories/WorkspaceCategoriesPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -27,7 +35,7 @@ jest.mock('@src/components/ConfirmedRoute.tsx');
 // This mock simulates that behavior synchronously so that the showConfirmModal
 // promise resolves correctly in tests.
 jest.mock('@components/Modal/ReanimatedModal', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
 
     return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
@@ -138,9 +146,8 @@ describe('WorkspaceCategories', () => {
             expect(screen.getByText(SECOND_CATEGORY)).toBeOnTheScreen();
         });
 
-        // Select categories to delete by clicking their checkboxes
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_CATEGORY}`));
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_CATEGORY}`));
+        // Select categories to delete
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
 
         const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
 
@@ -244,9 +251,8 @@ describe('WorkspaceCategories', () => {
             expect(screen.getByText(SECOND_CATEGORY)).toBeOnTheScreen();
         });
 
-        // Select categories to delete by clicking their checkboxes
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_CATEGORY}`));
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_CATEGORY}`));
+        // Select categories to disable
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
 
         const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
 

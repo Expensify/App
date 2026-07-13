@@ -1,20 +1,24 @@
-import {Str} from 'expensify-common';
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setColumnName} from '@libs/actions/ImportSpreadsheet';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import Text from './Text';
 
 // cspell:disable
 function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
     let attribute = '';
-    const formattedHeader = Str.removeSpaces(String(header).toLowerCase().trim());
+    const formattedHeader = String(header).toLowerCase().trim().replaceAll(' ', '');
     switch (formattedHeader) {
         case 'email':
         case 'emailaddress':
@@ -142,6 +146,19 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
             attribute = CONST.CSV_IMPORT_COLUMNS.ENABLED;
             break;
 
+        case 'receiptsrequired':
+        case 'requirereceiptsover':
+        case 'maxamountnoreceipt':
+            attribute = CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_RECEIPT;
+            break;
+
+        case 'itemisedreceiptrequirement':
+        case 'itemizedreceiptrequirement':
+        case 'requireitemizedreceiptsover':
+        case 'maxamountnoitemizedreceipt':
+            attribute = CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_ITEMIZED_RECEIPT;
+            break;
+
         default:
             break;
     }
@@ -255,8 +272,8 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                     <View style={styles.ml2}>
                         <ButtonWithDropdownMenu
                             onPress={() => {}}
-                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                            shouldShowSelectedItemCheck
+                            buttonSize={CONST.BUTTON_SIZE.SMALL}
+                            shouldShowRadioButton
                             menuHeaderText={columnHeader}
                             isSplitButton={false}
                             onOptionSelected={(option) => {

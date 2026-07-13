@@ -1,15 +1,15 @@
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
+
+import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
 import {getSearchOptions} from '@libs/OptionsListUtils';
-import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
     getAutocompleteCategories,
     getAutocompleteRecentCategories,
@@ -20,14 +20,23 @@ import {
 } from '@libs/SearchAutocompleteUtils';
 import {getUserFriendlyKey, getUserFriendlyValue} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
+
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, CardFeeds, CardList, DismissedProductTraining, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
+
+import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
+
 import {useCurrencyListState} from './useCurrencyList';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
-import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useSortedActions from './useSortedActions';
 
@@ -44,7 +53,6 @@ type UseAutocompleteSuggestionsParams = {
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
     options: OptionList;
     draftComments: OnyxCollection<string>;
-    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
     betas: OnyxEntry<Beta[]>;
     countryCode: OnyxEntry<number>;
     loginList: OnyxEntry<Record<string, unknown>>;
@@ -64,7 +72,10 @@ const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
 const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
+const RECEIPT_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.RECEIPT_TYPE).map((value) => getUserFriendlyValue(value));
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
+const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
+const PAID_STATUS_VALUES = Object.values(CONST.SEARCH.PAID_STATUS);
 const BOOLEAN_VALUES = Object.values(CONST.SEARCH.BOOLEAN);
 const ACTION_FILTER_VALUES = Object.values(CONST.SEARCH.ACTION_FILTERS);
 const IS_VALUES_LIST = Object.values(CONST.SEARCH.IS_VALUES);
@@ -92,7 +103,6 @@ function useAutocompleteSuggestions({
     allFeeds,
     options,
     draftComments,
-    nvpDismissedProductTraining,
     betas,
     countryCode,
     loginList,
@@ -105,15 +115,18 @@ function useAutocompleteSuggestions({
     translate,
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
+    const {localeCompare} = useLocalize();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const sortedActions = useSortedActions();
     const {currencyList} = useCurrencyListState();
     const {exportedToFilterOptions} = useExportedToFilterOptions();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const {autocomplete, ranges = []} = parsedQuery ?? {};
@@ -220,10 +233,12 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
+            // Soft-exclude Expensify-team logins (current and former AMs/Guides) from user filter suggestions. Users can still type any email manually because the search bar accepts free text.
+            const memberExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserEmail);
+
             const participants = getSearchOptions({
                 options,
                 draftComments,
-                nvpDismissedProductTraining,
                 betas: betas ?? [],
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
@@ -242,7 +257,9 @@ function useAutocompleteSuggestions({
                 personalDetails,
                 sortedActions,
                 conciergeReportID,
-            }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
+                excludeFromSuggestionsOnly: memberExclusions,
+                isTrackIntentUser,
+            }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
                 filterKey: autocompleteKey,
@@ -261,7 +278,6 @@ function useAutocompleteSuggestions({
             const filteredReports = getSearchOptions({
                 options,
                 draftComments,
-                nvpDismissedProductTraining,
                 betas: betas ?? [],
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
@@ -280,7 +296,8 @@ function useAutocompleteSuggestions({
                 personalDetails,
                 sortedActions,
                 conciergeReportID,
-            }).recentReports.filter((chat) => {
+                isTrackIntentUser,
+            }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;
                 }
@@ -362,6 +379,16 @@ function useAutocompleteSuggestions({
                 text: expenseType,
             }));
         }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE: {
+            const filteredReceiptTypes = RECEIPT_TYPE_FRIENDLY_VALUES.filter(
+                (receiptType) => receiptType.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(receiptType),
+            ).sort();
+
+            return filteredReceiptTypes.map((receiptType) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.RECEIPT_TYPE,
+                text: receiptType,
+            }));
+        }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {
             const filteredWithdrawalTypes = WITHDRAWAL_TYPE_VALUES.filter(
                 (withdrawalType) => withdrawalType.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(withdrawalType),
@@ -370,6 +397,24 @@ function useAutocompleteSuggestions({
             return filteredWithdrawalTypes.map((withdrawalType) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_TYPE,
                 text: withdrawalType,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS: {
+            const filteredWithdrawalStatuses = WITHDRAWAL_STATUS_VALUES.filter(
+                (withdrawalStatus) => withdrawalStatus.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(withdrawalStatus),
+            ).sort();
+
+            return filteredWithdrawalStatuses.map((withdrawalStatus) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_STATUS,
+                text: withdrawalStatus,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS: {
+            const filteredPaidStatuses = PAID_STATUS_VALUES.filter((paidStatus) => paidStatus.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(paidStatus)).sort();
+
+            return filteredPaidStatuses.map((paidStatus) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PAID_STATUS,
+                text: paidStatus,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED: {
@@ -404,6 +449,36 @@ function useAutocompleteSuggestions({
                 text: getCardDescription(card, translate),
                 autocompleteID: card.cardID.toString(),
                 mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT: {
+            const bankAccountSuggestions: Array<{id: string; label: string; accountNumber: string}> = [];
+            for (const bankAccount of Object.values(bankAccountList ?? {})) {
+                const bankAccountID = bankAccount?.accountData?.bankAccountID;
+                if (!bankAccountID) {
+                    continue;
+                }
+                if (!isFilterableBankAccount(bankAccount)) {
+                    continue;
+                }
+                const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
+                const label = getBankAccountSearchLabel(bankAccount);
+                bankAccountSuggestions.push({id: bankAccountID.toString(), label, accountNumber});
+            }
+            const filteredBankAccounts = bankAccountSuggestions
+                .filter(
+                    (item) =>
+                        (item.label.toLowerCase().includes(autocompleteValue.toLowerCase()) || item.accountNumber.includes(autocompleteValue)) &&
+                        !alreadyAutocompletedKeys.has(item.label.toLowerCase()),
+                )
+                .sort((a, b) => localeCompare(a.label, b.label))
+                .slice(0, 10);
+
+            return filteredBankAccounts.map((item) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.BANK_ACCOUNT,
+                text: item.label,
+                autocompleteID: item.id,
+                mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
@@ -529,4 +604,3 @@ function useAutocompleteSuggestions({
 }
 
 export default useAutocompleteSuggestions;
-export type {AutocompleteItemData};

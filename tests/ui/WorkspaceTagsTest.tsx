@@ -1,21 +1,29 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import WorkspaceTagsPage from '@pages/workspace/tags/WorkspaceTagsPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -115,13 +123,10 @@ describe('WorkspaceTags', () => {
             expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
         });
 
-        // Long press on the first tag to trigger the select action
-
-        fireEvent(screen.getByTestId(`base-list-item-Tag One`), 'onLongPress');
+        fireEvent(screen.getByText(FIRST_TAG), 'onLongPress');
 
         await waitForBatchedUpdatesWithAct();
 
-        // Wait for the "Select" option to appear
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal('common.select'))).toBeOnTheScreen();
         });
@@ -161,10 +166,13 @@ describe('WorkspaceTags', () => {
             expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
         });
 
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_TAG}`));
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_TAG}`));
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
 
         const dropdownMenuButtonTestID = 'WorkspaceTagsPage-header-dropdown-menu-button';
+
+        await waitFor(() => {
+            expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
+        });
 
         fireEvent.press(screen.getByTestId(dropdownMenuButtonTestID));
         await waitFor(() => {

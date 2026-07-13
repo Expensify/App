@@ -1,17 +1,23 @@
-import type {OnyxKey} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import alert from '@components/Alert';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequestType} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
+import {setLoadTestParameters} from './Network/LoadTestState';
 import prepareRequestPayload from './prepareRequestPayload';
+import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -48,6 +54,12 @@ abortControllerMap.set(ABORT_COMMANDS.SearchForUsers, new AbortController());
 const addSkewList = new Set<string>([WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_APP]);
 
 /**
+ * Per-command server response messages we recognize as the PHP-wrapped "AlreadyCreated" error.
+ * Add new variants here as we discover them for other non-idempotent commands.
+ */
+const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREATED_TRANSACTION]);
+
+/**
  * Regex to get API command from the command
  */
 const APICommandRegex = /\/api\/([^&?]+)\??.*/;
@@ -63,6 +75,9 @@ function processHTTPRequest<TKey extends OnyxKey>(
     abortSignal: AbortSignal | undefined = undefined,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
+
+    const command = url.match(APICommandRegex)?.[1];
+
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: abortSignal,
@@ -75,9 +90,13 @@ function processHTTPRequest<TKey extends OnyxKey>(
         credentials: 'omit',
     })
         .then((response) => {
+            if (response.headers) {
+                setLoadTestParameters(response.headers.get('X-Load-Test'));
+            }
+
             // We are calculating the skew to minimize the delay when posting the messages
-            const match = url.match(APICommandRegex)?.[1];
-            if (match && addSkewList.has(match) && response.headers) {
+
+            if (command && addSkewList.has(command) && response.headers) {
                 const dateHeaderValue = response.headers.get('Date');
                 const serverTime = dateHeaderValue ? new Date(dateHeaderValue).valueOf() : new Date().valueOf();
                 const endTime = new Date().valueOf();
@@ -133,6 +152,16 @@ function processHTTPRequest<TKey extends OnyxKey>(
                     message: CONST.ERROR.DUPLICATE_RECORD,
                     status: CONST.JSON_CODE.BAD_REQUEST.toString(),
                     title: CONST.ERROR_TITLE.DUPLICATE_RECORD,
+                    requestID: response.requestID,
+                });
+            }
+
+            // Per-command messages indicating the resource already exists on the server (e.g. retry after a successful first attempt).
+            if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.message && ALREADY_CREATED_MESSAGES.has(response.message)) {
+                throw new HttpsError({
+                    message: CONST.ERROR.ALREADY_CREATED,
+                    status: CONST.JSON_CODE.EXP_ERROR.toString(),
+                    title: response.message,
                 });
             }
 
@@ -142,6 +171,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
                     message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                     status: CONST.JSON_CODE.EXP_ERROR.toString(),
                     title: CONST.ERROR_TITLE.SOCKET,
+                    requestID: response.requestID,
                 });
             }
 
@@ -157,7 +187,8 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 alertUser();
             }
             return response;
-        });
+        })
+        .finally(() => markAppStartupNetworkRequestEnd(command));
 }
 
 /**

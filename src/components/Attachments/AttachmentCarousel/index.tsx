@@ -1,18 +1,24 @@
-import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import type {Attachment} from '@components/Attachments/types';
+
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {deepEqual} from 'fast-equals';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
+
+import type {AttachmentCarouselProps} from './types';
+
 import AttachmentCarouselView from './AttachmentCarouselView';
 import extractAttachments from './extractAttachments';
-import type {AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
 function AttachmentCarousel({
@@ -27,8 +33,8 @@ function AttachmentCarousel({
     attachmentLink,
     onAttachmentError,
 }: AttachmentCarouselProps) {
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
     const canUseTouchScreen = canUseTouchScreenUtil();
     const styles = useThemeStyles();
     const isReportArchived = useReportIsArchived(report.reportID);

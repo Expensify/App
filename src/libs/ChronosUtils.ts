@@ -1,7 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type ReportAction from '@src/types/onyx/ReportAction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {addDays, addMonths, differenceInCalendarDays, format, parseISO} from 'date-fns';
+
+import {replaceCommasWithPeriod} from './MoneyRequestUtils';
 import {getReportActionText} from './ReportActionsUtils';
 
 type GetReportActionTextArg = Parameters<typeof getReportActionText>[0];
@@ -57,10 +62,7 @@ function isChronosAutomaticTimerAction(reportAction: OnyxEntry<ReportAction>, is
     return isChronosReport && isChronosStartOrStopMessage(getReportActionText(reportAction as GetReportActionTextArg)) !== null;
 }
 
-/**
- * From visible report actions sorted newest-first, returns the latest ADD_COMMENT from the current user that looks like a Chronos timer command.
- */
-function getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc: ReportAction[], currentUserAccountID: number): ChronosTimerCommandValue | null {
+function getTimeOfChronosTimerRunningFromVisibleActions(sortedVisibleReportActionsDesc: ReportAction[], currentUserAccountID: number): string | null {
     for (const action of sortedVisibleReportActionsDesc) {
         if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
             continue;
@@ -69,15 +71,14 @@ function getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc: Report
             continue;
         }
         const kind = isChronosStartOrStopMessage(getReportActionText(action as GetReportActionTextArg));
+        if (kind === CONST.CHRONOS.TIMER_COMMAND.START) {
+            return action.created;
+        }
         if (kind !== null) {
-            return kind;
+            return null;
         }
     }
     return null;
-}
-
-function isChronosTimerRunningFromVisibleActions(sortedVisibleReportActionsDesc: ReportAction[], currentUserAccountID: number): boolean {
-    return getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc, currentUserAccountID) === CONST.CHRONOS.TIMER_COMMAND.START;
 }
 
 /**
@@ -88,6 +89,66 @@ function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[],
     const previousAction = findPreviousVisibleReportAction(reportActions, actionIndex, isOffline);
     const currentAction = reportActions?.at(actionIndex);
     return isChronosAutomaticTimerAction(currentAction, isChronosReport) && isChronosAutomaticTimerAction(previousAction, isChronosReport);
+}
+
+/**
+ * Parse a YYYY-MM-DD string into a Date, returning null when invalid.
+ */
+function parseDate(value: string): Date | null {
+    if (!value) {
+        return null;
+    }
+    const parsed = parseISO(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/**
+ * Computes the calendar end date to display for a start date and duration. Day, week, and month
+ * durations use whole units and end on the last covered calendar day; hour durations are sub-day, so
+ * the OOO ends on the start day. Returns an empty string for an invalid start date and the start date
+ * itself for a non-positive duration.
+ */
+function computeEndDate(startDate: string, durationAmount: string, durationUnit: string): string {
+    const start = parseDate(startDate);
+    if (!start) {
+        return '';
+    }
+    const sanitized = replaceCommasWithPeriod(durationAmount.trim());
+    const amount = Number.parseFloat(sanitized);
+    if (!Number.isFinite(amount) || amount <= 0) {
+        return startDate;
+    }
+    // Fractional durations are only meaningful for hours (which stay within the start day), so day, week,
+    // and month end dates are derived from whole units.
+    const whole = Math.floor(amount);
+    switch (durationUnit) {
+        case CONST.CHRONOS.OOO_DURATION_UNITS.DAY:
+            return format(addDays(start, Math.max(0, whole - 1)), CONST.DATE.FNS_FORMAT_STRING);
+        case CONST.CHRONOS.OOO_DURATION_UNITS.WEEK:
+            return format(addDays(start, Math.max(0, whole * 7 - 1)), CONST.DATE.FNS_FORMAT_STRING);
+        case CONST.CHRONOS.OOO_DURATION_UNITS.MONTH:
+            return format(addDays(addMonths(start, whole), -1), CONST.DATE.FNS_FORMAT_STRING);
+        case CONST.CHRONOS.OOO_DURATION_UNITS.HOUR:
+        default:
+            return startDate;
+    }
+}
+
+/**
+ * Inverse of `computeEndDate` for the day unit: end - start + 1 (inclusive of both days).
+ * Returns null when the dates are missing or the end precedes the start.
+ */
+function computeDurationDays(startDate: string, endDate: string): number | null {
+    const start = parseDate(startDate);
+    const end = parseDate(endDate);
+    if (!start || !end) {
+        return null;
+    }
+    const diff = differenceInCalendarDays(end, start);
+    if (diff < 0) {
+        return null;
+    }
+    return diff + 1;
 }
 
 type OOOCommandParams = {
@@ -124,12 +185,13 @@ function buildOOOCommand({date, time, durationAmount, durationUnit, reason, work
     return command;
 }
 
-export type {ChronosTimerCommandValue};
 export {
     buildOOOCommand,
-    getLatestUserChronosTimerCommand,
+    computeDurationDays,
+    computeEndDate,
+    getTimeOfChronosTimerRunningFromVisibleActions,
     isChronosOOOListAction,
     isChronosStartOrStopMessage,
-    isChronosTimerRunningFromVisibleActions,
     isConsecutiveChronosAutomaticTimerAction,
+    parseDate,
 };

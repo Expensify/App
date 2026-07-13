@@ -1,9 +1,13 @@
-import deburr from 'lodash/deburr';
-import type {KebabCase} from 'type-fest';
 import {isSafari} from '@libs/Browser';
+
 import CONST from '@src/CONST';
+
+import type {KebabCase} from 'type-fest';
+
+import {Str} from 'expensify-common';
+import deburr from 'lodash/deburr';
+
 import decodeUnicode from './decodeUnicode';
-import dedent from './dedent';
 import hash from './hash';
 
 /**
@@ -121,15 +125,6 @@ function normalizeCRLF(value?: string): string | undefined {
 }
 
 /**
- * Remove all line breaks from a string
- * @param text - The input string
- * @returns The string with all line breaks removed
- */
-function removeLineBreaks(text = '') {
-    return text.replaceAll(CONST.REGEX.LINE_BREAK, '');
-}
-
-/**
  * Replace all line breaks with white spaces
  */
 function lineBreaksToSpaces(text = '', useNonBreakingSpace = false) {
@@ -212,6 +207,11 @@ function camelToKebabCase<T extends string>(str: T) {
     return str.replaceAll(/([a-z])([A-Z])/g, '$1-$2').toLowerCase() as KebabCase<T>;
 }
 
+/** Escapes special regex characters in a string so it can be used as a literal pattern in a RegExp. */
+function escapeRegExp(str: string): string {
+    return str.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export default {
     sanitizeString,
     isEmptyString,
@@ -220,12 +220,11 @@ export default {
     normalizeAccents,
     normalizeCRLF,
     lineBreaksToSpaces,
-    removeLineBreaks,
     getFirstLine,
     removeDoubleQuotes,
     removePreCodeBlock,
     sortStringArrayByLength,
-    dedent,
+    dedent: (str: string) => Str.dedent(str),
     hash,
     getUTF8ByteLength,
     decodeUnicode,
@@ -234,4 +233,5 @@ export default {
     camelToHyphenCase,
     camelToKebabCase,
     toLowerCase,
+    escapeRegExp,
 };

@@ -1,16 +1,22 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
-// This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
-import '@src/libs/actions/replaceOptimisticReportWithActualReport';
+
+import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import HttpUtils from '@src/libs/HttpUtils';
 import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
+// This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
+import '@src/libs/actions/replaceOptimisticReportWithActualReport';
+import * as Network from '@src/libs/Network';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report as OnyxReport, PersonalDetailsList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
@@ -21,18 +27,26 @@ Onyx.init({
     keys: ONYXKEYS,
 });
 
-beforeAll(() => {
-    global.fetch = TestHelper.getGlobalFetchMock();
-});
-
 beforeEach(async () => {
+    // Network arms a module-level setInterval(processMainQueue) once ActiveClientManager is
+    // ready. Left running, it re-fires non-cancellable MainQueue requests (e.g. Log) into the
+    // next test — inflating global.fetch call counts — and is itself the open handle behind the
+    // "worker process failed to exit gracefully" leak. Clear it the same way NetworkTest does.
+    Network.clearProcessQueueInterval();
     await Onyx.clear();
+    await waitForBatchedUpdates();
+    // Explicitly reset PersistedRequests module state (knownRequestIDs, ongoingRequest,
+    // pendingSaveOperations) which Onyx.clear() alone does not fully reset.
+    await PersistedRequests.clear();
     await waitForBatchedUpdates();
     SequentialQueue.resetQueue();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     NetworkStore.checkRequiredData();
     await waitForNetworkPromises();
+    // Reassign global.fetch to a fresh mock to clear any leftover mockImplementationOnce
+    // queue from the previous test. jest.clearAllMocks() only resets call counts, not the queue.
+    global.fetch = TestHelper.getGlobalFetchMock();
     jest.clearAllMocks();
     Request.clearMiddlewares();
 });
@@ -62,6 +76,7 @@ describe('Middleware', () => {
             const result = await Request.processWithMiddleware({
                 command: 'GetTransactionsPending3DSReview',
                 data: {apiRequestType: 'makeRequestWithSideEffects'},
+                requestIndex: 1,
             });
 
             // Then the response should not be undefined — the caller may need the raw response for side effects
@@ -77,17 +92,20 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '1234'},
+                    requestIndex: 2,
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
+                    requestIndex: 3,
                 },
             ];
             for (const request of requests) {
                 SequentialQueue.push(request);
             }
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
@@ -112,20 +130,21 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '1234'},
+                    requestIndex: 4,
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
+                    requestIndex: 5,
                 },
             ];
             for (const request of requests) {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
+
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -141,7 +160,8 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
@@ -161,24 +181,26 @@ describe('Middleware', () => {
                 {
                     command: 'RequestMoney',
                     data: {authToken: 'testToken'},
+                    requestIndex: 6,
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
+                    requestIndex: 7,
                 },
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '2345', reportActionID: undefined, parentReportActionID: undefined},
+                    requestIndex: 8,
                 },
             ];
             for (const request of requests) {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
+
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -194,7 +216,8 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(3);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/OpenReport?', expect.anything());
@@ -225,16 +248,16 @@ describe('Middleware', () => {
                 {
                     command: 'MoveIOUReportToExistingPolicy',
                     data: {authToken: 'testToken', optimisticReportID: '1234'},
+                    requestIndex: 9,
                 },
             ];
             for (const request of requests) {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
+
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -250,7 +273,8 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(1);
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/MoveIOUReportToExistingPolicy?', expect.anything());
@@ -282,21 +306,22 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678'},
+                    requestIndex: 10,
                 },
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: preexistingReportID},
+                    requestIndex: 11,
                 },
             ];
             for (const request of requests) {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock)
                 .mockImplementationOnce(async () => ({
                     ok: true,
-                    // eslint-disable-next-line @typescript-eslint/require-await
+
                     json: async () => ({
                         jsonCode: 200,
                         onyxData: [
@@ -312,7 +337,7 @@ describe('Middleware', () => {
                 }))
                 .mockImplementationOnce(async () => ({
                     ok: true,
-                    // eslint-disable-next-line @typescript-eslint/require-await
+
                     json: async () => ({
                         jsonCode: 200,
                         onyxData: [
@@ -338,6 +363,7 @@ describe('Middleware', () => {
                 }));
 
             SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
@@ -402,16 +428,16 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678'},
+                    requestIndex: 12,
                 },
             ];
             for (const request of requests) {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
+
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -437,6 +463,7 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(1);

@@ -1,15 +1,21 @@
-import React, {useMemo} from 'react';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
-import type {EditableProps} from '@components/Table/EditableCell';
-import {EditableCell, usePopoverEditState} from '@components/Table/EditableCell';
 import TagPickerModal from '@components/TagPicker/TagPickerModal';
 import TextWithTooltip from '@components/TextWithTooltip';
+import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
+import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasDependentTags} from '@libs/PolicyUtils';
+import {getDecodedTagName} from '@libs/TagUtils';
 import {getTagForDisplay} from '@libs/TransactionUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 type TagCellProps = TransactionDataCellProps &
@@ -20,19 +26,20 @@ type TagCellProps = TransactionDataCellProps &
 function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, transactionItem, policyID}: TagCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Tag']);
     const styles = useThemeStyles();
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing} = usePopoverEditState({canEdit});
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
-    const policyHasDependentTags = useMemo(() => hasDependentTags(policy, policyTags), [policy, policyTags]);
+    const policyHasDependentTags = hasDependentTags(policy, policyTags);
 
-    const handleTagSelected = (tag: string) => {
-        onSave?.(tag);
-        cancelEditing();
-    };
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+        canEdit,
+        value: transactionItem?.tag ?? '',
+        onSave,
+    });
 
-    const tagForDisplay = getTagForDisplay(transactionItem);
+    // Decode HTML entities so tags stored with encoding are displayed properly (e.g. `uno &amp; dos` display as `uno & dos`)
+    const tagForDisplay = getDecodedTagName(getTagForDisplay(transactionItem));
 
     const displayContent = shouldUseNarrowLayout ? (
         <TextWithIconCell
@@ -66,7 +73,7 @@ function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, tra
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
                     shouldMeasureAnchorPositionFromTop={!isInverted}
-                    onSelected={handleTagSelected}
+                    onSelected={handleSave}
                 />
             }
         >

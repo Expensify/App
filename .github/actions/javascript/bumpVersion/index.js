@@ -3413,9 +3413,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(2186));
 const versionUpdater = __importStar(__nccwpck_require__(8982));
 const bumpVersion_1 = __importDefault(__nccwpck_require__(3891));
+const core = __importStar(__nccwpck_require__(2186));
 async function run() {
     try {
         const semverLevel = core.getInput('SEMVER_LEVEL', { required: true });
@@ -3591,17 +3591,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.updateAndroid = updateAndroid;
 exports.generateAndroidVersionCode = generateAndroidVersionCode;
+const versionUpdater = __importStar(__nccwpck_require__(8982));
 const child_process_1 = __nccwpck_require__(2081);
 const fs_1 = __nccwpck_require__(7147);
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const major_1 = __importDefault(__nccwpck_require__(6688));
 const minor_1 = __importDefault(__nccwpck_require__(8447));
 const patch_1 = __importDefault(__nccwpck_require__(2866));
+// Disabling lint on the next two imports due to a bug in @dword-design/import-alias/prefer-alias
 const prerelease_1 = __importDefault(__nccwpck_require__(4016));
 const util_1 = __nccwpck_require__(3837);
-// Disabling lint on the next two imports due to a bug in @dword-design/import-alias/prefer-alias
-// eslint-disable-next-line
-const versionUpdater = __importStar(__nccwpck_require__(8982));
 const exec = (0, util_1.promisify)(child_process_1.exec);
 // PlistBuddy executable path
 const PLIST_BUDDY = '/usr/libexec/PlistBuddy';

@@ -1,11 +1,15 @@
-import React from 'react';
-import {StyleSheet} from 'react-native';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
-import MenuItem from './MenuItem';
+
+import React from 'react';
+import {StyleSheet} from 'react-native';
+
 import type {MenuItemProps} from './MenuItem';
+
+import MenuItem from './MenuItem';
 
 type Props = MenuItemProps & {
     /** Should the menu item be highlighted? */
@@ -28,7 +32,6 @@ function HighlightableMenuItem({wrapperStyle, highlighted, ...restOfProps}: Prop
 
     return (
         <MenuItem
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restOfProps}
             outerWrapperStyle={animatedHighlightStyle}
             wrapperStyle={wrapperStyle}

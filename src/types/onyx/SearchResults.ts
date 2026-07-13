@@ -1,31 +1,25 @@
-import type {ValueOf} from 'type-fest';
-import type ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
-import type TransactionGroupListItem from '@components/Search/SearchList/ListItem/TransactionGroupListItem';
-import type TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchStatus} from '@components/Search/types';
+
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+
+import type {ValueOf} from 'type-fest';
+
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 import type Policy from './Policy';
 import type Report from './Report';
 import type ReportAction from './ReportAction';
+import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type Transaction from './Transaction';
 import type {TransactionViolation} from './TransactionViolation';
 
 /** Types of search data */
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
-
-/** Model of search result list item */
-type ListItemType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
-    ? typeof ChatListItem
-    : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-      ? typeof TransactionListItem
-      : typeof TransactionGroupListItem;
 
 /** Model of search list item data type */
 type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
@@ -143,6 +137,9 @@ type SearchCardGroup = {
 
     /** Last four Primary Account Number digits */
     lastFourPAN: string;
+
+    /** Expensify Card program (e.g. `TRAVEL_US`) */
+    feedCountry?: string;
 };
 
 /** Model of withdrawal ID grouped search result */
@@ -283,33 +280,36 @@ type SearchQuarterGroup = {
     currency: string;
 };
 
+/** SearchResultDataType */
+type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> &
+    Partial<Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined>> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
+    Partial<PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_METADATA, ReportMetadata>> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
+    PrefixedRecord<
+        typeof CONST.SEARCH.GROUP_PREFIX,
+        | SearchMemberGroup
+        | SearchCardGroup
+        | SearchWithdrawalIDGroup
+        | SearchCategoryGroup
+        | SearchMerchantGroup
+        | SearchTagGroup
+        | SearchMonthGroup
+        | SearchWeekGroup
+        | SearchYearGroup
+        | SearchQuarterGroup
+    >;
+
 /** Model of search results */
 type SearchResults = {
     /** Current search results state */
     search: SearchResultsInfo;
 
     /** Search results data */
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> &
-        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
-        PrefixedRecord<
-            typeof CONST.SEARCH.GROUP_PREFIX,
-            | SearchMemberGroup
-            | SearchCardGroup
-            | SearchWithdrawalIDGroup
-            | SearchCategoryGroup
-            | SearchMerchantGroup
-            | SearchTagGroup
-            | SearchMonthGroup
-            | SearchWeekGroup
-            | SearchYearGroup
-            | SearchQuarterGroup
-        >;
+    data: SearchResultDataType;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -321,12 +321,12 @@ type SearchResults = {
 export default SearchResults;
 
 export type {
-    ListItemType,
     ListItemDataType,
     SearchTask,
     SearchTransactionAction,
     SearchDataTypes,
     SearchResultsInfo,
+    SearchResultDataType,
     SearchMemberGroup,
     SearchCardGroup,
     SearchWithdrawalIDGroup,

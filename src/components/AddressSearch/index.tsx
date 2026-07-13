@@ -1,31 +1,39 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, LogBox, StyleSheet, View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
-import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
-import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 import ActivityIndicator from '@components/ActivityIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setUserLocation} from '@libs/actions/UserLocation';
 import {getCommandURL} from '@libs/ApiUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {getAddressComponents, getPlaceAutocompleteTerms} from '@libs/GooglePlacesUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import type {LayoutChangeEvent} from 'react-native';
+import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
+
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard, LogBox, StyleSheet, View} from 'react-native';
+import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
+
+import type {AddressSearchProps, PredefinedPlace} from './types';
+
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
-import type {AddressSearchProps, PredefinedPlace} from './types';
 
 /**
  * Check if the place matches the search by the place name or description.
@@ -113,6 +121,7 @@ function AddressSearch({
         lng: 'addressLng',
     },
     autoComplete = 'off',
+    autoFocus = false,
     resultTypes = 'address',
     shouldSaveDraft = false,
     value,
@@ -129,7 +138,7 @@ function AddressSearch({
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const [searchValue, setSearchValue] = useState('');
     const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
@@ -357,7 +366,6 @@ function AddressSearch({
         </>
     );
 
-    // eslint-disable-next-line arrow-body-style
     useEffect(() => {
         return () => {
             // If the component unmounts we don't want any of the callback for geolocation to run.
@@ -470,6 +478,7 @@ function AddressSearch({
                                 onBlur?.();
                             },
                             autoComplete,
+                            autoFocus,
                             onInputChange: (text: string) => {
                                 setSearchValue(text);
                                 setIsTyping(true);

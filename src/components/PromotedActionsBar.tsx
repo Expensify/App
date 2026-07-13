@@ -1,22 +1,30 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {IntroSelected} from '@userActions/Report';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs, togglePinnedState} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type OnyxReport from '@src/types/onyx/Report';
-import Button from './Button';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
+
+import Button from './Button';
 
 type PromotedAction = {
     key: string;
@@ -25,7 +33,7 @@ type PromotedAction = {
 type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN;
 
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
-    [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {
         reportID?: string;
@@ -56,11 +64,11 @@ const PromotedActions = {
         translationKey: report.isPinned ? 'common.unPin' : 'common.pin',
         onSelected: callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, !!report.isPinned)),
     }),
-    share: (report, backTo) => ({
+    share: () => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
         icon: 'QrCode',
         translationKey: 'common.share',
-        onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report.reportID, backTo)),
+        onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path)),
     }),
     join: (report, currentUserAccountID) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
@@ -76,18 +84,22 @@ const PromotedActions = {
         icon: 'CommentBubbles',
         translationKey: 'common.message',
         onSelected: () => {
-            if (reportID) {
+            if (reportID && accountID === currentUserAccountID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                 return;
             }
 
-            // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                navigateToAndOpenReport([login], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
+                navigateToAndOpenReport([login], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false, true);
                 return;
             }
             if (accountID) {
-                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails);
+                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails, true);
+                return;
+            }
+
+            if (reportID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
             }
         },
     }),
@@ -114,7 +126,6 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
                         iconFill={theme.icon}
                         text={translate(translationKey)}
                         icon={typeof icon === 'string' ? icons[icon] : icon}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                     />
                 </View>
             ))}

@@ -1,19 +1,26 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {handlePlaidError, openPlaidBankAccountSelector, openPlaidBankLogin, setPlaidEvent} from '@libs/actions/BankAccounts';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import {handleRestrictedEvent} from '@userActions/App';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PlaidData} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import ActivityIndicator from './ActivityIndicator';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import FormHelpMessage from './FormHelpMessage';
@@ -83,7 +90,7 @@ function AddPlaidBankAccount({
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>(undefined);
     const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {initWithStoredValues: false});
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -106,6 +113,9 @@ function AddPlaidBankAccount({
         () => (!!receivedRedirectURI && !!plaidLinkOAuthToken) || !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors),
         [plaidData?.bankAccounts?.length, plaidData?.errors, plaidLinkOAuthToken, receivedRedirectURI],
     );
+
+    const isAuthenticated = isAuthenticatedWithPlaid();
+    const prevIsAuthenticated = usePrevious(isAuthenticated);
 
     /**
      * Blocks the keyboard shortcuts that can navigate
@@ -158,6 +168,15 @@ function AddPlaidBankAccount({
         previousNetworkState.current = isOffline;
     }, [allowDebit, bankAccountID, isAuthenticatedWithPlaid, isOffline]);
 
+    useEffect(() => {
+        // We had a Plaid session and lost it (e.g. openReimbursementAccountPage reset plaidData on reconnect).
+        // Re-open the Plaid login so the step isn't left empty.
+        if (!prevIsAuthenticated || isAuthenticated || isOffline) {
+            return;
+        }
+        openPlaidBankLogin(allowDebit, bankAccountID);
+    }, [prevIsAuthenticated, isAuthenticated, isOffline, allowDebit, bankAccountID]);
+
     const token = getPlaidLinkToken();
     const options = plaidBankAccounts.map((account) => ({
         value: account.plaidAccountID,
@@ -187,7 +206,7 @@ function AddPlaidBankAccount({
     if (isPlaidDisabled) {
         return (
             <View>
-                <Text style={[styles.formError]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
+                <Text style={[styles.formError, styles.mh5]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
             </View>
         );
     }
@@ -218,7 +237,7 @@ function AddPlaidBankAccount({
                         }
                     }}
                     // User prematurely exited the Plaid flow
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
+
                     onExit={onExitPlaid}
                     receivedRedirectURI={receivedRedirectURI}
                 />
@@ -251,9 +270,11 @@ function AddPlaidBankAccount({
 
     return (
         <FullPageOfflineBlockingView>
-            <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}</Text>
-            {!!text && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
+            <Text style={[styles.mh5, styles.mb3, styles.textHeadlineLineHeightXXL]}>
+                {translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}
+            </Text>
+            {!!text && <Text style={[styles.mh5, styles.mb6, styles.textSupporting]}>{text}</Text>}
+            <View style={[styles.mh5, styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
                 <Icon
                     src={icon}
                     height={iconSize}
@@ -267,14 +288,16 @@ function AddPlaidBankAccount({
                     )}
                 </View>
             </View>
-            <Text style={[styles.textLabelSupporting]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
+            <Text style={[styles.textLabelSupporting, styles.mh5]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
             <RadioButtons
                 items={options}
                 defaultCheckedValue={defaultSelectedPlaidAccountID}
-                onPress={handleSelectingPlaidAccount}
-                radioButtonStyle={[styles.mb6]}
+                onSelect={handleSelectingPlaidAccount}
             />
-            <FormHelpMessage message={errorText} />
+            <FormHelpMessage
+                style={styles.mh5}
+                message={errorText}
+            />
         </FullPageOfflineBlockingView>
     );
 }

@@ -1,12 +1,16 @@
+import intlPolyfill from '@libs/IntlPolyfill';
+
+import {setDeviceID} from '@userActions/Device';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import toSortedPolyfill from 'array.prototype.tosorted';
 import {I18nManager} from 'react-native';
 import Config from 'react-native-config';
 import Onyx from 'react-native-onyx';
-import intlPolyfill from '@libs/IntlPolyfill';
-import {setDeviceID} from '@userActions/Device';
-import initOnyxDerivedValues from '@userActions/OnyxDerived';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import addUtilsToWindow from './addUtilsToWindow';
 import platformSetup from './platformSetup';
 import telemetry from './telemetry';
@@ -34,8 +38,6 @@ export default function () {
     Onyx.init({
         keys: ONYXKEYS,
         enableDevTools,
-        // Increase the cached key count so that the app works more consistently for accounts with large numbers of reports
-        maxCachedKeysCount: 50000,
         evictableKeys: [
             ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             ONYXKEYS.COLLECTION.SNAPSHOT,
@@ -48,7 +50,6 @@ export default function () {
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
             [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: false,
-            [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
             [ONYXKEYS.MODAL]: {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,
@@ -64,10 +65,20 @@ export default function () {
             ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE,
             ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
             ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
+            ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
             ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE,
             ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,
             ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
+            ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
             ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
+            ONYXKEYS.RAM_ONLY_HAS_FRESH_WALLET_DATA,
+            ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
+            ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE,
+            ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
+            ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN,
+            ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
+            ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
+            ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
         ],
     });
 

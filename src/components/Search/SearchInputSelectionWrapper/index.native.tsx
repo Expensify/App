@@ -1,7 +1,8 @@
-import React, {useEffect, useState} from 'react';
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import type {SearchAutocompleteInputProps} from '@components/Search/SearchAutocompleteInput';
 import SearchInputSelectionSkeleton from '@components/Skeletons/SearchInputSelectionSkeleton';
+
+import React, {useEffect, useState} from 'react';
 
 // Native-only: SearchAutocompleteInput initialization is slow on the very first mount.
 // Once initialized, subsequent mounts are fast, so we only show the skeleton once per app session.
@@ -30,7 +31,6 @@ function SearchInputSelectionWrapper({ref, skipSkeleton, ...props}: SearchAutoco
     return (
         <SearchAutocompleteInput
             ref={ref}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             selection={undefined}
         />

@@ -1,4 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 
 const mockOpenCreateReportConfirmation = jest.fn();
@@ -11,11 +12,8 @@ jest.mock('@hooks/useCreateEmptyReportConfirmation', () => (params: {onConfirm: 
     return {openCreateReportConfirmation: mockOpenCreateReportConfirmation};
 });
 
-let mockHasEmptyReport = false;
-jest.mock('@hooks/useHasEmptyReportsForPolicy', () => () => mockHasEmptyReport);
-
-let mockHasDismissedConfirmation: boolean | undefined;
-jest.mock('@hooks/useOnyx', () => () => [mockHasDismissedConfirmation]);
+let mockShouldShowConfirmation = false;
+jest.mock('@hooks/useShouldShowEmptyReportConfirmation', () => () => mockShouldShowConfirmation);
 
 const policyID = 'policy-123';
 const policyName = 'Test Workspace';
@@ -23,13 +21,12 @@ const policyName = 'Test Workspace';
 describe('useConditionalCreateEmptyReportConfirmation', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockHasEmptyReport = false;
-        mockHasDismissedConfirmation = undefined;
+        mockShouldShowConfirmation = false;
         mockOnConfirmFromModal = undefined;
     });
 
-    it('calls onCreateReport directly when there is no empty report', () => {
-        mockHasEmptyReport = false;
+    it('calls onCreateReport directly when confirmation is not needed', () => {
+        mockShouldShowConfirmation = false;
         const onCreateReport = jest.fn();
 
         const {result} = renderHook(() =>
@@ -48,9 +45,8 @@ describe('useConditionalCreateEmptyReportConfirmation', () => {
         expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
     });
 
-    it('opens confirmation modal when there is an empty report and confirmation not dismissed', () => {
-        mockHasEmptyReport = true;
-        mockHasDismissedConfirmation = undefined;
+    it('opens confirmation modal when empty report confirmation should be shown', () => {
+        mockShouldShowConfirmation = true;
         const onCreateReport = jest.fn();
 
         const {result} = renderHook(() =>
@@ -69,30 +65,8 @@ describe('useConditionalCreateEmptyReportConfirmation', () => {
         expect(onCreateReport).not.toHaveBeenCalled();
     });
 
-    it('skips confirmation when empty report exists but user previously dismissed it', () => {
-        mockHasEmptyReport = true;
-        mockHasDismissedConfirmation = true;
-        const onCreateReport = jest.fn();
-
-        const {result} = renderHook(() =>
-            useConditionalCreateEmptyReportConfirmation({
-                policyID,
-                policyName,
-                onCreateReport,
-            }),
-        );
-
-        act(() => {
-            result.current.handleCreateReport();
-        });
-
-        expect(onCreateReport).toHaveBeenCalledWith(false);
-        expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
-    });
-
-    it('skips confirmation when shouldBypassConfirmation is true even with empty report', () => {
-        mockHasEmptyReport = true;
-        mockHasDismissedConfirmation = undefined;
+    it('skips confirmation when shouldBypassConfirmation is true even when confirmation would be shown', () => {
+        mockShouldShowConfirmation = false;
         const onCreateReport = jest.fn();
 
         const {result} = renderHook(() =>
@@ -112,8 +86,8 @@ describe('useConditionalCreateEmptyReportConfirmation', () => {
         expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
     });
 
-    it('returns hasEmptyReport from the underlying hook', () => {
-        mockHasEmptyReport = true;
+    it('returns hasEmptyReport true when confirmation should be shown', () => {
+        mockShouldShowConfirmation = true;
         const {result} = renderHook(() =>
             useConditionalCreateEmptyReportConfirmation({
                 policyID,
@@ -125,8 +99,8 @@ describe('useConditionalCreateEmptyReportConfirmation', () => {
         expect(result.current.hasEmptyReport).toBe(true);
     });
 
-    it('returns hasEmptyReport false when no empty report exists', () => {
-        mockHasEmptyReport = false;
+    it('returns hasEmptyReport false when confirmation is not needed', () => {
+        mockShouldShowConfirmation = false;
         const {result} = renderHook(() =>
             useConditionalCreateEmptyReportConfirmation({
                 policyID,
@@ -139,7 +113,7 @@ describe('useConditionalCreateEmptyReportConfirmation', () => {
     });
 
     it('passes onConfirm callback through to useCreateEmptyReportConfirmation', () => {
-        mockHasEmptyReport = true;
+        mockShouldShowConfirmation = true;
         const onCreateReport = jest.fn();
 
         renderHook(() =>

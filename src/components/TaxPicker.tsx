@@ -1,18 +1,23 @@
-import React, {useState} from 'react';
-import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {getDefaultTaxCode, getEnabledTaxRateCount, transformedTaxRates} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import RadioListItem from './SelectionList/ListItem/RadioListItem';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useState} from 'react';
+
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 
 type TaxPickerProps = {
@@ -165,7 +170,7 @@ function TaxPicker({
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             onSelectRow={handleSelectRow}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             initiallyFocusedItemKey={selectedOptionKey ?? undefined}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />

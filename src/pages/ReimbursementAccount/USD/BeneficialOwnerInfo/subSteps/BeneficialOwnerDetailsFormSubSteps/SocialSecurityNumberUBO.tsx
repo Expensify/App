@@ -1,19 +1,23 @@
-import React from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import {getFieldRequiredErrors, isValidSSNLastFour} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
+
+import {SafeString} from 'expensify-common';
+import React from 'react';
 
 const SSN_LAST_4 = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.SSN_LAST_4;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
 
-type SocialSecurityNumberUBOProps = SubStepProps & {beneficialOwnerBeingModifiedID: string};
+type SocialSecurityNumberUBOProps = SubPageProps & {beneficialOwnerBeingModifiedID: string};
 
 function SocialSecurityNumberUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}: SocialSecurityNumberUBOProps) {
     const {translate} = useLocalize();
@@ -54,6 +58,7 @@ function SocialSecurityNumberUBO({onNext, onMove, isEditing, beneficialOwnerBein
             defaultValue={defaultSsnLast4}
             shouldShowHelpLinks={false}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+            shouldDelayAutoFocus
         />
     );
 }

@@ -6,7 +6,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "FILE=$(jq -r '.tool_input.file_path') && [ -f \"$FILE\" ] && ./node_modules/.bin/prettier --experimental-cli --no-cache --write --ignore-unknown \"$FILE\""
+                        "command": "FILE=$(jq -r '.tool_input.file_path') && [ -f \"$FILE\" ] && ./node_modules/.bin/oxfmt --write --no-error-on-unmatched-pattern \"$FILE\""
                     }
                 ]
             }
@@ -52,7 +52,9 @@
             "mcp__sentry__search_events",
             "mcp__sentry__search_issue_events",
             "mcp__sentry__search_issues",
-            "mcp__sentry__whoami"
+            "mcp__sentry__whoami",
+            "Bash(agent-device *)",
+            "Bash(echo \"$(npm root -g)/agent-device/skills/agent-device\")"
         ]
     },
     "enabledPlugins": {

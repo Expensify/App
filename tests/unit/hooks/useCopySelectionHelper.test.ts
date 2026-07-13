@@ -1,13 +1,15 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+
 import Clipboard from '@libs/Clipboard';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import SelectionScraper from '@libs/SelectionScraper';
+
 import CONST from '@src/CONST';
 
 jest.mock('@libs/Clipboard', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         canSetHtml: jest.fn(),
@@ -17,13 +19,11 @@ jest.mock('@libs/Clipboard', () => ({
 }));
 
 jest.mock('@libs/Clipboard/getClipboardText', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 
 jest.mock('@libs/KeyboardShortcut', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         subscribe: jest.fn(),
@@ -31,7 +31,6 @@ jest.mock('@libs/KeyboardShortcut', () => ({
 }));
 
 jest.mock('@libs/SelectionScraper', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         getCurrentSelection: jest.fn(),

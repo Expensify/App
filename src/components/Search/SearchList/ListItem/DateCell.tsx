@@ -1,34 +1,41 @@
-import React from 'react';
 import DatePickerModal from '@components/DatePicker/DatePickerModal';
-import {EditableCell, usePopoverEditState} from '@components/Table/EditableCell';
-import type {EditableProps} from '@components/Table/EditableCell/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
+import type {EditableProps} from '@components/TransactionItemRow/EditableCell/types';
+
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 type DateCellProps = {
     date: string;
     showTooltip: boolean;
     isLargeScreenWidth: boolean;
+    suffixText?: string;
 } & EditableProps<string>;
 
-function DateCell({date, showTooltip, isLargeScreenWidth, canEdit, onSave}: DateCellProps) {
+function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, canEdit, onSave}: DateCellProps) {
     const styles = useThemeStyles();
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing} = usePopoverEditState({canEdit});
+    const {isInNarrowPaneModal} = useResponsiveLayout();
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+        canEdit,
+        value: date,
+        onSave,
+    });
 
     const formattedDate = DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-
-    const handleDateSelected = (newDate: string) => {
-        onSave?.(newDate);
-        cancelEditing();
-    };
+    const displayText = suffixText ? `${formattedDate} • ${suffixText}` : formattedDate;
 
     const displayContent = (
         <TextWithTooltip
-            text={formattedDate}
+            text={displayText}
             shouldShowTooltip={showTooltip}
-            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.mutedNormalTextLabel, !!suffixText && styles.flexShrink1]}
         />
     );
 
@@ -43,7 +50,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, canEdit, onSave}: Date
                     value={date}
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
-                    onSelected={handleDateSelected}
+                    onSelected={handleSave}
                     anchorPosition={popoverPosition}
                     anchorAlignment={{
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -53,6 +60,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, canEdit, onSave}: Date
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     inputID="EditableDateCell"
+                    shouldEnableMonthYearBackdropInNarrowPane={isEditing && isInNarrowPaneModal}
                 />
             }
         >

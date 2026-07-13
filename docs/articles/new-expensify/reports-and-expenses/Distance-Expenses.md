@@ -1,7 +1,7 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading]
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
@@ -13,7 +13,7 @@ Expensify offers four ways to create a Distance expense: **GPS tracking** on mob
 
 ## How to create a GPS Distance expense (Mobile only)
 
-GPS tracking lets Expensify record your actual driving route in the background while you drive. When you stop, the app generates a receipt with a map of the route you took.
+GPS tracking lets Expensify record your actual driving route in the background while you drive. You can pause and resume tracking to capture multi-segment trips (for example, if you make a stop and then continue driving from a different location).
 
 To create an expense using GPS tracking based on the distance traveled: 
 
@@ -21,9 +21,11 @@ To create an expense using GPS tracking based on the distance traveled:
 2. Select **Track distance**.
 3. Select **GPS** from the top row.
 4. Tap **Start** and drive to your destination — tracking runs in the background.
-5. Tap **Stop** when you arrive and confirm by selecting **Stop GPS tracking**.
-6. Review the route summary showing your start and end addresses, then tap **Next**.
-7. Review the expense details, then tap **Create expense**.
+5. Tap **Stop** when you arrive.
+6. (Optional) To continue the trip from a new location, tap **Resume**. Each resumed section appears as a separate segment on the map. Tap **Stop** again when you're done.
+7. To discard the trip, tap the trash icon next to the distance counter and confirm.
+8. To save the trip, review the route summary showing your start and end addresses, then tap **Save**.
+9. Review the expense details, then tap **Create expense**.
 
 **Note:** GPS tracking is available on iOS and Android only. On Web, you'll see a prompt to download the mobile app when selecting the GPS option.
 
@@ -74,16 +76,34 @@ To create an expense using your vehicle's odometer readings:
 4. Enter the **End reading** from your odometer after the trip.
    - The total distance is calculated automatically as you type.
 5. (Optional) Select the image icon next to each reading to attach a photo of your odometer.
-6. Select **Next**.
-7. On the confirmation screen, review and confirm:
+6. (Optional) To finish creating the expense later, select **Save for later** to keep the expense in progress on your device. After your trip, return to **➕ Create** > **Track distance** > **Odometer** to resume the saved expense and enter the end reading.
+7. Select **Next**.
+8. On the confirmation screen, review and confirm:
    - Distance
    - Amount
    - Rate
    - Date
    - (Optional) Add a description, category, or tag.
-8. Select **Create expense**.
+9. Select **Create expense**.
 
 Once a Distance expense is created, it can be submitted on a report. To learn how to add expenses to a report, see [Create and Submit Reports](/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports).
+
+---
+
+## How to edit an existing Distance expense
+
+You can update the distance on a manual or map-based Distance expense before it is approved. When you open the expense and select the **Distance** field, you can choose between two editing methods:
+
+- **Map** — Update the start and stop locations or add/remove waypoints. The distance and amount are recalculated automatically based on the new route.
+- **Manual** — Type in a new distance value directly. The amount is recalculated based on the updated distance and the applicable rate.
+
+To edit the distance:
+
+1. Open the Distance expense.
+2. Select the **Distance** field.
+3. Select **Map** or **Manual** from the top row.
+4. Update the route or distance value.
+5. Select **Save**.
 
 ---
 
@@ -95,6 +115,7 @@ If you are creating expenses on a Workspace:
 
 - Workspace Admins set and manage the reimbursement rates for the workspace's distance unit (miles or kilometers).
 - When creating a Distance expense, the available reimbursement rates will show for selection.
+- When a Workspace has multiple rates with effective dates, Expensify automatically applies the rate whose date range matches the expense date, so you don't need to pick the right one manually.
 
 [Learn how to manage distance rates as a Workspace Admin](/articles/new-expensify/reports-and-expenses/Managing-Distance-Rates)
 
@@ -129,11 +150,13 @@ The expense amount is automatically calculated by multiplying the distance by th
 
 ## Can I edit a Distance expense after I’ve created it?
 
-Yes! You can edit the expense before it is approved. To learn how to edit an expense, see [Managing Expenses in a Report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
+Yes! You can edit the expense before it is approved. When editing a map-based Distance expense, two tabs appear at the top: **Map** and **Manual**. Select **Map** to update waypoints, or select **Manual** to type in the distance directly. To learn how to edit an expense, see [Managing Expenses in a Report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
 
 ## Can I update the Distance expense unit or rate?
 
 The distance unit and rate can only be updated by a Workspace Admin on the Workspace. It is not possible to adjust the distance rate or unit at the expense level.
+
+If a Workspace has rates with effective dates and you manually select a rate that doesn't match the expense date, the expense shows a violation indicating the rate doesn't match the selected date. This is informational and does not block submission — selecting the rate that matches the expense date clears the violation.
 
 ## What happens if a Distance expense is moved to a different Workspace?
 
@@ -147,7 +170,7 @@ No. GPS tracking runs in the background on your mobile device. A notification co
 
 ## What does the GPS Distance expense receipt look like?
 
-The GPS receipt shows a map of your actual route driven, along with the total distance and calculated reimbursement amount. It looks similar to a map-based distance receipt, but reflects the path you actually took rather than a suggested route.
+The GPS receipt shows a map of your actual route driven, along with the total distance and calculated reimbursement amount. It looks similar to a map-based distance receipt, but reflects the path you actually took rather than a suggested route. If you paused and resumed during the trip, the receipt shows each segment separately with its own start and stop waypoints.
 
 ## Can I use GPS tracking on web or desktop?
 
@@ -164,4 +187,12 @@ Yes. Manual readings are required, but you have the option to attach images of t
 ## Can I add two odometer images to a distance expense?
 
 Yes. When you add two odometer images to a distance expense, they will be merged into a single image for easy viewing.
+
+## Can I save an odometer expense for later?
+
+Yes. Enter your start reading before the trip, then select **Save for later**. After the trip, return to **➕ Create** > **Track distance** > **Odometer** to resume the saved expense and enter the end reading.
+
+## Can I have multiple incomplete odometer expenses at the same time?
+
+Only one in-progress odometer expense can be saved to your device at a time.
 

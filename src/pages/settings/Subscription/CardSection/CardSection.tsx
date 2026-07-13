@@ -1,10 +1,9 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PaymentCardDetails from '@components/PaymentCardDetails';
 import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -14,27 +13,42 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {requestRefund as requestRefundByUser} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
-import {hasCardAuthenticatedError, isUserOnFreeTrial, shouldShowDiscountBanner, shouldShowPreTrialBillingBanner, shouldShowTrialEndedUI} from '@libs/SubscriptionUtils';
+import {
+    canCancelSubscription,
+    hasCardAuthenticatedError,
+    isUserOnFreeTrial,
+    shouldShowDiscountBanner,
+    shouldShowPreTrialBillingBanner,
+    shouldShowTrialEndedUI,
+} from '@libs/SubscriptionUtils';
+
 import {verifySetupIntent} from '@userActions/PaymentMethods';
 import {clearOutstandingBalance} from '@userActions/Subscription';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
+import type {BillingStatusResult} from './utils';
+
 import EarlyDiscountBanner from './BillingBanner/EarlyDiscountBanner';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
 import TrialEndedBillingBanner from './BillingBanner/TrialEndedBillingBanner';
 import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner';
+import CancelSubscriptionMenuItem from './CancelSubscriptionMenuItem';
 import CardSectionActions from './CardSectionActions';
 import CardSectionButton from './CardSectionButton';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import getSectionSubtitle from './CardSectionSubtitle';
-import RequestEarlyCancellationMenuItem from './RequestEarlyCancellationMenuItem';
-import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
 
 function CardSection() {
@@ -93,8 +107,17 @@ function CardSection() {
     const viewPurchases = () => {
         const query = buildQueryStringFromFilterFormValues({
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             merchant: CONST.EXPENSIFY_MERCHANT,
+            from: session?.accountID ? [session.accountID.toString()] : undefined,
+            status: [
+                CONST.SEARCH.STATUS.EXPENSE.UNREPORTED,
+                CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+                CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+                CONST.SEARCH.STATUS.EXPENSE.DONE,
+                CONST.SEARCH.STATUS.EXPENSE.PAID,
+                CONST.SEARCH.STATUS.EXPENSE.DELETED,
+            ],
         });
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
@@ -278,7 +301,9 @@ function CardSection() {
                 />
             )}
 
-            {!!(privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && account?.hasPurchases) && <RequestEarlyCancellationMenuItem />}
+            {!privateSubscription?.pendingFields?.type && canCancelSubscription(privateSubscription?.type, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, account?.hasPurchases) && (
+                <CancelSubscriptionMenuItem />
+            )}
         </Section>
     );
 }

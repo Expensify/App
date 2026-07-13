@@ -1,6 +1,12 @@
 require('dotenv').config();
+/**
+ * Expo SDK 56 replaces global fetch with expo/fetch unless this is set at transform time.
+ * metro.config.js sets it for the Metro process; babel needs it here so release bundles inline the value.
+ */
+process.env.EXPO_PUBLIC_USE_RN_FETCH = process.env.EXPO_PUBLIC_USE_RN_FETCH ?? '1';
 
 const BaseReactCompilerConfig = require('./config/babel/reactCompilerConfig');
+const {expoInlineEnvVars} = require('babel-preset-expo/build/plugins/inline-env-vars');
 
 const ReactCompilerConfig = {
     ...BaseReactCompilerConfig,
@@ -26,8 +32,8 @@ function traceTransformer() {
  * It is also recommended by babel:
  * https://babeljs.io/docs/options#no-targets
  */
-const defaultPresetsForWebpack = ['@babel/preset-react', ['@babel/preset-env', {targets: {node: 20}}], '@babel/preset-flow', '@babel/preset-typescript'];
-const defaultPluginsForWebpack = [
+const defaultPresetsForWeb = ['@babel/preset-react', ['@babel/preset-env', {targets: {node: 20}}], '@babel/preset-flow', '@babel/preset-typescript'];
+const defaultPluginsForWeb = [
     ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
     ['react-native-web'],
@@ -45,7 +51,7 @@ const defaultPluginsForWebpack = [
     '@babel/plugin-transform-export-namespace-from',
 ];
 
-defaultPluginsForWebpack.push([
+defaultPluginsForWeb.push([
     '@fullstory/babel-plugin-annotate-react',
     {
         native: true,
@@ -53,12 +59,12 @@ defaultPluginsForWebpack.push([
 ]);
 
 if (process.env.DEBUG_BABEL_TRACE) {
-    defaultPluginsForWebpack.push(traceTransformer);
+    defaultPluginsForWeb.push(traceTransformer);
 }
 
-const webpack = {
-    presets: defaultPresetsForWebpack,
-    plugins: defaultPluginsForWebpack,
+const web = {
+    presets: defaultPresetsForWeb,
+    plugins: defaultPluginsForWeb,
 };
 
 const metro = {
@@ -69,6 +75,9 @@ const metro = {
         // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
         // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
         '@babel/plugin-transform-flow-strip-types',
+
+        // Inline EXPO_PUBLIC_* env vars into release bundles (e.g. EXPO_PUBLIC_USE_RN_FETCH to keep RN fetch).
+        expoInlineEnvVars,
 
         ['@babel/plugin-proposal-class-properties', {loose: true}],
         ['@babel/plugin-proposal-private-methods', {loose: true}],
@@ -130,6 +139,9 @@ const metro = {
         production: {
             plugins: [['transform-remove-console', {exclude: ['error', 'warn']}]],
         },
+        test: {
+            plugins: ['@babel/plugin-transform-dynamic-import'],
+        },
     },
 };
 
@@ -160,18 +172,22 @@ if (process.env.CAPTURE_METRICS === 'true') {
 }
 
 module.exports = (api) => {
-    console.debug('babel.config.js');
-    console.debug('  - api.version:', api.version);
-    console.debug('  - api.env:', api.env());
-    console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
-    console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
+    if (!process.env.KNIP) {
+        console.debug('babel.config.js');
+        console.debug('  - api.version:', api.version);
+        console.debug('  - api.env:', api.env());
+        console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
+        console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
+    }
 
     // For `react-native` (iOS/Android) caller will be "metro"
-    // For `webpack` (Web) caller will be "@babel-loader"
+    // For the web build (Rspack) caller will be "babel-loader"
     // For jest, it will be babel-jest
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
     const runningIn = api.caller((args = {}) => args.name);
-    console.debug('  - running in: ', runningIn);
+    if (!process.env.KNIP) {
+        console.debug('  - running in: ', runningIn);
+    }
 
-    return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
+    return ['metro', 'babel-jest'].includes(runningIn) ? metro : web;
 };

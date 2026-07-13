@@ -1,12 +1,18 @@
-import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import type {View} from 'react-native';
-import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
+import {isChatThread} from '@libs/ReportUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
+import type {View} from 'react-native';
+
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+
 import type {ProtectedCurrentRouteReportID} from './playbackContextReportIDUtils';
-import {findURLInReportOrAncestorAttachments, getCurrentRouteReportID, NO_REPORT_ID, NO_REPORT_ID_IN_PARAMS, normalizeReportID} from './playbackContextReportIDUtils';
 import type {OriginalParent, PlaybackActionsContext, PlaybackActionsContextValues, PlaybackStateContext, PlaybackStateContextValues} from './types';
+
+import {findURLInReportOrAncestorAttachments, getCurrentRouteReportID, NO_REPORT_ID, NO_REPORT_ID_IN_PARAMS, normalizeReportID} from './playbackContextReportIDUtils';
 import usePlaybackContextVideoRefs from './usePlaybackContextVideoRefs';
 
 const ContextState = React.createContext<PlaybackStateContext | null>(null);
@@ -21,7 +27,6 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const [shareVersion, setShareVersion] = useState(0);
     const mountedVideoPlayersRef = useRef<string[]>([]);
     const playerStatus = useRef<VideoPlayerStatus>('loading');
-
     const resetContextProperties = () => {
         setSharedElement(null);
         setOriginalParent(null);
@@ -33,7 +38,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const video = usePlaybackContextVideoRefs(resetContextProperties);
 
     const updateCurrentURLAndReportID: PlaybackActionsContextValues['updateCurrentURLAndReportID'] = useCallback(
-        (url, reportID) => {
+        (url, report, reportID) => {
             if (!reportID) {
                 return;
             }
@@ -50,7 +55,6 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 return;
             }
 
-            const report = getReportOrDraftReport(reportID);
             const isReportAChatThread = isChatThread(report);
             let reportIDtoSet;
             if (isReportAChatThread) {

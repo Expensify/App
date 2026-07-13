@@ -1,8 +1,12 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import type {SvgProps} from 'react-native-svg/lib/typescript';
+
 import useLazyAsset, {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {SvgProps} from 'react-native-svg/lib/typescript';
+
+import React from 'react';
 
 jest.mock('@components/Icon/PlaceholderIcon', () => {
     // eslint-disable-next-line @typescript-eslint/no-shadow, @typescript-eslint/no-unsafe-assignment
@@ -33,9 +37,8 @@ jest.mock('@hooks/useLazyAsset', () => {
     const actual = jest.requireActual('@hooks/useLazyAsset');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         ...actual,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         default: actual.default,
@@ -314,7 +317,7 @@ describe('useMemoizedLazyAsset', () => {
 
     it('returns PlaceholderIcon while loading', () => {
         // Our Jest mock for PlaceholderIcon exports the component directly (no default)
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+
         const PlaceholderIcon = require('@components/Icon/PlaceholderIcon') as IconAsset;
         const importFn: () => Promise<{default: IconAsset}> = () => new Promise(() => {});
         const {result} = renderHook(() => useMemoizedLazyAsset(importFn));

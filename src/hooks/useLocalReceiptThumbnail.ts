@@ -1,6 +1,7 @@
+import {generateThumbnail} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+
 import {useEffect, useRef, useState, useTransition} from 'react';
 import {Image} from 'react-native';
-import {generateThumbnail} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 
 const thumbnailCache = new Map<string, string>();
 /** Track how many mounted hook instances reference each sourceUri */
@@ -21,29 +22,26 @@ function releaseUri(uri: string) {
 }
 
 /**
- * Pre-populate the thumbnail cache so the confirm screen can use it
+ * Pre-populate the receipt-image cache so the confirm screen can use it
  * synchronously on first render, avoiding any source swap / flash.
  */
-function pregenerateThumbnail(sourceUri: string): Promise<string | undefined> {
+function precacheReceiptImage(sourceUri: string): Promise<string | undefined> {
     if (thumbnailCache.has(sourceUri)) {
         return Promise.resolve(thumbnailCache.get(sourceUri));
     }
-    return generateThumbnail(sourceUri).then((uri) => {
-        if (uri) {
-            thumbnailCache.set(sourceUri, uri);
-            // Pre-decode the thumbnail in the native image pipeline so the
-            // confirmation screen can display it instantly without decode latency.
-            Image.prefetch(uri);
-        }
-        return uri;
-    });
+    thumbnailCache.set(sourceUri, sourceUri);
+    // Pre-decode the image in the native image pipeline so the
+    // confirmation screen can display it instantly without decode latency.
+    return Image.prefetch(sourceUri)
+        .then(() => sourceUri)
+        .catch(() => sourceUri);
 }
 
 /**
- * Returns a cached low-resolution thumbnail for a local receipt image.
- * The thumbnail should be pre-generated via `pregenerateThumbnail` before
- * navigating to the confirm screen. If it wasn't, this hook generates it
- * as a fallback, but in that case a source swap (flash) may occur.
+ * Returns a cached receipt image URI for a local receipt. The image should be
+ * pre-cached via `precacheReceiptImage` before navigating to the confirm screen.
+ * If it wasn't, this hook generates a thumbnail as a fallback, but in that case
+ * a source swap (flash) may occur.
  */
 function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: boolean): {thumbnailUri: string | undefined; isGenerating: boolean} {
     const [asyncResult, setAsyncResult] = useState<{source: string; uri?: string; done: boolean} | undefined>();
@@ -109,5 +107,5 @@ function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: bo
     return {thumbnailUri, isGenerating};
 }
 
-export {pregenerateThumbnail};
+export {precacheReceiptImage};
 export default useLocalReceiptThumbnail;

@@ -1,20 +1,24 @@
-import React, {useMemo, useState} from 'react';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
 import {getTagListSections} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
+
+import React, {useMemo, useState} from 'react';
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
@@ -43,6 +47,13 @@ type TagPickerProps = {
 
     /** Indicates which tag list index was selected */
     tagListIndex: number;
+
+    /**
+     * Extra tag names to always surface as selectable options, on top of the policy's own tags.
+     * Used to keep "orphaned" tags from a deleted source workspace selectable in flows like
+     * split-edit where the active workspace no longer carries the original tag value.
+     */
+    additionalTagsToInclude?: string[];
 };
 
 const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
@@ -68,6 +79,7 @@ function TagPicker({
     shouldShowDisabledAndSelectedOption = false,
     shouldOrderListByTagName = false,
     onSubmit,
+    additionalTagsToInclude,
 }: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
@@ -80,9 +92,25 @@ function TagPicker({
     const policyTagList = getTagList(policyTags, tagListIndex);
     const selectedOptions = getSelectedOptions(selectedTag);
 
+    // Merge any orphaned tag names into the policy's tag map so they appear as selectable options.
+    const policyTagsWithAdditions = useMemo<PolicyTags>(() => {
+        const baseTags = policyTagList.tags ?? {};
+        if (!additionalTagsToInclude?.length) {
+            return baseTags;
+        }
+        const extras: PolicyTags = {};
+        for (const name of additionalTagsToInclude) {
+            if (!name || baseTags[name]) {
+                continue;
+            }
+            extras[name] = {name, enabled: true} as PolicyTag;
+        }
+        return Object.keys(extras).length ? {...baseTags, ...extras} : baseTags;
+    }, [policyTagList.tags, additionalTagsToInclude]);
+
     const getEnabledTags = (): PolicyTags | Array<PolicyTag | SelectedTagOption> => {
         if (!shouldShowDisabledAndSelectedOption && !hasDependentTags) {
-            return policyTagList.tags;
+            return policyTagsWithAdditions;
         }
 
         if (!shouldShowDisabledAndSelectedOption && hasDependentTags) {
@@ -91,10 +119,10 @@ function TagPicker({
                 .slice(0, tagListIndex)
                 .join(':');
 
-            return Object.values(policyTagList.tags).filter((policyTag) => {
+            return Object.values(policyTagsWithAdditions).filter((policyTag) => {
                 const filterRegex = policyTag.rules?.parentTagsFilter;
                 if (!filterRegex) {
-                    return policyTagList.tags;
+                    return policyTagsWithAdditions;
                 }
 
                 const regex = new RegExp(filterRegex);
@@ -104,7 +132,7 @@ function TagPicker({
 
         const selectedNames = new Set(selectedOptions.map((s) => s.name));
 
-        return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.has(policyTag.name))];
+        return [...selectedOptions, ...Object.values(policyTagsWithAdditions).filter((policyTag) => policyTag.enabled && !selectedNames.has(policyTag.name))];
     };
 
     const enabledTags = getEnabledTags();
@@ -137,24 +165,22 @@ function TagPicker({
         ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
-    const listItemTitleStyles = [styles.breakAll, styles.w100];
-
     return (
         <SelectionListWithSections
             sections={sections}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             style={{
                 sectionTitleStyles: styles.mt5,
-                listItemTitleStyles,
+                listItemTitleStyles: styles.w100,
             }}
             textInputOptions={textInputOptions}
             shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
+            isRowMultilineSupported
+            titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />
     );
 }
 
 export default TagPicker;
-
-export type {SelectedTagOption};

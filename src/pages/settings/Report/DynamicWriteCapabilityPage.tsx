@@ -1,20 +1,26 @@
-import React, {useCallback} from 'react';
-import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import {updateWriteCapability as updateWriteCapabilityUtil} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {canEditWriteCapability} from '@libs/ReportUtils';
+
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback} from 'react';
 
 type DynamicWriteCapabilityPageProps = WithReportOrNotFoundProps;
 
@@ -56,7 +62,7 @@ function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPage
                 />
                 <SelectionList
                     data={writeCapabilityOptions}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={(option) => updateWriteCapability(option.value)}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={selectedOptionKey}

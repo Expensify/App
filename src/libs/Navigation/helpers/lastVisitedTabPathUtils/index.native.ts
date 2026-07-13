@@ -9,19 +9,5 @@ function saveSettingsTabPathToSessionStorage(url: string) {}
 function getWorkspacesTabStateFromSessionStorage() {
     return undefined;
 }
-function getSettingsTabStateFromSessionStorage() {
-    return undefined;
-}
 
-function getLastVisitedWorkspaceTabScreen() {
-    return undefined;
-}
-
-export {
-    clearSessionStorage,
-    getLastVisitedWorkspaceTabScreen,
-    saveSettingsTabPathToSessionStorage,
-    getSettingsTabStateFromSessionStorage,
-    saveWorkspacesTabPathToSessionStorage,
-    getWorkspacesTabStateFromSessionStorage,
-};
+export {clearSessionStorage, saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage, getWorkspacesTabStateFromSessionStorage};

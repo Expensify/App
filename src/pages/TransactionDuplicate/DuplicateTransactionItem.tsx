@@ -1,94 +1,145 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import {tierNameSelector} from '@selectors/UserWallet';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import {getButtonRole} from '@components/Button/utils';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {PressableWithFeedback} from '@components/Pressable';
+import RadioButton from '@components/RadioButton';
+import type {ExpenseReportListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import UserInfoAndActionButtonRow from '@components/Search/SearchList/ListItem/UserInfoAndActionButtonRow';
+import TransactionItemRow from '@components/TransactionItemRow';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getOriginalReportID} from '@libs/ReportUtils';
-import ReportActionItem from '@pages/inbox/report/ReportActionItem';
-import {ReportActionItemActionsContext, ReportActionItemStateContext} from '@pages/inbox/report/ReportActionItemContext';
+
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+
+import variables from '@styles/variables';
+
+import {createTransactionThreadReport} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
-    index: number;
+    isLastItem: boolean;
+    isSelected: boolean;
+    shouldShowSelection?: boolean;
+    onSelectTransaction: (transactionID: string) => void;
     onPreviewPressed: (reportID: string) => void;
 };
 
-const linkedTransactionRouteErrorSelector = (transaction: OnyxEntry<Transaction>) => transaction?.errorFields?.route ?? null;
-
-function DuplicateTransactionItem({transaction, index, onPreviewPressed}: DuplicateTransactionItemProps) {
+function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldShowSelection = true, onSelectTransaction, onPreviewPressed}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const personalDetails = usePersonalDetails();
-
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/non-nullable-type-assertion-style
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
-        const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
-        return IOUTransactionID === transaction?.transactionID;
+        const iouTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
+        return iouTransactionID === transaction?.transactionID;
     });
+    const ownerPersonalDetails = report?.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
+    const reportStatusItem = ownerPersonalDetails
+        ? ({
+              ...report,
+              from: ownerPersonalDetails,
+              to: ownerPersonalDetails,
+              formattedFrom: ownerPersonalDetails.displayName ?? '',
+          } as ExpenseReportListItemType)
+        : undefined;
 
-    const originalReportID = getOriginalReportID(report?.reportID, action, reportActions);
+    const handlePreviewPress = () => {
+        if (!action || !report) {
+            return;
+        }
 
-    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`);
+        if (action.childReportID) {
+            onPreviewPressed(action.childReportID);
+            return;
+        }
 
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action?.reportActionID}`);
+        const transactionThreadReport = createTransactionThreadReport({
+            introSelected,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            betas,
+            iouReport: report,
+            iouReportAction: action,
+            transaction,
+        });
+        if (!transactionThreadReport?.reportID) {
+            return;
+        }
 
-    const [linkedTransactionRouteError] = useOnyx(
-        `${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined)}`,
-        {
-            selector: linkedTransactionRouteErrorSelector,
-        },
-    );
+        onPreviewPressed(transactionThreadReport.reportID);
+    };
 
-    const stateValue = useMemo(() => ({shouldOpenReportInRHP: true}), []);
-    const actionsValue = useMemo(() => ({onPreviewPressed}), [onPreviewPressed]);
-
-    if (!action || !report) {
+    if (!action || !report || !transaction) {
         return null;
     }
 
-    const reportDraftMessage = draftMessage?.[action.reportActionID];
-    const matchingDraftMessage = reportDraftMessage?.message;
-
     return (
-        <View style={styles.pb2}>
-            <ReportActionItemStateContext.Provider value={stateValue}>
-                <ReportActionItemActionsContext.Provider value={actionsValue}>
-                    <ReportActionItem
-                        action={action}
-                        report={report}
-                        parentReportAction={getReportAction(report?.parentReportID, report?.parentReportActionID)}
-                        index={index}
-                        displayAsGroup={false}
-                        shouldDisplayNewMarker={false}
-                        isFirstVisibleReportAction={false}
-                        shouldDisplayContextMenu={false}
-                        userWalletTierName={userWalletTierName}
-                        isUserValidated={isUserValidated}
-                        personalDetails={personalDetails}
-                        draftMessage={matchingDraftMessage}
-                        emojiReactions={emojiReactions}
-                        linkedTransactionRouteError={linkedTransactionRouteError}
-                        userBillingFundID={userBillingFundID}
-                        isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                    />
-                </ReportActionItemActionsContext.Provider>
-            </ReportActionItemStateContext.Provider>
-        </View>
+        <OfflineWithFeedback pendingAction={transaction.pendingAction}>
+            <PressableWithFeedback
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
+                onPress={handlePreviewPress}
+                accessibilityLabel={transaction.comment?.comment ?? ''}
+                role={getButtonRole(true)}
+                isNested
+                hoverStyle={styles.hoveredComponentBG}
+                style={[!isLastItem && styles.borderBottom, styles.pt4, styles.pb4, styles.pl4, shouldShowSelection ? styles.pr0 : styles.pr4]}
+            >
+                <View style={styles.flexRow}>
+                    <View style={styles.flex1}>
+                        {!!reportStatusItem && (
+                            <UserInfoAndActionButtonRow
+                                item={reportStatusItem}
+                                shouldShowUserInfo
+                                stateNum={report?.stateNum}
+                                statusNum={report?.statusNum}
+                                containerStyles={styles.mb3}
+                            />
+                        )}
+                        <TransactionItemRow
+                            transactionItem={transaction as TransactionListItemType}
+                            report={report}
+                            policy={policy}
+                            shouldUseNarrowLayout
+                            isSelected={isSelected}
+                            shouldShowTooltip
+                            dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            shouldHighlightItemWhenSelected={false}
+                            shouldShowErrors={false}
+                            style={!shouldShowSelection && styles.pv2}
+                        />
+                    </View>
+                    {shouldShowSelection && (
+                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, {width: variables.componentSizeMedium}]}>
+                            <RadioButton
+                                isChecked={isSelected}
+                                onPress={() => onSelectTransaction(transaction.transactionID)}
+                                accessibilityLabel={CONST.ROLE.RADIO}
+                                shouldStopMouseDownPropagation
+                                style={[styles.justifyContentCenter, {width: variables.componentSizeMedium, height: variables.w44, paddingLeft: 10, paddingRight: 14}]}
+                            />
+                        </View>
+                    )}
+                </View>
+            </PressableWithFeedback>
+        </OfflineWithFeedback>
     );
 }
 

@@ -1,24 +1,29 @@
-import React, {useRef} from 'react';
-import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
+
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import TagPicker from '.';
 
-const DEFAULT_ANCHOR_ALIGNMENT = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-};
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
+import TagPicker from '.';
 
 const popoverDimensions = {
     width: CONST.POPOVER_DROPDOWN_WIDTH,
     height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+};
+
+const DEFAULT_ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
 type TagPickerModalProps = {
@@ -54,8 +59,8 @@ function TagPickerModal({
     shouldMeasureAnchorPositionFromTop = false,
 }: TagPickerModalProps) {
     const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const StyleUtils = useStyleUtils();
+
     const anchorRef = useRef<View>(null);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -79,7 +84,7 @@ function TagPickerModal({
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
-            innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}}
+            innerContainerStyle={StyleUtils.getWidthStyle(popoverDimensions.width)}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow
             shouldEnableNewFocusManagement
@@ -87,7 +92,7 @@ function TagPickerModal({
             shouldSkipRemeasurement
             shouldDisplayBelowModals
         >
-            <View style={[{height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT, flexDirection: 'column'}, styles.pt4]}>
+            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
                 <TagPicker
                     policyID={policyID}
                     tagListName={tagListName}

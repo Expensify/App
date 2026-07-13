@@ -1,8 +1,5 @@
-import type {RefObject} from 'react';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {KYCWallRef} from '@components/KYCWall/types';
+
 import * as API from '@libs/API';
 import type {
     AddPaymentCardParams,
@@ -19,8 +16,10 @@ import * as CardUtils from '@libs/CardUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import {isPolicyUser} from '@libs/PolicyUtils';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -31,6 +30,12 @@ import type Policy from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Session from '@src/types/onyx/Session';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
+
+import type {RefObject} from 'react';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
@@ -96,7 +101,6 @@ function getMakeDefaultPaymentOnyxData(
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: ONYXKEYS.USER_WALLET,
                   value: {
-                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       walletLinkedAccountID: bankAccountID || fundID,
                       walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                       // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
@@ -107,7 +111,6 @@ function getMakeDefaultPaymentOnyxData(
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: ONYXKEYS.USER_WALLET,
                   value: {
-                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       walletLinkedAccountID: bankAccountID || fundID,
                       walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                   },
@@ -206,7 +209,7 @@ function addPaymentCard(accountID: number, params: PaymentCardParams) {
         failureData,
     });
 
-    GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+    GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME, accountID, getCurrentUserEmail() ?? '');
 }
 
 /**
@@ -267,7 +270,6 @@ function addSubscriptionPaymentCard(
     if (CONST.SCA_CURRENCIES.has(currency)) {
         addPaymentCardSCA(parameters, {optimisticData, successData, failureData});
     } else {
-        // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
             optimisticData,
             successData,
@@ -275,9 +277,9 @@ function addSubscriptionPaymentCard(
         });
     }
     if (getCardForSubscriptionBilling(fundList)) {
-        Log.info(`[GTM] Not logging ${CONST.ANALYTICS.EVENT.PAID_ADOPTION} because a card was already added`);
+        Log.info(`[GTM] Not logging ${CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME} because a card was already added`);
     } else {
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME, accountID, getCurrentUserEmail() ?? '');
     }
 }
 
@@ -438,7 +440,7 @@ function hasPaymentMethodError(
             return true;
         }
         const workspaceAccountID = Number(card?.fundID);
-        const policy = policyList.find((p) => p?.workspaceAccountID === workspaceAccountID);
+        const policy = policyList.find((p) => p?.policyAccountID === workspaceAccountID);
         return !!policy && isPolicyUser(policy, currentUserLogin);
     });
     // If there is card with errors, we should display the RBR if user is a member of the workspace.

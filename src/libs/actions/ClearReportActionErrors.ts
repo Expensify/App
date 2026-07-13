@@ -1,13 +1,18 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {getLinkedTransactionID, getReportAction, getReportActionMessage, isCreatedTaskReportAction, isRejectedAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import {deleteReport} from './Report';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+
+import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import deleteReport from './Report/DeleteReport';
 
 type IgnoreDirection = 'parent' | 'child';
 
@@ -69,9 +74,9 @@ function clearReportActionErrors(reportAction: ReportAction, originalReportID: s
         }
 
         // Clear the chat snapshot entries for the failed optimistic action(s) so they disappear from Reports > Chats.
-        const snapshotDataToClear: Record<string, unknown> = {
-            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`]: actionsToDelete,
-        };
+        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+        const snapshotDataToClear: NullishDeep<SearchResultDataType> = {};
+        snapshotDataToClear[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`] = actionsToDelete;
         if (taskReportID && isCreatedTaskReportAction(reportAction)) {
             // If this is a failed optimistic task-create action, also remove the task report snapshot data so it disappears from Reports > Task when the user dismiss the error.
             snapshotDataToClear[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`] = null;

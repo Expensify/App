@@ -1,10 +1,31 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+
+import useLifecycleActions from '@hooks/useLifecycleActions';
+import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
+
+import {submitReport} from '@libs/actions/IOU/ReportWorkflow';
+import {isSubmitPolicy} from '@libs/PolicyUtils';
+import {
+    getNextApproverAccountID,
+    hasHeldExpensesFromTransactions,
+    hasOnlyHeldExpenses,
+    hasUpdatedTotal,
+    isAllowedToApproveExpenseReport,
+    isInvoiceReport,
+    isReportOwner,
+} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, Report, Transaction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -104,6 +125,47 @@ jest.mock('@hooks/usePaymentOptions', () => ({
     default: jest.fn(() => []),
 }));
 
+const mockLifecycleHandleSubmitReport = jest.fn();
+const mockLifecycleConfirmApproval = jest.fn();
+
+function mockLifecycleActionsReturn(overrides?: {shouldBlockSubmit?: boolean; isBlockSubmitDueToPreventSelfApproval?: boolean}) {
+    return {
+        actions: {},
+        confirmApproval: mockLifecycleConfirmApproval,
+        handleSubmitReport: mockLifecycleHandleSubmitReport,
+        shouldBlockSubmit: overrides?.shouldBlockSubmit ?? false,
+        isBlockSubmitDueToPreventSelfApproval: overrides?.isBlockSubmitDueToPreventSelfApproval ?? false,
+    };
+}
+
+jest.mock('@hooks/useLifecycleActions', () => ({
+    __esModule: true,
+    default: jest.fn(() => mockLifecycleActionsReturn()),
+}));
+
+const mockConfirmPayment = jest.fn();
+const mockShouldBlockAction = jest.fn(() => false);
+const mockOnSelectionModePaymentSelect = jest.fn();
+const mockSelectionModeKYCSuccess = jest.fn();
+
+jest.mock('@hooks/useSelectionModePayment', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+        confirmPayment: mockConfirmPayment,
+        shouldBlockAction: mockShouldBlockAction,
+        onSelectionModePaymentSelect: mockOnSelectionModePaymentSelect,
+        selectionModeKYCSuccess: mockSelectionModeKYCSuccess,
+        paymentSubMenuItems: [],
+        workspacePolicyOptions: [],
+        handleWorkspaceSelected: jest.fn(),
+        hasPayInSelectionMode: false,
+        hasActualPaymentOptions: false,
+        isAnyTransactionOnHold: false,
+        isInvoiceReport: false,
+        kycWallRef: {current: null},
+    })),
+}));
+
 jest.mock('@hooks/useLazyAsset', () => ({
     __esModule: true,
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
@@ -138,13 +200,17 @@ jest.mock('@components/KYCWall/KYCWallContext', () => ({
 
 jest.mock('@components/Search/SearchContext', () => ({
     __esModule: true,
-    useSearchStateContext: jest.fn(() => ({
+    useSearchQueryContext: jest.fn(() => ({
         currentSearchQueryJSON: null,
         currentSearchKey: '',
+    })),
+    useSearchResultsContext: jest.fn(() => ({
         currentSearchResults: null,
+    })),
+    useSearchSelectionContext: jest.fn(() => ({
         selectedTransactionIDs: [],
     })),
-    useSearchActionsContext: jest.fn(() => ({
+    useSearchSelectionActions: jest.fn(() => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
         setSelectedTransactions: jest.fn(),
     })),
@@ -168,7 +234,7 @@ jest.mock('@libs/ReportUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
-        hasHeldExpenses: jest.fn(() => false),
+        hasHeldExpensesFromTransactions: jest.fn(() => false),
         hasOnlyHeldExpenses: jest.fn(() => false),
         hasUpdatedTotal: jest.fn(() => true),
         hasViolations: jest.fn(() => false),
@@ -210,12 +276,15 @@ jest.mock('@libs/actions/Search', () => ({
 jest.mock('@libs/PolicyUtils', () => ({
     __esModule: true,
     hasDynamicExternalWorkflow: jest.fn(() => false),
+    getPolicyByCustomUnitID: jest.fn(() => undefined),
+    isSubmitPolicy: jest.fn(() => false),
     sortPoliciesByName: jest.fn(() => []),
 }));
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     __esModule: true,
     hasRequestFromCurrentAccount: jest.fn(() => false),
+    getFilteredReportActionsForReportView: jest.fn(() => []),
 }));
 
 jest.mock('@libs/MoneyRequestReportUtils', () => ({
@@ -225,13 +294,14 @@ jest.mock('@libs/MoneyRequestReportUtils', () => ({
 
 jest.mock('@libs/PaymentUtils', () => ({
     __esModule: true,
-    handleUnvalidatedAccount: jest.fn(),
     selectPaymentType: jest.fn(),
 }));
 
 jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
     hasAnyPendingRTERViolation: jest.fn(() => false),
+    hasOnlyPendingCardTransactions: jest.fn(() => false),
+    showPendingCardTransactionsBlockModal: jest.fn(),
     isExpensifyCardTransaction: jest.fn(() => false),
     isPending: jest.fn(() => false),
     getReimbursable: jest.fn(() => true),
@@ -242,32 +312,38 @@ jest.mock('@userActions/Transaction', () => ({
     markPendingRTERTransactionsAsCash: jest.fn(),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const ReportUtils = require('@libs/ReportUtils') as Record<string, jest.Mock>;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const DelegateProvider = require('@components/DelegateNoAccessModalProvider') as Record<string, jest.Mock>;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const LockedProvider = require('@components/LockedAccountModalProvider') as Record<string, jest.Mock>;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const IOUActions = require('@libs/actions/IOU/ReportWorkflow') as Record<string, jest.Mock>;
-const PayMoneyRequestActions = require('@libs/actions/IOU/PayMoneyRequest') as Record<string, jest.Mock>;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
+const mockOpenReportSubmitToPopover = jest.fn<void, [ReportSubmitToPopoverOpenOptions | undefined]>();
+
+jest.mock('@components/ReportSubmitToPopoverAnchor', () => ({
+    __esModule: true,
+    ReportSubmitToPopoverAnchor: ({children}: {children: React.ReactNode}) => children,
+    ReportSubmitToPopoverHost: ({children}: {children: React.ReactNode}) => children,
+    ReportSubmitToPopoverRoot: ({children}: {children: React.ReactNode}) => children,
+    ReportSubmitToPopoverMeasurableAnchor: ({children}: {children: React.ReactNode}) => children,
+    useOpenReportSubmitToPopover: () => mockOpenReportSubmitToPopover,
+}));
+
+const mockedIsSubmitPolicy = jest.mocked(isSubmitPolicy);
+
+function isSubmitPolicyType(policy: OnyxInputOrEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.SUBMIT;
+}
 
 function resetMocksToDefaults() {
-    ReportUtils.hasHeldExpenses.mockReturnValue(false);
-    ReportUtils.hasOnlyHeldExpenses.mockReturnValue(false);
-    ReportUtils.isReportOwner.mockReturnValue(false);
-    ReportUtils.getNextApproverAccountID.mockReturnValue(0);
-    ReportUtils.isInvoiceReport.mockReturnValue(false);
-    ReportUtils.hasUpdatedTotal.mockReturnValue(true);
-    ReportUtils.isAllowedToApproveExpenseReport.mockReturnValue(true);
+    mockedIsSubmitPolicy.mockReturnValue(false);
+    jest.mocked(hasHeldExpensesFromTransactions).mockReturnValue(false);
+    jest.mocked(hasOnlyHeldExpenses).mockReturnValue(false);
+    jest.mocked(isReportOwner).mockReturnValue(false);
+    jest.mocked(getNextApproverAccountID).mockReturnValue(0);
+    jest.mocked(isInvoiceReport).mockReturnValue(false);
+    jest.mocked(hasUpdatedTotal).mockReturnValue(true);
+    jest.mocked(isAllowedToApproveExpenseReport).mockReturnValue(true);
 
-    DelegateProvider.useDelegateNoAccessState.mockReturnValue({isDelegateAccessRestricted: false});
-    DelegateProvider.useDelegateNoAccessActions.mockReturnValue({showDelegateNoAccessModal: jest.fn()});
+    jest.mocked(useDelegateNoAccessState).mockReturnValue({isDelegateAccessRestricted: false, isActingAsDelegate: false});
+    jest.mocked(useDelegateNoAccessActions).mockReturnValue({showDelegateNoAccessModal: jest.fn()});
 
-    LockedProvider.useLockedAccountState.mockReturnValue({isAccountLocked: false});
-    LockedProvider.useLockedAccountActions.mockReturnValue({showLockedAccountModal: jest.fn()});
+    jest.mocked(useLockedAccountState).mockReturnValue({isAccountLocked: false});
+    jest.mocked(useLockedAccountActions).mockReturnValue({showLockedAccountModal: jest.fn()});
 }
 
 function buildReport(overrides: Partial<Report> = {}): Report {
@@ -433,41 +509,8 @@ describe('useSelectionModeReportActions', () => {
     });
 
     describe('hasPayInSelectionMode', () => {
-        it('returns true when all expenses selected and pay action exists', () => {
-            mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.PAY;
-            usePaymentOptionsMock.default.mockReturnValue([{value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere'}]);
-            const transactions = [buildTransaction(1), buildTransaction(2)];
-
-            const {result} = renderSelectionModeHook({
-                transactions,
-                selectedTransactionIDs: ['1', '2'],
-            });
-
-            expect(result.current.hasPayInSelectionMode).toBe(true);
-            usePaymentOptionsMock.default.mockReturnValue([]);
-        });
-
-        it('returns false when not all expenses are selected', () => {
-            mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.PAY;
-            const transactions = [buildTransaction(1), buildTransaction(2), buildTransaction(3)];
-
-            const {result} = renderSelectionModeHook({
-                transactions,
-                selectedTransactionIDs: ['1', '2'],
-            });
-
-            expect(result.current.hasPayInSelectionMode).toBe(false);
-        });
-
-        it('returns false when no pay action exists', () => {
-            mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
-            const transactions = [buildTransaction(1)];
-
-            const {result} = renderSelectionModeHook({
-                transactions,
-                selectedTransactionIDs: ['1'],
-            });
-
+        it('exposes hasPayInSelectionMode from useSelectionModePayment', () => {
+            const {result} = renderSelectionModeHook();
             expect(result.current.hasPayInSelectionMode).toBe(false);
         });
     });
@@ -519,7 +562,7 @@ describe('useSelectionModeReportActions', () => {
     });
 
     describe('Submit action callback', () => {
-        it('calls submitReport and clears selections when submitted', async () => {
+        it('delegates to useLifecycleActions.handleSubmitReport with skipAnimation=true', async () => {
             mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
 
             const {result} = renderSelectionModeHook();
@@ -528,14 +571,65 @@ describe('useSelectionModeReportActions', () => {
             submitAction?.onSelected?.();
 
             await waitFor(() => {
-                expect(IOUActions.submitReport).toHaveBeenCalled();
-                expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
+                expect(mockLifecycleHandleSubmitReport).toHaveBeenCalledWith(true);
             });
+        });
+
+        it('delegates submit-to popover flow to useLifecycleActions when a single selected transaction belongs to a submit policy', async () => {
+            mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
+            mockedIsSubmitPolicy.mockImplementation(isSubmitPolicyType);
+
+            const submitPolicy = buildPolicy({type: CONST.POLICY.TYPE.SUBMIT});
+            const transactions = [buildTransaction(1), buildTransaction(2)];
+            const {result} = renderSelectionModeHook({
+                policy: submitPolicy,
+                transactions,
+                selectedTransactionIDs: ['1'],
+            });
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(true);
+            expect(result.current.shouldBlockSubmit).toBe(false);
+
+            const submitAction = result.current.selectionModeReportLevelActions.find((a) => a.value === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+            submitAction?.onSelected?.();
+
+            await waitFor(() => {
+                expect(mockLifecycleHandleSubmitReport).toHaveBeenCalledWith(true);
+            });
+            expect(jest.mocked(submitReport)).not.toHaveBeenCalled();
+        });
+
+        it('does not submit when multiple selected transactions belong to a submit policy', () => {
+            mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
+            mockedIsSubmitPolicy.mockImplementation(isSubmitPolicyType);
+
+            const submitPolicy = buildPolicy({type: CONST.POLICY.TYPE.SUBMIT});
+            const {result} = renderSelectionModeHook({policy: submitPolicy});
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(true);
+            expect(result.current.shouldBlockSubmit).toBe(true);
+
+            const submitAction = result.current.selectionModeReportLevelActions.find((a) => a.value === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+            expect(submitAction).toBeUndefined();
+            expect(mockLifecycleHandleSubmitReport).not.toHaveBeenCalled();
+            expect(jest.mocked(submitReport)).not.toHaveBeenCalled();
+        });
+
+        it('returns false for hasSelectedTransactionsOnSubmitPolicy when no selected transactions are on a submit policy', () => {
+            mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
+            mockedIsSubmitPolicy.mockReturnValue(false);
+
+            const {result} = renderSelectionModeHook({
+                policy: buildPolicy({type: CONST.POLICY.TYPE.TEAM}),
+            });
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(false);
+            expect(result.current.shouldBlockSubmit).toBe(false);
         });
     });
 
     describe('Approve action callback', () => {
-        it('calls approveMoneyRequest and clears selections when approved', async () => {
+        it('delegates to useLifecycleActions.confirmApproval with skipAnimation=true', async () => {
             mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
 
             const {result} = renderSelectionModeHook();
@@ -544,8 +638,7 @@ describe('useSelectionModeReportActions', () => {
             approveAction?.onSelected?.();
 
             await waitFor(() => {
-                expect(IOUActions.approveMoneyRequest).toHaveBeenCalled();
-                expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
+                expect(mockLifecycleConfirmApproval).toHaveBeenCalledWith(true);
             });
         });
     });
@@ -561,172 +654,50 @@ describe('useSelectionModeReportActions', () => {
     });
 
     describe('shouldBlockAction guards', () => {
-        it('returns true and shows delegate modal when delegate access is restricted', () => {
-            const mockShowDelegateModal = jest.fn();
-            DelegateProvider.useDelegateNoAccessState.mockReturnValue({isDelegateAccessRestricted: true});
-            DelegateProvider.useDelegateNoAccessActions.mockReturnValue({showDelegateNoAccessModal: mockShowDelegateModal});
-
+        it('exposes shouldBlockAction from useSelectionModePayment', () => {
             const {result} = renderSelectionModeHook();
-            const blocked = result.current.shouldBlockAction();
-
-            expect(blocked).toBe(true);
-            expect(mockShowDelegateModal).toHaveBeenCalled();
-        });
-
-        it('returns true and shows locked modal when account is locked', () => {
-            const mockShowLockedModal = jest.fn();
-            LockedProvider.useLockedAccountState.mockReturnValue({isAccountLocked: true});
-            LockedProvider.useLockedAccountActions.mockReturnValue({showLockedAccountModal: mockShowLockedModal});
-
-            const {result} = renderSelectionModeHook();
-            const blocked = result.current.shouldBlockAction();
-
-            expect(blocked).toBe(true);
-            expect(mockShowLockedModal).toHaveBeenCalled();
-        });
-
-        it('returns false when no restrictions apply', () => {
-            const {result} = renderSelectionModeHook();
-            const blocked = result.current.shouldBlockAction();
-
-            expect(blocked).toBe(false);
-        });
-
-        it('returns true for unvalidated user when payment type is not Elsewhere', async () => {
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
-            await waitForBatchedUpdates();
-
-            const {result} = renderSelectionModeHook();
-            const blocked = result.current.shouldBlockAction(CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
-
-            expect(blocked).toBe(true);
-        });
-
-        it('returns false for unvalidated user when payment type is Elsewhere', async () => {
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
-            await waitForBatchedUpdates();
-
-            const {result} = renderSelectionModeHook();
-            const blocked = result.current.shouldBlockAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
-
-            expect(blocked).toBe(false);
+            expect(result.current.shouldBlockAction).toBe(mockShouldBlockAction);
         });
     });
 
     describe('handleSubmitReport guards', () => {
-        it('does not submit when shouldBlockSubmit is true (preventSelfApproval)', () => {
+        it('hides Submit action when shouldBlockSubmit is true (from useLifecycleActions)', () => {
             mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
-            ReportUtils.isReportOwner.mockReturnValue(true);
-            ReportUtils.getNextApproverAccountID.mockReturnValue(TEST_ACCOUNT_ID);
+            jest.mocked(useLifecycleActions).mockReturnValue(mockLifecycleActionsReturn({shouldBlockSubmit: true, isBlockSubmitDueToPreventSelfApproval: true}));
 
-            const {result} = renderSelectionModeHook({
-                report: buildReport({ownerAccountID: TEST_ACCOUNT_ID, managerID: TEST_ACCOUNT_ID}),
-                policy: buildPolicy({preventSelfApproval: true}),
-            });
+            const {result} = renderSelectionModeHook();
 
             expect(result.current.shouldBlockSubmit).toBe(true);
             const submitAction = result.current.selectionModeReportLevelActions.find((a) => a.value === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
             expect(submitAction).toBeUndefined();
-            expect(IOUActions.submitReport).not.toHaveBeenCalled();
+
+            jest.mocked(useLifecycleActions).mockReturnValue(mockLifecycleActionsReturn());
         });
     });
 
-    describe('confirmPayment branches', () => {
-        it('does not proceed when chatReport is undefined', () => {
-            const {result} = renderSelectionModeHook({chatReport: undefined});
-
-            act(() => {
-                result.current.confirmPayment({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
-            });
-
-            expect(PayMoneyRequestActions.payMoneyRequest).not.toHaveBeenCalled();
-        });
-
-        it('shows delegate modal when delegate restricted during payment', () => {
-            const mockShowDelegateModal = jest.fn();
-            DelegateProvider.useDelegateNoAccessState.mockReturnValue({isDelegateAccessRestricted: true});
-            DelegateProvider.useDelegateNoAccessActions.mockReturnValue({showDelegateNoAccessModal: mockShowDelegateModal});
-
+    describe('confirmPayment', () => {
+        it('exposes confirmPayment from useSelectionModePayment', () => {
             const {result} = renderSelectionModeHook();
-            act(() => {
-                result.current.confirmPayment({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
-            });
-
-            expect(mockShowDelegateModal).toHaveBeenCalled();
-        });
-
-        it('opens hold menu when there are held expenses during payment', () => {
-            ReportUtils.hasHeldExpenses.mockReturnValue(true);
-
-            const {result} = renderSelectionModeHook();
-            act(() => {
-                result.current.confirmPayment({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
-            });
-
-            expect(result.current.isHoldMenuVisible).toBe(true);
-            expect(result.current.requestType).toBe(CONST.IOU.REPORT_ACTION_TYPE.PAY);
-            expect(result.current.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
-        });
-
-        it('calls payMoneyRequest for normal (non-invoice, non-hold) payment', () => {
-            const {result} = renderSelectionModeHook();
-            act(() => {
-                result.current.confirmPayment({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
-            });
-
-            expect(PayMoneyRequestActions.payMoneyRequest).toHaveBeenCalled();
-            expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
-        });
-
-        it('calls payInvoice for invoice reports', () => {
-            ReportUtils.isInvoiceReport.mockReturnValue(true);
-
-            const {result} = renderSelectionModeHook({
-                report: buildReport({type: CONST.REPORT.TYPE.INVOICE}),
-            });
-            act(() => {
-                result.current.confirmPayment({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
-            });
-
-            expect(PayMoneyRequestActions.payInvoice).toHaveBeenCalled();
-            expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
+            expect(result.current.confirmPayment).toBe(mockConfirmPayment);
         });
     });
 
-    describe('confirmApproval branches', () => {
-        it('opens hold menu when there are held expenses during approval', () => {
-            ReportUtils.hasHeldExpenses.mockReturnValue(true);
-
+    describe('confirmApproval', () => {
+        it('delegates to useLifecycleActions.confirmApproval with skipAnimation=true', () => {
             const {result} = renderSelectionModeHook();
             act(() => {
                 result.current.confirmApproval();
             });
 
-            expect(result.current.isHoldMenuVisible).toBe(true);
-            expect(result.current.requestType).toBe(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
-        });
-
-        it('calls approveMoneyRequest directly when no held expenses', () => {
-            const {result} = renderSelectionModeHook();
-            act(() => {
-                result.current.confirmApproval();
-            });
-
-            expect(IOUActions.approveMoneyRequest).toHaveBeenCalled();
-            expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
+            expect(mockLifecycleConfirmApproval).toHaveBeenCalledWith(true);
         });
     });
 
     describe('handleHoldMenuClose', () => {
         it('resets hold menu state', () => {
-            ReportUtils.hasHeldExpenses.mockReturnValue(true);
-
             const {result} = renderSelectionModeHook();
 
-            act(() => {
-                result.current.confirmPayment({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
-            });
-            expect(result.current.isHoldMenuVisible).toBe(true);
+            expect(result.current.isHoldMenuVisible).toBe(false);
 
             act(() => {
                 result.current.handleHoldMenuClose();
@@ -746,13 +717,9 @@ describe('useSelectionModeReportActions', () => {
     });
 
     describe('selectionModeKYCSuccess', () => {
-        it('calls confirmPayment with the given payment type', () => {
+        it('exposes selectionModeKYCSuccess from useSelectionModePayment', () => {
             const {result} = renderSelectionModeHook();
-            act(() => {
-                result.current.selectionModeKYCSuccess(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
-            });
-
-            expect(PayMoneyRequestActions.payMoneyRequest).toHaveBeenCalled();
+            expect(result.current.selectionModeKYCSuccess).toBeDefined();
         });
     });
 
@@ -761,21 +728,75 @@ describe('useSelectionModeReportActions', () => {
             const {result} = renderSelectionModeHook();
             expect(result.current.shouldBlockSubmit).toBe(false);
         });
+
+        it('returns true when multiple selected transactions belong to a submit policy', () => {
+            mockedIsSubmitPolicy.mockImplementation(isSubmitPolicyType);
+
+            const {result} = renderSelectionModeHook({
+                policy: buildPolicy({type: CONST.POLICY.TYPE.SUBMIT}),
+                transactions: [buildTransaction(1), buildTransaction(2)],
+                selectedTransactionIDs: ['1', '2'],
+            });
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(true);
+            expect(result.current.shouldBlockSubmit).toBe(true);
+        });
+
+        it('returns false when only one selected transaction belongs to a submit policy', () => {
+            mockedIsSubmitPolicy.mockImplementation(isSubmitPolicyType);
+
+            const {result} = renderSelectionModeHook({
+                policy: buildPolicy({type: CONST.POLICY.TYPE.SUBMIT}),
+                transactions: [buildTransaction(1), buildTransaction(2)],
+                selectedTransactionIDs: ['1'],
+            });
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(true);
+            expect(result.current.shouldBlockSubmit).toBe(false);
+        });
+
+        it('returns false when multiple selected transactions are not on a submit policy', () => {
+            mockedIsSubmitPolicy.mockReturnValue(false);
+
+            const {result} = renderSelectionModeHook({
+                policy: buildPolicy({type: CONST.POLICY.TYPE.TEAM}),
+                transactions: [buildTransaction(1), buildTransaction(2)],
+                selectedTransactionIDs: ['1', '2'],
+            });
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(false);
+            expect(result.current.shouldBlockSubmit).toBe(false);
+        });
+    });
+
+    describe('hasSelectedTransactionsOnSubmitPolicy', () => {
+        it('returns true when any selected transaction is on a submit policy', () => {
+            mockedIsSubmitPolicy.mockImplementation(isSubmitPolicyType);
+
+            const {result} = renderSelectionModeHook({
+                policy: buildPolicy({type: CONST.POLICY.TYPE.SUBMIT}),
+                selectedTransactionIDs: ['1'],
+            });
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(true);
+        });
+
+        it('returns false when no transactions are selected', () => {
+            mockedIsSubmitPolicy.mockImplementation(isSubmitPolicyType);
+
+            const {result} = renderSelectionModeHook({
+                policy: buildPolicy({type: CONST.POLICY.TYPE.SUBMIT}),
+                selectedTransactionIDs: [],
+            });
+
+            expect(result.current.hasSelectedTransactionsOnSubmitPolicy).toBe(false);
+        });
     });
 
     describe('isInvoiceReport', () => {
-        it('returns false for expense reports', () => {
+        it('exposes isInvoiceReport from useSelectionModePayment', () => {
             const {result} = renderSelectionModeHook();
             expect(result.current.isInvoiceReport).toBe(false);
-        });
-
-        it('returns true for invoice reports', () => {
-            ReportUtils.isInvoiceReport.mockReturnValue(true);
-
-            const {result} = renderSelectionModeHook({
-                report: buildReport({type: CONST.REPORT.TYPE.INVOICE}),
-            });
-            expect(result.current.isInvoiceReport).toBe(true);
         });
     });
 });

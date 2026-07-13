@@ -1,3 +1,7 @@
+import CONST from '@src/CONST';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 /**
  * Coordinates deferred API.write() calls with screen content layout transitions.
  *
@@ -18,8 +22,7 @@
  *     item never reaches sortedData (e.g. empty list, API failure, offline).
  */
 import {AppState} from 'react-native';
-import type {OnyxKey} from 'react-native-onyx';
-import CONST from '@src/CONST';
+
 import Log from './Log';
 
 const DEFAULT_SAFETY_TIMEOUT_MS = 5000;
@@ -34,6 +37,14 @@ type DeferredChannel = {
      * when the optimistic updates have been applied.
      */
     optimisticWatchKey?: OnyxKey;
+
+    /**
+     * Report ID of the destination report the deferred write targets, when applicable.
+     * Used by consumer components (loading skeletons, empty-state suppression) to scope
+     * their "is a write in flight?" check to the report the user is actually viewing,
+     * instead of treating the channel as a global flag.
+     */
+    destinationReportID?: string;
 
     /** True when the channel was created by reserveDeferredWriteChannel. */
     isReserved?: boolean;
@@ -72,9 +83,15 @@ type DeferredWriteOptions = {
 function registerDeferredWrite(key: string, callback: () => void, options: DeferredWriteOptions = {}) {
     const {safetyTimeoutMs = DEFAULT_SAFETY_TIMEOUT_MS, optimisticWatchKey} = options;
 
+    // Preserve the destination report ID across the reservation -> registration handoff
+    // so scoped consumers (`hasDeferredWriteForReport`) keep matching after the real
+    // callback replaces the reserved channel.
+    let destinationReportID: string | undefined;
+
     const existing = channels.get(key);
     if (existing) {
         if (existing.isReserved) {
+            destinationReportID = existing.destinationReportID;
             clearChannelTimeout(existing);
             const shouldFlushImmediately = existing.flushRequested;
             channels.delete(key);
@@ -97,7 +114,7 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
         flushDeferredWrite(key);
     }, safetyTimeoutMs);
 
-    channels.set(key, {write: callback, safetyTimeoutId, optimisticWatchKey});
+    channels.set(key, {write: callback, safetyTimeoutId, optimisticWatchKey, destinationReportID});
 }
 
 /**
@@ -143,8 +160,12 @@ function cancelDeferredWrite(key: string) {
  * The real callback will be registered later via registerDeferredWrite, which
  * silently replaces the reservation. A safety timeout is still set in case
  * the real registration never arrives.
+ *
+ * Pass `destinationReportID` to pair the reservation with the report the
+ * deferred write will land in, so consumers can scope their "is a write in
+ * flight for THIS report?" check via `hasDeferredWriteForReport`.
  */
-function reserveDeferredWriteChannel(key: string) {
+function reserveDeferredWriteChannel(key: string, options: {destinationReportID?: string} = {}) {
     if (channels.has(key)) {
         return;
     }
@@ -156,11 +177,26 @@ function reserveDeferredWriteChannel(key: string) {
         channels.delete(key);
     }, DEFAULT_SAFETY_TIMEOUT_MS);
 
-    channels.set(key, {write: () => {}, safetyTimeoutId, isReserved: true});
+    channels.set(key, {write: () => {}, safetyTimeoutId, isReserved: true, destinationReportID: options.destinationReportID});
 }
 
 function hasDeferredWrite(key: string): boolean {
     return channels.has(key);
+}
+
+/**
+ * Scoped variant of `hasDeferredWrite`. Returns true when an active channel exists for `key`
+ * (either reserved via `reserveDeferredWriteChannel` or fully registered via
+ * `registerDeferredWrite`) AND its `destinationReportID` matches `reportID`. Channels stored
+ * without a destination (e.g. SEARCH-flow writes, or DISMISS_MODAL reservations made before
+ * the destination is known) never match - callers should fall back to `hasDeferredWrite` if
+ * they need the global flag.
+ */
+function hasDeferredWriteForReport(key: string, reportID: string | undefined): boolean {
+    if (!reportID) {
+        return false;
+    }
+    return channels.get(key)?.destinationReportID === reportID;
 }
 
 /**
@@ -169,7 +205,11 @@ function hasDeferredWrite(key: string): boolean {
  * or the channel was registered without a watch key.
  */
 function getOptimisticWatchKey(key: string): OnyxKey | undefined {
-    return channels.get(key)?.optimisticWatchKey ?? flushedWatchKeys.get(key);
+    const channelKey = channels.get(key)?.optimisticWatchKey;
+    if (channelKey) {
+        return channelKey;
+    }
+    return flushedWatchKeys.get(key);
 }
 
 // Flush every pending deferred write when the app moves to background so
@@ -215,10 +255,8 @@ function deferOrExecuteWrite(apiWrite: () => void, options: {shouldDeferForSearc
         return;
     }
 
-    // handleSearchDismiss reserves the SEARCH channel before calling
-    // createTransaction(..., false, false). shouldDeferForSearch is false
-    // (gated by shouldHandleNavigation) but the channel is waiting for a
-    // write - honor it so the reserved channel doesn't linger unused.
+    // Fallback: a reserved SEARCH channel (created by handleSearchDismiss before
+    // createTransaction) that wasn't matched by the explicit shouldDeferForSearch flag.
     if (!isRetry && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
         onDeferred?.();
         registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {optimisticWatchKey});
@@ -245,4 +283,14 @@ function resetForTesting() {
     flushedWatchKeys.clear();
 }
 
-export {registerDeferredWrite, reserveDeferredWriteChannel, flushDeferredWrite, cancelDeferredWrite, hasDeferredWrite, getOptimisticWatchKey, deferOrExecuteWrite, resetForTesting};
+export {
+    registerDeferredWrite,
+    reserveDeferredWriteChannel,
+    flushDeferredWrite,
+    cancelDeferredWrite,
+    hasDeferredWrite,
+    hasDeferredWriteForReport,
+    getOptimisticWatchKey,
+    deferOrExecuteWrite,
+    resetForTesting,
+};

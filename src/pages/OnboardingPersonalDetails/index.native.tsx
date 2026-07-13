@@ -1,8 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {BackHandler} from 'react-native';
-import BaseOnboardingPersonalDetails from './BaseOnboardingPersonalDetails';
+
 import type {OnboardingPersonalDetailsProps} from './types';
+
+import BaseOnboardingPersonalDetails from './BaseOnboardingPersonalDetails';
 
 function OnboardingPersonalDetails({...rest}: OnboardingPersonalDetailsProps) {
     const {index: routeIndex} = rest.navigation.getState();
@@ -27,7 +29,6 @@ function OnboardingPersonalDetails({...rest}: OnboardingPersonalDetailsProps) {
     return (
         <BaseOnboardingPersonalDetails
             shouldUseNativeStyles
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );

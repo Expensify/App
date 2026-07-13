@@ -1,5 +1,3 @@
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     CancelBillingSubscriptionParams,
@@ -10,11 +8,16 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID, SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * Fetches data when the user opens the SubscriptionSettingsPage
@@ -397,7 +400,31 @@ function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, c
         cancellationNote,
     };
 
-    API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters);
+    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM,
+                value: {isLoading: true},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM,
+                value: {isLoading: false},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM,
+                value: {isLoading: false},
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters, onyxData);
 }
 
 function requestTaxExempt() {

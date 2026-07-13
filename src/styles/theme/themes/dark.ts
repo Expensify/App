@@ -1,5 +1,6 @@
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
@@ -27,10 +28,13 @@ const darkTheme = {
     syntax: colors.productDark800,
     link: colors.blue300,
     linkHover: colors.blue100,
+    linkReversed: colors.blue600,
     buttonDefaultBG: colors.productDark400,
     buttonHoveredBG: colors.productDark500,
+    buttonHoveredBGReversed: colors.productLight500,
     buttonPressedBG: colors.productDark600,
     buttonSuccessText: colors.productLight100,
+    buttonDangerText: colors.productDark900,
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
@@ -41,6 +45,7 @@ const darkTheme = {
     transparent: colors.transparent,
     signInPage: colors.green800,
     darkSupportingText: colors.productDark800,
+    receiptPlaceholderPlus: colors.productLight100,
 
     // Additional keys
     overlay: colors.productDark400,
@@ -162,10 +167,6 @@ const darkTheme = {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.REFERRAL_DETAILS]: {
-            backgroundColor: colors.pink800,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {
             backgroundColor: colors.productDark200,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
@@ -195,6 +196,10 @@ const darkTheme = {
         },
         deleted: {
             backgroundColor: colors.tangerine700,
+            textColor: colors.productDark900,
+        },
+        unreported: {
+            backgroundColor: colors.productDark400,
             textColor: colors.productDark900,
         },
     },

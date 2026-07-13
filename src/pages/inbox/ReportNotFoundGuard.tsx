@@ -1,20 +1,25 @@
-import {useRoute} from '@react-navigation/native';
-import type {ReactNode} from 'react';
-import React, {useEffect} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportTransactionThread, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
+
+import type {ReactNode} from 'react';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
 
 type ReportNotFoundGuardProps = {
     children: ReactNode;
@@ -25,7 +30,7 @@ type ReportNotFoundGuardProps = {
  * all "obvious" not-found cases (invalid path, report missing after load).
  *
  */
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const route = useRoute();
     const styles = useThemeStyles();
@@ -37,7 +42,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
-    const [isLoadingInitialReportActions = true] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
+    const [isLoadingInitialReportActions = true] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`, {
         selector: isLoadingInitialReportActionsSelector,
     });
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
@@ -50,8 +55,22 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!isLoadingInitialReportActions);
     const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && !reportExists));
+    // `isLoadingInitialReportActions` lives in a memory-only key that is not reset between navigations.
+    // Returning to a previously visited report (e.g. via direct URL) can leave a stale `false` here, so we
+    // only infer not-found once we've actually observed a loading phase for the current reportID — i.e. a
+    // fetch was in flight — instead of trusting the leaked flag. See issue #92920.
+    // This uses the documented "adjust state during render" pattern to keep the gate render-synchronous.
+    const [trackedReportID, setTrackedReportID] = useState(reportIDFromRoute);
+    const [hasSeenLoadingForCurrentReportID, setHasSeenLoadingForCurrentReportID] = useState(false);
+    if (trackedReportID !== reportIDFromRoute) {
+        setTrackedReportID(reportIDFromRoute);
+        setHasSeenLoadingForCurrentReportID(false);
+    }
+    if (isLoading && !hasSeenLoadingForCurrentReportID) {
+        setHasSeenLoadingForCurrentReportID(true);
+    }
+
+    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && hasSeenLoadingForCurrentReportID && !reportExists));
 
     useEffect(() => {
         if (!shouldShowNotFoundPage) {
@@ -113,7 +132,7 @@ type ReportNotFoundInnerGuardProps = {
  * Inner guard for transaction threads only. Subscribes to the expensive
  * parentReportMetadata and parentReportAction to detect deleted parent actions.
  */
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 function ReportNotFoundInnerGuard({reportIDFromPath, children}: ReportNotFoundInnerGuardProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -122,17 +141,17 @@ function ReportNotFoundInnerGuard({reportIDFromPath, children}: ReportNotFoundIn
     const reportIDFromRoute = getNonEmptyStringOnyxID(reportIDFromPath);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
+    const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
     const parentReportAction = useParentReportAction(report);
 
     const {isParentActionMissingAfterLoad, isParentActionDeleted} = getParentReportActionDeletionStatus({
         parentReportID: report?.parentReportID,
         parentReportActionID: report?.parentReportActionID,
         parentReportAction,
-        parentReportMetadata,
+        parentReportLoadingState,
         isOffline,
     });
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = isParentActionDeleted || isParentActionMissingAfterLoad;
 
     useEffect(() => {

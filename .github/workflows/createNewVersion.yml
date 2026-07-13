@@ -45,16 +45,16 @@ jobs:
     outputs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
     steps:
+      # v3.2.4
       - name: Run turnstyle
-        uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03
+        uses: softprops/turnstyle@4415445a6780f85c074f0e4334cf8e65bae3ad45
         with:
           poll-interval-seconds: 10
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Check out
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: main
           submodules: true
@@ -95,7 +95,7 @@ jobs:
 
           # Store the commit hash before checkout to ensure we cherry-pick the right commit
           DETACHED_COMMIT=$(git rev-parse HEAD)
-          
+
           # Cherry-pick the version bump commit onto main, to safely handle case where new commits exist on main
           git checkout main && git pull origin main
           git cherry-pick "$DETACHED_COMMIT"
@@ -127,10 +127,10 @@ jobs:
         run: |
           git add Mobile-Expensify
           git commit -m "Update Mobile-Expensify submodule version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
-          
+
           MAX_RETRIES=5
           RETRY_DELAY=2
-          
+
           for i in $(seq 1 $MAX_RETRIES); do
             if git push origin main; then
               echo "::notice::Successfully pushed E/App changes on attempt $i"
@@ -152,7 +152,7 @@ jobs:
               continue
             fi
           done
-          
+
           echo "::error::E/App push failed after $MAX_RETRIES attempts"
           echo "::error::CRITICAL: Mobile-Expensify has version ${{ steps.bumpVersion.outputs.NEW_VERSION }} but E/App does not!"
           echo "::error::Manual intervention required - run the syncVersions workflow to fix"
@@ -162,7 +162,7 @@ jobs:
         run: |
           APP_VERSION=$(jq -r .version package.json)
           ME_VERSION=$(jq -r .meta.version Mobile-Expensify/app/config/config.json)
-          
+
           if [ "$APP_VERSION" != "$ME_VERSION" ]; then
             echo "::error::Version mismatch detected after push!"
             echo "::error::E/App version: $APP_VERSION"

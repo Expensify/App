@@ -1,5 +1,6 @@
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -52,7 +53,6 @@ jest.mock('@react-navigation/native');
 
 describe('navigateAfterExpenseCreate', () => {
     beforeAll(() => {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const followUpMock = require('@libs/telemetry/submitFollowUpAction') as {setPendingSubmitFollowUpAction: jest.Mock};
         mockSetPendingSubmitFollowUpAction = followUpMock.setPendingSubmitFollowUpAction;
     });

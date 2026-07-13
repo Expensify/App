@@ -1,22 +1,29 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getInitialSubStepForBusinessInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBusinessInfoStep';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import {clearReimbursementAccountSaveCorpayOnboardingCompanyDetails, getCorpayOnboardingFields, saveCorpayOnboardingCompanyDetails} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+
 import Address from './subSteps/Address';
 import AverageReimbursement from './subSteps/AverageReimbursement';
 import BusinessType from './subSteps/BusinessType';
@@ -115,7 +122,6 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
     }, [businessInfoStepValues, isProduction, country, currency, isBusinessTypeRequired, bankAccountID]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (reimbursementAccount?.errors || reimbursementAccount?.isSavingCorpayOnboardingCompanyFields || !reimbursementAccount?.isSuccess) {
             return;
         }

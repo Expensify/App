@@ -1,11 +1,13 @@
-import {Image} from 'expo-image';
-import type {ImageProps as ExpoImageProps} from 'expo-image';
-import React, {useEffect} from 'react';
 import getImageRecyclingKey from '@libs/getImageRecyclingKey';
+
+import type {ImageProps as ExpoImageProps} from 'expo-image';
+
+import {Image} from 'expo-image';
+import React, {useEffect} from 'react';
+
 import type ImageSVGProps from './types';
 
 function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cover', style, onLoadEnd}: ImageSVGProps) {
-    const tintColorProp = fill ? {tintColor: fill} : {};
     const isReactComponent = typeof src === 'function';
 
     // Clear memory cache when unmounting images to avoid memory overload
@@ -43,7 +45,6 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
                 width={width}
                 height={height}
                 style={style}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...additionalProps}
             />
         );
@@ -52,6 +53,7 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
     // Handle static image sources (traditional approach)
     return (
         <Image
+            accessibilityIgnoresInvertColors
             onLoadEnd={onLoadEnd}
             // Caching images to memory since some SVGs are being displayed with delay
             // See issue: https://github.com/Expensify/App/issues/34881
@@ -60,8 +62,10 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
             source={src}
             recyclingKey={getImageRecyclingKey(src)}
             style={[{width, height}, style as ExpoImageProps['style']]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...tintColorProp}
+            tintColor={fill}
+            // On android, there's an issue where the fill color of the icon does not change,
+            // unless the component is remounted. (https://github.com/Expensify/App/pull/76741#issuecomment-4245274687)
+            key={fill}
         />
     );
 }

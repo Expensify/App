@@ -1,11 +1,15 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {CreateWorkspaceParams} from '@libs/API/parameters';
-import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
+
+import type {BuildPolicyDataKeys, CurrentUser} from '@userActions/Policy/Policy';
+
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
 import type BaseTransactionParams from './BaseTransactionParams';
 import type {TrackExpenseAccountantParams} from './CreateTrackExpenseParams';
 
@@ -26,6 +30,7 @@ type BuildOnyxDataForTrackExpenseKeys =
     | typeof ONYXKEYS.COLLECTION.REPORT
     | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
     | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+    | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
     | typeof ONYXKEYS.COLLECTION.TRANSACTION
     | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT
@@ -56,13 +61,17 @@ type TrackedExpenseParams = {
         | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE
         | typeof ONYXKEYS.GPS_DRAFT_DETAILS
         | typeof ONYXKEYS.SELF_DM_REPORT_ID
+        | typeof ONYXKEYS.ODOMETER_DRAFT
     >;
     reportInformation: TrackedExpenseReportInformation;
     transactionParams: TrackedExpenseTransactionParams;
     policyParams: TrackedExpensePolicyParams;
     createdWorkspaceParams?: CreateWorkspaceParams;
     accountantParams?: TrackExpenseAccountantParams;
-    currentUserAccountID: number;
+    currentUser: CurrentUser;
+    reportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
+    // Personal details list is optional here because we only use/pass it for SHARE case
+    personalDetailsList?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 export type {TrackedExpenseParams, TrackedExpensePolicyParams, TrackedExpenseTransactionParams, TrackedExpenseReportInformation, BuildOnyxDataForTrackExpenseKeys};

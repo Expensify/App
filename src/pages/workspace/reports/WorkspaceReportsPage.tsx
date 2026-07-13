@@ -1,8 +1,3 @@
-import {FlashList} from '@shopify/flash-list';
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import {Str} from 'expensify-common';
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
@@ -16,15 +11,18 @@ import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {clearPolicyTitleFieldError, enablePolicyReportFields, setPolicyPreventMemberCreatedTitle} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -35,13 +33,23 @@ import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnecti
 import {getTitleFieldWithFallback} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
+
+import {openPolicyReportFieldsPage, setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import {FlashList} from '@shopify/flash-list';
+import {Str} from 'expensify-common';
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 type ReportFieldForList = ListItem & {
     fieldID: string;
@@ -61,12 +69,13 @@ function WorkspaceReportFieldsPage({
     },
 }: WorkspaceReportFieldsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for the small screen selection mode
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
+    const {canWrite: canWriteReportFields, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.reports');
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
@@ -122,6 +131,10 @@ function WorkspaceReportFieldsPage({
         : [];
 
     const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
+        if (!canWriteReportFields) {
+            return;
+        }
+
         Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
     };
 
@@ -149,8 +162,8 @@ function WorkspaceReportFieldsPage({
                 onPress={() => navigateToReportFieldsSettings(item)}
                 description={item.text}
                 disabled={item.isDisabled}
-                shouldShowRightIcon={!item.isDisabled}
-                interactive={!item.isDisabled}
+                shouldShowRightIcon={!item.isDisabled && canWriteReportFields}
+                interactive={!item.isDisabled && canWriteReportFields}
                 rightLabel={item.rightLabel}
                 descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
             />
@@ -200,6 +213,7 @@ function WorkspaceReportFieldsPage({
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -242,9 +256,10 @@ function WorkspaceReportFieldsPage({
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reports.customNameTitle')}
                                     title={Str.htmlDecode(titleField?.defaultValue ?? '')}
-                                    shouldShowRightIcon
+                                    shouldShowRightIcon={canWriteReportFields}
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                     onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
+                                    interactive={canWriteReportFields}
                                 />
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow
@@ -268,6 +283,9 @@ function WorkspaceReportFieldsPage({
 
                                     setPolicyPreventMemberCreatedTitle(policyID, isEnabled, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
                                 }}
+                                disabled={!canWriteReportFields}
+                                disabledAction={withReadOnlyFallback()}
+                                showLockIcon={!canWriteReportFields}
                             />
                         </Section>
                         <Section
@@ -307,8 +325,9 @@ function WorkspaceReportFieldsPage({
                                     }
                                     enablePolicyReportFields(policyID, isEnabled);
                                 }}
-                                disabled={hasAccountingConnections}
-                                disabledAction={onDisabledOrganizeSwitchPress}
+                                disabled={hasAccountingConnections || !canWriteReportFields}
+                                disabledAction={withReadOnlyFallback(onDisabledOrganizeSwitchPress)}
+                                showLockIcon={!canWriteReportFields}
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (
                                         <>
@@ -320,9 +339,12 @@ function WorkspaceReportFieldsPage({
                                                     maintainVisibleContentPosition={{disabled: true}}
                                                 />
                                             </View>
-                                            {!hasAccountingConnections && (
+                                            {!hasAccountingConnections && canWriteReportFields && (
                                                 <MenuItem
-                                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
+                                                    onPress={() => {
+                                                        setInitialCreateReportFieldsForm();
+                                                        Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID));
+                                                    }}
                                                     title={translate('workspace.reportFields.addField')}
                                                     icon={icons.Plus}
                                                     style={[styles.sectionMenuItemTopDescription]}

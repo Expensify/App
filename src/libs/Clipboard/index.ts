@@ -1,6 +1,9 @@
-import Clipboard from '@react-native-clipboard/clipboard';
 import * as Browser from '@libs/Browser';
+
 import CONST from '@src/CONST';
+
+import Clipboard from '@react-native-clipboard/clipboard';
+
 import type {CanSetHtml, SetHtml, SetString} from './types';
 
 type ComposerSelection = {
@@ -75,7 +78,6 @@ function setHTMLSync(html: string, text: string) {
     selection.addRange(range);
 
     try {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         document.execCommand('copy');
     } catch (e) {
         // The 'copy' command can throw a SecurityError exception, we ignore this exception on purpose.

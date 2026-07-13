@@ -1,28 +1,33 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SingleOptionSelector from '@components/SingleOptionSelector';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ReplacementReason} from '@libs/actions/Card';
 import {setErrors} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 const OPTIONS_KEYS = {
     DAMAGED: 'damaged',
@@ -50,7 +55,7 @@ type ReportCardLostPageProps = PlatformStackScreenProps<SettingsNavigatorParamLi
 
 function ReportCardLostPage({
     route: {
-        params: {cardID = ''},
+        params: {cardID = '', isFromDomainCardDetail},
     },
 }: ReportCardLostPageProps) {
     const styles = useThemeStyles();
@@ -100,12 +105,15 @@ function ReportCardLostPage({
             setShouldShowAddressError(true);
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE.getRoute(cardID, reason?.key ?? OPTIONS_KEYS.DAMAGED));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE.getRoute(cardID, reason?.key ?? OPTIONS_KEYS.DAMAGED, !!isFromDomainCardDetail));
     };
 
-    const handleOptionSelect = (option: Option) => {
-        setReason(option);
-        setShouldShowReasonError(false);
+    const handleOptionSelect = (value: string) => {
+        const selectedOption = OPTIONS.find((o) => o.key === value);
+        if (selectedOption) {
+            setReason(selectedOption);
+            setShouldShowReasonError(false);
+        }
     };
 
     const handleBackButtonPress = () => {
@@ -114,10 +122,16 @@ function ReportCardLostPage({
             return;
         }
 
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
+        const cardDetailRoute = isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID);
+        Navigation.goBack(cardDetailRoute, {compareParams: false});
     };
 
     const isDamaged = reason?.key === OPTIONS_KEYS.DAMAGED;
+
+    const radioItems = OPTIONS.map((option) => ({
+        label: translate(option.label),
+        value: option.key,
+    }));
 
     return (
         <ScreenWrapper
@@ -159,12 +173,12 @@ function ReportCardLostPage({
                     </>
                 ) : (
                     <>
-                        <View style={styles.mh5}>
-                            <Text style={[styles.textHeadline, styles.mr5]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
-                            <SingleOptionSelector
-                                options={OPTIONS}
-                                selectedOptionKey={reason?.key}
-                                onSelectOption={handleOptionSelect}
+                        <View>
+                            <Text style={[styles.textHeadline, styles.mh5]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
+                            <RadioButtons
+                                items={radioItems}
+                                value={reason?.key}
+                                onSelect={handleOptionSelect}
                             />
                         </View>
                         <View style={styles.mh5}>

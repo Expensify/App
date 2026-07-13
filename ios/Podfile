@@ -16,7 +16,17 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
-platform :ios, min_ios_version_supported
+# Use prebuilt React Native Dependencies and Core by default. Set either to '0' to build from source.
+ENV['RCT_USE_RN_DEP'] = '1'
+ENV['RCT_USE_PREBUILT_RNCORE'] = '1'
+
+# Consume our patched React Native core prebuilt artifacts. Must be required after
+# react_native_pods.rb (which defines ReactNativeCoreUtils); setup runs before use_react_native! below.
+require_relative '../scripts/artifacts-utils/ios/patched_ios_artifacts.rb'
+PatchedIOSArtifacts.setup
+
+MIN_IOS_VERSION = '16.4'
+platform :ios, MIN_IOS_VERSION
 prepare_react_native_project!
 
 
@@ -47,22 +57,26 @@ def __apply_Xcode_14_3_RC_post_install_workaround(installer)
   end
 end
 
-# Pods does not derive :debug type from NewExpensify's debug configurations so we need to set it manually before react-native-post-install.
-# Based on this value react-native-post-install will set the correct GCC_PREPROCESSOR_DEFINITIONS e.g. ENABLE_HERMES_DEBUGGER
-def __set_debug_type_for_debug_configurations(installer)
-  installer.pods_project.build_configurations.each do |config|
-    if config.name.downcase.include?("debug")
-      installer.pods_project.add_build_configuration(config.name, :debug)
-    end
-  end
-end
-
 # Configure Mapbox before installing dependencies
 pre_install do |installer|
   $RNMapboxMaps.pre_install(installer)
 end
 
+# Declare project globally so all targets inherit the same build configurations
+project 'NewExpensify',
+  'DebugDevelopment' => :debug,
+  'DebugAdHoc' => :debug,
+  'DebugProduction' => :debug,
+  'ReleaseDevelopment' => :release,
+  'ReleaseAdHoc' => :release,
+  'ReleaseProduction' => :release,
+  'Debug' => :debug
+
 target 'NewExpensify' do
+  # Certificate pinning (Iteration 1 - NewDot). TrustKit swizzles NSURLSession delegates so the
+  # pinning policy in CertificatePinning.swift applies to all URLSession traffic (fetch(),
+  # react-native-blob-util, etc.) without per-call code changes.
+  pod 'TrustKit', '~> 3.0'
   use_expo_modules!
   post_integrate do |installer|
     begin
@@ -72,15 +86,6 @@ target 'NewExpensify' do
     end
   end
   permissions_path = '../node_modules/react-native-permissions/ios'
-
-  project 'NewExpensify',
-    'DebugDevelopment' => :debug,
-    'DebugAdHoc' => :debug,
-    'DebugProduction' => :debug,
-    'ReleaseDevelopment' => :release,
-    'ReleaseAdHoc' => :release,
-    'ReleaseProduction' => :release,
-    'Debug' => :debug
 
   config = use_native_modules!(['npx', 'rock', 'config', '-p', 'ios'])
 
@@ -103,7 +108,6 @@ target 'NewExpensify' do
     # Configure Mapbox after installation
     $RNMapboxMaps.post_install(installer)
 
-    __set_debug_type_for_debug_configurations(installer)
     # https://github.com/facebook/react-native/blob/main/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
@@ -116,6 +120,8 @@ target 'NewExpensify' do
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+        config.build_settings['HEADER_SEARCH_PATHS'] ||= '$(inherited) '
+        config.build_settings['HEADER_SEARCH_PATHS'] << '"${PODS_ROOT}/../../node_modules/react-native/ReactCommon/jsitooling" '
       end
 
       if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"
@@ -133,4 +139,4 @@ target 'NotificationServiceExtension' do
   pod 'AppLogs', :path => '../node_modules/react-native-app-logs/AppLogsPod'
 end
 
-pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.68.3-xcframework.tar.gz'
+pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.70.1-xcframework.tar.gz'

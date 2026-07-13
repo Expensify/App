@@ -1,11 +1,11 @@
-import React, {useCallback, useMemo} from 'react';
-import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Debug from '@libs/actions/Debug';
 import DebugUtils from '@libs/DebugUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -17,13 +17,19 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {DebugParamList} from '@libs/Navigation/types';
 import {getTagLists} from '@libs/PolicyUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
 import DebugTransactionViolations from './DebugTransactionViolations';
 
 type DebugTransactionPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.TRANSACTION>;
@@ -52,12 +58,12 @@ function DebugTransactionPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, data);
                 }}
                 onDelete={() => {
-                    Navigation.goBack();
-                    // We need to wait for navigation animations to finish before deleting a transaction,
-                    // otherwise the user will see a not found page briefly.
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => {
-                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
+                    Navigation.goBack(undefined, {
+                        // We need to wait for navigation animations to finish before deleting a transaction,
+                        // otherwise the user will see a not found page briefly.
+                        afterTransition: () => {
+                            Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
+                        },
                     });
                 }}
                 validate={DebugUtils.validateTransactionDraftProperty}

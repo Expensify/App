@@ -1,17 +1,24 @@
-import type * as CoreNavigation from '@react-navigation/core';
-import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React, {act} from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {SearchContextProvider} from '@components/Search/SearchContext';
+import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import type {TransactionGroupListItemProps, TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+
 import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as CoreNavigation from '@react-navigation/core';
+
+import * as NativeNavigation from '@react-navigation/native';
+import React, {act} from 'react';
+import Onyx from 'react-native-onyx';
+
+import type * as MockUsePaymentContextUtil from '../utils/mockUsePaymentContext';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/Search', () => ({
@@ -33,6 +40,7 @@ jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({
         navigate: jest.fn(),
         addListener: jest.fn(),
+        getState: jest.fn(() => undefined),
     }),
     useFocusEffect: jest.fn((callback: () => void) => callback()),
     useRoute: () => ({
@@ -47,6 +55,13 @@ jest.mock('@react-navigation/core', () => ({
 }));
 
 jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
+
+jest.mock('@hooks/useResponsiveLayout');
+
+jest.mock('@hooks/usePaymentContext', () => {
+    const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../utils/mockUsePaymentContext');
+    return mockUsePaymentContext;
+});
 
 const mockEmptyReport: TransactionReportGroupListItemType = {
     accountID: 1,
@@ -89,6 +104,10 @@ const mockEmptyReport: TransactionReportGroupListItemType = {
     shouldShowYearApproved: false,
     shouldShowYearExported: false,
     action: CONST.SEARCH.ACTION_TYPES.VIEW,
+    canPay: false,
+    canApprove: false,
+    canSubmit: false,
+    canChangeApprover: false,
 };
 
 const mockTransaction: TransactionListItemType = {
@@ -129,6 +148,10 @@ const mockTransaction: TransactionListItemType = {
     transactionID: '1',
     action: 'approve',
     allActions: ['approve'],
+    canPay: false,
+    canApprove: true,
+    canSubmit: false,
+    canChangeApprover: false,
     formattedFrom: 'Main Applause QA',
     formattedTo: 'Main Applause QA',
     formattedTotal: -1284,
@@ -207,6 +230,10 @@ const mockNonEmptyReport: TransactionReportGroupListItemType = {
     shouldShowYearApproved: false,
     shouldShowYearExported: false,
     action: CONST.SEARCH.ACTION_TYPES.VIEW,
+    canPay: false,
+    canApprove: false,
+    canSubmit: false,
+    canChangeApprover: false,
 };
 
 const mockReport: TransactionReportGroupListItemType = {
@@ -250,6 +277,10 @@ const mockReport: TransactionReportGroupListItemType = {
     shouldShowYearApproved: false,
     shouldShowYearExported: false,
     action: 'view',
+    canPay: false,
+    canApprove: false,
+    canSubmit: false,
+    canChangeApprover: false,
     transactions: [],
     groupedBy: 'expense-report',
     keyForList: '515146912679679',
@@ -310,13 +341,7 @@ describe('TransactionGroupListItem', () => {
     }
 
     const renderTransactionGroupListItem = () => {
-        return render(
-            <TransactionGroupListItem
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultProps}
-            />,
-            {wrapper: TestWrapper},
-        );
+        return render(<TransactionGroupListItem {...defaultProps} />, {wrapper: TestWrapper});
     };
 
     const expand = async () => {
@@ -423,7 +448,7 @@ describe('Empty Report Selection', () => {
         item: mockEmptyReport,
         showTooltip: false,
         onSelectRow: mockOnSelectRow,
-        onCheckboxPress: mockOnCheckboxPress,
+        onSelectionButtonPress: mockOnCheckboxPress,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
         keyForList: '1',
@@ -440,13 +465,7 @@ describe('Empty Report Selection', () => {
     }
 
     const renderTransactionGroupListItem = () => {
-        return render(
-            <TransactionGroupListItem
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultProps}
-            />,
-            {wrapper: TestWrapper},
-        );
+        return render(<TransactionGroupListItem {...defaultProps} />, {wrapper: TestWrapper});
     };
 
     it('should render an empty report with checkbox', async () => {
@@ -531,13 +550,7 @@ describe('Empty Report Selection', () => {
             item: mockNonEmptyReport,
         };
 
-        const {unmount: unmountNonEmpty} = render(
-            <TransactionGroupListItem
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...nonEmptyProps}
-            />,
-            {wrapper: TestWrapper},
-        );
+        const {unmount: unmountNonEmpty} = render(<TransactionGroupListItem {...nonEmptyProps} />, {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
 
         const nonEmptyCheckbox = screen.getByRole(CONST.ROLE.CHECKBOX);
@@ -575,13 +588,7 @@ describe('Empty Report Selection', () => {
             item: mockNonEmptyReport,
         };
 
-        render(
-            <TransactionGroupListItem
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...nonEmptyProps}
-            />,
-            {wrapper: TestWrapper},
-        );
+        render(<TransactionGroupListItem {...nonEmptyProps} />, {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
 
         // Non-empty reports should have an expand button

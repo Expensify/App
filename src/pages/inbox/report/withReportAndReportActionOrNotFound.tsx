@@ -1,12 +1,10 @@
-/* eslint-disable rulesdir/no-negated-variables */
-import type {ComponentType} from 'react';
-import React, {useEffect, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -14,15 +12,22 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {FlagCommentNavigatorParamList, SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentType} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useMemo} from 'react';
+
 type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
     FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList,
-    typeof SCREENS.DYNAMIC_FLAG_COMMENT | typeof SCREENS.SPLIT_DETAILS.ROOT
+    typeof SCREENS.DYNAMIC_FLAG_COMMENT | typeof SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT
 > & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
@@ -40,12 +45,12 @@ type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
 export default function <TProps extends WithReportAndReportActionOrNotFoundProps>(WrappedComponent: ComponentType<TProps>): ComponentType<TProps> {
     function WithReportOrNotFound(props: TProps) {
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
         const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-        const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`);
+        const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${props.route.params.reportID}`);
         const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
         const [betas] = useOnyx(ONYXKEYS.BETAS);
-        const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`, {canEvict: false});
+        const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`);
         const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
         const parentReportAction = useParentReportAction(report);
@@ -74,11 +79,10 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 
         // Perform all the loading checks
         const isLoadingReport = isLoadingReportData && !report?.reportID;
-        const isLoadingReportAction = isEmptyObject(reportActions) || (reportMetadata?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
+        const isLoadingReportAction = isEmptyObject(reportActions) || (reportLoadingState?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
         const isReportArchived = useReportIsArchived(report?.reportID);
         const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, isReportArchived));
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
             const reasonAttributes: SkeletonSpanReasonAttributes = {
                 context: 'withReportAndReportActionOrNotFound',
@@ -97,7 +101,6 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 report={report}
                 parentReport={parentReport}

@@ -1,10 +1,13 @@
-import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMonth, startOfWeek, subDays} from 'date-fns';
+import CONST from '@src/CONST';
+import type {CurrencyList, PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import type {PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {convertToDisplayString, convertToDisplayStringWithoutCurrency} from './CurrencyUtils';
+
+import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMonth, startOfWeek, subDays} from 'date-fns';
+
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
 import formatDate from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
 import Log from './Log';
@@ -31,6 +34,7 @@ type MinimalTransaction = Pick<Transaction, 'transactionID' | 'reportID' | 'crea
 type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
+    currencyList?: CurrencyList;
     transaction?: Transaction;
     submitterPersonalDetails?: PersonalDetails;
     managerPersonalDetails?: PersonalDetails;
@@ -370,12 +374,12 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'enddate':
             return formatDate(getNewestTransactionDate(report.reportID, context), format);
         case 'total': {
-            const formattedAmount = formatAmount(report.total, report.currency, format);
+            const formattedAmount = formatAmount(report.total, report.currency, format, context.currencyList);
             // Return empty string when conversion needed (formatAmount returns null for unavailable conversions)
             return formattedAmount ?? '';
         }
         case 'reimbursable': {
-            const formattedAmount = formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, report.currency, format);
+            const formattedAmount = formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, report.currency, format, context.currencyList);
             return formattedAmount ?? '';
         }
         case 'currency':
@@ -559,7 +563,7 @@ function getSubstring(value: string, args: string[]): string {
  * Format an amount value
  * @returns The formatted amount string, or null if currency conversion is needed (unavailable on frontend)
  */
-function formatAmount(amount: number | undefined, currency: string | undefined, displayCurrency?: string): string | null {
+function formatAmount(amount: number | undefined, currency: string | undefined, displayCurrency?: string, currencyList?: CurrencyList): string | null {
     if (amount === undefined) {
         return '';
     }
@@ -567,27 +571,37 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
     const absoluteAmount = Math.abs(amount);
 
     try {
+        const trimmedCurrency = currency?.trim().toUpperCase();
         const trimmedDisplayCurrency = displayCurrency?.trim().toUpperCase();
         if (trimmedDisplayCurrency) {
             if (trimmedDisplayCurrency === 'NOSYMBOL') {
-                return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
+                return convertToDisplayStringWithoutCurrency(absoluteAmount, trimmedCurrency, currencyList);
             }
 
             // If a currency conversion is needed (displayCurrency differs from the source),
             // return null so the backend can compute it.
             // We can only compute the value optimistically when the amount is 0.
-            if (absoluteAmount !== 0 && currency !== trimmedDisplayCurrency) {
+            if (absoluteAmount !== 0 && trimmedCurrency !== trimmedDisplayCurrency) {
                 return null;
             }
 
-            return convertToDisplayString(absoluteAmount, trimmedDisplayCurrency);
+            // Return empty string for an unrecognized display currency so the placeholder is preserved upstream.
+            if (!isValidCurrencyCode(trimmedDisplayCurrency)) {
+                return '';
+            }
+
+            return convertToDisplayString(absoluteAmount, trimmedDisplayCurrency, false, currencyList);
         }
 
-        if (currency) {
-            return convertToDisplayString(absoluteAmount, currency, true);
+        if (trimmedCurrency) {
+            // Return empty string for an unrecognized source currency so the placeholder is preserved upstream.
+            if (!isValidCurrencyCode(trimmedCurrency)) {
+                return '';
+            }
+            return convertToDisplayString(absoluteAmount, trimmedCurrency, true, currencyList);
         }
 
-        return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
+        return convertToDisplayStringWithoutCurrency(absoluteAmount, currency, currencyList);
     } catch (error) {
         Log.hmmm('[Formula] formatAmount failed', {error, amount, currency, displayCurrency});
         return '';

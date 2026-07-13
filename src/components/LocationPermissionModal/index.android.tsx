@@ -1,14 +1,17 @@
-import React, {useEffect, useState} from 'react';
-import {Linking} from 'react-native';
-import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
+
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
-import type {LocationPermissionModalProps} from './types';
+
+import React, {useEffect, useState} from 'react';
+import {Linking} from 'react-native';
+import {RESULTS} from 'react-native-permissions';
+
+import type LocationPermissionModalProps from './types';
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);
@@ -17,7 +20,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker' as IllustrationName));
+    const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
 
     useEffect(() => {
         if (!startPermissionFlow) {
@@ -57,7 +60,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                     setHasError(true);
                     return;
                 } else {
-                    onDeny();
+                    onDeny(false);
                 }
                 setShowModal(false);
                 setHasError(false);
@@ -68,7 +71,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     });
 
     const skipLocationPermission = () => {
-        onDeny();
+        onDeny(true);
         setShowModal(false);
         setHasError(false);
     };

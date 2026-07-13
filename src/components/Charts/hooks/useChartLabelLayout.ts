@@ -1,7 +1,9 @@
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import {LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/constants';
 import type {ChartDataPoint, LabelRotation} from '@components/Charts/types';
 import {edgeLabelsFit, edgeMaxLabelWidth, effectiveHeight, effectiveWidth, maxVisibleCount} from '@components/Charts/utils';
+import {LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+
 import type useChartLabelMeasurements from './useChartLabelMeasurements';
 
 type LabelLayoutConfig = {
@@ -9,7 +11,7 @@ type LabelLayoutConfig = {
     data: ChartDataPoint[];
 
     /** Font manager for Paragraph API rendering with multi-font fallback. */
-    fontMgr: SkTypefaceFontProvider | null;
+    fontManager: SkTypefaceFontProvider | null;
 
     /** Font size used for measuring label text widths. */
     fontSize: number;
@@ -25,9 +27,6 @@ type LabelLayoutConfig = {
 
     /** Pixels from last tick to right edge of canvas. Defaults to Infinity (no constraint). */
     lastTickRightSpace?: number;
-
-    /** When true, allows tighter label packing at 45° by accounting for vertical offset between right-aligned labels. */
-    allowTightDiagonalPacking?: boolean;
 
     /** Measurements of the label text. */
     measurements: ReturnType<typeof useChartLabelMeasurements>;
@@ -45,22 +44,13 @@ const EMPTY_LAYOUT = {
     ellipsisWidth: 0,
 };
 
-function useChartLabelLayout({
-    data,
-    fontMgr,
-    tickSpacing,
-    labelAreaWidth,
-    firstTickLeftSpace = Infinity,
-    lastTickRightSpace = Infinity,
-    allowTightDiagonalPacking = false,
-    measurements,
-}: LabelLayoutConfig) {
+function useChartLabelLayout({data, fontManager, tickSpacing, labelAreaWidth, firstTickLeftSpace = Infinity, lastTickRightSpace = Infinity, measurements}: LabelLayoutConfig) {
     // Phase 1: font/data measurements — stable across geometry-only changes (resize).
 
     // Phase 2: layout decisions + label truncation.
     // Memoized on all geometry inputs so labelMaxWidths and truncatedLabelWidths have stable
     // references between re-renders where only unrelated state changes.
-    if (!fontMgr || !measurements || tickSpacing <= 0 || labelAreaWidth <= 0) {
+    if (!fontManager || !measurements || tickSpacing <= 0 || labelAreaWidth <= 0) {
         return EMPTY_LAYOUT;
     }
 
@@ -83,18 +73,16 @@ function useChartLabelLayout({
         rotation: LABEL_ROTATIONS.HORIZONTAL,
         firstTickLeftSpace: effectiveFirstTickLeftSpace,
         lastTickRightSpace: effectiveLastTickRightSpace,
-        rightAligned: false,
     });
 
     if (hFitsInTicks && hEdgeFits) {
         rotation = LABEL_ROTATIONS.HORIZONTAL;
     } else {
-        const diagonalOverlap = allowTightDiagonalPacking ? lineHeight * SIN_45 : 0;
-        const minDiagWidth = minTruncatedWidth * SIN_45 - diagonalOverlap;
+        const minDiagWidth = minTruncatedWidth * SIN_45 - lineHeight * SIN_45;
         const dFitsInTicks = minDiagWidth + LABEL_PADDING <= tickSpacing;
 
-        const firstEdgeMax = edgeMaxLabelWidth(effectiveFirstTickLeftSpace, lineHeight, LABEL_ROTATIONS.DIAGONAL, allowTightDiagonalPacking, 'first');
-        const lastEdgeMax = edgeMaxLabelWidth(effectiveLastTickRightSpace, lineHeight, LABEL_ROTATIONS.DIAGONAL, allowTightDiagonalPacking, 'last');
+        const firstEdgeMax = edgeMaxLabelWidth(effectiveFirstTickLeftSpace, lineHeight, LABEL_ROTATIONS.DIAGONAL, 'first');
+        const lastEdgeMax = edgeMaxLabelWidth(effectiveLastTickRightSpace, lineHeight, LABEL_ROTATIONS.DIAGONAL, 'last');
         const dEdgeFits = firstEdgeMax >= firstMinTrunc && lastEdgeMax >= lastMinTrunc;
 
         if (dFitsInTicks && dEdgeFits) {
@@ -103,17 +91,16 @@ function useChartLabelLayout({
     }
 
     // Compute per-label max-width constraints (used by ChartXAxisLabels for truncation).
-    const truncDiagonalOverlap = allowTightDiagonalPacking ? lineHeight : 0;
-    const tickMaxWidth = rotation === LABEL_ROTATIONS.DIAGONAL ? (tickSpacing - LABEL_PADDING) / SIN_45 + truncDiagonalOverlap : Infinity;
+    const tickMaxWidth = rotation === LABEL_ROTATIONS.DIAGONAL ? (tickSpacing - LABEL_PADDING) / SIN_45 + lineHeight : Infinity;
 
     const labelMaxWidths = data.map((_, index) => {
         let maxWidth = tickMaxWidth;
         if (index === 0) {
-            const edgeMax = edgeMaxLabelWidth(effectiveFirstTickLeftSpace, lineHeight, rotation, allowTightDiagonalPacking, 'first');
+            const edgeMax = edgeMaxLabelWidth(effectiveFirstTickLeftSpace, lineHeight, rotation, 'first');
             maxWidth = Math.min(maxWidth, edgeMax);
         }
         if (index === data.length - 1) {
-            const edgeMax = edgeMaxLabelWidth(effectiveLastTickRightSpace, lineHeight, rotation, allowTightDiagonalPacking, 'last');
+            const edgeMax = edgeMaxLabelWidth(effectiveLastTickRightSpace, lineHeight, rotation, 'last');
             maxWidth = Math.min(maxWidth, edgeMax);
         }
         return maxWidth;
@@ -122,14 +109,14 @@ function useChartLabelLayout({
     // Approximate truncated widths for hit-testing: exact for non-truncated labels,
     // at most ellipsisWidth px over for truncated ones — acceptable for bounding boxes.
     const truncatedLabelWidths = labelMaxWidths.map((maxW, i) => Math.min(labelWidths.at(i) ?? 0, maxW));
-    const finalMaxWidth = Math.max(...truncatedLabelWidths);
 
     let skipInterval = 1;
     if (rotation === LABEL_ROTATIONS.VERTICAL) {
-        const verticalWidth = effectiveWidth(finalMaxWidth, lineHeight, rotation);
-        const visibleCount = maxVisibleCount(labelAreaWidth, verticalWidth);
+        const visibleCount = maxVisibleCount(labelAreaWidth, lineHeight);
         skipInterval = visibleCount >= data.length ? 1 : Math.ceil(data.length / Math.max(1, visibleCount));
     }
+
+    const finalMaxWidth = Math.max(...truncatedLabelWidths.filter((_, i) => i % skipInterval === 0));
 
     const lastIndex = data.length - 1;
 
@@ -146,5 +133,4 @@ function useChartLabelLayout({
     };
 }
 
-export {useChartLabelLayout};
-export type {LabelLayoutConfig};
+export default useChartLabelLayout;

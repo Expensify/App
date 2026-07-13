@@ -1,0 +1,10 @@
+# @desc   Tap the submit button on the IOU confirmation page (IOURequestStepConfirmation). Triggers ManualCreateExpenseSubmit, ManualSubmitToDestinationVisible, and ManualCreateExpenseServerResponse. If the device has location permission granted, ManualGeolocationWait also fires as a child of Submit. Requires being on the confirmation page already.
+# @pre    role="button" label="Upload receipt" || role="button" label="Create expense"
+# @post   role="button" label="Open actions menu"
+# @tag    iou
+# @tag    perf
+# @tag    sentry-ManualCreateExpenseSubmit
+# @tag    sentry-ManualSubmitToDestinationVisible
+# @tag    sentry-ManualCreateExpenseServerResponse
+# @tag    sentry-ManualGeolocationWait
+press "role=\"button\" label=\"Create expense\" || label=\"Create expense\""

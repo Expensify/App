@@ -1,12 +1,9 @@
-import type {ListRenderItem} from '@shopify/flash-list';
-import throttle from 'lodash/throttle';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
@@ -15,16 +12,26 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {isMobile} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getRemovedSkinToneEmoji} from '@libs/EmojiUtils';
 import type {EmojiPickerListItem} from '@libs/EmojiUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import {shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
+
+import type {ListRenderItem} from '@shopify/flash-list';
+
+import throttle from 'lodash/throttle';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type EmojiPickerMenuProps from './types';
+
+import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 const throttleTime = isMobile() ? 200 : 50;
@@ -69,7 +76,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
             return false;
         }
         pendingHeaderFocusIndexRef.current = null;
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
         (headerRef.current as unknown as HTMLElement).focus?.();
         return true;
     }, []);
@@ -182,7 +189,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
 
     // Stable throttled function that delegates to the latest callback via ref,
     // preventing re-renders from recreating the throttle timer.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     const filterEmojis = useMemo(() => throttle((text: string) => filterCallbackRef.current?.(text), throttleTime), []);
 
     const keyDownHandler = useCallback(

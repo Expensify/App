@@ -1,14 +1,17 @@
+import type {Attachment} from '@components/Attachments/types';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
+
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+
+import type CONST from '@src/CONST';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
+
 import type {RefObject} from 'react';
 import type {RotationDegrees} from 'react-fast-pdf';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {Attachment} from '@components/Attachments/types';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {AvatarSource} from '@libs/UserAvatarUtils';
-import type CONST from '@src/CONST';
-import type * as OnyxTypes from '@src/types/onyx';
-import type {FileObject} from '@src/types/utils/Attachment';
 
 type AttachmentModalOnCloseOptions = {
     shouldCallDirectly?: boolean;
@@ -120,6 +123,13 @@ type AttachmentModalBaseContentProps = {
     /** Callback triggered when the download button is pressed */
     onDownloadAttachment?: DownloadAttachmentCallback;
 
+    /**
+     * When true, allows the download button to appear even when there is no report context (e.g. the report is empty
+     * and the type is not SEARCH). Use this for standalone document viewers like WorkspaceDocumentModalContent that
+     * pass onDownloadAttachment but do not operate within a report.
+     */
+    shouldAllowDownloadOutsideReportContext?: boolean;
+
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm?: (file: FileObject | FileObject[]) => void;
 
@@ -148,12 +158,4 @@ type AttachmentModalBaseContentProps = {
     pdfRotation?: RotationDegrees;
 };
 
-export type {
-    AttachmentModalBaseContentProps,
-    AttachmentModalOnCloseOptions,
-    DownloadAttachmentCallback,
-    AttachmentContent,
-    AttachmentContentProps,
-    ThreeDotsMenuItemFactory,
-    ThreeDotsMenuItemFactoryProps,
-};
+export type {AttachmentModalBaseContentProps, AttachmentModalOnCloseOptions, DownloadAttachmentCallback, AttachmentContentProps, ThreeDotsMenuItemFactory};

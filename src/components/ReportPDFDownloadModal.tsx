@@ -1,5 +1,3 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -7,10 +5,16 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {downloadReportPDF} from '@libs/actions/Report';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import Header from './Header';
@@ -23,9 +27,10 @@ type ReportPDFDownloadModalProps = {
     reportID: string | undefined;
     isVisible: boolean;
     onClose: () => void;
+    onModalHide?: () => void;
 };
 
-function ReportPDFDownloadModal({reportID, isVisible, onClose}: ReportPDFDownloadModalProps) {
+function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide}: ReportPDFDownloadModalProps) {
     const shouldAutoDownloadPDF = useRef(false);
 
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${reportID}`);
@@ -76,6 +81,7 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose}: ReportPDFDownloa
     return (
         <Modal
             onClose={onClose}
+            onModalHide={onModalHide}
             isVisible={isVisible}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}

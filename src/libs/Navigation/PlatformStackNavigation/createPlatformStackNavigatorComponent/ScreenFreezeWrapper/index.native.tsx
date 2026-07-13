@@ -1,11 +1,14 @@
-import React, {useLayoutEffect, useState} from 'react';
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {PropsWithChildren} from 'react';
+import type {ViewStyle} from 'react-native';
+
+import React, {useLayoutEffect, useState} from 'react';
 import {Freeze} from 'react-freeze';
 import {NativeComponentRegistry} from 'react-native';
-import type {ViewStyle} from 'react-native';
 // @ts-expect-error No declaration file for this internal React Native module
 import ReactNativeStyleAttributes from 'react-native/Libraries/Components/View/ReactNativeStyleAttributes';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import type ScreenFreezeWrapperProps from './types';
 
 // Delay freezing long enough for screen transition and modal/popover dismiss

@@ -1,23 +1,29 @@
-import lodashDefer from 'lodash/defer';
-import type {ReactElement, ReactNode, RefObject} from 'react';
-import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView} from 'react-native';
-import {View} from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobile} from '@libs/Browser';
-import getOperatingSystem from '@libs/getOperatingSystem';
+
 import CONST from '@src/CONST';
-import getAccessibilityLabelConfig from './getAccessibilityLabelConfig';
+
+import type {ReactElement, ReactNode, RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView} from 'react-native';
+
+import lodashDefer from 'lodash/defer';
+import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
+
 import type {BasePickerProps} from './types';
+
+import getAccessibilityLabelConfig from './getAccessibilityLabelConfig';
 
 type IconToRender = () => ReactElement;
 
@@ -99,12 +105,10 @@ function BasePicker<TPickerValue>({
             return () => icon(size);
         }
 
-        // eslint-disable-next-line react/display-name
         return () => (
             <Icon
                 fill={theme.icon}
                 src={icons.DownArrow}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
             />
         );
@@ -147,16 +151,7 @@ function BasePicker<TPickerValue>({
         },
     }));
 
-    /**
-     * We pass light text on Android, since Android Native alerts have a dark background in all themes for now.
-     */
-    const itemColor = useMemo(() => {
-        if (getOperatingSystem() === CONST.OS.ANDROID) {
-            return theme.textLight;
-        }
-
-        return theme.text;
-    }, [theme]);
+    const itemColor = theme.text;
 
     // Windows will reuse the text color of the select for each one of the options
     // so we might need to color accordingly so it doesn't blend with the background.
@@ -227,8 +222,21 @@ function BasePicker<TPickerValue>({
                     onClose={disableHighlight}
                     textInputProps={{
                         allowFontScaling: false,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
+                        accessibilityLabel: actualAccessibilityLabel,
+                        importantForAccessibility: 'no-hide-descendants',
+                    }}
+                    touchableDoneProps={{
+                        accessibilityRole: CONST.ROLE.BUTTON,
+                        accessibilityLabel: translate('common.dismiss'),
+                    }}
+                    touchableWrapperProps={{
+                        accessible: true,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
+                        accessibilityLabel: actualAccessibilityLabel,
                     }}
                     doneText={translate('common.done')}
+                    dismissText={translate('common.dismiss')}
                     pickerProps={{
                         ref: picker,
                         tabIndex: pickerTabIndex,

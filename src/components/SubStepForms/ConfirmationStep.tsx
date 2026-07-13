@@ -1,23 +1,29 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type SummaryItem = {
     description: string;
     title: string;
     shouldShowRightIcon: boolean;
     onPress: () => void;
+    brickRoadIndicator?: BrickRoad;
+    errorText?: string;
 };
 
 type ConfirmationStepProps = SubStepProps &
@@ -67,13 +73,15 @@ function ConfirmationStep({
             contentContainerStyle={[styles.flexGrow1, shouldApplySafeAreaPaddingBottom && {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
-            {summaryItems.map(({description, title, shouldShowRightIcon, onPress}) => (
+            {summaryItems.map(({description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText}) => (
                 <MenuItemWithTopDescription
                     key={`${title}_${description}`}
                     description={description}
                     title={title}
                     shouldShowRightIcon={shouldShowRightIcon}
                     onPress={onPress}
+                    brickRoadIndicator={brickRoadIndicator}
+                    errorText={errorText}
                     forwardedFSClass={forwardedFSClass}
                 />
             ))}

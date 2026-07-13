@@ -1,10 +1,15 @@
-import React, {useCallback, useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
+
 import getAmountInputKeyboard from '@libs/getAmountInputKeyboard';
 import {handleNegativeAmountFlipping, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
+
 import CONST from '@src/CONST';
-import TextInput from './TextInput';
+
+import React, {useCallback, useMemo} from 'react';
+
 import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
+
+import TextInput from './TextInput';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -97,7 +102,6 @@ function AmountWithoutCurrencyInput({
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );

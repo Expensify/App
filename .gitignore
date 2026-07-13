@@ -36,6 +36,7 @@ local.properties
 *.iml
 *.hprof
 android/app/src/main/java/com/expensify/chat/generated/
+scripts/generated/
 .cxx/
 
 # VIM
@@ -57,6 +58,9 @@ yarn-error.log
 
 # Bundled code
 dist/
+
+# Generated eslint-report HTML (npm run eslint-report; written under .eslint-reports/)
+/.eslint-reports/
 
 # BUCK
 buck-out/
@@ -110,6 +114,7 @@ tests/e2e/results/
 # Typescript
 tsconfig.tsbuildinfo
 tsconfig.tsgo.tsbuildinfo
+**/tsconfig.tsgo.tsbuildinfo
 
 # Mock-github
 /repo/
@@ -124,7 +129,10 @@ dist/
 web-build/
 
 # Local https certificate/key
-config/webpack/*.pem
+config/rsbuild/*.pem
+
+# Rspack build profiling output (RSPACK_PROFILE=OVERVIEW|ALL)
+.rspack-profile-*/
 
 # Expo
 .expo
@@ -162,5 +170,16 @@ modules/*/lib/
 .playwright-output/
 .playwright-mcp/
 
+# agent-device
+.agent-device/
+agent-device-output/
+
 # cspell cache
 .cspellcache
+
+# Server CLI build artifacts (victory-chart-renderer, etc.)
+server/*/dist/
+server/victory-chart-renderer/.dev/
+
+# Bun lockfiles (VCR uses npm workspaces + package-lock.json; bun is runtime-only)
+bun.lock

@@ -1,17 +1,23 @@
-import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
-import pick from 'lodash/pick';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
+import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
-import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
+import type {NavigationPartialRoute, NavigationRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {getSearchParamFromPath} from '@libs/Url';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
-import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
+
+import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
+
+import pick from 'lodash/pick';
+
+import buildTabNavigatorNestedState from './buildTabNavigatorNestedState';
+import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getDynamicRouteAdaptedState from './dynamicRoutesUtils/getDynamicRouteAdaptedState';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
@@ -30,11 +36,35 @@ type GetAdaptedStateFromPath = (...args: [...Parameters<typeof RNGetStateFromPat
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
 
-function isRouteWithBackToParam(route: NavigationPartialRoute): route is Route<string, {backTo: string}> {
+/**
+ * Standalone full-screen public pages registered in PublicScreens (unauthenticated navigator) that
+ * should NOT have TabNavigator prepended — they render on their own, with no tab navigator underneath.
+ *
+ * Keep in sync with the screens registered in PublicScreens.tsx (excluding TAB_NAVIGATOR, which hosts
+ * the SignInPage at the root, and the other navigator entries).
+ */
+const PUBLIC_SCREENS = new Set<string>([
+    SCREENS.VALIDATE_LOGIN,
+    SCREENS.TRANSITION_BETWEEN_APPS,
+    SCREENS.CONNECTION_COMPLETE,
+    SCREENS.BANK_CONNECTION_COMPLETE,
+    SCREENS.UNLINK_LOGIN,
+    SCREENS.SAML_SIGN_IN,
+]);
+
+/**
+ * Builds TabNavigator state with all tabs and the correct selected tab.
+ * Tab navigators require all routes in the state for proper rendering.
+ */
+function getTabNavigatorState(selectedTabRoute: NavigationPartialRoute): NavigationPartialRoute {
+    return {name: NAVIGATORS.TAB_NAVIGATOR, state: buildTabNavigatorNestedState(selectedTabRoute)};
+}
+
+function isRouteWithBackToParam(route: NavigationRoute): route is Route<string, {backTo: string}> {
     return route.params !== undefined && 'backTo' in route.params && typeof route.params.backTo === 'string';
 }
 
-function isRouteWithReportID(route: NavigationPartialRoute): route is Route<string, {reportID: string}> {
+function isRouteWithReportID(route: NavigationRoute): route is Route<string, {reportID: string}> {
     return route.params !== undefined && 'reportID' in route.params && typeof route.params.reportID === 'string';
 }
 
@@ -44,7 +74,7 @@ function isRouteWithReportID(route: NavigationPartialRoute): route is Route<stri
  * When a split tab route is accessed from search context (path contains '/search'),
  * we use SPLIT_EXPENSE_SEARCH for the mapping lookup instead of the tab name.
  */
-function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
+function getSearchScreenNameForRoute(route: NavigationRoute): string {
     const splitTabNames = Object.values(CONST.TAB.SPLIT) as string[];
     const isSplitTabRoute = splitTabNames.includes(route.name);
 
@@ -55,7 +85,7 @@ function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
     return route.name;
 }
 
-function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
+function getMatchingFullScreenRoute(route: NavigationRoute) {
     const isDynamicScreen = isDynamicRouteScreen(route.name as Screen);
 
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
@@ -103,27 +133,19 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             name: RHP_TO_SEARCH[routeNameForLookup],
             params: Object.keys({...copiedParams, ...queryParam}).length > 0 ? {...copiedParams, ...queryParam} : undefined,
         };
-        return {
-            name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-            state: getRoutesWithIndex([searchRoute]),
-        };
-    }
-
-    if (RHP_TO_SIDEBAR[route.name]) {
-        return getInitialSplitNavigatorState({
-            name: RHP_TO_SIDEBAR[route.name],
-        });
+        const searchState = getRoutesWithIndex([searchRoute]);
+        return getTabNavigatorState({name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: searchState});
     }
 
     if (RHP_TO_HOME[route.name]) {
         return {
-            name: SCREENS.HOME,
+            ...getTabNavigatorState({name: SCREENS.HOME}),
             path: normalizePath(ROUTES.HOME),
         };
     }
 
     if (RHP_TO_WORKSPACES_LIST[route.name]) {
-        return {
+        return getTabNavigatorState({
             name: NAVIGATORS.WORKSPACE_NAVIGATOR,
             state: getRoutesWithIndex([
                 {
@@ -133,7 +155,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
                     path: normalizePath(ROUTES.WORKSPACES_LIST.route),
                 },
             ]),
-        };
+        });
     }
 
     if (RHP_TO_WORKSPACE[route.name]) {
@@ -150,24 +172,23 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             },
         );
 
-        return {
+        return getTabNavigatorState({
             name: NAVIGATORS.WORKSPACE_NAVIGATOR,
             state: getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}, workspaceSplitRoute]),
-        };
+        });
     }
 
     if (RHP_TO_SETTINGS[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_SETTINGS[route.name]);
 
-        return getInitialSplitNavigatorState(
-            {
-                name: SCREENS.SETTINGS.ROOT,
-            },
+        const settingsState = getInitialSplitNavigatorState(
+            {name: SCREENS.SETTINGS.ROOT},
             {
                 name: RHP_TO_SETTINGS[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
+        return getTabNavigatorState(settingsState);
     }
 
     if (RHP_TO_DOMAIN[route.name]) {
@@ -184,22 +205,31 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             },
         );
 
-        return {
+        return getTabNavigatorState({
             name: NAVIGATORS.WORKSPACE_NAVIGATOR,
             state: getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}, domainSplitRoute]),
-        };
+        });
     }
 
-    // Handle dynamic routes: find the appropriate full screen route
+    // Fallback: if no specific central screen RELATION matched, check if the RHP screen
+    // maps to a sidebar. This shows the split navigator with just the sidebar (no central screen).
+    if (RHP_TO_SIDEBAR[route.name]) {
+        const splitState = getInitialSplitNavigatorState({
+            name: RHP_TO_SIDEBAR[route.name],
+        });
+        return getTabNavigatorState(splitState);
+    }
+
+    // Handle dynamic routes: find the appropriate full screen route.
+    // Iterate all candidates so that a false-positive first match (e.g. a tag named "gl-code"
+    // colliding with the registered static suffix) does not produce a NOT_FOUND state.
     if (route.path) {
-        const suffixMatch = findMatchingDynamicSuffix(route.path);
-        if (suffixMatch) {
-            // Strip the suffix from the URL. For parametric routes we pass both the actual URL
-            // suffix and the registered pattern so query params can be resolved correctly.
-            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, suffixMatch.actualSuffix, suffixMatch.pattern);
+        const allSuffixMatches = findAllMatchingDynamicSuffixes(route.path);
+        for (const suffixMatch of allSuffixMatches) {
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(suffixMatch.pathUsedForMatching, suffixMatch.actualSuffix, suffixMatch.pattern);
 
             if (!pathWithoutDynamicSuffix) {
-                return undefined;
+                continue;
             }
 
             // Parse the base path (without dynamic suffix) into a navigation state
@@ -208,7 +238,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 
             if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
-                return undefined;
+                continue;
             }
 
             const isLastRouteFullScreen = isFullScreenName(lastRoute.name);
@@ -220,7 +250,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             const focusedRouteUnderDynamicRoute = findFocusedRouteWithOnyxTabGuard(stateUnderDynamicRoute);
 
             if (!focusedRouteUnderDynamicRoute) {
-                return undefined;
+                continue;
             }
 
             // Recursively find the matching full screen route for the focused dynamic route
@@ -235,27 +265,20 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
 // It is the reports split navigator with report. If the reportID is defined in the focused route, we want to use it for the default report.
 // This is separated from getMatchingFullScreenRoute because we want to use it only for the initial state.
 // We don't want to make this route mandatory e.g. after deep linking or opening a specific flow.
-function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
+function getDefaultFullScreenRoute(route?: NavigationRoute) {
     if (route && isRouteWithReportID(route)) {
         const reportID = route.params.reportID;
 
-        // Only allReports should be checked here
+        // Only allReports should be checked here — TODO: Passing undefined in follow-up PRs of https://github.com/Expensify/App/issues/66414
         if (!getReportOrDraftReport(reportID, undefined, undefined, {})) {
-            return {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR};
+            return getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
         }
 
-        return getInitialSplitNavigatorState(
-            {
-                name: SCREENS.INBOX,
-            },
-            {
-                name: SCREENS.REPORT,
-                params: {reportID},
-            },
-        );
+        const reportsState = getInitialSplitNavigatorState({name: SCREENS.INBOX}, {name: SCREENS.REPORT, params: {reportID}});
+        return getTabNavigatorState(reportsState);
     }
 
-    return {name: SCREENS.HOME};
+    return getTabNavigatorState({name: SCREENS.HOME});
 }
 
 function getOnboardingAdaptedState(state: PartialState<NavigationState>): PartialState<NavigationState> {
@@ -275,29 +298,48 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
 }
 
 function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>): GetAdaptedStateReturnType {
-    const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
+    let currentState = state;
+    const fullScreenRoute = currentState.routes.find((route) => isFullScreenName(route.name));
 
-    if (fullScreenRoute?.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
-        const workspacesNavigatorState = fullScreenRoute.state as PartialState<NavigationState> | undefined;
-        const hasWorkspacesList = workspacesNavigatorState?.routes?.some((r) => r.name === SCREENS.WORKSPACES_LIST);
+    if (fullScreenRoute?.name === NAVIGATORS.TAB_NAVIGATOR) {
+        let tabState = fullScreenRoute.state as PartialState<NavigationState> | undefined;
 
-        if (!hasWorkspacesList) {
-            const updatedNestedState = getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}, ...(workspacesNavigatorState?.routes ?? [])]);
-            const updatedFullScreenRoute = {...fullScreenRoute, state: updatedNestedState};
-            const updatedRoutes = state.routes.map((r) => (r.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? updatedFullScreenRoute : r)) as NavigationPartialRoute[];
-            return getRoutesWithIndex(updatedRoutes);
+        // RN's getStateFromPath emits only the tab matched by the path, so the TAB_NAVIGATOR strip may be sparse.
+        // Rebuild the full strip around the active tab — consumers (e.g. REPLACE_FULLSCREEN_UNDER_RHP) expect every tab to be present.
+        // Only the active tab's nested state is carried over; any other tabs in a sparse strip are placeholders without state.
+        if (tabState?.routes && tabState.routes.length < TAB_SCREENS.length) {
+            const activeTabRoute = tabState.routes.at(tabState.index ?? tabState.routes.length - 1);
+            if (activeTabRoute) {
+                tabState = getTabNavigatorState(activeTabRoute as NavigationPartialRoute).state;
+                const normalizedRoutes = currentState.routes.map((r) => (r === fullScreenRoute ? {...r, state: tabState} : r));
+                currentState = {...currentState, routes: normalizedRoutes};
+            }
         }
 
-        return state;
+        // If TAB_NAVIGATOR contains WORKSPACE_NAVIGATOR, ensure WORKSPACES_LIST is in its nested state
+        const wsNavRoute = tabState?.routes?.find((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
+        if (wsNavRoute) {
+            const wsNavState = wsNavRoute.state as PartialState<NavigationState> | undefined;
+            const hasWorkspacesList = wsNavState?.routes?.some((r) => r.name === SCREENS.WORKSPACES_LIST);
+
+            if (!hasWorkspacesList && wsNavState?.routes?.length) {
+                const updatedNestedState = getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}, ...(wsNavState.routes ?? [])]);
+                const updatedWsNavRoute = {...wsNavRoute, state: updatedNestedState};
+                const updatedTabRoutes = (tabState?.routes ?? []).map((r) => (r.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? updatedWsNavRoute : r)) as NavigationPartialRoute[];
+                const updatedTabState = {...tabState, routes: updatedTabRoutes};
+                const updatedFullScreenRoute = {...fullScreenRoute, state: updatedTabState};
+                const updatedRoutes = currentState.routes.map((r) => (r.name === NAVIGATORS.TAB_NAVIGATOR ? updatedFullScreenRoute : r)) as NavigationPartialRoute[];
+                return getRoutesWithIndex(updatedRoutes);
+            }
+        }
     }
 
     // If there is no full screen route in the root, we want to add it.
     if (!fullScreenRoute) {
-        const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
+        const focusedRoute = findFocusedRouteWithOnyxTabGuard(currentState);
 
-        let currentState = state;
         if (focusedRoute?.path && isDynamicRouteScreen(focusedRoute.name as Screen)) {
-            currentState = getDynamicRouteAdaptedState(state, focusedRoute.path) as PartialState<NavigationState<RootNavigatorParamList>>;
+            currentState = getDynamicRouteAdaptedState(currentState, focusedRoute.path) as PartialState<NavigationState<RootNavigatorParamList>>;
 
             // getDynamicRouteAdaptedState may have already resolved the full screen route.
             // In that case, skip the default full screen route injection below - the state is already complete.
@@ -325,13 +367,21 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
                 state: getOnboardingAdaptedState(onboardingNavigator.state),
             };
 
-            return getRoutesWithIndex([{name: SCREENS.HOME}, adaptedOnboardingNavigator]);
+            return getRoutesWithIndex([getTabNavigatorState({name: SCREENS.HOME}), adaptedOnboardingNavigator]);
         }
 
         const isRightModalNavigator = currentState.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
 
         if (isRightModalNavigator) {
-            return getRoutesWithIndex([{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, ...currentState.routes]);
+            return getRoutesWithIndex([getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}), ...currentState.routes]);
+        }
+
+        // Public screens (e.g. ValidateLogin) exist in both PublicScreens and AuthScreens navigators.
+        // Don't prepend TabNavigator because when the user is unauthenticated, PublicScreens is active
+        // and TabNavigator doesn't exist — causing the RESET action to fail.
+        const hasOnlyPublicScreens = currentState.routes.every((route) => PUBLIC_SCREENS.has(route.name));
+        if (hasOnlyPublicScreens) {
+            return currentState;
         }
 
         const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute);
@@ -340,7 +390,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
         return getRoutesWithIndex([defaultFullScreenRoute, ...currentState.routes]);
     }
 
-    return state;
+    return currentState;
 }
 
 /**
@@ -362,6 +412,12 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
 
     // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
     if (normalizedPath === CONST.SIGNIN_ROUTE) {
+        normalizedPath = '/';
+    }
+
+    // `/Home` (capital H) has no route mapping — the config maps SCREENS.HOME to lowercase 'home' — so it would
+    // fall through to NOT_FOUND. Redirect legacy/cached `/Home` paths to the root instead.
+    if (normalizedPath === `/${SCREENS.HOME}`) {
         normalizedPath = '/';
     }
 

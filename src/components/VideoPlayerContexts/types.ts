@@ -1,9 +1,8 @@
+import type CONST from '@src/CONST';
+
 import type {VideoPlayer} from 'expo-video';
 import type {SharedValue} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type CONST from '@src/CONST';
-import type {FullScreenActionsContextType, FullScreenStateContextType} from './FullScreenContextProvider';
 
 type VolumeStateContextType = {
     /**
@@ -31,13 +30,12 @@ type VolumeActionsContextType = {
     toggleMute: () => void;
 };
 
-type VolumeContext = VolumeStateContextType & VolumeActionsContextType;
-
 type VideoPopoverMenuStateContextType = {
-    /**
-     * The items displayed in the video popover menu.
-     */
-    menuItems: PopoverMenuItem[];
+    /** Currently-selected playback speed (drives the radio indicator in the speeds submenu). */
+    currentPlaybackSpeed: PlaybackSpeed;
+
+    /** True when the source is a local URI; the download row is hidden. */
+    isLocalFile: boolean;
 };
 
 type VideoPopoverMenuActionsContextType = {
@@ -58,10 +56,11 @@ type VideoPopoverMenuActionsContextType = {
      * @param source The new source URL.
      */
     updateSource: (source: string) => void;
-};
 
-type FullScreenContext = FullScreenStateContextType & FullScreenActionsContextType;
+    /** Triggers the download flow for the current source. */
+    downloadAttachment: () => void;
+};
 
 type PlaybackSpeed = TupleToUnion<typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS>;
 
-export type {VolumeContext, VolumeStateContextType, VolumeActionsContextType, VideoPopoverMenuStateContextType, VideoPopoverMenuActionsContextType, FullScreenContext, PlaybackSpeed};
+export type {VolumeStateContextType, VolumeActionsContextType, VideoPopoverMenuStateContextType, VideoPopoverMenuActionsContextType, PlaybackSpeed};

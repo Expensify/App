@@ -32,12 +32,6 @@ on:
       build_targets:
         description: JSON array of `is_hybrid` values to build (empty string when nothing to build)
         value: ${{ jobs.verify.outputs.build_targets }}
-      hybrid_app_patches_hash:
-        description: Patches hash for HybridApp
-        value: ${{ jobs.verify.outputs.hybrid_app_patches_hash }}
-      standalone_patches_hash:
-        description: Patches hash for Standalone
-        value: ${{ jobs.verify.outputs.standalone_patches_hash }}
 
     secrets:
       OS_BOTIFY_TOKEN:
@@ -50,8 +44,6 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       build_targets: ${{ steps.getArtifactBuildTargets.outputs.BUILD_TARGETS }}
-      hybrid_app_patches_hash: ${{ steps.getNewPatchesHash.outputs.HYBRID_APP_HASH }}
-      standalone_patches_hash: ${{ steps.getNewPatchesHash.outputs.STANDALONE_APP_HASH }}
     steps:
       - name: Checkout
         # v6
@@ -65,10 +57,8 @@ jobs:
         if: ${{ inputs.ref_after != '' }}
         id: getOldPatchesHash
         run: |
-          HYBRID_HERMES_FLAG=$(./.github/scripts/resolve-hermes-flag.sh "${{ inputs.platform }}" hybrid)
-          STANDALONE_HERMES_FLAG=$(./.github/scripts/resolve-hermes-flag.sh "${{ inputs.platform }}" standalone)
-          echo "HYBRID_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $HYBRID_HERMES_FLAG patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
-          echo "STANDALONE_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $STANDALONE_HERMES_FLAG patches)" >> "$GITHUB_OUTPUT"
+          echo "HYBRID_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+          echo "STANDALONE_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
 
       - name: Get previous react-native version
         if: ${{ inputs.ref_after != '' }}
@@ -85,10 +75,8 @@ jobs:
       - name: Get new patches hash
         id: getNewPatchesHash
         run: |
-          HYBRID_HERMES_FLAG=$(./.github/scripts/resolve-hermes-flag.sh "${{ inputs.platform }}" hybrid)
-          STANDALONE_HERMES_FLAG=$(./.github/scripts/resolve-hermes-flag.sh "${{ inputs.platform }}" standalone)
-          echo "HYBRID_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $HYBRID_HERMES_FLAG patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
-          echo "STANDALONE_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $STANDALONE_HERMES_FLAG patches)" >> "$GITHUB_OUTPUT"
+          echo "HYBRID_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+          echo "STANDALONE_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
 
       - name: Get new react-native version
         if: ${{ inputs.ref_after != '' }}

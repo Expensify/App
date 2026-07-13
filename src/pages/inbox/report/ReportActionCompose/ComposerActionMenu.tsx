@@ -1,29 +1,32 @@
-import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useOnyx from '@hooks/useOnyx';
+
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
+
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {FileObject} from '@src/types/utils/Attachment';
+
+import React from 'react';
+
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
-import {useComposerActions, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
+import useAttachmentPicker from './useAttachmentPicker';
 
-type ComposerActionMenuProps = {
-    reportID: string;
-    onAttachmentPicked: (files: FileObject | FileObject[]) => void;
-};
-
-function ComposerActionMenu({reportID, onAttachmentPicked}: ComposerActionMenuProps) {
+function ComposerActionMenu() {
+    const {reportID} = useComposerState();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isMenuVisible, isFullComposerAvailable} = useComposerState();
+    const {draftComment} = useComposerEditState();
     const {exceededMaxLength} = useComposerSendState();
-    const {setMenuVisibility, focus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker} = useComposerActions();
-    const {actionButtonRef} = useComposerMeta();
+    const {setMenuVisibility, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker} = useComposerActions();
+    const {actionButtonRef, composerRef} = useComposerMeta();
+    const {pickAttachments, PDFValidationComponent, ErrorModal} = useAttachmentPicker(reportID);
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
-    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
 
     const {raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
@@ -38,30 +41,35 @@ function ComposerActionMenu({reportID, onAttachmentPicked}: ComposerActionMenuPr
     const shouldFocusComposerOnScreenFocus = canFocusInputOnScreenFocus() || !!draftComment;
 
     return (
-        <AttachmentPickerWithMenuItems
-            onAttachmentPicked={onAttachmentPicked}
-            reportID={reportID}
-            report={report}
-            currentUserPersonalDetails={currentUserPersonalDetails}
-            reportParticipantIDs={reportParticipantIDs}
-            isFullComposerAvailable={isFullComposerAvailable}
-            isComposerFullSize={isComposerFullSize}
-            disabled={isBlockedFromConcierge}
-            setMenuVisibility={setMenuVisibility}
-            isMenuVisible={isMenuVisible}
-            onTriggerAttachmentPicker={onTriggerAttachmentPicker}
-            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
-            onAddActionPressed={onAddActionPressed}
-            onItemSelected={onItemSelected}
-            onCanceledAttachmentPicker={() => {
-                if (!shouldFocusComposerOnScreenFocus) {
-                    return;
-                }
-                focus();
-            }}
-            actionButtonRef={actionButtonRef}
-            shouldDisableAttachmentItem={!!exceededMaxLength}
-        />
+        <>
+            <AttachmentPickerWithMenuItems
+                testID={CONST.COMPOSER.TEST_ID.DRAFT_MESSAGE_ACTION_ROW}
+                onAttachmentPicked={(files) => pickAttachments({files})}
+                reportID={reportID}
+                report={report}
+                currentUserPersonalDetails={currentUserPersonalDetails}
+                reportParticipantIDs={reportParticipantIDs}
+                isFullComposerAvailable={isFullComposerAvailable}
+                isComposerFullSize={isComposerFullSize}
+                disabled={isBlockedFromConcierge}
+                setMenuVisibility={setMenuVisibility}
+                isMenuVisible={isMenuVisible}
+                onTriggerAttachmentPicker={onTriggerAttachmentPicker}
+                raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
+                onAddActionPressed={onAddActionPressed}
+                onItemSelected={onItemSelected}
+                onCanceledAttachmentPicker={() => {
+                    if (!shouldFocusComposerOnScreenFocus) {
+                        return;
+                    }
+                    composerRef.current?.focus(true);
+                }}
+                actionButtonRef={actionButtonRef}
+                shouldDisableAttachmentItem={!!exceededMaxLength}
+            />
+            {PDFValidationComponent}
+            {ErrorModal}
+        </>
     );
 }
 

@@ -1,4 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
+import {setWasmUrl} from '@lottiefiles/dotlottie-react';
 import * as Sentry from '@sentry/react-native';
 import {maybeCompleteAuthSession} from 'expo-web-browser';
 import React from 'react';
@@ -6,6 +7,7 @@ import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+
 import '../wdyr';
 import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
@@ -31,10 +33,10 @@ import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
 import SidePanelContextProvider from './components/SidePanel/SidePanelContextProvider';
 import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
-import {EditingCellProvider} from './components/Table/EditableCell';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesContextProvider';
+import {EditingCellProvider} from './components/TransactionItemRow/EditableCell';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
@@ -44,6 +46,7 @@ import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
+import {ConciergeSessionProvider} from './pages/inbox/ConciergeSessionContext';
 import './setup/backgroundLocationTrackingTask';
 import './setup/backgroundTask';
 import './setup/fraudProtection';
@@ -52,6 +55,10 @@ import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
 // This is needed to close pop-up window during logout for users logged in via SSO
 maybeCompleteAuthSession();
+
+// On web, dotlottie-web fetches its WASM binary from a third-party CDN (jsdelivr/unpkg) at runtime,
+// which is blocked by our Content Security Policy. Point it at the Expensify CDN proxy instead.
+setWasmUrl(CONST.DOTLOTTIE_WASM_URL);
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -103,6 +110,7 @@ function App() {
                                         SafeArea,
                                         PopoverContextProvider,
                                         CurrentReportIDContextProvider,
+                                        ConciergeSessionProvider,
                                         ScrollOffsetContextProvider,
                                         PickerStateProvider,
                                         EnvironmentProvider,

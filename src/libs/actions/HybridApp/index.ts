@@ -1,12 +1,17 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLockedToNewApp, shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
+
 import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
+
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session, TryNewDot} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import Onyx from 'react-native-onyx';
+
 import type HybridAppSettings from './types';
 
 let currentTryNewDot: OnyxEntry<TryNewDot>;
@@ -59,7 +64,13 @@ Onyx.connectWithoutView({
             return;
         }
 
+        const isInitialSessionLoad = currentSessionAccountID === undefined;
         currentSessionAccountID = nextSessionAccountID;
+
+        if (isInitialSessionLoad) {
+            return;
+        }
+
         currentTryNewDot = undefined;
         hasReceivedTryNewDotUpdate = false;
         isLoadingTryNewDot = nextSessionAccountID !== undefined || isLoadingApp !== false;
@@ -131,14 +142,6 @@ function setUseNewDotSignInPage(useNewDotSignInPage: boolean) {
     return Onyx.merge(ONYXKEYS.HYBRID_APP, {useNewDotSignInPage});
 }
 
-function setClosingReactNativeApp(closingReactNativeApp: boolean) {
-    // This value is only relevant for HybridApp, so we can skip it in other environments.
-    if (!CONFIG.IS_HYBRID_APP) {
-        return;
-    }
-    Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp});
-}
-
 /*
  * Starts HybridApp sign-in flow from the beginning.
  */
@@ -154,4 +157,4 @@ function resetSignInFlow() {
     });
 }
 
-export {getHybridAppSettings, setReadyToShowAuthScreens, resetSignInFlow, setUseNewDotSignInPage, setClosingReactNativeApp, closeReactNativeApp};
+export {getHybridAppSettings, setReadyToShowAuthScreens, resetSignInFlow, setUseNewDotSignInPage, closeReactNativeApp};

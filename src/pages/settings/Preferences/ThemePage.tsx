@@ -1,21 +1,28 @@
-import React, {useRef} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {getBaseTheme, getContrastTheme, isHighContrastTheme} from '@styles/theme/utils';
+
 import {updateTheme as updateThemeUserAction} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
 
 type ThemeEntry = ListItem & {
     value: ValueOf<typeof CONST.THEME>;
@@ -67,7 +74,7 @@ function ThemePage() {
             <View style={styles.flex1}>
                 <SelectionList
                     data={localesToThemes}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={updateTheme}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}

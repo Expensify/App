@@ -1,16 +1,22 @@
-import React, {useMemo, useRef} from 'react';
-import type {TextInput as RNTextInput} from 'react-native';
-import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
-import type {EditableProps} from '@components/Table/EditableCell/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {EditableCell, useInlineEditState} from '@components/TransactionItemRow/EditableCell';
+import type {EditableProps} from '@components/TransactionItemRow/EditableCell/types';
+
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
+
+import type {TextInput as RNTextInput} from 'react-native';
+
+import React, {useMemo, useRef} from 'react';
 
 type MerchantOrDescriptionCellProps = {
     merchantOrDescription: string;
@@ -21,6 +27,7 @@ type MerchantOrDescriptionCellProps = {
 
 function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, shouldUseNarrowLayout, isDescription, canEdit, onSave}: MerchantOrDescriptionCellProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const inputRef = useRef<RNTextInput | null>(null);
 
     const text = useMemo(() => {
@@ -30,14 +37,22 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
         return StringUtils.lineBreaksToSpaces(Parser.htmlToText(merchantOrDescription));
     }, [merchantOrDescription, isDescription]);
 
-    const {isEditing, localValue, setLocalValue, startEditing, save, cancelEditing} = useInlineEditState(canEdit, text, onSave);
+    // Normalize merchant values for save/equality checks (descriptions can keep whitespace)
+    const getNormalizedValue = (value: string) => (isDescription ? value : value.trim());
+
+    const {isEditing, localValue, setLocalValue, startEditing, save, cancelEditing} = useInlineEditState(
+        canEdit,
+        text,
+        onSave ? (value) => onSave(getNormalizedValue(value)) : undefined,
+        (value, originalValue) => getNormalizedValue(value) === getNormalizedValue(originalValue),
+    );
 
     const isMultilineInput = isDescription;
 
     const handleChangeText = (value: string) => {
         // Sanitize line breaks on change for single line inputs.
         if (!isMultilineInput) {
-            setLocalValue(StringUtils.removeLineBreaks(value));
+            setLocalValue(StringUtils.lineBreaksToSpaces(value));
             return;
         }
         setLocalValue(value);
@@ -75,7 +90,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
             editContent={
                 <TextInput
                     ref={handleRef}
-                    accessibilityLabel={isDescription ? 'Description input' : 'Merchant input'}
+                    accessibilityLabel={translate(isDescription ? 'common.description' : 'common.merchant')}
                     value={localValue}
                     onChangeText={handleChangeText}
                     onBlur={save}

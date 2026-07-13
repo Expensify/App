@@ -1,4 +1,6 @@
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {computeSplitSaveErrorMessage, computeSplitWarningMessage} from '@libs/SplitExpenseUtils';
+
 import CONST from '@src/CONST';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 
@@ -27,6 +29,7 @@ describe('computeSplitWarningMessage', () => {
             transactionDetailsAmount: 1000,
             currency,
             translate: translate as never,
+            convertToDisplayString,
         });
         expect(result).toContain(LESS);
     });
@@ -38,6 +41,7 @@ describe('computeSplitWarningMessage', () => {
                 transactionDetailsAmount: 0,
                 currency,
                 translate: translate as never,
+                convertToDisplayString,
             }),
         ).toBe('');
     });
@@ -49,6 +53,7 @@ describe('computeSplitWarningMessage', () => {
                 transactionDetailsAmount: 1000,
                 currency,
                 translate: translate as never,
+                convertToDisplayString,
             }),
         ).toBe('');
     });
@@ -59,6 +64,7 @@ describe('computeSplitWarningMessage', () => {
             transactionDetailsAmount: 1000,
             currency,
             translate: translate as never,
+            convertToDisplayString,
         });
         expect(result).toContain(GREATER);
     });
@@ -69,6 +75,7 @@ describe('computeSplitWarningMessage', () => {
             transactionDetailsAmount: 1000,
             currency,
             translate: translate as never,
+            convertToDisplayString,
         });
         expect(result).toContain(LESS);
     });
@@ -80,6 +87,7 @@ describe('computeSplitWarningMessage', () => {
             transactionDetailsAmount: 1000,
             currency,
             translate: translate as never,
+            convertToDisplayString,
         });
         expect(result).toContain(GREATER);
     });
@@ -91,6 +99,7 @@ describe('computeSplitWarningMessage', () => {
             transactionDetailsAmount: 1000,
             currency,
             translate: translate as never,
+            convertToDisplayString,
         });
         // sum (800) < total (1000) → Less
         expect(result).toContain(LESS);
@@ -103,6 +112,7 @@ describe('computeSplitWarningMessage', () => {
             transactionDetailsAmount: 1000,
             currency,
             translate: translate as never,
+            convertToDisplayString,
         });
         // invalidSplit && sum !== total is false → falls to else branches, sum === total → no warning
         expect(result).toBe('');
@@ -116,6 +126,7 @@ describe('computeSplitWarningMessage', () => {
                 transactionDetailsAmount: 1000,
                 currency,
                 translate: translate as never,
+                convertToDisplayString,
             });
             expect(result).toContain(LESS);
         });
@@ -127,6 +138,7 @@ describe('computeSplitWarningMessage', () => {
                 transactionDetailsAmount: 500,
                 currency,
                 translate: translate as never,
+                convertToDisplayString,
             });
             expect(result).toContain(GREATER);
         });
@@ -138,6 +150,7 @@ describe('computeSplitWarningMessage', () => {
                 transactionDetailsAmount: 1000,
                 currency,
                 translate: translate as never,
+                convertToDisplayString,
             });
             expect(result).toBe('');
         });
@@ -151,6 +164,7 @@ describe('computeSplitWarningMessage', () => {
                 transactionDetailsAmount: -1000,
                 currency,
                 translate: translate as never,
+                convertToDisplayString,
             });
             expect(result).toContain(LESS);
         });
@@ -162,6 +176,7 @@ describe('computeSplitWarningMessage', () => {
                 transactionDetailsAmount: -1000,
                 currency,
                 translate: translate as never,
+                convertToDisplayString,
             });
             expect(result).toContain(GREATER);
         });
@@ -172,6 +187,7 @@ describe('computeSplitWarningMessage', () => {
                 transactionDetailsAmount: -1000,
                 currency,
                 translate: translate as never,
+                convertToDisplayString,
             });
             expect(result).toBe('');
         });
@@ -187,6 +203,7 @@ describe('computeSplitSaveErrorMessage', () => {
         isPerDiem: false,
         isCard: false,
         translate: translate as never,
+        convertToDisplayString,
     };
 
     it('returns empty string when splits are valid and sum equals total', () => {

@@ -1,15 +1,22 @@
-import React, {useEffect, useRef} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {addPersonalBankAccount} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect, useRef} from 'react';
+
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
 import LegalName from './substeps/LegalNameStep';
@@ -72,7 +79,6 @@ function PersonalInfoPage() {
         moveTo,
         screenIndex,
         goToTheLastStep,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
     } = useSubStep({
         bodyContent: isManual ? bodyContentWithManualSetup : bodyContentWithPlaid,
         skipSteps,

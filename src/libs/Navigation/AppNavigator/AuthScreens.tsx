@@ -1,8 +1,4 @@
-import type {RouteProp} from '@react-navigation/native';
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {useEffect} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
-import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigateExpensifyClassicModal';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import GPSInProgressModal from '@components/GPSInProgressModal';
@@ -10,11 +6,11 @@ import GPSTripStateChecker from '@components/GPSTripStateChecker';
 import {KeyboardDismissibleFlatListContextProvider} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
+import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
-import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
 import {ProductTrainingContextProvider} from '@components/ProductTrainingContext';
-import {SearchContextProvider} from '@components/Search/SearchContext';
+import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import {SearchRouterContextProvider} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModal from '@components/SupportalPermissionDeniedModal';
@@ -23,11 +19,13 @@ import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackC
 import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from '@components/VideoPlayerContexts/VolumeContext';
 import WideRHPContextProvider from '@components/WideRHPContextProvider';
+
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -35,18 +33,26 @@ import NavBarManager from '@libs/NavBarManager';
 import Navigation from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
+
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import RequireTwoFactorAuthenticationOverlay from '@pages/RequireTwoFactorAuthenticationOverlay';
-import ExpensifyCardContextProvider from '@pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
 import TravelCVVContextProvider from '@pages/settings/Wallet/TravelCVVPage/TravelCVVContextProvider';
+
 import * as Modal from '@userActions/Modal';
+
 import CONST from '@src/CONST';
-import '@src/libs/subscribeToFullReconnect';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import '@src/libs/subscribeToFullReconnect';
+
+import type {RouteProp} from '@react-navigation/native';
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
+
+import React, {useEffect} from 'react';
+
 import attachmentModalScreenOptions from './attachmentModalScreenOptions';
 import AuthScreensInitHandler from './AuthScreensInitHandler';
 import createRootStackNavigator from './createRootStackNavigator';
@@ -56,11 +62,11 @@ import DelegatorConnectGuard from './DelegatorConnectGate';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import KeyboardShortcutsHandler from './KeyboardShortcutsHandler';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
-import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
+import AIFeaturesPromoModalNavigator from './Navigators/AIFeaturesPromoModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
+import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAuthenticationModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
-import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import ThreeDSAuthHandler from './ThreeDSAuthHandler';
@@ -68,20 +74,17 @@ import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 import UserStatusHandler from './UserStatusHandler';
 
+const loadTabNavigator = () => require<ReactComponentModule>('./Navigators/TabNavigator').default;
+
 const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../pages/media/AttachmentModalScreen').default;
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../../pages/LogOutPreviousUserPage').default;
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
-const loadHomePage = () => require<ReactComponentModule>('../../../pages/home/HomePage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
 const loadSearchRouterPage = () => require<ReactComponentModule>('../../../components/Search/SearchRouter/SearchRouterPage').default;
-const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
-const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
-const loadWorkspaceNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceNavigator').default;
-const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
 const loadRightModalNavigator = () => require<ReactComponentModule>('./Navigators/RightModalNavigator').default;
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
@@ -137,21 +140,20 @@ function AuthScreens() {
         };
     }, [theme]);
 
-    // Animation is enabled when navigating to any screen different than split sidebar screen
-    const getFullscreenNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
-        // We don't need to do anything special for the wide screen.
+    // Dynamic options for TAB_NAVIGATOR: supports entering animation for pushed instances
+    const getTabNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
         if (!shouldUseNarrowLayout) {
-            return rootNavigatorScreenOptions.splitNavigator;
+            return rootNavigatorScreenOptions.fullScreenTabPage;
         }
 
-        // On the narrow screen, we want to animate this navigator if pushed SplitNavigator includes desired screen
         const animationEnabled = screensWithEnteringAnimation.has(route.key);
         return {
-            ...rootNavigatorScreenOptions.splitNavigator,
+            ...rootNavigatorScreenOptions.fullScreenTabPage,
             animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            gestureEnabled: animationEnabled,
             web: {
-                ...rootNavigatorScreenOptions.splitNavigator.web,
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
+                ...rootNavigatorScreenOptions.fullScreenTabPage.web,
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: animationEnabled ? {kind: 'slide-from-width'} : {kind: 'none'}}),
             },
         };
     };
@@ -172,56 +174,25 @@ function AuthScreens() {
                         FullScreenContextProvider,
                         SearchRouterContextProvider,
                         ProductTrainingContextProvider,
-                        ExpensifyCardContextProvider,
                         TravelCVVContextProvider,
                         KYCWallContextProvider,
                         WideRHPContextProvider,
                         KeyboardDismissibleFlatListContextProvider,
                         CurrencyListContextProvider,
-                        OptionsListContextProvider,
                         SidebarOrderedReportsContextProvider,
                         SearchContextProvider,
                         LockedAccountModalProvider,
                         DelegateNoAccessModalProvider,
+                        MultifactorAuthenticationContextProviders,
                     ]}
                 >
                     <KeyboardShortcutsHandler />
-                    <RootStack.Navigator
-                        persistentScreens={[
-                            NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-                            NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
-                            NAVIGATORS.WORKSPACE_NAVIGATOR,
-                            NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-                            NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
-                            SCREENS.HOME,
-                            SCREENS.SEARCH.ROOT,
-                        ]}
-                    >
-                        {/* SCREENS.HOME has to be the first navigator in auth screens. */}
+                    <RootStack.Navigator persistentScreens={[NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR]}>
+                        {/* TAB_NAVIGATOR (containing Home and Workspaces) has to be the first navigator in auth screens. */}
                         <RootStack.Screen
-                            name={SCREENS.HOME}
-                            options={rootNavigatorScreenOptions.fullScreenTabPage}
-                            getComponent={loadHomePage}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                            options={getFullscreenNavigatorOptions}
-                            getComponent={loadReportSplitNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                            options={getFullscreenNavigatorOptions}
-                            getComponent={loadSettingsSplitNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                            options={getFullscreenNavigatorOptions}
-                            getComponent={loadSearchNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                            options={getFullscreenNavigatorOptions}
-                            getComponent={loadWorkspaceNavigator}
+                            name={NAVIGATORS.TAB_NAVIGATOR}
+                            options={getTabNavigatorOptions}
+                            getComponent={loadTabNavigator}
                         />
                         <RootStack.Screen
                             name={SCREENS.VALIDATE_LOGIN}
@@ -272,13 +243,19 @@ function AuthScreens() {
                             listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
-                            name={SCREENS.PROFILE_AVATAR}
+                            name={SCREENS.DYNAMIC_PROFILE_AVATAR}
                             options={attachmentModalScreenOptions}
                             getComponent={loadAttachmentModalScreen}
                             listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
                             name={SCREENS.WORKSPACE_AVATAR}
+                            options={attachmentModalScreenOptions}
+                            getComponent={loadAttachmentModalScreen}
+                            listeners={modalScreenListeners}
+                        />
+                        <RootStack.Screen
+                            name={SCREENS.WORKSPACE_DOCUMENT}
                             options={attachmentModalScreenOptions}
                             getComponent={loadAttachmentModalScreen}
                             listeners={modalScreenListeners}
@@ -329,19 +306,14 @@ function AuthScreens() {
                             listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
-                            name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
-                            component={ExplanationModalNavigator}
-                        />
-                        <RootStack.Screen
                             name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={MigratedUserWelcomeModalNavigator}
                         />
                         <RootStack.Screen
-                            name={NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
-                            component={TestDriveModalNavigator}
+                            name={NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
+                            component={AIFeaturesPromoModalNavigator}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR}
@@ -350,7 +322,7 @@ function AuthScreens() {
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={FeatureTrainingModalNavigator}
                             listeners={modalScreenListeners}
                         />
@@ -406,12 +378,12 @@ function AuthScreens() {
                         />
                     </RootStack.Navigator>
                     <RequireTwoFactorAuthenticationOverlay />
+                    <MultifactorAuthenticationModalNavigator />
                     <SearchRouterModal />
                     <GPSTripStateChecker />
                     <GPSInProgressModal />
                     <OpenAppFailureModal />
                     <PriorityModeController />
-                    <OpenConfirmNavigateExpensifyClassicModal />
                 </ComposeProviders>
             </DelegatorConnectGuard>
         </>

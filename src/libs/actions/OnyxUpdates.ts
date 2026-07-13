@@ -1,15 +1,19 @@
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {Merge} from 'type-fest';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {Merge} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import {queueOnyxUpdates} from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
@@ -157,17 +161,36 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
 
         return Promise.resolve(response);
     }
-    if (lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
+    const previousLastUpdateIDAppliedToClient = lastUpdateIDAppliedToClient;
+    const didAdvanceLastUpdateID = !!lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient);
+    if (didAdvanceLastUpdateID) {
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
     }
+
+    // The watermark is advanced before the updates are applied, so if applying fails the updates are silently lost
+    // and the client goes stale. Surface that case in Sentry.
+    const logApplyFailureIfNeeded = <T>(promise: Promise<T>): Promise<T> =>
+        promise.catch((error) => {
+            if (didAdvanceLastUpdateID) {
+                Log.alert('[OnyxUpdateManagerError] lastUpdateID was advanced but applying the updates failed, the updates may be lost', {
+                    type,
+                    command: request?.command,
+                    lastUpdateID,
+                    previousLastUpdateIDAppliedToClient,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            }
+            throw error;
+        });
+
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
-        return applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID));
+        return logApplyFailureIfNeeded(applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID)));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
-        return applyPusherOnyxUpdates(updates, Number(lastUpdateID));
+        return logApplyFailureIfNeeded(applyPusherOnyxUpdates(updates, Number(lastUpdateID)));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.AIRSHIP && updates) {
-        return applyAirshipOnyxUpdates(updates, Number(lastUpdateID));
+        return logApplyFailureIfNeeded(applyAirshipOnyxUpdates(updates, Number(lastUpdateID)));
     }
 }
 
@@ -184,7 +207,7 @@ function saveUpdateInformation<TKey extends OnyxKey>(updateParams: OnyxUpdatesFr
         modifiedUpdateParams = {...modifiedUpdateParams, request: {...updateParams.request, data: {apiRequestType: updateParams.request?.data?.apiRequestType}}};
     }
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams as AnyOnyxUpdatesFromServer);
 }
 
@@ -220,6 +243,5 @@ function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesC
     return false;
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export {apply, doesClientNeedToBeUpdated, saveUpdateInformation, applyHTTPSOnyxUpdates as INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates};
 export type {DoesClientNeedToBeUpdatedParams as ManualOnyxUpdateCheckIds};

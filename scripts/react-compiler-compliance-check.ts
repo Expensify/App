@@ -10,14 +10,15 @@
  *       2. Modified files must not regress (compiled on main -> must compile on PR)
  */
 import {transformSync} from '@babel/core';
+import CLI from 'expensify-common/CLI';
 import fs from 'fs';
 import path from 'path';
-import CLI from './utils/CLI';
+
 import FileUtils from './utils/FileUtils';
 import Git from './utils/Git';
 import {error as logError, errorDetail as logErrorDetail, info as logInfo, success as logSuccess, warn as logWarn} from './utils/Logger';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const ReactCompilerConfig = require('../config/babel/reactCompilerConfig');
 
 type SourceLocation = {
@@ -194,7 +195,11 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
 
     logInfo(`Checking ${reactFiles.length} changed React files...`);
 
-    const failures: Array<{file: string; reason: string; errors: CompilerError[]}> = [];
+    const failures: Array<{
+        file: string;
+        reason: string;
+        errors: CompilerError[];
+    }> = [];
 
     for (const {filename, status, previousFilename} of reactFiles) {
         const absolutePath = path.resolve(filename);
@@ -207,7 +212,11 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
 
         if (status === 'added') {
             if (result.status === 'failed') {
-                failures.push({file: filename, reason: 'New file contains components/hooks that fail to compile with React Compiler', errors: result.errors});
+                failures.push({
+                    file: filename,
+                    reason: 'New file contains components/hooks that fail to compile with React Compiler',
+                    errors: result.errors,
+                });
                 logError(`FAILED   ${filename} (new file must compile)`);
                 printErrors(filename, result.errors);
             } else if (verbose) {
@@ -229,7 +238,11 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
             }
 
             if (mainStatus === 'compiled') {
-                failures.push({file: filename, reason: 'File compiled on main but fails to compile on this branch (regression)', errors: result.errors});
+                failures.push({
+                    file: filename,
+                    reason: 'File compiled on main but fails to compile on this branch (regression)',
+                    errors: result.errors,
+                });
                 logError(`FAILED  ${filename} (regression: compiled on main)`);
                 printErrors(filename, result.errors);
             } else if (verbose) {

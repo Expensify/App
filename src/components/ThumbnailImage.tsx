@@ -1,21 +1,28 @@
-import React, {useState} from 'react';
-import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {Dimensions} from '@src/types/utils/Layout';
-import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
+
+import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
-import Icon from './Icon';
 import type {ImageObjectPosition} from './Image/types';
+
+import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
+import Icon from './Icon';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
 // Cache for the dimensions of the thumbnails to avoid flickering incorrect size when the
@@ -83,6 +90,9 @@ type ThumbnailImageProps = {
 
     /** Reason attributes for skeleton span telemetry */
     reasonAttributes?: SkeletonSpanReasonAttributes;
+
+    /** Low-resolution URI shown as a placeholder while the full image loads */
+    previewUri?: string;
 };
 
 function ThumbnailImage({
@@ -106,6 +116,7 @@ function ThumbnailImage({
     onLoad,
     resizeMode,
     reasonAttributes,
+    previewUri,
 }: ThumbnailImageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Gallery', 'OfflineCloud']);
     const styles = useThemeStyles();
@@ -172,6 +183,7 @@ function ThumbnailImage({
                     onLoad={onLoad}
                     resizeMode={resizeMode}
                     reasonAttributes={reasonAttributes}
+                    previewUri={previewUri}
                 />
             </View>
         </View>
