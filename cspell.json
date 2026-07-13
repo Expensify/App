@@ -1029,6 +1029,7 @@
         "writeitdown",
         "xcconfig",
         "xcframework",
+        "xcframeworks",
         "xcodeproj",
         "xcpretty",
         "xcprivacy",
