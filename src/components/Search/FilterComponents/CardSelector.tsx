@@ -1,11 +1,10 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {TextInputOptions} from '@components/SelectionList/types';
+
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -14,20 +13,24 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import {buildCardsData} from '@libs/CardFeedUtils';
 import type {CardFilterItem} from '@libs/CardFeedUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import ListFilterView from './ListFilterViewWrapper';
 
-type CardSelectorProps = SearchFilterSelectionListProps & {
-    value: string[] | undefined;
-    onChange: (cards: string[]) => void;
-};
+type CardSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 function CardSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CardSelectorProps) {
     const theme = useTheme();

@@ -1,14 +1,12 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {
     updateNetSuiteAutoCreateEntities,
     updateNetSuiteCustomFormIDOptionsEnabled,
@@ -30,6 +28,7 @@ import {
     settingsPendingAction,
 } from '@libs/PolicyUtils';
 import {getIsTravelInvoicingEnabled} from '@libs/TravelInvoicingUtils';
+
 import type {ExtendedMenuItemWithSubscribedSettings, MenuItemToRender} from '@pages/workspace/accounting/netsuite/types';
 import {
     shouldHideCustomFormIDOptions,
@@ -42,16 +41,22 @@ import RECONCILIATION_ACCOUNT_SETTINGS_TYPE from '@pages/workspace/accounting/re
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+
 function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;

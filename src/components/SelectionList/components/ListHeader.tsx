@@ -1,14 +1,18 @@
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {DataDetailsType, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ListHeaderProps<TItem extends ListItem> = {
     /** Data details containing selection state and items info */
@@ -81,6 +85,8 @@ function ListHeader<TItem extends ListItem>({
         />
     );
 
+    const isCheckboxOnRight = selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT;
+
     const label = !customListHeader && (
         <PressableWithFeedback
             style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
@@ -93,11 +99,9 @@ function ListHeader<TItem extends ListItem>({
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             onMouseDown={handleMouseDown}
         >
-            <Text style={[styles.textStrong, styles.ph3, selectAllTextStyle]}>{translate('workspace.people.selectAll')}</Text>
+            <Text style={[styles.textStrong, isCheckboxOnRight ? styles.pr3 : styles.ph3, selectAllTextStyle]}>{translate('workspace.people.selectAll')}</Text>
         </PressableWithFeedback>
     );
-
-    const isCheckboxOnRight = selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT;
 
     return (
         <View

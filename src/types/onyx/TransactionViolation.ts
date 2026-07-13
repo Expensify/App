@@ -1,7 +1,8 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {ValueOf} from 'type-fest';
 
 /**
  * Names of violations.
@@ -31,6 +32,12 @@ type TransactionViolationData = {
 
     /** Limit that the transaction violated */
     formattedLimit?: string;
+
+    /** Currency of the transaction */
+    currency?: string;
+
+    /** Limit amount that the transaction violated */
+    amount?: number;
 
     /** Percentage amount of conversion surcharge applied to the transaction */
     surcharge?: number;
@@ -109,6 +116,12 @@ type TransactionViolationData = {
 
     /** List of fields that failed to scan (e.g., ["merchant", "date", "amount"]) */
     missingFields?: string[];
+
+    /** Start date of the rate's valid range (for customUnitRateOutOfDateRange) */
+    startDate?: string;
+
+    /** End date of the rate's valid range (for customUnitRateOutOfDateRange) */
+    endDate?: string;
 };
 
 /** Model of a transaction violation */

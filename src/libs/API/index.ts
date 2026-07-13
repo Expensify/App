@@ -1,7 +1,4 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxKey} from 'react-native-onyx';
-import type {SetRequired} from 'type-fest';
-import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
+import {readUpdateIDFrom, resolveDuplicationConflictAction, resolveEnableFeatureConflicts, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
 import {FailureTracking, handleDeletedAccount, HandleUnusedOptimisticID, LoadTest, Logging, Pagination, Reauthentication, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
@@ -12,12 +9,21 @@ import {getIsOffline} from '@libs/NetworkState';
 import Pusher from '@libs/Pusher';
 import {addMiddleware, processWithMiddleware} from '@libs/Request';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
-import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
+
+import {getAll, getOngoingRequest, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
+
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest, OnyxData, PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+import type {SetRequired} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
+
 import {READ_COMMANDS} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
@@ -114,7 +120,7 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
         command,
         data,
         initiatedOffline: getIsOffline(),
-        requestID: requestIndex++,
+        requestIndex: requestIndex++,
         ...onyxDataWithoutOptimisticData,
         successData,
         failureData,
@@ -191,6 +197,24 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand, TKey
 ): Promise<void | Response<TKey>> {
     const conflictResolver = {
         checkAndFixConflictingRequest: (persistedRequests: AnyRequest[]) => resolveDuplicationConflictAction(persistedRequests, requestMatcher),
+    };
+
+    return write(command, apiCommandParameters, onyxData, conflictResolver);
+}
+
+/**
+ * Writes a ReconnectApp through the coverage-based reconnect resolver. See the Conflict Resolution section
+ * of contributingGuides/SEQUENTIAL_QUEUE.md. getOngoingRequest() is read inside the closure so both
+ * evaluation passes see the same in-flight request.
+ */
+function writeWithNoDuplicatesReconnectConflictAction<TCommand extends WriteCommand, TKey extends OnyxKey>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData: OnyxData<TKey> = {},
+): Promise<void | Response<TKey>> {
+    const incomingRequest: AnyRequest = {command, data: {updateIDFrom: readUpdateIDFrom(apiCommandParameters)}};
+    const conflictResolver = {
+        checkAndFixConflictingRequest: (persistedRequests: AnyRequest[]) => resolveReconnectDuplicationConflictAction(persistedRequests, getOngoingRequest(), incomingRequest),
     };
 
     return write(command, apiCommandParameters, onyxData, conflictResolver);
@@ -316,4 +340,13 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
     }
 }
 
-export {write, makeRequestWithSideEffects, read, paginate, writeWithNoDuplicatesConflictAction, writeWithNoDuplicatesEnableFeatureConflicts, waitForWrites};
+export {
+    write,
+    makeRequestWithSideEffects,
+    read,
+    paginate,
+    writeWithNoDuplicatesConflictAction,
+    writeWithNoDuplicatesReconnectConflictAction,
+    writeWithNoDuplicatesEnableFeatureConflicts,
+    waitForWrites,
+};

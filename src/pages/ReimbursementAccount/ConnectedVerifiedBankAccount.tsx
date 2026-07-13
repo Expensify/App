@@ -1,5 +1,3 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -10,14 +8,21 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
+
 import {requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
+
 import type {ReimbursementAccount} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type ConnectedVerifiedBankAccountProps = {
     /** Bank account currently in setup */
@@ -27,10 +32,10 @@ type ConnectedVerifiedBankAccountProps = {
     onBackButtonPress: () => void;
 
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
-    setShouldShowConnectedVerifiedBankAccount: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
+    setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
 
     /** Method to set the state of USD bank account step */
-    setUSDBankAccountStep: (step: string | null) => void;
+    setUSDBankAccountStep?: (step: string | null) => void;
 
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
@@ -55,9 +60,15 @@ function ConnectedVerifiedBankAccount({
     const bankAccountOwnerName = reimbursementAccount?.achData?.addressName;
     const errors = reimbursementAccount?.errors ?? {};
     const pendingAction = reimbursementAccount?.pendingAction;
-    const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const {asset: ThumbsUpStars} = useMemoizedLazyAsset(() => loadIllustration('ThumbsUpStars' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
+
+    useResetBankAccountModal({
+        reimbursementAccount,
+        isNonUSDWorkspace,
+        setShouldShowConnectedVerifiedBankAccount,
+        setUSDBankAccountStep,
+    });
 
     return (
         <ScreenWrapper
@@ -104,14 +115,6 @@ function ConnectedVerifiedBankAccount({
                     </OfflineWithFeedback>
                 </Section>
             </ScrollView>
-            {shouldShowResetModal && (
-                <WorkspaceResetBankAccountModal
-                    reimbursementAccount={reimbursementAccount}
-                    isNonUSDWorkspace={isNonUSDWorkspace}
-                    setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
-                    setUSDBankAccountStep={setUSDBankAccountStep}
-                />
-            )}
         </ScreenWrapper>
     );
 }

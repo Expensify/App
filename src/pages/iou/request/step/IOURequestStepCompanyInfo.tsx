@@ -1,10 +1,9 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -12,22 +11,32 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import {startTracking} from '@libs/telemetry/submitFollowUpAction';
+import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import {extractUrlDomain} from '@libs/Url';
 import {getFieldRequiredErrors, isPublicDomain, isValidWebsite} from '@libs/ValidationUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {getIOURequestPolicyID} from '@userActions/IOU/MoneyRequest';
 import {sendInvoice} from '@userActions/IOU/SendInvoice';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestCompanyInfoForm';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useMemo} from 'react';
+
+import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 type IOURequestStepCompanyInfoProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO>;
@@ -79,7 +88,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        const isFromGlobalCreate = transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate;
+        const isFromGlobalCreate = getIsFromGlobalCreate(transaction);
         startTracking(
             {
                 scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.INVOICE,
@@ -102,7 +111,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             companyWebsite,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
-            isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
             senderPolicyTags: policyTags ?? {},
         });
     };

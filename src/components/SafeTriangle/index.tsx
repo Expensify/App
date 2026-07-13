@@ -1,9 +1,13 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {isMobile} from '@libs/Browser';
+
+import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
+
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {Polygon, Svg} from 'react-native-svg';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobile} from '@libs/Browser';
-import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
+
 import type SafeTriangleProps from './types';
 
 type Point = [number, number];
@@ -104,6 +108,7 @@ function SafeTriangleOverlay({submenuRef, containerRef}: SafeTriangleOverlayProp
 
         // Create a polygon from apex to the submenu's left edge
         const cursorPoint: Point = [0, y - rect.top];
+
         // We subtract OFFSET from x-coordinates to account for the offset in the container's left style
         const topLeftSubMenuPoint: Point = [rect.left - x - OFFSET, 0];
         const bottomLeftSubMenuPoint: Point = [rect.left - x - OFFSET, rect.bottom - rect.top];

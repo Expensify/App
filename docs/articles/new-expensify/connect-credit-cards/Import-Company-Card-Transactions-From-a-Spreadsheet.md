@@ -1,13 +1,13 @@
 ---
 title: Import Company Card Transactions From a Spreadsheet 
 description: Learn how Workspace Admins can upload company card transactions manually from a spreadsheet file.
-keywords: [New Expensify, import company card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, card feed, company card feed, bring your own card, BYOC]
+keywords: [New Expensify, import company card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, card feed, company card feed, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import]
 internalScope: Audience is Workspace Admins. Covers how to import, update, and delete company card CSV feeds. Does not cover personal card imports or Plaid connections.
 ---
 
 # Import Company Card Transactions From a Spreadsheet 
 
-If your bank isn't supported by a direct connection, you can still import company card transactions into Expensify using a CSV, TXT, XLX or XLSX file. This lets you bring your own card (BYOC) and manually upload company card transactions when a direct bank connection is unavailable.
+If your bank isn't supported by a direct connection, you can still import company card transactions into Expensify using a CSV, TXT, XLS, or XLSX file. This lets you bring your own card (BYOC) and manually upload company card transactions when a direct bank connection is unavailable.
 
 If your bank does support a direct connection, you can connect your account to automatically import transactions. [Learn how to set up a direct company card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection). 
 
@@ -15,7 +15,9 @@ If your bank does support a direct connection, you can connect your account to a
 
 ## Who can import company card transactions from a spreadsheet 
 
-Only **Workspace Admins** can import transactions for company cards. 
+Only **Workspace Admins** can import transactions for company cards.
+
+**Company Cards** must be enabled in the workspace before you can import transactions. If you don't see **Company Cards**, enable it under **More features > Company Cards**.
 
 ---
 
@@ -26,13 +28,13 @@ Only **Workspace Admins** can import transactions for company cards.
 3. Click on **Add card**.
  - If you already have a company card feed set up, click the feed name to see **Add Card**.
 5. Choose **Import transactions from file**.
-6. Choose the CSV, TXT, XLX or XLSX file you want to upload. 
+6. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
 7. Enter a name for the card feed.
 8. Set your field mappings (e.g., Card Number, Date, Amount, Merchant).
 9. Assign cards to users based on the transactions in the file.
 10. Click **Import**.
 
-**Note:** To import a file, **Company Cards** must be enabled on the workspace.  If you don't see **Company Cards**, enable the feature under **More features > Company Cards**.
+**Note:** Download the [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for an example of the recommended column structure and formatting for company card transaction imports.
 
 ---
 
@@ -50,7 +52,7 @@ Only **Workspace Admins** can import transactions for company cards.
 2. Select the name of the card feed you want to update.
 3. Click **Settings**.
 4. Choose **Import spreadsheet**.
-5. Choose the CSV, TXT, XLX or XLSX file you want to upload. 
+5. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
 6. Review and confirm the field mappings.
 7. Click **Import**.
 
@@ -71,6 +73,10 @@ Only **Workspace Admins** can import transactions for company cards.
 ---
 
 # FAQ
+
+## What should I do if my file upload fails or results in an error?
+
+Ensure the file includes the required fields and matches the formatting guidelines. Use Expensify’s [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for reference.
 
 ## What file formats are supported for company card imports?
 

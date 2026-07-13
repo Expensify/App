@@ -1,19 +1,25 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserPills from '@components/UserPills';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
+import useAttendees from '@hooks/useAttendees';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {enrichAndSortAttendees} from '@libs/AttendeeUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAttendees, getAttendeesListDisplayString} from '@libs/TransactionUtils';
+import {getAttendeesListDisplayString} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import {attendeeSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -30,13 +36,12 @@ type AttendeeFieldProps = {
 function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError}: AttendeeFieldProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
     const attendeeSlice = useTransactionSelector(transactionID, attendeeSliceSelector);
 
-    const rawIouAttendees = getAttendees(attendeeSlice as OnyxEntry<OnyxTypes.Transaction>, currentUserPersonalDetails);
+    const rawIouAttendees = useAttendees(attendeeSlice as OnyxEntry<OnyxTypes.Transaction>);
     const iouAttendees = enrichAndSortAttendees(rawIouAttendees, personalDetailsList, localeCompare);
 
     return (

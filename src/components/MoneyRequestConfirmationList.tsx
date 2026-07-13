@@ -1,8 +1,4 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import useAttendees from '@hooks/useAttendees';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
@@ -13,16 +9,18 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
+import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
-    getAttendees,
     getCategory,
+    getCreated,
     getCurrency,
     getMerchant,
     getRateID,
@@ -31,12 +29,22 @@ import {
     isGPSDistanceRequest as isGPSDistanceRequestUtil,
     isManualDistanceRequest as isManualDistanceRequestUtil,
 } from '@libs/TransactionUtils';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {MeasurableInput, SelectionListWithSectionsHandle} from './SelectionList/SelectionListWithSections/types';
+
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
 import buildConfirmAction from './MoneyRequestConfirmationList/confirmAction';
 import ConfirmationFooterContent from './MoneyRequestConfirmationList/ConfirmationFooterContent';
@@ -63,7 +71,7 @@ import SelectionListWithSections from './SelectionList/SelectionListWithSections
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
-    onConfirm?: (selectedParticipants: Participant[]) => void;
+    onConfirm?: () => void;
 
     /** When set, used in the new manual expense flow to open the parent-owned participant picker instead of navigating away */
     onOpenParticipantPicker?: () => void;
@@ -112,6 +120,9 @@ type MoneyRequestConfirmationListProps = {
 
     /** Whether the odometer receipt is currently being stitched */
     isLoadingReceipt?: boolean;
+
+    /** Error message from the odometer receipt stitcher, rendered below the receipt */
+    receiptStitchError?: string | null;
 
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
@@ -176,6 +187,7 @@ function MoneyRequestConfirmationList({
     iouType = CONST.IOU.TYPE.SUBMIT,
     isOdometerDistanceRequest = false,
     isLoadingReceipt = false,
+    receiptStitchError,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     shouldShowSmartScanFields = true,
@@ -231,6 +243,13 @@ function MoneyRequestConfirmationList({
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const listRef = useRef<SelectionListWithSectionsHandle>(null);
+
+    // In the new manual expense flow the inline fields live in the list footer, so they can be hidden behind the keyboard.
+    // We let those fields ask the list to scroll them into view when focused.
+    const scrollFocusedInputIntoView = useCallback((input: MeasurableInput) => {
+        listRef.current?.scrollInputIntoView(input);
+    }, []);
 
     const isDistanceRequest = isDistanceRequestUtil(transaction);
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
@@ -240,7 +259,7 @@ function MoneyRequestConfirmationList({
     const iouCurrencyCode = getCurrency(transaction);
     const iouMerchant = getMerchant(transaction);
     const iouCategory = getCategory(transaction);
-    const iouAttendees = getAttendees(transaction, currentUserPersonalDetails);
+    const iouAttendees = useAttendees(transaction);
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
@@ -266,6 +285,9 @@ function MoneyRequestConfirmationList({
             iouAmount,
             iouCurrencyCode,
         });
+
+    const shouldShowRateAutoUpdatedTooltip =
+        isDistanceRequest && !!transaction?.comment?.customUnit?.rateAutoUpdated && !!transaction.created && DistanceRequestUtils.isRateEligibleForDate(mileageRate, transaction.created);
 
     const shouldShowCategories = isTrackExpense
         ? !policy || shouldSelectPolicy || !!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {}))
@@ -338,11 +360,13 @@ function MoneyRequestConfirmationList({
         routeError,
         isTypeSplit,
         shouldShowReadOnlySplits,
+        isNewManualExpenseFlowEnabled,
+        isDistanceRequest,
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
 
-    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, iouCategory, policy?.areRulesEnabled);
+    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, iouCategory, arePolicyRulesEnabled(policy, policyCategories));
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -460,6 +484,8 @@ function MoneyRequestConfirmationList({
         isTimeRequest,
         routeError,
         isNewManualExpenseFlowEnabled,
+        isReadOnly,
+        shouldShowDate: shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest),
     });
 
     const confirm = buildConfirmAction({
@@ -469,7 +495,6 @@ function MoneyRequestConfirmationList({
         reportID,
         routeError,
         formError,
-        selectedParticipants,
         isDelegateAccessRestricted,
         validate,
         setFormError,
@@ -478,22 +503,6 @@ function MoneyRequestConfirmationList({
         onConfirm,
         onSendMoney,
     });
-
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    useFocusEffect(
-        useCallback(() => {
-            // Blurring the active element after transition fights AmountField focus in the new manual flow (RHP reopen).
-            if (isNewManualExpenseFlowEnabled) {
-                return undefined;
-            }
-            focusTimeoutRef.current = setTimeout(() => {
-                InteractionManager.runAfterInteractions(() => {
-                    blurActiveElement();
-                });
-            }, CONST.ANIMATED_TRANSITION);
-            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, [isNewManualExpenseFlowEnabled]),
-    );
 
     const isCompactMode = !showMoreFields && isScanRequest && !isInLandscapeMode;
     const selectionListStyle = {
@@ -524,60 +533,58 @@ function MoneyRequestConfirmationList({
     const listFooterContent = (
         <View style={isCompactMode ? styles.flex1 : undefined}>
             <MoneyRequestConfirmationListFooter
+                receiptStitchError={receiptStitchError}
                 action={action}
-                distanceRateCurrency={currency}
-                didConfirm={!!didConfirm}
-                distance={distance}
-                amount={amountToBeUsed}
-                formattedAmount={formattedAmount}
-                formattedAmountPerAttendee={formattedAmountPerAttendee}
-                formError={formError}
-                clearFormErrors={clearFormErrors}
-                setFormError={setFormError}
-                hasRoute={hasRoute}
                 iouType={iouType}
-                isCategoryRequired={isCategoryRequired}
-                isDistanceRequest={isDistanceRequest}
-                isManualDistanceRequest={isManualDistanceRequest}
-                isOdometerDistanceRequest={isOdometerDistanceRequest}
-                isLoadingReceipt={isLoadingReceipt}
-                isGPSDistanceRequest={isGPSDistanceRequest}
-                isPerDiemRequest={isPerDiemRequest}
-                isTimeRequest={isTimeRequest}
-                isMerchantRequired={isMerchantRequired}
-                isPolicyExpenseChat={isPolicyExpenseChat}
-                isReadOnly={isReadOnly}
-                isEditingSplitBill={isEditingSplitBill}
-                isTypeInvoice={isTypeInvoice}
-                onToggleBillable={onToggleBillable}
+                transactionID={transactionID}
+                reportID={reportID}
+                reportActionID={reportActionID}
+                isScanRequest={isScanRequest}
+                policyID={policyID}
                 policy={policy}
                 policyTags={policyTags}
-                policyTagLists={policyTagLists}
-                rate={rate}
-                distanceRateName={mileageRate.name}
-                receiptFilename={receiptFilename}
-                receiptPath={receiptPath}
-                reportActionID={reportActionID}
-                reportID={reportID}
                 selectedParticipants={selectedParticipantsProp}
-                shouldDisplayFieldError={shouldDisplayFieldError}
-                shouldDisplayReceipt={shouldDisplayReceipt}
-                shouldShowCategories={shouldShowCategories}
-                shouldShowMerchant={shouldShowMerchant}
-                shouldShowSmartScanFields={shouldShowSmartScanFields}
-                shouldShowAmountField={!isPerDiemRequest}
-                isParticipantPickerVisible={isParticipantPickerVisible}
-                shouldShowTax={shouldShowTax}
-                transaction={transaction}
-                transactionID={transactionID}
-                unit={unit}
-                onPDFLoadError={onPDFLoadError}
-                onPDFPassword={onPDFPassword}
-                onToggleReimbursable={onToggleReimbursable}
-                isReceiptEditable={isReceiptEditable}
-                isDescriptionRequired={isDescriptionRequired}
-                showMoreFields={showMoreFields}
-                setShowMoreFields={setShowMoreFields}
+                isReadOnly={isReadOnly}
+                didConfirm={!!didConfirm}
+                isEditingSplitBill={isEditingSplitBill}
+                isPolicyExpenseChat={isPolicyExpenseChat}
+                expenseMode={{isDistance: isDistanceRequest, isTime: isTimeRequest, isInvoice: isTypeInvoice, isPerDiem: isPerDiemRequest}}
+                distanceFlags={{isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest}}
+                distanceData={{
+                    distance,
+                    hasRoute,
+                    unit,
+                    rate,
+                    distanceRateName: mileageRate.name,
+                    distanceRateCurrency: currency,
+                    mileageRate,
+                    expenseDate: getCreated(transaction),
+                    customUnitRateID,
+                    shouldShowRateAutoUpdatedTooltip,
+                }}
+                amountDisplay={{amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee}}
+                requiredFlags={{isCategoryRequired, isMerchantRequired, isDescriptionRequired}}
+                visibilityFlags={{
+                    shouldShowSmartScanFields,
+                    shouldShowAmountField: !isPerDiemRequest,
+                    shouldShowMerchant,
+                    shouldShowCategories,
+                    shouldShowTax,
+                    isParticipantPickerVisible,
+                }}
+                errorState={{shouldDisplayFieldError, formError, clearFormErrors, setFormError}}
+                toggleHandlers={{onToggleReimbursable, onToggleBillable}}
+                receiptOptions={{
+                    receiptFilename,
+                    receiptPath,
+                    isLoadingReceipt,
+                    isReceiptEditable,
+                    shouldDisplayReceipt,
+                    onPDFLoadError,
+                    onPDFPassword,
+                }}
+                compactControls={{showMoreFields, setShowMoreFields}}
+                scrollFocusedInputIntoView={scrollFocusedInputIntoView}
                 onSubmitForm={confirm}
             />
         </View>
@@ -648,6 +655,7 @@ function MoneyRequestConfirmationList({
             />
             <MouseProvider>
                 <SelectionListWithSections<MoneyRequestConfirmationListItem>
+                    ref={listRef}
                     sections={sections}
                     ListItem={BareUserListItem}
                     onSelectRow={navigateToParticipantPage}

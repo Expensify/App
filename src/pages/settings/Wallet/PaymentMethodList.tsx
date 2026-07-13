@@ -1,32 +1,24 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import {createPoliciesForDomainCardsSelector} from '@selectors/Policy';
-import {FlashList} from '@shopify/flash-list';
-import lodashSortBy from 'lodash/sortBy';
-import type {ReactElement} from 'react';
-import React from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
 import MenuItem from '@components/MenuItem';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
+
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {
     getAssignedCardSortKey,
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getPlaidInstitutionIconUrl,
+    isActionableVirtualExpensifyCard,
     isCardConnectionBroken,
     isCardFrozen,
     isCardInactive,
@@ -41,10 +33,13 @@ import {
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
+import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import {getTravelInvoicingCard, isTravelCVVEligible} from '@libs/TravelInvoicingUtils';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -53,9 +48,23 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {ReactElement} from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
+import {createPoliciesForDomainCardsSelector} from '@selectors/Policy';
+import {FlashList} from '@shopify/flash-list';
+import lodashSortBy from 'lodash/sortBy';
+import React from 'react';
+import {View} from 'react-native';
+
 import type {PaymentMethodItem} from './PaymentMethodListItem';
-import PaymentMethodListItem from './PaymentMethodListItem';
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './WalletPage/types';
+
+import PaymentMethodListItem from './PaymentMethodListItem';
 
 type PaymentMethodPressHandler = ({event, accountType, accountData, methodID, icon, description, isDefault}: PaymentMethodPressHandlerParams) => void;
 
@@ -84,6 +93,9 @@ type PaymentMethodListProps = {
 
     /** Whether the add bank account button should be shown on the list */
     shouldShowAddBankAccount?: boolean;
+
+    /** Additional style for the add bank account item */
+    addBankAccountItemStyle?: StyleProp<ViewStyle>;
 
     /** Whether the assigned cards should be shown on the list */
     shouldShowAssignedCards?: boolean;
@@ -158,6 +170,7 @@ function PaymentMethodList({
     listHeaderComponent,
     onPress,
     shouldShowAddBankAccount = true,
+    addBankAccountItemStyle,
     shouldShowAssignedCards = false,
     shouldSkipDefaultAccountValidation = false,
     onListContentSizeChange = () => {},
@@ -185,8 +198,8 @@ function PaymentMethodList({
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const {isBetaEnabled} = usePermissions();
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -223,6 +236,7 @@ function PaymentMethodList({
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
             const companyCardsGrouped: PaymentMethodItem[] = [];
             const personalCardsGrouped: PaymentMethodItem[] = [];
+            const hasMissingPersonalDetails = areAddressAndPersonalDetailsMissing(privatePersonalDetails);
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 const isUserPersonalCard = isPersonalCard(card);
@@ -380,12 +394,13 @@ function PaymentMethodList({
                     iconHeight: variables.cardIconHeight,
                     isInactive: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
+                    shouldShowMissingPersonalDetailsAction: !isActingAsDelegate && isActionableVirtualExpensifyCard(card) && hasMissingPersonalDetails,
                 });
             }
 
             const travelCardGrouped: PaymentMethodItem[] = [];
             const travelCard = getTravelInvoicingCard(cardList);
-            if (isTravelCVVEligible(isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING), cardList) && travelCard) {
+            if (isTravelCVVEligible(cardList) && travelCard) {
                 travelCardGrouped.push({
                     title: translate('walletPage.travelCVV.title'),
                     description: translate('walletPage.travelCVV.subtitle'),
@@ -501,7 +516,7 @@ function PaymentMethodList({
             onPress={onPressItem}
             title={translate('bankAccount.addBankAccount')}
             icon={expensifyIcons.Plus}
-            wrapperStyle={[styles.paymentMethod, listItemStyle]}
+            wrapperStyle={[styles.paymentMethod, listItemStyle, addBankAccountItemStyle]}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_BANK_ACCOUNT}
         />
     );

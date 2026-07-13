@@ -1,24 +1,28 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
+import React from 'react';
+import {View} from 'react-native';
+
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
-    onDowngrade: () => void;
+    onDowngrade: () => void | Promise<void>;
     policyID?: string;
     backTo?: Route;
 };

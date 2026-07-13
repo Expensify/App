@@ -1,7 +1,10 @@
-import {useIsFocused} from '@react-navigation/native';
 import {getNewerActions, getOlderActions} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+
 import useNetwork from './useNetwork';
 
 type UseLoadReportActionsArguments = {
@@ -117,6 +120,11 @@ function useLoadReportActions({
         // (which may include Pusher-delivered actions like Concierge replies that skip gaps)
         if (newestFetchedReportActionID) {
             getNewerActions(reportID, newestFetchedReportActionID);
+
+            // Keep transaction thread in sync for mixed report+thread views.
+            if (isTransactionThreadReport) {
+                getNewerActions(transactionThreadReportID, transactionThreadNewestAction?.reportActionID);
+            }
             return;
         }
 

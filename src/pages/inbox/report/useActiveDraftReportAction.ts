@@ -1,11 +1,14 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
 import useOnyx from '@hooks/useOnyx';
+
 import {getOriginalReportID, shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
 import type {Ancestor} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 /**
  * Canonical active edit derived from drafts on an ancestor-original report, the visible report, or a linked transaction thread.
@@ -211,5 +214,3 @@ function useActiveDraftReportAction({reportID, effectiveTransactionThreadReportI
 }
 
 export default useActiveDraftReportAction;
-
-export type {ResolvedActiveDraftEdit};

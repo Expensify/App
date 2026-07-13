@@ -1,8 +1,19 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type Form from './Form';
 
-const INPUT_IDS = CONST.SPEND_RULES.FORM.FIELDS;
+const INPUT_IDS = {
+    CARD_IDS: 'cardIDs',
+    RESTRICTION_ACTION: 'restrictionAction',
+    MERCHANT_NAMES: 'merchantNames',
+    MERCHANT_MATCH_TYPES: 'merchantMatchTypes',
+    CATEGORIES: 'categories',
+    MAX_AMOUNT: 'maxAmount',
+    CURRENCIES: 'currencies',
+} as const;
+
 type SpendRuleCategory = ValueOf<typeof CONST.SPEND_RULES.CATEGORIES>;
 const SPEND_RULE_CATEGORIES = Object.values(CONST.SPEND_RULES.CATEGORIES) as SpendRuleCategory[];
 
@@ -20,10 +31,10 @@ type SpendRuleForm = Form<
         [INPUT_IDS.MERCHANT_NAMES]: string[];
         [INPUT_IDS.MERCHANT_MATCH_TYPES]: Array<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>;
         [INPUT_IDS.CATEGORIES]: SpendRuleCategory[];
+        [INPUT_IDS.CURRENCIES]: string[];
         [INPUT_IDS.MAX_AMOUNT]: string;
     }
 >;
 
 export {SPEND_RULE_CATEGORIES, isSpendRuleCategory};
 export type {SpendRuleForm, SpendRuleCategory};
-export default INPUT_IDS;

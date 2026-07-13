@@ -1,23 +1,29 @@
-import React, {useRef, useState} from 'react';
-import type {ReactNode} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDecisionModal from '@hooks/useDecisionModal';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
+
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalModals';
+
+import type {ReactNode} from 'react';
+
+import React, {useRef, useState} from 'react';
+
 import type {MoneyReportHeaderEducationalModalsHandle, RejectModalAction} from './MoneyReportHeaderEducationalModals';
-import MoneyReportHeaderModalsContext from './MoneyReportHeaderModalsContext';
 import type {HoldMenuParams} from './MoneyReportHeaderModalsContext';
+
+import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalModals';
+import MoneyReportHeaderModalsContext from './MoneyReportHeaderModalsContext';
+import {MoneyReportTransactionThreadProvider} from './MoneyReportTransactionThreadContext';
 import ReportPDFDownloadModal from './ReportPDFDownloadModal';
 
 type MoneyReportHeaderModalsProps = {
@@ -86,10 +92,10 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
                 onConfirm,
             });
 
-        // On iOS, delay opening the hold menu until active touch interactions finish to prevent visual glitches
+        // On iOS, defer by one frame so the current touch animation finishes before the modal opens
         if (getPlatform() === CONST.PLATFORM.IOS) {
             return new Promise<void>((resolve) => {
-                InteractionManager.runAfterInteractions(() => {
+                requestAnimationFrame(() => {
                     open().then(() => resolve());
                 });
             });
@@ -109,18 +115,20 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
 
     return (
         <MoneyReportHeaderModalsContext.Provider value={contextValue}>
-            {children}
+            <MoneyReportTransactionThreadProvider reportID={moneyRequestReport?.reportID}>
+                {children}
 
-            <MoneyReportHeaderEducationalModals
-                ref={educationalModalsRef}
-                reportID={moneyRequestReport?.reportID}
-            />
+                <MoneyReportHeaderEducationalModals
+                    ref={educationalModalsRef}
+                    reportID={moneyRequestReport?.reportID}
+                />
 
-            <ReportPDFDownloadModal
-                reportID={moneyRequestReport?.reportID}
-                isVisible={isPDFModalVisible}
-                onClose={() => setIsPDFModalVisible(false)}
-            />
+                <ReportPDFDownloadModal
+                    reportID={moneyRequestReport?.reportID}
+                    isVisible={isPDFModalVisible}
+                    onClose={() => setIsPDFModalVisible(false)}
+                />
+            </MoneyReportTransactionThreadProvider>
         </MoneyReportHeaderModalsContext.Provider>
     );
 }

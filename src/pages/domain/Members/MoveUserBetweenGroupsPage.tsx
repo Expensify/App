@@ -1,6 +1,3 @@
-import {domainNameSelector, groupsSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
-import React, {useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,20 +6,31 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {changeDomainSecurityGroup} from '@libs/actions/Domain';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Domain} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {domainNameSelector, groupsSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
+import React, {useState} from 'react';
+
 import useDomainGroupMoveValidation from './useDomainGroupMoveValidation';
 
 type SecurityGroupItem = ListItem & {
@@ -44,7 +52,7 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
     const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: securityGroupSelector,
     });
-    const [memberLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(accountID)});
+    const [memberLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(accountID)}, [accountID]);
 
     const currentGroupId = userSecurityGroup?.key.replace(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '');
 

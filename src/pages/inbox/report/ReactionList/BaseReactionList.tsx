@@ -1,21 +1,30 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {FlatList} from 'react-native';
-import type {FlatListProps} from 'react-native';
 import OptionRow from '@components/OptionRow';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrYou} from '@libs/PersonalDetailsUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails} from '@src/types/onyx';
-import HeaderReactionList from './HeaderReactionList';
+
+import type {FlatListProps} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {FlatList} from 'react-native';
+
 import type ReactionListProps from './types';
+
+import HeaderReactionList from './HeaderReactionList';
 
 type BaseReactionListProps = ReactionListProps & {
     /**
@@ -67,7 +76,7 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, emo
             onSelectRow={() => {
                 onClose?.();
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(item.accountID)));
                 });
             }}
             option={{

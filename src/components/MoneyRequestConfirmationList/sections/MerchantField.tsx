@@ -1,18 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
+
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import {merchantStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -28,7 +35,6 @@ type MerchantFieldProps = {
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
     reportActionID: string | undefined;
-    isEditingSplitBill: boolean;
 };
 
 function MerchantField({
@@ -43,18 +49,17 @@ function MerchantField({
     iouType,
     reportID,
     reportActionID,
-    isEditingSplitBill,
 }: MerchantFieldProps) {
+    const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
-    const merchantState = useTransactionSelector(transactionID, merchantStateSelector, isEditingSplitBill);
+    const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
 
     const merchantValue = merchantState?.merchant ?? '';
-    const displayMerchantValue = isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
-    const isMerchantEmpty = !displayMerchantValue;
+    const displayMerchantValue = !merchantState?.isMerchantSet && isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
     const transactionHasReceipt = merchantState?.hasReceipt ?? false;
 
     // Determine if the merchant error should be displayed
@@ -69,7 +74,7 @@ function MerchantField({
             return translate('iou.error.invalidMerchant');
         }
 
-        if (shouldDisplayFieldError && isMerchantRequired && isMerchantEmpty) {
+        if (shouldDisplayFieldError && isMerchantRequired && !displayMerchantValue) {
             return translate('common.error.fieldRequired');
         }
 
@@ -120,7 +125,7 @@ function MerchantField({
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={!isReadOnly}
-            title={isMerchantEmpty ? '' : displayMerchantValue}
+            title={displayMerchantValue}
             description={translate('common.merchant')}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}

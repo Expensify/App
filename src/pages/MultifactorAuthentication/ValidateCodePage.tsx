@@ -1,34 +1,38 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
-import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
+import useMFACancelOnEscape from '@components/MultifactorAuthentication/useMFACancelOnEscape';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {isValidValidateCode} from '@libs/ValidationUtils';
-import Navigation from '@navigation/Navigation';
+
 import {clearAccountMessages} from '@userActions/Session';
 import {clearValidateCodeActionError, requestValidateCodeAction} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type FormError = {
     inputCode?: TranslationPaths;
@@ -49,12 +53,10 @@ function MultifactorAuthenticationValidateCodePage() {
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const {cancel} = useMultifactorAuthentication();
-    const [isCancelModalVisible, setCancelModalVisibility] = useState(false);
+    const {requestCancel} = useMultifactorAuthentication();
 
-    const state = useMultifactorAuthenticationState();
     const {dispatch} = useMultifactorAuthenticationActions();
-    const {continuableError} = state;
+    const {continuableError, isCancelConfirmVisible} = useMultifactorAuthenticationState();
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
@@ -121,11 +123,13 @@ function MultifactorAuthenticationValidateCodePage() {
         clearAccountMessages();
     }, [account?.errors]);
 
-    // Reset formError when hasError changes
+    // Clear client-side formError when a backend error arrives so both don't show simultaneously.
+    // Clearing state (not just hiding) avoids stale errors if hasError later becomes false without user input.
     useEffect(() => {
         if (!hasError) {
             return;
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- derived-state reset; formError is not in this effect's deps, so writing it cannot re-trigger the effect
         setFormError({});
     }, [hasError]);
 
@@ -200,46 +204,23 @@ function MultifactorAuthenticationValidateCodePage() {
         dispatch({type: 'SET_VALIDATE_CODE', payload: inputCode});
     };
 
-    const showCancelModal = () => {
-        if (isOffline) {
-            Navigation.closeRHPFlow();
-        } else {
-            setCancelModalVisibility(true);
-        }
-    };
-
-    const hideCancelModal = () => {
-        setCancelModalVisibility(false);
-    };
-
-    const cancelFlow = () => {
-        if (isCancelModalVisible) {
-            hideCancelModal();
-        }
-        cancel();
-    };
-
-    const focusTrapConfirmModal = () => {
-        setCancelModalVisibility(true);
-        return false;
-    };
-
-    const CancelConfirmModal = state.scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
+    const interceptFocusTrapEscape = useMFACancelOnEscape();
 
     return (
         <ScreenWrapper
             testID={MultifactorAuthenticationValidateCodePage.displayName}
             focusTrapSettings={{
+                // Turn the trap off while the cancel confirmation modal is up so it can't swallow
+                // the modal's clicks, and back on when it closes. See https://github.com/Expensify/App/issues/93193
+                active: isCancelConfirmVisible ? false : undefined,
                 focusTrapOptions: {
-                    allowOutsideClick: focusTrapConfirmModal,
-                    clickOutsideDeactivates: focusTrapConfirmModal,
-                    escapeDeactivates: focusTrapConfirmModal,
+                    escapeDeactivates: interceptFocusTrapEscape,
                 },
             }}
         >
             <HeaderWithBackButton
                 title={translate('multifactorAuthentication.letsVerifyItsYou')}
-                onBackButtonPress={showCancelModal}
+                onBackButtonPress={requestCancel}
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
@@ -281,11 +262,6 @@ function MultifactorAuthenticationValidateCodePage() {
                         isDisabled={isOffline}
                     />
                 </View>
-                <CancelConfirmModal
-                    isVisible={isCancelModalVisible}
-                    onConfirm={cancelFlow}
-                    onCancel={hideCancelModal}
-                />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );

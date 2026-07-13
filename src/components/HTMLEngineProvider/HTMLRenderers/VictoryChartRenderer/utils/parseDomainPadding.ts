@@ -1,5 +1,7 @@
-import lodashIsObject from 'lodash/isObject';
 import type {CartesianChartProps} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+
+import lodashIsObject from 'lodash/isObject';
+
 import parseAttribute from './parseAttribute';
 
 type DomainPadding = CartesianChartProps['domainPadding'];
@@ -7,16 +9,13 @@ type DomainPadding = CartesianChartProps['domainPadding'];
 /**
  * Translate VictoryChart's `domainPadding` attribute into victory-native's `domainPadding` shape.
  */
-function parseDomainPadding(attribute: string): DomainPadding {
+function parseDomainPadding(attribute: string, isHorizontal: boolean): DomainPadding {
     const domainPadding = parseAttribute(attribute);
     if (typeof domainPadding === 'number') {
         return domainPadding;
     }
     if (Array.isArray(domainPadding)) {
-        return {
-            left: Number(domainPadding.at(0)),
-            right: Number(domainPadding.at(1)),
-        };
+        return isHorizontal ? {bottom: Number(domainPadding.at(0)), top: Number(domainPadding.at(1))} : {left: Number(domainPadding.at(0)), right: Number(domainPadding.at(1))};
     }
     if (lodashIsObject(domainPadding)) {
         let left: number | undefined;
@@ -37,7 +36,7 @@ function parseDomainPadding(attribute: string): DomainPadding {
             top = Number(domainPadding.y.at(1));
             bottom = Number(domainPadding.y.at(0));
         }
-        return {left, right, top, bottom};
+        return isHorizontal ? {left: bottom, right: top, top: right, bottom: left} : {left, right, top, bottom};
     }
     return undefined;
 }

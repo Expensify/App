@@ -1,9 +1,5 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
+
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
@@ -12,19 +8,31 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import {getContactMethod} from '@libs/UserUtils';
+
 import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+
 import {clearAccountMessages} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import ToggleTwoFactorAuthForm from './ToggleTwoFactorAuthForm';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
@@ -75,10 +83,8 @@ function DynamicVerifyPage() {
 
     const scrollViewRef = useRef<RNScrollView>(null);
     const handleInputFocus = useCallback(() => {
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                scrollViewRef.current?.scrollToEnd({animated: true});
-            });
+        requestAnimationFrame(() => {
+            scrollViewRef.current?.scrollToEnd({animated: true});
         });
     }, []);
 
@@ -89,7 +95,7 @@ function DynamicVerifyPage() {
             stepCounter={{
                 step: 2,
                 text: translate('twoFactorAuth.stepVerify'),
-                total: 3,
+                total: 2,
             }}
             onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, backPath))}
             shouldEnableMaxHeight={false}

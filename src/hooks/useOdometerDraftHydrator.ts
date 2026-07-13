@@ -1,10 +1,14 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {hydrateOdometerDraftIntoTransaction, isOdometerDraftPendingHydration} from '@userActions/OdometerTransactionUtils';
+
 import type {IOURequestType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OdometerDraft, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
+
 import useOnyx from './useOnyx';
 
 type UseOdometerDraftHydratorParams = {
@@ -39,16 +43,14 @@ function useOdometerDraftHydrator({
         if (lastHydratedDraft === odometerDraft) {
             return;
         }
-        // Skip when the comment already reflects the draft. saveOdometerDraft writes from the
-        // edit-from-confirmation flow otherwise mint fresh blob URLs via the serialize/deserialize
-        // round-trip and revoke the URLs the confirm page is currently displaying.
+        // Skip when the comment already matches the draft; re-minting blob URLs from base64 would flash the receipt.
         if (!isOdometerDraftPendingHydration(odometerDraft, transaction?.comment)) {
             lastHydratedDraft = odometerDraft;
             return;
         }
         hydrateOdometerDraftIntoTransaction(transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, odometerDraft, transaction?.comment);
         lastHydratedDraft = odometerDraft;
-        // transaction.comment intentionally excluded — it changes after our own merge and would re-fire.
+        // transaction.comment intentionally excluded - it changes after our own merge and would re-fire.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionRequestType, odometerDraft, isLoadingTransaction, isLoadingSelectedTab]);
 

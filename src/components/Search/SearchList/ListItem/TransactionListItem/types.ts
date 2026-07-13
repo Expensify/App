@@ -1,31 +1,13 @@
-import type {MouseEvent} from 'react';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
+
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import type {CardList, ReportAction, TransactionViolation} from '@src/types/onyx';
 
-type TransactionListItemInlineEditProps = {
-    shouldDisableHoverStyle: boolean;
-    onPressRow: (event?: ModifiedMouseEvent) => void;
-    onMouseDownRow: (e?: MouseEvent) => void;
-    onHoverInRow: () => void;
-    onEditDate: (newDate: string) => void;
-    onEditMerchant: (newMerchant: string) => void;
-    onEditDescription: (newDescription: string) => void;
-    onEditCategory: (newCategory: string) => void;
-    onEditAmount: (newAmount: number) => void;
-    onEditTag: (newTag: string) => void;
-    canEditDate: boolean;
-    canEditMerchant: boolean;
-    canEditDescription: boolean;
-    canEditCategory: boolean;
-    canEditAmount: boolean;
-    canEditTag: boolean;
-};
+import type {CardList, PolicyCategories, PolicyTagLists, ReportAction, TransactionViolation} from '@src/types/onyx';
 
-type TransactionListItemWideProps<TItem extends ListItem> = {
+type TransactionListItemSharedProps<TItem extends ListItem> = {
     item: TItem;
     isDeletedTransaction: boolean;
     isFocused?: boolean;
@@ -43,13 +25,20 @@ type TransactionListItemWideProps<TItem extends ListItem> = {
     isLastItem?: boolean;
     transactionViolations: TransactionViolation[];
     handleActionButtonPress: (event?: ModifiedMouseEvent) => void;
+    shouldDisableActionPointerEvents?: boolean;
     transactionPreviewData: TransactionPreviewData;
     exportedReportActions: ReportAction[];
+    policyCategories?: PolicyCategories;
+    policyTagLists?: PolicyTagLists;
     nonPersonalAndWorkspaceCards?: CardList;
     isAttendeesEnabledForMovingPolicy?: boolean;
-} & TransactionListItemInlineEditProps;
+};
 
-type TransactionListItemNarrowProps<TItem extends ListItem> = TransactionListItemWideProps<TItem> & {
+type TransactionListItemWideProps<TItem extends ListItem> = TransactionListItemSharedProps<TItem> & {
+    currentSearchHash?: number;
+};
+
+type TransactionListItemNarrowProps<TItem extends ListItem> = TransactionListItemSharedProps<TItem> & {
     isFirstItem?: boolean;
 };
 

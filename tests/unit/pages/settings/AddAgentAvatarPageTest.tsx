@@ -1,17 +1,23 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import AddAgentAvatarPage from '@pages/settings/Agents/Fields/AddAgentAvatarPage';
 import type {OnSaveParams} from '@pages/settings/Agents/Fields/EditAgentAvatarPage';
+
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 const mockConsumeNavigationToken = jest.fn<boolean, []>();
 const mockGetInitialPresetID = jest.fn<string | undefined, []>(() => undefined);
 const mockSetPendingAvatar = jest.fn<void, unknown[]>();
+const mockGetReturnRoute = jest.fn<string | undefined, []>(() => undefined);
 
 jest.mock('@pages/settings/Agents/pendingAgentAvatarStore', () => ({
     consumeNavigationToken: () => mockConsumeNavigationToken(),
     getInitialPresetID: () => mockGetInitialPresetID(),
+    getReturnRoute: () => mockGetReturnRoute(),
     setPendingAvatar: (...args: unknown[]) => mockSetPendingAvatar(...args),
 }));
 
@@ -43,7 +49,7 @@ describe('AddAgentAvatarPage', () => {
 
         render(<AddAgentAvatarPage />);
 
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD);
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD.getRoute());
     });
 
     it('does not redirect when navigation token is present', () => {
@@ -62,7 +68,7 @@ describe('AddAgentAvatarPage', () => {
         mockEditAgentAvatarOnSave?.({customExpensifyAvatarID: 'bot-avatar--blue'});
 
         expect(mockSetPendingAvatar).toHaveBeenCalledWith({type: 'preset', id: 'bot-avatar--blue'});
-        expect(mockGoBack).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD);
+        expect(mockGoBack).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD.getRoute());
     });
 
     it('stores file avatar and navigates back when save is called with a file', () => {
@@ -74,6 +80,6 @@ describe('AddAgentAvatarPage', () => {
         mockEditAgentAvatarOnSave?.({file: mockFile, uri: 'file://photo.jpg'});
 
         expect(mockSetPendingAvatar).toHaveBeenCalledWith({type: 'file', file: mockFile, uri: 'file://photo.jpg'});
-        expect(mockGoBack).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD);
+        expect(mockGoBack).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD.getRoute());
     });
 });

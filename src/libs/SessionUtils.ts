@@ -1,7 +1,9 @@
-import Onyx from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
+
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 const NEW_PARTNER_USER_ID_PREFIX = 'expensify.cash-';
 
@@ -108,7 +110,7 @@ function checkIfShouldUseNewPartnerName(partnerUserID?: string): boolean {
     return false;
 }
 
-const AGENT_EMAIL_REGEX = /^agent_\d+@expensify\.ai$/;
+const AGENT_EMAIL_REGEX = /^agent_\d+@expensify\.ai$/i;
 
 function isAgentEmail(email?: string): boolean {
     if (!email) {

@@ -1,5 +1,5 @@
-import type BaseModalProps from '@components/Modal/types';
 import type PopoverProps from '@components/Popover/types';
+
 import type {AnchorDimensions, AnchorPosition} from '@styles/index';
 
 type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
@@ -20,9 +20,6 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
 
     /** Whether to skip re-measurement when becoming visible (for components with static dimensions) */
     shouldSkipRemeasurement?: boolean;
-
-    /** The modal type for modal when rendered in small screen */
-    smallScreenModalType?: BaseModalProps['type'];
 };
 
 export default PopoverWithMeasuredContentProps;

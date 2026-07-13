@@ -116,7 +116,8 @@ Use this guide to understand:
 | **Action** | **When It Appears** | **Who Can Use It** | **What It Does** |
 |------------|---------------------|---------------------|------------------|
 | **Hold** | Draft, Outstanding, or Approved reports | Submitter, approver, Workspace Admin | Prevents expenses from moving forward |
-| **Change workspace** | Before export | Submitter, approver, Workspace Admin | Moves the report to another workspace |
+| **Change workspace** | Draft reports | Submitter | Moves the report to another workspace |
+| **Change workspace** | Before export | Approver, Workspace Admin | Moves the report to another workspace |
 | **Change approver** | Submitted reports | Workspace Admin | Adds or bypasses approvers |
 | **Delete** | Draft reports only | Submitter | Permanently removes the report |
 | **Undelete** | Deleted expenses | Submitter | Restores a deleted expense |
@@ -126,13 +127,14 @@ Use this guide to understand:
 | **Duplicate expense** | Non-card expenses | Submitter | Creates a copy of an expense |
 | **Duplicate report** | Any report owned by submitter | Submitter | Creates a copy of the report |
 | **Download** | Any report | All roles | Downloads a PDF copy |
-| **Print** | Any report | All roles | Opens print view |
+| **Print** | Any report except Draft | All roles | Opens print view |
 | **Reject** | Submitted reports | Approver | Sends report back for changes |
 | **Invite member** | Draft and Outstanding reports | All roles | Adds a member to the report |
 | **View details** | Any report | All roles | Opens report details |
 | **Cancel payment** | Before payment processing | Payer | Cancels a pending payment |
 | **Hold** | On draft or submitted reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
-| **Change workspace** | Before report is exported | Submitter, Approver, Admin | Moves the report to a different workspace |
+| **Change workspace** | Draft reports | Submitter | Moves the report to a different workspace |
+| **Change workspace** | Before report is exported | Approver, Admin | Moves the report to a different workspace |
 | **Change approver** | On submitted reports, before the report is final-approved | Admin | "Add Approver" allows an extra approver to be inserted into the approval workflow at the current point. "Bypass Approver" allows an admin to take control of the report approval and final approve |
 | **Delete** | Only on draft/unsubmitted reports | Submitter | Permanently removes the report |
 | **Unapprove** | After approval, before payment | Approver | Reverts the approval if the report hasn’t been re-approved or paid |
@@ -141,7 +143,7 @@ Use this guide to understand:
 | **Duplicate expense** | On non-card expenses in any state | Submitter | Creates a copy of the expense on your primary workspace with the same details. Date is set to today and receipts are not copied |
 | **Duplicate report** | On reports the submitter owns, in any state | Submitter | Creates a copy of the report and its non-card expenses. Date is set to today and receipts are not copied |
 | **Download** | Any report state | All roles | Downloads a copy of the report as a PDF |
-| **Print** | Any report state | All roles | Opens the report in a printable format and triggers the browser's print dialog |
+| **Print** | Any report status except Draft | All roles | Opens the report in a printable format and triggers the browser's print dialog |
 | **Submit** | For draft reports | Submitter, Admin (on behalf of submitter) | Kicks off report approval workflow |
 | **Reject** | On Outstanding reports | Assigned approver | Returns the entire report to the submitter or a previous approver with a required reason. The report moves to Draft (if rejected to submitter) or stays Outstanding (if rejected to a previous approver) |
 | **Approve** | For outstanding reports | Admin | Skips current approver  |

@@ -1,10 +1,14 @@
 import {renderHook} from '@testing-library/react-native';
+
 import type {UseConfirmationValidationParams} from '@components/MoneyRequestConfirmationList/hooks/useConfirmationValidation';
 import useConfirmationValidation from '@components/MoneyRequestConfirmationList/hooks/useConfirmationValidation';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import createRandomPolicy from '../../utils/collections/policies';
 
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({
@@ -12,8 +16,64 @@ jest.mock('@hooks/useCurrencyList', () => ({
     }),
 }));
 
+const TRANSACTION_ID = 'txn1';
+const REPORT_ID = 'report1';
+
+const P2P_PARTICIPANT = {accountID: 2, isPolicyExpenseChat: false} as Participant;
+const POLICY_EXPENSE_CHAT_PARTICIPANT = {accountID: 0, isPolicyExpenseChat: true, policyID: 'policy1'} as Participant;
+const SELF_DM_PARTICIPANT = {accountID: 1, isPolicyExpenseChat: false, isSelfDM: true} as Participant;
+
+const IOU_TYPES_WITH_STANDARD_VALIDATION = [CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.CREATE, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.INVOICE] as const;
+
+type ValidationParamsOverrides = Omit<Partial<UseConfirmationValidationParams>, 'transaction'>;
+
+function createTransactionBase(overrides: Partial<OnyxTypes.Transaction> = {}): OnyxTypes.Transaction {
+    return {
+        transactionID: TRANSACTION_ID,
+        reportID: REPORT_ID,
+        amount: 0,
+        currency: 'USD',
+        merchant: 'Coffee Shop',
+        created: '2025-01-15',
+        comment: {},
+        ...overrides,
+    };
+}
+
+function createManualTransaction(participants: Participant[], overrides: Partial<OnyxTypes.Transaction> = {}): OnyxTypes.Transaction {
+    return createTransactionBase({
+        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+        participants,
+        ...overrides,
+    });
+}
+
+function createPolicyWithDateBoundDistanceRate(): OnyxTypes.Policy {
+    return {
+        ...createRandomPolicy(1),
+        id: 'policy1',
+        customUnits: {
+            unitId: {
+                customUnitID: 'unitId',
+                attributes: {unit: 'mi'},
+                enabled: true,
+                name: 'Distance',
+                rates: {
+                    rate1: {
+                        customUnitRateID: 'rate1',
+                        enabled: true,
+                        rate: 65.5,
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                },
+            },
+        },
+    };
+}
+
 const baseParams = {
-    transaction: {transactionID: 'txn1', comment: {}, amount: 100} as unknown as OnyxTypes.Transaction,
+    transaction: createTransactionBase({amount: 100, participants: [P2P_PARTICIPANT]}),
     transactionReport: undefined,
     transactionID: 'txn1',
     iouType: CONST.IOU.TYPE.SUBMIT,
@@ -26,7 +86,7 @@ const baseParams = {
     policyTags: undefined,
     policyTagLists: [],
     policyCategories: undefined,
-    selectedParticipants: [{accountID: 1}] as unknown as Participant[],
+    selectedParticipants: [P2P_PARTICIPANT],
     currentUserPersonalDetails: {accountID: 1} as CurrentUserPersonalDetails,
     isEditingSplitBill: false,
     isMerchantRequired: false,
@@ -40,7 +100,24 @@ const baseParams = {
     isTimeRequest: false,
     routeError: undefined,
     isNewManualExpenseFlowEnabled: false,
+    isReadOnly: false,
+    shouldShowDate: true,
 } satisfies UseConfirmationValidationParams;
+
+function createValidationParamsForParticipant(
+    participant: Participant,
+    overrides: ValidationParamsOverrides = {},
+    transactionOverrides: Partial<OnyxTypes.Transaction> = {},
+): UseConfirmationValidationParams {
+    const participants = transactionOverrides.participants ?? [participant];
+
+    return {
+        ...baseParams,
+        ...overrides,
+        selectedParticipants: overrides.selectedParticipants ?? participants,
+        transaction: createManualTransaction(participants, transactionOverrides),
+    };
+}
 
 describe('useConfirmationValidation', () => {
     it('returns null when routeError is set', () => {
@@ -69,6 +146,30 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidMerchant'});
     });
 
+    it('returns invalidMerchant when merchant is not required but was explicitly set to an invalid value', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isMerchantRequired: false,
+                isMerchantFieldValid: false,
+                transaction: {transactionID: 'txn1', comment: {}, amount: 100, isMerchantSet: true} as unknown as OnyxTypes.Transaction,
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidMerchant'});
+    });
+
+    it('returns null when merchant is not required and was not explicitly set', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isMerchantRequired: false,
+                isMerchantFieldValid: false,
+                transaction: {transactionID: 'txn1', comment: {}, amount: 100, isMerchantSet: false} as unknown as OnyxTypes.Transaction,
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: null});
+    });
+
     it('returns invalidCategoryLength when category exceeds max', () => {
         const longCategory = 'C'.repeat(CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH + 1);
         const {result} = renderHook(() => useConfirmationValidation({...baseParams, iouCategory: longCategory}));
@@ -91,7 +192,7 @@ describe('useConfirmationValidation', () => {
             useConfirmationValidation({
                 ...baseParams,
                 isPerDiemRequest: true,
-                transaction: {transactionID: 'txn1', amount: 100, comment: {customUnit: {subRates: []}}} as unknown as OnyxTypes.Transaction,
+                transaction: createTransactionBase({amount: 100, comment: {customUnit: {subRates: []}}}),
             }),
         );
         expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidSubrateLength'});
@@ -108,13 +209,30 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: 'iou.error.distanceAmountTooLarge'});
     });
 
+    it('does not block confirmation when the selected distance rate does not match the expense date', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isDistanceRequest: true,
+                policy: createPolicyWithDateBoundDistanceRate(),
+                transaction: createTransactionBase({
+                    amount: 1000,
+                    created: '2026-06-15',
+                    comment: {customUnit: {customUnitRateID: 'rate1'}},
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                }),
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: null});
+    });
+
     it('returns invalidAmount for split with zero amount when fields are filled', () => {
         const {result} = renderHook(() =>
             useConfirmationValidation({
                 ...baseParams,
                 isEditingSplitBill: true,
                 iouAmount: 0,
-                transaction: {transactionID: 'txn1', amount: 100, merchant: 'Coffee', comment: {}} as unknown as OnyxTypes.Transaction,
+                transaction: createTransactionBase({amount: 100, merchant: 'Coffee'}),
                 transactionReport: {type: CONST.REPORT.TYPE.IOU} as unknown as OnyxTypes.Report,
             }),
         );
@@ -126,6 +244,53 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: null});
     });
 
+    it('returns fieldRequired for manual expense when amount is not set in new manual expense flow with a policy expense chat participant', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation(
+                createValidationParamsForParticipant(
+                    POLICY_EXPENSE_CHAT_PARTICIPANT,
+                    {
+                        isNewManualExpenseFlowEnabled: true,
+                        iouAmount: 0,
+                    },
+                    {isAmountSet: false},
+                ),
+            ),
+        );
+        expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+    });
+
+    it('does not return fieldRequired for scan expense when amount is not set in new manual expense flow', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isNewManualExpenseFlowEnabled: true,
+                transaction: createTransactionBase({
+                    amount: 1000,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {source: 'https://example.com/receipt.jpg'},
+                }),
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: null});
+    });
+
+    it('does not return fieldRequired for per diem expense when amount is not set in new manual expense flow', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isNewManualExpenseFlowEnabled: true,
+                isPerDiemRequest: true,
+                transaction: createTransactionBase({
+                    amount: 5000,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                    comment: {customUnit: {subRates: [{id: 'rate1', name: 'Breakfast', quantity: 1, rate: 5000}]}},
+                }),
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: null});
+    });
+
     it('returns null for PAY type without payment method', () => {
         const {result} = renderHook(() => useConfirmationValidation({...baseParams, iouType: CONST.IOU.TYPE.PAY}));
         expect(result.current.validate()).toBeNull();
@@ -134,5 +299,547 @@ describe('useConfirmationValidation', () => {
     it('returns errorKey: null for PAY type with payment method', () => {
         const {result} = renderHook(() => useConfirmationValidation({...baseParams, iouType: CONST.IOU.TYPE.PAY}));
         expect(result.current.validate(CONST.IOU.PAYMENT_TYPE.ELSEWHERE)).toEqual({errorKey: null});
+    });
+
+    describe('amount validation — new manual expense flow (isAmountSet)', () => {
+        const newManualFlowParams = {
+            isNewManualExpenseFlowEnabled: true,
+            iouAmount: 0,
+        };
+
+        describe('policy expense chat participant (workspace submit/create)', () => {
+            it.each(IOU_TYPES_WITH_STANDARD_VALIDATION)('returns fieldRequired for unset manual amount when iouType is %s', (iouType) => {
+                const {result} = renderHook(() =>
+                    useConfirmationValidation(
+                        createValidationParamsForParticipant(
+                            POLICY_EXPENSE_CHAT_PARTICIPANT,
+                            {
+                                ...newManualFlowParams,
+                                iouType,
+                            },
+                            {isAmountSet: false},
+                        ),
+                    ),
+                );
+                expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+            });
+
+            it('returns fieldRequired for PAY with unset manual amount before payment method is checked', () => {
+                const {result} = renderHook(() =>
+                    useConfirmationValidation(
+                        createValidationParamsForParticipant(
+                            POLICY_EXPENSE_CHAT_PARTICIPANT,
+                            {
+                                ...newManualFlowParams,
+                                iouType: CONST.IOU.TYPE.PAY,
+                            },
+                            {isAmountSet: false},
+                        ),
+                    ),
+                );
+                expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+                expect(result.current.validate(CONST.IOU.PAYMENT_TYPE.ELSEWHERE)).toEqual({errorKey: 'common.error.fieldRequired'});
+            });
+
+            it('returns errorKey: null when manual amount is explicitly set to zero for submit', () => {
+                const {result} = renderHook(() =>
+                    useConfirmationValidation(
+                        createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, iouType: CONST.IOU.TYPE.SUBMIT}, {amount: 0, isAmountSet: true}),
+                    ),
+                );
+                expect(result.current.validate()).toEqual({errorKey: null});
+            });
+
+            it('returns invalidAmount when manual amount is explicitly set to zero for invoice', () => {
+                const {result} = renderHook(() =>
+                    useConfirmationValidation(
+                        createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, iouType: CONST.IOU.TYPE.INVOICE}, {amount: 0, isAmountSet: true}),
+                    ),
+                );
+                expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+            });
+        });
+
+        describe('P2P participant', () => {
+            it.each([CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.CREATE, CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.SPLIT])(
+                'returns invalidAmount (not fieldRequired) for unset manual amount when iouType is %s',
+                (iouType) => {
+                    const {result} = renderHook(() =>
+                        useConfirmationValidation(
+                            createValidationParamsForParticipant(
+                                P2P_PARTICIPANT,
+                                {
+                                    ...newManualFlowParams,
+                                    iouType,
+                                },
+                                {isAmountSet: false},
+                            ),
+                        ),
+                    );
+                    expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+                },
+            );
+
+            it('returns errorKey: null when manual amount is explicitly set to a positive value', () => {
+                const {result} = renderHook(() =>
+                    useConfirmationValidation(
+                        createValidationParamsForParticipant(
+                            P2P_PARTICIPANT,
+                            {
+                                ...newManualFlowParams,
+                                iouAmount: 2500,
+                            },
+                            {amount: 2500, isAmountSet: true},
+                        ),
+                    ),
+                );
+                expect(result.current.validate()).toEqual({errorKey: null});
+            });
+
+            it('returns invalidAmount when manual amount is explicitly set to zero', () => {
+                const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(P2P_PARTICIPANT, newManualFlowParams, {amount: 0, isAmountSet: true})));
+                expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+            });
+
+            it('returns invalidAmount when manual amount is explicitly set to zero for invoice', () => {
+                const {result} = renderHook(() =>
+                    useConfirmationValidation(
+                        createValidationParamsForParticipant(P2P_PARTICIPANT, {...newManualFlowParams, iouType: CONST.IOU.TYPE.INVOICE}, {amount: 0, isAmountSet: true}),
+                    ),
+                );
+                expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+            });
+        });
+
+        describe('self-DM participant', () => {
+            it('returns fieldRequired for unset manual amount', () => {
+                const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(SELF_DM_PARTICIPANT, newManualFlowParams, {isAmountSet: false})));
+                expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+            });
+
+            it('returns errorKey: null when manual amount is explicitly set to zero', () => {
+                const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(SELF_DM_PARTICIPANT, newManualFlowParams, {amount: 0, isAmountSet: true})));
+                expect(result.current.validate()).toEqual({errorKey: null});
+            });
+        });
+
+        it('does not return fieldRequired when the new manual expense flow beta is disabled', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createValidationParamsForParticipant(
+                        P2P_PARTICIPANT,
+                        {
+                            isNewManualExpenseFlowEnabled: false,
+                            iouAmount: 0,
+                        },
+                        {isAmountSet: false},
+                    ),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+        });
+    });
+
+    describe('amount validation — P2P zero amount guard', () => {
+        it('returns invalidAmount for P2P manual submit with zero amount when flow is disabled', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(P2P_PARTICIPANT, {iouAmount: 0}, {amount: 0, isAmountSet: true})));
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+        });
+
+        it('returns errorKey: null for policy expense chat participant with zero amount', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {iouAmount: 0}, {amount: 0, isAmountSet: true})),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('returns errorKey: null for P2P scan request with zero amount', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    iouAmount: 0,
+                    transaction: createTransactionBase({
+                        amount: 0,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        receipt: {source: 'https://example.com/receipt.jpg'},
+                        participants: [P2P_PARTICIPANT],
+                    }),
+                    selectedParticipants: [P2P_PARTICIPANT],
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('returns errorKey: null for P2P distance request with zero amount', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    iouAmount: 0,
+                    isDistanceRequest: true,
+                    transaction: createTransactionBase({
+                        amount: 0,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        participants: [P2P_PARTICIPANT],
+                        comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT},
+                    }),
+                    selectedParticipants: [P2P_PARTICIPANT],
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('returns errorKey: null for P2P time request with zero amount', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    iouAmount: 0,
+                    isTimeRequest: true,
+                    transaction: createTransactionBase({
+                        amount: 0,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
+                        participants: [P2P_PARTICIPANT],
+                        comment: {type: CONST.TRANSACTION.TYPE.TIME, units: {count: 1, rate: 0}},
+                    }),
+                    selectedParticipants: [P2P_PARTICIPANT],
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+    });
+
+    describe('amount validation — programmatic request types (scan, distance, time, per diem)', () => {
+        const newManualFlowParams = {
+            ...baseParams,
+            isNewManualExpenseFlowEnabled: true,
+        };
+
+        it('does not return fieldRequired for scan expense when amount is not set', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...newManualFlowParams,
+                    transaction: createTransactionBase({
+                        amount: 1000,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        receipt: {source: 'https://example.com/receipt.jpg'},
+                        participants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                    }),
+                    selectedParticipants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not return fieldRequired for distance expense when amount is not set', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...newManualFlowParams,
+                    iouAmount: 5000,
+                    isDistanceRequest: true,
+                    transaction: createTransactionBase({
+                        amount: 5000,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        participants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                        comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT},
+                    }),
+                    selectedParticipants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not return fieldRequired for time expense when amount is not set', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...newManualFlowParams,
+                    iouAmount: 3600,
+                    isTimeRequest: true,
+                    transaction: createTransactionBase({
+                        amount: 3600,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
+                        participants: [P2P_PARTICIPANT],
+                        comment: {type: CONST.TRANSACTION.TYPE.TIME, units: {count: 1, rate: 3600}},
+                    }),
+                    selectedParticipants: [P2P_PARTICIPANT],
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not return fieldRequired for per diem expense when amount is not set', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...newManualFlowParams,
+                    isPerDiemRequest: true,
+                    transaction: createTransactionBase({
+                        amount: 5000,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        participants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                        comment: {customUnit: {subRates: [{id: 'rate1', name: 'Breakfast', quantity: 1, rate: 5000}]}},
+                    }),
+                    selectedParticipants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('returns invalidAmount when distance amount exceeds validateAmount max length', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    isDistanceRequest: true,
+                    iouAmount: 123456789012345,
+                    transaction: createTransactionBase({
+                        amount: 123456789012345,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        participants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                        comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT},
+                    }),
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+        });
+
+        it('returns errorKey: null for distance request below max safe amount when route is pending', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    isDistanceRequest: true,
+                    isDistanceRequestWithPendingRoute: true,
+                    iouAmount: CONST.IOU.MAX_SAFE_AMOUNT,
+                    transaction: createTransactionBase({
+                        amount: CONST.IOU.MAX_SAFE_AMOUNT,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        participants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                        comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT},
+                    }),
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('returns amountTooLargeError for time expense with an invalid amount', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    isTimeRequest: true,
+                    iouAmount: CONST.IOU.MAX_SAFE_AMOUNT + 1,
+                    transaction: createTransactionBase({
+                        amount: CONST.IOU.MAX_SAFE_AMOUNT + 1,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
+                        participants: [P2P_PARTICIPANT],
+                        comment: {type: CONST.TRANSACTION.TYPE.TIME, units: {count: 1, rate: CONST.IOU.MAX_SAFE_AMOUNT + 1}},
+                    }),
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'iou.timeTracking.amountTooLargeError'});
+        });
+
+        it('returns invalidQuantity for per diem expense with an invalid computed amount', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    isPerDiemRequest: true,
+                    transaction: createTransactionBase({
+                        amount: 0,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        participants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                        comment: {
+                            customUnit: {
+                                subRates: [{id: 'rate1', name: 'Breakfast', quantity: 100000, rate: 12345678}],
+                            },
+                        },
+                    }),
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidQuantity'});
+        });
+    });
+
+    describe('amount validation — split bill editing', () => {
+        it('returns invalidAmount when editing a split bill with zero amount and required fields otherwise filled', () => {
+            const splitParticipants = [P2P_PARTICIPANT, {accountID: 3, isPolicyExpenseChat: false} as Participant];
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    isEditingSplitBill: true,
+                    iouAmount: 0,
+                    selectedParticipants: splitParticipants,
+                    transaction: createTransactionBase({
+                        amount: 100,
+                        merchant: 'Coffee',
+                        participants: splitParticipants,
+                    }),
+                    transactionReport: {type: CONST.REPORT.TYPE.IOU} as unknown as OnyxTypes.Report,
+                }),
+            );
+            // P2P zero-amount guard runs before the split-bill-specific invalidAmount check.
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+        });
+
+        it('returns invalidAmount for split IOU type with unset manual amount and P2P participants', () => {
+            const splitParticipants = [P2P_PARTICIPANT, {accountID: 3, isPolicyExpenseChat: false} as Participant];
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createValidationParamsForParticipant(
+                        P2P_PARTICIPANT,
+                        {
+                            iouType: CONST.IOU.TYPE.SPLIT,
+                            isNewManualExpenseFlowEnabled: true,
+                            iouAmount: 0,
+                            selectedParticipants: splitParticipants,
+                        },
+                        {isAmountSet: false, participants: splitParticipants},
+                    ),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+        });
+
+        it('returns fieldRequired for split IOU type with unset manual amount and a policy expense chat participant', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createValidationParamsForParticipant(
+                        POLICY_EXPENSE_CHAT_PARTICIPANT,
+                        {
+                            iouType: CONST.IOU.TYPE.SPLIT,
+                            isNewManualExpenseFlowEnabled: true,
+                            iouAmount: 0,
+                        },
+                        {isAmountSet: false},
+                    ),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('returns invalidAmount for split IOU type with zero amount and isAmountSet true', () => {
+            const splitParticipants = [POLICY_EXPENSE_CHAT_PARTICIPANT, {accountID: 3, isPolicyExpenseChat: false} as Participant];
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createValidationParamsForParticipant(
+                        POLICY_EXPENSE_CHAT_PARTICIPANT,
+                        {
+                            iouType: CONST.IOU.TYPE.SPLIT,
+                            isNewManualExpenseFlowEnabled: true,
+                            iouAmount: 0,
+                            selectedParticipants: splitParticipants,
+                        },
+                        {amount: 0, isAmountSet: true, participants: splitParticipants},
+                    ),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+        });
+
+        it('returns iou.error.invalidAmount when editing split bill with zero amount and isAmountSet true', () => {
+            const splitParticipants = [POLICY_EXPENSE_CHAT_PARTICIPANT, {accountID: 3, isPolicyExpenseChat: false} as Participant];
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    isEditingSplitBill: true,
+                    iouAmount: 0,
+                    selectedParticipants: splitParticipants,
+                    transaction: createTransactionBase({
+                        amount: 100,
+                        isAmountSet: true,
+                        merchant: 'Coffee',
+                        participants: splitParticipants,
+                    }),
+                    transactionReport: {type: CONST.REPORT.TYPE.IOU} as unknown as OnyxTypes.Report,
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidAmount'});
+        });
+    });
+
+    describe('date validation — inline required date in new manual expense flow', () => {
+        const newManualFlowParams = {
+            ...baseParams,
+            isNewManualExpenseFlowEnabled: true,
+        };
+
+        it('returns fieldRequired for manual expense when the date is removed', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, newManualFlowParams, {created: '', isAmountSet: true})),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('returns fieldRequired for distance expense when the date is removed', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...newManualFlowParams,
+                    isDistanceRequest: true,
+                    transaction: createTransactionBase({
+                        amount: 1000,
+                        created: '',
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        participants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                        comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT},
+                    }),
+                    selectedParticipants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('returns fieldRequired for time expense when the date is removed', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...newManualFlowParams,
+                    isTimeRequest: true,
+                    transaction: createTransactionBase({
+                        amount: 1000,
+                        created: '',
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
+                        participants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                        comment: {type: CONST.TRANSACTION.TYPE.TIME, units: {count: 1, rate: 100}},
+                    }),
+                    selectedParticipants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('returns fieldRequired for invoice when the date is removed', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, iouType: CONST.IOU.TYPE.INVOICE}, {created: '', isAmountSet: true}),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('does not return fieldRequired when the date is present', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, newManualFlowParams, {created: '2025-01-15', isAmountSet: true})),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not return fieldRequired when the fields are read-only (date populated server-side)', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, isReadOnly: true}, {created: '', isAmountSet: true}),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not return fieldRequired when the date field is not shown (pure scan flow)', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, shouldShowDate: false}, {created: '', isAmountSet: true}),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not return fieldRequired when the new manual expense flow beta is disabled', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {isNewManualExpenseFlowEnabled: false}, {created: '', isAmountSet: true})),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
     });
 });

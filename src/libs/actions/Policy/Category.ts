@@ -1,9 +1,8 @@
-import lodashCloneDeep from 'lodash/cloneDeep';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {PartialDeep} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type PolicyData from '@hooks/usePolicyData/types';
+
+import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
     EnablePolicyCategoriesParams,
@@ -22,7 +21,7 @@ import type {
     SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import * as CategoryUtils from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -33,14 +32,23 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
-import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
+import {pushTransactionAutoSelectionsOnyxData, pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
+
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyCategory, Report, ReportAction} from '@src/types/onyx';
+import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {PartialDeep} from 'type-fest';
+
+import lodashCloneDeep from 'lodash/cloneDeep';
+import Onyx from 'react-native-onyx';
 
 type CreatePolicyCategoryParams = {
     policyID: string;
@@ -78,7 +86,12 @@ type SetWorkspaceCategoryEnabledParams = {
 
 function appendSetupCategoriesOnboardingData(
     onyxData: OnyxData<
-        typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+        | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
+        | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT
+        | typeof ONYXKEYS.COLLECTION.REPORT
+        | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+        | typeof ONYXKEYS.COLLECTION.TRANSACTION
+        | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
     >,
     setupCategoryTaskReport: OnyxEntry<Report>,
     setupCategoryTaskParentReport: OnyxEntry<Report>,
@@ -222,75 +235,21 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
     return onyxData;
 }
 
+type DefaultMccGroupID = keyof typeof CONST.POLICY.DEFAULT_MCC_GROUPS;
+
+const DEFAULT_MCC_GROUP: Record<string, MccGroup> = Object.fromEntries(
+    Object.entries(CONST.POLICY.DEFAULT_MCC_GROUPS).map(([groupID, definition]) => [
+        groupID,
+        {
+            ...definition,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        },
+    ]),
+);
+
 function buildOptimisticMccGroup() {
     const optimisticMccGroup: Record<'mccGroup', Record<string, MccGroup>> = {
-        mccGroup: {
-            airlines: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
-                groupID: 'airlines',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            commuter: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.CAR,
-                groupID: 'commuter',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            gas: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.CAR,
-                groupID: 'gas',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            goods: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.MATERIALS,
-                groupID: 'goods',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            groceries: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.MEALS_AND_ENTERTAINMENT,
-                groupID: 'groceries',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            hotel: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
-                groupID: 'hotel',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            mail: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.OFFICE_SUPPLIES,
-                groupID: 'mail',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            meals: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.MEALS_AND_ENTERTAINMENT,
-                groupID: 'meals',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            rental: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
-                groupID: 'rental',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            services: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.PROFESSIONAL_SERVICES,
-                groupID: 'services',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            taxi: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
-                groupID: 'taxi',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            uncategorized: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.OTHER,
-                groupID: 'uncategorized',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            utilities: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.UTILITIES,
-                groupID: 'utilities',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-        },
+        mccGroup: Object.fromEntries(Object.entries(DEFAULT_MCC_GROUP).map(([groupID, group]) => [groupID, {...group}])),
     };
 
     const successMccGroup: Record<'mccGroup', Record<string, Partial<MccGroup>>> = {mccGroup: {}};
@@ -307,41 +266,19 @@ function buildOptimisticMccGroup() {
     return mccGroupData;
 }
 
-function updateImportSpreadsheetData({added, updated}: {added: number; updated: number}) {
-    const onyxData: OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        titleKey: 'spreadsheet.importSuccessfulTitle',
-                        promptKey: 'spreadsheet.importCategoriesSuccessfulDescription',
-                        promptKeyParams: {
-                            added,
-                            updated,
-                        },
-                    },
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        titleKey: 'spreadsheet.importFailedTitle',
-                        promptKey: 'spreadsheet.importFailedDescription',
-                    },
-                },
-            },
-        ],
-    };
+function isDefaultMccGroupID(groupID: string): groupID is DefaultMccGroupID {
+    return Object.hasOwn(CONST.POLICY.DEFAULT_MCC_GROUPS, groupID);
+}
 
-    return onyxData;
+function getImportCategoriesFinalModal({added, updated}: {added: number; updated: number}): ImportFinalModal {
+    return {
+        titleKey: 'spreadsheet.importSuccessfulTitle',
+        promptKey: 'spreadsheet.importCategoriesSuccessfulDescription',
+        promptKeyParams: {
+            added,
+            updated,
+        },
+    };
 }
 
 function openPolicyCategoriesPage(policyID: string) {
@@ -451,7 +388,9 @@ function setWorkspaceCategoryEnabled({
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+    const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData, {}, autoSelections);
     appendSetupCategoriesOnboardingData(
         onyxData,
         setupCategoryTaskReport,
@@ -485,6 +424,22 @@ function setWorkspaceCategoryEnabled({
 function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: string, areCommentsRequired: boolean, policyCategories: PolicyCategories = {}) {
     const policyCategoryToUpdate = policyCategories?.[categoryName];
     const originalAreCommentsRequired = policyCategoryToUpdate?.areCommentsRequired;
+    const isRemoving = !areCommentsRequired;
+    const optimisticCategoryData = isRemoving
+        ? {
+              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+              pendingFields: {
+                  areCommentsRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+              },
+              areCommentsRequired: originalAreCommentsRequired,
+          }
+        : {
+              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+              pendingFields: {
+                  areCommentsRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+              },
+              areCommentsRequired,
+          };
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
         optimisticData: [
@@ -492,13 +447,7 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
-                    [categoryName]: {
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        pendingFields: {
-                            areCommentsRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                        areCommentsRequired,
-                    },
+                    [categoryName]: optimisticCategoryData,
                 },
             },
         ],
@@ -616,9 +565,9 @@ function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryNa
         [categoryName]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             pendingFields: {
-                maxAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                maxAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             },
-            maxAmountNoReceipt: null,
+            maxAmountNoReceipt: originalMaxAmountNoReceipt,
         },
     };
 
@@ -745,9 +694,9 @@ function removePolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, ca
         [categoryName]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             pendingFields: {
-                maxAmountNoItemizedReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                maxAmountNoItemizedReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             },
-            maxAmountNoItemizedReceipt: null,
+            maxAmountNoItemizedReceipt: originalMaxAmountNoItemizedReceipt,
         },
     };
 
@@ -921,7 +870,7 @@ function createPolicyCategory({
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
 }
 
-function importPolicyCategories(policyID: string, categories: PolicyCategory[], existingCategories?: OnyxEntry<PolicyCategories>) {
+async function importPolicyCategories(policyID: string, categories: PolicyCategory[], existingCategories?: OnyxEntry<PolicyCategories>): Promise<ImportFinalModal> {
     const policyCategories = existingCategories ?? {};
     const seenNames = new Set<string>();
 
@@ -950,7 +899,7 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[], 
         {added: 0, updated: 0},
     );
 
-    const onyxData = updateImportSpreadsheetData({added, updated});
+    const importFinalModal = getImportCategoriesFinalModal({added, updated});
 
     const parameters = {
         policyID,
@@ -966,7 +915,15 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[], 
         ),
     };
 
-    API.write(WRITE_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET, parameters, onyxData);
+    try {
+        // We need the server result immediately so the initiating page can show the final confirmation modal
+        // without storing transient modal state in Onyx.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET, parameters);
+        return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();
+    } catch {
+        return getImportFailedFinalModal();
+    }
 }
 
 function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: string; newName: string}) {
@@ -1360,7 +1317,7 @@ function deleteWorkspaceCategories(
           }
         : {};
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1394,7 +1351,9 @@ function deleteWorkspaceCategories(
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, optimisticPolicyData, optimisticPolicyCategoriesData);
+    const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, optimisticPolicyData, optimisticPolicyCategoriesData);
+
+    pushTransactionViolationsOnyxData(onyxData, policyData, optimisticPolicyData, optimisticPolicyCategoriesData, {}, autoSelections);
     appendSetupCategoriesOnboardingData(
         onyxData,
         setupCategoryTaskReport,
@@ -1481,7 +1440,9 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, policyUpdate, policyCategoriesUpdate);
+    const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, policyUpdate, policyCategoriesUpdate);
+
+    pushTransactionViolationsOnyxData(onyxData, policyData, policyUpdate, policyCategoriesUpdate, {}, autoSelections);
 
     const parameters: EnablePolicyCategoriesParams = {policyID, enabled};
 
@@ -1643,6 +1604,26 @@ function setPolicyCategoryMaxAmount(
     const originalMaxExpenseAmount = policyCategoryToUpdate?.maxExpenseAmount;
     const originalExpenseLimitType = policyCategoryToUpdate?.expenseLimitType;
     const parsedMaxExpenseAmount = maxExpenseAmount === '' ? null : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmount));
+    const isRemoving = maxExpenseAmount === '';
+    const optimisticCategoryData = isRemoving
+        ? {
+              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+              pendingFields: {
+                  maxExpenseAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                  expenseLimitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+              },
+              maxExpenseAmount: originalMaxExpenseAmount,
+              expenseLimitType: originalExpenseLimitType,
+          }
+        : {
+              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+              pendingFields: {
+                  maxExpenseAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                  expenseLimitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+              },
+              maxExpenseAmount: parsedMaxExpenseAmount,
+              expenseLimitType,
+          };
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
         optimisticData: [
@@ -1650,15 +1631,7 @@ function setPolicyCategoryMaxAmount(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
-                    [categoryName]: {
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        pendingFields: {
-                            maxExpenseAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            expenseLimitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                        maxExpenseAmount: parsedMaxExpenseAmount,
-                        expenseLimitType,
-                    },
+                    [categoryName]: optimisticCategoryData,
                 },
             },
         ],
@@ -1843,6 +1816,22 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
 function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: string, areAttendeesRequired: boolean, policyCategories: PolicyCategories = {}) {
     const policyCategoryToUpdate = policyCategories?.[categoryName];
     const originalAreAttendeesRequired = policyCategoryToUpdate?.areAttendeesRequired;
+    const isRemoving = !areAttendeesRequired;
+    const optimisticCategoryData = isRemoving
+        ? {
+              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+              pendingFields: {
+                  areAttendeesRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+              },
+              areAttendeesRequired: originalAreAttendeesRequired,
+          }
+        : {
+              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+              pendingFields: {
+                  areAttendeesRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+              },
+              areAttendeesRequired,
+          };
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
         optimisticData: [
@@ -1850,13 +1839,7 @@ function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
-                    [categoryName]: {
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        pendingFields: {
-                            areAttendeesRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                        areAttendeesRequired,
-                    },
+                    [categoryName]: optimisticCategoryData,
                 },
             },
         ],
@@ -1905,6 +1888,8 @@ function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: stri
 export {
     buildOptimisticPolicyCategories,
     buildOptimisticMccGroup,
+    DEFAULT_MCC_GROUP,
+    isDefaultMccGroupID,
     clearCategoryErrors,
     createPolicyCategory,
     deleteWorkspaceCategories,

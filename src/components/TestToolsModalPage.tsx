@@ -1,8 +1,10 @@
-import React from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollView from './ScrollView';

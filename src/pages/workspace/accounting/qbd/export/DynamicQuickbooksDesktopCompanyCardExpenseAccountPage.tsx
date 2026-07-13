@@ -1,25 +1,32 @@
-import React, {useMemo} from 'react';
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateQuickbooksDesktopShouldAutoCreateVendor} from '@libs/actions/connections/QuickbooksDesktop';
 import {getQBDNonReimbursableExportAccountType} from '@libs/ConnectionUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {getQBDReimbursableAccounts} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React, {useMemo} from 'react';
 
 function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -33,9 +40,7 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPol
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.path);
     const accountName = useMemo(() => {
         const qbdReimbursableAccounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable);
-        // We use the logical OR (||) here instead of ?? because `nonReimbursableAccount` can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return qbdReimbursableAccounts.find(({id}) => nonReimbursableAccount === id)?.name || qbdReimbursableAccounts.at(0)?.name;
+        return qbdReimbursableAccounts.find(({id}) => nonReimbursableAccount === id)?.name;
     }, [policy?.connections?.quickbooksDesktop, nonReimbursable, nonReimbursableAccount]);
 
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!qbdConfig?.shouldAutoCreateVendor);

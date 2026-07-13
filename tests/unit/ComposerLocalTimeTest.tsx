@@ -1,13 +1,19 @@
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import ComposerLocalTime from '@pages/inbox/report/ReportActionCompose/ComposerLocalTime';
+import ComposerProvider from '@pages/inbox/report/ReportActionCompose/ComposerProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -37,8 +43,12 @@ function buildReport(participantAccountIDs: number[]): Report {
     } as Report;
 }
 
-function renderWithProviders(component: React.ReactElement) {
-    return render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{component}</ComposeProviders>);
+function renderWithProviders(component: React.ReactElement, reportID: string) {
+    return render(
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+            <ComposerProvider reportID={reportID}>{component}</ComposerProvider>
+        </ComposeProviders>,
+    );
 }
 
 describe('ComposerLocalTime', () => {
@@ -67,12 +77,37 @@ describe('ComposerLocalTime', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
         await waitForBatchedUpdates();
 
-        renderWithProviders(<ComposerLocalTime reportID={REPORT_ID} />);
+        renderWithProviders(<ComposerLocalTime />, REPORT_ID);
 
         await waitForBatchedUpdates();
 
         // ParticipantLocalTime renders a text with the participant's name and local time
         expect(screen.getByText(/Normal/)).toBeTruthy();
+    });
+
+    it('returns null when the composer is full size', async () => {
+        const report = buildReport([CURRENT_USER_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID]);
+        const personalDetails: PersonalDetailsList = {
+            [RECIPIENT_ACCOUNT_ID]: {
+                accountID: RECIPIENT_ACCOUNT_ID,
+                login: 'normaluser@expensify.com',
+                displayName: 'Normal User',
+                firstName: 'Normal',
+                validated: true,
+                timezone: {automatic: true, selected: 'America/New_York'},
+            },
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${REPORT_ID}`, true);
+        await waitForBatchedUpdates();
+
+        const {toJSON} = renderWithProviders(<ComposerLocalTime />, REPORT_ID);
+
+        await waitForBatchedUpdates();
+
+        expect(toJSON()).toBeNull();
     });
 
     it('returns null for an agent participant', async () => {
@@ -92,7 +127,7 @@ describe('ComposerLocalTime', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
         await waitForBatchedUpdates();
 
-        const {toJSON} = renderWithProviders(<ComposerLocalTime reportID={REPORT_ID} />);
+        const {toJSON} = renderWithProviders(<ComposerLocalTime />, REPORT_ID);
 
         await waitForBatchedUpdates();
 

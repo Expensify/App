@@ -1,8 +1,6 @@
-import {deepEqual} from 'fast-equals';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams, MergeTransactionParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -28,15 +26,23 @@ import {
     isMoneyRequestReportEligibleForMerge,
     isReportManager,
 } from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
+
+import {deepEqual} from 'fast-equals';
+import Onyx from 'react-native-onyx';
+
+import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU/UpdateMoneyRequest';
+
 import {getPolicyTagsData} from './IOU';
 import {getCleanUpTransactionThreadReportOnyxData} from './IOU/DeleteMoneyRequest';
 import {getDeleteTrackExpenseInformation} from './IOU/TrackExpense';
-import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU/UpdateMoneyRequest';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU/UpdateMoneyRequest';
 
 /**
@@ -313,7 +319,7 @@ function getOnyxTargetTransactionData({
                     ...(mergeTransaction.odometerEndImage !== undefined && {odometerEndImage: mergeTransaction.odometerEndImage}),
                 },
                 routes: mergeTransaction.routes ?? null,
-                iouRequestType: mergeTransaction.iouRequestType ?? null,
+                iouRequestType: mergeTransaction.iouRequestType ?? targetTransaction.iouRequestType ?? null,
             },
         });
     }
@@ -627,6 +633,8 @@ function mergeTransactionRequest({
             participants: [],
             transactionID: mergeTransaction.targetTransactionID,
             iouReportID: mergeTransaction.reportID,
+            // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            delegateAccountIDParam: undefined,
         });
 
         // IOU action for the surviving expense on its original report (not on mergeTransaction.reportID yet).

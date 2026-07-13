@@ -1,11 +1,16 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import {buildCopyPolicySettingsData} from '@src/libs/actions/Policy/CopyPolicySettings';
 import type {Part} from '@src/libs/actions/Policy/CopyPolicySettings';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
+import type CopyPolicySettings from '@src/types/onyx/CopyPolicySettings';
 import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 
 const SOURCE_POLICY_ID = 'SOURCE000000000A';
@@ -97,18 +102,49 @@ function makeTargetPolicy(overrides: Partial<Policy> = {}): Policy {
     };
 }
 
-function findPolicyOptimistic(updates: ReturnType<typeof buildCopyPolicySettingsData>['optimisticData']) {
-    return updates.find((u) => u.key === POLICY_KEY && u.onyxMethod === Onyx.METHOD.SET);
+type CopyPolicySettingsOnyxData = ReturnType<typeof buildCopyPolicySettingsData>;
+
+function getPolicyFromSetUpdate(update: CopyPolicySettingsOnyxData['optimisticData'][number] | undefined, policyKey: string = POLICY_KEY): Policy | undefined {
+    if (!update || update.key !== policyKey || update.onyxMethod !== Onyx.METHOD.SET || !('value' in update)) {
+        return undefined;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- SET value is a full Policy snapshot
+    return update.value as Policy;
 }
 
-function findPolicyFailure(updates: ReturnType<typeof buildCopyPolicySettingsData>['failureData']) {
-    return updates.find((u) => u.key === POLICY_KEY && u.onyxMethod === Onyx.METHOD.SET);
+function getOptimisticPolicy(updates: CopyPolicySettingsOnyxData['optimisticData'], policyKey: string = POLICY_KEY): Policy | undefined {
+    const update = updates.find((entry) => entry.key === policyKey && entry.onyxMethod === Onyx.METHOD.SET);
+    return getPolicyFromSetUpdate(update, policyKey);
+}
+
+function getFailurePolicy(updates: CopyPolicySettingsOnyxData['failureData'], policyKey: string = POLICY_KEY): Policy | undefined {
+    const update = updates.find((entry) => entry.key === policyKey && entry.onyxMethod === Onyx.METHOD.SET);
+    return getPolicyFromSetUpdate(update, policyKey);
+}
+
+function getMergedPolicyPatch(update: CopyPolicySettingsOnyxData['successData'][number] | CopyPolicySettingsOnyxData['failureData'][number] | undefined): Partial<Policy> | undefined {
+    if (!update || update.onyxMethod !== Onyx.METHOD.MERGE || !('value' in update)) {
+        return undefined;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- MERGE value is a partial Policy patch
+    return update.value as Partial<Policy>;
+}
+
+function getCopyPolicySettingsStep(update: {value?: unknown} | undefined): Pick<CopyPolicySettings, 'currentStep'> | undefined {
+    if (!update || !('value' in update)) {
+        return undefined;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- value is the COPY_POLICY_SETTINGS lifecycle step
+    return update.value as Pick<CopyPolicySettings, 'currentStep'>;
 }
 
 describe('actions/Policy/CopyPolicySettings', () => {
     describe('buildCopyPolicySettingsData', () => {
         describe('per-part field patches and pendingFields', () => {
-            it.each<[Part, readonly string[]]>([
+            it.each<[Part, ReadonlyArray<keyof Policy>]>([
                 ['overview', ['outputCurrency', 'address', 'description']],
                 ['members', ['employeeList']],
                 ['reports', ['fieldList', 'areReportFieldsEnabled']],
@@ -137,23 +173,21 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 ['distanceRates', ['areDistanceRatesEnabled']],
                 ['perDiem', ['arePerDiemRatesEnabled']],
                 ['invoices', ['areInvoicesEnabled', 'invoice']],
-                ['travel', ['isTravelEnabled', 'travelSettings']],
+                ['travel', ['isTravelEnabled']],
             ])('marks %s fields pending and patches values from source', (part, expectedFields) => {
                 const sourcePolicy = makeSourcePolicy();
                 const targetPolicy = makeTargetPolicy();
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], [part], {}, {});
 
-                const merge = findPolicyOptimistic(optimisticData);
-                expect(merge).toBeDefined();
-                const value = merge?.value as Record<string, unknown> & {pendingFields?: Record<string, string>};
+                const policy = getOptimisticPolicy(optimisticData);
+                expect(policy).toBeDefined();
 
                 // Each expected field should be patched from the source policy and marked pending.
                 for (const field of expectedFields) {
-                    expect(value).toHaveProperty(field);
-                    expect(value[field]).toEqual(sourcePolicy[field as keyof Policy]);
-                    expect(value.pendingFields?.[field]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                    expect(policy?.[field]).toEqual(sourcePolicy[field]);
                 }
+                expect(policy?.pendingFields).toEqual(expect.objectContaining(Object.fromEntries(expectedFields.map((field) => [field, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]))));
             });
 
             it('retains target values for unrelated fields', () => {
@@ -161,10 +195,90 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const targetPolicy = makeTargetPolicy();
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['overview'], {}, {});
-                const value = findPolicyOptimistic(optimisticData)?.value as Record<string, unknown>;
+                const policy = getOptimisticPolicy(optimisticData);
 
-                expect(value.areCategoriesEnabled).toEqual(targetPolicy.areCategoriesEnabled);
-                expect(value.employeeList).toEqual(targetPolicy.employeeList);
+                expect(policy?.areCategoriesEnabled).toEqual(targetPolicy.areCategoriesEnabled);
+                expect(policy?.employeeList).toEqual(targetPolicy.employeeList);
+            });
+
+            it('copies only autoAddTripName from travelSettings, never the Spotnana identity fields or terms acceptance', () => {
+                const sourcePolicy = makeSourcePolicy({
+                    travelSettings: {
+                        spotnanaCompanyID: 'SOURCE_COMPANY',
+                        associatedTravelDomainAccountID: 'SOURCE_DOMAIN_ACCOUNT',
+                        hasAcceptedTerms: true,
+                        autoAddTripName: true,
+                    },
+                });
+                const targetPolicy = makeTargetPolicy({
+                    travelSettings: {
+                        spotnanaCompanyID: 'TARGET_COMPANY',
+                        associatedTravelDomainAccountID: 'TARGET_DOMAIN_ACCOUNT',
+                        hasAcceptedTerms: false,
+                        autoAddTripName: false,
+                    },
+                });
+
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['travel'], {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // The travel toggle copies.
+                expect(policy?.isTravelEnabled).toBe(true);
+
+                // The non-identity preference copies from the source.
+                expect(policy?.travelSettings?.autoAddTripName).toBe(true);
+
+                // Identity fields and terms acceptance keep the target's own values - the backend
+                // re-provisions each target with its own Spotnana entity.
+                expect(policy?.travelSettings?.spotnanaCompanyID).toBe('TARGET_COMPANY');
+                expect(policy?.travelSettings?.associatedTravelDomainAccountID).toBe('TARGET_DOMAIN_ACCOUNT');
+                expect(policy?.travelSettings?.hasAcceptedTerms).toBe(false);
+            });
+
+            it('leaves target travelSettings untouched when the source has no autoAddTripName preference', () => {
+                const sourcePolicy = makeSourcePolicy({
+                    travelSettings: {
+                        spotnanaCompanyID: 'SOURCE_COMPANY',
+                        associatedTravelDomainAccountID: 'SOURCE_DOMAIN_ACCOUNT',
+                        hasAcceptedTerms: true,
+                    },
+                });
+                const targetTravelSettings: WorkspaceTravelSettings = {
+                    spotnanaCompanyID: 'TARGET_COMPANY',
+                    associatedTravelDomainAccountID: 'TARGET_DOMAIN_ACCOUNT',
+                    hasAcceptedTerms: false,
+                    autoAddTripName: false,
+                };
+                const targetPolicy = makeTargetPolicy({travelSettings: targetTravelSettings});
+
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['travel'], {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                expect(policy?.travelSettings).toEqual(targetTravelSettings);
+            });
+
+            it('copies autoAddTripName to a not-yet-provisioned target without fabricating identity fields', () => {
+                const sourcePolicy = makeSourcePolicy({
+                    travelSettings: {
+                        spotnanaCompanyID: 'SOURCE_COMPANY',
+                        associatedTravelDomainAccountID: 'SOURCE_DOMAIN_ACCOUNT',
+                        hasAcceptedTerms: true,
+                        autoAddTripName: false,
+                    },
+                });
+                // Target has never been provisioned for travel, so it has no travelSettings.
+                const targetPolicy = makeTargetPolicy();
+
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['travel'], {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // The source's autoAddTripName=false is reflected so the UI does not show the opposite preference.
+                expect(policy?.travelSettings?.autoAddTripName).toBe(false);
+
+                // No Spotnana identity fields are fabricated, so the target is not treated as provisioned.
+                expect(policy?.travelSettings?.spotnanaCompanyID).toBeUndefined();
+                expect(policy?.travelSettings?.associatedTravelDomainAccountID).toBeUndefined();
+                expect(policy?.travelSettings?.hasAcceptedTerms).toBeUndefined();
             });
         });
 
@@ -188,8 +302,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
             });
 
             it('SETs target POLICY_TAGS to source tags when tags selected', () => {
-                const sourceTags = {Department: {name: 'Department', orderWeight: 0, required: false, tags: {Eng: {name: 'Eng', enabled: true}}}} as PolicyTagLists;
-                const targetTags = {Region: {name: 'Region', orderWeight: 0, required: false, tags: {EU: {name: 'EU', enabled: true}}}} as PolicyTagLists;
+                const sourceTags: PolicyTagLists = {Department: {name: 'Department', orderWeight: 0, required: false, tags: {Eng: {name: 'Eng', enabled: true}}}};
+                const targetTags: PolicyTagLists = {Region: {name: 'Region', orderWeight: 0, required: false, tags: {EU: {name: 'EU', enabled: true}}}};
 
                 const allPolicyTags: OnyxCollection<PolicyTagLists> = {
                     [SOURCE_TAGS_KEY]: sourceTags,
@@ -233,13 +347,11 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const {failureData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['overview', 'rules'], {}, {});
 
-                const failure = findPolicyFailure(failureData);
-                expect(failure?.onyxMethod).toBe(Onyx.METHOD.SET);
-                const value = failure?.value as Record<string, unknown> & {errors?: unknown};
+                const policy = getFailurePolicy(failureData);
 
-                expect(value.outputCurrency).toBe('EUR');
-                expect(value.maxExpenseAmount).toBe(1000);
-                expect(value.errors).toBeDefined();
+                expect(policy?.outputCurrency).toBe('EUR');
+                expect(policy?.maxExpenseAmount).toBe(1000);
+                expect(policy?.errors).toBeDefined();
             });
 
             it('surfaces an RBR error on the source policy and clears it on success', () => {
@@ -249,13 +361,13 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const {failureData, successData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['overview'], {}, {});
 
-                const sourceFailure = failureData.find((u) => u.key === sourcePolicyKey && u.onyxMethod === Onyx.METHOD.MERGE);
+                const sourceFailure = failureData.find((entry) => entry.key === sourcePolicyKey && entry.onyxMethod === Onyx.METHOD.MERGE);
                 expect(sourceFailure).toBeDefined();
-                expect((sourceFailure?.value as {errors?: unknown})?.errors).toBeDefined();
+                expect(getMergedPolicyPatch(sourceFailure)?.errors).toBeDefined();
 
-                const sourceSuccess = successData.find((u) => u.key === sourcePolicyKey && u.onyxMethod === Onyx.METHOD.MERGE);
+                const sourceSuccess = successData.find((entry) => entry.key === sourcePolicyKey && entry.onyxMethod === Onyx.METHOD.MERGE);
                 expect(sourceSuccess).toBeDefined();
-                expect((sourceSuccess?.value as {errors?: unknown})?.errors).toBeNull();
+                expect(getMergedPolicyPatch(sourceSuccess)?.errors).toBeNull();
             });
         });
 
@@ -289,12 +401,12 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
 
-                const value = findPolicyOptimistic(optimisticData)?.value as {customUnits?: Record<string, CustomUnit>; pendingFields?: Record<string, unknown>};
-                expect(value.customUnits).toBeDefined();
-                expect(Object.keys(value.customUnits ?? {})).toEqual([targetExistingDistanceID]);
-                expect(value.customUnits?.[targetExistingDistanceID]?.customUnitID).toBe(targetExistingDistanceID);
-                expect(value.customUnits?.[targetExistingDistanceID]?.rates).toEqual(sourceDistanceUnit.rates);
-                expect(value.pendingFields?.customUnits).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                const policy = getOptimisticPolicy(optimisticData);
+                expect(policy?.customUnits).toBeDefined();
+                expect(Object.keys(policy?.customUnits ?? {})).toEqual([targetExistingDistanceID]);
+                expect(policy?.customUnits?.[targetExistingDistanceID]?.customUnitID).toBe(targetExistingDistanceID);
+                expect(policy?.customUnits?.[targetExistingDistanceID]?.rates).toEqual(sourceDistanceUnit.rates);
+                expect(policy?.pendingFields?.customUnits).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             });
 
             it('generates a new unit ID when target has no distance unit', () => {
@@ -303,13 +415,13 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
 
-                const value = findPolicyOptimistic(optimisticData)?.value as {customUnits?: Record<string, CustomUnit>};
-                const unitIDs = Object.keys(value.customUnits ?? {});
+                const policy = getOptimisticPolicy(optimisticData);
+                const unitIDs = Object.keys(policy?.customUnits ?? {});
                 expect(unitIDs).toHaveLength(1);
                 expect(unitIDs.at(0)).not.toBe(sourceDistanceUnit.customUnitID);
                 expect(unitIDs.at(0)).toMatch(/^[0-9A-F]{13}$/);
                 // A freshly generated ID should be reused as the customUnitID inside the unit
-                expect(value.customUnits?.[unitIDs.at(0) ?? '']?.customUnitID).toBe(unitIDs.at(0));
+                expect(policy?.customUnits?.[unitIDs.at(0) ?? '']?.customUnitID).toBe(unitIDs.at(0));
             });
 
             it("preserves target's existing per-diem unit ID independently of distance", () => {
@@ -337,10 +449,10 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates', 'perDiem'], {}, {});
 
-                const value = findPolicyOptimistic(optimisticData)?.value as {customUnits?: Record<string, CustomUnit>};
-                expect(Object.keys(value.customUnits ?? {}).sort()).toEqual([targetExistingDistanceID, targetExistingPerDiemID].sort());
-                expect(value.customUnits?.[targetExistingDistanceID]?.rates).toEqual(sourceDistanceUnit.rates);
-                expect(value.customUnits?.[targetExistingPerDiemID]?.rates).toEqual(sourcePerDiemUnit.rates);
+                const policy = getOptimisticPolicy(optimisticData);
+                expect(Object.keys(policy?.customUnits ?? {}).sort()).toEqual([targetExistingDistanceID, targetExistingPerDiemID].sort());
+                expect(policy?.customUnits?.[targetExistingDistanceID]?.rates).toEqual(sourceDistanceUnit.rates);
+                expect(policy?.customUnits?.[targetExistingPerDiemID]?.rates).toEqual(sourcePerDiemUnit.rates);
             });
         });
 
@@ -385,8 +497,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const failLifecycle = failureData.find((u) => u.key === ONYXKEYS.COPY_POLICY_SETTINGS);
                 const successLifecycle = successData.find((u) => u.key === ONYXKEYS.COPY_POLICY_SETTINGS);
 
-                expect((optLifecycle?.value as {currentStep?: string | null})?.currentStep).toBe('loading');
-                expect((failLifecycle?.value as {currentStep?: string | null})?.currentStep).toBeNull();
+                expect(getCopyPolicySettingsStep(optLifecycle)?.currentStep).toBe(CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING);
+                expect(getCopyPolicySettingsStep(failLifecycle)?.currentStep).toBeNull();
                 // Success leaves currentStep alone — the backend transitions it to 'complete' via NVP.
                 expect(successLifecycle).toBeUndefined();
             });
@@ -398,10 +510,10 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const targetPolicy = makeTargetPolicy({address: {addressStreet: '2 Tgt Ave', city: 'Berlin', country: 'DE', state: 'BE', zipCode: '10115'}});
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['overview'], {}, {});
-                const value = findPolicyOptimistic(optimisticData)?.value as Policy;
+                const policy = getOptimisticPolicy(optimisticData);
 
-                expect(value.address).toEqual(sourcePolicy.address);
-                expect(value.address).not.toHaveProperty('extraField');
+                expect(policy?.address).toEqual(sourcePolicy.address);
+                expect(policy?.address).not.toHaveProperty('extraField');
             });
 
             it('target with extra custom unit rates — optimistic overwrites cleanly via SET', () => {
@@ -425,10 +537,10 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const targetPolicy = makeTargetPolicy({customUnits: {[targetDistanceUnit.customUnitID]: targetDistanceUnit}});
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
-                const value = findPolicyOptimistic(optimisticData)?.value as Policy;
+                const policy = getOptimisticPolicy(optimisticData);
 
                 // The optimistic unit is keyed by target's existing ID, with source's rates (no old rates)
-                const optimisticUnit = value.customUnits?.[targetDistanceUnit.customUnitID];
+                const optimisticUnit = policy?.customUnits?.[targetDistanceUnit.customUnitID];
                 expect(optimisticUnit?.rates).toEqual(sourceDistanceUnit.rates);
                 expect(optimisticUnit?.rates).not.toHaveProperty('OLD_RATE_A');
                 expect(optimisticUnit?.rates).not.toHaveProperty('OLD_RATE_B');
@@ -445,11 +557,30 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const targetPolicy = makeTargetPolicy({customUnits: {}});
 
                 const {failureData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
-                const failure = findPolicyFailure(failureData);
-                const value = failure?.value as Policy;
+                const policy = getFailurePolicy(failureData);
 
                 // Failure restores the full original target — which had no customUnits
-                expect(value.customUnits).toEqual({});
+                expect(policy?.customUnits).toEqual({});
+            });
+
+            it('copies units.time and pending fields for timeTracking', () => {
+                const sourcePolicy = makeSourcePolicy({
+                    units: {time: {enabled: true, rate: 75}},
+                });
+                const targetPolicy = makeTargetPolicy({
+                    units: {time: {enabled: false, rate: 10}},
+                });
+
+                const {optimisticData, successData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['timeTracking'], {}, {});
+
+                const policy = getOptimisticPolicy(optimisticData);
+                expect(policy?.units?.time).toEqual({enabled: true, rate: 75});
+                expect(policy?.pendingFields?.isTimeTrackingEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                expect(policy?.pendingFields?.timeTrackingDefaultRate).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+                const successPatch = getMergedPolicyPatch(successData.find((update) => update.key === POLICY_KEY && update.onyxMethod === Onyx.METHOD.MERGE));
+                expect(successPatch?.pendingFields?.isTimeTrackingEnabled).toBeNull();
+                expect(successPatch?.pendingFields?.timeTrackingDefaultRate).toBeNull();
             });
 
             it('target with nested keys not in source — after optimistic, selected fields match source', () => {
@@ -461,21 +592,21 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 });
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['taxes'], {}, {});
-                const value = findPolicyOptimistic(optimisticData)?.value as Policy;
+                const policy = getOptimisticPolicy(optimisticData);
 
-                expect(value.tax).toEqual(sourcePolicy.tax);
+                expect(policy?.tax).toEqual(sourcePolicy.tax);
             });
 
             it('successData clears errors on target policies after retry-success', () => {
                 const targetPolicy = makeTargetPolicy();
                 const {successData} = buildCopyPolicySettingsData(makeSourcePolicy(), [targetPolicy], ['overview'], {}, {});
 
-                const targetSuccess = successData.find((u) => u.key === POLICY_KEY && u.onyxMethod === Onyx.METHOD.MERGE);
-                const value = targetSuccess?.value as {errors?: unknown; pendingFields?: Record<string, unknown>};
+                const targetSuccess = successData.find((entry) => entry.key === POLICY_KEY && entry.onyxMethod === Onyx.METHOD.MERGE);
+                const successPatch = getMergedPolicyPatch(targetSuccess);
 
-                expect(value.errors).toBeNull();
-                expect(value.pendingFields?.outputCurrency).toBeNull();
-                expect(value.pendingFields?.address).toBeNull();
+                expect(successPatch?.errors).toBeNull();
+                expect(successPatch?.pendingFields?.outputCurrency).toBeNull();
+                expect(successPatch?.pendingFields?.address).toBeNull();
             });
         });
     });

@@ -1,11 +1,18 @@
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
+import Table from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import Text from '@components/Text';
+
+import type Navigation from '@libs/Navigation/Navigation';
+
+import CONST from '@src/CONST';
+
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+
+import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
-import Table from '@components/Table';
-import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Text from '@components/Text';
-import type Navigation from '@libs/Navigation/Navigation';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -52,6 +59,7 @@ jest.mock('@hooks/useThemeStyles', () =>
         textNormal: {},
         colorMuted: {},
         getSelectionListPopoverHeight: jest.fn(() => ({})),
+        searchBarWidth: jest.fn(() => ({})),
         ml3: {marginLeft: 12},
     })),
 );
@@ -134,6 +142,7 @@ jest.mock('@components/Pressable', () => ({
 
 // Sample data types for testing
 type TestItem = {
+    keyForList: string;
     id: string;
     name: string;
     category: string;
@@ -144,17 +153,29 @@ type TestColumnKey = 'name' | 'category' | 'value';
 
 // Sample test data
 const mockData: TestItem[] = [
-    {id: '1', name: 'Apple', category: 'fruit', value: 100},
-    {id: '2', name: 'Banana', category: 'fruit', value: 200},
-    {id: '3', name: 'Carrot', category: 'vegetable', value: 50},
-    {id: '4', name: 'Date', category: 'fruit', value: 150},
-    {id: '5', name: 'Eggplant', category: 'vegetable', value: 75},
+    {keyForList: '1', id: '1', name: 'Apple', category: 'fruit', value: 100},
+    {keyForList: '2', id: '2', name: 'Banana', category: 'fruit', value: 200},
+    {
+        keyForList: '3',
+        id: '3',
+        name: 'Carrot',
+        category: 'vegetable',
+        value: 50,
+    },
+    {keyForList: '4', id: '4', name: 'Date', category: 'fruit', value: 150},
+    {
+        keyForList: '5',
+        id: '5',
+        name: 'Eggplant',
+        category: 'vegetable',
+        value: 75,
+    },
 ];
 
 const mockColumns: Array<TableColumn<TestColumnKey>> = [
-    {key: 'name', label: 'Name'},
-    {key: 'category', label: 'Category'},
-    {key: 'value', label: 'Value'},
+    {key: 'name', label: 'Name', sortable: true},
+    {key: 'category', label: 'Category', sortable: true},
+    {key: 'value', label: 'Value', sortable: true},
 ];
 
 // Helper function to create default test props
@@ -286,9 +307,14 @@ describe('Table', () => {
         it('should render column headers with custom styling', () => {
             const props = createDefaultProps();
             const customColumns: Array<TableColumn<TestColumnKey>> = [
-                {key: 'name', label: 'Name', styling: {flex: 2}},
-                {key: 'category', label: 'Category', styling: {flex: 1}},
-                {key: 'value', label: 'Value', styling: {flex: 1}},
+                {key: 'name', label: 'Name', styling: {flex: 2}, sortable: true},
+                {
+                    key: 'category',
+                    label: 'Category',
+                    styling: {flex: 1},
+                    sortable: true,
+                },
+                {key: 'value', label: 'Value', styling: {flex: 1}, sortable: true},
             ];
 
             render(
@@ -310,7 +336,7 @@ describe('Table', () => {
     });
 
     describe('search functionality', () => {
-        it('should render search bar when SearchBar component is used', () => {
+        it('should render search bar when FilterBar component is used', () => {
             const props = createDefaultProps();
             render(
                 <Table<TestItem, TestColumnKey>
@@ -320,7 +346,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -338,7 +364,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -361,7 +387,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -384,7 +410,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -409,7 +435,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -435,7 +461,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -459,7 +485,7 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                 >
-                    <Table.SearchBar />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -480,13 +506,13 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
-                    filterType: 'single-select',
+                    label: 'test',
+                    filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [
                         {label: 'All', value: 'all'},
                         {label: 'Fruit', value: 'fruit'},
                         {label: 'Vegetable', value: 'vegetable'},
                     ],
-                    default: 'all',
                 },
             };
 
@@ -692,7 +718,7 @@ describe('Table', () => {
             expect(screen.getByTestId('row-1')).toBeTruthy();
         });
 
-        it('should work with SearchBar and Body', () => {
+        it('should work with FilterBar and Body', () => {
             const props = createDefaultProps();
             render(
                 <Table<TestItem, TestColumnKey>
@@ -702,7 +728,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -716,27 +742,28 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
-                    filterType: 'single-select',
+                    label: 'test',
+                    filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [{label: 'All', value: 'all'}],
-                    default: 'all',
                 },
             };
 
             render(
-                <Table<TestItem, TestColumnKey>
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                    compareItems={props.compareItems}
-                    filters={filterConfig}
-                >
-                    <Table.SearchBar />
-                    <Table.FilterButtons />
-                    <Table.Header />
-                    <Table.Body />
-                </Table>,
+                <NavigationContainer>
+                    <Table<TestItem, TestColumnKey>
+                        data={props.data}
+                        columns={props.columns}
+                        renderItem={props.renderItem}
+                        keyExtractor={props.keyExtractor}
+                        isItemInSearch={props.isItemInSearch}
+                        compareItems={props.compareItems}
+                        filters={filterConfig}
+                    >
+                        <Table.FilterBar label="Search" />
+                        <Table.Header />
+                        <Table.Body />
+                    </Table>
+                </NavigationContainer>,
             );
 
             expect(screen.getByTestId('search-input')).toBeTruthy();
@@ -755,7 +782,7 @@ describe('Table', () => {
                     isItemInSearch={props.isItemInSearch}
                 >
                     <Table.Header />
-                    <Table.SearchBar />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -770,15 +797,16 @@ describe('Table', () => {
     describe('combined search and filter', () => {
         it('should apply both search and filter together', () => {
             const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, 'category'>>();
 
-            const filterConfig: FilterConfig = {
+            const filterConfig: FilterConfig<'category'> = {
                 category: {
-                    filterType: 'single-select',
+                    label: 'test',
+                    filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [
                         {label: 'All', value: 'all'},
                         {label: 'Fruit', value: 'fruit'},
                     ],
-                    default: 'fruit',
                 },
             };
 
@@ -790,19 +818,26 @@ describe('Table', () => {
             };
 
             render(
-                <Table<TestItem, TestColumnKey>
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    filters={filterConfig}
-                    isItemInFilter={isItemInFilter}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.SearchBar />
-                    <Table.Body />
-                </Table>,
+                <NavigationContainer>
+                    <Table<TestItem, TestColumnKey, 'category'>
+                        ref={tableRef}
+                        data={props.data}
+                        columns={props.columns}
+                        renderItem={props.renderItem}
+                        keyExtractor={props.keyExtractor}
+                        filters={filterConfig}
+                        isItemInFilter={isItemInFilter}
+                        isItemInSearch={props.isItemInSearch}
+                    >
+                        <Table.FilterBar label="Search" />
+                        <Table.Body />
+                    </Table>
+                </NavigationContainer>,
             );
+
+            act(() => {
+                tableRef.current?.updateFilter({key: 'category', value: ['fruit']});
+            });
 
             const searchInput = screen.getByTestId('search-input');
 
@@ -823,6 +858,7 @@ describe('Table', () => {
     describe('performance and edge cases', () => {
         it('should handle large datasets', () => {
             const largeData: TestItem[] = Array.from({length: 100}, (_, i) => ({
+                keyForList: String(i + 1),
                 id: String(i + 1),
                 name: `Item ${i + 1}`,
                 category: i % 2 === 0 ? 'fruit' : 'vegetable',
@@ -856,7 +892,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -880,7 +916,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );

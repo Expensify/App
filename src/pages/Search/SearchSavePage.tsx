@@ -1,10 +1,9 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useFilterBankAccountValue from '@components/Search/hooks/useFilterBankAccountValue';
 import useFilterCardValue from '@components/Search/hooks/useFilterCardValue';
 import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
 import useFilterReportValue from '@components/Search/hooks/useFilterReportValue';
@@ -15,20 +14,26 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchSaveForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type FilterValueProps = {
     value: SearchFilter['value'];
@@ -62,6 +67,10 @@ function FilterReportValue({value}: FilterValueProps) {
     return useFilterReportValue(value);
 }
 
+function FilterBankAccountValue({value}: FilterValueProps) {
+    return useFilterBankAccountValue(value);
+}
+
 function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
     if (
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -90,6 +99,10 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
 
     if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return <FilterReportValue value={value} />;
+    }
+
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT) {
+        return <FilterBankAccountValue value={value} />;
     }
 
     return value;
@@ -166,15 +179,15 @@ function SearchSavePage() {
             testID="SearchSavePage"
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.saveSearch')} />
+            <HeaderWithBackButton title={translate('search.saveView')} />
             <FormProvider
                 formID={ONYXKEYS.FORMS.SEARCH_SAVE_FORM}
-                submitButtonText={translate('search.saveSearch')}
+                submitButtonText={translate('search.saveView')}
                 onSubmit={onSaveSearch}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_SEARCH_BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
             >
                 <InputWrapper
                     InputComponent={TextInput}

@@ -1,5 +1,7 @@
 import roundToNearestMultipleOfFour from '@libs/roundToNearestMultipleOfFour';
+
 import variables from '@styles/variables';
+
 import type {ComputeHorizontalShift} from './types';
 
 /** This defines the proximity with the edge of the window in which tooltips should not be displayed.

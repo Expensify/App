@@ -1,23 +1,27 @@
-import {differenceInMinutes, isValid, parseISO} from 'date-fns';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {RemovePolicyConnectionParams, SyncPolicyToQuickbooksDesktopParams, UpdateManyPolicyConnectionConfigurationsParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName, Connections, PolicyConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import {differenceInMinutes, isValid, parseISO} from 'date-fns';
+import Onyx from 'react-native-onyx';
+
 import {syncMergeHR} from './MergeHR';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
 function removePolicyConnection(policy: Policy, connectionName: PolicyConnectionName) {
     const policyID = policy.id;
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -146,7 +150,10 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_ZENEFITS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZENEFITS_SYNC_TITLE};
         }
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
-            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_CONNECTION};
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_TITLE};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_RILLET, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.RILLET_SYNC_CONNECTION};
         }
         default:
             return undefined;
@@ -353,6 +360,12 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
             break;
         case CONST.POLICY.CONNECTIONS.NAME.QBD:
             stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBD;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_TITLE;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.RILLET_SYNC_CONNECTION;
             break;
         default:
             stageInProgress = null;

@@ -1,43 +1,46 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import Icon from '@components/Icon';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Clipboard from '@libs/Clipboard';
 import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 const TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME = 'DO-NOT-DELETE_Expensify-2FA-RecoveryCodes.txt';
 
 function DynamicTwoFactorAuthPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Lightbulb']);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy']);
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -98,7 +101,7 @@ function DynamicTwoFactorAuthPage() {
             stepCounter={{
                 step: 1,
                 text: translate('twoFactorAuth.stepCodes'),
-                total: 3,
+                total: 2,
             }}
             shouldEnableKeyboardAvoidingView={false}
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES}
@@ -158,17 +161,6 @@ function DynamicTwoFactorAuthPage() {
                             )}
                         </View>
                     </Section>
-                )}
-                {!!isUserValidated && (
-                    <View style={[styles.flexRow, styles.mt2, styles.mh5, styles.alignItemsCenter]}>
-                        <Icon
-                            src={icons.Lightbulb}
-                            fill={theme.icon}
-                            additionalStyles={styles.mr2}
-                            medium
-                        />
-                        <Text style={[styles.textLabelSupportingNormal, styles.flex1]}>{translate('twoFactorAuth.screenshotTip')}</Text>
-                    </View>
                 )}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     {!!statusAnnouncement.text && (

@@ -1,13 +1,16 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * Reset user's USD reimbursement account. This will delete the bank account
@@ -18,6 +21,7 @@ function resetUSDBankAccount(
     policyID: string | undefined,
     achAccount: ACHAccount | undefined,
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
+    policyOwner?: string,
 ) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
@@ -28,6 +32,7 @@ function resetUSDBankAccount(
 
     const isLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.expense?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
     const isPreviousLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.lastUsed?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
+    const reimburserEmail = achAccount?.reimburser ?? policyOwner;
 
     const onyxData: OnyxData<
         | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
@@ -55,7 +60,18 @@ function resetUSDBankAccount(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    achAccount: null,
+                    achAccount: reimburserEmail
+                        ? {
+                              reimburser: reimburserEmail,
+                              bankAccountID: null,
+                              accountNumber: null,
+                              routingNumber: null,
+                              addressName: null,
+                              bankName: null,
+                              state: null,
+                              sharees: null,
+                          }
+                        : null,
                 },
             },
             {
@@ -88,7 +104,13 @@ function resetUSDBankAccount(
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
+                value: {
+                    ...CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
+                    achData: {
+                        ...CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA.achData,
+                        policyID,
+                    },
+                },
             },
             {
                 onyxMethod: Onyx.METHOD.SET,

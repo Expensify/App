@@ -1,18 +1,25 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+
 import variables from '@styles/variables';
+
 import type IconAsset from '@src/types/utils/IconAsset';
-import YOUR_SPEND_ROW_STATE from './const';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {useYourSpendData} from './useYourSpendData';
+
+import {YOUR_SPEND_ROW_STATE} from './const';
 
 // Skeleton geometry mirrors `ForYouSection/ForYouSkeleton.tsx` so the home page
 // loading states feel cohesive across widgets. The right-side button rect from
@@ -60,6 +67,7 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     if (state === YOUR_SPEND_ROW_STATE.LOADING) {
         const horizontalPadding = shouldUseNarrowLayout ? SKELETON_NARROW_OFFSET_X : SKELETON_WIDE_OFFSET_X;

@@ -1,7 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 import type {PolicyReportField} from './Policy';
 import type {TripData} from './TripData';
@@ -97,6 +99,15 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The date the report was approved */
         approved?: string;
+
+        /** Custom field 1 value for the report submitter */
+        submitterUserID?: string;
+
+        /** Custom field 2 value for the report submitter */
+        submitterPayrollID?: string;
+
+        /** International reimbursement IDs associated with the report */
+        orderDealNumbers?: string;
 
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;

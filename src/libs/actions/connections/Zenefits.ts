@@ -1,14 +1,16 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {write} from '@libs/API';
 import type {ConnectPolicyToZenefitsParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 function getZenefitsSetupLink(policyID: string) {
     const params: ConnectPolicyToZenefitsParams = {policyID};
@@ -19,41 +21,17 @@ function getZenefitsSetupLink(policyID: string) {
     return commandURL + new URLSearchParams(params).toString();
 }
 
-function getZenefitsSyncProgressOptimisticData(policyID: string): OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS> {
-    return {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
-        value: {
-            stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZENEFITS_SYNC_TITLE,
-            connectionName: CONST.POLICY.CONNECTIONS.NAME.ZENEFITS,
-            timestamp: new Date().toISOString(),
-        },
-    };
-}
-
-function getZenefitsSyncProgressFailureData(
-    policyID: string,
-    currentConnectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>,
-): OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS> {
-    return {
-        onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
-        value: currentConnectionSyncProgress ?? null,
-    };
-}
-
 function updateZenefitsApprovalMode(
     policyID: string | undefined,
     approvalMode: ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE>,
     currentApprovalMode?: ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | null,
-    currentConnectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>,
 ) {
     if (!policyID) {
         return;
     }
 
     const previousApprovalMode = currentApprovalMode ?? null;
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -69,7 +47,6 @@ function updateZenefitsApprovalMode(
                 },
             },
         },
-        getZenefitsSyncProgressOptimisticData(policyID),
     ];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -87,7 +64,7 @@ function updateZenefitsApprovalMode(
             },
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -103,24 +80,18 @@ function updateZenefitsApprovalMode(
                 },
             },
         },
-        getZenefitsSyncProgressFailureData(policyID, currentConnectionSyncProgress),
     ];
 
     write(WRITE_COMMANDS.UPDATE_ZENEFITS_APPROVAL_MODE, {policyID, approvalMode}, {optimisticData, successData, failureData});
 }
 
-function updateZenefitsFinalApprover(
-    policyID: string | undefined,
-    finalApprover: string | null,
-    currentFinalApprover?: string | null,
-    currentConnectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>,
-) {
+function updateZenefitsFinalApprover(policyID: string | undefined, finalApprover: string | null, currentFinalApprover?: string | null) {
     if (!policyID) {
         return;
     }
 
     const previousFinalApprover = currentFinalApprover ?? null;
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -136,7 +107,6 @@ function updateZenefitsFinalApprover(
                 },
             },
         },
-        getZenefitsSyncProgressOptimisticData(policyID),
     ];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -154,7 +124,7 @@ function updateZenefitsFinalApprover(
             },
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -170,7 +140,6 @@ function updateZenefitsFinalApprover(
                 },
             },
         },
-        getZenefitsSyncProgressFailureData(policyID, currentConnectionSyncProgress),
     ];
 
     write(WRITE_COMMANDS.UPDATE_ZENEFITS_FINAL_APPROVER, {policyID, finalApprover}, {optimisticData, successData, failureData});

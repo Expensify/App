@@ -1,20 +1,24 @@
-import React from 'react';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
+
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getAllTaxRates} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {filterPolicyIDSelector} from '@src/selectors/Search';
 import type {Policy} from '@src/types/onyx';
+
+import React from 'react';
+
 import MultiSelect from './MultiSelect';
 
-type TaxRateSelectorProps = SearchFilterSelectionListProps & {
-    value: string[] | undefined;
-    onChange: (taxRates: string[]) => void;
+type TaxRateSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
+    policyIDs: string[] | undefined;
 };
 
-function TaxRateSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TaxRateSelectorProps) {
-    const [policyIDs] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
+function TaxRateSelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TaxRateSelectorProps) {
+    const {localeCompare} = useLocalize();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const allTaxRates = getAllTaxRates(policies);
@@ -27,10 +31,12 @@ function TaxRateSelector({value = [], selectionListTextInputStyle, selectionList
         return acc;
     }, {});
     const scopedTaxRates = !selectedPoliciesMap || Object.keys(selectedPoliciesMap).length === 0 ? allTaxRates : getAllTaxRates(selectedPoliciesMap);
-    const taxItems = Object.entries(scopedTaxRates).map(([taxRateName, taxRateKeys]) => ({
-        text: taxRateName,
-        value: taxRateKeys.toString(),
-    }));
+    const taxItems = Object.entries(scopedTaxRates)
+        .map(([taxRateName, taxRateKeys]) => ({
+            text: taxRateName,
+            value: taxRateKeys.toString(),
+        }))
+        .toSorted((a, b) => localeCompare(a.text.toString(), b.text.toString()));
     const selectedTaxRates = taxItems.filter((tax) => value.includes(tax.value.toString()));
 
     return (

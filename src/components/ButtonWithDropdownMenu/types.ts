@@ -1,12 +1,14 @@
-import type {RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+
 import type CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {RefObject} from 'react';
+import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
@@ -50,6 +52,8 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     shouldShow?: boolean;
     /** Whether to show a loading spinner for this option */
     shouldShowLoadingSpinnerIcon?: boolean;
+    /** Whether to render a divider before this option */
+    addSeparatorBefore?: boolean;
     /** The type of brick road indicator to show */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     /** Whether selecting this option should bypass the delete confirmation modal */
@@ -85,7 +89,7 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     isLoading?: boolean;
 
     /** The size of button size */
-    buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
+    buttonSize?: ValueOf<typeof CONST.BUTTON_SIZE>;
 
     /** Render button in extra-small size */
     extraSmall?: boolean;
@@ -98,6 +102,9 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
+
+    /** Additional styles for the inner button when isSplitButton is false (wrapper uses style). */
+    buttonStyle?: StyleProp<ViewStyle>;
 
     /** Additional styles to add to the component when it's disabled */
     disabledStyle?: StyleProp<ViewStyle>;

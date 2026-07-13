@@ -1,13 +1,10 @@
-import {Str} from 'expensify-common';
-import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,29 +12,40 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
-import {clearSignInData} from '@userActions/Session';
+
+import {clearSignInData, isSupportalSession as isSupportalSessionUtils} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Account, Credentials} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {Ref} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+
+import type {InputHandle} from './LoginForm/types';
+import type {SignInPageLayoutRef} from './SignInPageLayout/types';
+import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
+
 import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import LoginForm from './LoginForm';
-import type {InputHandle} from './LoginForm/types';
 import {LoginProvider} from './SignInLoginContext';
 import SignInPageLayout from './SignInPageLayout';
-import type {SignInPageLayoutRef} from './SignInPageLayout/types';
 import SignUpWelcomeForm from './SignUpWelcomeForm';
 import SMSDeliveryFailurePage from './SMSDeliveryFailurePage';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
-import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
 
 type SignInPageProps = {
     ref?: Ref<SignInPageRef>;
@@ -70,6 +78,7 @@ type GetRenderOptionsParams = {
     shouldShowAnotherLoginPageOpenedMessage: boolean;
     credentials: OnyxEntry<Credentials>;
     isAccountValidated?: boolean;
+    isSupportalSession: boolean;
 };
 
 /**
@@ -92,6 +101,7 @@ function getRenderOptions({
     shouldShowAnotherLoginPageOpenedMessage,
     credentials,
     isAccountValidated,
+    isSupportalSession,
 }: GetRenderOptionsParams): RenderOption {
     const hasAccount = !isEmptyObject(account);
     const isSAMLEnabled = !!account?.isSAMLEnabled;
@@ -99,14 +109,16 @@ function getRenderOptions({
     const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
     const hasSMSDeliveryFailure = !!account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
 
-    // True, if the user has SAML required, and we haven't yet initiated SAML for their account
-    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading;
+    // True, if the user has SAML required, and we haven't yet initiated SAML for their account.
+    // Supportal sessions authenticate with a support auth token and must bypass SAML entirely, so we never
+    // initiate SAML during a supportal session, even when the customer's account has SAML required.
+    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading && !isSupportalSession;
     const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
 
     // SAML required users may reload the login page after having already entered their login details, in which
     // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
     // SSO provider's login page
-    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading) {
+    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading && !isSupportalSession) {
         clearSignInData();
     }
 
@@ -214,6 +226,7 @@ function SignInPage({ref}: SignInPageProps) {
         shouldShowAnotherLoginPageOpenedMessage,
         credentials,
         isAccountValidated,
+        isSupportalSession: isSupportalSessionUtils(),
     });
 
     if (shouldInitiateSAMLLogin) {
@@ -360,8 +373,10 @@ function SignInPageWrapper({ref}: SignInPageProps) {
 function WithTheme(Component: React.ComponentType<SignInPageProps>) {
     function ThemedComponent({ref}: SignInPageProps) {
         const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+        const [highContrastIntent] = useOnyx(ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT);
         const contrastThemes: string[] = [CONST.THEME.DARK_CONTRAST, CONST.THEME.LIGHT_CONTRAST, CONST.THEME.SYSTEM_CONTRAST];
-        const signInTheme = contrastThemes.includes(preferredTheme ?? '') ? CONST.THEME.DARK_CONTRAST : CONST.THEME.DARK;
+        const isHighContrast = highContrastIntent ?? contrastThemes.includes(preferredTheme ?? '');
+        const signInTheme = isHighContrast ? CONST.THEME.DARK_CONTRAST : CONST.THEME.DARK;
 
         return (
             <ThemeProvider theme={signInTheme}>

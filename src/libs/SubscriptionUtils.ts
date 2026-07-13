@@ -1,17 +1,22 @@
-import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
-import {fromZonedTime} from 'date-fns-tz';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
+
 import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
+
 import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
+import {fromZonedTime} from 'date-fns-tz';
+
 import {convertToShortDisplayString} from './CurrencyUtils';
 import {getOwnedPaidPolicies, isPolicyOwner} from './PolicyUtils';
 
@@ -46,14 +51,6 @@ type SubscriptionPlanInfo = {
     src: IconAsset;
     description: string;
 };
-
-let deprecatedCurrentUserAccountID = -1;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        deprecatedCurrentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
 
 /**
  * @returns Whether the workspace owner's grace period is overdue.
@@ -481,7 +478,7 @@ function shouldRestrictUserBillableActions(
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
     amountOwed: OnyxEntry<number>,
-    currentUserAccountID: number = deprecatedCurrentUserAccountID,
+    currentUserAccountID: number,
 ): boolean {
     const currentDate = new Date();
 

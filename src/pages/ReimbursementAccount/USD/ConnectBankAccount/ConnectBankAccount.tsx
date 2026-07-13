@@ -1,18 +1,33 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
-import {View} from 'react-native';
+import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
+import Navigation from '@navigation/Navigation';
+
 import ConnectedVerifiedBankAccount from '@pages/ReimbursementAccount/ConnectedVerifiedBankAccount';
+
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import BankAccountValidationForm from './components/BankAccountValidationForm';
 import FinishChatCard from './components/FinishChatCard';
 
@@ -21,17 +36,25 @@ type ConnectBankAccountProps = {
     onBackButtonPress: () => void;
 
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
-    setShouldShowConnectedVerifiedBankAccount: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
+    setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
 
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
-    setUSDBankAccountStep: (step: string | null) => void;
+    setUSDBankAccountStep?: (step: string | null) => void;
+
+    /** ID of current policy */
+    policyID?: string;
+
+    /** Route to return to when navigating back out of the flow */
+    backTo?: Route;
 };
 
-function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep}: ConnectBankAccountProps) {
+function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep, policyID, backTo}: ConnectBankAccountProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -41,14 +64,49 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, true);
-    const bankAccountState = reimbursementAccount?.achData?.state ?? '';
+    const bankAccountConnectedToWorkspace = policyID ? Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount?.accountData?.policyIDs?.includes(policyID)) : undefined;
+    const bankAccountState = bankAccountConnectedToWorkspace?.accountData?.state ?? '';
+    const pendingAction = reimbursementAccount?.pendingAction;
+
+    // After a disconnect, wait for the reset API to finish before navigating to the entry point.
+    const prevPendingActionRef = useRef(pendingAction);
+    useEffect(() => {
+        const prev = prevPendingActionRef.current;
+        prevPendingActionRef.current = pendingAction;
+        if (prev === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo}));
+        }
+    }, [pendingAction, policyID, backTo]);
+
+    // While the disconnect is in flight, show the existing flow loader so the success screen doesn't re-render with cleared bank data
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        return <ReimbursementAccountLoadingIndicator onBackButtonPress={onBackButtonPress} />;
+    }
 
     // If a user tries to navigate directly to the validate page we'll show them the EnableStep
     if (bankAccountState === CONST.BANK_ACCOUNT.STATE.OPEN) {
+        if (topmostFullScreenRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
+            return (
+                <ScreenWrapper testID="ReimbursementAccountPage">
+                    <HeaderWithBackButton
+                        title={translate('bankAccount.addBankAccount')}
+                        onBackButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <ConfirmationPage
+                        heading={translate('bankAccount.bbaAdded')}
+                        description={translate('bankAccount.bbaAddedDescription')}
+                        shouldShowButton
+                        headingStyle={styles.mh5}
+                        buttonText={translate('common.confirm')}
+                        onButtonPress={() => Navigation.dismissModal()}
+                    />
+                </ScreenWrapper>
+            );
+        }
         return (
             <ConnectedVerifiedBankAccount
                 reimbursementAccount={reimbursementAccount}
-                onBackButtonPress={onBackButtonPress}
+                onBackButtonPress={() => Navigation.dismissModal()}
                 setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                 setUSDBankAccountStep={setUSDBankAccountStep}
                 isNonUSDWorkspace={false}
@@ -83,7 +141,8 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
             {!maxAttemptsReached && isBankAccountPending && (
                 <BankAccountValidationForm
                     requiresTwoFactorAuth={requiresTwoFactorAuth}
-                    reimbursementAccount={reimbursementAccount}
+                    policyID={policyID}
+                    bankAccountID={bankAccountConnectedToWorkspace?.accountData?.bankAccountID}
                     policy={policy}
                 />
             )}
@@ -92,6 +151,8 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                     requiresTwoFactorAuth={requiresTwoFactorAuth}
                     reimbursementAccount={reimbursementAccount}
                     setUSDBankAccountStep={setUSDBankAccountStep}
+                    backTo={backTo}
+                    policy={policy}
                 />
             )}
         </ScreenWrapper>

@@ -1,10 +1,12 @@
-import type {submitWithDismissFirst as SubmitWithDismissFirstFn} from '@libs/actions/IOU/submitWithDismissFirst';
+import type {submitWithDismissFirst as SubmitWithDismissFirstFn} from '@libs/Navigation/helpers/submitWithDismissFirst';
+
 import CONST from '@src/CONST';
 
 const mockIsSearchTopmostFullScreenRoute = jest.fn<boolean, []>();
 const mockGetReportOrDraftReport = jest.fn();
 const mockDismissModal = jest.fn();
 const mockRevealRouteBeforeDismissingModal = jest.fn();
+const mockGetIsFullscreenPreInsertedUnderRHP = jest.fn<boolean, []>();
 const mockReserveDeferredWriteChannel = jest.fn();
 const mockStartTracking = jest.fn();
 const mockSetFastPath = jest.fn();
@@ -14,6 +16,8 @@ jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () =>
 jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: (...args: unknown[]) => mockDismissModal(...args) as unknown,
     revealRouteBeforeDismissingModal: (...args: unknown[]) => mockRevealRouteBeforeDismissingModal(...args) as unknown,
+    getIsFullscreenPreInsertedUnderRHP: () => mockGetIsFullscreenPreInsertedUnderRHP() as unknown,
+    clearFullscreenPreInsertedFlag: jest.fn(),
 }));
 jest.mock('@libs/ReportUtils', () => ({
     getReportOrDraftReport: (id: string) => mockGetReportOrDraftReport(id) as unknown,
@@ -27,7 +31,7 @@ jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
     setPendingSubmitFollowUpAction: (...args: unknown[]) => mockSetPendingSubmitFollowUpAction(...args) as unknown,
 }));
 
-const submitModule = jest.requireActual<{submitWithDismissFirst: typeof SubmitWithDismissFirstFn}>('@libs/actions/IOU/submitWithDismissFirst');
+const submitModule = jest.requireActual<{submitWithDismissFirst: typeof SubmitWithDismissFirstFn}>('@libs/Navigation/helpers/submitWithDismissFirst');
 const {submitWithDismissFirst} = submitModule;
 
 const TELEMETRY_CONTEXT = {
@@ -43,6 +47,7 @@ describe('submitWithDismissFirst', () => {
         jest.clearAllMocks();
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
         mockGetReportOrDraftReport.mockReturnValue(undefined);
+        mockGetIsFullscreenPreInsertedUnderRHP.mockReturnValue(false);
     });
 
     describe('Search-topmost branch', () => {
@@ -75,7 +80,7 @@ describe('submitWithDismissFirst', () => {
             expect(mockSetPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, undefined);
         });
 
-        it('calls executeWrite with shouldDeferForSearch=true in afterTransition', () => {
+        it('calls executeWrite with shouldHandleNavigation=false in afterTransition (Search deferral rides the reserved channel)', () => {
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
             const executeWrite = jest.fn();
 
@@ -88,7 +93,7 @@ describe('submitWithDismissFirst', () => {
             const dismissCalls = mockDismissModal.mock.calls as Array<Array<{afterTransition: () => void}>>;
             dismissCalls.at(0)?.at(0)?.afterTransition();
 
-            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: false, shouldDeferForSearch: true});
+            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: false});
         });
     });
 
@@ -120,7 +125,7 @@ describe('submitWithDismissFirst', () => {
             const [, revealOptions] = (mockRevealRouteBeforeDismissingModal.mock.calls as Array<[string, {afterTransition: () => void}]>).at(0) ?? [];
             revealOptions?.afterTransition();
 
-            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: false, shouldDeferForSearch: false});
+            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: false});
         });
 
         it('calls executeWrite immediately when destination is NOT loaded', () => {
@@ -133,7 +138,7 @@ describe('submitWithDismissFirst', () => {
                 telemetryContext: TELEMETRY_CONTEXT,
             });
 
-            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: false, shouldDeferForSearch: false});
+            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: false});
             expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledTimes(1);
         });
 
@@ -163,7 +168,7 @@ describe('submitWithDismissFirst', () => {
             });
 
             expect(executeWrite).toHaveBeenCalledTimes(1);
-            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: true, shouldDeferForSearch: false});
+            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: true});
         });
 
         it('starts tracking even in the fallback path', () => {
@@ -206,7 +211,7 @@ describe('submitWithDismissFirst', () => {
                 telemetryContext: TELEMETRY_CONTEXT,
             });
 
-            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: true, shouldDeferForSearch: false});
+            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: true});
             expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
         });
 
@@ -239,7 +244,7 @@ describe('submitWithDismissFirst', () => {
 
             const [, revealOptions] = (mockRevealRouteBeforeDismissingModal.mock.calls as Array<[string, {afterTransition: () => void}]>).at(0) ?? [];
             revealOptions?.afterTransition();
-            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: false, shouldDeferForSearch: false});
+            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: false});
         });
 
         it('all branches start telemetry tracking', () => {

@@ -1,4 +1,3 @@
-import type {SvgProps} from 'react-native-svg';
 import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
@@ -63,6 +62,7 @@ import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
 import Columns from '@assets/images/columns.svg';
 import CommentBubbles from '@assets/images/comment-bubbles.svg';
+import Compass from '@assets/images/compass.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
@@ -76,6 +76,7 @@ import CreditCardWithPlane from '@assets/images/credit-card-with-plane.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crop from '@assets/images/crop.svg';
 import Crosshair from '@assets/images/crosshair.svg';
+import DocumentMagicWand from '@assets/images/document-magic-wand.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
 import Document from '@assets/images/document.svg';
@@ -143,6 +144,7 @@ import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg
 import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
+import RilletSquare from '@assets/images/integrationicons/rillet-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
 import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
 import TriNetSquare from '@assets/images/integrationicons/trinet-icon-square.svg';
@@ -176,6 +178,7 @@ import MoneyHourglass from '@assets/images/money-hourglass.svg';
 import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
+import Moon from '@assets/images/moon.svg';
 import MultiTag from '@assets/images/multi-tag.svg';
 import Fingerprint from '@assets/images/multifactorAuthentication/fingerprint.svg';
 import Mute from '@assets/images/mute.svg';
@@ -202,10 +205,12 @@ import Profile from '@assets/images/profile.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptBody from '@assets/images/receipt-body.svg';
+import ReceiptCheck from '@assets/images/receipt-check.svg';
 import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
 import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
 import ReceiptPlus from '@assets/images/receipt-plus.svg';
 import ReceiptScan from '@assets/images/receipt-scan.svg';
+import ReceiptSearch from '@assets/images/receipt-search.svg';
 import ReceiptSlash from '@assets/images/receipt-slash.svg';
 import Receipt from '@assets/images/receipt.svg';
 import RemoveMembers from '@assets/images/remove-members.svg';
@@ -268,12 +273,16 @@ import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
+
 // These icons are React components because they have
 // drop shadow that is NOT handled by babel-plugin-transform-react-native-svg
 import MapCurrentLocation from '@components/MapView/Icons/MapCurrentLocation';
+import MapCurrentLocationPuck from '@components/MapView/Icons/MapCurrentLocationPuck';
 import MapStartWaypoint from '@components/MapView/Icons/MapStartWaypoint';
 import MapStopWaypoint from '@components/MapView/Icons/MapStopWaypoint';
 import MapWaypoint from '@components/MapView/Icons/MapWaypoint';
+
+import type {SvgProps} from 'react-native-svg';
 
 const Expensicons = {
     ReceiptBody,
@@ -338,6 +347,7 @@ const Expensicons = {
     CreditCardWithPlaneHourglass,
     CircleSlash,
     Document,
+    DocumentMagicWand,
     DocumentMerge,
     DocumentPlus,
     DotIndicator,
@@ -407,6 +417,7 @@ const Expensicons = {
     MakeAdmin,
     Map,
     MapCurrentLocation,
+    MapCurrentLocationPuck,
     MapStartWaypoint,
     MapStopWaypoint,
     MapWaypoint,
@@ -420,6 +431,7 @@ const Expensicons = {
     MoneyWaving,
     MoneyHourglass,
     Monitor,
+    Moon,
     Mute,
     ExpensifyLogoNew,
     NewWindow,
@@ -446,14 +458,17 @@ const Expensicons = {
     QuestionMark,
     TreasureChest,
     Receipt,
+    ReceiptCheck,
     ReceiptPlaceholderPlus,
     ReceiptPlus,
     ReceiptScan,
+    ReceiptSearch,
     ReceiptSlash,
     RemoveMembers,
     ReportCopy,
     ReplaceReceipt,
     ReceiptMultiple,
+    RilletSquare,
     Rotate,
     RotateLeft,
     Scan,
@@ -549,6 +564,7 @@ const Expensicons = {
     LuggageWithLinesPlus,
     TreasureChestGreenWithSparkle,
     UserShield,
+    Compass,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

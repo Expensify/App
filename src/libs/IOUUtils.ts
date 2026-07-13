@@ -1,18 +1,22 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import SafeString from '@src/utils/SafeString';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {SafeString} from 'expensify-common';
+
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
-import {isPaidGroupPolicy} from './PolicyUtils';
+import {isGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
 import {generateReportID, getChatByParticipants, isProcessingReport, isReportOutstanding, isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
-import {getTagArrayFromName} from './TransactionUtils';
+import {getTagArrayFromName, hasRoute, isDistanceRequest} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction, backToReport?: string): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -325,7 +329,7 @@ function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy
     return (
         (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.CREATE) &&
         !isPerDiemRequest &&
-        (!isMovingTransactionFromTrackExpense(action) || isPaidGroupPolicy(policy))
+        (!isMovingTransactionFromTrackExpense(action) || isGroupPolicy(policy))
     );
 }
 
@@ -333,17 +337,24 @@ function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
 
-function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: string) {
+function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails, reportID?: string) {
     if (!currentUser) {
         return;
     }
+    const login = currentUser.login ? currentUser.login : (currentUser.email ?? '');
+    const displayName = currentUser.displayName ? currentUser.displayName : login;
+
+    if (!login) {
+        return;
+    }
+
     const initialAttendee: Attendee = {
-        email: currentUser?.login ?? '',
-        login: currentUser?.login ?? '',
-        displayName: currentUser.displayName ?? '',
+        email: login,
+        login,
+        displayName,
         avatarUrl: SafeString(currentUser.avatar),
         accountID: currentUser.accountID,
-        text: currentUser.login,
+        text: displayName,
         selected: true,
         reportID,
     };
@@ -431,7 +442,7 @@ function calculateDefaultReimbursable({
     const isUnreported = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
     const reportPolicy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : policy;
-    return (isPolicyExpenseChat && isPaidGroupPolicy(reportPolicy)) || isCreatingTrackExpense ? (reportPolicy?.defaultReimbursable ?? true) : true;
+    return (isPolicyExpenseChat && isGroupPolicy(reportPolicy)) || isCreatingTrackExpense ? (reportPolicy?.defaultReimbursable ?? true) : true;
 }
 
 function getInitialPerDiemTargetReport(
@@ -441,7 +452,11 @@ function getInitialPerDiemTargetReport(
     defaultExpensePolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
     personalPolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
     isFromGlobalCreate: boolean,
-): {targetReport: OnyxEntry<Report>; targetIouType: IOUType; transactionReportID: string | undefined} {
+): {
+    targetReport: OnyxEntry<Report>;
+    targetIouType: IOUType;
+    transactionReportID: string | undefined;
+} {
     let targetReport = report;
     let targetIouType = iouType;
 
@@ -474,6 +489,27 @@ function resolveOptimisticChatReportID(participantAccountIDs: number[], existing
     return {optimisticChatReportID, chatReportID};
 }
 
+/**
+ * Whether the participant picker for this transaction should be restricted to workspaces only.
+ * A negative amount (or a distance request with zero quantity) implies money is owed *to* the
+ * current user, so only a workspace can be the counterparty — not an individual user.
+ * Scan requests are excluded because the amount isn't known until after SmartScan completes.
+ */
+function getIsWorkspacesOnlyForTransaction(transaction: OnyxEntry<Transaction>, iouRequestType: IOURequestType): boolean {
+    if (isDistanceRequest(transaction)) {
+        if (!hasRoute(transaction, true)) {
+            return false;
+        }
+        return transaction?.comment?.customUnit?.quantity === 0;
+    }
+
+    if (iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+        return false;
+    }
+
+    return transaction?.amount !== undefined && transaction?.amount !== null && transaction?.amount < 0;
+}
+
 /** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
 function resolveReportForMoneyRequest({
     transaction,
@@ -501,6 +537,30 @@ function resolveReportForMoneyRequest({
     return routeReport;
 }
 
+/**
+ * Check whether a money-request participant represents a P2P chat (i.e. another user, not a
+ * policy-expense chat and not a self DM).
+ */
+function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean; isSelfDM?: boolean} | undefined): boolean {
+    return !!(participant?.accountID && !participant.isPolicyExpenseChat && !participant.isSelfDM);
+}
+
+/**
+ * Resolves the reportID that should be set on the transaction draft for
+ * global-create flows with default participants. Returns undefined when
+ * no early set is needed (non-global-create or empty participants).
+ */
+function resolveEarlyReportID(isFromGlobalCreate: boolean, participants: Participant[] | undefined): string | undefined {
+    if (!isFromGlobalCreate || !participants || participants.length === 0) {
+        return undefined;
+    }
+    const firstParticipant = participants.at(0);
+    if (firstParticipant?.isSelfDM) {
+        return CONST.REPORT.UNREPORTED_REPORT_ID;
+    }
+    return firstParticipant?.reportID;
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
@@ -518,6 +578,9 @@ export {
     navigateToConfirmationPage,
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,
+    getIsWorkspacesOnlyForTransaction,
+    isParticipantP2P,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
+    resolveEarlyReportID,
 };

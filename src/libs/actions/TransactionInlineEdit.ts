@@ -1,19 +1,9 @@
-/**
- * Actions for inline editing of transactions from the Search results table and the Expense Report page.
- *
- * Each function delegates to the corresponding IOU action which owns the canonical Onyx record,
- * the API write, failure rollback, and snapshot updates (when a hash is provided).
- */
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
-import {getIsOffline} from '@libs/NetworkState';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
-import {getTagLists, isMultiLevelTags} from '@libs/PolicyUtils';
+import {getTagLists, isGroupPolicy, isMultiLevelTags} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
@@ -23,11 +13,20 @@ import {
     isArchivedReport,
     isInvoiceReport,
     isIOUReport,
-    isReportInGroupPolicy,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {calculateTaxAmount, getCurrency, getOriginalTransactionWithSplitInfo, getTaxValue, isDistanceRequest, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
+import {
+    calculateTaxAmount,
+    getCurrency,
+    getOriginalTransactionWithSplitInfo,
+    getTaxValue,
+    isDistanceRequest,
+    isExpenseUnreported,
+    isPerDiemRequest,
+    isScanning,
+} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -46,6 +45,18 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+/**
+ * Actions for inline editing of transactions from the Search results table and the Expense Report page.
+ *
+ * Each function delegates to the corresponding IOU action which owns the canonical Onyx record,
+ * the API write, failure rollback, and snapshot updates (when a hash is provided).
+ */
+import Onyx from 'react-native-onyx';
+
 import {
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestCategory,
@@ -170,15 +181,20 @@ type GetIouParamsInput = {
     parentReportAction: OnyxEntry<ReportAction>;
     transactionThreadReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
+    policyForTrackExpense?: OnyxEntry<Policy>;
     policyCategories: OnyxEntry<PolicyCategories>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     parentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+    distanceOriginalPolicy?: OnyxEntry<Policy>;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
     hash: number | undefined;
+    isOffline: boolean;
 };
 
 /**
@@ -194,11 +210,14 @@ function getIouParamsForTransaction({
     parentReportAction,
     transactionThreadReport,
     policy,
+    policyForTrackExpense,
     policyCategories,
     policyTags,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     parentReportNextStep,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
 }: GetIouParamsInput) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -244,6 +263,8 @@ function getIouParamsForTransaction({
             iouReportAction: resolvedParentReportAction,
             transaction,
             transactionViolations: transactionViolations ?? undefined,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
         });
     }
 
@@ -252,6 +273,7 @@ function getIouParamsForTransaction({
         transactionThreadReport: resolvedTransactionThreadReport,
         parentReport: resolvedParentReport,
         policy,
+        policyForTrackExpense,
         policyCategories,
         parentReportNextStep,
         currentUserAccountIDParam: currentUserAccountID,
@@ -268,7 +290,7 @@ function getIouParamsForTransaction({
 }
 
 /** Updates the date of an expense from the Search results table or the Expense Report page. */
-function editTransactionDateInline(params: TransactionInlineEditParams, newDate: string) {
+function editTransactionDateInline(params: TransactionInlineEditParams, newDate: string, personalPolicyOutputCurrency: string | undefined) {
     const iouParams = getIouParamsForTransaction(params);
     updateMoneyRequestDate({
         ...iouParams,
@@ -277,8 +299,10 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
         value: newDate,
         transactions: allTransactions,
         transactionViolations: allTransactionViolations,
-        isOffline: getIsOffline(),
+        isOffline: params.isOffline,
         hash: params.hash,
+        distanceOriginalPolicy: params.distanceOriginalPolicy,
+        personalPolicyOutputCurrency,
     });
 }
 
@@ -295,6 +319,7 @@ function editTransactionMerchantInline(params: TransactionInlineEditParams, newM
         ...iouParams,
         value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         hash: params.hash,
+        isOffline: params.isOffline,
     });
 }
 
@@ -359,6 +384,7 @@ function editTransactionTagInline(params: TransactionInlineEditParams, newTag: s
         tag: newTag,
         policyRecentlyUsedTags: iouParams.policyRecentlyUsedTags,
         hash: params.hash,
+        isOffline: params.isOffline,
     });
 }
 
@@ -422,6 +448,11 @@ function getTransactionEditPermissions({
                 return false;
             }
 
+            // Per diem amount is derived from the rate and cannot be edited
+            if (isPerDiemRequest(transaction)) {
+                return false;
+            }
+
             // Amount field shows "Scanning..." during SmartScan
             if (isTransactionScanning) {
                 return false;
@@ -429,8 +460,8 @@ function getTransactionEditPermissions({
         }
 
         if (field === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
-            // Distance expenses cannot have their merchant edited
-            if (isDistanceRequest(transaction)) {
+            // Distance and per diem expenses cannot have their merchant edited
+            if (isDistanceRequest(transaction) || isPerDiemRequest(transaction)) {
                 return false;
             }
 
@@ -446,7 +477,7 @@ function getTransactionEditPermissions({
             }
             // Matches MoneyRequestView's shouldShowCategory logic
             // For policy expenses, check if there's a category or enabled options
-            if (isReportInGroupPolicy(parentReport, policy)) {
+            if (isGroupPolicy(policy)) {
                 return !!(transaction?.category ?? '') || hasEnabledOptions(policyCategories ?? {});
             }
             // For unreported expenses, disable inline category editing while workspace selection is required.

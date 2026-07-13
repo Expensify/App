@@ -1,25 +1,28 @@
-import React from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {filterPolicyIDSelector} from '@src/selectors/Search';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React from 'react';
+
 import MultiSelect from './MultiSelect';
 
-type CategorySelectorProps = SearchFilterSelectionListProps & {
-    value: string[] | undefined;
-    onChange: (categories: string[]) => void;
+type CategorySelectorProps = SearchFilterCommonProps<string[] | undefined> & {
+    policyIDs: string[] | undefined;
 };
 
-function CategorySelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
-    const {translate} = useLocalize();
-    const [policyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
+function CategorySelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
+    const {translate, localeCompare} = useLocalize();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const selectedCategoriesItems = value.map((category) => {
@@ -70,7 +73,8 @@ function CategorySelector({value = [], selectionListTextInputStyle, selectionLis
             .map((categoryName) => {
                 const decodedCategoryName = getDecodedCategoryName(categoryName);
                 return {text: decodedCategoryName, value: categoryName};
-            }),
+            })
+            .toSorted((a, b) => sortOptionsWithEmptyValue(a.text.toString(), b.text.toString(), localeCompare)),
     );
 
     return (
@@ -79,7 +83,6 @@ function CategorySelector({value = [], selectionListTextInputStyle, selectionLis
             items={categoryItems}
             isSearchable={categoryItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
             autoFocus={autoFocus}
-            searchPlaceholder={translate('common.category')}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
             footer={footer}

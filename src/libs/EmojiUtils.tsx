@@ -1,21 +1,27 @@
-import {parseExpensiMark} from '@expensify/react-native-live-markdown';
-import type {MarkdownRange} from '@expensify/react-native-live-markdown';
-import {Str} from 'expensify-common';
-import lodashSortBy from 'lodash/sortBy';
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
 import type {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
+
 import Text from '@components/Text';
+
 import CONST from '@src/CONST';
 import {isFullySupportedLocale} from '@src/CONST/LOCALES';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type ReportActionReactions from '@src/types/onyx/ReportActionReactions';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {isSafari} from './Browser';
+
+import type {MarkdownRange} from '@expensify/react-native-live-markdown';
+import type {StyleProp, TextStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {parseExpensiMark} from '@expensify/react-native-live-markdown';
+import {Str} from 'expensify-common';
+import lodashSortBy from 'lodash/sortBy';
+import React from 'react';
+
 import type {getEmojiTrie as getEmojiTrieType} from './EmojiTrie';
+
+import {isSafari} from './Browser';
 import memoize from './memoize';
 
 type HeaderIndices = {code: string; index: number; icon: IconAsset};
@@ -101,7 +107,19 @@ function revertEmojisInCodeBlocks(text: string, cursorPosition?: number): {text:
     return {text: result, cursorPosition: adjustedCursorPosition};
 }
 
-const sortByName = (emoji: Emoji, emojiData: RegExpMatchArray) => !emoji.name.includes(emojiData[0].toLowerCase().slice(1));
+const sortByName = (emoji: Emoji, emojiData: RegExpMatchArray) => {
+    const query = emojiData[0].toLowerCase().slice(1);
+    if (emoji.name.includes(query)) {
+        return false;
+    }
+    // An alias match counts as a name match, so emojis with non-readable canonical names
+    // (e.g. `+1`/`-1`) can still rank ahead of keyword-only matches when a readable alias matches.
+    const fullEmoji = Emojis.emojiNameTable[emoji.name];
+    if (fullEmoji?.aliases?.some((alias) => alias.includes(query))) {
+        return false;
+    }
+    return true;
+};
 
 const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
     if (!emojiList) {
@@ -552,15 +570,18 @@ function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, lim
     const matching: Emoji[] = [];
     const nodes = trie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
     for (const node of nodes) {
-        if (node.metaData?.code && !matching.find((obj) => obj.name === node.name)) {
-            const hexcode = node.metaData.hexcode ?? findEmojiByCode(node.metaData.code)?.hexcode ?? findEmojiByName(node.name)?.hexcode;
+        // The trie stores aliases as separate nodes pointing to the same emoji, so prefer the
+        // canonical name from `metaData.name` over the trie path so dedupe and result names are consistent.
+        const canonicalName = node.metaData?.name ?? node.name;
+        if (node.metaData?.code && !matching.find((obj) => obj.name === canonicalName)) {
+            const hexcode = node.metaData.hexcode ?? findEmojiByCode(node.metaData.code)?.hexcode ?? findEmojiByName(canonicalName)?.hexcode;
             if (!hexcode) {
                 continue;
             }
             if (matching.length === limit) {
                 return lodashSortBy(matching, (emoji) => sortByName(emoji, emojiData));
             }
-            matching.push({code: node.metaData.code, name: node.name, types: node.metaData.types, hexcode});
+            matching.push({code: node.metaData.code, name: canonicalName, types: node.metaData.types, hexcode});
         }
         const suggestions = node.metaData.suggestions;
         if (!suggestions) {

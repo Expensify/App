@@ -1,8 +1,10 @@
 import emojis, {importEmojiLocale, localeEmojis} from '@assets/emojis';
 import type {Emoji, HeaderEmoji} from '@assets/emojis/types';
+
 import CONST from '@src/CONST';
 import {FULLY_SUPPORTED_LOCALES} from '@src/CONST/LOCALES';
 import type {FullySupportedLocale} from '@src/CONST/LOCALES';
+
 import StringUtils from './StringUtils';
 import {endSpan, startSpan} from './telemetry/activeSpans';
 import Trie from './Trie';
@@ -91,6 +93,24 @@ function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<Em
 
         const nameParts = getNameParts(localeName).slice(1); // We remove the first part because we already index the full name.
         addKeywordsToTrie(trie, nameParts, emoji, localeName);
+
+        for (const alias of emoji.aliases ?? []) {
+            const {node: aliasNode, isNew: aliasIsNew} = trie.getOrCreate(alias);
+            if (aliasIsNew) {
+                aliasNode.metaData = {code: emoji.code, types: emoji.types, name: localeName, hexcode: emoji.hexcode, suggestions: []};
+            } else {
+                aliasNode.metaData = {
+                    suggestions: [...((aliasNode.metaData.suggestions as Emoji[] | undefined) ?? [])],
+                    code: emoji.code,
+                    types: emoji.types,
+                    name: localeName,
+                    hexcode: emoji.hexcode,
+                };
+            }
+
+            const aliasNameParts = getNameParts(alias).slice(1);
+            addKeywordsToTrie(trie, aliasNameParts, emoji, localeName);
+        }
 
         // Add keywords for both the locale language and English to enable users to search using either language.
         const keywords = (langEmojis?.[emoji.code]?.keywords ?? []).concat(isDefaultLocale ? [] : (defaultLangEmojis?.[emoji.code]?.keywords ?? []));

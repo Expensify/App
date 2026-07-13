@@ -1,8 +1,11 @@
-import type {StoryFn} from '@storybook/react-webpack5';
-import React, {useMemo} from 'react';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {ButtonWithDropdownMenuProps} from '@components/ButtonWithDropdownMenu/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
+import type {StoryFn} from 'storybook-react-rsbuild';
+
+import React, {useMemo} from 'react';
 
 type ButtonWithDropdownMenuStory = StoryFn<typeof ButtonWithDropdownMenu>;
 

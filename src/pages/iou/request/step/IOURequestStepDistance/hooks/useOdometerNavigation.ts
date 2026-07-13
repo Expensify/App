@@ -1,20 +1,31 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
-import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
-import {isMoneyRequestReport} from '@libs/ReportUtils';
-import type {IOUType} from '@src/CONST';
+
+import {rand64} from '@libs/NumberUtils';
+import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
+
+import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
+
+import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import type {Beta, IntroSelected, OdometerDraft, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Unit} from '@src/types/onyx/Policy';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+
 type UseOdometerNavigationParams = {
     /** Type of IOU flow (request, split, track, etc.). */
     iouType: IOUType;
+
+    /** Route param: the IOU action (create / edit). */
+    action: IOUAction;
 
     /** The chat/expense report that owns this transaction. */
     report: OnyxEntry<Report>;
@@ -43,11 +54,11 @@ type UseOdometerNavigationParams = {
     /** Current user's account ID — passed through to the navigation util. */
     currentUserAccountID: number;
 
+    /** Current user's localCurrencyCode — passed through to the navigation util for draft-workspace creation. */
+    currentUserLocalCurrency: string | undefined;
+
     /** Optional report to return to after submission completes. */
     backToReport: string | undefined;
-
-    /** Optional route to return to instead of going forward. */
-    backTo: Route | undefined;
 
     /** True when the quick-action flow should bypass the confirmation screen. */
     shouldSkipConfirmation: boolean;
@@ -102,6 +113,7 @@ type NavigateOptions = {
 
 function useOdometerNavigation({
     iouType,
+    action,
     report,
     policy,
     transaction,
@@ -111,8 +123,8 @@ function useOdometerNavigation({
     personalDetails,
     currentUserLogin,
     currentUserAccountID,
+    currentUserLocalCurrency,
     backToReport,
-    backTo,
     shouldSkipConfirmation,
     defaultExpensePolicy,
     isArchived,
@@ -135,12 +147,19 @@ function useOdometerNavigation({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+    const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
+    const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
+
+    const delegateAccountID = useDelegateAccountID();
 
     return ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
+        const optimisticTransactionID = rand64();
+        const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
+
         handleMoneyRequestStepDistanceNavigation({
             iouType,
+            action,
             report,
             policy,
             transaction,
@@ -150,8 +169,8 @@ function useOdometerNavigation({
             personalDetails,
             currentUserLogin,
             currentUserAccountID,
+            currentUserLocalCurrency,
             backToReport,
-            backTo,
             shouldSkipConfirmation,
             defaultExpensePolicy,
             isArchivedExpenseReport: isArchived,
@@ -163,7 +182,6 @@ function useOdometerNavigation({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
-            privateIsArchived: isArchived,
             selfDMReport,
             policyForMovingExpenses,
             odometerStart,
@@ -180,7 +198,11 @@ function useOdometerNavigation({
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
+            optimisticTransactionID,
+            optimisticChatReportID,
             reportDraft,
+            delegateAccountID,
+            policyTagList,
         });
     };
 }

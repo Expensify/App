@@ -1,5 +1,6 @@
-import React, {useCallback, useContext, useState} from 'react';
 import type {ReactNode} from 'react';
+
+import React, {useCallback, useContext, useState} from 'react';
 
 /**
  * Context for managing inline editable cell state across the component tree.
@@ -79,5 +80,4 @@ function useEditingCellActions(): EditingCellActionsContextType {
 }
 
 export default EditingCellProvider;
-export {EditingCellActionsContext, EditingCellStateContext, useEditingCellActions, useEditingCellState};
-export type {EditingCellActionsContextType, EditingCellStateContextType};
+export {useEditingCellActions, useEditingCellState};

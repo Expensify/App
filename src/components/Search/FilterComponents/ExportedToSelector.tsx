@@ -1,29 +1,33 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
 import Icon from '@components/Icon';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getSearchValueForConnection} from '@libs/AccountingUtils';
 import {getExportTemplates} from '@libs/actions/Search';
 import {getConnectedIntegrationNamesForPolicies} from '@libs/PolicyUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {filterPolicyIDSelector} from '@src/selectors/Search';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {TupleToUnion} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import MultiSelect from './MultiSelect';
 
-type ExportedToSelectorProps = SearchFilterSelectionListProps & {
-    value: string[] | undefined;
-    onChange: (exportedTo: string[]) => void;
+type ExportedToSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
+    policyIDs: string[] | undefined;
 };
 
 const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
@@ -31,9 +35,9 @@ const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
     [CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
 };
 
-function ExportedToSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: ExportedToSelectorProps) {
+function ExportedToSelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: ExportedToSelectorProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -43,13 +47,13 @@ function ExportedToSelector({value = [], selectionListTextInputStyle, selectionL
         'IntacctSquare',
         'QBDSquare',
         'CertiniaSquare',
+        'RilletSquare',
         'GustoSquare',
         'Table',
         'TablePencil',
     ]);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
-    const [policyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const connectedIntegrationNames = getConnectedIntegrationNamesForPolicies(policies, policyIDs.length > 0 ? policyIDs : undefined);
@@ -131,11 +135,12 @@ function ExportedToSelector({value = [], selectionListTextInputStyle, selectionL
         return [...connectedIntegrationPickerItems, ...standardAndIntegrationCustomTemplatePickerItems];
     })();
     const selectedExportedTo = exportedToPickerOptions.filter((option) => value.includes(option.value));
+    const sortedExportedToPickerOptions = exportedToPickerOptions.toSorted((a, b) => localeCompare(a.text.toString(), b.text.toString()));
 
     return (
         <MultiSelect
             value={selectedExportedTo}
-            items={exportedToPickerOptions}
+            items={sortedExportedToPickerOptions}
             isSearchable={exportedToPickerOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
             autoFocus={autoFocus}
             selectionListTextInputStyle={selectionListTextInputStyle}

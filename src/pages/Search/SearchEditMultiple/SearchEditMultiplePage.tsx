@@ -1,6 +1,3 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -8,12 +5,15 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -22,11 +22,18 @@ import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport} from '@libs/Re
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName, getTaxName, hasSplitExpenseInSelection, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import {
     areAllTransactionsExpenseCompatible,
     getTransactionEditContext,
@@ -44,7 +51,8 @@ function SearchEditMultiplePage() {
     const {currentSearchHash} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const personalPolicy = usePersonalPolicy();
     const delegateAccountID = useDelegateAccountID();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -54,8 +62,7 @@ function SearchEditMultiplePage() {
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const snapshotData = currentSearchResults?.data;
     const mergedTransactions = withSnapshotTransactions(allTransactions, snapshotData);
@@ -127,8 +134,10 @@ function SearchEditMultiplePage() {
         };
     }, []);
 
+    const [isSaving, setIsSaving] = useState(false);
+
     const save = () => {
-        if (!draftTransaction) {
+        if (!draftTransaction || isSaving) {
             return;
         }
 
@@ -166,29 +175,34 @@ function SearchEditMultiplePage() {
             return;
         }
 
-        updateMultipleMoneyRequests({
-            transactionIDs: selectedTransactionIDs,
-            changes,
-            policy,
-            reports: mergedReports,
-            transactions: mergedTransactions,
-            reportActions: mergedReportActions,
-            policyCategories: allPolicyCategories,
-            policyTags: allPolicyTags,
-            hash: currentSearchHash,
-            allPolicies: policies,
-            introSelected,
-            betas,
-            currentUserAccountID,
-            currentUserLogin: currentUserLogin ?? '',
-            delegateAccountID,
-        });
-        // Bulk edit can start from report (ID-based selection) or search (map-based selection),
-        // so clear both stores to keep deselection behavior consistent.
-        clearSelectedTransactions(true);
-        clearSelectedTransactions();
+        setIsSaving(true);
 
-        Navigation.dismissToPreviousRHP();
+        // Defer the bulk edit loop so the loading spinner has a chance to paint
+        // before the synchronous Onyx writes block the JS thread.
+        requestAnimationFrame(() => {
+            updateMultipleMoneyRequests({
+                transactionIDs: selectedTransactionIDs,
+                changes,
+                policy,
+                reports: mergedReports,
+                transactions: mergedTransactions,
+                reportActions: mergedReportActions,
+                policyCategories: allPolicyCategories,
+                policyTags: allPolicyTags,
+                violations: allTransactionViolations,
+                hash: currentSearchHash,
+                allPolicies: policies,
+                currentUserAccountID,
+                delegateAccountID,
+                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            });
+            // Bulk edit can start from report (ID-based selection) or search (map-based selection),
+            // so clear both stores to keep deselection behavior consistent.
+            clearSelectedTransactions(true);
+            clearSelectedTransactions();
+
+            Navigation.dismissToPreviousRHP();
+        });
     };
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -324,6 +338,8 @@ function SearchEditMultiplePage() {
                     large
                     text={translate('common.save')}
                     onPress={save}
+                    isLoading={isSaving}
+                    isDisabled={isSaving}
                     style={[styles.m5]}
                 />
             </View>

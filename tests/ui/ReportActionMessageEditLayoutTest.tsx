@@ -1,21 +1,28 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {KeyboardStateProvider} from '@components/withKeyboardState';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import type {ReportActionComposeProps} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
 import type {ReportActionItemMessageEditProps} from '@pages/inbox/report/ReportActionItemMessageEdit';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
 import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as NativeNavigation from '@react-navigation/native';
+import type {PropsWithChildren} from 'react';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -145,7 +152,7 @@ function ReportScreenProviders({children}: PropsWithChildren) {
 }
 
 /**
- * Simulates the product split: on wide, inline @ReportActionItemMessageEdit is mounted (isEditingInline in PureReportActionItem);
+ * Simulates the product split: on wide, inline @ReportActionItemMessageEdit is mounted (isEditingInline in ReportActionItem);
  * on narrow it is not and edit happens in the main composer.
  */
 type LayoutMode = 'narrow' | 'wide';
@@ -159,7 +166,6 @@ function MessageEditLayoutHost({layout}: {layout: LayoutMode}) {
                     action={commentAction}
                     reportID={defaultReport.reportID}
                     originalReportID={defaultReport.reportID}
-                    index={0}
                 />
             )}
         </ReportScreenProviders>

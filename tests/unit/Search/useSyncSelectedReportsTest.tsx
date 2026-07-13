@@ -1,10 +1,13 @@
 import {act, render} from '@testing-library/react-native';
-import React, {useEffect, useMemo, useState} from 'react';
+
 import {SearchSelectionActionsContext, SearchSelectionContext} from '@components/Search/SearchContext';
 import {useSyncSelectedReports} from '@components/Search/SearchContextProvider';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from '@components/Search/types';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useMemo, useState} from 'react';
 
 type HookData = TransactionListItemType[] | TransactionReportGroupListItemType[];
 
@@ -17,7 +20,6 @@ const baseSelectionContext = {
     shouldTurnOffSelectionMode: false,
     hasSelectedTransactions: false,
     areAllMatchingItemsSelected: false,
-    shouldShowSelectAllMatchingItems: false,
 } satisfies Omit<SearchSelectionContextValue, 'selectedTransactions'>;
 
 function buildTransactionItem(overrides: Partial<TransactionListItemType> & {keyForList: string; transactionID: string}) {
@@ -97,10 +99,10 @@ function renderHarness({
             () => ({
                 setCurrentSelectedTransactionReportID: () => {},
                 setSelectedTransactions: () => {},
+                applySelection: () => {},
                 setSelectedReports,
                 removeTransaction: () => {},
                 clearSelectedTransactions: () => {},
-                setShouldShowSelectAllMatchingItems: () => {},
                 selectAllMatchingItems: () => {},
             }),
             [],

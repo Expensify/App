@@ -1,13 +1,13 @@
-import React from 'react';
 import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
+
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
+
+import React from 'react';
+
 import MultiSelect from './MultiSelect';
 
-type CurrencySelectorProps = SearchFilterSelectionListProps & {
-    value: string[] | undefined;
-    onChange: (item: string[]) => void;
-};
+type CurrencySelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 function CurrencySelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CurrencySelectorProps) {
     const {currencyList} = useCurrencyListState();

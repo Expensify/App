@@ -1,16 +1,14 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {beforeAll} from '@jest/globals';
 import {act, renderHook} from '@testing-library/react-native';
-import {addDays, format as formatDate} from 'date-fns';
-import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxMergeCollectionInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import usePolicyData from '@hooks/usePolicyData';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import type PolicyData from '@hooks/usePolicyData/types';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import * as HoldUtils from '@libs/actions/IOU/Hold';
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type {TaskForParameters} from '@libs/actions/Report';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -31,6 +29,7 @@ import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/Report
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
+    areAllRequestsBeingSmartScanned,
     buildOptimisticAnnounceChat,
     buildOptimisticApprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
@@ -50,6 +49,7 @@ import {
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
     canAddTransaction,
+    canBeAutoReimbursed,
     canCreateRequest,
     canDeleteMoneyRequestReport,
     canDeleteReportAction,
@@ -57,6 +57,7 @@ import {
     canEditMoneyRequest,
     canEditReportAction,
     canEditReportDescription,
+    canEditReportPolicy,
     canEditReportTitle,
     canEditRoomVisibility,
     canEditWriteCapability,
@@ -64,6 +65,8 @@ import {
     canHoldUnholdReportAction,
     canJoinChat,
     canLeaveChat,
+    canMergeReports,
+    canModifyHoldStatus,
     canRejectReportAction,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
@@ -72,10 +75,13 @@ import {
     doesReportBelongToWorkspace,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
+    getActionErrorsByTransaction,
     getAddExpenseDropdownOptions,
+    getAllPolicyExpenseChatReportActions,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getAvailableReportFields,
+    getBankAccountRoute,
     getBillableAndTaxTotal,
     getChatByParticipants,
     getChatListItemReportName,
@@ -100,13 +106,16 @@ import {
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
+    getParsedComment,
     getParticipantsList,
+    getPolicyChangeLogCopyMessage,
     getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
     getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
     getReimbursableTotal,
     getReportActionWithSmartscanError,
+    getReportFieldsByPolicyID,
     getReportIDFromLink,
     getReportOrDraftReport,
     getReportPreviewMessage,
@@ -115,7 +124,9 @@ import {
     getTaskAssigneeChatOnyxData,
     getTitleFieldWithFallback,
     getTransactionDetails,
+    getTransactionReportName,
     getTransactionSortValue,
+    getTransactionsWithReceipts,
     getUnheldReimbursableTotal,
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
@@ -124,9 +135,11 @@ import {
     hasActionWithErrorsForTransaction,
     hasEmptyReportsForPolicy,
     hasExportError,
+    hasNonReimbursableTransactions,
     hasReceiptError,
     hasSmartscanError,
     hasVisibleReportFieldViolations,
+    isActionCreator,
     isAdminOwnerApproverOrReportOwner,
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReport,
@@ -134,11 +147,12 @@ import {
     isChatUsedForOnboarding,
     isClosedExpenseReportWithNoExpenses,
     isConciergeChatReport,
+    isCurrentUserSubmitter,
     isDeprecatedGroupDM,
     isHarvestCreatedExpenseReport,
     isMoneyRequestReportEligibleForMerge,
     isPayer,
-    isReportIneligibleForMoveExpenses,
+    isReportManager,
     isReportOutstanding,
     isReportPendingDelete,
     isRootGroupChat,
@@ -146,13 +160,13 @@ import {
     isSortableColumnName,
     isUnread,
     isWorkspaceMemberLeavingWorkspaceRoom,
-    parseReportActionHtmlToText,
     parseReportRouteParams,
+    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
+    pushTransactionAutoSelectionsOnyxData,
     pushTransactionViolationsOnyxData,
     reasonForReportToBeInOptionList,
     requiresAttentionFromCurrentUser,
-    requiresManualSubmission,
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
@@ -163,12 +177,14 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    shouldShowMarkAsDone,
     sortIconsByName,
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -180,11 +196,14 @@ import type {
     OnyxInputOrEntry,
     PersonalDetailsList,
     Policy,
+    PolicyCategories,
     PolicyEmployeeList,
     PolicyTag,
+    PolicyTagLists,
     Report,
     ReportAction,
     ReportActions,
+    ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
     Transaction,
@@ -193,10 +212,18 @@ import type {
 import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
-import type {Participant, Participants} from '@src/types/onyx/Report';
+import type {Participant, Participants, ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
+import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
+
+import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxMergeCollectionInput} from 'react-native-onyx';
+
+import {addDays, format as formatDate} from 'date-fns';
+import Onyx from 'react-native-onyx';
+
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import * as NumberUtils from '../../src/libs/NumberUtils';
@@ -224,6 +251,7 @@ import {
     createWorkspaceThread,
 } from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
@@ -259,12 +287,18 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
-jest.mock('@libs/PolicyUtils', () => ({
-    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
-    isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
-    isPaidGroupPolicy: jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team'),
-    isPolicyOwner: jest.fn().mockImplementation((policy?: Policy, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
-}));
+jest.mock('@libs/PolicyUtils', () => {
+    const actualPolicyUtils = jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils');
+    const isPaidGroupPolicy = jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team');
+    return {
+        ...actualPolicyUtils,
+        isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
+        isPaidGroupPolicy,
+        // isGroupPolicy delegates to the isPaidGroupPolicy mock so tests that tweak isPaidGroupPolicy still drive group-policy checks
+        isGroupPolicy: jest.fn().mockImplementation((policy?: Policy) => isPaidGroupPolicy(policy) === true || actualPolicyUtils.isSubmitPolicy(policy)),
+        isPolicyOwner: jest.fn().mockImplementation((policy?: Policy, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
+    };
+});
 
 const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
 
@@ -292,7 +326,9 @@ const computeReportName = (
         reportActions,
         currentUserAccountID: currentUserID,
         currentUserLogin: currentUserEmail,
+        translate: translateLocal,
         conciergeReportID,
+        isTrackIntentUser: false,
     });
 const participantsPersonalDetails: PersonalDetailsList = {
     '1': {
@@ -486,7 +522,8 @@ describe('ReportUtils', () => {
         const reportAction = {
             ...createRandomReportAction(44),
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            originalMessage: {IOUReportID: iouReportID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+            reportID: iouReportID,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
         };
 
         const iouReport = {...createExpenseReport(Number(iouReportID)), policyID: policyID.toString()};
@@ -508,6 +545,51 @@ describe('ReportUtils', () => {
 
             expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, undefined, iouReport)).toBe(paidSystemMessage);
         });
+
+        it('should show the bank account from the action accountNumber instead of the policy default', async () => {
+            // Given a policy whose default reimbursement account ends in 0000
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+
+            // When the pay action carries the masked accountNumber of the bank account actually used
+            const actionWithAccountNumber = {
+                ...reportAction,
+                originalMessage: {...reportAction.originalMessage, accountNumber: 'XXXXXX4321'},
+            };
+            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321');
+
+            // Then the message shows the last 4 digits of that account, not the policy default
+            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, undefined, iouReport)).toBe(paidSystemMessage);
+        });
+
+        it('should return received payment when submitter marked payment received', () => {
+            const paymentReceivedReportAction = {
+                ...createRandomReportAction(45),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: iouReportID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    isSubmitterMarkedPaymentReceived: true,
+                },
+            };
+
+            expect(getIOUReportActionDisplayMessage(translateLocal, paymentReceivedReportAction, undefined, iouReport)).toBe(translateLocal('iou.receivedPaymentReportAction'));
+        });
+
+        it('should return marked as paid for elsewhere payment without submitter flag', () => {
+            const paidElsewhereReportAction = {
+                ...createRandomReportAction(46),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: iouReportID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                },
+            };
+
+            expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, undefined, iouReport)).toBe(translateLocal('iou.paidElsewhere'));
+        });
     });
 
     describe('getTaskAssigneeChatOnyxData', () => {
@@ -523,7 +605,7 @@ describe('ReportUtils', () => {
                 'assigneeChatReportID',
                 'parentReportID',
                 'Task title',
-                {} as unknown as OnyxEntry<Report>,
+                createMock<OnyxEntry<Report>>({}),
                 passedCurrentUserEmail,
                 passedCurrentUserAccountID,
             );
@@ -547,7 +629,7 @@ describe('ReportUtils', () => {
                 'assigneeChatReportID',
                 'parentReportID',
                 'Task title',
-                {} as unknown as OnyxEntry<Report>,
+                createMock<OnyxEntry<Report>>({}),
                 passedCurrentUserEmail,
                 passedCurrentUserAccountID,
             );
@@ -560,7 +642,7 @@ describe('ReportUtils', () => {
         });
 
         it('does not create optimistic assignee comment when assigneeChatReportID equals parentReportID', () => {
-            const result = getTaskAssigneeChatOnyxData(1, 2, 'taskReportID', 'sameReportID', 'sameReportID', 'Task title', {} as unknown as OnyxEntry<Report>, 'email@user.com', 50);
+            const result = getTaskAssigneeChatOnyxData(1, 2, 'taskReportID', 'sameReportID', 'sameReportID', 'Task title', createMock<OnyxEntry<Report>>({}), 'email@user.com', 50);
 
             expect(result.optimisticAssigneeAddComment).toBeUndefined();
         });
@@ -657,7 +739,7 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
             // Tasks are sent to server via guidedSetupData; not added optimistically to avoid flash.
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             // No optimistic task report actions — server creates tasks from guidedSetupData.
             const reportActionsEntries = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`);
             expect(reportActionsEntries).toHaveLength(0);
@@ -679,7 +761,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -698,7 +780,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LARGE,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -717,7 +799,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -736,7 +818,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -817,8 +899,31 @@ describe('ReportUtils', () => {
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
         });
 
-        it('includes avatar and accountID in optimistic Setup Specialist personal detail', async () => {
-            // Reset personal details to remove any Setup Specialist entry added by previous tests,
+        it('should include text message in guidedSetupData for MANAGE_TEAM so the server can post it', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'Welcome to Expensify',
+                    tasks: [],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            });
+
+            const messageEntries = result?.guidedSetupData.filter((d) => d.type === 'message');
+            expect(messageEntries?.length).toBeGreaterThanOrEqual(1);
+            expect(messageEntries?.[0]).toMatchObject({type: 'message', reportComment: 'Welcome to Expensify'});
+            // An optimistic entry would appear then vanish when the real server message replaces it.
+            const optimisticActions = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`);
+            expect(optimisticActions).toHaveLength(0);
+        });
+
+        it('includes avatar and accountID in optimistic Account Executive personal detail', async () => {
+            // Reset personal details to remove any Account Executive entry added by previous tests,
             // so the optimistic creation path (else branch) is exercised.
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
             await waitForBatchedUpdates();
@@ -838,13 +943,13 @@ describe('ReportUtils', () => {
 
             const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
             const personalDetailsData = personalDetailsCall?.[1] as Record<string, {accountID: number; avatar?: string; login?: string; displayName?: string}>;
-            const setupSpecialistDetail = Object.values(personalDetailsData ?? {}).at(0);
+            const accountExecutiveDetail = Object.values(personalDetailsData ?? {}).at(0);
 
-            expect(setupSpecialistDetail).toBeDefined();
-            expect(setupSpecialistDetail?.accountID).toBeDefined();
-            expect(setupSpecialistDetail?.accountID).toBe(CONST.ACCOUNT_ID.QA_GUIDE);
-            expect(setupSpecialistDetail?.avatar).toBeDefined();
-            expect(setupSpecialistDetail?.avatar).toContain('images/avatars/');
+            expect(accountExecutiveDetail).toBeDefined();
+            expect(accountExecutiveDetail?.accountID).toBeDefined();
+            expect(accountExecutiveDetail?.accountID).toBe(CONST.ACCOUNT_ID.QA_GUIDE);
+            expect(accountExecutiveDetail?.avatar).toBeDefined();
+            expect(accountExecutiveDetail?.avatar).toContain('images/avatars/');
 
             mergeSpy.mockRestore();
         });
@@ -1023,8 +1128,8 @@ describe('ReportUtils', () => {
             expect(viewTourTask?.completedTaskReportActionID).toBeDefined();
         });
 
-        it('should recognize inbAdminsWel as a valid onboarding RHP variant', () => {
-            expect(CONST.ONBOARDING_RHP_VARIANT.INB_ADMINS_WEL).toBe('inbAdminsWel');
+        it('should recognize inboxAdminsBespoke as a valid onboarding RHP variant', () => {
+            expect(CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE).toBe('inboxAdminsBespoke');
         });
     });
 
@@ -1047,30 +1152,30 @@ describe('ReportUtils', () => {
 
     describe('getPolicyExpenseChatName', () => {
         it("returns owner's display name when available", () => {
-            const report = {
+            const report = createMock<OnyxEntry<Report>>({
                 ownerAccountID: 1,
                 reportName: 'Fallback Report Name',
-            } as unknown as OnyxEntry<Report>;
+            });
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'Ragnar Lothbrok'));
         });
 
         it('falls back to owner login when display name not present', () => {
-            const report = {
+            const report = createMock<OnyxEntry<Report>>({
                 ownerAccountID: 2,
                 reportName: 'Fallback Report Name',
-            } as unknown as OnyxEntry<Report>;
+            });
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'floki'));
         });
 
         it('returns report name when no personal details or owner', () => {
-            const report = {
+            const report = createMock<OnyxEntry<Report>>({
                 ownerAccountID: undefined,
                 reportName: 'Fallback Report Name',
-            } as unknown as OnyxEntry<Report>;
+            });
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: {}});
             expect(name).toBe('Fallback Report Name');
@@ -1441,14 +1546,14 @@ describe('ReportUtils', () => {
 
         describe('ParentReportAction is', () => {
             test('Manually Submitted Report Action', () => {
-                const submittedParentReportAction = {
+                const submittedParentReportAction = createMock<ReportAction>({
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     originalMessage: {
                         amount: 169,
                         currency: 'USD',
                     },
-                } as ReportAction;
+                });
                 const threadOfSubmittedReportAction = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
@@ -1474,7 +1579,7 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                     policyID: policy.id,
                 };
-                const removedParentReportAction = {
+                const removedParentReportAction = createMock<ReportAction>({
                     reportActionID: '102',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
                     message: [
@@ -1487,7 +1592,7 @@ describe('ReportUtils', () => {
                     originalMessage: {
                         targetAccountIDs: [1],
                     },
-                } as ReportAction;
+                });
                 const threadOfRemovedRoomMemberAction = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.CHAT,
@@ -1640,7 +1745,7 @@ describe('ReportUtils', () => {
 
         describe('Automatically approved report message via automatic (not by a human) action is', () => {
             test('shown when the report is forwarded (Control feature)', () => {
-                const submittedParentReportAction = {
+                const submittedParentReportAction = createMock<ReportAction>({
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
                     originalMessage: {
@@ -1649,7 +1754,7 @@ describe('ReportUtils', () => {
                         automaticAction: true,
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     },
-                } as ReportAction;
+                });
                 const expenseReport = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
@@ -1668,7 +1773,7 @@ describe('ReportUtils', () => {
             });
 
             test('shown when the report is approved', () => {
-                const submittedParentReportAction = {
+                const submittedParentReportAction = createMock<ReportAction>({
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
                     originalMessage: {
@@ -1676,7 +1781,7 @@ describe('ReportUtils', () => {
                         currency: 'USD',
                         automaticAction: true,
                     },
-                } as ReportAction;
+                });
                 const expenseReport = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
@@ -1697,7 +1802,7 @@ describe('ReportUtils', () => {
 
         describe('Automatically submitted via harvesting (delayed submit) report message is', () => {
             test('shown when report is submitted and status is submitted', () => {
-                const submittedParentReportAction = {
+                const submittedParentReportAction = createMock<ReportAction>({
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     originalMessage: {
@@ -1705,7 +1810,7 @@ describe('ReportUtils', () => {
                         currency: 'USD',
                         harvesting: true,
                     },
-                } as ReportAction;
+                });
                 const expenseReport = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
@@ -1724,7 +1829,7 @@ describe('ReportUtils', () => {
             });
 
             test('shown when report is submitted and status is closed', () => {
-                const submittedParentReportAction = {
+                const submittedParentReportAction = createMock<ReportAction>({
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
                     originalMessage: {
@@ -1732,7 +1837,7 @@ describe('ReportUtils', () => {
                         currency: 'USD',
                         harvesting: true,
                     },
-                } as ReportAction;
+                });
                 const expenseReport = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
@@ -1787,13 +1892,13 @@ describe('ReportUtils', () => {
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
 
-                const unreportedTransactionAction = {
+                const unreportedTransactionAction = createMock<ReportAction>({
                     reportActionID: 'unreported-action-id',
                     actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
                     originalMessage: {
                         fromReportID: '789',
                     },
-                } as ReportAction;
+                });
 
                 const transactionThread = {
                     ...LHNTestUtils.getFakeReport(),
@@ -2961,10 +3066,10 @@ describe('ReportUtils', () => {
                         chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
                     };
 
-                    const chatReport: Report = {
+                    const chatReport: Report = createMock<Report>({
                         reportID: chatReportID,
                         invoiceReceiver: {policyID: invoiceReceiverPolicy.id, type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS},
-                    } as Report;
+                    });
 
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicy.id}`, invoiceReceiverPolicy);
@@ -3094,13 +3199,13 @@ describe('ReportUtils', () => {
         });
 
         it('should return the correct parent navigation subtitle for the archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, true);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined, true);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
         });
 
         it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, false);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined, false);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
@@ -3112,24 +3217,24 @@ describe('ReportUtils', () => {
                 policyID: 'testPolicyID',
                 ownerAccountID: currentUserAccountID,
             };
-            const testPolicy = {
+            const testPolicy = createMock<Policy>({
                 id: 'testPolicyID',
                 name: 'Direct Policy Name',
                 type: CONST.POLICY.TYPE.CORPORATE,
                 role: CONST.POLICY.ROLE.ADMIN,
-            } as Policy;
+            });
 
-            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined);
+            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, translateLocal, undefined);
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
 
         it('should use the policy name from the passed policy parameter for invoice reports', () => {
-            const testPolicy = {
+            const testPolicy = createMock<Policy>({
                 id: 'invoicePolicyID',
                 name: 'Invoice Policy',
                 type: CONST.POLICY.TYPE.CORPORATE,
                 role: CONST.POLICY.ROLE.ADMIN,
-            } as Policy;
+            });
             const parentInvoiceRoom = {
                 reportID: '200',
                 type: CONST.REPORT.TYPE.CHAT,
@@ -3147,14 +3252,14 @@ describe('ReportUtils', () => {
             };
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}200`, parentInvoiceRoom).then(() => {
-                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined);
+                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, translateLocal, undefined);
                 const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
                 expect(normalizedActual.reportName).toContain('Invoice Policy');
             });
         });
 
         it('should fall back to allPolicies when policy parameter is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             // Should still resolve via Onyx-connected allPolicies or report.policyName
             expect(normalizedActual.reportName).toContain('A workspace');
@@ -3167,7 +3272,7 @@ describe('ReportUtils', () => {
                 reportName: 'Chat Report',
                 type: CONST.REPORT.TYPE.CHAT,
             };
-            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined);
+            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, translateLocal, undefined);
             expect(actual).toEqual({});
         });
 
@@ -3194,48 +3299,14 @@ describe('ReportUtils', () => {
             })
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID);
+                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, translateLocal, 'Concierge');
                     expect(actual.reportName).toBe('Concierge');
                 });
         });
 
         it('should return reportName and workspaceName when parent report exists and conciergeReportID is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, false);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined);
             expect(actual).toHaveProperty('reportName');
-        });
-    });
-
-    describe('parseReportActionHtmlToText', () => {
-        it('should return empty string for undefined reportAction', () => {
-            const result = parseReportActionHtmlToText(undefined, '123', undefined);
-            expect(result).toBe('');
-        });
-
-        it('should return text from reportAction message when no html', () => {
-            const reportAction = {
-                ...createRandomReportAction(1),
-                message: [{type: 'COMMENT', text: 'Hello world'}],
-            } as unknown as ReportAction;
-            const result = parseReportActionHtmlToText(reportAction, '123', undefined);
-            expect(result).toBe('Hello world');
-        });
-
-        it('should parse html to text with conciergeReportID', () => {
-            const reportAction = {
-                ...createRandomReportAction(1),
-                message: [{type: 'COMMENT', html: '<p>Hello world</p>', text: 'Hello world'}],
-            } as unknown as ReportAction;
-            const result = parseReportActionHtmlToText(reportAction, '123', '999');
-            expect(result).toBe('Hello world');
-        });
-
-        it('should handle conciergeReportID being undefined', () => {
-            const reportAction = {
-                ...createRandomReportAction(1),
-                message: [{type: 'COMMENT', html: '<p>Test message</p>', text: 'Test message'}],
-            } as unknown as ReportAction;
-            const result = parseReportActionHtmlToText(reportAction, '456', undefined);
-            expect(result).toBe('Test message');
         });
     });
 
@@ -3461,6 +3532,44 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
         });
 
+        it('returns false when the outstanding child expense only has pending card transactions', async () => {
+            const expenseReportID = '7001';
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: expenseReportID,
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(100, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReportID,
+            };
+
+            const pendingCardTransaction = {
+                ...createRandomTransaction(7001),
+                transactionID: '7001',
+                reportID: expenseReportID,
+                status: CONST.TRANSACTION.STATUS.PENDING,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${pendingCardTransaction.transactionID}`, pendingCardTransaction);
+            await waitForBatchedUpdates();
+
+            // Even though the chat carries an outstanding-child flag, an all-pending card report can't be actioned yet.
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(false);
+        });
+
         it('returns true for expense report awaiting user payment/reimbursement', async () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -3534,46 +3643,46 @@ describe('ReportUtils', () => {
 
         it('should return empty string for chat thread', () => {
             const report = createWorkspaceThread(1);
-            const result = getChatRoomSubtitle(report);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe('');
         });
 
         it('should return "Your space" for self DM', () => {
             const report = createSelfDM(1, currentUserAccountID);
-            const result = getChatRoomSubtitle(report);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe('Your space');
         });
 
         it('should return "Invoices" for invoice room', () => {
             const report = createInvoiceRoom(1);
-            const result = getChatRoomSubtitle(report);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe('Invoices');
         });
 
         it('should return empty string for non-default, non-user-created, non-policy-expense chat', () => {
             const report = createRegularChat(1, [currentUserAccountID, 2]);
-            const result = getChatRoomSubtitle(report);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe('');
         });
 
         it('should return domain name for domain room', () => {
             const report = createDomainRoom(1);
             report.reportName = '#example.com';
-            const result = getChatRoomSubtitle(report);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe('example.com');
         });
 
         it('should return policy name for admin room', () => {
             const report = createAdminRoom(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe(policy.name);
         });
 
         it('should return policy name for announce room', () => {
             const report = createAnnounceRoom(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe(policy.name);
         });
 
@@ -3583,42 +3692,42 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 policyID: policy.id,
             };
-            const result = getChatRoomSubtitle(report);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe(policy.name);
         });
 
         it('should return policy name for policy expense chat when not in create expense flow', () => {
             const report = createPolicyExpenseChat(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe(policy.name);
         });
 
         it('should return empty string for expense report (not default/user-created/policy-expense)', () => {
             const report = createExpenseReport(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe('');
         });
 
         it('should return empty string for expense report in create expense flow (not default/user-created/policy-expense)', () => {
             const report = createExpenseReport(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, true, false);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal, true);
             expect(result).toBe('');
         });
 
         it('should return oldPolicyName when report is archived', () => {
             const report = createAdminRoom(1);
             report.oldPolicyName = 'Old Policy Name';
-            const result = getChatRoomSubtitle(report, false, true);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal, false, true);
             expect(result).toBe('Old Policy Name');
         });
 
         it('should return empty string when report is archived but has no oldPolicyName', () => {
             const report = createAdminRoom(1);
             report.oldPolicyName = undefined;
-            const result = getChatRoomSubtitle(report, false, true);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal, false, true);
             expect(result).toBe('');
         });
 
@@ -3626,15 +3735,27 @@ describe('ReportUtils', () => {
             const report = createAdminRoom(1);
             report.policyID = policy.id;
             report.oldPolicyName = 'Archived Policy';
-            const result = getChatRoomSubtitle(report, true, true);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal, true, true);
             expect(result).toBe('Archived Policy');
         });
 
         it('should handle with only report data', () => {
             const report = createAdminRoom(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report);
+            const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe(policy.name);
+        });
+
+        it('should return "Concierge support" when the report is the Concierge chat passed via conciergeReportID', () => {
+            const report = createRegularChat(1, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]);
+            const result = getChatRoomSubtitle(report, policy, report.reportID, translateLocal);
+            expect(result).toBe('Your personal AI agent');
+        });
+
+        it('should not return "Concierge support" when conciergeReportID does not match the report', () => {
+            const report = createRegularChat(1, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]);
+            const result = getChatRoomSubtitle(report, policy, 'some-other-report-id', translateLocal);
+            expect(result).not.toBe('Your personal AI agent');
         });
     });
 
@@ -4393,7 +4514,7 @@ describe('ReportUtils', () => {
                 {reportID: '2', lastReadTime: undefined},
                 {reportID: '3', lastReadTime: '2023-07-06 07:15:44.030'},
                 {reportID: '4', lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
-                {lastReadTime: '2023-07-09 07:15:44.030'} as Report,
+                createMock<Report>({lastReadTime: '2023-07-09 07:15:44.030'}),
                 {reportID: '6'},
                 undefined,
             ];
@@ -4427,33 +4548,33 @@ describe('ReportUtils', () => {
         });
 
         it("should disable on a whisper action and it's neither a report preview nor IOU action", () => {
-            const reportAction = {
+            const reportAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                 originalMessage: {
                     whisperedTo: [123456],
                 },
-            } as ReportAction;
+            });
             expect(shouldDisableThread(reportAction, false)).toBeTruthy();
         });
 
         it('should disable on thread first chat', () => {
-            const reportAction = {
+            const reportAction = createMock<ReportAction>({
                 childReportID: reportID,
-            } as ReportAction;
+            });
             expect(shouldDisableThread(reportAction, true)).toBeTruthy();
         });
 
         it('should disable on a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
-            const reportAction = {
+            const reportAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
-            } as ReportAction;
+            });
             expect(shouldDisableThread(reportAction, false, false)).toBeTruthy();
         });
 
         describe('deleted threads', () => {
             it('should be enabled if the report action is not-deleted and child visible action count is 1', () => {
                 // Given a normal report action with one child visible action count
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4463,7 +4584,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 1,
-                } as ReportAction;
+                });
 
                 // When it's checked to see if the thread should be disabled
                 const isThreadDisabled = shouldDisableThread(reportAction, false);
@@ -4474,7 +4595,7 @@ describe('ReportUtils', () => {
 
             it('should be enabled if the report action is not-deleted and child visible action count is 0', () => {
                 // Given a normal report action with zero child visible action count
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4484,7 +4605,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 0,
-                } as ReportAction;
+                });
 
                 // When it's checked to see if the thread should be disabled
                 const isThreadDisabled = shouldDisableThread(reportAction, false);
@@ -4494,7 +4615,7 @@ describe('ReportUtils', () => {
             });
             it('should be enabled if the report action is deleted and child visible action count is 1', () => {
                 // Given a normal report action with one child visible action count
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4504,7 +4625,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 1,
-                } as ReportAction;
+                });
 
                 // When it's checked to see if the thread should be disabled
                 const isThreadDisabled = shouldDisableThread(reportAction, false);
@@ -4515,7 +4636,7 @@ describe('ReportUtils', () => {
 
             it('should be disabled if the report action is deleted and child visible action count is 0', () => {
                 // Given a normal report action with zero child visible action count
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4525,7 +4646,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 0,
-                } as ReportAction;
+                });
 
                 // When it's checked to see if the thread should be disabled
                 const isThreadDisabled = shouldDisableThread(reportAction, false);
@@ -4538,7 +4659,7 @@ describe('ReportUtils', () => {
         describe('archived report threads', () => {
             it('should be enabled if the report is not-archived and child visible action count is 1', () => {
                 // Given a normal report action with one child visible action count
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4548,7 +4669,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 1,
-                } as ReportAction;
+                });
 
                 // And a report that is not archived
                 const isReportArchived = false;
@@ -4561,7 +4682,7 @@ describe('ReportUtils', () => {
             });
             it('should be enabled if the report is not-archived and child visible action count is 0', () => {
                 // Given a normal report action with zero child visible action counts
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4571,7 +4692,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 1,
-                } as ReportAction;
+                });
 
                 // And a report that is not archived
                 const isReportArchived = false;
@@ -4584,7 +4705,7 @@ describe('ReportUtils', () => {
             });
             it('should be enabled if the report is archived and child visible action count is 1', () => {
                 // Given a normal report action with one child visible action count
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4594,7 +4715,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 1,
-                } as ReportAction;
+                });
 
                 // And a report that is not archived
                 const isReportArchived = true;
@@ -4607,7 +4728,7 @@ describe('ReportUtils', () => {
             });
             it('should be disabled if the report is archived and child visible action count is 0', () => {
                 // Given a normal report action with zero child visible action counts
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4617,7 +4738,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 0,
-                } as ReportAction;
+                });
 
                 // And a report that is not archived
                 const isReportArchived = true;
@@ -4682,7 +4803,7 @@ describe('ReportUtils', () => {
 
         it("should use the report id from the onboarding NVP if it's set", async () => {
             const reportID = '8010';
-            const onboardingValue = {chatReportID: reportID, hasCompletedGuidedSetupFlow: true} as Onboarding;
+            const onboardingValue = createMock<Onboarding>({chatReportID: reportID, hasCompletedGuidedSetupFlow: true});
 
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_ONBOARDING]: onboardingValue,
@@ -4702,7 +4823,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return true for admins rooms chat when posting tasks in admins room', async () => {
-            const onboardingValue = {hasCompletedGuidedSetupFlow: true} as Onboarding;
+            const onboardingValue = createMock<Onboarding>({hasCompletedGuidedSetupFlow: true});
 
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_ONBOARDING]: onboardingValue,
@@ -4716,7 +4837,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false for admins rooms thread when posting tasks in admins room', async () => {
-            const onboardingValue = {hasCompletedGuidedSetupFlow: true} as Onboarding;
+            const onboardingValue = createMock<Onboarding>({hasCompletedGuidedSetupFlow: true});
 
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_ONBOARDING]: onboardingValue,
@@ -4733,7 +4854,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false for admins room when engagement choice is TRACK_WORKSPACE (Concierge is used for onboarding)', async () => {
-            const onboardingValue = {hasCompletedGuidedSetupFlow: true} as Onboarding;
+            const onboardingValue = createMock<Onboarding>({hasCompletedGuidedSetupFlow: true});
 
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_ONBOARDING]: onboardingValue,
@@ -4833,7 +4954,7 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
 
-            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID);
+            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID, undefined, []);
             await waitForBatchedUpdates();
 
             const expenseReportUpdated = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -4907,10 +5028,10 @@ describe('ReportUtils', () => {
                 iouReportID: expenseReport.reportID,
             });
             expenseCreatedAction.actorAccountID = 99997;
-            const adminPolicy = {
+            const adminPolicy = createMock<Policy>({
                 id: expenseReport.policyID,
                 role: CONST.POLICY.ROLE.ADMIN,
-            } as Policy;
+            });
 
             expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, adminPolicy, currentUserAccountID)).toEqual({
                 canHoldRequest: false,
@@ -5036,11 +5157,11 @@ describe('ReportUtils', () => {
             const policyID = '102';
             const transactionID = '123';
             const childReportID = '555';
-            const moneyRequestReport = {
+            const moneyRequestReport = createMock<Report>({
                 ...createExpenseReport(101),
                 reportID,
                 policyID,
-            } as Report;
+            });
             const reportAction = buildOptimisticIOUReportAction({
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 123,
@@ -5052,14 +5173,14 @@ describe('ReportUtils', () => {
             });
             reportAction.childReportID = childReportID;
 
-            const iouTransaction = {
+            const iouTransaction = createMock<Transaction>({
                 ...createRandomTransaction(123),
                 transactionID,
                 reportID: moneyRequestReport.reportID,
                 comment: {
                     hold: '999',
                 },
-            } as Transaction;
+            });
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`, moneyRequestReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`, {
@@ -5071,10 +5192,10 @@ describe('ReportUtils', () => {
             const unholdRequestSpy = jest.spyOn(HoldUtils, 'unholdRequest').mockImplementation(() => undefined);
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined);
 
             // Then unholdRequest should be called with the correct parameters and navigation should not be called
-            expect(unholdRequestSpy).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false, currentUserEmail, currentUserAccountID);
+            expect(unholdRequestSpy).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false, currentUserEmail, currentUserAccountID, undefined);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
@@ -5084,11 +5205,11 @@ describe('ReportUtils', () => {
             const policyID = '202';
             const transactionID = '456';
             const childReportID = '777';
-            const moneyRequestReport = {
+            const moneyRequestReport = createMock<Report>({
                 ...createExpenseReport(201),
                 reportID,
                 policyID,
-            } as Report;
+            });
 
             const reportAction = buildOptimisticIOUReportAction({
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -5101,12 +5222,12 @@ describe('ReportUtils', () => {
             });
             reportAction.childReportID = childReportID;
 
-            const iouTransaction = {
+            const iouTransaction = createMock<Transaction>({
                 ...createRandomTransaction(456),
                 transactionID,
                 reportID: moneyRequestReport.reportID,
                 comment: {},
-            } as Transaction;
+            });
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`, moneyRequestReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`, {
@@ -5116,7 +5237,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined);
 
             // Then navigation should be called with the correct parameters
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -5128,14 +5249,14 @@ describe('ReportUtils', () => {
     describe('getLinkedIOUTransaction', () => {
         it('should return the matching transaction for a money request action', () => {
             const transactionID = 'txn-123';
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 ...createRandomTransaction(100),
                 transactionID,
-            } as Transaction;
-            const otherTransaction = {
+            });
+            const otherTransaction = createMock<Transaction>({
                 ...createRandomTransaction(200),
                 transactionID: 'txn-other',
-            } as Transaction;
+            });
 
             const reportAction = buildOptimisticIOUReportAction({
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -5168,10 +5289,10 @@ describe('ReportUtils', () => {
 
         it('should return undefined for non-money-request actions', () => {
             const action = buildOptimisticCreatedReportAction({emailCreatingAction: 'user@test.com'});
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 ...createRandomTransaction(100),
                 transactionID: 'txn-123',
-            } as Transaction;
+            });
 
             const result = getLinkedIOUTransaction(action, [transaction]);
             expect(result).toBeUndefined();
@@ -5270,10 +5391,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(22);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '22',
+                reportID: invoiceReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: invoiceReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 530,
                     currency: CONST.CURRENCY.USD,
@@ -5307,10 +5428,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(22);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '3',
+                reportID: expenseReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: expenseReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                     IOUDetails: {
@@ -5342,10 +5463,10 @@ describe('ReportUtils', () => {
         it('it should return false when linkedTransaction is undefined', () => {
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '44',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: '44',
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -5374,10 +5495,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(56);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '56',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: transaction.transactionID,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -5404,10 +5525,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(57);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '57',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: transaction.transactionID,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -5440,10 +5561,10 @@ describe('ReportUtils', () => {
             };
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '55',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: transaction.transactionID,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -5466,6 +5587,96 @@ describe('ReportUtils', () => {
             const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction);
 
             expect(canEditRequest).toEqual(false);
+        });
+
+        it('should return false for the submitter after a corporate report was forwarded even when the updated workflow points submitsTo at the current manager', async () => {
+            const reportID = '89012';
+            const transactionID = '89012-transaction';
+            const policyID = '89012-policy';
+            const forwardedToAccountID = 2;
+
+            const reportPolicy: Policy = {
+                id: policyID,
+                name: 'Advanced approval policy',
+                role: CONST.POLICY.ROLE.USER,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: '',
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: false,
+                employeeList: {
+                    'lagertha2@vikings.net': {
+                        email: 'lagertha2@vikings.net',
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: 'floki@vikings.net',
+                    },
+                },
+            };
+            const expenseReport: Report = {
+                ...createExpenseReport(Number(reportID)),
+                reportID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+                managerID: forwardedToAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const transaction = {
+                ...createRandomTransaction(89012),
+                transactionID,
+                reportID,
+            };
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(89012),
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.TEXT, text: ''}],
+                previousMessage: undefined,
+                originalMessage: {
+                    IOUTransactionID: transactionID,
+                    amount: 5000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+
+            const policyCollectionDataSet: CollectionDataSet<typeof ONYXKEYS.COLLECTION.POLICY> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: reportPolicy,
+            };
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
+            };
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+            const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {
+                    submitted: {
+                        ...createRandomReportAction(89013),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        created: '2026-04-21 17:00:00',
+                    },
+                    forwarded: {
+                        ...createRandomReportAction(89014),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                        created: '2026-04-21 17:10:00',
+                    },
+                },
+            };
+
+            await Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                ...policyCollectionDataSet,
+                ...reportCollectionDataSet,
+                ...transactionCollectionDataSet,
+                ...reportActionsCollectionDataSet,
+            });
+            await waitForBatchedUpdates();
+
+            expect(canEditReportPolicy(expenseReport, reportPolicy)).toBe(false);
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, false, expenseReport, reportPolicy)).toBe(false);
         });
     });
 
@@ -5497,10 +5708,10 @@ describe('ReportUtils', () => {
             };
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '101',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -5531,10 +5742,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(103);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '103',
+                reportID: expenseReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: expenseReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -5646,10 +5857,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(200);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '200',
+                reportID: settledReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: settledReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -5683,10 +5894,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(201);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '201',
+                reportID: approvedReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: approvedReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -5719,10 +5930,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(202);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '202',
+                reportID: closedReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: closedReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -5744,6 +5955,111 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${closedReport.reportID}`, closedReport);
 
             expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(false);
+        });
+
+        it('should return false for an optimistic attachment-only action (still uploading)', () => {
+            const transaction = createRandomTransaction(300);
+            const reportAction: ReportAction = {
+                reportActionID: '300',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '<a href="blob:..." data-expensify-source="blob:...">file.doc</a>',
+                        text: '[Attachment]',
+                    },
+                ],
+                isAttachmentOnly: true,
+                isOptimisticAction: true,
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(false);
+        });
+
+        it('should return false for an optimistic attachment+text action (still uploading)', () => {
+            const transaction = createRandomTransaction(301);
+            const reportAction: ReportAction = {
+                reportActionID: '301',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Hi<br /><br /><a href="blob:..." data-expensify-source="blob:...">file.doc</a>',
+                        text: 'Hi\n[Attachment]',
+                    },
+                ],
+                isAttachmentWithText: true,
+                isOptimisticAction: true,
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(false);
+        });
+
+        it('should return true for a synced attachment-only action (optimistic flags cleared)', () => {
+            const transaction = createRandomTransaction(302);
+            // Post-sync state: successData clears isOptimisticAction (null in Onyx, undefined here); isAttachmentOnly persists.
+            const reportAction: ReportAction = {
+                reportActionID: '302',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '<a href="https://www.expensify.com/chat-attachments/123/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/123/file.doc">file.doc</a>',
+                        text: 'file.doc https://www.expensify.com/chat-attachments/123/file.doc',
+                    },
+                ],
+                isAttachmentOnly: true,
+                isOptimisticAction: undefined,
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(true);
+        });
+
+        it('should return true for a synced attachment+text action', () => {
+            const transaction = createRandomTransaction(303);
+            const reportAction: ReportAction = {
+                reportActionID: '303',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Hi<br /><br /><a href="https://www.expensify.com/chat-attachments/123/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/123/file.doc">file.doc</a>',
+                        text: 'Hi\nfile.doc https://www.expensify.com/chat-attachments/123/file.doc',
+                    },
+                ],
+                isAttachmentWithText: true,
+                isOptimisticAction: undefined,
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(true);
+        });
+
+        it('should return true for an optimistic plain-text comment (no attachment)', () => {
+            const transaction = createRandomTransaction(304);
+            const reportAction: ReportAction = {
+                reportActionID: '304',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hello',
+                        text: 'hello',
+                    },
+                ],
+                isOptimisticAction: true,
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(true);
         });
     });
 
@@ -5949,6 +6265,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -5973,6 +6290,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6002,6 +6320,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6055,6 +6374,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6078,6 +6398,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6101,6 +6422,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: 'fake draft',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6124,6 +6446,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6160,6 +6483,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6191,6 +6515,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
                     draftComment: '',
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6222,6 +6547,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
                     draftComment: '',
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6247,6 +6573,7 @@ describe('ReportUtils', () => {
                     includeSelfDM,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6274,6 +6601,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6294,6 +6622,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6317,6 +6646,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6360,6 +6690,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6380,6 +6711,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6408,8 +6740,92 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
+        });
+
+        it('should return DEFAULT for an empty concierge chat identified solely via the conciergeReportID param', async () => {
+            const conciergeReportID = 'concierge-report-param-456';
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: conciergeReportID,
+            };
+
+            // Ensure the deprecated Onyx.connect fallback is empty so only the explicit param can mark this as the concierge chat
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, null);
+            await waitForBatchedUpdates();
+
+            expect(
+                reasonForReportToBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId: '',
+                    isInFocusMode: false,
+                    betas: [CONST.BETAS.DEFAULT_ROOMS],
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: true,
+                    draftComment: '',
+                    isReportArchived: undefined,
+                    conciergeReportID,
+                }),
+            ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
+        });
+
+        it('should hide an empty concierge chat when the conciergeReportID param does not match the report', async () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: 'concierge-report-param-789',
+            };
+
+            // Clear the deprecated Onyx.connect fallback so the non-matching param is the only source considered
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, null);
+            await waitForBatchedUpdates();
+
+            expect(
+                reasonForReportToBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId: '',
+                    isInFocusMode: false,
+                    betas: [CONST.BETAS.DEFAULT_ROOMS],
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: true,
+                    draftComment: '',
+                    isReportArchived: undefined,
+                    conciergeReportID: 'some-other-report-id',
+                }),
+            ).toBeNull();
+        });
+
+        it('should include an empty chat in the option list only when the conciergeReportID param marks it as the concierge chat', async () => {
+            // Same empty chat in every respect - only the conciergeReportID param differs between the two assertions,
+            // so this isolates the concierge branch as the sole cause of the report being shown vs hidden.
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: 'concierge-report-param-321',
+            };
+
+            // Clear the deprecated Onyx.connect fallback so the param is the only source considered
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, null);
+            await waitForBatchedUpdates();
+
+            const params = {
+                report,
+                chatReport: mockedChatReport,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: true,
+                draftComment: '',
+                isReportArchived: undefined,
+            };
+
+            // When the param identifies this report as Concierge, the empty chat is kept in the option list...
+            expect(shouldReportBeInOptionList({...params, conciergeReportID: report.reportID})).toBe(true);
+            // ...but with a non-matching conciergeReportID the identical empty chat is excluded.
+            expect(shouldReportBeInOptionList({...params, conciergeReportID: 'a-different-report-id'})).toBe(false);
         });
 
         it('should return false when the users email is domain-based and the includeDomainEmail is false', () => {
@@ -6430,6 +6846,7 @@ describe('ReportUtils', () => {
                     includeDomainEmail: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6476,6 +6893,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6496,6 +6914,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6530,6 +6949,7 @@ describe('ReportUtils', () => {
                     draftComment: '',
                     betas: undefined,
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6561,6 +6981,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_UNREAD);
         });
@@ -6590,6 +7011,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6612,6 +7034,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS);
         });
@@ -6656,6 +7079,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6707,6 +7131,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER);
         });
@@ -6729,6 +7154,7 @@ describe('ReportUtils', () => {
                     includeSelfDM: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeNull();
         });
@@ -6750,6 +7176,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6771,6 +7198,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6792,15 +7220,16 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
 
         it('should return false when the report has no type', () => {
-            const report = {
+            const report = createMock<Report>({
                 ...LHNTestUtils.getFakeReport(),
                 type: undefined,
-            } as unknown as Report;
+            });
 
             expect(
                 shouldReportBeInOptionList({
@@ -6813,6 +7242,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6829,6 +7259,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6885,6 +7316,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
 
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS);
@@ -7110,8 +7542,106 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getPolicyChangeLogCopyMessage', () => {
+        const sourcePolicyID = 'sourcePolicy1';
+        const sourcePolicyName = 'Acme HQ Workspace';
+        let environmentURL: string;
+
+        // Builds the same source policy link the implementation wraps the policy name in.
+        const buildLink = (policyID: string | undefined, name: string) => {
+            const sourcePolicyURL = policyID ? `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID)}` : '';
+            return `<a href="${sourcePolicyURL}">${name}</a>`;
+        };
+
+        function buildCopyAction(actionName: ReportAction['actionName'], originalMessage?: {sourcePolicyID?: string; quantity?: number}): ReportAction {
+            return {
+                actionName,
+                reportActionID: '1',
+                reportID: '123',
+                created: '2026-05-15 10:00:00.000',
+                message: [],
+                originalMessage,
+            } as unknown as ReportAction;
+        }
+
+        beforeEach(async () => {
+            environmentURL = await getEnvironmentURL();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`, {id: sourcePolicyID, name: sourcePolicyName});
+            await waitForBatchedUpdates();
+        });
+
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW, 'copied overview from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES, 'copied members from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING, 'copied accounting settings from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RECEIPT_PARTNERS, 'copied receipt partner settings from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_HR, 'copied HR settings from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TIME_TRACKING, 'copied time tracking settings from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_WORKFLOWS, 'copied workflows from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RULES, 'copied rules from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_INVOICES, 'copied invoice settings from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TRAVEL, 'copied travel settings from'],
+        ])('returns the non-counted message for %s', (actionName, prefix) => {
+            const action = buildCopyAction(actionName, {sourcePolicyID});
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe(`${prefix} ${buildLink(sourcePolicyID, sourcePolicyName)}`);
+        });
+
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS, 1, 'copied 1 report field from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS, 3, 'copied 3 report fields from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES, 1, 'copied 1 category from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES, 5, 'copied 5 categories from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS, 1, 'copied 1 tag from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS, 2, 'copied 2 tags from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAXES, 1, 'copied 1 tax rate from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAXES, 4, 'copied 4 tax rates from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CODING_RULES, 1, 'copied 1 merchant rule from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CODING_RULES, 6, 'copied 6 merchant rules from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_DISTANCE, 1, 'copied 1 distance rate from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_DISTANCE, 7, 'copied 7 distance rates from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_PER_DIEM, 1, 'copied 1 per diem rate from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_PER_DIEM, 8, 'copied 8 per diem rates from'],
+        ])('returns the counted message for %s with quantity %d', (actionName, quantity, prefix) => {
+            const action = buildCopyAction(actionName, {sourcePolicyID, quantity});
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe(`${prefix} ${buildLink(sourcePolicyID, sourcePolicyName)}`);
+        });
+
+        it('falls back to a count of 0 (plural form) when quantity is missing on a counted action', () => {
+            const action = buildCopyAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES, {sourcePolicyID});
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe(`copied 0 categories from ${buildLink(sourcePolicyID, sourcePolicyName)}`);
+        });
+
+        it('uses an empty source policy name when the source policy is not in Onyx', () => {
+            const action = buildCopyAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW, {sourcePolicyID: 'unknownPolicy'});
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe(`copied overview from ${buildLink('unknownPolicy', '')}`);
+        });
+
+        it('uses an empty source policy name and URL when sourcePolicyID is missing', () => {
+            const action = buildCopyAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW, {});
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe(`copied overview from ${buildLink(undefined, '')}`);
+        });
+
+        it('handles a missing original message (no sourcePolicyID, count defaults to 0)', () => {
+            const action = buildCopyAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS);
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe(`copied 0 tags from ${buildLink(undefined, '')}`);
+        });
+
+        it('HTML-encodes a source policy name that contains markup characters', async () => {
+            const htmlPolicyID = 'htmlPolicy';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${htmlPolicyID}`, {id: htmlPolicyID, name: 'A <b>B</b>'});
+            await waitForBatchedUpdates();
+            const action = buildCopyAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW, {sourcePolicyID: htmlPolicyID});
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe(`copied overview from ${buildLink(htmlPolicyID, 'A &lt;b&gt;B&lt;/b&gt;')}`);
+        });
+
+        it('returns an empty string for an action that is not a policy copy action', () => {
+            const action = buildCopyAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {sourcePolicyID});
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe('');
+        });
+    });
+
     describe('buildOptimisticIOUReportAction', () => {
-        it('should not include IOUReportID in the originalMessage when tracking a personal expense', () => {
+        it('should set the action reportID to the provided iouReportID when tracking a personal expense', () => {
             const iouAction = buildOptimisticIOUReportAction({
                 type: 'track',
                 amount: 1200,
@@ -7122,7 +7652,7 @@ describe('ReportUtils', () => {
                 iouReportID: '8698041594589716',
                 isPersonalTrackingExpense: true,
             });
-            expect(getOriginalMessage(iouAction as ReportAction<'IOU'>)?.IOUReportID).toBe(undefined);
+            expect((iouAction as ReportAction<'IOU'>)?.reportID).toBe('8698041594589716');
         });
     });
 
@@ -7195,6 +7725,22 @@ describe('ReportUtils', () => {
                 preventSelfApproval: true,
             };
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
+        });
+
+        it('should return false when submitter is the approver on a Submit workspace even if preventSelfApproval is disabled', () => {
+            const submitPolicy: Policy = {
+                ...createRandomPolicy(6, CONST.POLICY.TYPE.SUBMIT),
+                preventSelfApproval: false,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, submitPolicy)).toBeFalsy();
+        });
+
+        it('should return true when a different user is the approver on a Submit workspace', () => {
+            const submitPolicy: Policy = {
+                ...createRandomPolicy(6, CONST.POLICY.TYPE.SUBMIT),
+                preventSelfApproval: false,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID + 1, submitPolicy)).toBeTruthy();
         });
     });
 
@@ -7342,8 +7888,8 @@ describe('ReportUtils', () => {
                 ...parentReportAction,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: '1',
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: '1',
                     amount: 100,
                     participantAccountID: 1,
@@ -7398,8 +7944,8 @@ describe('ReportUtils', () => {
                 ...parentReportAction,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: '1',
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: '1',
                     amount: 100,
                     participantAccountID: 1,
@@ -7433,9 +7979,9 @@ describe('ReportUtils', () => {
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
+                reportID: selfDMReport.reportID,
                 originalMessage: {
                     IOUTransactionID: transaction.transactionID,
-                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
                     type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
@@ -7576,7 +8122,10 @@ describe('ReportUtils', () => {
         });
 
         it('should not return an archived report even if it was most recently accessed', () => {
-            const result = findLastAccessedReport(false);
+            const reportNameValuePairsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
+            };
+            const result = findLastAccessedReport(false, false, undefined, reportNameValuePairsCollection);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -7654,7 +8203,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
 
-                expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual([]);
+                expect(getApprovalChain(policyTest, expenseReport, undefined)).toStrictEqual([]);
             });
         });
         describe('basic/advance workflow', () => {
@@ -7675,7 +8224,7 @@ describe('ReportUtils', () => {
                     };
                     Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
                         const result = ['owner@test.com'];
-                        expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                        expect(getApprovalChain(policyTest, expenseReport, undefined)).toStrictEqual(result);
                     });
                 });
                 it('should return list contain submitsTo of ownerAccountID and the forwardsTo of them if the policy use advance workflow', () => {
@@ -7694,7 +8243,7 @@ describe('ReportUtils', () => {
                     };
                     Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
                         const result = ['admin@test.com'];
-                        expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                        expect(getApprovalChain(policyTest, expenseReport, personalDetails[employeeAccountID]?.login)).toStrictEqual(result);
                     });
                 });
             });
@@ -7739,7 +8288,7 @@ describe('ReportUtils', () => {
                             },
                         }).then(() => {
                             const result = ['owner@test.com'];
-                            expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                            expect(getApprovalChain(policyTest, expenseReport, personalDetails[employeeAccountID]?.login)).toStrictEqual(result);
                         });
                     });
                 });
@@ -7799,7 +8348,7 @@ describe('ReportUtils', () => {
                             transactions_4: transaction4,
                         }).then(() => {
                             const result = [categoryApprover2Email, categoryApprover1Email, tagApprover2Email, tagApprover1Email, 'admin@test.com'];
-                            expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                            expect(getApprovalChain(policyTest, expenseReport, personalDetails[employeeAccountID]?.login)).toStrictEqual(result);
                         });
                     });
                 });
@@ -8079,8 +8628,17 @@ describe('ReportUtils', () => {
             expect(isPayer(currentUserAccountID, currentUserEmail, approvedReport, undefined, undefined, false)).toBe(false);
         });
 
-        it('should return true for a reimburser of a group policy on a closed report', async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, achAccount: {reimburser: currentUserEmail}});
+        it('should return true for an admin reimburser of a group policy on a closed report', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    [currentUserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                achAccount: {reimburser: currentUserEmail},
+            });
 
             const closedReport: Report = {
                 ...createRandomReport(2, undefined),
@@ -8119,13 +8677,13 @@ describe('ReportUtils', () => {
                 },
             };
 
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 [bankAccountID]: {
                     accountData: {
                         sharees: [reimburserEmail, adminEmail],
                     },
                 },
-            } as unknown as BankAccountList;
+            });
 
             const report: Report = {
                 ...createRandomReport(3, undefined),
@@ -8164,13 +8722,13 @@ describe('ReportUtils', () => {
                 },
             };
 
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 [bankAccountID]: {
                     accountData: {
                         sharees: [reimburserEmail, otherAdminEmail],
                     },
                 },
-            } as unknown as BankAccountList;
+            });
 
             const report: Report = {
                 ...createRandomReport(4, undefined),
@@ -8181,52 +8739,6 @@ describe('ReportUtils', () => {
             };
 
             expect(isPayer(adminAccountID, adminEmail, report, bankAccountList, policyWithAch, false)).toBe(false);
-        });
-
-        it('should return false when user left workspace and policy is not available', async () => {
-            // Clear the policy to simulate user leaving workspace
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}left-workspace`, null);
-
-            const reportWithMissingPolicy: Report = {
-                ...createRandomReport(6, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                policyID: 'left-workspace',
-                managerID: currentUserAccountID,
-            };
-
-            // User should not be a payer when policy is not available (they likely left the workspace)
-            expect(isPayer(currentUserAccountID, currentUserEmail, reportWithMissingPolicy, undefined, undefined, false)).toBe(false);
-        });
-
-        it('should return false when user is not in employeeList of a paid group policy', async () => {
-            const otherUserEmail = 'other@test.com';
-            const policyWithoutCurrentUser: Policy = {
-                ...createRandomPolicy(2),
-                id: 'policy-without-user',
-                type: CONST.POLICY.TYPE.CORPORATE,
-                role: CONST.POLICY.ROLE.ADMIN, // Role might be stale
-                employeeList: {
-                    [otherUserEmail]: {
-                        role: CONST.POLICY.ROLE.ADMIN,
-                    },
-                },
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}policy-without-user`, policyWithoutCurrentUser);
-
-            const reportForNonMember: Report = {
-                ...createRandomReport(7, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                policyID: 'policy-without-user',
-                managerID: currentUserAccountID,
-            };
-
-            // User should not be a payer even if role says admin, because they're not in employeeList
-            expect(isPayer(currentUserAccountID, currentUserEmail, reportForNonMember, undefined, policyWithoutCurrentUser, false)).toBe(false);
         });
 
         it('should return true for IOU report manager even when policy is not available', async () => {
@@ -8246,7 +8758,172 @@ describe('ReportUtils', () => {
             // IOU receiver (payer/manager) should still be able to pay even without access to the policy
             expect(isPayer(currentUserAccountID, currentUserEmail, iouReportWithPolicyID, undefined, undefined, false)).toBe(true);
         });
+
+        it('should return true for designated reimburser in manual reimbursement mode', () => {
+            const reimburserEmail = 'reimburser@manual-test.com';
+            const reimburserAccountID = 700;
+
+            const manualPolicyWithReimburser: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [reimburserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                achAccount: {
+                    reimburser: reimburserEmail,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            expect(isPayer(reimburserAccountID, reimburserEmail, approvedReport, undefined, manualPolicyWithReimburser, false)).toBe(true);
+        });
+
+        it('should return true for payments admin designated as payer via policy.reimburser without achAccount', () => {
+            const paymentsAdminEmail = 'payments-admin@manual-test.com';
+            const paymentsAdminAccountID = 704;
+
+            const manualPolicyWithPaymentsAdminPayer: Policy = {
+                ...policyTest,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: 'owner@manual-test.com',
+                role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: paymentsAdminEmail,
+                employeeList: {
+                    [paymentsAdminEmail]: {
+                        role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    },
+                },
+            };
+
+            expect(isPayer(paymentsAdminAccountID, paymentsAdminEmail, approvedReport, undefined, manualPolicyWithPaymentsAdminPayer, false)).toBe(true);
+        });
+
+        it('should return false for non-reimburser admin in manual reimbursement mode with designated payer', () => {
+            const otherAdminEmail = 'other-admin@manual-test.com';
+            const otherAdminAccountID = 701;
+            const reimburserEmail = 'reimburser@manual-test.com';
+
+            const manualPolicyWithReimburser: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [otherAdminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    [reimburserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                achAccount: {
+                    reimburser: reimburserEmail,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            expect(isPayer(otherAdminAccountID, otherAdminEmail, approvedReport, undefined, manualPolicyWithReimburser, false)).toBe(false);
+        });
+
+        it('should return true for policy owner in manual reimbursement mode without explicit reimburser', () => {
+            const ownerEmail = 'owner@manual-fallback.com';
+            const ownerAccountID = 702;
+            const otherAdminEmail = 'other-admin@manual-fallback.com';
+            const otherAdminAccountID = 703;
+
+            const manualPolicyNoReimburser: Policy = {
+                ...policyTest,
+                owner: ownerEmail,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [ownerEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    [otherAdminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+            };
+
+            expect(isPayer(ownerAccountID, ownerEmail, approvedReport, undefined, manualPolicyNoReimburser, false)).toBe(true);
+            expect(isPayer(otherAdminAccountID, otherAdminEmail, approvedReport, undefined, manualPolicyNoReimburser, false)).toBe(false);
+        });
+
+        it('should return true for any admin when onlyShowPayElsewhere is true even if reimbursement is disabled and a reimburser is set', () => {
+            const adminEmail = 'admin@pay-elsewhere.com';
+            const adminAccountID = 703;
+            const reimburserEmail = 'reimburser@pay-elsewhere.com';
+
+            const policyWithReimbursementDisabled: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                employeeList: {
+                    [adminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    [reimburserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                achAccount: {
+                    reimburser: reimburserEmail,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            expect(isPayer(adminAccountID, adminEmail, approvedReport, undefined, policyWithReimbursementDisabled, true)).toBe(true);
+        });
+
+        it('should return false for non-reimburser admin in manual mode with designated payer when onlyShowPayElsewhere is true', () => {
+            const otherAdminEmail = 'other-admin@manual-pay-elsewhere.com';
+            const otherAdminAccountID = 704;
+            const reimburserEmail = 'reimburser@manual-pay-elsewhere.com';
+            const reimburserAccountID = 705;
+
+            const manualPolicyWithReimburser: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [otherAdminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    [reimburserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                achAccount: {
+                    reimburser: reimburserEmail,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            expect(isPayer(otherAdminAccountID, otherAdminEmail, approvedReport, undefined, manualPolicyWithReimburser, true)).toBe(false);
+            expect(isPayer(reimburserAccountID, reimburserEmail, approvedReport, undefined, manualPolicyWithReimburser, true)).toBe(true);
+        });
     });
+
     describe('buildReportNameFromParticipantNames', () => {
         beforeAll(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
@@ -8512,8 +9189,8 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
-            expect(isReportOutstanding(report, policy.id)).toBe(false);
+            const reportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: {private_isArchived: '2024-01-01 00:00:00.000'}};
+            expect(isReportOutstanding(report, policy.id, reportNameValuePairs)).toBe(false);
         });
     });
 
@@ -8639,191 +9316,6 @@ describe('ReportUtils', () => {
             const result = canAddTransaction(report, isReportArchived.current);
 
             // Then the result is false
-            expect(result).toBe(false);
-        });
-    });
-
-    describe('isReportIneligibleForMoveExpenses', () => {
-        it('should return false when policy is undefined', () => {
-            const report: Report = {
-                ...createRandomReport(30000, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: currentUserAccountID,
-            };
-
-            const result = isReportIneligibleForMoveExpenses(report, undefined);
-
-            expect(result).toBe(false);
-        });
-
-        it('should return false when instant submit is not enabled', async () => {
-            const testPolicy: Policy = {
-                ...createRandomPolicy(3000),
-                autoReporting: false,
-            };
-            const report: Report = {
-                ...createRandomReport(30001, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: testPolicy.id,
-                ownerAccountID: currentUserAccountID,
-            };
-
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
-
-            expect(result).toBe(false);
-        });
-
-        it('should return false when submit and close is not enabled', async () => {
-            const testPolicy: Policy = {
-                ...createRandomPolicy(3001),
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-            };
-            const report: Report = {
-                ...createRandomReport(30002, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: testPolicy.id,
-                ownerAccountID: currentUserAccountID,
-            };
-
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
-
-            expect(result).toBe(false);
-        });
-
-        it('should return false when report has reimbursable transactions', async () => {
-            const testPolicy: Policy = {
-                ...createRandomPolicy(3002),
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            };
-            const report: Report = {
-                ...createRandomReport(30003, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: testPolicy.id,
-                ownerAccountID: currentUserAccountID,
-            };
-            const transaction = {
-                transactionID: '30003',
-                reportID: report.reportID,
-                reimbursable: true,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
-
-            expect(result).toBe(false);
-        });
-
-        it('should return false when report has no transactions', async () => {
-            const testPolicy: Policy = {
-                ...createRandomPolicy(3003),
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            };
-            const report: Report = {
-                ...createRandomReport(30004, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: testPolicy.id,
-                ownerAccountID: currentUserAccountID,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
-
-            expect(result).toBe(false);
-        });
-
-        it('should return true when instant submit, submit and close, and only non-reimbursable transactions', async () => {
-            const testPolicy: Policy = {
-                ...createRandomPolicy(3004),
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            };
-            const report: Report = {
-                ...createRandomReport(30005, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: testPolicy.id,
-                ownerAccountID: currentUserAccountID,
-            };
-            const transaction = {
-                transactionID: '30005',
-                reportID: report.reportID,
-                reimbursable: false,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
-
-            expect(result).toBe(true);
-        });
-
-        it('should return false for draft reports even when instant submit, submit and close, and only non-reimbursable transactions', async () => {
-            const testPolicy: Policy = {
-                ...createRandomPolicy(3006),
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            };
-            const report: Report = {
-                ...createRandomReport(30007, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: testPolicy.id,
-                ownerAccountID: currentUserAccountID,
-            };
-            const transaction = {
-                transactionID: '30007',
-                reportID: report.reportID,
-                reimbursable: false,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
-
-            expect(result).toBe(false);
-        });
-
-        it('should return false when report has mixed reimbursable and non-reimbursable transactions', async () => {
-            const testPolicy: Policy = {
-                ...createRandomPolicy(3005),
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            };
-            const report: Report = {
-                ...createRandomReport(30006, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: testPolicy.id,
-                ownerAccountID: currentUserAccountID,
-            };
-            const transaction1 = {
-                transactionID: '30006a',
-                reportID: report.reportID,
-                reimbursable: false,
-            };
-            const transaction2 = {
-                transactionID: '30006b',
-                reportID: report.reportID,
-                reimbursable: true,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
-
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
-
             expect(result).toBe(false);
         });
     });
@@ -9049,6 +9541,41 @@ describe('ReportUtils', () => {
             // AND include actionBadge (APPROVE) since it's a processing expense report the user can approve
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+        });
+
+        it('should use allReportActionsParam when provided instead of module-level Onyx data', async () => {
+            // Given a submitted expense report with a DEW_APPROVE_FAILED action stored ONLY in the passed param (not in Onyx)
+            const report: OptionData = {
+                ...createRandomReport(70000, undefined),
+                keyForList: 'SomeKey',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const dewApproveFailedAction: ReportAction = {
+                ...createRandomReportAction(70000),
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                created: '2024-08-08 18:00:00.000',
+            };
+
+            // Do NOT set report actions in Onyx — only pass them via the param
+            const allReportActionsParam: OnyxCollection<ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
+                    [dewApproveFailedAction.reportActionID]: dewApproveFailedAction,
+                },
+            };
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+            // Without the param, the function should NOT find DEW_APPROVE_FAILED (since it's not in Onyx)
+            const resultWithout = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            expect(resultWithout?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+
+            // With the param, the function should find DEW_APPROVE_FAILED from the passed param
+            const resultWith = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current, allReportActionsParam);
+            expect(resultWith).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
         });
 
         it('should return null for an archived report when there is a policy pending join request', async () => {
@@ -9301,6 +9828,218 @@ describe('ReportUtils', () => {
             expect(result?.reportAction?.reportActionID).toBe('current-user-task');
         });
 
+        it('should return the IOU badge when the IOU action is older than the task action', async () => {
+            const iouReportID = 'iou-report-for-priority';
+
+            const taskAction: ReportAction = {
+                reportActionID: 'task-action-newer',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-report-priority',
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-02 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 99001,
+                },
+            };
+
+            const iouAction: ReportAction = {
+                reportActionID: 'iou-action-older',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childType: CONST.REPORT.TYPE.IOU,
+                childReportID: iouReportID,
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-01 00:00:00',
+                message: [{html: 'iou preview', text: 'iou preview', type: 'COMMENT'}],
+            };
+
+            const workspaceChat = {
+                ...createPolicyExpenseChat(42001),
+                hasOutstandingChildTask: true,
+                hasOutstandingChildRequest: true,
+                iouReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                [taskAction.reportActionID]: taskAction,
+                [iouAction.reportActionID]: iouAction,
+            });
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+
+            // The IOU action is older, so its badge should take priority over the task badge
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+            expect(result?.reportAction?.reportActionID).toBe('iou-action-older');
+            expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
+        });
+
+        it('uses the policies param over the deprecated module-level policy cache to decide the Approve badge', async () => {
+            const policyID = 'policy-for-policies-param-test';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(2),
+                id: policyID,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                type: CONST.POLICY.TYPE.TEAM,
+            };
+
+            // A processing expense report where the current user is the manager - eligible for the Approve badge
+            // as long as canApproveIOU can see the policy
+            const expenseReport: Report = {
+                ...createExpenseReport(60001),
+                policyID,
+                hasParentAccess: false,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+            };
+
+            // Deliberately do NOT set the policy in Onyx - only the report and transaction - to simulate a client
+            // whose policy_<policyID> merge hasn't landed yet even though the report itself is already present
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
+
+            // Without a policies param, resolution falls back to the deprecated module-level policy cache, which
+            // was never populated with this policyID in this test - canApproveIOU bails out on the missing policy,
+            // so the GBR shows without an Approve badge, exactly like a client whose policy merge hasn't landed yet
+            const resultWithoutParam = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            expect(resultWithoutParam?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            expect(resultWithoutParam?.actionBadge).toBeUndefined();
+
+            // With a policies param carrying the same policy, the Approve badge must reflect that immediately using
+            // the caller's own snapshot, without waiting for a separate Onyx.connect callback on the deprecated
+            // cache to catch up
+            const policiesParam: OnyxCollection<Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: fakePolicy,
+            };
+            const resultWithParam = getReasonAndReportActionThatRequiresAttention(
+                expenseReport,
+                currentUserEmail,
+                currentUserAccountID,
+                undefined,
+                isReportArchived.current,
+                undefined,
+                undefined,
+                policiesParam,
+            );
+            expect(resultWithParam?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            expect(resultWithParam?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+        });
+
+        it('should return the Task badge when the task action is older than the IOU action', async () => {
+            const iouReportID = 'iou-report-for-priority-2';
+
+            const taskAction: ReportAction = {
+                reportActionID: 'task-action-older',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-report-priority-2',
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-01 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 99002,
+                },
+            };
+
+            const iouAction: ReportAction = {
+                reportActionID: 'iou-action-newer',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childType: CONST.REPORT.TYPE.IOU,
+                childReportID: iouReportID,
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-02 00:00:00',
+                message: [{html: 'iou preview', text: 'iou preview', type: 'COMMENT'}],
+            };
+
+            const workspaceChat = {
+                ...createPolicyExpenseChat(42002),
+                hasOutstandingChildTask: true,
+                hasOutstandingChildRequest: true,
+                iouReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                [taskAction.reportActionID]: taskAction,
+                [iouAction.reportActionID]: iouAction,
+            });
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+
+            // The task action is older, so the task badge should take priority
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            expect(result?.reportAction?.reportActionID).toBe('task-action-older');
+            expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.TASK);
+        });
+
+        it('should return the IOU badge when task action has no childManagerAccountID (backend bug before opening report)', async () => {
+            const iouReportID = 'iou-report-for-missing-manager';
+
+            // Task action without childManagerAccountID — simulates the backend bug
+            // where childManagerAccountID is missing before the report is opened
+            const taskAction: ReportAction = {
+                reportActionID: 'task-action-no-manager',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-report-no-manager',
+                created: '2024-01-01 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 99003,
+                },
+            };
+
+            const iouAction: ReportAction = {
+                reportActionID: 'iou-action-fallback',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childType: CONST.REPORT.TYPE.IOU,
+                childReportID: iouReportID,
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-02 00:00:00',
+                message: [{html: 'iou preview', text: 'iou preview', type: 'COMMENT'}],
+            };
+
+            const workspaceChat = {
+                ...createPolicyExpenseChat(42003),
+                hasOutstandingChildTask: true,
+                hasOutstandingChildRequest: true,
+                iouReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                [taskAction.reportActionID]: taskAction,
+                [iouAction.reportActionID]: iouAction,
+            });
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+
+            // When oldestTaskAction is undefined (no childManagerAccountID), IOU badge should be returned
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+            expect(result?.reportAction?.reportActionID).toBe('iou-action-fallback');
+        });
+
         it('should return the earliest matching report action for invoice rooms with missing bank account', async () => {
             const invoiceRoomID = '50000';
             const olderChildReportID = '50001';
@@ -9530,6 +10269,86 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getParsedComment', () => {
+        beforeEach(async () => {
+            // Given the current session uses a public-domain email (so the deprecated fallback domain would be empty) and ragnar@vikings.net is a known login
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: 'publicuser@gmail.com', accountID: currentUserAccountID},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+            });
+            await waitForBatchedUpdates();
+        });
+        afterEach(async () => {
+            // Restore the session so other tests are unaffected
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
+        });
+        it('expands a short mention using the explicitly passed currentUserEmail private domain', () => {
+            // When a short mention is parsed with an explicit private-domain currentUserEmail param
+            const result = getParsedComment('@ragnar', undefined, undefined, undefined, undefined, currentUserEmail);
+
+            // Then the short mention is expanded to the full login using the passed email's domain (not the empty session domain)
+            expect(result).toContain('ragnar@vikings.net');
+        });
+        it('does not expand a short mention when the passed currentUserEmail is a public domain', () => {
+            // When a short mention is parsed with an explicit public-domain currentUserEmail param
+            const result = getParsedComment('@ragnar', undefined, undefined, undefined, undefined, 'someone@gmail.com');
+
+            // Then the short mention is not expanded because public domains have no mention domain
+            expect(result).not.toContain('ragnar@vikings.net');
+        });
+    });
+
+    describe('populateOptimisticReportFormula', () => {
+        it('resolves {user:email} from the explicitly passed currentUserEmail param', () => {
+            // Given an optimistic report and an explicit currentUserEmail param
+            const report = {...createRandomReport(70001), reportName: 'Test report', total: 0, currency: CONST.CURRENCY.USD};
+
+            // When the {user:email} formula is populated
+            const result = populateOptimisticReportFormula('{user:email}', report, undefined, false, 'passed@example.com');
+
+            // Then it uses the passed email rather than the session email
+            expect(result).toBe('passed@example.com');
+        });
+        it('resolves {user:email|frontPart} from the explicitly passed currentUserEmail param', () => {
+            // Given an optimistic report and an explicit currentUserEmail param
+            const report = {...createRandomReport(70002), reportName: 'Test report', total: 0, currency: CONST.CURRENCY.USD};
+
+            // When the {user:email|frontPart} formula is populated
+            const result = populateOptimisticReportFormula('{user:email|frontPart}', report, undefined, false, 'passed@example.com');
+
+            // Then it uses the front part of the passed email
+            expect(result).toBe('passed');
+        });
+    });
+
+    describe('current user account ID predicates', () => {
+        it('isReportManager uses the explicitly passed currentUserAccountID', () => {
+            // Given a report managed by account 999
+            const report: Report = {...createRandomReport(70010), managerID: 999};
+
+            // Then passing the matching accountID returns true and a different one returns false
+            expect(isReportManager(report, 999)).toBe(true);
+            expect(isReportManager(report, 1000)).toBe(false);
+        });
+        it('isCurrentUserSubmitter uses the explicitly passed currentUserAccountID', () => {
+            // Given a report owned by account 999
+            const report: Report = {...createRandomReport(70011), ownerAccountID: 999};
+
+            // Then passing the matching accountID returns true and a different one returns false
+            expect(isCurrentUserSubmitter(report, 999)).toBe(true);
+            expect(isCurrentUserSubmitter(report, 1000)).toBe(false);
+        });
+        it('isActionCreator uses the explicitly passed currentUserAccountID', () => {
+            // Given a report action authored by account 999
+            const reportAction = {...createRandomReportAction(70012), actorAccountID: 999};
+
+            // Then passing the matching accountID returns true and a different one returns false
+            expect(isActionCreator(reportAction, 999)).toBe(true);
+            expect(isActionCreator(reportAction, 1000)).toBe(false);
+        });
+    });
+
     describe('shouldDisableRename', () => {
         it('should return true for archived reports', async () => {
             // Given an archived policy room
@@ -9711,10 +10530,7 @@ describe('ReportUtils', () => {
     });
 
     describe('pushTransactionViolationsOnyxData', () => {
-        beforeAll(() => {
-            initOnyxDerivedValues();
-        });
-        it('should push category violation to the Onyx data when category and tag is pending deletion', async () => {
+        it('should push category violation to the Onyx data when category and tag is pending deletion', () => {
             // Given policy categories, the first is pending deletion
             const fakePolicyCategories = createRandomPolicyCategories(3);
             const fakePolicyCategoryNameToDelete = Object.keys(fakePolicyCategories).at(0) ?? '';
@@ -9751,44 +10567,36 @@ describe('ReportUtils', () => {
                 areCategoriesEnabled: true,
             };
 
-            const fakePolicyReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${mockIOUReport.reportID}`]: {
-                    ...mockIOUReport,
-                    policyID: fakePolicyID,
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT}${mockedChatReport.reportID}`]: {
-                    ...mockedChatReport,
-                    policyID: fakePolicyID,
+            const openIOUReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+            };
+
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                category: fakePolicyCategoryNameToDelete,
+                tag: fakePolicyTagsToDelete.at(0)?.[0] ?? '',
+            };
+
+            const policyData: PolicyData = {
+                policy: fakePolicy,
+                categories: fakePolicyCategories,
+                tags: fakePolicyTagsLists,
+                reports: [openIOUReport],
+                transactionsAndViolations: {
+                    [openIOUReport.reportID]: {
+                        transactions: {
+                            [mockTransaction.transactionID]: transaction,
+                        },
+                        violations: {},
+                    },
                 },
             };
 
-            // Populating Onyx with required data
-            await Onyx.multiSet({
-                ...fakePolicyReports,
-                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicyID}`]: fakePolicyTagsLists,
-                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
-                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`]: {
-                    [mockIOUAction.reportActionID]: mockIOUAction,
-                },
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
-                    ...mockTransaction,
-                    reportID: mockIOUReport.reportID,
-                    policyID: fakePolicyID,
-                    category: fakePolicyCategoryNameToDelete,
-                    tag: fakePolicyTagsToDelete.at(0)?.[0] ?? '',
-                },
-            });
-
-            await waitForBatchedUpdates();
-
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-
-            await waitForBatchedUpdates();
-
             const onyxData = {optimisticData: [], failureData: []};
 
-            pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
+            pushTransactionViolationsOnyxData(onyxData, policyData, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
 
             const expectedOnyxData = {
                 // Expecting the optimistic data to contain the OUT_OF_POLICY violations for the deleted category and tag
@@ -9821,6 +10629,294 @@ describe('ReportUtils', () => {
             };
 
             expect(onyxData).toMatchObject(expectedOnyxData);
+        });
+
+        it('should push a missingCategory violation for an Uncategorized expense when categories are enabled', () => {
+            // A new expense is seeded with the 'Uncategorized' sentinel, not an empty category. Enabling categories must
+            // treat that sentinel as missing so the violation is written immediately.
+            const fakePolicyCategories = createRandomPolicyCategories(3);
+            const fakeCategoryName = Object.keys(fakePolicyCategories).at(0) ?? '';
+
+            // Enabling a category keeps the categories update non-empty so the recompute actually runs.
+            const fakePolicyCategoriesUpdate = {
+                [fakeCategoryName]: {enabled: true},
+            };
+
+            // Enabling categories flips requiresCategory/areCategoriesEnabled on, matching enablePolicyCategories.
+            const fakePolicyUpdate = {requiresCategory: true, areCategoriesEnabled: true};
+
+            const fakePolicyID = '0';
+            const fakePolicy = {
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                requiresTag: false,
+                areTagsEnabled: false,
+                requiresCategory: false,
+                areCategoriesEnabled: false,
+            };
+
+            const openIOUReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+            };
+
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                category: CONST.SEARCH.CATEGORY_DEFAULT_VALUE,
+                tag: '',
+            };
+
+            const policyData: PolicyData = {
+                policy: fakePolicy,
+                categories: fakePolicyCategories,
+                tags: {},
+                reports: [openIOUReport],
+                transactionsAndViolations: {
+                    [openIOUReport.reportID]: {
+                        transactions: {
+                            [mockTransaction.transactionID]: transaction,
+                        },
+                        violations: {},
+                    },
+                },
+            };
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            pushTransactionViolationsOnyxData(onyxData, policyData, fakePolicyUpdate, fakePolicyCategoriesUpdate);
+
+            expect(onyxData.optimisticData).toContainEqual({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                value: expect.arrayContaining([
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ]),
+            });
+        });
+    });
+
+    describe('pushTransactionAutoSelectionsOnyxData', () => {
+        const fakePolicyID = '0';
+
+        /**
+         * Builds a policy with N categories that are all enabled (the factory disables them by default).
+         */
+        function buildEnabledCategories(numberOfCategories: number): PolicyCategories {
+            return Object.fromEntries(Object.entries(createRandomPolicyCategories(numberOfCategories)).map(([name, category]) => [name, {...category, enabled: true}]));
+        }
+
+        function buildPolicyData(report: Report, transaction: Transaction, testPolicy: Policy, categories: PolicyCategories, tags: PolicyTagLists = {}): PolicyData {
+            return {
+                policy: testPolicy,
+                categories,
+                tags,
+                reports: [report],
+                transactionsAndViolations: {
+                    [report.reportID]: {
+                        transactions: {
+                            [transaction.transactionID]: transaction,
+                        },
+                        violations: {},
+                    },
+                },
+            };
+        }
+
+        it('auto-selects the sole remaining enabled category when the transaction category is disabled', () => {
+            // Given a policy with two enabled categories, and an update that disables the first one
+            const fakePolicyCategories = buildEnabledCategories(2);
+            const categoryNames = Object.keys(fakePolicyCategories);
+            const categoryToDisable = categoryNames.at(0) ?? '';
+            const remainingCategory = categoryNames.at(1) ?? '';
+            const fakePolicyCategoriesUpdate = {
+                [categoryToDisable]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresCategory: true, areCategoriesEnabled: true};
+
+            // Given an open report whose transaction uses the category about to be disabled
+            const openIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                category: categoryToDisable,
+                tag: '',
+            };
+
+            const policyData = buildPolicyData(openIOUReport, transaction, fakePolicy, fakePolicyCategories);
+            const onyxData = {optimisticData: [], failureData: []};
+
+            // When auto-selecting after the category update
+            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, fakePolicyCategoriesUpdate, {});
+
+            // Then the transaction is moved to the sole remaining enabled category, with a matching rollback
+            expect(autoSelections.get(mockTransaction.transactionID)).toEqual({category: remainingCategory});
+            expect(onyxData).toMatchObject({
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
+                        value: {category: remainingCategory},
+                    },
+                ],
+                failureData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
+                        value: {category: categoryToDisable},
+                    },
+                ],
+            });
+        });
+
+        it('auto-selects the sole remaining enabled tag when the transaction tag is disabled', () => {
+            // Given a single-level tag list with two enabled tags, and an update that disables the first one
+            const fakePolicyTagListName = 'Tag List';
+            const fakePolicyTagsLists = createRandomPolicyTags(fakePolicyTagListName, 2);
+            const tagNames = Object.keys(fakePolicyTagsLists[fakePolicyTagListName]?.tags ?? {});
+            const tagToDisable = tagNames.at(0) ?? '';
+            const remainingTag = tagNames.at(1) ?? '';
+            const fakePolicyTagListsUpdate: Record<string, Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>> = {
+                [fakePolicyTagListName]: {
+                    tags: {
+                        [tagToDisable]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
+                    },
+                },
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresTag: true, areTagsEnabled: true};
+
+            // Given an open report whose transaction uses the tag about to be disabled
+            const openIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                category: '',
+                tag: tagToDisable,
+            };
+
+            const policyData = buildPolicyData(openIOUReport, transaction, fakePolicy, {}, fakePolicyTagsLists);
+            const onyxData = {optimisticData: [], failureData: []};
+
+            // When auto-selecting after the tag update
+            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, {}, fakePolicyTagListsUpdate);
+
+            // Then the transaction is moved to the sole remaining enabled tag, with a matching rollback
+            expect(autoSelections.get(mockTransaction.transactionID)).toEqual({tag: remainingTag});
+            expect(onyxData).toMatchObject({
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
+                        value: {tag: remainingTag},
+                    },
+                ],
+                failureData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
+                        value: {tag: tagToDisable},
+                    },
+                ],
+            });
+        });
+
+        it('does not auto-select when more than one enabled category remains', () => {
+            // Given a policy with three enabled categories, and an update that disables only one (two remain)
+            const fakePolicyCategories = buildEnabledCategories(3);
+            const categoryToDisable = Object.keys(fakePolicyCategories).at(0) ?? '';
+            const fakePolicyCategoriesUpdate = {
+                [categoryToDisable]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresCategory: true, areCategoriesEnabled: true};
+            const openIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                category: categoryToDisable,
+                tag: '',
+            };
+
+            const policyData = buildPolicyData(openIOUReport, transaction, fakePolicy, fakePolicyCategories);
+            const onyxData = {optimisticData: [], failureData: []};
+
+            // When auto-selecting after the category update
+            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, fakePolicyCategoriesUpdate, {});
+
+            // Then nothing is auto-selected because the remaining choice is ambiguous
+            expect(autoSelections.size).toBe(0);
+            expect(onyxData.optimisticData).toHaveLength(0);
+            expect(onyxData.failureData).toHaveLength(0);
+        });
+
+        it('does not auto-select on an enable-only update that removes nothing', () => {
+            // Given a policy with two disabled categories (the factory disables them) and a transaction on the first
+            const fakePolicyCategories = createRandomPolicyCategories(2);
+            const categoryNames = Object.keys(fakePolicyCategories);
+            const transactionCategory = categoryNames.at(0) ?? '';
+            const categoryToEnable = categoryNames.at(1) ?? '';
+
+            // ... and an update that only ENABLES the second category (it deletes/disables nothing)
+            const fakePolicyCategoriesUpdate = {
+                [categoryToEnable]: {enabled: true},
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresCategory: true, areCategoriesEnabled: true};
+            const openIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                category: transactionCategory,
+                tag: '',
+            };
+
+            const policyData = buildPolicyData(openIOUReport, transaction, fakePolicy, fakePolicyCategories);
+            const onyxData = {optimisticData: [], failureData: []};
+
+            // When auto-selecting after an enable-only update that leaves exactly one enabled category
+            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, fakePolicyCategoriesUpdate, {});
+
+            // Then nothing is auto-selected: the backend only auto-replaces on a delete/disable, never an enable
+            expect(autoSelections.size).toBe(0);
+            expect(onyxData.optimisticData).toHaveLength(0);
+            expect(onyxData.failureData).toHaveLength(0);
+        });
+
+        it('does not auto-select on a non-open report even when a single category remains', () => {
+            // Given a policy with two enabled categories, and an update that disables the first one
+            const fakePolicyCategories = buildEnabledCategories(2);
+            const categoryToDisable = Object.keys(fakePolicyCategories).at(0) ?? '';
+            const fakePolicyCategoriesUpdate = {
+                [categoryToDisable]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresCategory: true, areCategoriesEnabled: true};
+
+            // Given an approved (non-open, non-processing) report
+            const approvedIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: approvedIOUReport.reportID,
+                category: categoryToDisable,
+                tag: '',
+            };
+
+            const policyData = buildPolicyData(approvedIOUReport, transaction, fakePolicy, fakePolicyCategories);
+            const onyxData = {optimisticData: [], failureData: []};
+
+            // When auto-selecting after the category update
+            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, fakePolicyCategoriesUpdate, {});
+
+            // Then nothing is auto-selected because auto-selection is scoped to open/processing reports
+            expect(autoSelections.size).toBe(0);
+            expect(onyxData.optimisticData).toHaveLength(0);
+            expect(onyxData.failureData).toHaveLength(0);
         });
     });
 
@@ -10032,26 +11128,17 @@ describe('ReportUtils', () => {
             const policyID = '123456';
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
-            const policyWithoutCurrentUser: Policy = {
-                ...createRandomPolicy(1),
-                id: policyID,
-                employeeList: {
-                    'employee@test.com': {
-                        role: CONST.POLICY.ROLE.USER,
-                        errors: {},
-                    },
-                },
-            };
+            // policy.role holds the current user's own role and is synced for every workspace they belong to,
+            // even when employeeList has not loaded (the roster is only fully synced for the active workspace).
+            // A non-member therefore has no role, so membership is determined from policy.role.
+            const policyWithoutCurrentUser: Policy = {...createRandomPolicy(1), id: policyID, employeeList: {}};
+            delete (policyWithoutCurrentUser as Partial<Policy>).role;
 
             const policyWithCurrentUser: Policy = {
                 ...createRandomPolicy(2),
                 id: policyID,
-                employeeList: {
-                    [currentUserEmail]: {
-                        role: CONST.POLICY.ROLE.USER,
-                        errors: {},
-                    },
-                },
+                role: CONST.POLICY.ROLE.USER,
+                employeeList: {},
             };
 
             const restrictedReport: Report = {
@@ -10117,14 +11204,14 @@ describe('ReportUtils', () => {
             expect(isWhisperAction(whisperReportAction)).toBe(true);
         });
         it('an action where reportAction.originalMessage.whisperedTo does not exist is not a whisper action', () => {
-            const nonWhisperReportAction = {
+            const nonWhisperReportAction = createMock<ReportAction>({
                 ...createRandomReportAction(1),
                 message: [
                     {
                         whisperedTo: undefined,
                     },
                 ],
-            } as ReportAction;
+            });
             expect(isWhisperAction(nonWhisperReportAction)).toBe(false);
         });
     });
@@ -10162,7 +11249,7 @@ describe('ReportUtils', () => {
 
         describe('a non-whisper action', () => {
             const report = createRandomReport(1, undefined);
-            const nonWhisperReportAction = {
+            const nonWhisperReportAction = createMock<ReportAction>({
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 message: [
@@ -10170,7 +11257,7 @@ describe('ReportUtils', () => {
                         whisperedTo: undefined,
                     },
                 ],
-            } as ReportAction;
+            });
 
             beforeAll(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
@@ -10197,7 +11284,7 @@ describe('ReportUtils', () => {
             });
 
             it('cannot be flagged if the action is deleted', () => {
-                const deletedReportAction = {
+                const deletedReportAction = createMock<ReportAction>({
                     ...nonWhisperReportAction,
                     message: [
                         {
@@ -10206,18 +11293,18 @@ describe('ReportUtils', () => {
                             deleted: getRandomDate(),
                         },
                     ],
-                } as ReportAction;
+                });
                 expect(canFlagReportAction(deletedReportAction, report.reportID)).toBe(false);
             });
 
             it('cannot be flagged if the action is a created task report', () => {
-                const createdTaskReportAction = {
+                const createdTaskReportAction = createMock<ReportAction>({
                     ...nonWhisperReportAction,
                     originalMessage: {
                         // This signifies that the action is a created task report along with the ADD_COMMENT action name
                         taskReportID: '123456',
                     },
-                } as ReportAction;
+                });
                 expect(canFlagReportAction(createdTaskReportAction, report.reportID)).toBe(false);
             });
 
@@ -10228,12 +11315,12 @@ describe('ReportUtils', () => {
 
             it('cannot be flagged if the report is not allowed to be commented on', () => {
                 // eslint-disable-next-line rulesdir/no-negated-variables
-                const reportThatCannotBeCommentedOn = {
+                const reportThatCannotBeCommentedOn = createMock<Report>({
                     ...createRandomReport(2, undefined),
 
                     // If the permissions does not contain WRITE, then it cannot be commented on
                     permissions: [],
-                } as Report;
+                });
                 expect(canFlagReportAction(nonWhisperReportAction, reportThatCannotBeCommentedOn.reportID)).toBe(false);
             });
 
@@ -10772,12 +11859,18 @@ describe('ReportUtils', () => {
             };
 
             const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport);
-            const updatedPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, '', {
-                transactionID: 'transaction-1',
-                amount: 0,
-                created: '2026-05-19 10:00:00',
-                receipt: {source: 'receipt.jpg'},
-            } as Transaction);
+            const updatedPreviewAction = updateReportPreview(
+                iouReport,
+                reportPreviewAction,
+                false,
+                '',
+                createMock<Transaction>({
+                    transactionID: 'transaction-1',
+                    amount: 0,
+                    created: '2026-05-19 10:00:00',
+                    receipt: {source: 'receipt.jpg'},
+                }),
+            );
 
             expect(updatedPreviewAction.childLastActorAccountID).toBe(currentUserAccountID);
         });
@@ -11094,19 +12187,19 @@ describe('ReportUtils', () => {
     });
 
     describe('excludeParticipantsForDisplay', () => {
-        const mockParticipants = {
+        const mockParticipants = createMock<Participants>({
             1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
             3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY},
             4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        } as Participants;
+        });
 
-        const mockReportMetadata = {
+        const mockReportMetadata = createMock<OnyxEntry<ReportMetadata>>({
             pendingChatMembers: [
                 {accountID: '3', pendingAction: 'delete'},
                 {accountID: '4', pendingAction: 'add'},
             ],
-        } as OnyxEntry<ReportMetadata>;
+        });
 
         it('should return original array when no exclude options provided', () => {
             const participantsIDs = [1, 2, 3, 4];
@@ -11194,12 +12287,12 @@ describe('ReportUtils', () => {
 
         it('should only exclude based on last pending action when multiple actions for same user', () => {
             const participantsIDs = [1, 2, 3];
-            const metadataWithMultipleActions = {
+            const metadataWithMultipleActions = createMock<OnyxEntry<ReportMetadata>>({
                 pendingChatMembers: [
                     {accountID: '3', pendingAction: 'add'},
                     {accountID: '3', pendingAction: 'delete'},
                 ],
-            } as OnyxEntry<ReportMetadata>;
+            });
             const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, metadataWithMultipleActions, {
                 shouldExcludeDeleted: true,
             });
@@ -11229,11 +12322,13 @@ describe('ReportUtils', () => {
             await flushPromises();
         });
 
+        const mockGetActiveRoute = Navigation.getActiveRoute as jest.Mock;
+
         afterAll(() => {
             mockIsSearchTopmostFullScreenRoute.mockRestore();
+            mockGetActiveRoute.mockReset();
+            mockGetActiveRoute.mockReturnValue('mock-route');
         });
-
-        const mockGetActiveRoute = Navigation.getActiveRoute as jest.Mock;
 
         beforeEach(() => {
             mockIsSearchTopmostFullScreenRoute.mockReset();
@@ -11278,90 +12373,6 @@ describe('ReportUtils', () => {
 
         it('falls back to the base report path when reportID is missing', () => {
             expect(getReportURLForCurrentContext(undefined)).toBe(`${environmentURL}/r/`);
-        });
-    });
-
-    describe('requiresManualSubmission', () => {
-        it('should return true when manual submit is enabled', () => {
-            const report: Report = {
-                ...createRandomReport(1, undefined),
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-            const policy1 = createRandomPolicy(1);
-            policy1.harvesting = {enabled: false};
-            policy1.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
-            const result = requiresManualSubmission(report, policy1);
-            expect(result).toBe(true);
-        });
-
-        it('should return false when instant submit is enabled and report is not open', () => {
-            const report: Report = {
-                ...createRandomReport(2, undefined),
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-            };
-            const policy2 = createRandomPolicy(2);
-            policy2.autoReporting = true;
-            policy2.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
-            policy2.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
-            const result = requiresManualSubmission(report, policy2);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when instant submit is enabled with approvers', () => {
-            const report: Report = {
-                ...createRandomReport(3, undefined),
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-            const policy3 = createRandomPolicy(3);
-            policy3.autoReporting = true;
-            policy3.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
-            policy3.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
-            const result = requiresManualSubmission(report, policy3);
-            expect(result).toBe(false);
-        });
-
-        it('should return true for open report in Submit & Close policy with instant submit', () => {
-            const report: Report = {
-                ...createRandomReport(4, undefined),
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-            const policy4 = createRandomPolicy(4);
-            policy4.autoReporting = true;
-            policy4.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
-            policy4.approvalMode = CONST.POLICY.APPROVAL_MODE.OPTIONAL; // Submit & Close (no approvers)
-            const result = requiresManualSubmission(report, policy4);
-            expect(result).toBe(true);
-        });
-
-        it('should return false for closed report in Submit & Close policy with instant submit', () => {
-            const report: Report = {
-                ...createRandomReport(5, undefined),
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-            };
-            const policy5 = createRandomPolicy(5);
-            policy5.autoReporting = true;
-            policy5.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
-            policy5.approvalMode = CONST.POLICY.APPROVAL_MODE.OPTIONAL; // Submit & Close (no approvers)
-            const result = requiresManualSubmission(report, policy5);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when policy has auto reporting with monthly frequency (delayed submission)', () => {
-            const report: Report = {
-                ...createRandomReport(8, undefined),
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-            const policy6 = createRandomPolicy(8);
-            policy6.autoReporting = true;
-            policy6.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
-            const result = requiresManualSubmission(report, policy6);
-            expect(result).toBe(false);
         });
     });
 
@@ -11547,7 +12558,7 @@ describe('ReportUtils', () => {
         });
 
         it('should handle empty object as parent report action', () => {
-            const result = shouldExcludeAncestorReportAction({} as ReportAction, true);
+            const result = shouldExcludeAncestorReportAction(createMock<ReportAction>({}), true);
             expect(result).toBe(false);
         });
     });
@@ -11560,6 +12571,11 @@ describe('ReportUtils', () => {
         let personalPolicy: Policy;
 
         beforeEach(() => {
+            // Other describe blocks leave isPaidGroupPolicy stuck on mockReturnValue(true); restore the type-based default so these policy-type-driven cases aren't poisoned
+            mockedPolicyUtils.isPaidGroupPolicy.mockImplementation(
+                (policyToCheck?: OnyxInputOrEntry<Policy>) => policyToCheck?.type === CONST.POLICY.TYPE.CORPORATE || policyToCheck?.type === CONST.POLICY.TYPE.TEAM,
+            );
+
             // Create test reports using the proper pattern
             expenseReport = {
                 ...LHNTestUtils.getFakeReport(),
@@ -11728,10 +12744,10 @@ describe('ReportUtils', () => {
             });
 
             it('should handle undefined policy type gracefully', () => {
-                const policyWithUndefinedType = {
+                const policyWithUndefinedType = createMock<Policy>({
                     ...createRandomPolicy(4),
                     type: undefined,
-                } as unknown as Policy;
+                });
                 expect(shouldEnableNegative(chatReport, policyWithUndefinedType)).toBe(false);
             });
 
@@ -12304,8 +13320,198 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getTransactionReportName', () => {
+        const mockReportID = '100';
+        const mockTransactionReport: Report = {
+            ...createRandomReport(100, undefined),
+            reportName: 'Transaction Report',
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+
+        beforeEach(async () => {
+            await Onyx.clear();
+        });
+
+        test('uses report param when provided', async () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                merchant: 'Coffee Shop',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result).toBe('string');
+        });
+
+        test('returns report name with report param', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                merchant: 'Coffee Shop',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result).toBe('string');
+        });
+
+        test('returns reversed transaction message when action is reversed', () => {
+            const reportAction = createRandomReportAction(1);
+
+            jest.spyOn(require('@libs/ReportActionsUtils'), 'isReversedTransaction').mockReturnValueOnce(true);
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction,
+                linkedTransaction: undefined,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('parentReportAction.reversedTransaction'));
+        });
+
+        test('returns deleted expense message when action is deleted', () => {
+            const reportAction = createRandomReportAction(1);
+
+            jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValueOnce(true);
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction,
+                linkedTransaction: undefined,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('parentReportAction.deletedExpense'));
+        });
+
+        test('uses report param from caller', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                merchant: 'Coffee Shop',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result).toBe('string');
+        });
+
+        test('returns expense fallback when linkedTransaction is empty and reportAction is not track expense', () => {
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                linkedTransaction: undefined,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('iou.expense'));
+        });
+
+        test('returns create expense fallback when linkedTransaction is empty and reportAction is track expense', () => {
+            const reportAction = createRandomReportAction(1);
+            jest.spyOn(require('@libs/ReportActionsUtils'), 'isTrackExpenseAction').mockReturnValueOnce(true);
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction,
+                linkedTransaction: undefined,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('iou.createExpense'));
+        });
+
+        test('returns scanning message when transaction is being scanned', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+            };
+            jest.spyOn(require('@libs/TransactionUtils'), 'isScanning').mockReturnValueOnce(true);
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('iou.receiptScanning', {count: 1}));
+        });
+
+        test('returns missing details message when smartscan fields are missing', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+            };
+            jest.spyOn(require('@libs/TransactionUtils'), 'hasMissingSmartscanFields').mockReturnValueOnce(true);
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('iou.receiptMissingDetails'));
+        });
+
+        test('returns formatted amount and merchant for normal expense', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                merchant: 'Coffee Shop',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                amount: -2500,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toContain('Coffee Shop');
+            expect(result).toContain('$25.00');
+        });
+    });
+
     describe('buildOptimisticExpenseReport', () => {
         beforeEach(Onyx.clear);
+        // Other describe blocks leave isPaidGroupPolicy stuck on mockReturnValue(true); restore the type-based default so the report-name fallback is driven by the real policy type
+        beforeEach(() =>
+            mockedPolicyUtils.isPaidGroupPolicy.mockImplementation(
+                (policyToCheck?: OnyxInputOrEntry<Policy>) => policyToCheck?.type === CONST.POLICY.TYPE.CORPORATE || policyToCheck?.type === CONST.POLICY.TYPE.TEAM,
+            ),
+        );
 
         it('should include the policy name in report name from report draft', async () => {
             const chatReportID = '1';
@@ -12409,32 +13615,20 @@ describe('ReportUtils', () => {
                 return acc;
             }, {});
 
-        const createTransactionForReport = (reportID: string, index = 0): Transaction => ({
-            ...createRandomTransaction(index),
-            reportID,
-            transactionID: `${reportID}-transaction-${index}`,
-        });
-
         it('returns false when policyID is missing or accountID invalid', () => {
             const reportID = 'report-1';
             const reports = toCollection(buildReport({reportID}));
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [],
-            };
 
-            expect(hasEmptyReportsForPolicy(reports, undefined, accountID, transactions)).toBe(false);
-            expect(hasEmptyReportsForPolicy(reports, policyID, Number.NaN, transactions)).toBe(false);
-            expect(hasEmptyReportsForPolicy(reports, policyID, CONST.DEFAULT_NUMBER_ID, transactions)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, undefined, {}, accountID)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, Number.NaN)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, CONST.DEFAULT_NUMBER_ID)).toBe(false);
         });
 
         it('returns true when an owned open expense report has no transactions', () => {
             const reportID = 'empty-report';
             const reports = toCollection(buildReport({reportID}));
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [],
-            };
 
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, accountID)).toBe(true);
         });
 
         it('returns true when an owned submitted expense report has no transactions', () => {
@@ -12446,46 +13640,28 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 }),
             );
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [],
-            };
 
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, accountID)).toBe(true);
         });
 
         it('returns false when an owned expense report already has transactions', () => {
             const reportID = 'with-transaction';
             const reports = toCollection(buildReport({reportID}));
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [createTransactionForReport(reportID)],
-            };
 
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {[reportID]: true}, accountID)).toBe(false);
         });
 
-        it('treats transactions pending deletion as removed when checking emptiness', () => {
+        it('treats a report as empty when its only transactions are pending deletion', () => {
             const reportID = 'pending-delete-report';
             const reports = toCollection(buildReport({reportID}));
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [
-                    {
-                        ...createTransactionForReport(reportID),
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    },
-                ],
-            };
 
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, accountID)).toBe(true);
         });
 
         it('ignores reports owned by other users or policies', () => {
             const reports = toCollection(buildReport({reportID: 'other-owner', ownerAccountID: otherAccountID}), buildReport({reportID: 'other-policy', policyID: otherPolicyID}));
-            const transactions: Record<string, Transaction[]> = {
-                'other-owner': [],
-                'other-policy': [],
-            };
 
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, accountID)).toBe(false);
         });
 
         it('ignores reports that are not open expense reports even if they have no transactions', () => {
@@ -12494,13 +13670,8 @@ describe('ReportUtils', () => {
                 buildReport({reportID: 'approved', stateNum: CONST.REPORT.STATE_NUM.APPROVED}),
                 buildReport({reportID: 'chat', type: CONST.REPORT.TYPE.CHAT}),
             );
-            const transactions: Record<string, Transaction[]> = {
-                closed: [],
-                approved: [],
-                chat: [],
-            };
 
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, accountID)).toBe(false);
         });
 
         it('ignores reports flagged for deletion or with errors', () => {
@@ -12509,44 +13680,27 @@ describe('ReportUtils', () => {
                 buildReport({reportID: 'with-errors', errors: {test: 'error'}}),
             );
 
-            const transactions: Record<string, Transaction[]> = {
-                'pending-delete': [],
-                'with-errors': [],
-            };
-
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, accountID)).toBe(false);
         });
 
         it('returns true when at least one qualifying report exists among mixed data', () => {
             const reports = toCollection(buildReport({reportID: 'valid-empty'}), buildReport({reportID: 'with-transaction'}), buildReport({reportID: 'other', policyID: otherPolicyID}));
 
-            const transactions: Record<string, Transaction[]> = {
-                'valid-empty': [],
-                'with-transaction': [createTransactionForReport('with-transaction')],
-                other: [],
-            };
-
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {'with-transaction': true}, accountID)).toBe(true);
         });
 
         it('returns false when accountID is the default one', () => {
             const reports = toCollection(buildReport({reportID: 'valid-empty'}), buildReport({reportID: 'with-transaction'}), buildReport({reportID: 'other', policyID: otherPolicyID}));
 
-            const transactions: Record<string, Transaction[]> = {
-                'valid-empty': [],
-                'with-transaction': [createTransactionForReport('with-transaction')],
-                other: [],
-            };
-
-            expect(hasEmptyReportsForPolicy(reports, policyID, CONST.DEFAULT_NUMBER_ID, transactions)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {'with-transaction': true}, CONST.DEFAULT_NUMBER_ID)).toBe(false);
         });
 
         it('handles undefined reports', () => {
-            expect(hasEmptyReportsForPolicy(undefined, policyID, accountID, {})).toBe(false);
+            expect(hasEmptyReportsForPolicy(undefined, policyID, {}, accountID)).toBe(false);
         });
 
         it('handles empty collection', () => {
-            expect(hasEmptyReportsForPolicy({}, policyID, accountID, {})).toBe(false);
+            expect(hasEmptyReportsForPolicy({}, policyID, {}, accountID)).toBe(false);
         });
     });
 
@@ -12719,6 +13873,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            conciergeReportID: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -12777,6 +13932,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            conciergeReportID: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -12833,7 +13989,7 @@ describe('ReportUtils', () => {
                 parentReportID: policyExpenseChat.reportID,
             };
 
-            const iouReport = {
+            const iouReport = createMock<Report>({
                 reportName: 'Expense Report 2025-07-10',
                 reportID: '5186125925096828',
                 policyID: policy.id,
@@ -12845,7 +14001,7 @@ describe('ReportUtils', () => {
                 parentReportID: policyExpenseChat.reportID,
                 parentReportActionID: lastReportPreviewAction.reportActionID,
                 chatReportID: policyExpenseChat.reportID,
-            } as Report;
+            });
 
             const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID});
             expect(displayName).toBe(fakePersonalDetails?.[1]?.displayName);
@@ -12884,6 +14040,7 @@ describe('ReportUtils', () => {
                 draftComment: undefined,
                 betas: undefined,
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
 
             expect(reasonForOptionList).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -12927,6 +14084,7 @@ describe('ReportUtils', () => {
                 draftComment: undefined,
                 betas: undefined,
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
 
             expect(reasonForOptionList).toBe(null);
@@ -13453,6 +14611,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            conciergeReportID: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -13636,6 +14795,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            conciergeReportID: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -13821,6 +14981,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: archiveState.current,
+            conciergeReportID: undefined,
         });
 
         expect(reasonBeforeDelete).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -13843,6 +15004,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: archiveState.current,
+            conciergeReportID: undefined,
         });
 
         expect(reasonAfterDelete).toBe(CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED);
@@ -13944,6 +15106,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: isReportArchivedBefore.current,
+            conciergeReportID: undefined,
         });
 
         expect(reasonBeforeRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -13984,6 +15147,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: isReportArchivedAfter.current,
+            conciergeReportID: undefined,
         });
 
         expect(reasonAfterRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -14004,7 +15168,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage
-            const result = getReportPreviewMessage(report, undefined, reportAction, false, false, undefined, false, reportAction);
+            const result = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction});
 
             // Then it should return the childReportName instead of "payer owes $0"
             expect(result).toBe('Expense Report 2025-01-15');
@@ -14024,7 +15188,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage
-            const result = getReportPreviewMessage(report, undefined, reportAction, false, false, undefined, false, reportAction);
+            const result = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction});
 
             // Then it should return the message from the report action (not the childReportName)
             expect(result).toBe('payer owes $100');
@@ -14040,28 +15204,94 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage with isCopyAction = true
-            const result = getReportPreviewMessage(report, undefined, reportAction, false, false, undefined, false, reportAction, true);
+            const result = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction, isCopyAction: true});
 
             // Then it should return the childReportName instead of "payer owes $0"
             expect(result).toBe('Expense Report 2025-01-15');
         });
 
-        it('should pass conciergeReportID through to computeReportName when isCopyAction is true', async () => {
+        it('should use the report name from the reportAttributes param when isCopyAction is true', async () => {
             const report = LHNTestUtils.getFakeReport();
+            report.reportName = 'Stale Report Name';
             const reportAction: ReportAction = {
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                childReportName: 'Expense Report',
+                childReportName: 'Child Report Name',
                 childMoneyRequestCount: 0,
             };
+            const reportAttributes: ReportAttributesDerivedValue['reports'] = {
+                [report.reportID]: {
+                    reportName: 'Computed Report Name',
+                    isEmpty: false,
+                    brickRoadStatus: undefined,
+                    requiresAttention: false,
+                    reportErrors: {},
+                },
+            };
 
-            // When called with conciergeReportID undefined, the function should not throw
-            const result1 = getReportPreviewMessage(report, undefined, reportAction, false, false, undefined, false, reportAction, true);
-            expect(typeof result1).toBe('string');
+            // When called with reportAttributes that provide a report name, it should be preferred over the report's own name
+            const result = getReportPreviewMessage({
+                reportOrID: report,
+                iouReportAction: reportAction,
+                originalReportAction: reportAction,
+                isCopyAction: true,
+                reportAttributes,
+            });
+            expect(result).toBe('Computed Report Name');
+        });
 
-            // When called with a specific conciergeReportID, the function should not throw
-            const result2 = getReportPreviewMessage(report, '12345', reportAction, false, false, undefined, false, reportAction, true);
-            expect(typeof result2).toBe('string');
+        describe('settled report paid with a business bank account', () => {
+            const settledPolicyID = '445';
+            const settledPolicy = {
+                ...createRandomPolicy(Number(settledPolicyID), CONST.POLICY.TYPE.TEAM),
+                id: settledPolicyID,
+                achAccount: {
+                    accountNumber: 'XXXXXXXXXXXX0000',
+                },
+            };
+            const settledReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: settledPolicyID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            };
+            const payOriginalMessage = {
+                IOUReportID: settledReport.reportID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const payReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: payOriginalMessage,
+            };
+
+            beforeEach(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${settledPolicyID}`, settledPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
+            });
+
+            it('shows the bank account from the action accountNumber instead of the policy default', () => {
+                // Given a pay action that carries the masked accountNumber of the bank account actually used
+                const actionWithAccountNumber: ReportAction = {
+                    ...payReportAction,
+                    originalMessage: {...payOriginalMessage, accountNumber: 'XXXXXX4321'},
+                };
+
+                const result = getReportPreviewMessage({reportOrID: settledReport, iouReportAction: actionWithAccountNumber, originalReportAction: actionWithAccountNumber});
+
+                // Then the preview shows the last 4 digits of that account, not the policy default
+                expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321'));
+            });
+
+            it('falls back to the policy default bank account when the action has no accountNumber', () => {
+                const result = getReportPreviewMessage({reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction});
+
+                expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '0000'));
+            });
         });
     });
 
@@ -14094,13 +15324,13 @@ describe('ReportUtils', () => {
 
     describe('getUnreportedTransactionMessage', () => {
         it('should return unreported transaction message when fromReportID is UNREPORTED_REPORT_ID', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
                 originalMessage: {
                     fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 },
-            } as unknown as ReportAction;
+            });
 
             const result = getUnreportedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
@@ -14111,13 +15341,13 @@ describe('ReportUtils', () => {
             const fromReport = LHNTestUtils.getFakeReport();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
 
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
                 originalMessage: {
                     fromReportID: fromReport.reportID,
                 },
-            } as unknown as ReportAction;
+            });
 
             const result = getUnreportedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
@@ -14128,13 +15358,13 @@ describe('ReportUtils', () => {
             const fromReport = LHNTestUtils.getFakeReport();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
 
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
                 originalMessage: {
                     fromReportID: fromReport.reportID,
                 },
-            } as unknown as ReportAction;
+            });
 
             const result1 = getUnreportedTransactionMessage(translateLocal, action);
             const result2 = getUnreportedTransactionMessage(translateLocal, action);
@@ -14169,7 +15399,7 @@ describe('ReportUtils', () => {
     });
 
     describe('getAvailableReportFields', () => {
-        const fieldList1 = {
+        const fieldList1 = createMock<NonNullable<Policy['fieldList']>>({
             expensify_field_id_LIST: {
                 type: 'dropdown',
                 values: ['value 1'],
@@ -14177,8 +15407,8 @@ describe('ReportUtils', () => {
                 fieldID: 'field_id_LIST',
                 name: 'field list 1',
             },
-        } as unknown as NonNullable<Policy['fieldList']>;
-        const fieldList2 = {
+        });
+        const fieldList2 = createMock<NonNullable<Policy['fieldList']>>({
             expensify_field_id_LIST_POLICY: {
                 type: 'dropdown',
                 values: ['value 1'],
@@ -14186,25 +15416,25 @@ describe('ReportUtils', () => {
                 fieldID: 'field_id_LIST_POLICY',
                 name: 'field list 2',
             },
-        } as unknown as NonNullable<Policy['fieldList']>;
+        });
 
         it('should return report fieldList if report is settled', async () => {
-            const settledReport = {
+            const settledReport = createMock<Report>({
                 reportID: '1',
                 policyID: '1',
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 fieldList: fieldList1,
-            } as Report;
+            });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
             expect(getAvailableReportFields(settledReport, Object.values(fieldList2))).toEqual(Object.values(fieldList1));
         });
 
         it('should merge report and policy field list', async () => {
-            const report = {
+            const report = createMock<Report>({
                 reportID: '2',
                 policyID: '1',
                 fieldList: fieldList1,
-            } as Report;
+            });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             const mergedFieldList = [
                 {
@@ -14226,13 +15456,13 @@ describe('ReportUtils', () => {
         });
 
         it('should overwrite report fieldList disabledOptions and values if field list exists in both report and policy', async () => {
-            const report = {
+            const report = createMock<Report>({
                 reportID: '2',
                 policyID: '1',
                 fieldList: fieldList1,
-            } as Report;
+            });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            const policyFieldList = [
+            const policyFieldList = createMock<PolicyReportField[]>([
                 {
                     type: 'dropdown',
                     values: ['value 2'],
@@ -14247,8 +15477,8 @@ describe('ReportUtils', () => {
                     fieldID: 'field_id_LIST_2',
                     name: 'field list',
                 },
-            ] as unknown as PolicyReportField[];
-            const expectedFieldList = [
+            ]);
+            const expectedFieldList = createMock<PolicyReportField[]>([
                 {
                     type: 'dropdown',
                     values: ['value 2'],
@@ -14263,7 +15493,7 @@ describe('ReportUtils', () => {
                     fieldID: 'field_id_LIST_2',
                     name: 'field list',
                 },
-            ] as unknown as PolicyReportField[];
+            ]);
             expect(getAvailableReportFields(report, policyFieldList)).toEqual(expectedFieldList);
         });
     });
@@ -14479,29 +15709,29 @@ describe('ReportUtils', () => {
 
     describe('shouldHideSingleReportField', () => {
         it('should return true if report field has title type', () => {
-            const reportField = {
+            const reportField = createMock<PolicyReportField>({
                 fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
-            } as PolicyReportField;
+            });
             expect(shouldHideSingleReportField(reportField)).toBe(true);
         });
         it('should return false if report field is not of type list', () => {
-            const reportField = {
+            const reportField = createMock<PolicyReportField>({
                 type: CONST.REPORT_FIELD_TYPES.TEXT,
-            } as PolicyReportField;
+            });
             expect(shouldHideSingleReportField(reportField)).toBe(false);
         });
         it('should return false if list report field has some options enabled', () => {
-            const reportField = {
+            const reportField = createMock<PolicyReportField>({
                 type: CONST.REPORT_FIELD_TYPES.LIST,
                 disabledOptions: [false, true, false],
-            } as PolicyReportField;
+            });
             expect(shouldHideSingleReportField(reportField)).toBe(false);
         });
         it('should return false if all items in list report field are disabled', () => {
-            const reportField = {
+            const reportField = createMock<PolicyReportField>({
                 type: CONST.REPORT_FIELD_TYPES.LIST,
                 disabledOptions: [true, true, true],
-            } as PolicyReportField;
+            });
             expect(shouldHideSingleReportField(reportField)).toBe(true);
         });
     });
@@ -14572,6 +15802,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -14639,6 +15870,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -14710,6 +15942,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -14780,6 +16013,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -15234,6 +16468,8 @@ describe('ReportUtils', () => {
                 currentUserAccountID,
                 currentUserEmail,
                 currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicyID: undefined,
             });
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -15275,6 +16511,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -15312,6 +16550,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -15353,6 +16593,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the category step
@@ -15396,6 +16638,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 1,
+                    firstPolicyID: ownPolicy.id,
                 });
 
                 // Then it should automatically pick the available policy and navigate to the category step
@@ -15426,6 +16670,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
@@ -15477,6 +16723,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 2,
+                    firstPolicyID: policy1.id,
                 });
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
@@ -15524,6 +16772,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should log a warning and not navigate
@@ -15571,6 +16821,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should NOT navigate to restricted action page, but to category step
@@ -15610,10 +16862,125 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to restricted action page
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
+            });
+
+            it('should use policies param to determine filtered policies count instead of Onyx-connected policiesArray', async () => {
+                // Given a transaction and a policy passed via policies param (not set in Onyx)
+                const transaction = createRandomTransaction(7);
+                const policyFromParam = {
+                    ...createRandomPolicy(108),
+                    ownerAccountID: currentUserAccountID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    pendingAction: null,
+                };
+                const policyExpenseReport = {
+                    ...createPolicyExpenseChat(4),
+                    policyID: policyFromParam.id,
+                    ownerAccountID: currentUserAccountID,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseReport.reportID}`, policyExpenseReport);
+
+                // When we pass the policy via policies param with no activePolicy
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: '1',
+                    actionName: CONST.IOU.ACTION.CATEGORIZE,
+                    reportActionID: '1',
+                    introSelected: undefined,
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 1,
+                    firstPolicyID: policyFromParam.id,
+                });
+
+                // Then it should pick the policy from the policies param and navigate to the category step
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                );
+            });
+
+            it('should navigate to participant selector when policies param has policies and action is SUBMIT', async () => {
+                // Given a transaction and a policy passed via policies param
+                const transaction = createRandomTransaction(8);
+                const policyFromParam = {
+                    ...createRandomPolicy(109),
+                    ownerAccountID: currentUserAccountID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    pendingAction: null,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+
+                // When we call with SUBMIT action and policies containing a valid policy
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: '1',
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: undefined,
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 1,
+                    firstPolicyID: policyFromParam.id,
+                });
+
+                // Then it should navigate to the participant selector step
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transaction.transactionID, '1', undefined, CONST.IOU.ACTION.SUBMIT),
+                );
+            });
+
+            it('should navigate to create workspace screen when policies param is empty and action is not SUBMIT', async () => {
+                // Given a transaction and empty policies
+                const transaction = createRandomTransaction(9);
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+
+                // When we call with a non-SUBMIT, non-CATEGORIZE, non-SHARE action and empty policies
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: '1',
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: undefined,
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
+                });
+
+                // Then it should still navigate to participant selector since action is SUBMIT (SUBMIT always goes to participants)
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transaction.transactionID, '1', undefined, CONST.IOU.ACTION.SUBMIT),
+                );
             });
         });
     });
@@ -15644,7 +17011,7 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
+            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, currentUserEmail, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
@@ -15673,7 +17040,7 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
+            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, currentUserEmail, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
     });
@@ -15769,7 +17136,7 @@ describe('ReportUtils', () => {
         it('should return true when a money request action has errors matching the transaction', () => {
             const reportID = '125';
             const transaction = createRandomTransaction(3);
-            const reportAction: ReportAction = {
+            const reportAction: ReportAction = createMock<ReportAction>({
                 ...createRandomReportAction(3),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
@@ -15777,7 +17144,7 @@ describe('ReportUtils', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
                 errors: {transactionError: 'Transaction has an error'},
-            } as ReportAction;
+            });
             const reportActions = {
                 [reportAction.reportActionID]: reportAction,
             };
@@ -15790,7 +17157,7 @@ describe('ReportUtils', () => {
             const reportID = '126';
             const transaction = createRandomTransaction(4);
             const differentTransaction = createRandomTransaction(5);
-            const reportAction: ReportAction = {
+            const reportAction: ReportAction = createMock<ReportAction>({
                 ...createRandomReportAction(4),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
@@ -15798,13 +17165,122 @@ describe('ReportUtils', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
                 errors: {transactionError: 'Transaction has an error'},
-            } as ReportAction;
+            });
             const reportActions = {
                 [reportAction.reportActionID]: reportAction,
             };
 
             const result = hasActionWithErrorsForTransaction(reportID, transaction, reportActions);
             expect(result).toBe(false);
+        });
+
+        it('should use the precomputed actionErrors and match on the transaction ID without scanning report actions', () => {
+            const reportID = '127';
+            const transaction = createRandomTransaction(6);
+            const actionErrors = {
+                hasGlobalActionError: false,
+                transactionIDsWithActionError: new Set([transaction.transactionID]),
+            };
+
+            // Pass empty reportActions to prove the precomputed state is used instead of a re-scan
+            const result = hasActionWithErrorsForTransaction(reportID, transaction, {}, actionErrors);
+            expect(result).toBe(true);
+        });
+
+        it('should return true from precomputed actionErrors when there is a global action error', () => {
+            const reportID = '128';
+            const transaction = createRandomTransaction(7);
+            const actionErrors = {
+                hasGlobalActionError: true,
+                transactionIDsWithActionError: new Set<string>(),
+            };
+
+            const result = hasActionWithErrorsForTransaction(reportID, transaction, {}, actionErrors);
+            expect(result).toBe(true);
+        });
+
+        it('should return false from precomputed actionErrors when the transaction is not flagged', () => {
+            const reportID = '129';
+            const transaction = createRandomTransaction(8);
+            const differentTransaction = createRandomTransaction(9);
+            const actionErrors = {
+                hasGlobalActionError: false,
+                transactionIDsWithActionError: new Set([differentTransaction.transactionID]),
+            };
+
+            const result = hasActionWithErrorsForTransaction(reportID, transaction, {}, actionErrors);
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('getActionErrorsByTransaction', () => {
+        it('should return empty state when reportID is undefined', () => {
+            const result = getActionErrorsByTransaction(undefined, undefined);
+            expect(result.hasGlobalActionError).toBe(false);
+            expect(result.transactionIDsWithActionError.size).toBe(0);
+        });
+
+        it('should return empty state when no report action has errors', () => {
+            const reportAction = createRandomReportAction(10);
+            const reportActions = {
+                [reportAction.reportActionID]: reportAction,
+            };
+
+            const result = getActionErrorsByTransaction('130', reportActions);
+            expect(result.hasGlobalActionError).toBe(false);
+            expect(result.transactionIDsWithActionError.size).toBe(0);
+        });
+
+        it('should flag a global action error for a non-money-request action with errors', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(11),
+                errors: {someError: 'This is an error'},
+            };
+            const reportActions = {
+                [reportAction.reportActionID]: reportAction,
+            };
+
+            const result = getActionErrorsByTransaction('131', reportActions);
+            expect(result.hasGlobalActionError).toBe(true);
+            expect(result.transactionIDsWithActionError.size).toBe(0);
+        });
+
+        it('should add the transaction ID for a money request action with errors', () => {
+            const transaction = createRandomTransaction(12);
+            const reportAction: ReportAction = createMock<ReportAction>({
+                ...createRandomReportAction(12),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: transaction.transactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                errors: {transactionError: 'Transaction has an error'},
+            });
+            const reportActions = {
+                [reportAction.reportActionID]: reportAction,
+            };
+
+            const result = getActionErrorsByTransaction('132', reportActions);
+            expect(result.hasGlobalActionError).toBe(false);
+            expect(result.transactionIDsWithActionError.has(transaction.transactionID)).toBe(true);
+        });
+
+        it('should flag a global action error for a money request action with errors but no IOUTransactionID', () => {
+            const reportAction: ReportAction = createMock<ReportAction>({
+                ...createRandomReportAction(13),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                errors: {transactionError: 'Transaction has an error'},
+            });
+            const reportActions = {
+                [reportAction.reportActionID]: reportAction,
+            };
+
+            const result = getActionErrorsByTransaction('133', reportActions);
+            expect(result.hasGlobalActionError).toBe(true);
+            expect(result.transactionIDsWithActionError.size).toBe(0);
         });
     });
 
@@ -15833,7 +17309,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return empty string when report is an empty object', () => {
-            const result = getPolicyName({report: {} as Report, returnEmptyIfNotFound: true});
+            const result = getPolicyName({report: createMock<Report>({}), returnEmptyIfNotFound: true});
             expect(result).toBe('');
         });
 
@@ -16015,6 +17491,42 @@ describe('ReportUtils', () => {
             // Cleanup
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${onyxPolicy.id}`, null);
         });
+
+        it('should use unavailableTranslation param as fallback when no policy is found', () => {
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'nonexistent',
+                policyName: undefined,
+                oldPolicyName: undefined,
+            };
+            const result = getPolicyName({report, unavailableTranslation: 'Custom Unavailable'});
+            expect(result).toBe('Custom Unavailable');
+        });
+
+        it('should prefer unavailableTranslation param over cached module-level translation', () => {
+            const result = getPolicyName({report: null, unavailableTranslation: 'Passed In'});
+            expect(result).toBe('Passed In');
+        });
+
+        it('should not use unavailableTranslation when returnEmptyIfNotFound is true', () => {
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'nonexistent',
+                policyName: undefined,
+                oldPolicyName: undefined,
+            };
+            const result = getPolicyName({report, returnEmptyIfNotFound: true});
+            expect(result).toBe('');
+        });
+
+        it('should not use unavailableTranslation when a valid policy name exists', () => {
+            const result = getPolicyName({
+                report: testReport,
+                policy: testPolicy,
+                unavailableTranslation: 'Should Not Appear',
+            });
+            expect(result).toBe('Test Policy Name');
+        });
     });
 
     describe('getBillableAndTaxTotal', () => {
@@ -16179,10 +17691,10 @@ describe('ReportUtils', () => {
 
         it('should return reportID when reportActions is undefined but reportAction has no reportActionID', () => {
             const reportID = '123';
-            const reportAction = {
+            const reportAction = createMock<ReportAction>({
                 ...createRandomReportAction(1),
                 reportActionID: undefined,
-            } as unknown as ReportAction;
+            });
 
             const result = getOriginalReportID(reportID, reportAction, undefined);
             expect(result).toBe(reportID);
@@ -16295,6 +17807,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result).toHaveLength(3);
         });
@@ -16309,6 +17822,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
             expect(result.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
@@ -16325,6 +17839,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result.at(0)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.createExpense'));
             expect(result.at(1)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.trackDistance'));
@@ -16341,6 +17856,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
             expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
@@ -16360,6 +17876,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             // Trigger each onSelected - the function should not throw
@@ -16380,6 +17897,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             expect(result).toHaveLength(3);
@@ -16399,6 +17917,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             // CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE should early-return when iouReportID is undefined
@@ -16418,6 +17937,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             expect(result).toHaveLength(3);
@@ -16437,6 +17957,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             expect(result).toHaveLength(3);
@@ -16452,6 +17973,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result.at(1)?.icon).toBe(mockIcons.Location);
             expect(result.at(2)?.icon).toBe(mockIcons.ReceiptPlus);
@@ -16476,6 +17998,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed,
                 ownerBillingGracePeriodEnd: pastGracePeriod,
+                currentUserAccountID,
             });
 
             // Trigger CREATE_NEW_EXPENSE onSelected
@@ -16555,6 +18078,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -16624,6 +18148,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -16632,12 +18157,12 @@ describe('ReportUtils', () => {
     });
 
     describe('getTransactionSortValue', () => {
-        const mockReport: Report = {
+        const mockReport: Report = createMock<Report>({
             reportID: 'test-report-id',
             type: CONST.REPORT.TYPE.EXPENSE,
-        } as Report;
+        });
 
-        const mockPolicy = {
+        const mockPolicy = createMock<Policy>({
             id: 'test-policy-id',
             name: 'Test Policy',
             role: CONST.POLICY.ROLE.ADMIN,
@@ -16653,10 +18178,10 @@ describe('ReportUtils', () => {
                     },
                 },
             },
-        } as unknown as Policy;
+        });
 
         const createMockTransaction = (overrides: Partial<Transaction> = {}): Transaction =>
-            ({
+            createMock<Transaction>({
                 transactionID: 'test-transaction-id',
                 reportID: 'test-report-id',
                 amount: 0,
@@ -16668,7 +18193,7 @@ describe('ReportUtils', () => {
                 billable: false,
                 reimbursable: true,
                 ...overrides,
-            }) as Transaction;
+            });
 
         it('should return created date for DATE column', () => {
             const transaction = createMockTransaction({created: '2024-01-15'});
@@ -16689,6 +18214,18 @@ describe('ReportUtils', () => {
             expect(result).toBe('');
         });
 
+        it('should return posted date for POSTED column', () => {
+            const transaction = createMockTransaction({posted: '20240115'});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.POSTED, mockReport, mockPolicy);
+            expect(result).toBe('20240115');
+        });
+
+        it('should return empty string for POSTED column when posted date is undefined', () => {
+            const transaction = createMockTransaction();
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.POSTED, mockReport, mockPolicy);
+            expect(result).toBe('');
+        });
+
         it('should return merchant for MERCHANT column', () => {
             const transaction = createMockTransaction({merchant: 'Test Merchant'});
             const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, mockReport, mockPolicy);
@@ -16701,10 +18238,50 @@ describe('ReportUtils', () => {
             expect(result).toBe('Travel');
         });
 
+        it('should return category GL code for CATEGORY_GL_CODE column', () => {
+            const transaction = createMockTransaction({category: 'Travel'});
+            const policyCategories = {
+                Travel: {
+                    enabled: true,
+                    name: 'Travel',
+                    pendingAction: null,
+                    'GL Code': '6200',
+                },
+            };
+
+            expect(getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE, mockReport, mockPolicy, policyCategories)).toBe('6200');
+            expect(getTransactionSortValue(transaction, CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE, mockReport, mockPolicy, policyCategories)).toBe('6200');
+        });
+
         it('should return tag for TAG column', () => {
             const transaction = createMockTransaction({tag: 'Project A'});
             const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAG, mockReport, mockPolicy);
             expect(result).toBe('Project A');
+        });
+
+        it('should return tag GL code for TAG_GL_CODE column', () => {
+            const transaction = createMockTransaction({tag: 'Engineering:Roadshow'});
+            const policyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
+                    },
+                },
+                Project: {
+                    name: 'Project',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '5678'},
+                    },
+                },
+            };
+
+            expect(getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE, mockReport, mockPolicy, undefined, policyTagLists)).toBe('1234, 5678');
+            expect(getTransactionSortValue(transaction, CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE, mockReport, mockPolicy, undefined, policyTagLists)).toBe('1234, 5678');
         });
 
         it('should return 1 for billable and 0 for non-billable', () => {
@@ -16762,6 +18339,29 @@ describe('ReportUtils', () => {
             expect(result).toBe('Standard Tax (10%)');
         });
 
+        const mockAttendees = [
+            {email: 'a@test.com', displayName: 'A', avatarUrl: ''},
+            {email: 'b@test.com', displayName: 'B', avatarUrl: ''},
+        ];
+
+        it('should return attendee count for ATTENDEES column', () => {
+            const transaction = createMockTransaction({comment: {attendees: mockAttendees}});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.ATTENDEES, mockReport, mockPolicy);
+            expect(result).toBe(2);
+        });
+
+        it('should return amount divided by attendee count for TOTAL_PER_ATTENDEE column', () => {
+            const transaction = createMockTransaction({amount: 6000, comment: {attendees: mockAttendees}});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, mockReport, mockPolicy);
+            expect(result).toBe(-3000);
+        });
+
+        it('should return 0 for TOTAL_PER_ATTENDEE column when there are no attendees', () => {
+            const transaction = createMockTransaction({amount: 6000});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, mockReport, mockPolicy);
+            expect(result).toBe(0);
+        });
+
         it('should return empty string for unknown column', () => {
             const transaction = createMockTransaction();
             const result = getTransactionSortValue(transaction, 'UNKNOWN_COLUMN' as typeof CONST.SEARCH.TABLE_COLUMNS.DATE, mockReport, mockPolicy);
@@ -16772,13 +18372,19 @@ describe('ReportUtils', () => {
     describe('isSortableColumnName', () => {
         it('should return true for sortable columns', () => {
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.DATE)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.POSTED)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TAG)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CARD)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE)).toBe(true);
         });
 
         it('should return false for non-sortable columns', () => {
@@ -16798,7 +18404,7 @@ describe('ReportUtils', () => {
 
     describe('getAddExpenseDropdownOptions', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
-        const mockIcons = {Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()} as unknown as Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>;
+        const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>>({Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()});
         const policyID = '5001';
         const iouReportID = 'reportABC';
         const ownerAccountID = 999;
@@ -16819,6 +18425,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             expect(options).toHaveLength(3);
@@ -16838,6 +18445,7 @@ describe('ReportUtils', () => {
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
                     ownerBillingGracePeriodEnd: undefined,
+                    currentUserAccountID,
                 });
                 options.at(0)?.onSelected?.();
 
@@ -16845,12 +18453,12 @@ describe('ReportUtils', () => {
             });
 
             it('should navigate to restricted action when non-personal policy owner is past due', async () => {
-                const testPolicy = {
+                const testPolicy = createMock<Policy>({
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
                     ownerAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
-                } as Policy;
+                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
                 await waitForBatchedUpdates();
 
@@ -16869,6 +18477,7 @@ describe('ReportUtils', () => {
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
                     ownerBillingGracePeriodEnd: undefined,
+                    currentUserAccountID,
                 });
                 options.at(0)?.onSelected?.();
 
@@ -16878,11 +18487,11 @@ describe('ReportUtils', () => {
 
         describe('ADD_EXISTING_EXPENSE', () => {
             it('should navigate to restricted action when policy owner is past due', async () => {
-                const testPolicy = {
+                const testPolicy = createMock<Policy>({
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
                     ownerAccountID,
-                } as Policy;
+                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
                 await waitForBatchedUpdates();
 
@@ -16901,6 +18510,7 @@ describe('ReportUtils', () => {
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
                     ownerBillingGracePeriodEnd: undefined,
+                    currentUserAccountID,
                 });
                 options.at(2)?.onSelected?.();
 
@@ -16909,11 +18519,11 @@ describe('ReportUtils', () => {
 
             it('should pass ownerBillingGracePeriodEnd to restrict owner with past-due billing', async () => {
                 const gracePeriodEnd = Math.floor(Date.now() / 1000) - 3600;
-                const testPolicy = {
+                const testPolicy = createMock<Policy>({
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
                     ownerAccountID: currentUserAccountID,
-                } as Policy;
+                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
                 await waitForBatchedUpdates();
@@ -16927,6 +18537,7 @@ describe('ReportUtils', () => {
                     draftTransactionIDs: undefined,
                     amountOwed: 100,
                     ownerBillingGracePeriodEnd: gracePeriodEnd,
+                    currentUserAccountID,
                 });
                 options.at(2)?.onSelected?.();
 
@@ -17010,7 +18621,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(1)};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -17024,7 +18635,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(2)};
-            const result = getChatListItemReportName(action, regularReport, conciergeReportID);
+            const result = getChatListItemReportName(action, regularReport, conciergeReportID, translateLocal);
             expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -17034,7 +18645,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal);
             expect(result).toBe('Custom Action Name');
         });
 
@@ -17048,8 +18659,40 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(4)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, translateLocal);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
+        it('should compute the invoice report name through the provided translate function', () => {
+            const invoiceReport: Report = {
+                reportID: 'invoice-report-789',
+                type: CONST.REPORT.TYPE.INVOICE,
+                parentReportID: 'invoice-chat-123',
+                currency: 'USD',
+            };
+            // An invoice report without transactions has a total of zero, so its name resolves to the
+            // "payer owes" message, which must come from the translate function passed by the caller.
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
+
+            const action = {...createRandomReportAction(5)};
+            const result = getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker);
+
+            expect(result).toBe('PayerOwesMarker');
+        });
+
+        it('should return the stored reportName for OldDot invoice reports', () => {
+            const invoiceReport: Report = {
+                reportID: 'invoice-report-790',
+                type: CONST.REPORT.TYPE.INVOICE,
+                parentReportID: 'invoice-chat-124',
+                reportName: 'Invoice #42',
+                currency: 'USD',
+            };
+
+            const action = {...createRandomReportAction(6)};
+            const result = getChatListItemReportName(action, invoiceReport, undefined, translateLocal);
+
+            expect(result).toBe('Invoice #42');
         });
     });
     describe('buildOptimisticApprovedReportAction', () => {
@@ -17232,7 +18875,7 @@ describe('ReportUtils', () => {
 
     describe('getDeletedTransactionMessage', () => {
         it('should return a formatted deleted transaction message', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION,
                 originalMessage: {
@@ -17240,7 +18883,7 @@ describe('ReportUtils', () => {
                     currency: 'USD',
                     merchant: 'Starbucks',
                 },
-            } as unknown as ReportAction;
+            });
 
             const result = getDeletedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
@@ -17248,11 +18891,11 @@ describe('ReportUtils', () => {
         });
 
         it('should handle missing amount and currency gracefully', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION,
                 originalMessage: {},
-            } as unknown as ReportAction;
+            });
 
             const result = getDeletedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
@@ -17264,13 +18907,13 @@ describe('ReportUtils', () => {
             const toReport = LHNTestUtils.getFakeReport();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${toReport.reportID}`, toReport);
 
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 originalMessage: {
                     toReportID: toReport.reportID,
                 },
-            } as unknown as ReportAction;
+            });
 
             const result = getMovedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
@@ -17281,14 +18924,14 @@ describe('ReportUtils', () => {
             const fromReport = LHNTestUtils.getFakeReport();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
 
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 originalMessage: {
                     fromReportID: fromReport.reportID,
                     toReportID: '99999',
                 },
-            } as unknown as ReportAction;
+            });
 
             const result = getMovedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
@@ -17298,10 +18941,10 @@ describe('ReportUtils', () => {
 
     describe('getMovedActionMessage', () => {
         it('should return empty string for non-moved action', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            } as unknown as ReportAction;
+            });
 
             const report = LHNTestUtils.getFakeReport();
             const result = getMovedActionMessage(translateLocal, action, report);
@@ -17309,11 +18952,11 @@ describe('ReportUtils', () => {
         });
 
         it('should return empty string when original message is missing', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
                 originalMessage: undefined,
-            } as unknown as ReportAction;
+            });
 
             const report = LHNTestUtils.getFakeReport();
             const result = getMovedActionMessage(translateLocal, action, report);
@@ -17324,7 +18967,7 @@ describe('ReportUtils', () => {
             const testPolicy = createRandomPolicy(0);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicy.id}`, testPolicy);
 
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
                 originalMessage: {
@@ -17332,7 +18975,7 @@ describe('ReportUtils', () => {
                     newParentReportID: '11111',
                     movedReportID: '22222',
                 },
-            } as unknown as ReportAction;
+            });
 
             const report = LHNTestUtils.getFakeReport();
             const result = getMovedActionMessage(translateLocal, action, report);
@@ -17379,11 +19022,11 @@ describe('ReportUtils', () => {
         const iouAction = {
             ...createRandomReportAction(Number(iouReportActionID)),
             reportActionID: iouReportActionID,
+            reportID: expenseReportID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
             originalMessage: {
                 IOUTransactionID: transactionID,
-                IOUReportID: expenseReportID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 0,
                 currency: CONST.CURRENCY.USD,
@@ -17404,9 +19047,9 @@ describe('ReportUtils', () => {
 
         it('should NOT flag $0 manual expense as smartscan error when expense report is resolved via reports collection', () => {
             // With the reports collection the function can look up the actual
-            // expense report (type 'expense') via IOUReportID. For expense
-            // reports areRequiredFieldsEmpty checks isMerchantMissing (not
-            // amount), so a $0 expense with a valid merchant is fine.
+            // expense report (type 'expense') via the action's reportID. For
+            // expense reports areRequiredFieldsEmpty checks isMerchantMissing
+            // (not amount), so a $0 expense with a valid merchant is fine.
             const reportsCollection = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: expenseReport,
             };
@@ -17605,7 +19248,7 @@ describe('ReportUtils', () => {
         const actorAccountID = 42;
 
         const buildIOUAction = (overrides?: Partial<ReportAction>) =>
-            ({
+            createMock<ReportAction>({
                 ...buildOptimisticIOUReportAction({
                     type: 'create',
                     amount: 100,
@@ -17617,7 +19260,7 @@ describe('ReportUtils', () => {
                 }),
                 actorAccountID,
                 ...overrides,
-            }) as ReportAction;
+            });
 
         const buildExpenseReport = () =>
             buildOptimisticExpenseReport({
@@ -17915,36 +19558,763 @@ describe('ReportUtils', () => {
 
     describe('hasExportError', () => {
         it('returns true when report.hasExportError is true', () => {
-            const report = {hasExportError: true} as Report;
+            const report = createMock<Report>({hasExportError: true});
             expect(hasExportError([], report)).toBe(true);
         });
 
         it('returns true when errorFields.export is populated but hasExportError is false', () => {
-            const report = {
+            const report = createMock<Report>({
                 hasExportError: false,
                 errorFields: {export: {'1708946640843000': 'export failed'}},
-            } as unknown as Report;
+            });
             expect(hasExportError([], report)).toBe(true);
         });
 
         it('returns false when errorFields.export is cleared', () => {
-            const report = {
+            const report = createMock<Report>({
                 hasExportError: false,
                 errorFields: {export: null},
-            } as unknown as Report;
+            });
             expect(hasExportError([], report)).toBe(false);
         });
 
         it('returns true when an integration message action exists in reportActions', () => {
-            const report = {hasExportError: false} as Report;
-            const reportActions = [
+            const report = createMock<Report>({hasExportError: false});
+            const reportActions = createMock<ReportAction[]>([
                 {
                     actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
                     reportActionID: '1',
                     created: '2024-01-01',
                 },
-            ] as ReportAction[];
+            ]);
             expect(hasExportError(reportActions, report)).toBe(true);
         });
+    });
+
+    describe('getReportFieldsByPolicyID', () => {
+        const mockFieldList = createMock<NonNullable<Policy['fieldList']>>({
+            expensify_title: {
+                fieldID: 'title',
+                name: 'title',
+                type: 'formula',
+                defaultValue: '{report:type}',
+            },
+            expensify_custom: {
+                fieldID: 'custom',
+                name: 'custom field',
+                type: 'text',
+                defaultValue: '',
+            },
+        });
+
+        it('returns empty object when policy is undefined', () => {
+            expect(getReportFieldsByPolicyID(undefined)).toEqual({});
+        });
+
+        it('returns empty object when policy has no id', () => {
+            const testPolicy = createMock<Policy>({fieldList: mockFieldList});
+            expect(getReportFieldsByPolicyID(testPolicy)).toEqual({});
+        });
+
+        it('returns fieldList from policy when policy has fieldList', () => {
+            const testPolicy = createMock<Policy>({id: 'policyA', fieldList: mockFieldList});
+            expect(getReportFieldsByPolicyID(testPolicy)).toEqual(mockFieldList);
+        });
+
+        it('returns empty object when policy has no fieldList', () => {
+            const testPolicy = createMock<Policy>({id: 'policyA'});
+            expect(getReportFieldsByPolicyID(testPolicy)).toEqual({});
+        });
+
+        it('prefers policy over policyDraft when both exist', async () => {
+            const testPolicyID = 'bothExist';
+            const draftFieldList = createMock<NonNullable<Policy['fieldList']>>({
+                expensify_draft_field: {
+                    fieldID: 'draft_field',
+                    name: 'draft field',
+                    type: 'text',
+                    defaultValue: 'draft',
+                },
+            });
+
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${testPolicyID}`,
+                createMock<Policy>({
+                    id: testPolicyID,
+                    fieldList: draftFieldList,
+                }),
+            );
+            await waitForBatchedUpdates();
+
+            const testPolicy = createMock<Policy>({id: testPolicyID, fieldList: mockFieldList});
+            expect(getReportFieldsByPolicyID(testPolicy)).toEqual(mockFieldList);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${testPolicyID}`, null);
+        });
+    });
+
+    describe('canModifyHoldStatus', () => {
+        const makeReport = (overrides: Partial<Report> = {}): Report =>
+            createMock<Report>({
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+                ...overrides,
+            });
+
+        const makeReportAction = (overrides: Partial<ReportAction> = {}): ReportAction =>
+            createMock<ReportAction>({
+                reportActionID: '100',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                ...overrides,
+            });
+
+        it('returns false for non-money-request reports', () => {
+            const chatReport = makeReport({type: CONST.REPORT.TYPE.CHAT});
+            expect(canModifyHoldStatus(chatReport, makeReportAction(), currentUserAccountID, true)).toBe(false);
+        });
+
+        it('returns true for IOU report when user is action owner', () => {
+            const iouReport = makeReport({type: CONST.REPORT.TYPE.IOU});
+            const reportAction = makeReportAction({actorAccountID: currentUserAccountID});
+            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false)).toBe(true);
+        });
+
+        it('returns true for IOU report when user is manager', () => {
+            const iouReport = makeReport({type: CONST.REPORT.TYPE.IOU, managerID: currentUserAccountID});
+            const reportAction = makeReportAction({actorAccountID: 999});
+            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false)).toBe(true);
+        });
+
+        it('returns false for IOU report when user is neither owner nor manager', () => {
+            const iouReport = makeReport({type: CONST.REPORT.TYPE.IOU, managerID: 888});
+            const reportAction = makeReportAction({actorAccountID: 999});
+            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false)).toBe(false);
+        });
+
+        it('returns true for open expense report when user is action owner', () => {
+            const openExpenseReport = makeReport({
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            const reportAction = makeReportAction({actorAccountID: currentUserAccountID});
+            expect(canModifyHoldStatus(openExpenseReport, reportAction, currentUserAccountID, false)).toBe(true);
+        });
+
+        it('returns false for open expense report when user is not action owner', () => {
+            const openExpenseReport = makeReport({
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            const reportAction = makeReportAction({actorAccountID: 999});
+            expect(canModifyHoldStatus(openExpenseReport, reportAction, currentUserAccountID, false)).toBe(false);
+        });
+
+        it('returns true for admin on processing expense report', () => {
+            const processingReport = makeReport({
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+            const reportAction = makeReportAction({actorAccountID: 999});
+            expect(canModifyHoldStatus(processingReport, reportAction, currentUserAccountID, true)).toBe(true);
+        });
+
+        it('returns true for manager on processing expense report', () => {
+            const processingReport = makeReport({
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: currentUserAccountID,
+            });
+            const reportAction = makeReportAction({actorAccountID: 999});
+            expect(canModifyHoldStatus(processingReport, reportAction, currentUserAccountID, false)).toBe(true);
+        });
+
+        it('returns false for admin on non-processing expense report', () => {
+            const approvedReport = makeReport({
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            });
+            const reportAction = makeReportAction({actorAccountID: 999});
+            expect(canModifyHoldStatus(approvedReport, reportAction, currentUserAccountID, true)).toBe(false);
+        });
+    });
+
+    describe('getBankAccountRoute', () => {
+        it('returns the policy bank account setup route when the report is a policy expense chat', () => {
+            const policyID = 'POLICY_EXP_1';
+            const report = createMock<Report>({
+                reportID: '1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+            });
+
+            expect(getBankAccountRoute(report, undefined)).toBe(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo: 'mock-route'}));
+        });
+
+        it('returns the workspace invoices route when the report is a business invoice room and areInvoicesEnabled is true', () => {
+            const invoiceReceiverPolicyID = 'POLICY_INVOICE_1';
+            const report = createMock<Report>({
+                reportID: '2',
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                    policyID: invoiceReceiverPolicyID,
+                },
+            });
+
+            expect(getBankAccountRoute(report, true)).toBe(ROUTES.WORKSPACE_INVOICES.getRoute(invoiceReceiverPolicyID));
+        });
+
+        it('returns the personal add bank account route when the report is a business invoice room and areInvoicesEnabled is false', () => {
+            const invoiceReceiverPolicyID = 'POLICY_INVOICE_2';
+            const report = createMock<Report>({
+                reportID: '3',
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                    policyID: invoiceReceiverPolicyID,
+                },
+            });
+
+            expect(getBankAccountRoute(report, false)).toBe(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
+        });
+    });
+
+    describe('canBeAutoReimbursed', () => {
+        const buildGroupPolicyForAutoReimbursement = (overrides: Partial<Policy> = {}): Policy =>
+            ({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                autoReimbursement: {limit: 10000},
+                ...overrides,
+            }) as Policy;
+
+        const buildExpenseReportForAutoReimbursement = () =>
+            buildOptimisticExpenseReport({
+                chatReportID: '1',
+                policyID: '1',
+                payeeAccountID: 100,
+                total: 100,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+            });
+
+        it('returns true when policy is a group policy and all auto-reimbursement conditions are met', () => {
+            const report = buildExpenseReportForAutoReimbursement();
+            const groupPolicy = buildGroupPolicyForAutoReimbursement();
+
+            expect(canBeAutoReimbursed(report, groupPolicy)).toBe(true);
+        });
+
+        it('returns false when policy is not a group policy', () => {
+            const report = buildExpenseReportForAutoReimbursement();
+            const personalPolicy = buildGroupPolicyForAutoReimbursement({
+                type: CONST.POLICY.TYPE.PERSONAL,
+            });
+
+            expect(canBeAutoReimbursed(report, personalPolicy)).toBe(false);
+        });
+
+        it('returns false when policy is empty', () => {
+            const report = buildExpenseReportForAutoReimbursement();
+
+            expect(canBeAutoReimbursed(report, undefined)).toBe(false);
+        });
+    });
+
+    describe('canMergeReports', () => {
+        const OWNER_ID = 10;
+        const ownerEmail = 'owner@example.com';
+        const MANAGER_ID = 20;
+        const POLICY_ID = 'p1';
+        const USER_ID = OWNER_ID;
+
+        let reportCounter = 1;
+
+        /** Minimal valid expense report in the Open (draft) state. */
+        function makeOpenReport(overrides?: Partial<Report>) {
+            return createMock<Report>({
+                reportID: String(reportCounter++),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: OWNER_ID,
+                policyID: POLICY_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                managerID: undefined,
+                isWaitingOnBankAccount: false,
+                ...overrides,
+            });
+        }
+
+        /** Minimal valid expense report in the Processing (submitted) state. */
+        function makeProcessingReport(overrides?: Partial<Report>) {
+            return createMock<Report>({
+                reportID: String(reportCounter++),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: OWNER_ID,
+                policyID: POLICY_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: MANAGER_ID,
+                isWaitingOnBankAccount: false,
+                ...overrides,
+            });
+        }
+
+        const mockPolicy = createMock<Policy>({
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            id: POLICY_ID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+
+        beforeEach(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ownerEmail, accountID: USER_ID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            return waitForBatchedUpdates();
+        });
+
+        it('returns false for an empty selection', () => {
+            expect(canMergeReports([], USER_ID)).toBe(false);
+        });
+
+        it('returns false when only 1 report is selected', () => {
+            expect(canMergeReports([makeOpenReport()], USER_ID)).toBe(false);
+        });
+
+        it('returns false when currentUserAccountID is 0 (falsy)', () => {
+            expect(canMergeReports([makeOpenReport(), makeOpenReport()], 0)).toBe(false);
+        });
+
+        // Same ownerAccountID (cross-account not supported)
+        it('returns false when reports have different ownerAccountIDs', () => {
+            const r1 = makeOpenReport({ownerAccountID: OWNER_ID});
+            const r2 = makeOpenReport({ownerAccountID: OWNER_ID + 1});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        it('returns false when the first report has no ownerAccountID', () => {
+            const r1 = makeOpenReport({ownerAccountID: undefined});
+            const r2 = makeOpenReport({ownerAccountID: OWNER_ID});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        // Same policyID (cross-workspace not supported)
+        it('returns false when reports belong to different workspaces', () => {
+            const r1 = makeOpenReport({policyID: 'p1'});
+            const r2 = makeOpenReport({policyID: 'p2'});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        it('returns false when the first report has no policyID', () => {
+            const r1 = makeOpenReport({policyID: undefined});
+            const r2 = makeOpenReport({policyID: POLICY_ID});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        // Same workflow state
+        it('returns false when mixing Open and Processing reports', () => {
+            const open = makeOpenReport();
+            const processing = makeProcessingReport();
+            expect(canMergeReports([open, processing], USER_ID)).toBe(false);
+        });
+
+        it('returns false when stateNum matches but statusNum differs', () => {
+            const r1 = makeOpenReport({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+            const r2 = makeOpenReport({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        // Same managerID for Processing reports
+        it('returns false when Processing reports have different managerIDs', () => {
+            const r1 = makeProcessingReport({managerID: MANAGER_ID});
+            const r2 = makeProcessingReport({managerID: MANAGER_ID + 99});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        it('returns false when a Processing report has no managerID', () => {
+            const r1 = makeProcessingReport({managerID: MANAGER_ID});
+            const r2 = makeProcessingReport({managerID: undefined});
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        /**
+         * Rule above is intentionally skipped for Open reports.
+         * Open drafts may legitimately have no managerID, and same-account +
+         * same-workspace guarantees they share the same manager once submitted.
+         */
+        it('does NOT require matching managerID for Open reports', () => {
+            const r1 = makeOpenReport({managerID: undefined});
+            const r2 = makeOpenReport({managerID: 999});
+
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
+        });
+
+        // Terminal states (settled / approved / closed)
+        it('returns false when a report is settled (REIMBURSED)', () => {
+            const settled: Report = {
+                ...makeOpenReport(),
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                isWaitingOnBankAccount: false,
+            } as Report;
+            expect(canMergeReports([makeOpenReport(), settled], USER_ID)).toBe(false);
+        });
+
+        it('returns false when a report is approved', () => {
+            const approved: Report = {
+                ...makeOpenReport(),
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            } as Report;
+            expect(canMergeReports([makeOpenReport(), approved], USER_ID)).toBe(false);
+        });
+
+        it('returns false when a report is closed', () => {
+            const closed: Report = {
+                ...makeOpenReport(),
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            } as Report;
+            expect(canMergeReports([makeOpenReport(), closed], USER_ID)).toBe(false);
+        });
+
+        // The user must be able to write to each report
+        it('returns false when the current user is not able to write to each report', async () => {
+            const r1 = makeOpenReport({permissions: [CONST.REPORT.PERMISSIONS.READ]});
+            const r2 = makeOpenReport();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        // The user must be the report owner, a workspace admin, or the current approver.
+        it('returns false when the current user is not owner/admin/approver of a report', async () => {
+            const STRANGER_ID = 77;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
+            await waitForBatchedUpdates();
+
+            // Reports are owned by OWNER_ID=10; managerID is unset (Open reports).
+            // STRANGER_ID is neither admin, owner, nor manager.
+            const r1 = makeOpenReport();
+            const r2 = makeOpenReport();
+            expect(canMergeReports([r1, r2], STRANGER_ID)).toBe(false);
+        });
+
+        // Happy paths
+        it('returns true for two valid Open reports when user is the report owner', async () => {
+            // When the current user is the policy admin
+            const r1 = makeOpenReport();
+            const r2 = makeOpenReport();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
+
+            // When the current user is the submitter
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
+            await waitForBatchedUpdates();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
+        });
+
+        it('returns true for two valid Processing reports when user is the report owner and approver matches', async () => {
+            // When the current user is the policy admin
+            const r1 = makeProcessingReport();
+            const r2 = makeProcessingReport();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(true);
+
+            // When the current user is the submitter
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
+            await waitForBatchedUpdates();
+            expect(canMergeReports([r1, r2], USER_ID)).toBe(false);
+        });
+
+        it('returns true when the current user is the approver on Processing reports', async () => {
+            const r1 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
+            const r2 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
+            expect(canMergeReports([r1, r2], MANAGER_ID)).toBe(true);
+        });
+
+        it('returns true for three or more valid Open reports', () => {
+            const reports = [makeOpenReport(), makeOpenReport(), makeOpenReport()];
+            expect(canMergeReports(reports, USER_ID)).toBe(true);
+        });
+    });
+});
+
+describe('shouldShowMarkAsDone', () => {
+    const policyID = '1';
+    const otherAccountID = 42;
+
+    it('should return false when user is not a track-intent user', () => {
+        const report = createMock<Report>({
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        });
+        const testPolicy = createMock<Policy>({
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        });
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: false, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when policy is not submit-and-close', () => {
+        const report = createMock<Report>({
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        });
+        const testPolicy = createMock<Policy>({
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            type: CONST.POLICY.TYPE.TEAM,
+        });
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when user does not own the report', () => {
+        const report = createMock<Report>({
+            reportID: 'report1',
+            ownerAccountID: otherAccountID,
+            managerID: otherAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        });
+        const testPolicy = createMock<Policy>({
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        });
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when next approver is different from owner', () => {
+        const report = createMock<Report>({
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: otherAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        });
+        const testPolicy = createMock<Policy>({
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        });
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when isTrackIntentUser is undefined', () => {
+        const report = createMock<Report>({
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        });
+        const testPolicy = createMock<Policy>({
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        });
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: undefined, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when report is undefined', () => {
+        const testPolicy = createMock<Policy>({
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        });
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report: undefined, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when policy is undefined', () => {
+        const report = createMock<Report>({
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        });
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: undefined})).toBe(false);
+    });
+
+    it('should return true when user is track-intent, policy is submit-and-close, user owns report, and submits to self', async () => {
+        const report = createMock<Report>({
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        });
+        const testPolicy = createMock<Policy>({
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: currentUserEmail,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
+        });
+        await waitForBatchedUpdates();
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(true);
+    });
+});
+
+describe('getAllPolicyExpenseChatReportActions', () => {
+    const reportKey = (reportID: string) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+    const actionsKey = (reportID: string) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+    const buildActions = (index: number): ReportActions => {
+        const action = createRandomReportAction(index);
+        return {[action.reportActionID]: action};
+    };
+    const policyExpenseChat = (index: number): Report => createRandomReport(index, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+    const policyExpenseChatThread = (index: number): Report => ({...policyExpenseChat(index), parentReportID: '99', parentReportActionID: '98'});
+
+    it('includes report actions for a non-thread policy expense chat', () => {
+        const report = policyExpenseChat(1);
+        const allReports: OnyxCollection<Report> = {[reportKey(report.reportID)]: report};
+        const actions = buildActions(1);
+        const allReportActions: OnyxCollection<ReportActions> = {[actionsKey(report.reportID)]: actions};
+
+        expect(getAllPolicyExpenseChatReportActions(allReports, allReportActions)).toEqual({[actionsKey(report.reportID)]: actions});
+    });
+
+    it('excludes reports that are not policy expense chats', () => {
+        const report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.DOMAIN_ALL);
+        const allReports: OnyxCollection<Report> = {[reportKey(report.reportID)]: report};
+        const allReportActions: OnyxCollection<ReportActions> = {[actionsKey(report.reportID)]: buildActions(1)};
+
+        expect(getAllPolicyExpenseChatReportActions(allReports, allReportActions)).toEqual({});
+    });
+
+    it('excludes policy expense chats that are threads', () => {
+        const report = policyExpenseChatThread(1);
+        const allReports: OnyxCollection<Report> = {[reportKey(report.reportID)]: report};
+        const allReportActions: OnyxCollection<ReportActions> = {[actionsKey(report.reportID)]: buildActions(1)};
+
+        expect(getAllPolicyExpenseChatReportActions(allReports, allReportActions)).toEqual({});
+    });
+
+    it('omits matching reports that have no report actions', () => {
+        const report = policyExpenseChat(1);
+        const allReports: OnyxCollection<Report> = {[reportKey(report.reportID)]: report};
+
+        expect(getAllPolicyExpenseChatReportActions(allReports, {})).toEqual({});
+    });
+
+    it('returns only the matching subset across mixed reports', () => {
+        const peChat = policyExpenseChat(1);
+        const thread = policyExpenseChatThread(2);
+        const dm = createRandomReport(3, undefined);
+        const allReports: OnyxCollection<Report> = {
+            [reportKey(peChat.reportID)]: peChat,
+            [reportKey(thread.reportID)]: thread,
+            [reportKey(dm.reportID)]: dm,
+        };
+        const peChatActions = buildActions(1);
+        const allReportActions: OnyxCollection<ReportActions> = {
+            [actionsKey(peChat.reportID)]: peChatActions,
+            [actionsKey(thread.reportID)]: buildActions(2),
+            [actionsKey(dm.reportID)]: buildActions(3),
+        };
+
+        expect(getAllPolicyExpenseChatReportActions(allReports, allReportActions)).toEqual({[actionsKey(peChat.reportID)]: peChatActions});
+    });
+
+    it('returns an empty object for undefined collections', () => {
+        expect(getAllPolicyExpenseChatReportActions(undefined, undefined)).toEqual({});
+    });
+});
+
+describe('hasNonReimbursableTransactions', () => {
+    it('returns false when all transactions are reimbursable', () => {
+        const transactions: Transaction[] = [
+            {...createRandomTransaction(1), reimbursable: true},
+            {...createRandomTransaction(2), reimbursable: true},
+        ];
+        expect(hasNonReimbursableTransactions(undefined, transactions)).toBe(false);
+    });
+
+    it('returns true when at least one transaction is non-reimbursable', () => {
+        const transactions: Transaction[] = [
+            {...createRandomTransaction(1), reimbursable: true},
+            {...createRandomTransaction(2), reimbursable: false},
+        ];
+        expect(hasNonReimbursableTransactions(undefined, transactions)).toBe(true);
+    });
+
+    it('returns false for an empty transaction list', () => {
+        expect(hasNonReimbursableTransactions(undefined, [])).toBe(false);
+    });
+});
+
+describe('getTransactionsWithReceipts', () => {
+    it('returns only transactions that have a receipt (scan receipt or eReceipt)', () => {
+        const withScanReceipt: Transaction = {...createRandomTransaction(1), hasEReceipt: false, receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN}};
+        const withEReceipt: Transaction = {...createRandomTransaction(2), hasEReceipt: true, receipt: {}};
+        const withoutReceipt: Transaction = {...createRandomTransaction(3), hasEReceipt: false, receipt: {}};
+
+        expect(getTransactionsWithReceipts(undefined, [withScanReceipt, withEReceipt, withoutReceipt])).toEqual([withScanReceipt, withEReceipt]);
+    });
+
+    it('returns an empty array when no transactions have receipts', () => {
+        const withoutReceipt: Transaction = {...createRandomTransaction(1), hasEReceipt: false, receipt: {}};
+        expect(getTransactionsWithReceipts(undefined, [withoutReceipt])).toEqual([]);
+    });
+});
+
+describe('areAllRequestsBeingSmartScanned', () => {
+    /** Builds a transaction whose receipt is actively being SmartScanned. */
+    function buildScanningTransaction(transactionID: number): Transaction {
+        return {
+            ...createRandomTransaction(transactionID),
+            hasEReceipt: false,
+            merchant: '',
+            modifiedMerchant: '',
+            modifiedAmount: '',
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+        };
+    }
+
+    it('returns true when every request is a receipt still being scanned', () => {
+        const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
+        const transactions = [buildScanningTransaction(1), buildScanningTransaction(2)];
+
+        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(true);
+    });
+
+    it('returns false when there are more requests than receipts (manual requests exist)', () => {
+        const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
+        const transactions = [buildScanningTransaction(1)];
+
+        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
+    });
+
+    it('returns false when at least one receipt has finished scanning', () => {
+        const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
+        const scannedReceipt: Transaction = {...buildScanningTransaction(2), receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}};
+        const transactions = [buildScanningTransaction(1), scannedReceipt];
+
+        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
     });
 });

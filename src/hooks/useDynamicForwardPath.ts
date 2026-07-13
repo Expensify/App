@@ -1,12 +1,14 @@
-import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
+import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type {State} from '@libs/Navigation/types';
+
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
 import useRootNavigationState from './useRootNavigationState';
 
 /**
@@ -25,7 +27,7 @@ import useRootNavigationState from './useRootNavigationState';
  */
 const FORWARD_TO_MAPPINGS: Record<string, Record<string, Route>> = {
     [DYNAMIC_ROUTES.VERIFY_ACCOUNT.path]: {
-        [SCREENS.SETTINGS.WALLET.ROOT]: ROUTES.SETTINGS_ENABLE_PAYMENTS,
+        [SCREENS.SETTINGS.WALLET.ROOT]: ROUTES.SETTINGS_ENABLE_PAYMENTS.route,
         [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.route,
     },
     [DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path]: {
@@ -58,8 +60,8 @@ function useDynamicForwardPath(dynamicRouteSuffix: DynamicRouteSuffix): Route | 
     }
 
     const pathWithoutLeadingSlash = path.replaceAll(/^\/+/g, '');
-    const match = findMatchingDynamicSuffix(pathWithoutLeadingSlash);
-    if (!match || match.pattern !== dynamicRouteSuffix) {
+    const match = findAllMatchingDynamicSuffixes(pathWithoutLeadingSlash).find((m) => m.pattern === dynamicRouteSuffix);
+    if (!match) {
         return undefined;
     }
 

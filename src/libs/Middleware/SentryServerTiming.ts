@@ -1,7 +1,10 @@
-import type {SpanAttributes} from '@sentry/core';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {cancelSpan, endSpanWithAttributes, startSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
+
+import type {SpanAttributes} from '@sentry/core';
+
 import type Middleware from './types';
 
 /**
@@ -57,7 +60,7 @@ const SentryServerTiming: Middleware = (response, request) => {
         return response;
     }
 
-    const spanId = `${group.spanOp}_${request.requestID}`;
+    const spanId = `${group.spanOp}_${request.requestIndex}`;
     startSpan(spanId, {
         name: group.spanName,
         op: group.spanOp,

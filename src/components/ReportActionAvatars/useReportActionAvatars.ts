@@ -1,11 +1,11 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
@@ -29,11 +29,16 @@ import {
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
 import {getDefaultAvatar} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 import useReportPreviewSenderID from './useReportPreviewSenderID';
 
 function useReportActionAvatars({
@@ -48,6 +53,7 @@ function useReportActionAvatars({
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
     chatReportID: passedChatReportID,
+    shouldUseRealActor = false,
 }: {
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
@@ -60,6 +66,8 @@ function useReportActionAvatars({
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
     shouldUseCustomFallbackAvatar?: boolean;
     chatReportID?: string;
+    /** When true, returns the action's real author instead of the Concierge display override used in inbox timelines. */
+    shouldUseRealActor?: boolean;
 }) {
     const defaultAvatars = useDefaultAvatars();
     /* Get avatar type */
@@ -113,13 +121,13 @@ function useReportActionAvatars({
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
 
-    const {chatReportIDAdmins, chatReportIDAnnounce, workspaceAccountID} = policy ?? {};
+    const {chatReportIDAdmins, chatReportIDAnnounce, policyAccountID} = policy ?? {};
 
     const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${Number(chatReportIDAnnounce) ? chatReportIDAnnounce : chatReportIDAdmins}`);
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const delegatePersonalDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
-    const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails);
+    const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
 
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
@@ -155,12 +163,12 @@ function useReportActionAvatars({
             avatars: firstAccountAvatar ? [policyChatReportAvatar, firstAccountAvatar] : [policyChatReportAvatar],
             avatarType: firstAccountAvatar ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE,
             details: {
-                ...(personalDetails?.[workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+                ...(personalDetails?.[policyAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
                 shouldDisplayAllActors: false,
                 isWorkspaceActor: false,
 
                 actorHint: String(policyID).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
-                accountID: workspaceAccountID,
+                accountID: policyAccountID,
                 delegateAccountID: undefined,
             },
             source: {
@@ -226,7 +234,17 @@ function useReportActionAvatars({
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
     const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) =>
-        getIcons(onyxReport, formatPhoneNumber, personalDetails, avatar ?? fallbackIcon ?? defaultAvatars.FallbackAvatar, defaultDisplayName, accountID, policy, invoiceReceiverPolicy);
+        getIcons(
+            onyxReport,
+            formatPhoneNumber,
+            translate,
+            personalDetails,
+            avatar ?? fallbackIcon ?? defaultAvatars.FallbackAvatar,
+            defaultDisplayName,
+            accountID,
+            policy,
+            invoiceReceiverPolicy,
+        );
 
     const reportIcons = getIconsWithDefaults(chatReport?.reportID ? chatReport : iouReport);
 

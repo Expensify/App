@@ -1,25 +1,10 @@
-import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
-import lodashDebounce from 'lodash/debounce';
-import type {Ref, RefObject} from 'react';
-import React, {memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {
-    BlurEvent,
-    LayoutChangeEvent,
-    MeasureInWindowOnSuccessCallback,
-    NativeMethods,
-    TextInputContentSizeChangeEvent,
-    TextInputKeyPressEvent,
-    TextInputScrollEvent,
-} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
-import {useFocusedInputHandler} from 'react-native-keyboard-controller';
-import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
+
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
 import type {ComposerRef, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -31,6 +16,7 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
@@ -42,19 +28,23 @@ import type {Selection} from '@libs/focusComposerWithDelay/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+
 import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
 import useDebouncedSaveDraft from '@pages/inbox/report/useDebouncedSaveDraft';
 import useDraftMessageVideoAttributeCache from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
+
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import {inputFocusChange} from '@userActions/InputFocus';
 import {areAllModalsHidden} from '@userActions/Modal';
 import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -63,11 +53,31 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
+
+import type {Ref, RefObject} from 'react';
+import type {
+    BlurEvent,
+    LayoutChangeEvent,
+    MeasureInWindowOnSuccessCallback,
+    NativeMethods,
+    TextInputContentSizeChangeEvent,
+    TextInputKeyPressEvent,
+    TextInputScrollEvent,
+} from 'react-native';
+
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import lodashDebounce from 'lodash/debounce';
+import React, {memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {DeviceEventEmitter, NativeModules, StyleSheet, View} from 'react-native';
+import {useFocusedInputHandler} from 'react-native-keyboard-controller';
+import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
+
+import type {SuggestionsRef} from './ReportActionCompose';
+
 import {useComposerActions, useComposerEditState, useComposerText} from './ComposerContext';
 import getCursorPosition from './getCursorPosition';
 import getScrollPosition from './getScrollPosition';
 import getUpdatedSyncSelection from './getUpdatedSyncSelection';
-import type {SuggestionsRef} from './ReportActionCompose';
 import ReportActionComposeUtils from './ReportActionComposeUtils';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
@@ -328,10 +338,23 @@ function ComposerWithSuggestions({
         focusComposerWithDelay(composerRef.current, delay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
     }, []);
 
+    const shouldIgnoreEditSelectionResetRef = useRef(false);
+    const ignoreEditSelectionResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
     const handleEditFocus = useCallback(() => {
         focus(true, undefined, true);
         onFocus();
-    }, [focus, onFocus]);
+
+        if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING) {
+            shouldIgnoreEditSelectionResetRef.current = true;
+            clearTimeout(ignoreEditSelectionResetTimeoutRef.current);
+            ignoreEditSelectionResetTimeoutRef.current = setTimeout(() => {
+                shouldIgnoreEditSelectionResetRef.current = false;
+            }, CONST.COMPOSER_FOCUS_DELAY);
+        }
+    }, [focus, onFocus, editingState]);
+
+    useEffect(() => () => clearTimeout(ignoreEditSelectionResetTimeoutRef.current), []);
 
     const handleEditValueChange = useCallback(
         (nextValue: string) => {
@@ -697,6 +720,18 @@ function ComposerWithSuggestions({
     const onSelectionChange = useCallback(
         (e: CustomSelectionChangeEvent) => {
             const newSelection = {...e.nativeEvent.selection};
+
+            if (shouldIgnoreEditSelectionResetRef.current && newSelection.start === 0 && newSelection.end === 0) {
+                const savedSelection = currentEditMessageSelection ?? selection;
+                if ((savedSelection.start ?? 0) > 0 || (savedSelection.end ?? 0) > 0) {
+                    const restoredStart = savedSelection.start ?? 0;
+                    const restoredEnd = savedSelection.end ?? restoredStart;
+                    setSelection({start: restoredStart, end: restoredEnd});
+                    ReportActionComposeUtils.updateNativeSelectionValue(composerRef, restoredStart, restoredEnd);
+                    return;
+                }
+            }
+
             setSelection(newSelection);
             setCurrentEditMessageSelection((prevSelection) => ({
                 ...prevSelection,
@@ -708,7 +743,7 @@ function ComposerWithSuggestions({
             }
             suggestionsRef.current?.onSelectionChange?.(e);
         },
-        [setCurrentEditMessageSelection, suggestionsRef],
+        [setCurrentEditMessageSelection, suggestionsRef, currentEditMessageSelection, selection],
     );
 
     const hideSuggestionMenu = useCallback(
@@ -750,12 +785,10 @@ function ComposerWithSuggestions({
         }
         delayedAutoFocusRouteKeyRef.current = route.key;
 
-        const task = InteractionManager.runAfterInteractions(() => {
-            focus(true);
-        });
+        const handle = TransitionTracker.runAfterTransitions({callback: () => focus(true)});
 
         return () => {
-            task?.cancel?.();
+            handle.cancel();
         };
     }, [focus, route.key, shouldAutoFocus, shouldDelayAutoFocus]);
 

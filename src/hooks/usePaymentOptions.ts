@@ -1,7 +1,5 @@
-import {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
 import type SettlementButtonProps from '@components/SettlementButton/types';
+
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
@@ -9,17 +7,28 @@ import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import {
     doesReportBelongToWorkspace,
     getBankAccountRoute,
+    getInvoiceReceiverPolicyID,
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
     isInvoiceReport as isInvoiceReportUtil,
 } from '@libs/ReportUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AccountData, BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
+
+import {areInvoicesEnabledSelector} from '@selectors/Policy';
+import {useCallback, useEffect, useMemo, useRef} from 'react';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -70,6 +79,8 @@ function usePaymentOptions({
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
+    const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
+    const [areInvoicesEnabled] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {selector: areInvoicesEnabledSelector});
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
@@ -196,7 +207,7 @@ function usePaymentOptions({
                 text: translate('bankAccount.addBankAccount'),
                 icon: icons.Bank,
                 onSelected: () => {
-                    const bankAccountRoute = getBankAccountRoute(chatReport);
+                    const bankAccountRoute = getBankAccountRoute(chatReport, areInvoicesEnabled);
                     Navigation.navigate(bankAccountRoute);
                 },
             };
@@ -263,6 +274,7 @@ function usePaymentOptions({
         shouldShowPayWithExpensifyOption,
         shouldShowPayElsewhereOption,
         chatReport,
+        areInvoicesEnabled,
         onPress,
         onlyShowPayElsewhere,
         icons,

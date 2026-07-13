@@ -1,10 +1,13 @@
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
+
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import type {CardList, PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
+
+import type {CardList, PersonalDetails, Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
+
+import type {StyleProp, ViewStyle} from 'react-native';
 
 type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** The action that can be performed for the transaction */
@@ -54,6 +57,8 @@ type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
     policy?: Policy;
+    policyCategories?: PolicyCategories;
+    policyTagLists?: PolicyTagLists;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
@@ -74,15 +79,22 @@ type TransactionItemRowProps = {
     isInSingleTransactionReport?: boolean;
     shouldShowRadioButton?: boolean;
     onRadioButtonPress?: (transactionID: string) => void;
+    shouldStopRadioButtonMouseDownPropagation?: boolean;
+    radioButtonContainerStyle?: StyleProp<ViewStyle>;
+    radioButtonWrapperStyle?: StyleProp<ViewStyle>;
     shouldShowErrors?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
+    shouldDisableActionPointerEvents?: boolean;
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
     onArrowRightPress?: (event?: ModifiedMouseEvent) => void;
     isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
     reportActions?: ReportAction[];
+    /** Precomputed transaction-thread report ID. When provided, skips the per-row report-actions scan used to derive it
+     * (lets callers that already know the thread mapping avoid O(transactions × actions) work). */
+    transactionThreadReportID?: string;
     checkboxSentryLabel?: string;
     isLargeScreenWidth?: boolean;
     /** Precomputed shouldShowAttendees(SUBMIT, policyForMovingExpenses); drilled instead of the policy object
@@ -107,6 +119,9 @@ type TransactionItemRowProps = {
     canEditAmount?: boolean;
     canEditTag?: boolean;
 };
+
+/** Window position of the hovered cell used to anchor the receipt preview beside the row. */
+type AnchorPosition = {top: number; left: number; width: number; height: number};
 
 /**
  * Data computed by the dispatcher and consumed by the Narrow variant.
@@ -133,6 +148,7 @@ type TransactionItemRowWideComputedData = Omit<TransactionItemRowNarrowComputedD
     transactionAttendees: Attendee[];
     shouldShowAttendees: boolean;
     totalPerAttendee: number | undefined;
+    isMarkAsDone: boolean;
 };
 
-export type {TransactionWithOptionalSearchFields, TransactionItemRowProps, TransactionItemRowNarrowComputedData, TransactionItemRowWideComputedData};
+export type {AnchorPosition, TransactionWithOptionalSearchFields, TransactionItemRowProps, TransactionItemRowNarrowComputedData, TransactionItemRowWideComputedData};

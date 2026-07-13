@@ -1,14 +1,19 @@
-import React from 'react';
 import {DefaultSuccessScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
 import {DefaultClientFailureScreen, DefaultServerFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
+
 import {changePINForCard} from '@libs/actions/MultifactorAuthentication';
+import Navigation from '@libs/Navigation/Navigation';
+
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 /**
  * Payload type for the CHANGE_PIN scenario.
@@ -78,6 +83,12 @@ ChangePINOutcomeSuccessScreen.displayName = 'ChangePINOutcomeSuccessScreen';
 export default {
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
     action: changePINForCard,
+    callback: async () => {
+        // ChangePINPage is in the RHP and the outcome screen renders in the sibling MFA modal navigator.
+        // Pop it first so closing the modal returns to card details instead of the stale set-PIN screen.
+        Navigation.goBack();
+        return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
+    },
     successScreen: <ChangePINOutcomeSuccessScreen />,
     defaultClientFailureScreen: <ClientFailureScreen />,
     defaultServerFailureScreen: <ServerFailureScreen />,

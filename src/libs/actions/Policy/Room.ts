@@ -1,15 +1,23 @@
 import {read} from '@libs/API';
-import type {OpenWorkspaceRoomsPageParams} from '@libs/API/parameters';
+import type {OpenPolicyRoomsPageParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
-import Log from '@libs/Log';
 
-export default function openWorkspaceRoomsPage(policyID: string) {
-    if (!policyID) {
-        Log.warn('openWorkspaceRoomsPage invalid params', {policyID});
-        return;
-    }
+import ONYXKEYS from '@src/ONYXKEYS';
 
-    const params: OpenWorkspaceRoomsPageParams = {policyID};
+import Onyx from 'react-native-onyx';
 
-    read(READ_COMMANDS.OPEN_WORKSPACE_ROOMS_PAGE, params);
+function openPolicyRoomsPage(policyID: string) {
+    const params: OpenPolicyRoomsPageParams = {policyID};
+
+    read(READ_COMMANDS.OPEN_POLICY_ROOMS_PAGE, params);
 }
+
+function setRoomIDToHighlightOnRoomsPage(reportID: string) {
+    Onyx.set(ONYXKEYS.ROOM_ID_HIGHLIGHT_ON_ROOMS_PAGE, reportID);
+}
+
+function clearRoomIDToHighlightOnRoomsPage() {
+    Onyx.set(ONYXKEYS.ROOM_ID_HIGHLIGHT_ON_ROOMS_PAGE, null);
+}
+
+export {openPolicyRoomsPage, setRoomIDToHighlightOnRoomsPage, clearRoomIDToHighlightOnRoomsPage};

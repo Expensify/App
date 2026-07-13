@@ -1,10 +1,10 @@
-import React from 'react';
-import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import {setIsComposerFullSize} from '@libs/actions/Report';
 import FS from '@libs/Fullstory';
 import {
@@ -14,18 +14,21 @@ import {
     isMoneyRequestReport,
     isReportTransactionThread,
 } from '@libs/ReportUtils';
+
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {MeasureInWindowOnSuccessCallback} from 'react-native';
+
+import React from 'react';
+
 import {useComposerActions, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import useAttachmentPicker from './useAttachmentPicker';
 import useComposerSubmit from './useComposerSubmit';
-
-type ComposerInputProps = {
-    reportID: string;
-};
 
 const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
 
@@ -34,7 +37,8 @@ function getRandomPlaceholder(translate: LocalizedTranslate): string {
     return translate(AI_PLACEHOLDER_KEYS[randomIndex]);
 }
 
-function ComposerInput({reportID}: ComposerInputProps) {
+function ComposerInput() {
+    const {reportID} = useComposerState();
     const {translate, preferredLocale} = useLocalize();
     const {isMenuVisible} = useComposerState();
     const {isBlockedFromConcierge, debouncedCommentMaxLengthValidation} = useComposerSendState();

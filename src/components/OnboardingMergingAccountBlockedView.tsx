@@ -1,13 +1,19 @@
-import React from 'react';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import {setOnboardingErrorMessage} from '@userActions/Welcome';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
 import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
 
@@ -51,7 +57,7 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
                 onPress={() => {
                     setOnboardingErrorMessage(null);
                     if (isVsb) {
-                        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+                        Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute());
                         return;
                     }
                     Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());

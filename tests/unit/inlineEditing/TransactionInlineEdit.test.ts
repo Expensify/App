@@ -1,5 +1,6 @@
 import type {TransactionEditPermissions, TransactionEditPermissionsParams} from '@libs/actions/TransactionInlineEdit';
 import {getTransactionEditPermissions} from '@libs/actions/TransactionInlineEdit';
+
 import CONST from '@src/CONST';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
@@ -148,6 +149,7 @@ describe('getTransactionEditPermissions', () => {
             const distanceTransaction: Transaction = {
                 ...baseTransaction,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -168,6 +170,37 @@ describe('getTransactionEditPermissions', () => {
                 canEditTag: true,
                 canEditAmount: true,
                 // Merchant editing should be disabled for distance requests
+                canEditMerchant: false,
+            } satisfies TransactionEditPermissions);
+        });
+    });
+
+    describe('per diem requests', () => {
+        it('should disable amount and merchant for per diem requests', () => {
+            const perDiemTransaction: Transaction = {
+                ...baseTransaction,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    },
+                },
+            };
+
+            const permissions = getTransactionEditPermissions({
+                ...baseUnreportedParams,
+                transaction: perDiemTransaction,
+            });
+
+            expect(permissions).toMatchObject({
+                canEditCategory: true,
+                canEditDate: true,
+                canEditDescription: true,
+                canEditTag: true,
+                // Amount and merchant are derived from the rate and cannot be edited
+                canEditAmount: false,
                 canEditMerchant: false,
             } satisfies TransactionEditPermissions);
         });
@@ -348,6 +381,7 @@ describe('getTransactionEditPermissions', () => {
                 ...baseUnreportedParams,
                 transaction: {
                     ...unreportedTransaction,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                     comment: {
                         type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                         customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE},
@@ -356,6 +390,25 @@ describe('getTransactionEditPermissions', () => {
             });
 
             expect(permissions).toMatchObject({
+                canEditMerchant: false,
+            } satisfies Partial<TransactionEditPermissions>);
+        });
+
+        it('should respect per diem request restrictions', () => {
+            const permissions = getTransactionEditPermissions({
+                ...baseUnreportedParams,
+                transaction: {
+                    ...unreportedTransaction,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                    comment: {
+                        type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                        customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL},
+                    },
+                },
+            });
+
+            expect(permissions).toMatchObject({
+                canEditAmount: false,
                 canEditMerchant: false,
             } satisfies Partial<TransactionEditPermissions>);
         });

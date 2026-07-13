@@ -114,6 +114,7 @@ tests/e2e/results/
 # Typescript
 tsconfig.tsbuildinfo
 tsconfig.tsgo.tsbuildinfo
+**/tsconfig.tsgo.tsbuildinfo
 
 # Mock-github
 /repo/
@@ -128,7 +129,10 @@ dist/
 web-build/
 
 # Local https certificate/key
-config/webpack/*.pem
+config/rsbuild/*.pem
+
+# Rspack build profiling output (RSPACK_PROFILE=OVERVIEW|ALL)
+.rspack-profile-*/
 
 # Expo
 .expo
@@ -172,3 +176,10 @@ agent-device-output/
 
 # cspell cache
 .cspellcache
+
+# Server CLI build artifacts (victory-chart-renderer, etc.)
+server/*/dist/
+server/victory-chart-renderer/.dev/
+
+# Bun lockfiles (VCR uses npm workspaces + package-lock.json; bun is runtime-only)
+bun.lock

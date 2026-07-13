@@ -1,5 +1,3 @@
-import React, {useState} from 'react';
-import {PanResponder, View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
@@ -8,12 +6,18 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import Icon from '@components/Icon';
 import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React, {useState} from 'react';
+import {PanResponder, View} from 'react-native';
+
 import type {CameraProps} from './types';
 
 const panResponder = PanResponder.create({
@@ -24,7 +28,7 @@ const panResponder = PanResponder.create({
  * FileUpload — desktop web capture variant.
  * Renders a drag-and-drop zone + file picker button + receipt alternative methods.
  */
-function FileUpload({onDrop, shouldAcceptMultipleFiles = false, onLayout, isReplacingReceipt = false, isDraggingOverWrapper}: CameraProps) {
+function FileUpload({onPicked, shouldAcceptMultipleFiles = false, onLayout, isReplacingReceipt = false}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -51,9 +55,7 @@ function FileUpload({onDrop, shouldAcceptMultipleFiles = false, onLayout, isRepl
             return file;
         });
 
-        if (onDrop) {
-            onDrop(files, Array.from(e.dataTransfer?.items ?? []));
-        }
+        onPicked(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
     return (
@@ -65,7 +67,7 @@ function FileUpload({onDrop, shouldAcceptMultipleFiles = false, onLayout, isRepl
             style={[styles.flex1, styles.chooseFilesView(false)]}
         >
             <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                {!(isDraggingOver ?? isDraggingOverWrapper) && (
+                {!isDraggingOver && (
                     <View
                         style={[styles.alignItemsCenter, styles.justifyContentCenter]}
                         onLayout={(e) => setUploadViewHeight(e.nativeEvent.layout.height)}
@@ -78,7 +80,6 @@ function FileUpload({onDrop, shouldAcceptMultipleFiles = false, onLayout, isRepl
                         <View
                             style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
                             // PanResponder handlers must be spread onto the View for gesture recognition
-
                             {...panResponder.panHandlers}
                         >
                             <Text style={[styles.textFileUpload, styles.mb2]}>{translate(shouldAcceptMultipleFiles ? 'receipt.uploadMultiple' : 'receipt.upload')}</Text>
@@ -94,11 +95,7 @@ function FileUpload({onDrop, shouldAcceptMultipleFiles = false, onLayout, isRepl
                                     text={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                                     accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                                     style={[styles.p5]}
-                                    onPress={() => {
-                                        openPicker({
-                                            onPicked: (data) => onDrop?.(data, []),
-                                        });
-                                    }}
+                                    onPress={() => openPicker({onPicked})}
                                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
                                 />
                             )}

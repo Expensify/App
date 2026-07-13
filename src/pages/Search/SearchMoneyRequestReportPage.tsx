@@ -1,17 +1,11 @@
-import {PortalHost} from '@gorhom/portal';
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
-import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useShowSuperWideRHPVersion';
+import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
-import useActionListContextValue from '@hooks/useActionListContextValue';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissOnMoneyRequestReportRemoval from '@hooks/useDismissOnMoneyRequestReportRemoval';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -26,27 +20,39 @@ import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible'
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {getIOUActionForTransactionID, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
+
 import Navigation from '@navigation/Navigation';
+
+import {ActionListContextProvider} from '@pages/inbox/ActionListContext';
 import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
 import useClearReportActionDraftsOnReportChange from '@pages/inbox/report/useClearReportActionDraftsOnReportChange';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+
 import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import reportByIDsSelector from '@src/selectors/Attributes';
 import type {ReportAttributesDerivedValue, Transaction, TransactionViolations} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {PortalHost} from '@gorhom/portal';
+import {useIsFocused} from '@react-navigation/native';
+import reportByIDsSelector from '@selectors/ReportAttributes';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 
 type SearchMoneyRequestPageProps =
     | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
@@ -76,7 +82,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const handleSubmitToDestinationVisibleLayout = useSubmitToDestinationVisible(
         [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
         reportIDFromRoute,
-        CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.LAYOUT,
+        [CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.LAYOUT, CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS],
     );
 
     const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
@@ -102,11 +108,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
         // Clear the URL only after we navigate away to avoid a brief Not Found flash.
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                clearDeleteTransactionNavigateBackUrl();
-            });
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                requestAnimationFrame(clearDeleteTransactionNavigateBackUrl);
+            },
+            waitForUpcomingTransition: true,
         });
+        return () => handle.cancel();
     }, [isFocused, deleteTransactionNavigateBackUrl]);
 
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
@@ -114,8 +122,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
-
-    const actionListValue = useActionListContextValue();
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -175,7 +181,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
     const shouldShowSuperWideRHP = visibleTransactions.length > 1;
 
-    useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
+    useRHPWidth(shouldShowSuperWideRHP ? 'super-wide' : 'wide');
 
     // Tracks initial mount to ensure openReport is called once for multi-transaction reports
     const isInitialMountRef = useRef(true);
@@ -253,7 +259,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
         // Check that reportActions belong to the current report to avoid using stale data from the previous report
         const hasMatchingReportActions = reportActions.some((action) => {
-            const iouReportID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUReportID : undefined;
+            const iouReportID = isMoneyRequestAction(action) ? action?.reportID : undefined;
             return iouReportID?.toString() === reportIDFromRoute;
         });
 
@@ -379,7 +385,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             effectiveTransactionThreadReportID={effectiveTransactionThreadReportID}
         >
             <WideRHPOverlayWrapper>
-                <ActionListContext.Provider value={actionListValue}>
+                <ActionListContextProvider>
                     <ReactionListWrapper>
                         <ScreenWrapper
                             testID="SearchMoneyRequestReportPage"
@@ -408,7 +414,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                             </FullPageNotFoundView>
                         </ScreenWrapper>
                     </ReactionListWrapper>
-                </ActionListContext.Provider>
+                </ActionListContextProvider>
             </WideRHPOverlayWrapper>
         </ReportActionEditMessageContextProvider>
     );
