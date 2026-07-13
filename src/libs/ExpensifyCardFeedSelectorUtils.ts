@@ -7,7 +7,10 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 
+import type {CardProgramKey} from './CardUtils';
+
 import {
+    getConfiguredExpensifyCardProgramKeys,
     getDomainByFundID,
     getDomainNameFromExpensifyCardSettings,
     getFundIdFromSettingsKey,
@@ -21,6 +24,12 @@ type ExpensifyCardFeedEntry = {
     settingsKey: string;
     fundID: number;
     settings: ExpensifyCardSettings;
+
+    /**
+     * The program (US/GB) this entry represents. A single settings NVP can hold more than one provisioned program,
+     * in which case each program gets its own entry (and its own selector row) that shares the same `fundID`.
+     */
+    programKey: CardProgramKey;
 };
 
 /** A feed qualifies only when its settings NVP has a US or GB program block with a configured settlement bank account. */
@@ -95,7 +104,11 @@ function getAdminExpensifyCardFeedEntries(
         if (!isExpensifyCardFeedVisibleToAdmin(settings, policies, fundID, domains, currentUserAccountID)) {
             return [];
         }
-        return [{settingsKey, fundID, settings}];
+
+        // A domain provisioned with more than one program (e.g. both US and GB) yields one entry per program so each
+        // renders as its own selector row. `getConfiguredExpensifyCardProgramKeys` only returns US/GB, both of which pass
+        // the `hasConfiguredExpensifyCardFeed` gate above, so there is always at least one program here.
+        return getConfiguredExpensifyCardProgramKeys(settings).map((programKey) => ({settingsKey, fundID, settings, programKey}));
     });
 }
 
