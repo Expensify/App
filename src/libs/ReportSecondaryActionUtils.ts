@@ -515,22 +515,19 @@ function isExportAction(currentAccountID: number, currentUserLogin: string, repo
     }
 
     const isReportApproved = isReportApprovedUtils({report});
-    const isReportPayer = isPayerUtils(currentAccountID, currentUserLogin, report, bankAccountList, policy, false);
-    const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportClosed = isClosedReportUtils(report);
-
     const isReportSettled = isSettled(report);
-    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed || isReportSettled)) {
-        return true;
+    const isReportReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const isReportFinished = isReportApproved || isReportClosed || isReportReimbursed || isReportSettled;
+
+    // If the report is not in a finished state, don't show the export action
+    if (!isReportFinished) {
+        return false;
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isReportReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const connectedIntegration = getConnectedIntegration(policy);
-    const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const isReportFinished = isReportApproved || isReportReimbursed || isReportClosed;
 
-    return isAdmin && isReportFinished && syncEnabled;
+    return isAdmin || isPreferredExporter(policy, currentUserLogin);
 }
 
 function isMarkAsExportedAction(currentAccountID: number, currentUserLogin: string, report: Report, bankAccountList: OnyxEntry<BankAccountList>, policy?: Policy): boolean {
