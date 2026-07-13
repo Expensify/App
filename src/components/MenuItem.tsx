@@ -451,6 +451,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
 
+        /** Track hover with native DOM listeners instead of React synthetic events for rows that open a portalled popover (web only). */
+        shouldUseNativeHoverEvents?: boolean;
+
         /** Additional styles for the root wrapper View */
         rootWrapperStyle?: StyleProp<ViewStyle>;
 
@@ -616,6 +619,7 @@ function MenuItem({
     forwardedFSClass,
     ref,
     isFocused,
+    shouldUseNativeHoverEvents = false,
     sentryLabel,
     rootWrapperStyle,
     role = CONST.ROLE.BUTTON,
@@ -866,7 +870,10 @@ function MenuItem({
                 shouldHideOnScroll={shouldHideOnScroll}
             >
                 <View>
-                    <Hoverable isFocused={isFocused}>
+                    <Hoverable
+                        isFocused={isFocused}
+                        shouldUseNativeHoverEvents={shouldUseNativeHoverEvents}
+                    >
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
