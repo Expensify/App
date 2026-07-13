@@ -215,4 +215,17 @@ describe('getMoneyRequestInformation', () => {
             expect(tagEntry?.value).toEqual({[TAG_LIST]: [TAG_NAME]});
         });
     });
+
+    describe('pendingNewTransactionIDs metadata rail', () => {
+        // Only the 0→1 negative is testable here (the resolved report has no existing txs); the >= 1 positive path lives in the useNewTransactions consumer tests.
+        it('does NOT flag the first transaction of a report (no stale flag to re-highlight the original on a later add)', () => {
+            const result = getMoneyRequestInformation(baseParams);
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            expect(result.onyxData.optimisticData ?? []).not.toEqual(
+                expect.arrayContaining([expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: true})})})]),
+            );
+        });
+    });
 });
