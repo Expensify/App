@@ -354,8 +354,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 isItemInFilter={isItemInFilter}
                 shouldShowGroupFilter={shouldShowGroupFilter}
                 shouldShowGroupColumn={shouldShowGroupColumn}
-                emptyStateTitle={translate('domain.members.emptyMembers.title')}
-                emptyStateSubtitle={translate('domain.members.emptyMembers.subtitle')}
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {
                         clearSelectedMembers();

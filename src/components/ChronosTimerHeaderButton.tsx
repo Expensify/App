@@ -44,6 +44,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {accountID: currentUserAccountID, timezone: timezoneParam} = useCurrentUserPersonalDetails();
     const reportActionsOnyxKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}` as OnyxKey;
@@ -92,6 +93,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             shouldPlaySound: false,
             isInSidePanel,
             delegateAccountID,
+            conciergeReportID,
         });
     }
 
