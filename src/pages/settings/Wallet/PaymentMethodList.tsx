@@ -311,7 +311,7 @@ function PaymentMethodList({
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {
                     if (card.lastScrape) {
-                        cardLastSyncText = translate('walletPage.cardLastSynced', datetimeToRelative(card.lastScrape));
+                        cardLastSyncText = translate('walletPage.cardLastSynced', datetimeToRelative(card.lastScrape.replace(' ', 'T')));
                     } else {
                         cardLastSyncText = translate('walletPage.cardNeverSynced');
                     }
@@ -337,7 +337,7 @@ function PaymentMethodList({
                     }
 
                     cardConnectionStatus = {
-                        statusText: translate(isCardInactiveState ? 'walletPage.cardStatus.inactive' : 'walletPage.cardStatus.active'),
+                        statusText: translate(shouldShowCardConnectionMessage ? 'walletPage.cardStatus.inactive' : 'walletPage.cardStatus.active'),
                         statusTone: cardStatusTone,
                         message: cardConnectionMessage,
                         actionText: isUserPersonalCard && shouldShowCardConnectionMessage ? translate('common.actionBadge.fix') : undefined,
