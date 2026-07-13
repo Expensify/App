@@ -3,7 +3,7 @@ import type {ButtonWithDropdownMenuProps} from '@components/ButtonWithDropdownMe
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 
-import type {StoryFn} from '@storybook/react-webpack5';
+import type {StoryFn} from 'storybook-react-rsbuild';
 
 import React, {useMemo} from 'react';
 

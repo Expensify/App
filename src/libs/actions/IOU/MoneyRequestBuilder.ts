@@ -30,6 +30,7 @@ import {
     isExpenseReport,
     isGroupChat,
     isInvoiceReport as isInvoiceReportReportUtils,
+    isMoneyRequestReport,
     isOneTransactionReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isSelfDM,
@@ -668,6 +669,25 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
+    // Flag for the highlight rail only when the add makes the report multi-tx (its table fresh-mounts with the tx present, so the diff misses it); never the first tx (0→1), which would leave a stale flag; no successData (races the mount).
+    const existingReportTransactions = iou.report?.reportID
+        ? getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID)
+        : [];
+    const addMakesReportMultiTransaction =
+        isMoneyRequestReport(iou.report) && existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && addMakesReportMultiTransaction) {
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
+            value: {pendingNewTransactionIDs: {[transaction.transactionID]: true}},
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
+            value: {pendingNewTransactionIDs: {[transaction.transactionID]: null}},
+        });
+    }
+
     if (shouldGenerateTransactionThreadReport && !isSelfDMSplit && !isEmptyObject(transactionThreadCreatedReportAction)) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1105,7 +1125,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     });
 
     if (violationsOnyxData) {
-        const reportTransactions = [...getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID), transaction];
+        const reportTransactions = [...existingReportTransactions, transaction];
         const shouldFixViolations = hasSubmissionBlockingViolationInReport(
             reportTransactions,
             transactionViolations,
@@ -1542,14 +1562,21 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !(personalDetails?.[payerAccountID] ?? allPersonalDetails[payerAccountID]);
+    // For imported device contacts the name is carried on text/firstName/lastName rather than
+    // displayName, so fall back through those before defaulting to the login/phone number. Otherwise
+    // the contact's name is lost and the optimistic record falls back to the phone number.
+    const optimisticPersonalDetailFirstName = participant.firstName ?? '';
+    const optimisticPersonalDetailLastName = participant.lastName ?? '';
+    const optimisticPersonalDetailDisplayName =
+        [participant.displayName, participant.text, `${optimisticPersonalDetailFirstName} ${optimisticPersonalDetailLastName}`.trim()].find((name) => !!name) ?? payerEmail;
     // Add optimistic personal details for participant
     const optimisticPersonalDetailListAction = shouldCreateOptimisticPersonalDetails
         ? {
               [payerAccountID]: {
                   accountID: payerAccountID,
-                  // Disabling this line since participant.displayName can be an empty string
-                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  displayName: formatPhoneNumber(participant.displayName || payerEmail),
+                  displayName: formatPhoneNumber(optimisticPersonalDetailDisplayName),
+                  firstName: optimisticPersonalDetailFirstName,
+                  lastName: optimisticPersonalDetailLastName,
                   login: participant.login,
                   isOptimisticPersonalDetail: true,
               },
