@@ -223,7 +223,9 @@ function MoneyRequestReportPreview({
                 // just-thawed, still-loading report drops the first transaction-row tap.
                 if (getPlatform() === CONST.PLATFORM.WEB) {
                     const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
-                    markReportRHPWidth(childReportID, 'wide');
+                    // No RHP width hint on narrow: the mobile RHP is always full-screen and the expense screen never
+                    // reads the hint, so marking it 'wide' is inert here — it only forces a WideRHP context-wide
+                    // re-render mid-transition and leaves a stale 'wide' hint for a later wide visit.
                     setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID));
                     // Open the report first, then defer the expense's RHP by one frame so the report lands as its own
                     // browser-history entry — hard/browser back and the header back both stop on the report, then the
