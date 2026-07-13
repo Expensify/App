@@ -6,6 +6,9 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem, PopoverMenuProps} from '@components/PopoverMenu';
 
+// eslint-disable-next-line no-restricted-imports -- type-only namespace import, used solely to type jest.requireActual for the ReportUtils mock below
+import type * as ReportUtils from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -38,8 +41,7 @@ jest.mock('@userActions/Session', () => ({
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns an untyped module object
-    ...jest.requireActual('@libs/ReportUtils'),
+    ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     canWriteInReport: () => true,
 }));
 
