@@ -21,7 +21,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
     let domain: ProcessNodeResult['domain'];
     let domainPadding: ProcessNodeResult['domainPadding'];
     let padding: ProcessNodeResult['padding'];
-    let leftAxisLabelSpace: ProcessNodeResult['leftAxisLabelSpace'];
+    let leftAxisLabelPadding: ProcessNodeResult['leftAxisLabelPadding'];
     let isHorizontal: ProcessNodeResult['isHorizontal'];
     let categories: ProcessNodeResult['categories'];
     const labelItems: ProcessNodeResult['labelItems'] = [];
@@ -51,8 +51,8 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         if (result.padding) {
             padding = result.padding;
         }
-        if (result.leftAxisLabelSpace !== undefined) {
-            leftAxisLabelSpace = result.leftAxisLabelSpace;
+        if (result.leftAxisLabelPadding !== undefined) {
+            leftAxisLabelPadding = result.leftAxisLabelPadding;
         }
         if (result.isHorizontal) {
             isHorizontal = result.isHorizontal;
@@ -78,7 +78,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         domain,
         domainPadding,
         padding,
-        leftAxisLabelSpace,
+        leftAxisLabelPadding,
         isHorizontal,
         categories,
         labelItems,
@@ -104,8 +104,8 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         if (childResult.padding) {
             padding = childResult.padding;
         }
-        if (childResult.leftAxisLabelSpace !== undefined) {
-            leftAxisLabelSpace = childResult.leftAxisLabelSpace;
+        if (childResult.leftAxisLabelPadding !== undefined) {
+            leftAxisLabelPadding = childResult.leftAxisLabelPadding;
         }
         if (childResult.isHorizontal) {
             isHorizontal = childResult.isHorizontal;
@@ -125,8 +125,8 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         yAxis,
         domain,
         domainPadding,
-        padding: resolvePadding(padding, leftAxisLabelSpace),
-        leftAxisLabelSpace,
+        padding: resolvePadding(padding, leftAxisLabelPadding),
+        leftAxisLabelPadding,
         isHorizontal,
         categories,
         labelItems,

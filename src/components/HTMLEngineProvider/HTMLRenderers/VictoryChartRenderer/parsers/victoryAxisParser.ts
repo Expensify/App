@@ -18,7 +18,7 @@ import {Skia} from '@shopify/react-native-skia';
  * i.e. how much horizontal space the axis actually needs for its labels. Used to shrink
  * the chart's `padding.left` when the configured value is more than the content needs.
  */
-function computeLeftAxisLabelSpace(axisSide: 'left' | 'right', labels: Array<string | number> | undefined, font: SkFont | null, labelOffset: number | undefined): number | undefined {
+function computeLeftAxisLabelPadding(axisSide: 'left' | 'right', labels: Array<string | number> | undefined, font: SkFont | null, labelOffset: number | undefined): number | undefined {
     if (axisSide !== 'left' || !font || !labels?.length) {
         return undefined;
     }
@@ -97,7 +97,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
                     font,
                 },
             ],
-            leftAxisLabelSpace: computeLeftAxisLabelSpace(axisSide, labelsForMeasurement, font, labelOffset),
+            leftAxisLabelPadding: computeLeftAxisLabelPadding(axisSide, labelsForMeasurement, font, labelOffset),
         };
     }
     return {
