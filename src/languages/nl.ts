@@ -9208,6 +9208,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     },
     actionableMentionTrackExpense: {
         submit: 'Dien het bij iemand in',
+        submitToFriend: 'Indienen bij een vriend',
+        submitToEmployer: 'Indienen bij mijn werkgever',
         categorize: 'Categoriseer het',
         share: 'Deel het met mijn accountant',
         nothing: 'Niets voor nu',

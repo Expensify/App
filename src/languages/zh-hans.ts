@@ -8918,6 +8918,8 @@ ${reportName}`,
     },
     actionableMentionTrackExpense: {
         submit: '提交给某人',
+        submitToFriend: '提交给朋友',
+        submitToEmployer: '提交给我的雇主',
         categorize: '对其分类',
         share: '与我的会计共享',
         nothing: '现在没有任何内容',

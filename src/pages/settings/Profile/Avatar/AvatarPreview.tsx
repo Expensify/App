@@ -163,7 +163,6 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, imageData, setI
 
                     return (
                         <ButtonWithDropdownMenu
-                            success={false}
                             shouldUseOptionIcon
                             onPress={() => {}}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
