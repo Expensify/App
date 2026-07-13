@@ -1,6 +1,7 @@
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 
 import useActivePolicy from '@hooks/useActivePolicy';
+import useAIFeaturesPromoModal from '@hooks/useAIFeaturesPromoModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -88,6 +89,7 @@ function AuthScreensInitHandler() {
     reportAttributesRef.current = reportAttributes;
 
     useReconcileHighContrastIntent();
+    useAIFeaturesPromoModal(session);
 
     const topmostReportID = useRootNavigationState(Navigation.getTopmostReportId);
     const topmostOneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
