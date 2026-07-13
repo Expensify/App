@@ -2078,7 +2078,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstall: '请更新到最新版本的 New Expensify',
         pleaseInstallExpensifyClassic: '请安装最新版本的 Expensify',
         toGetLatestChanges: '在移动端，请下载并安装最新版本。在网页端，请刷新浏览器。',
-        newAppNotAvailable: 'New Expensify 应用已不再提供使用。',
+        newAppNotAvailable: '现在更新，以后你会感谢我们的。',
     },
     initialSettingsPage: {
         about: '关于',
@@ -8906,6 +8906,8 @@ ${reportName}`,
     },
     actionableMentionTrackExpense: {
         submit: '提交给某人',
+        submitToFriend: '提交给朋友',
+        submitToEmployer: '提交给我的雇主',
         categorize: '对其分类',
         share: '与我的会计共享',
         nothing: '现在没有任何内容',
