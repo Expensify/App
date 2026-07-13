@@ -17,13 +17,11 @@
 <section>
     <div class="cards-group">
         {% if section.sections %}
-            {% assign sortedSubsections = section.sections | sort: 'order' %}
-            {% for subsection in sortedSubsections %}
+            {% for subsection in section.sections %}
                 {% include section-card.html platform=activePlatform hub=hub.href section=subsection.href title=subsection.title %}
             {% endfor %}
         {% endif %}
-        {% assign emptyItems = "" | split: "," %}
-        {% assign sortedArticles = section.articles | default: emptyItems %}
+        {% assign sortedArticles = section.articles | default: empty %}
         {% for article in sortedArticles %}
             {% assign article_href = section.href | append: '/' | append: article.href %}
             {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}

@@ -156,4 +156,21 @@ describe('useExportActions - template export status modal', () => {
         expect(mockClearExportDownload).toHaveBeenCalledWith('mock-export-id', undefined);
         expect(result.current.exportDownloadStatusModal).toBeNull();
     });
+
+    it('clears the report-view selection with the boolean flag when the status modal is dismissed', () => {
+        const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
+
+        act(() => {
+            result.current.beginExportWithTemplate('Test Template', 'csv', ['1'], EXPORT_NAME, POLICY_ID);
+        });
+        const modal: ReactElement<ExportDownloadStatusModalProps> | null = result.current.exportDownloadStatusModal;
+
+        act(() => {
+            modal?.props.onClose();
+        });
+
+        // The cleanup callback must call clearSelectedTransactions with the boolean `true` (not `(undefined, true)`),
+        // because the selection API only resets the report-view selection when the first argument is a boolean.
+        expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
+    });
 });
