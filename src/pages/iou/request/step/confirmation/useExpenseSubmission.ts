@@ -386,7 +386,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 logReceiptSubmitted({
                     receiptTraceId: receipt.receiptTraceId,
                     draftTransactionID: item.transactionID,
-                    transactionID: lastOptimisticTransactionID ?? item.transactionID,
+                    transactionID: lastOptimisticTransactionID,
                     command: WRITE_COMMANDS.REQUEST_MONEY,
                     iouType,
                 });
@@ -657,7 +657,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 logReceiptSubmitted({
                     receiptTraceId: trackReceipt.receiptTraceId,
                     draftTransactionID: item.transactionID,
-                    transactionID: lastOptimisticTransactionID ?? item.transactionID,
+                    transactionID: lastOptimisticTransactionID,
                     command: WRITE_COMMANDS.TRACK_EXPENSE,
                     iouType,
                 });
