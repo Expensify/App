@@ -7,6 +7,8 @@ import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@h
 
 import CONST from '@src/CONST';
 
+import React from 'react';
+
 function InboxTabSelector() {
     const {translate} = useLocalize();
     const {activeTab, inboxTabCounts} = useSidebarOrderedReportsState();
