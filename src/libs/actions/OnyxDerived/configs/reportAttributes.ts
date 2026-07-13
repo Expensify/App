@@ -24,7 +24,7 @@ import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -70,15 +70,24 @@ const hasPolicyRelevantFieldChanged = (prev: Policy | null | undefined, next: Po
     );
 };
 
-// Builds a per-account signature from the fields that a report's display name is derived from:
-// displayName (primary), firstName (group-chat short form), and login (fallback when no name is set).
-// A change to any of them can change a report name, so all three must be diffed — not just displayName.
+// Signature of the fields a report's display name is derived from: displayName (primary), firstName
+// (group-chat short form), and login (fallback when no name is set). A change to any of them can change a
+// report name, so all three are diffed — not just displayName. See getDisplayNameForParticipant/getDisplayNameOrDefault.
+const displayNameSignature = (details: PersonalDetails | null): string => JSON.stringify([details?.displayName ?? '', details?.firstName ?? '', details?.login ?? '']);
+
 const snapshotDisplayNames = (personalDetails: PersonalDetailsList): Record<string, string> => {
     const snapshot: Record<string, string> = {};
     for (const [key, value] of Object.entries(personalDetails)) {
-        snapshot[key] = JSON.stringify([value?.displayName ?? '', value?.firstName ?? '', value?.login ?? '']);
+        snapshot[key] = displayNameSignature(value);
     }
     return snapshot;
+};
+
+// Records the personal-details snapshot that report names were last computed against. Kept as a single
+// helper so the two correlated module vars can't drift out of sync.
+const commitDisplayNamesBaseline = (personalDetails: OnyxEntry<PersonalDetailsList>, snapshot: Record<string, string>) => {
+    previousDisplayNames = snapshot;
+    previousPersonalDetails = personalDetails;
 };
 
 // Seeds the display-name baseline from the current personal details without recomputing. Used on the first
@@ -89,11 +98,10 @@ const seedDisplayNamesBaseline = (personalDetails: OnyxEntry<PersonalDetailsList
     if (!personalDetails || previousPersonalDetails === personalDetails || Object.keys(previousDisplayNames).length > 0) {
         return;
     }
-    previousDisplayNames = snapshotDisplayNames(personalDetails);
-    previousPersonalDetails = personalDetails;
+    commitDisplayNamesBaseline(personalDetails, snapshotDisplayNames(personalDetails));
 };
 
-// Returns the set of accountIDs whose display name changed since the last compute, or:
+// Returns the set of accountIDs whose display-name signature changed since the last compute, or:
 //   - null   → nothing changed (caller can early-return)
 //   - 'all'  → no baseline to diff against yet; recompute every report
 // Scoping to changed accountIDs lets the caller recompute only the reports that reference them,
@@ -108,35 +116,38 @@ const getDisplayNameChanges = (personalDetails: OnyxEntry<PersonalDetailsList>):
         return null;
     }
 
-    const currentDisplayNames = snapshotDisplayNames(personalDetails);
-
-    if (Object.keys(previousDisplayNames).length === 0) {
-        previousDisplayNames = currentDisplayNames;
-        previousPersonalDetails = personalDetails;
-        return Object.keys(currentDisplayNames).length > 0 ? RECOMPUTE_ALL : null;
-    }
-
+    const hadBaseline = Object.keys(previousDisplayNames).length > 0;
+    const nextSnapshot: Record<string, string> = {};
     const changedAccountIDs = new Set<number>();
-    for (const [key, name] of Object.entries(currentDisplayNames)) {
-        if (name !== previousDisplayNames[key]) {
+
+    // Single pass: build the new baseline signature and diff it against the previous one at the same time.
+    for (const [key, value] of Object.entries(personalDetails)) {
+        const signature = displayNameSignature(value);
+        nextSnapshot[key] = signature;
+        if (hadBaseline && signature !== previousDisplayNames[key]) {
             changedAccountIDs.add(Number(key));
         }
     }
     // Account IDs present before but gone now also invalidate any report name that referenced them.
-    for (const key of Object.keys(previousDisplayNames)) {
-        if (!(key in currentDisplayNames)) {
-            changedAccountIDs.add(Number(key));
+    if (hadBaseline) {
+        for (const key of Object.keys(previousDisplayNames)) {
+            if (!(key in nextSnapshot)) {
+                changedAccountIDs.add(Number(key));
+            }
         }
     }
 
-    previousDisplayNames = currentDisplayNames;
-    previousPersonalDetails = personalDetails;
+    commitDisplayNamesBaseline(personalDetails, nextSnapshot);
 
+    if (!hadBaseline) {
+        return Object.keys(nextSnapshot).length > 0 ? RECOMPUTE_ALL : null;
+    }
     return changedAccountIDs.size > 0 ? changedAccountIDs : null;
 };
 
-// A report's display name is derived from personal details of its participants, owner, and (for invoices)
-// its individual receiver. These are the reference points that make a display-name change relevant to a report.
+// The report-record fields whose accountIDs feed a report's display name: owner, manager, individual invoice
+// receiver, and participants. This intentionally does not cover thread names derived from parent-report data
+// (see computeReportNameBasedOnReportAction) — those are re-evaluated when the parent's own data changes.
 const reportReferencesAccountIDs = (report: Report, accountIDs: Set<number>): boolean => {
     if (report.ownerAccountID !== undefined && accountIDs.has(report.ownerAccountID)) {
         return true;
