@@ -175,6 +175,31 @@ describe('getAdminExpensifyCardFeedEntries', () => {
 
         expect(entries).toHaveLength(1);
         expect(entries.at(0)?.fundID).toBe(feedFundID);
+        expect(entries.at(0)?.programKey).toBe(CONST.COUNTRY.GB);
+    });
+
+    it('tags a single-program feed entry with its program key', () => {
+        const entries = getAdminExpensifyCardFeedEntries(cardSettingsCollection, adminPolicyForFund, {}, currentUserAccountID);
+
+        expect(entries).toHaveLength(1);
+        expect(entries.at(0)?.programKey).toBe(CONST.COUNTRY.US);
+    });
+
+    it('splits a feed with both US and GB programs into one entry per program (US before GB)', () => {
+        const multiProgramSettings: OnyxCollection<ExpensifyCardSettings> = {
+            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${feedFundID}`]: {
+                [CONST.COUNTRY.US]: {paymentBankAccountID: 23242},
+                [CONST.COUNTRY.GB]: {paymentBankAccountID: 55667},
+                hasOnceLoaded: true,
+            },
+        };
+
+        const entries = getAdminExpensifyCardFeedEntries(multiProgramSettings, adminPolicyForFund, {}, currentUserAccountID);
+
+        expect(entries).toHaveLength(2);
+        // Both rows share the same feed (fundID) but differ by program.
+        expect(entries.every((entry) => entry.fundID === feedFundID)).toBe(true);
+        expect(entries.map((entry) => entry.programKey)).toEqual([CONST.COUNTRY.US, CONST.COUNTRY.GB]);
     });
 
     it('hides a feed when the user is neither a domain admin nor a workspace admin for the fund', () => {

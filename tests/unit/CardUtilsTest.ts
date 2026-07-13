@@ -33,6 +33,7 @@ import {
     getCompanyCardDescription,
     getCompanyCardFeed,
     getCompanyFeeds,
+    getConfiguredExpensifyCardProgramKeys,
     getConnectionBankAccountsForReconciliation,
     getCSVFeedType,
     getCustomFeedNameFromFeeds,
@@ -49,6 +50,8 @@ import {
     getOriginalCompanyFeeds,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
+    getProgramKeyForCard,
+    getSelectableCardProgramKey,
     getSelectedFeed,
     getTranslationKeyForCardStatus,
     getYearFromExpirationDateString,
@@ -62,7 +65,9 @@ import {
     isCSVUploadFeed,
     isCustomFeed as isCustomFeedCardUtils,
     isDirectFeed as isDirectFeedCardUtils,
+    filterCardsListByProgram,
     isActiveCard,
+    isCardInProgram,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
     isExpiredCard,
@@ -4612,5 +4617,87 @@ describe('getCompanyCardCustomName', () => {
 
     it('returns undefined when neither NVP has a name for the card', () => {
         expect(getCompanyCardCustomName('9999', sharedCardCustomNames, customCardNames)).toBeUndefined();
+    });
+});
+
+describe('multi-program Expensify Card helpers', () => {
+    const usCard = {cardID: 1, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.COUNTRY.US}} as unknown as Card;
+    const gbCard = {cardID: 2, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.COUNTRY.GB}} as unknown as Card;
+    const legacyCard = {cardID: 3, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {}} as unknown as Card;
+
+    describe('getSelectableCardProgramKey', () => {
+        it('returns GB when GB is stored', () => {
+            expect(getSelectableCardProgramKey(CONST.COUNTRY.GB)).toBe(CONST.COUNTRY.GB);
+        });
+
+        it('falls back to US for undefined or unsupported values', () => {
+            expect(getSelectableCardProgramKey(undefined)).toBe(CONST.COUNTRY.US);
+            expect(getSelectableCardProgramKey('CURRENT')).toBe(CONST.COUNTRY.US);
+        });
+    });
+
+    describe('getProgramKeyForCard', () => {
+        it('maps GB cards to GB', () => {
+            expect(getProgramKeyForCard(gbCard)).toBe(CONST.COUNTRY.GB);
+        });
+
+        it('treats US, legacy (no feedCountry), and missing cards as US', () => {
+            expect(getProgramKeyForCard(usCard)).toBe(CONST.COUNTRY.US);
+            expect(getProgramKeyForCard(legacyCard)).toBe(CONST.COUNTRY.US);
+            expect(getProgramKeyForCard(undefined)).toBe(CONST.COUNTRY.US);
+        });
+    });
+
+    describe('isCardInProgram', () => {
+        it('matches a card to its own program only', () => {
+            expect(isCardInProgram(gbCard, CONST.COUNTRY.GB)).toBe(true);
+            expect(isCardInProgram(gbCard, CONST.COUNTRY.US)).toBe(false);
+            expect(isCardInProgram(legacyCard, CONST.COUNTRY.US)).toBe(true);
+        });
+    });
+
+    describe('getConfiguredExpensifyCardProgramKeys', () => {
+        it('returns both programs (US before GB) when both have a settlement bank account', () => {
+            const settings = {
+                [CONST.COUNTRY.US]: {paymentBankAccountID: 1},
+                [CONST.COUNTRY.GB]: {paymentBankAccountID: 2},
+            } as unknown as ExpensifyCardSettings;
+            expect(getConfiguredExpensifyCardProgramKeys(settings)).toEqual([CONST.COUNTRY.US, CONST.COUNTRY.GB]);
+        });
+
+        it('ignores program blocks without a settlement bank account', () => {
+            const settings = {
+                [CONST.COUNTRY.US]: {paymentBankAccountID: 1},
+                [CONST.COUNTRY.GB]: {isEnabled: true},
+            } as unknown as ExpensifyCardSettings;
+            expect(getConfiguredExpensifyCardProgramKeys(settings)).toEqual([CONST.COUNTRY.US]);
+        });
+
+        it('returns an empty list for flat/legacy settings with no nested program', () => {
+            const settings = {domainName: 'legacy.com', isEnabled: true} as unknown as ExpensifyCardSettings;
+            expect(getConfiguredExpensifyCardProgramKeys(settings)).toEqual([]);
+        });
+    });
+
+    describe('filterCardsListByProgram', () => {
+        const cardsList = {
+            '1': usCard,
+            '2': gbCard,
+            '3': legacyCard,
+            cardList: {someUnassigned: 'XXXX1234'},
+        } as unknown as WorkspaceCardsList;
+
+        it('keeps only the selected program cards and preserves the cardList meta entry', () => {
+            const gbOnly = filterCardsListByProgram(cardsList, CONST.COUNTRY.GB);
+            expect(Object.keys(gbOnly ?? {}).sort()).toEqual(['2', 'cardList']);
+
+            const usOnly = filterCardsListByProgram(cardsList, CONST.COUNTRY.US);
+            // US program keeps the explicit US card and the legacy card (no feedCountry).
+            expect(Object.keys(usOnly ?? {}).sort()).toEqual(['1', '3', 'cardList']);
+        });
+
+        it('returns the list unchanged when no program is given', () => {
+            expect(filterCardsListByProgram(cardsList, undefined)).toBe(cardsList);
+        });
     });
 });
