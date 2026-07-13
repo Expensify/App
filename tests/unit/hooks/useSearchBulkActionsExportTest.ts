@@ -458,6 +458,46 @@ describe('useSearchBulkActions - report export options resolve from the search s
         expect(subMenuItems?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
     });
 
+    it('prefers the snapshot policy when the live policy is present but has not loaded its connections (fresh load)', async () => {
+        /**
+         * Given: the live Onyx policy has loaded but WITHOUT its connections yet (the real fresh-load
+         *        ordering), while the search snapshot already carries the fully-connected policy.
+         *
+         * This is the precise condition the fix targets: a live-first read would return the
+         * connection-less live policy, getConnectedIntegration would be undefined, and the whole
+         * integration block would drop again. Reading snapshot-first keeps the options visible.
+         *
+         * When: the export bulk-action menu is built.
+         *
+         * Then: the snapshot policy (with connections) wins over the incomplete live policy and both
+         *       integration options appear.
+         */
+        // Live policy exists but has NOT yet loaded its connections (replace the connected policy from beforeEach).
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, null);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID});
+
+        const searchResults = makeSearchResults([makeSnapshotReport()]);
+        searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`] = {
+            ...createRandomPolicy(1),
+            id: POLICY_ID,
+            connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {}}),
+        };
+        mockCurrentSearchResults = searchResults;
+
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            const subMenuItems = getExportSubMenuItems(result.current.headerButtonsOptions);
+            expect(subMenuItems?.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(true);
+        });
+
+        const subMenuItems = getExportSubMenuItems(result.current.headerButtonsOptions);
+        expect(subMenuItems?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+    });
+
     it('does NOT offer the integration export options when the report is absent from both snapshot and live Onyx', async () => {
         /**
          * Given: a selected report that exists in neither the search snapshot nor live Onyx.
