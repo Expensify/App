@@ -138,7 +138,7 @@ function WorkspaceCompanyCardsTable({
         feedErrorTitle = translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle');
         feedErrorReloadAction = onReloadPage;
     } else if (feedErrorKey === CONST.COMPANY_CARDS.FEED_LOAD_ERROR) {
-        feedErrorTitle = translate('workspace.companyCards.error.feedCouldNotBeLoad edTitle');
+        feedErrorTitle = translate('workspace.companyCards.error.feedCouldNotBeLoadedTitle');
         feedErrorReloadAction = onReloadFeed;
     }
 
