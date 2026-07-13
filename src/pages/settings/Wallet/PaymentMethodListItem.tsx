@@ -240,7 +240,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             pendingAction={item.pendingAction}
             errors={item.errors}
             errorRowStyles={styles.paymentMethodErrorRow}
-            shouldShowErrorMessages={!!item.errors && !connectionStatus?.message}
+            shouldShowErrorMessages={!!item.errors}
         >
             {connectionStatus ? (
                 <Hoverable>
