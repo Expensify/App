@@ -36,7 +36,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {ComponentProps, KeyboardEvent as ReactKeyboardEvent} from 'react';
+import type {ComponentProps} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -49,7 +49,7 @@ type ConnectionStatusDetails = {
     tooltipText?: string;
     message?: string;
     actionText?: string;
-    onActionPress?: (e: GestureResponderEvent | ReactKeyboardEvent | undefined) => void;
+    onActionPress?: () => void;
     isActionDisabled?: boolean;
     onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
 };
@@ -293,7 +293,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                     <ConnectionStatusMessage
                                         message={connectionStatus.message}
                                         actionText={connectionStatus.actionText}
-                                        onActionPress={connectionStatus.onActionPress ? () => connectionStatus.onActionPress?.(undefined) : undefined}
+                                        onActionPress={connectionStatus.onActionPress}
                                         isActionDisabled={connectionStatus.isActionDisabled}
                                         statusTone={connectionStatus.statusTone}
                                         onLinkPress={connectionStatus.onLinkPress}

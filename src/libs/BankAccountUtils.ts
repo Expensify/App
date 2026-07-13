@@ -54,10 +54,6 @@ function getBankAccountState(accountData: AccountData | undefined): string | und
         return undefined;
     }
 
-    if (typeof accountData.state !== 'string') {
-        return undefined;
-    }
-
     return accountData.state;
 }
 
