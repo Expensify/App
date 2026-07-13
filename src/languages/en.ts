@@ -5690,7 +5690,6 @@ const translations = {
                 label: 'Per-card account',
                 description: 'Override the program account for individual cards.',
                 descriptionLevel2: 'Override the program account for these cards.',
-                descriptionLevel3: 'Override the program account for this card.',
                 countInfo: (customAccountsCount: number) => (!customAccountsCount ? 'All cards use program accounts' : `${customAccountsCount} cards with custom accounts`),
             },
             autoSyncDescription: 'Sync Rillet and Expensify automatically, every day. Reports sync in realtime.',
