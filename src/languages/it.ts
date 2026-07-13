@@ -9220,6 +9220,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     },
     actionableMentionTrackExpense: {
         submit: 'Invialo a qualcuno',
+        submitToFriend: 'Invia a un amico',
+        submitToEmployer: 'Invia al mio datore di lavoro',
         categorize: 'Classificala',
         share: 'Condividilo con il mio commercialista',
         nothing: 'Niente per ora',

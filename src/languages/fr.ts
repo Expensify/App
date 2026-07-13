@@ -9267,6 +9267,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     },
     actionableMentionTrackExpense: {
         submit: 'Soumettre à quelqu’un',
+        submitToFriend: 'Soumettre à un ami',
+        submitToEmployer: 'Soumettre à mon employeur',
         categorize: 'Catégorisez-la',
         share: 'Partager avec mon comptable',
         nothing: 'Rien pour l’instant',

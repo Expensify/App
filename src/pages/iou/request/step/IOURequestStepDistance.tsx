@@ -35,11 +35,12 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {getWaypointsHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {doesMoneyRequestDraftHaveUserInput, getDistanceInMeters, getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
+import {getDistanceInMeters, getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -164,10 +165,6 @@ function IOURequestStepDistance({
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
-    const {notifySaving} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => isCreatingNewRequest && doesMoneyRequestDraftHaveUserInput(transaction),
-    });
-
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     // Manual distance editing state
@@ -195,6 +192,19 @@ function IOURequestStepDistance({
         () => (distanceInMeters > 0 ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit)) : undefined),
         [distanceInMeters, distanceUnit],
     );
+
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => {
+            // Manual distance sits in `manualNumberFormRef` until Save — gate on the mounted ref so a cleared (empty) value still counts as dirty against a committed distance.
+            const manualForm = manualNumberFormRef.current;
+            const typedDistance = manualForm?.getNumber();
+            const typedManualDistance = typedDistance ? roundToTwoDecimalPlaces(parseFloat(typedDistance)) : undefined;
+            const manualDistanceChanged = !!manualForm && typedManualDistance !== currentDistance;
+            // Split edits skip the transaction backup, so their pre-edit route lives in `originalSplitTransactionDraft`.
+            const committedWaypoints = isEditingSplit ? originalSplitTransactionDraft?.comment?.waypoints : transactionBackup?.comment?.waypoints;
+            return manualDistanceChanged || getWaypointsHasUnsavedChanges(transaction, committedWaypoints, waypoints, isCreatingNewRequest);
+        },
+    });
 
     // Track whether the user has typed in the manual tab so route re-fetches don't clobber in-progress
     // input. Editing waypoints clears this (in the effect below) — a recalculated route supersedes a
@@ -318,6 +328,8 @@ function IOURequestStepDistance({
     }, [backTo]);
 
     const navigateBackAfterSave = useCallback(() => {
+        // Suppress the discard prompt — otherwise `beforeRemove` treats this post-save navigation as an abandoned dirty edit.
+        suppressDiscardPrompt();
         // When editing an individual split, the previous RHP screen is the edit-split page the user
         // wants to return to — `closeRHPFlow` would tear it down too. Use `goBack` so the RHP stays
         // open at the edit-split page.
@@ -326,13 +338,10 @@ function IOURequestStepDistance({
             return;
         }
         Navigation.closeRHPFlow();
-    }, [isEditingSplit, backTo]);
+    }, [isEditingSplit, backTo, suppressDiscardPrompt]);
 
-    // In the edit flow this page is rendered inside an OnyxTabNavigator. A plain `goBack()` with no
-    // target would be swallowed by that tab navigator (reverting to the Map tab) instead of leaving
-    // the page, so the header back must leave explicitly: honor an explicit `backTo` (e.g. the
-    // edit-split page) and otherwise close the RHP — matching other tabbed RHP pages like
-    // IOURequestStartPage. The browser/hardware back keeps the default tab behavior (revert tab first).
+    // In the edit flow this page is rendered inside an OnyxTabNavigator. The header back honors an
+    // explicit `backTo` (e.g. the edit-split page) and otherwise leaves the whole flow.
     const navigateBackFromEditFlow = useCallback(() => {
         if (backTo) {
             Navigation.goBack(backTo);
@@ -399,13 +408,19 @@ function IOURequestStepDistance({
             return getLatestErrorField(currentTransaction, 'route');
         }
         if (isWaypointsNullIslandError) {
-            return {isWaypointsNullIslandError: `${translate('common.please')} ${translate('common.fixTheErrors')} ${translate('common.inTheFormBeforeContinuing')}.`} as Errors;
+            return {
+                isWaypointsNullIslandError: `${translate('common.please')} ${translate('common.fixTheErrors')} ${translate('common.inTheFormBeforeContinuing')}.`,
+            } as Errors;
         }
         if (duplicateWaypointsError) {
-            return {duplicateWaypointsError: translate('iou.error.duplicateWaypointsErrorMessage')} as Errors;
+            return {
+                duplicateWaypointsError: translate('iou.error.duplicateWaypointsErrorMessage'),
+            } as Errors;
         }
         if (atLeastTwoDifferentWaypointsError) {
-            return {atLeastTwoDifferentWaypointsError: translate('iou.error.atLeastTwoDifferentWaypoints')} as Errors;
+            return {
+                atLeastTwoDifferentWaypointsError: translate('iou.error.atLeastTwoDifferentWaypoints'),
+            } as Errors;
         }
         return {};
     }, [hasRouteError, currentTransaction, isWaypointsNullIslandError, translate, duplicateWaypointsError, atLeastTwoDifferentWaypointsError]);
@@ -460,7 +475,10 @@ function IOURequestStepDistance({
                 setDraftSplitTransaction(
                     CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                     originalSplitTransactionDraft,
-                    {waypoints: currentTransaction?.comment?.waypoints, routes: currentTransaction?.routes},
+                    {
+                        waypoints: currentTransaction?.comment?.waypoints,
+                        routes: currentTransaction?.routes,
+                    },
                     policy,
                     personalPolicy?.outputCurrency,
                 );
@@ -511,7 +529,7 @@ function IOURequestStepDistance({
             return;
         }
 
-        notifySaving();
+        suppressDiscardPrompt();
         navigateToNextStep();
     }, [
         duplicateWaypointsError,
@@ -523,7 +541,7 @@ function IOURequestStepDistance({
         isCreatingNewRequest,
         navigateToNextStep,
         navigateBackAfterSave,
-        notifySaving,
+        suppressDiscardPrompt,
         isEditingSplit,
         originalSplitTransactionDraft,
         transactionBackup,
@@ -677,7 +695,13 @@ function IOURequestStepDistance({
     }, [manualFormError]);
 
     const errorState = useMemo(
-        () => ({shouldShowAtLeastTwoDifferentWaypointsError, atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, getError}),
+        () => ({
+            shouldShowAtLeastTwoDifferentWaypointsError,
+            atLeastTwoDifferentWaypointsError,
+            duplicateWaypointsError,
+            hasRouteError,
+            getError,
+        }),
         [shouldShowAtLeastTwoDifferentWaypointsError, atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, getError],
     );
 

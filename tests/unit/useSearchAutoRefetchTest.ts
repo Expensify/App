@@ -6,7 +6,6 @@ import type {UseSearchAutoRefetchParams} from '@hooks/useSearchAutoRefetch';
 
 import {search} from '@libs/actions/Search';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -61,7 +60,7 @@ describe('useSearchAutoRefetch', () => {
                 hasMoreResults: false,
                 hasResults: true,
                 offset: 0,
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                hash: 0,
                 type: 'expense',
                 isLoading: false,
             },
@@ -72,7 +71,6 @@ describe('useSearchAutoRefetch', () => {
         previousReportActions: {},
         queryJSON: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {operator: 'and', left: 'tag', right: ''},

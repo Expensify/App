@@ -78,7 +78,7 @@ describe('navigateAfterExpenseCreate', () => {
         mockIsReportTopmostSplitNavigator.mockReturnValue(false);
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
         mockIsReportOpenInRHP.mockReturnValue(false);
-        mockGetTrackingState.mockReturnValue(null);
+        mockGetTrackingState.mockReturnValue(false);
         mockGetCurrentSearchQueryJSON.mockReturnValue(undefined);
     });
 

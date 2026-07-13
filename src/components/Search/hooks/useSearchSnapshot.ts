@@ -93,7 +93,7 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  * optimistic-tracking carriers that `<Search>` consumes.
  */
 function useSearchSnapshot({queryJSON, searchResults, transactions, reportActions}: UseSearchSnapshotParams): SearchSnapshotResult {
-    const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
+    const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -302,8 +302,8 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
         if (!shouldComputeSections) {
             return EMPTY_DATA;
         }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
-        return getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
+        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
+        return getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
             policyCategories,
             policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
@@ -314,7 +314,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
 
             return {...item, hash};
         });
-    }, [shouldComputeSections, type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, policyCategories, policyTags, policyForMovingExpensesID, hash]);
+    }, [shouldComputeSections, type, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, policyCategories, policyTags, policyForMovingExpensesID, hash]);
 
     // Keep the optimistic row visible across a snapshot-replacement gap for up to
     // OPTIMISTIC_ROLLBACK_GRACE_MS until the new snapshot picks it up or the grace expires.
