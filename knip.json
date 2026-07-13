@@ -74,7 +74,6 @@
         "shellcheck",
         "patch-package",
         "diff-so-fancy",
-        "oxc-webpack-loader",
         "@babel/plugin-proposal-class-properties"
     ],
     "ignoreBinaries": ["metro-symbolicate", "mkcert"]

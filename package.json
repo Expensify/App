@@ -337,7 +337,6 @@
     "onchange": "^7.1.0",
     "openai": "^6.16.0",
     "oxc-transform": "0.136.0",
-    "oxc-webpack-loader": "^1.0.2",
     "oxfmt": "^0.55.0",
     "patch-package": "^8.1.0-canary.1",
     "peggy": "^4.0.3",
@@ -417,9 +416,6 @@
     },
     "@sentry/react-native": {
       "expo": "56.0.8"
-    },
-    "oxc-webpack-loader": {
-      "oxc-transform": "0.136.0"
     }
   },
   "expo": {
