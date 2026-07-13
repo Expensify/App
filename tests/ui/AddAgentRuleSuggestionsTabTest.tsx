@@ -1,5 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import useNetwork from '@hooks/useNetwork';
 import useSuggestedAgentRules from '@hooks/useSuggestedAgentRules';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,7 +29,7 @@ jest.mock('@hooks/useLocalize', () =>
         translate: (key: string) => key,
     })),
 );
-jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+jest.mock('@hooks/useNetwork');
 jest.mock('@hooks/useSuggestedAgentRules');
 jest.mock('@hooks/useTheme', () => jest.fn(() => ({icon: '#000'})));
 jest.mock('@hooks/useThemeStyles', () =>
@@ -45,7 +46,7 @@ jest.mock('@hooks/useThemeStyles', () =>
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
-jest.mock('@components/ActivityIndicator', () => jest.fn(() => null));
+jest.mock('@components/ActivityIndicator', () => jest.fn(() => <MockView testID="suggestions-loading-indicator" />));
 jest.mock('@components/Icon', () => jest.fn(() => null));
 jest.mock('@components/TextInput', () => ({value, onChangeText, label}: {value?: string; onChangeText?: (text: string) => void; label?: string}) => (
     <MockTextInput
@@ -91,6 +92,7 @@ jest.mock('@components/Pressable', () => ({
 jest.mock('@components/Text', () => ({children}: {children: React.ReactNode}) => <MockText>{children}</MockText>);
 
 const mockedUseSuggestedAgentRules = jest.mocked(useSuggestedAgentRules);
+const mockedUseNetwork = jest.mocked(useNetwork);
 const mockedNavigate = jest.mocked(Navigation.navigate);
 
 const SUGGESTIONS: SuggestedAgentRule[] = [
@@ -109,6 +111,7 @@ const SUGGESTIONS: SuggestedAgentRule[] = [
 describe('AddAgentRuleSuggestionsTab', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockedUseNetwork.mockReturnValue({isOffline: false});
         mockedUseSuggestedAgentRules.mockReturnValue({data: SUGGESTIONS, isLoading: false});
     });
 
@@ -165,6 +168,7 @@ describe('AddAgentRuleSuggestionsTab', () => {
         mockedUseSuggestedAgentRules.mockReturnValue({data: [], isLoading: true});
         render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
 
+        expect(screen.getByTestId('suggestions-loading-indicator')).toBeOnTheScreen();
         expect(screen.queryByText('workspace.rules.agentRules.emptySuggestionsTitle')).toBeNull();
     });
 
@@ -174,5 +178,25 @@ describe('AddAgentRuleSuggestionsTab', () => {
 
         expect(screen.getByText('workspace.rules.agentRules.emptySuggestionsTitle')).toBeOnTheScreen();
         expect(screen.getByText('workspace.rules.agentRules.emptySuggestionsSubtitle')).toBeOnTheScreen();
+    });
+
+    it('shows the offline empty state instead of a spinner when offline and still loading', () => {
+        mockedUseNetwork.mockReturnValue({isOffline: true});
+        mockedUseSuggestedAgentRules.mockReturnValue({data: [], isLoading: true});
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
+
+        expect(screen.queryByTestId('suggestions-loading-indicator')).toBeNull();
+        expect(screen.getByText('workspace.rules.agentRules.emptySuggestionsTitle')).toBeOnTheScreen();
+        expect(screen.getByText('common.youAppearToBeOffline')).toBeOnTheScreen();
+    });
+
+    it('shows the offline empty subtitle when offline with no suggestions', () => {
+        mockedUseNetwork.mockReturnValue({isOffline: true});
+        mockedUseSuggestedAgentRules.mockReturnValue({data: [], isLoading: false});
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
+
+        expect(screen.getByText('workspace.rules.agentRules.emptySuggestionsTitle')).toBeOnTheScreen();
+        expect(screen.getByText('common.youAppearToBeOffline')).toBeOnTheScreen();
+        expect(screen.queryByText('workspace.rules.agentRules.emptySuggestionsSubtitle')).toBeNull();
     });
 });

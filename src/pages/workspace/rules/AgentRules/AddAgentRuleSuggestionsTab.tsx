@@ -54,8 +54,8 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
 
     const selectedSuggestion = filteredSuggestions.find((suggestion) => suggestion.id === selectedSuggestionID);
     const hasNoSuggestions = data.length === 0;
-    const shouldShowLoadingIndicator = isLoading && hasNoSuggestions;
-    const shouldShowEmptyState = !isLoading && hasNoSuggestions;
+    const shouldShowLoadingIndicator = isLoading && hasNoSuggestions && !isOffline;
+    const shouldShowEmptyState = hasNoSuggestions && (!isLoading || isOffline);
 
     const goToConcierge = () => {
         Navigation.navigate(ROUTES.CONCIERGE);
