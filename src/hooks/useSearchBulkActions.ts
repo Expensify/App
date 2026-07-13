@@ -1468,9 +1468,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
 
-            // Read the policy through the Search-snapshot fallback: this hook renders outside SearchScopeProvider, so on a
-            // fresh load / cache clear the policy may only exist in the search snapshot and not yet in live Onyx.
-            const policy = selectedPolicyIDs.length === 1 ? getPolicyFromSearchSnapshot(selectedPolicyIDs.at(0), currentSearchResults?.data, policies) : undefined;
+            // Prefer the policy from the Search snapshot, falling back to live Onyx: this hook renders outside
+            // SearchScopeProvider, so on a fresh load / cache clear the policy may live only in the snapshot (or, when
+            // the workspace is already loaded, only in live Onyx).
+            const selectedPolicyKey = `${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}` as const;
+            const policy = selectedPolicyIDs.length === 1 ? (currentSearchResults?.data?.[selectedPolicyKey] ?? policies?.[selectedPolicyKey]) : undefined;
             const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
 
             const exportOptions: PopoverMenuItem[] = [];
@@ -1486,7 +1488,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return false;
                 }
 
-                const reportPolicy = getPolicyFromSearchSnapshot(report.policyID, currentSearchResults?.data, policies);
+                const reportPolicyKey = `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}` as const;
+                const reportPolicy = report.policyID ? (currentSearchResults?.data?.[reportPolicyKey] ?? policies?.[reportPolicyKey]) : undefined;
                 const snapshotReport = getReportFromSearchSnapshot(report.reportID, currentSearchResults?.data, allReports);
 
                 if (!snapshotReport) {

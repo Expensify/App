@@ -429,7 +429,7 @@ describe('useSearchBulkActions - report export options resolve from the search s
          *
          * When: the export bulk-action menu is built.
          *
-         * Then: the snapshot policy is resolved via getPolicyFromSearchSnapshot and both integration
+         * Then: the snapshot policy is resolved directly from the Search snapshot and both integration
          *       options appear without the policy ever being present in live Onyx.
          */
         // Remove the live Onyx policy written in beforeEach so it lives ONLY in the search snapshot.
