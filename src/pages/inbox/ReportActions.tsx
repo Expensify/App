@@ -1,19 +1,26 @@
-import {useRoute} from '@react-navigation/native';
-import React from 'react';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
-import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ReportActionsList from './report/ReportActionsList';
-import UserTypingEventListener from './report/UserTypingEventListener';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+
 import type ReportScreenNavigationProps from './types';
+
+import ReportActionsList from './report/ReportActionsList';
+import ReportActionsLoadingSkeleton from './report/ReportActionsLoadingSkeleton';
+import UserTypingEventListener from './report/UserTypingEventListener';
 
 const defaultReportLoadingState = {
     hasOnceLoadedReportActions: false,
@@ -37,6 +44,7 @@ function ReportActions() {
     const {isOffline} = useNetwork();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {reportActions} = usePaginatedReportActions(reportIDFromRoute);
@@ -56,13 +64,18 @@ function ReportActions() {
     //
     // Concierge is excluded so the body still mounts under the app-load skeleton, seeding sessionStartTime
     // before content appeared.
-    const isConciergeMainDM = isConciergeChatReport(report);
+    const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
     const shouldShowAppLoadSkeleton = !!isLoadingApp && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM;
 
     useMarkOpenReportEndOnSkeleton(report, shouldShowAppLoadSkeleton);
 
     if (!report || shouldWaitForTransactions) {
-        return <ReportActionsSkeletonView />;
+        return (
+            <ReportActionsLoadingSkeleton
+                reportID={reportIDFromRoute}
+                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.REPORT_ACTIONS_REPORT_DATA_LOADING}
+            />
+        );
     }
 
     if (shouldDisplayMoneyRequestActionsList) {
@@ -70,7 +83,12 @@ function ReportActions() {
     }
 
     if (shouldShowAppLoadSkeleton) {
-        return <ReportActionsSkeletonView />;
+        return (
+            <ReportActionsLoadingSkeleton
+                reportID={reportIDFromRoute}
+                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.REPORT_ACTIONS_APP_LOAD}
+            />
+        );
     }
 
     return (

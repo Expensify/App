@@ -1,7 +1,9 @@
 import {act, renderHook} from '@testing-library/react-native';
-import {BackHandler} from 'react-native';
+
 import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
+
+import {BackHandler} from 'react-native';
 
 type MockBeforeRemoveEvent = {data: {action: {type: string}}};
 
@@ -14,6 +16,8 @@ jest.mock('@react-navigation/native', () => ({
         mockPreventRemoveCallback = callback;
     },
     useIsFocused: () => mockIsFocused,
+    // The hook reads `route.name` to key its tab-switch guard
+    useRoute: () => ({name: 'test-route'}),
     // Focus effects behave like plain effects in these tests — the screen is always focused
     useFocusEffect: (callback: () => undefined | (() => void)) => {
         jest.requireActual<{useEffect: (effect: () => undefined | (() => void), deps: unknown[]) => void}>('react').useEffect(callback, [callback]);
@@ -119,14 +123,14 @@ describe('useDiscardChangesConfirmation (native)', () => {
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
-        it('lets the back press through after notifySaving, and prompts again once the save ends', () => {
+        it('lets the back press through after suppressDiscardPrompt, and prompts again once the save ends', () => {
             const {result} = renderDiscardHook(() => true);
 
-            act(() => result.current.notifySaving());
+            act(() => result.current.suppressDiscardPrompt());
             expect(pressHardwareBack()).toBe(false);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
 
-            act(() => result.current.notifySaving(false));
+            act(() => result.current.suppressDiscardPrompt(false));
             expect(pressHardwareBack()).toBe(true);
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
@@ -176,7 +180,6 @@ describe('useDiscardChangesConfirmation (native)', () => {
         });
 
         it('stays put on cancel and prompts again on the next back press', async () => {
-            renderDiscardHook(() => true);
             const onCancel = jest.fn();
             renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges: () => true, onCancel}));
 

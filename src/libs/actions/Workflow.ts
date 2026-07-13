@@ -1,6 +1,3 @@
-import lodashDropRightWhile from 'lodash/dropRightWhile';
-import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {write} from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, SetApprovalWorkflowParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -19,6 +16,7 @@ import {
     reconcileApprovalWorkflowRulesForMembersChange,
     reconcileApprovalWorkflowRulesForRemove,
 } from '@libs/WorkflowUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,6 +25,12 @@ import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import lodashDropRightWhile from 'lodash/dropRightWhile';
+import Onyx from 'react-native-onyx';
+
 import {completeTask} from './Task';
 
 type CreateApprovalWorkflowParams = {

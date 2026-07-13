@@ -1,4 +1,5 @@
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
+
 import Translator from './Translator';
 
 class DummyTranslator extends Translator {

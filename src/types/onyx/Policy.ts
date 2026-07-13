@@ -1,9 +1,12 @@
-import type {CONST as COMMON_CONST} from 'expensify-common';
-import type {ValueOf} from 'type-fest';
 import type HrSyncResult from '@libs/API/HrSyncResult';
+
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
+
+import type {CONST as COMMON_CONST} from 'expensify-common';
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxTypes from '.';
 import type {ApprovalWorkflowRules} from './ApprovalWorkflowRules';
 import type * as OnyxCommon from './OnyxCommon';
@@ -245,6 +248,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The old tax code of the tax rate when we edit the tax code */
     previousTaxCode?: string;
 
+    /** The old tax code kept only while a tax code edit is in flight, used to resolve the rate from the old code; cleared once the API resolves */
+    optimisticPreviousTaxCode?: string;
+
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
 
@@ -316,6 +322,9 @@ type MergeHRConnectionLastSync = ConnectionLastSync & {
 
     /** Status of the sync */
     syncStatus?: ValueOf<typeof CONST.MERGE_HR.SYNC_STATUS>;
+
+    /** Timestamps of the last few manual ("Sync now") syncs, used for blocking manual syncs client-side once the daily limit is reached */
+    manualSyncTimestamps?: string[];
 };
 
 /**
@@ -504,7 +513,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether employees can be invited */
     syncPeople: boolean;
 
-    /** TODO: Will be handled in another issue */
+    /** Whether QuickBooks Online items should be imported */
     syncItems: boolean;
 
     /** TODO: Will be handled in another issue */
@@ -1540,6 +1549,334 @@ type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     FinancialForceOfflineStateKeys
 >;
 
+/**
+ * Supported subsidiary types in Rillet.
+ */
+type RilletSubsidiaryType = 'LEGAL_ENTITY';
+
+/**
+ * A subsidiary (legal entity) configured in Rillet.
+ */
+type RilletSubsidiary = {
+    /** Unique identifier for the subsidiary. */
+    id: string;
+
+    /** Display or trade name of the subsidiary. */
+    tradeName: string;
+
+    /** Base accounting currency for the subsidiary (ISO currency code). */
+    currency: string;
+
+    /** Time zone used by the subsidiary. */
+    timezone: string;
+
+    /** Type of subsidiary. */
+    type: RilletSubsidiaryType;
+};
+
+/**
+ * Supported account statuses in Rillet.
+ */
+type RilletAccountStatus = ValueOf<typeof CONST.RILLET_ACCOUNT_STATUS>;
+
+/**
+ * Supported chart of account categories in Rillet.
+ */
+type RilletAccountType = ValueOf<typeof CONST.RILLET_ACCOUNT_TYPE>;
+
+/**
+ * A chart of accounts entry in Rillet.
+ */
+type RilletAccount = {
+    /** Unique identifier for the account. */
+    id: string;
+
+    /** Account code used in the chart of accounts. */
+    code: string;
+
+    /** Human-readable account name. */
+    name: string;
+
+    /** High-level account classification. */
+    type: RilletAccountType;
+
+    /** More specific account classification defined in Rillet. */
+    subtype: string;
+
+    /** Current status of the account. */
+    status: RilletAccountStatus;
+
+    /** Whether the account is used for intercompany transactions. */
+    intercompany: boolean;
+
+    /** Timestamp of the most recent update. */
+    updatedAt: string;
+};
+
+/**
+ * A selectable value belonging to a custom field.
+ */
+type RilletFieldValue = {
+    /** Unique identifier for the field value. */
+    id: string;
+
+    /** Display name of the field value. */
+    name: string;
+
+    /** Whether the value has been deactivated. */
+    deactivated: boolean;
+};
+
+/**
+ * A custom accounting field available in Rillet.
+ */
+type RilletField = {
+    /** Unique identifier for the field. */
+    id: string;
+
+    /** Display name of the field. */
+    name: string;
+
+    /** Available values that can be assigned to the field. */
+    values: RilletFieldValue[];
+
+    /** Timestamp of the most recent update. */
+    updatedAt: string;
+};
+
+/**
+ * A tax rate configured in Rillet.
+ */
+type RilletTaxRate = {
+    /** Unique identifier for the tax rate. */
+    id: string;
+
+    /** Tax code used for accounting purposes. */
+    code: string;
+
+    /** Country where the tax rate applies. */
+    country: string;
+
+    /** Description of the tax rate. */
+    description: string;
+
+    /** Tax percentage represented as a string value. */
+    percentage: string;
+};
+
+/**
+ * A vendor or supplier configured in Rillet.
+ */
+type RilletVendor = {
+    /** Unique identifier for the vendor. */
+    id: string;
+
+    /** Vendor display name. */
+    name: string;
+
+    /** Vendor contact email address. */
+    email?: string;
+
+    /** Associated accounts payable account code. */
+    accountCode?: string;
+
+    /** Timestamp of the most recent update. */
+    updatedAt: string;
+};
+
+/**
+ * Supported bank account statuses in Rillet.
+ */
+type RilletBankAccountStatus = 'ACTIVE' | 'INACTIVE';
+
+/**
+ * A bank account configured in Rillet.
+ */
+type RilletBankAccount = {
+    /** Unique identifier for the bank account. */
+    id: string;
+
+    /** Display name of the bank account. */
+    name: string;
+
+    /** Currency of the bank account (ISO currency code). */
+    currency: string;
+
+    /** Name of the financial institution. */
+    bankName: string;
+
+    /** Identifier of the associated subsidiary, if applicable. */
+    subsidiaryID?: string;
+
+    /** Associated general ledger account code, if applicable. */
+    accountCode?: string;
+
+    /** Current status of the bank account. */
+    status: RilletBankAccountStatus;
+};
+
+/**
+ * Cached reference data retrieved from Rillet and used for configuration.
+ */
+type RilletConnectionData = {
+    /** Collection of subsidiaries. */
+    subsidiaries?: RilletSubsidiary[];
+
+    /** Collection of accounts. */
+    accounts?: RilletAccount[];
+
+    /** Collection of custom fields. */
+    fields?: RilletField[];
+
+    /** Collection of tax rates. */
+    taxRates?: RilletTaxRate[];
+
+    /** Collection of vendors. */
+    vendors?: RilletVendor[];
+
+    /** Collection of bank accounts. */
+    bankAccounts?: RilletBankAccount[];
+};
+
+/**
+ * Coding configuration used when exporting data to Rillet.
+ */
+type RilletCoding = {
+    /**
+     * Mapping of Rillet field IDs to their configured mapping behavior.
+     */
+    fieldMappings?: Record<string, ValueOf<typeof CONST.RILLET_MAPPING_VALUE>>;
+
+    /** Whether tax rates should be synchronized from Rillet. */
+    syncTaxRates: boolean;
+};
+
+/** Offline feedback key for field mapping */
+type RilletCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `RilletCoding`
+ */
+type RilletCodingOfflineFeedbackKeys = keyof Omit<RilletCoding, 'fieldMappings'> | RilletCodingFieldMappingsOfflineFeedbackKey;
+
+/**
+ * Available dates that can be used as the export date.
+ */
+type RilletExportDate = ValueOf<typeof CONST.RILLET_EXPORT_DATE>;
+
+/**
+ * Export strategy for reimbursable expenses.
+ */
+type RilletExportReimbursable = ValueOf<typeof CONST.RILLET_EXPORT_REIMBURSABLE>;
+
+/**
+ * Export strategy for company card expenses.
+ */
+type RilletExportCompanyCard = ValueOf<typeof CONST.RILLET_EXPORT_COMPANY_CARD>;
+
+/**
+ * Export configuration for sending accounting data to Rillet.
+ */
+type RilletExport = {
+    /** Identifier of the export implementation to use. */
+    exporter: string;
+
+    /** Date source used when generating exported transactions. */
+    exportDate: RilletExportDate;
+
+    /** Export behavior for reimbursable expenses. */
+    reimbursable: RilletExportReimbursable;
+
+    /** Export behavior for company card expenses. */
+    companyCard: RilletExportCompanyCard;
+
+    /** Default vendor to associate with exported transactions. */
+    defaultVendorID: string;
+
+    /** Credit card liability account code. */
+    creditCardAccountCode: string;
+
+    /**
+     * Whether card transactions should be exported to multiple
+     * accounts based on card program mappings.
+     */
+    exportToMultipleAccounts: boolean;
+
+    /**
+     * Mapping of card program identifiers to account codes.
+     */
+    cardProgramAccounts: Record<string, string>;
+
+    /** Accounting method used during export. */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+};
+
+/**
+ * Automatic synchronization settings for Rillet.
+ */
+type RilletAutoSync = {
+    /** Whether automatic synchronization is enabled. */
+    enabled: boolean;
+};
+
+/**
+ * Synchronization settings for importing and updating data in Rillet.
+ */
+type RilletSync = {
+    /** Whether reimbursed expense reports should be synchronized. */
+    syncReimbursedReports: boolean;
+
+    /** Account code used for bill payment transactions. */
+    billPaymentAccountCode: string;
+
+    /** Whether Expensify Card settlement transactions should be synchronized. */
+    syncExpensifyCardSettlements: boolean;
+
+    /** Bank account used for Expensify Card settlements. */
+    settlementsBankAccountID: string;
+
+    /** Whether travel invoicing settlement transactions should be synchronized. */
+    syncTravelInvoicingSettlements: boolean;
+
+    /** Bank account used for travel invoicing settlements. */
+    travelInvoicingSettlementsBankAccountID: string;
+};
+
+/**
+ * Connection config for Rillet
+ */
+type RilletConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** The internalID of the selected subsidiary in Rillet */
+        subsidiaryID: string;
+
+        /** Whether the connection has been configured */
+        isConfigured: boolean;
+
+        /** Whether to enable a new Expense Category into Expensify */
+        enableNewCategories: boolean;
+
+        /** Coding settings */
+        coding?: RilletCoding;
+
+        /** Export settings */
+        export?: RilletExport;
+
+        /** Auto-sync settings */
+        autoSync?: RilletAutoSync;
+
+        /** Sync settings */
+        sync?: RilletSync;
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    RilletCodingOfflineFeedbackKeys | keyof RilletExport | keyof RilletAutoSync | keyof RilletSync
+>;
+
 /** Gusto connection data */
 type GustoConnectionData = Record<string, never>;
 
@@ -1741,6 +2078,9 @@ type Connections = {
 
     /** Certinia integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<FinancialForceConnectionData, FinancialForceConnectionConfig>;
+
+    /** Rillet integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: Connection<RilletConnectionData, RilletConnectionsConfig>;
 
     /** Gusto integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
@@ -2318,7 +2658,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         chatReportIDAnnounce?: string | number;
 
         /** All the integration connections attached to the policy */
-        connections?: Connections;
+        connections?: Partial<Connections>;
 
         /** Report fields attached to the policy */
         fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
@@ -2470,9 +2810,13 @@ type PolicyConnectionSyncProgress = {
     result?: HrSyncResult;
 };
 
+/** Workspace types a user can create directly (Team/Corporate/Submit), e.g. when creating a draft workspace on the fly. */
+type CreatableWorkspaceType = typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
+
 export default Policy;
 
 export type {
+    CreatableWorkspaceType,
     AutoReportingOffset,
     PolicyReportField,
     PolicyReportFieldType,
@@ -2537,8 +2881,18 @@ export type {
     CommuterExclusions,
     NetSuiteConnectionData,
     MergeHRConnectionConfig,
+    MergeHRConnectionLastSync,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,
     AgentRule,
+    RilletExportDate,
+    RilletVendor,
+    RilletAccount,
+    RilletCoding,
+    RilletConnectionsConfig,
+    RilletExport,
+    RilletBankAccount,
+    RilletAutoSync,
+    RilletSync,
 };

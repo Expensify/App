@@ -1,9 +1,10 @@
-import type {TNode} from 'react-native-render-html';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import {COLOR_KEY, LABEL_KEY, VALUE_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {PartialProcessNodeResult, PolarChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import {parseAttributeAsStringArray} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseRawChartData from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawChartData';
+
+import type {TNode} from 'react-native-render-html';
 
 /**
  * Parse data categories from a `<victorypie>` node.

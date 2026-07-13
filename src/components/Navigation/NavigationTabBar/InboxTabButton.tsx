@@ -1,7 +1,5 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {PressableWithFeedback} from '@components/Pressable';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -9,16 +7,24 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
 import getLastRoute from './getLastRoute';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
@@ -35,10 +41,11 @@ function getStringParam(params: unknown, key: string): string | undefined {
     return undefined;
 }
 
-function startNavigateToInboxTabSpan() {
+function startNavigateToInboxTabSpan({isWideLayout}: {isWideLayout: boolean}) {
     startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
         name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+        attributes: {[CONST.TELEMETRY.ATTRIBUTE_WIDE_LAYOUT]: isWideLayout},
     });
 }
 
@@ -101,7 +108,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
             return;
         }
 
-        startNavigateToInboxTabSpan();
+        startNavigateToInboxTabSpan({isWideLayout: true});
 
         if (doesLastReportExist) {
             // Fetch route params on-demand to avoid storing the full route object in render-time state
@@ -173,7 +180,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
             return;
         }
 
-        startNavigateToInboxTabSpan();
+        startNavigateToInboxTabSpan({isWideLayout: false});
         Navigation.navigate(ROUTES.INBOX);
     };
 

@@ -1,12 +1,18 @@
-import type * as ReactNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
+
 import SelectionList from '@components/SelectionList';
+
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
+
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
+
 import CONST from '@src/CONST';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const mockUseState = React.useState;
 const mockAllCountries = CONST.ALL_COUNTRIES;

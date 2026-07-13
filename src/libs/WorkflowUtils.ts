@@ -1,8 +1,7 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
@@ -13,6 +12,12 @@ import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getHRAdvancedModeFinalApprover, getHRFinalApprover} from './HRUtils';
 import {rand64} from './NumberUtils';

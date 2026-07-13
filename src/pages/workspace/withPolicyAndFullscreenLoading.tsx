@@ -1,13 +1,20 @@
-import isEmpty from 'lodash/isEmpty';
-import type {ComponentType} from 'react';
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import type {ComponentType} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import isEmpty from 'lodash/isEmpty';
+import React from 'react';
+
 import type {WithPolicyOnyxProps, WithPolicyProps} from './withPolicy';
+
 import withPolicy, {policyDefaultProps} from './withPolicy';
 
 type WithPolicyAndFullscreenLoadingOnyxProps = {
