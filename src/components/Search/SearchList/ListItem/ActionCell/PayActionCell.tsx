@@ -160,7 +160,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         <SearchScopeProvider isOnSearch={false}>
             <SettlementButton
                 shouldUseShortForm
-                buttonSize={CONST.BUTTON_SIZE.SMALL}
+                size={CONST.BUTTON_SIZE.SMALL}
                 currency={currency}
                 formattedAmount={convertToDisplayString(Math.abs(getReimbursableTotal(iouReport)), currency)}
                 policyID={policyID || iouReport?.policyID}
@@ -172,7 +172,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 wrapperStyle={[styles.w100]}
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
                 isDisabled={isOffline || shouldDisablePointerEvents}
-                shouldStayNormalOnDisable={shouldDisablePointerEvents}
+                stayNormalOnDisable={shouldDisablePointerEvents}
                 isLoading={isLoading}
                 onlyShowPayElsewhere={shouldOnlyShowElsewhere}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_PAY}

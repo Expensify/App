@@ -5,6 +5,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
@@ -26,7 +27,7 @@ import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfter
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {isMoneyRequestReport} from '@libs/ReportUtils';
+import {isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
 import {getPickerCaptureSource} from '@libs/telemetry/ReceiptObservability';
@@ -88,15 +89,19 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: (value: OnyxEntry<Record<string, unknown>>) => !!value?.hasSeenTour});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: (value: OnyxEntry<Record<string, unknown>>) => !!value?.hasSeenTour,
+    });
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+    const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
     const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
         selector: shouldStartLocationPermissionFlowSelector,
     });
@@ -152,7 +157,10 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                     if (ignore) {
                         return;
                     }
-                    setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
+                    setUserLocation({
+                        longitude: successData.coords.longitude,
+                        latitude: successData.coords.latitude,
+                    });
                 },
                 () => {},
             );
@@ -172,10 +180,16 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
     };
 
+    const participant = participants.at(0);
+    // Resolve tags reactively from the report (money-request report vs its chat/chat-draft, plus participant); the chat report may load after first render.
+    const policyTagList = useMoneyRequestPolicyTagsForReport({
+        report,
+        currentUserAccountID: currentUserPersonalDetails.accountID,
+    });
+
     const submitDirectly = (files: ReceiptFile[], locationPermissionGranted: boolean) => {
         cancelShutterSpans();
 
-        const participant = participants.at(0);
         const {chatReportID, optimisticChatReportID} = resolveChatTargetForScan({
             iouType,
             participant,
@@ -274,7 +288,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             activePolicyID,
             files,
             participant,
-            policyParams: {policy},
+            policyParams: {policy, policyTagList},
             billable: false,
             reimbursable: defaultReimbursable,
             isSelfTourViewed,
@@ -304,6 +318,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                         optimisticChatReportID: chatReportID,
                         linkedTrackedExpenseReportAction,
                     });
+
                 if (locationPermissionGranted) {
                     getCurrentPosition(
                         (successData) => {
