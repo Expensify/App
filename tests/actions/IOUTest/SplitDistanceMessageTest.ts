@@ -12,6 +12,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {hasDefinedProperty, isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -129,14 +130,6 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
 
     type UpdateMoneyRequestOnyxEntry = OnyxUpdate<UpdateMoneyRequestDataKeys>;
     type TransactionUpdateEntry = UpdateMoneyRequestOnyxEntry & {value: Partial<Transaction>};
-
-    function isObject(value: unknown): value is Record<PropertyKey, unknown> {
-        return value !== null && typeof value === 'object';
-    }
-
-    function hasDefinedProperty(value: unknown, property: PropertyKey) {
-        return isObject(value) && property in value && value[property] !== undefined;
-    }
 
     function hasDefinedAmount(value: unknown): value is Partial<Transaction> & Pick<Transaction, 'amount'> {
         return isObject(value) && typeof value.amount === 'number';
