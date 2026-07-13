@@ -9,7 +9,7 @@
  * module's `expo-module.config.json`, resolved by expo autolinking as a Maven dependency) and as
  * `.xcframework` binaries on iOS. When a module is consumed prebuilt, its source under `node_modules`
  * is NEVER compiled, so a patch-package patch to that source applies to `node_modules` cleanly, the
- * build succeeds, and the patch is SILENTLY IGNORED. This is a documented footgun
+ * build succeeds, and the patch is SILENTLY IGNORED. This is a documented design flaw
  * (https://docs.expo.dev/guides/prebuilt-expo-modules/) with no build-time error.
  *
  * The escape hatch is `expo.autolinking.<platform>.buildFromSource` in package.json: listing the
