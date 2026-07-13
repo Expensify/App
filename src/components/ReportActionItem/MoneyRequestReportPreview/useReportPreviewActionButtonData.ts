@@ -1,3 +1,7 @@
+/**
+ * Subscribes to the Onyx data shared by the money-request report-preview action buttons
+ * (Submit / Approve / Pay) and returns it as a single object.
+ */
 import useOnyx from '@hooks/useOnyx';
 
 import ONYXKEYS from '@src/ONYXKEYS';
