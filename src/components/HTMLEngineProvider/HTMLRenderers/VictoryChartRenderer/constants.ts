@@ -15,4 +15,7 @@ const CHART_TYPE = {
 /** Gap left between a left-axis label and the chart's outer edge when `padding.left` is shrunk to fit the label content. */
 const LEFT_AXIS_LABEL_PADDING = 32;
 
-export {X_KEY, Y_KEY_PREFIX, LABEL_KEY, VALUE_KEY, COLOR_KEY, CHART_TYPE, LEFT_AXIS_LABEL_PADDING};
+/** Max gap between a left-axis label and the chart it labels, clamping the XML-provided `tickLabels.padding` when that value is larger. */
+const LEFT_AXIS_LABEL_OFFSET_MAX = 16;
+
+export {X_KEY, Y_KEY_PREFIX, LABEL_KEY, VALUE_KEY, COLOR_KEY, CHART_TYPE, LEFT_AXIS_LABEL_PADDING, LEFT_AXIS_LABEL_OFFSET_MAX};

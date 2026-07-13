@@ -1,3 +1,4 @@
+import {LEFT_AXIS_LABEL_OFFSET_MAX} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getFontGlyphWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getFontGlyphWidth';
 import {
@@ -83,6 +84,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     }
     if (isHorizontal) {
         const axisSide = orientation === 'top' ? 'right' : 'left';
+        const resolvedLabelOffset = axisSide === 'left' && labelOffset !== undefined ? Math.min(labelOffset, LEFT_AXIS_LABEL_OFFSET_MAX) : labelOffset;
         return {
             yAxis: [
                 {
@@ -93,11 +95,11 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
                     lineColor,
                     lineWidth,
                     labelColor,
-                    labelOffset,
+                    labelOffset: resolvedLabelOffset,
                     font,
                 },
             ],
-            leftAxisLabelPadding: computeLeftAxisLabelPadding(axisSide, labelsForMeasurement, font, labelOffset),
+            leftAxisLabelPadding: computeLeftAxisLabelPadding(axisSide, labelsForMeasurement, font, resolvedLabelOffset),
         };
     }
     return {
