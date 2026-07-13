@@ -1,12 +1,16 @@
+import LoadingIndicator from '@components/LoadingIndicator';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
 // eslint-disable-next-line import/extensions
 import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
-import LoadingIndicator from '@components/LoadingIndicator';
-import useThemeStyles from '@hooks/useThemeStyles';
-import PDFThumbnailError from './PDFThumbnailError';
+
 import type PDFThumbnailProps from './types';
+
+import PDFThumbnailError from './PDFThumbnailError';
 
 pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
 
@@ -20,7 +24,9 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLo
                 loading={<LoadingIndicator />}
                 file={previewSourceURL}
                 options={{
-                    cMapUrl: 'cmaps/',
+                    // Use a root-relative URL so the CMap files (needed to render non-Latin fonts)
+                    // resolve against the server root instead of the current deep route.
+                    cMapUrl: '/cmaps/',
                     cMapPacked: true,
                 }}
                 externalLinkTarget="_blank"

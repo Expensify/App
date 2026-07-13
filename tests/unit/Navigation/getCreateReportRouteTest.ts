@@ -1,5 +1,6 @@
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import createDynamicRoute from '@src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@src/libs/Navigation/helpers/getCreateReportRoute';
@@ -15,10 +16,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@src/libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 describe('getCreateReportRoute', () => {
-    const mockNavigate = Navigation.navigate as jest.MockedFunction<typeof Navigation.navigate>;
-    const mockGetActiveRoute = Navigation.getActiveRoute as jest.MockedFunction<typeof Navigation.getActiveRoute>;
-    const mockSetNavigationActionToMicrotaskQueue = Navigation.setNavigationActionToMicrotaskQueue as jest.MockedFunction<typeof Navigation.setNavigationActionToMicrotaskQueue>;
-    const mockIsSearchTopmostFullScreenRoute = isSearchTopmostFullScreenRoute as jest.MockedFunction<typeof isSearchTopmostFullScreenRoute>;
+    const mockNavigate = jest.mocked(Navigation.navigate);
+    const mockGetActiveRoute = jest.mocked(Navigation.getActiveRoute);
+    const mockSetNavigationActionToMicrotaskQueue = jest.mocked(Navigation.setNavigationActionToMicrotaskQueue);
+    const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
 
     beforeEach(() => {
         jest.clearAllMocks();

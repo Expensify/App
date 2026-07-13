@@ -1,10 +1,13 @@
+import type {RenderAPI} from '@testing-library/react-native';
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {canApproveIOU, canSubmitReport} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -13,24 +16,18 @@ import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils'
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportMetadata, Transaction, TransactionViolations} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import currencyList from './currencyList.json';
+import initCurrencyListContext from '../utils/initCurrencyListContext';
 
 const testDate = DateUtils.getDBTime();
 const currentUserAccountID = 5;
-
-function initCurrencyList() {
-    Onyx.init({
-        keys: ONYXKEYS,
-        initialKeyStates: {
-            [ONYXKEYS.CURRENCY_LIST]: currencyList,
-        },
-    });
-    return waitForBatchedUpdates();
-}
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -42,7 +39,16 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 describe('IOUUtils', () => {
     describe('calculateAmount', () => {
-        beforeAll(() => initCurrencyList());
+        let currencyListProvider: RenderAPI;
+
+        beforeEach(async () => {
+            currencyListProvider = await initCurrencyListContext({keys: ONYXKEYS});
+        });
+
+        afterEach(async () => {
+            currencyListProvider.unmount();
+            await Onyx.clear();
+        });
 
         test('103 JPY split among 3 participants including the default user should be [35, 34, 34]', () => {
             const participantsAccountIDs = [100, 101];
@@ -95,8 +101,6 @@ describe('IOUUtils', () => {
         });
 
         describe('calculateAmount - floorToLast rounding', () => {
-            beforeAll(() => initCurrencyList());
-
             test('Positive total: remainder added entirely to default user', () => {
                 // $10.00 among 3 -> base 3.33, remainder 0.01 -> default gets 3.34
                 const numberOfSplits = 2; // total participants = 3
@@ -789,6 +793,35 @@ describe('canApproveIOU', () => {
         expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
     });
 
+    it('should return true for Submit workspace report when user is manager', async () => {
+        const report: Report = {
+            ...createRandomReport(Number(REPORT_ID), undefined),
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: 999,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: currentUserAccountID,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT),
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+        };
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(123),
+            reportID: REPORT_ID,
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            status: undefined,
+        };
+
+        expect(canApproveIOU(report, policy, {}, currentUserAccountID, [transaction])).toBe(true);
+    });
+
     it('should return false for non-expense report', async () => {
         // Given a non-expense report
         const report = {
@@ -830,9 +863,9 @@ describe('getExistingTransactionID', () => {
             reportActionID: 'action1',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             created: '',
+            reportID: 'report456',
             originalMessage: {
                 IOUTransactionID: 'txn123',
-                IOUReportID: 'report456',
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
         } as unknown as Parameters<typeof IOUUtils.getExistingTransactionID>[0];
@@ -942,6 +975,140 @@ describe('getExistingTransactionID', () => {
             const harvestingDisabledPolicy: Policy = {...policyForResolve, harvesting: {enabled: false}};
             expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport: processingPick, routeReport, policy: harvestingDisabledPolicy})).toBeUndefined();
         });
+    });
+
+    describe('updateIOUOwnerAndTotal', () => {
+        const baseIOUReport = {
+            reportID: '1',
+            currency: 'USD',
+            ownerAccountID: 1,
+            managerID: 2,
+            total: 5000,
+            unheldTotal: 5000,
+            reimbursableTotal: 5000,
+            unheldReimbursableTotal: 5000,
+            chatReportID: '0',
+            stateNum: 1,
+            statusNum: 1,
+        } as Report;
+
+        test('mirrors total update onto reimbursableTotal when actor is the owner adding amount', () => {
+            const updated = IOUUtils.updateIOUOwnerAndTotal(baseIOUReport, 1, 2000, 'USD');
+            expect(updated?.total).toBe(7000);
+            expect(updated?.reimbursableTotal).toBe(7000);
+            expect(updated?.unheldTotal).toBe(7000);
+            expect(updated?.unheldReimbursableTotal).toBe(7000);
+        });
+
+        test('mirrors total update onto reimbursableTotal when actor is the manager (subtracts)', () => {
+            const updated = IOUUtils.updateIOUOwnerAndTotal(baseIOUReport, 2, 2000, 'USD');
+            expect(updated?.total).toBe(3000);
+            expect(updated?.reimbursableTotal).toBe(3000);
+            expect(updated?.unheldTotal).toBe(3000);
+            expect(updated?.unheldReimbursableTotal).toBe(3000);
+        });
+
+        test('mirrors total update onto reimbursableTotal when deleting an expense by the owner', () => {
+            const updated = IOUUtils.updateIOUOwnerAndTotal(baseIOUReport, 1, 1500, 'USD', true);
+            expect(updated?.total).toBe(3500);
+            expect(updated?.reimbursableTotal).toBe(3500);
+        });
+
+        test('flips reimbursableTotal sign when total goes negative and owner/manager swap', () => {
+            const smallReport = {...baseIOUReport, total: 1000, reimbursableTotal: 1000, unheldTotal: 1000, unheldReimbursableTotal: 1000};
+            // Manager subtracts a larger amount than the report total, flipping the sign
+            const updated = IOUUtils.updateIOUOwnerAndTotal(smallReport, 2, 2500, 'USD');
+            expect(updated?.ownerAccountID).toBe(2);
+            expect(updated?.managerID).toBe(1);
+            expect(updated?.total).toBe(1500);
+            expect(updated?.reimbursableTotal).toBe(1500);
+            expect(updated?.unheldTotal).toBe(1500);
+            expect(updated?.unheldReimbursableTotal).toBe(1500);
+        });
+
+        test('seeds reimbursableTotal from total when the freshly tracked field is missing', () => {
+            // Older locally cached IOU reports will not have reimbursableTotal yet, so the helper should
+            // start from total and apply the diff there.
+            const legacyReport = {...baseIOUReport, reimbursableTotal: undefined, unheldReimbursableTotal: undefined} as Report;
+            const updated = IOUUtils.updateIOUOwnerAndTotal(legacyReport, 1, 1000, 'USD');
+            expect(updated?.total).toBe(6000);
+            expect(updated?.reimbursableTotal).toBe(6000);
+            expect(updated?.unheldReimbursableTotal).toBe(6000);
+        });
+
+        test('skips the unheld mirror when the transaction is on hold', () => {
+            const updated = IOUUtils.updateIOUOwnerAndTotal(baseIOUReport, 1, 2000, 'USD', false, false, true);
+            expect(updated?.total).toBe(7000);
+            expect(updated?.reimbursableTotal).toBe(7000);
+            // unheld values should not change because the transaction is on hold
+            expect(updated?.unheldTotal).toBe(5000);
+            expect(updated?.unheldReimbursableTotal).toBe(5000);
+        });
+    });
+});
+
+describe('formatCurrentUserToAttendee', () => {
+    test('returns undefined when current user has no login or display name', () => {
+        const currentUser = {
+            accountID: 2840332,
+        };
+
+        expect(IOUUtils.formatCurrentUserToAttendee(currentUser)).toBeUndefined();
+    });
+
+    test('returns undefined when current user has only a display name', () => {
+        const currentUser = {
+            accountID: 2840332,
+            displayName: 'John Smith',
+        };
+
+        expect(IOUUtils.formatCurrentUserToAttendee(currentUser)).toBeUndefined();
+    });
+
+    test('uses login and display name when current user login exists', () => {
+        const currentUser = {
+            accountID: 2840332,
+            login: 'john.smith@example.com',
+            displayName: 'John Smith',
+        };
+
+        const attendees = IOUUtils.formatCurrentUserToAttendee(currentUser);
+
+        expect(attendees).toEqual([
+            {
+                email: 'john.smith@example.com',
+                login: 'john.smith@example.com',
+                displayName: 'John Smith',
+                avatarUrl: '',
+                accountID: 2840332,
+                text: 'John Smith',
+                selected: true,
+                reportID: undefined,
+            },
+        ]);
+    });
+
+    test('uses session email when current user login is missing', () => {
+        const currentUser = {
+            accountID: 2840332,
+            email: 'john.smith@example.com',
+            displayName: '',
+        };
+
+        const attendees = IOUUtils.formatCurrentUserToAttendee(currentUser);
+
+        expect(attendees).toEqual([
+            {
+                email: 'john.smith@example.com',
+                login: 'john.smith@example.com',
+                displayName: 'john.smith@example.com',
+                avatarUrl: '',
+                accountID: 2840332,
+                text: 'john.smith@example.com',
+                selected: true,
+                reportID: undefined,
+            },
+        ]);
     });
 });
 

@@ -1,22 +1,27 @@
-import React, {useEffect} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+
 import useInitialOnyxValue from '@hooks/useInitialOnyxValue';
 import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
+
 import {clearCardListErrors, reportVirtualExpensifyCardFraud} from '@libs/actions/Card';
-import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import {clearValidateCodeActionError} from '@userActions/User';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect} from 'react';
 
 type ReportVirtualCardFraudVerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD>;
 
@@ -80,7 +85,6 @@ function ReportVirtualCardFraudVerifyAccountPage({
             validateError={{...cardError, ...codeError}}
             clearError={handleClearError}
             onClose={() => {
-                resetValidateActionCodeSent();
                 Navigation.goBack(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(cardID));
             }}
         />
