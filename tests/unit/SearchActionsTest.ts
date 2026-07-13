@@ -10,7 +10,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
-const EXPENSE_STATUS_ALL = CONST.SEARCH.STATUS.EXPENSE.ALL;
 const translateForTest: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
 
 jest.mock('@libs/API');
@@ -43,7 +42,6 @@ describe('queueExportSearchItemsToCSV', () => {
 
     it('sets optimistic Onyx data with state preparing and returns exportID', () => {
         const exportID = queueExportSearchItemsToCSV({
-            query: EXPENSE_STATUS_ALL,
             jsonQuery: '{}',
             reportIDList: [],
             transactionIDList: [],
@@ -74,7 +72,6 @@ describe('queueExportSearchItemsToCSV', () => {
 
     it('includes excluded transaction IDs in the queued CSV payload', () => {
         queueExportSearchItemsToCSV({
-            query: EXPENSE_STATUS_ALL,
             jsonQuery: '{}',
             reportIDList: [],
             transactionIDList: ['tx1'],
@@ -89,7 +86,6 @@ describe('queueExportSearchItemsToCSV', () => {
 
     it('does not add an exclusion field when there are no exclusions', () => {
         queueExportSearchItemsToCSV({
-            query: EXPENSE_STATUS_ALL,
             jsonQuery: '{}',
             reportIDList: [],
             transactionIDList: ['tx1'],
@@ -110,7 +106,6 @@ describe('exportSearchItemsToCSV', () => {
 
         exportSearchItemsToCSV(
             {
-                query: EXPENSE_STATUS_ALL,
                 jsonQuery: '{}',
                 reportIDList: [],
                 transactionIDList: ['tx1'],
