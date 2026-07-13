@@ -2,7 +2,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import {
     containsHtmlTag,
-    containsLatinCharacter,
+    isValidNameOnCard,
     getAgeRequirementError,
     getInvalidAddressErrorTranslationPath,
     isInvalidMerchantValue,
@@ -382,18 +382,19 @@ describe('ValidationUtils', () => {
         });
     });
 
-    describe('containsLatinCharacter', () => {
+    describe('isValidNameOnCard', () => {
         test('Valid card embossing name', () => {
-            expect(containsLatinCharacter('John1')).toBe(true);
-            expect(containsLatinCharacter('John Smith')).toBe(true);
-            expect(containsLatinCharacter('123John')).toBe(true);
-            expect(containsLatinCharacter(`X Æ A-12`)).toBe(true);
+            expect(isValidNameOnCard('John1')).toBe(true);
+            expect(isValidNameOnCard('John Smith')).toBe(true);
+            expect(isValidNameOnCard('12345')).toBe(true);
+            expect(isValidNameOnCard('άλφα')).toBe(true);
+            expect(isValidNameOnCard(`X Æ A-12`)).toBe(true);
         });
 
         test('Invalid card embossing name', () => {
-            expect(containsLatinCharacter('12345')).toBe(false);
-            expect(containsLatinCharacter('άλφα')).toBe(false);
-            expect(containsLatinCharacter('')).toBe(false);
+            expect(isValidNameOnCard('<script>')).toBe(false);
+            expect(isValidNameOnCard('John>')).toBe(false);
+            expect(isValidNameOnCard('<John')).toBe(false);
         });
     });
 

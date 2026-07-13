@@ -429,11 +429,11 @@ function isValidLegalName(name: string): boolean {
 }
 
 /**
- * Checks that the provided name contains at least one Latin character.
- * Used for card embossing names, which may include digits and other characters.
+ * Checks that the provided name on card does not contain disallowed characters.
+ * Most characters are allowed; the backend sanitizes the value before embossing.
  */
-function containsLatinCharacter(name: string): boolean {
-    return CONST.REGEX.CONTAINS_LATIN_CHARS.test(name);
+function isValidNameOnCard(name: string): boolean {
+    return !CONST.REGEX.NAME_ON_CARD_INVALID_CHARS.test(name);
 }
 
 /**
@@ -923,7 +923,7 @@ export {
     isValidTaxID,
     isValidValidateCode,
     isValidCompanyName,
-    containsLatinCharacter,
+    isValidNameOnCard,
     isValidDisplayName,
     isValidLegalName,
     doesContainReservedWord,
