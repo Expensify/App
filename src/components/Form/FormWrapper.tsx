@@ -202,7 +202,7 @@ function FormWrapper({
             isDisabled={isSubmitDisabled}
             isAlertVisible={isAlertVisible}
             isLoading={isLoading}
-            message={!serverErrorFields || isEmptyObject(serverErrorFields) ? serverErrorMessage : undefined}
+            message={isEmptyObject(serverErrorFields) ? serverErrorMessage : undefined}
             onSubmit={onSubmit}
             footerContent={footerContent}
             onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}

@@ -552,7 +552,6 @@ function FormProvider({
                 serverErrorMessage={errorMessage}
                 isLoading={!!formState?.isLoading || isLoading}
                 enabledWhenOffline={enabledWhenOffline}
-                shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}
                 ref={formWrapperRef}
