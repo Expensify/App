@@ -31,8 +31,7 @@ const DEFAULT_CONTEXT: MfaContext = {
 /**
  * MFA state machine. The top level models the modal lifecycle (`closed` -> `open` -> `closing`); the
  * child states of `open` map 1:1 to the screen the user currently sees. Later slices add screens as
- * `open` children, per-screen work as child states of its screen, and events shared by every screen
- * (e.g. SET_ERROR) on `open` itself.
+ * `open` children and per-screen work as child states of its screen.
  *
  * No state is `final`: one long-lived actor serves every MFA flow (a top-level final state would
  * stop it).
@@ -103,9 +102,6 @@ const MFAMachine = setup({
             initial: MFA_STATE.PREPARING,
             on: {
                 CLOSE_MODAL: {target: MFA_STATE.CLOSING, actions: 'hideCancelConfirmModal'},
-                // Any open state can hit a fatal error. It records the error and ends the flow on the
-                // failure outcome, where the screen is chosen from the error reason.
-                SET_ERROR: {target: FAILURE_TARGET, actions: assign({error: ({event}) => event.error})},
             },
             states: {
                 // The transparent initial screen. Its child states run the pre-screen work the user

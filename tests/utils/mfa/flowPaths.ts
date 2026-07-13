@@ -61,9 +61,6 @@ type MfaEventFixtures = {
  */
 const MFA_GRAPH_EVENT_FIXTURES = {
     INIT: [createInitEvent()],
-    // The UI cannot produce SET_ERROR directly, so this fixture only serves machine-level traversal
-    // and `getWalkedPaths` filters out the paths that need it.
-    SET_ERROR: [{type: 'SET_ERROR', error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION, 'Graph-traversal fixture error')}],
     CLOSE_MODAL: [{type: 'CLOSE_MODAL'}],
     MODAL_CLOSED: [{type: 'MODAL_CLOSED'}],
 } satisfies MfaEventFixtures;
@@ -106,7 +103,6 @@ const INIT_STEP_EVENT_TYPE = 'xstate.init';
 const DELAYED_EVENT_PREFIX = 'xstate.after';
 const ACTOR_DONE_EVENT_PREFIX = 'xstate.done.actor.';
 const ACTOR_ERROR_EVENT_PREFIX = 'xstate.error.actor.';
-const UI_UNPRODUCIBLE_EVENT_TYPES = new Set<string>(['SET_ERROR']);
 
 type ActorOutcome = {kind: 'resolve'; output: unknown} | {kind: 'reject'};
 type PathSteps = ReadonlyArray<{event: {type: string; output?: unknown}}>;
@@ -138,12 +134,11 @@ function getActorOutcomes(steps: PathSteps): Record<string, ActorOutcome> {
 
 /**
  * A path is UI-drivable when the walk can produce every step. A delayed transition would need real
- * timers and a standalone SET_ERROR has no UI gesture, so a path containing either is not drivable.
- * Actor completion events are auto-driven by promise settlement and stay in the path so their
- * expected outcomes can configure the actor mocks.
+ * timers, so a path containing one is not drivable. Actor completion events are auto-driven by promise
+ * settlement and stay in the path so their expected outcomes can configure the actor mocks.
  */
 function isUiDrivablePath(path: {steps: PathSteps}): boolean {
-    return path.steps.every((step) => !step.event.type.startsWith(DELAYED_EVENT_PREFIX) && !UI_UNPRODUCIBLE_EVENT_TYPES.has(step.event.type));
+    return path.steps.every((step) => !step.event.type.startsWith(DELAYED_EVENT_PREFIX));
 }
 
 /**
@@ -205,10 +200,9 @@ function getDrivingJourneyPaths() {
 /**
  * Returns the generated coverage paths plus the explicit driving journeys. The journeys are needed
  * because a shortest path can be empty, such as the path to the initial `closed` state, so the
- * generated paths alone would never drive the teardown. Paths with a delayed step or a standalone
- * `SET_ERROR` are filtered out because the UI walk cannot drive them; the failure state remains
- * covered through the device-check actor's error path. `everyStateReachable.test.ts` checks
- * stable-state reachability over the unfiltered graph, while the walk-coverage guard in
+ * generated paths alone would never drive the teardown. Paths with a delayed step are filtered out
+ * because the UI walk cannot drive them. `everyStateReachable.test.ts` checks stable-state
+ * reachability over the unfiltered graph, while the walk-coverage guard in
  * `viewMatchesMachine.test.tsx` catches a state that loses every UI-drivable route.
  *
  * `path.test` skips a step whose event has no executor, which keeps framework steps such as

@@ -52,7 +52,7 @@ type MfaEventType = MfaEvent['type'];
 type MfaInitEvent = Extract<MfaEvent, {type: 'INIT'}>;
 type MfaEventExecutorStep<Type extends MfaEventType> = {event: {type: Type}};
 type MfaEventExecutors = {
-    [Type in Exclude<MfaEventType, 'SET_ERROR'>]: (step: MfaEventExecutorStep<Type>) => Promise<void>;
+    [Type in MfaEventType]: (step: MfaEventExecutorStep<Type>) => Promise<void>;
 };
 
 type ExecuteScenario = ReturnType<typeof renderMfaUi>['executeScenario'];
@@ -64,9 +64,8 @@ function isMfaInitEvent(event: {type: string}): event is MfaInitEvent {
 /**
  * Maps every machine event to the action that produces it in the rendered app, such as a button press
  * or a navigator callback. The walk drives each path step through this table, and the `satisfies`
- * clause makes a machine event without an executor fail compilation. `SET_ERROR` is excluded because
- * the UI does not produce it directly; actor failures cover the failure outcome. The executors act on
- * a concrete render, so each test builds them from its own `executeScenario`.
+ * clause makes a machine event without an executor fail compilation. The executors act on a concrete
+ * render, so each test builds them from its own `executeScenario`.
  */
 /* eslint-disable @typescript-eslint/naming-convention -- keys mirror the machine's event type union. */
 function createMfaEventExecutors(executeScenario: ExecuteScenario) {
