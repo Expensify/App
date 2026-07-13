@@ -83,14 +83,13 @@ function SettlementButton({
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, // caret for dropdown is at right, so horizontal anchor is at RIGHT
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
-    buttonSize = CONST.BUTTON_SIZE.MEDIUM,
-    extraSmall = false,
+    size = CONST.BUTTON_SIZE.MEDIUM,
     chatReportID = '',
     currency = CONST.CURRENCY.USD,
     enablePaymentsRoute,
     iouReport,
     isDisabled = false,
-    shouldStayNormalOnDisable = false,
+    stayNormalOnDisable = false,
     isLoading = false,
     formattedAmount = '',
     onPress,
@@ -700,12 +699,11 @@ function SettlementButton({
                     menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
                     isSplitButton={shouldUseSplitButton}
                     isDisabled={isDisabled}
-                    shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+                    stayNormalOnDisable={stayNormalOnDisable}
                     isLoading={isLoading}
                     defaultSelectedIndex={defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0}
                     onPress={(event, iouPaymentType) => handlePaymentSelection(event, iouPaymentType, triggerKYCFlow)}
-                    success={!hasOnlyHeldExpenses}
-                    extraSmall={extraSmall}
+                    variant={!hasOnlyHeldExpenses ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                     secondLineText={secondaryText}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
@@ -722,7 +720,7 @@ function SettlementButton({
                     containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
                     wrapperStyle={[wrapperStyle, shouldLimitWidth ? styles.settlementButtonShortFormWidth : {}]}
                     disabledStyle={disabledStyle}
-                    buttonSize={buttonSize}
+                    size={size}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     useKeyboardShortcuts={useKeyboardShortcuts}

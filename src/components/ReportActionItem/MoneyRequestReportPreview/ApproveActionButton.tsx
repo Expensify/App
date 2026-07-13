@@ -4,6 +4,7 @@ import ExpenseHeaderApprovalButton from '@components/ExpenseHeaderApprovalButton
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -17,13 +18,9 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
-type ApproveActionButtonProps = {
-    iouReportID: string | undefined;
-    startApprovedAnimation: () => void;
-    shouldShowPayButton: boolean;
-};
+import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewData} from './MoneyRequestReportPreviewContext';
 
-function ApproveActionButton({iouReportID, startApprovedAnimation, shouldShowPayButton}: ApproveActionButtonProps) {
+function ApproveActionButton() {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -31,20 +28,26 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, shouldShowPay
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
+    const {iouReportID} = useReportPreviewData();
+    const {shouldShowPayButton} = useReportPreviewActionState();
+    const {startApprovedAnimation} = useReportPreviewActions();
+
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(iouReport?.reportID);
+    const allTransactionValues = Object.values(reportTransactions);
+    const transactions = allTransactionValues;
+    const [transactionViolations] = useReportTransactionViolations(transactions);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(iouReport?.reportID);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(Object.values(reportTransactions));
 
     const onApprove = (full: boolean) => {

@@ -1,4 +1,5 @@
 import useActivePolicy from '@hooks/useActivePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
@@ -276,6 +277,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
+    const delegateAccountID = useDelegateAccountID();
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     // Onboarding task data
     const {
@@ -494,6 +496,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                delegateAccountID,
             });
             existingIOUReport = iouReport;
             if (!iouReport) {
@@ -628,8 +631,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!participant) {
             return;
         }
-        // trackExpense bails per-item on malformed CATEGORIZE/SHARE too late for UI cleanup — reject the batch upfront.
-        const requiresLinkedTracked = action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE;
+        // trackExpense bails per-item on malformed CATEGORIZE/SHARE/SUBMIT too late for UI cleanup — reject the batch upfront.
+        const requiresLinkedTracked = action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.SUBMIT;
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
         }
@@ -707,6 +710,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 reportActionsList: policyExpenseChatReportActions,
                 personalDetailsList: personalDetails,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                delegateAccountID,
             });
         }
         performPostBatchCleanup({
@@ -775,6 +779,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             recentWaypoints,
             betas,
             previousOdometerDraft: odometerDraft,
+            delegateAccountID,
         });
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
@@ -959,10 +964,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
-        if (!isPerDiemRequest && (isTrackExpense || isCategorizingTrackExpense || isSharingTrackExpense)) {
+        // "Submit to my employer" with no existing workspace creates a draft Submit (submit2026) workspace. Route it
+        // through trackExpense (AddTrackedExpenseToPolicy) so the workspace is created and the expense submitted
+        // atomically, instead of requestMoney/ConvertTrackedExpenseToRequest which can't create a workspace.
+        // Scoped to submit2026 drafts only so other (team/corporate) draft flows keep their existing behavior.
+        const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy && policy?.type === CONST.POLICY.TYPE.SUBMIT;
+
+        if (!isPerDiemRequest && (isTrackExpense || isCategorizingTrackExpense || isSharingTrackExpense || isSubmittingExpenseToDraftWorkspace)) {
             if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-                if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
+                if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && !isSubmittingExpenseToDraftWorkspace && locationPermissionGranted) {
                     if (userLocation) {
                         trackExpense(shouldHandleNavigation, {
                             gpsPoint: {lat: userLocation.latitude, long: userLocation.longitude},

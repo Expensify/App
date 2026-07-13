@@ -814,23 +814,24 @@ describe('actions/User', () => {
         const TEST_USER_ACCOUNT_ID = 42;
         const TEST_USER_EMAIL = 'user@example.com';
         const TEST_CONCIERGE_REPORT_ID = '999';
+        const TEST_POLICY_ID = '123';
 
         it('should call RESPOND_TO_PROACTIVE_APP_REVIEW API with the given response', async () => {
-            UserActions.respondToProactiveAppReview('positive', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined);
+            UserActions.respondToProactiveAppReview('positive', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined, TEST_POLICY_ID);
             await waitForBatchedUpdates();
 
             expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, expect.objectContaining({response: 'positive'}), expect.anything());
         });
 
         it('should call RESPOND_TO_PROACTIVE_APP_REVIEW API with skip response', async () => {
-            UserActions.respondToProactiveAppReview('skip', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined);
+            UserActions.respondToProactiveAppReview('skip', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined, TEST_POLICY_ID);
             await waitForBatchedUpdates();
 
             expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, expect.objectContaining({response: 'skip'}), expect.anything());
         });
 
         it('should include optimisticReportActionID when message and conciergeChatReportID are provided for non-skip response', async () => {
-            UserActions.respondToProactiveAppReview('positive', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined, 'Great app!', TEST_CONCIERGE_REPORT_ID);
+            UserActions.respondToProactiveAppReview('positive', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined, TEST_POLICY_ID, 'Great app!', TEST_CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
             expect(mockAPI.write).toHaveBeenCalledWith(
@@ -844,7 +845,7 @@ describe('actions/User', () => {
         });
 
         it('should NOT include optimisticReportActionID when response is skip even with message', async () => {
-            UserActions.respondToProactiveAppReview('skip', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined, 'Some message', TEST_CONCIERGE_REPORT_ID);
+            UserActions.respondToProactiveAppReview('skip', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined, TEST_POLICY_ID, 'Some message', TEST_CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
             expect(mockAPI.write).toHaveBeenCalledWith(
@@ -859,12 +860,12 @@ describe('actions/User', () => {
             await Onyx.merge(ONYXKEYS.NVP_APP_REVIEW, currentReview);
             await waitForBatchedUpdates();
 
-            UserActions.respondToProactiveAppReview('negative', currentReview, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined);
+            UserActions.respondToProactiveAppReview('negative', currentReview, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined, TEST_POLICY_ID);
             await waitForBatchedUpdates();
 
             expect(mockAPI.write).toHaveBeenCalledWith(
                 WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW,
-                expect.objectContaining({response: 'negative'}),
+                expect.objectContaining({response: 'negative', policyID: TEST_POLICY_ID}),
                 expect.objectContaining({
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
