@@ -309,6 +309,7 @@ function PaymentMethodList({
                 const isCardBroken = isCardConnectionBroken(card);
                 const isCardInactiveState = isCardInactive(card);
                 const shouldShowCardConnectionMessage = shouldShowConnectionStatus && (isCardBroken || shouldShowRBR || isCardInactiveState);
+                const shouldShowCardErrorMessages = !shouldShowCardConnectionMessage || !!card.pendingAction;
                 const shouldShowCardLastSync = shouldShowConnectionStatus && !isExpensifyCard(card) && !isCSVCard;
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {
@@ -405,6 +406,7 @@ function PaymentMethodList({
                         shouldShowRightIcon,
                         shouldShowThreeDotsMenu: !isUserPersonalCard,
                         errors: isUserPersonalCard ? undefined : card.errors,
+                        shouldShowErrorMessages: !isUserPersonalCard && shouldShowCardErrorMessages,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator,
@@ -482,6 +484,7 @@ function PaymentMethodList({
                     interactive: !isDisabled,
                     disabled: isDisabled,
                     errors: card.errors,
+                    shouldShowErrorMessages: shouldShowCardErrorMessages,
                     canDismissError: true,
                     pendingAction: card.pendingAction,
                     brickRoadIndicator,

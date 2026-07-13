@@ -77,6 +77,7 @@ type PaymentMethodItem = PaymentMethod & {
     /** Whether the personal bank account is missing required personal info (name, address, phone) */
     isMissingPersonalInfo?: boolean;
     connectionStatus?: ConnectionStatusDetails;
+    shouldShowErrorMessages?: boolean;
     /** Whether to show the "Add details" CTA row below a virtual Expensify Card when personal details are missing */
     shouldShowMissingPersonalDetailsAction?: boolean;
 } & BankIcon;
@@ -240,7 +241,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             pendingAction={item.pendingAction}
             errors={item.errors}
             errorRowStyles={styles.paymentMethodErrorRow}
-            shouldShowErrorMessages={!!item.errors}
+            shouldShowErrorMessages={!!item.errors && (item.shouldShowErrorMessages ?? true)}
         >
             {connectionStatus ? (
                 <Hoverable>
