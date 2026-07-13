@@ -1403,6 +1403,75 @@ function getCardProgramKey(cardSettings: OnyxEntry<ExpensifyCardSettings>): Card
     });
 }
 
+/**
+ * A single settings NVP can hold more than one provisioned Expensify Card program (e.g. a domain with both a US and a GB feed).
+ * The user-selectable programs are US and GB; CURRENT is deprecated and TRAVEL_US is backend-managed, so neither is offered as its own row.
+ * Returns the configured program keys in display order (US before GB).
+ */
+function getConfiguredExpensifyCardProgramKeys(cardSettings: OnyxEntry<ExpensifyCardSettings>): CardProgramKey[] {
+    if (!cardSettings) {
+        return [];
+    }
+
+    const selectableProgramKeys: CardProgramKey[] = [CONST.COUNTRY.US, CONST.COUNTRY.GB];
+    return selectableProgramKeys.filter((key) => {
+        const nested = cardSettings[key];
+        return nested != null && typeof nested === 'object' && !Array.isArray(nested) && nested.paymentBankAccountID != null;
+    });
+}
+
+/**
+ * Maps a card to the program it belongs to. Cards on the UK/EU program carry `feedCountry === 'GB'`; every other card
+ * (US program, or pre-2024 cards that omit `feedCountry`/use the deprecated `CURRENT` value) is treated as US.
+ */
+function getProgramKeyForCard(card: Card | undefined): CardProgramKey {
+    return card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB ? CONST.COUNTRY.GB : CONST.COUNTRY.US;
+}
+
+/** Whether a card belongs to the given program, so a single `cards_{fundID}_Expensify Card` list can be split per program. */
+function isCardInProgram(card: Card | undefined, programKey: CardProgramKey): boolean {
+    return getProgramKeyForCard(card) === programKey;
+}
+
+/**
+ * A single `cards_{fundID}_Expensify Card` Onyx list holds every card for the feed regardless of program (the backend keys
+ * Expensify Card settings/cards by fundID, not by country). This keeps only the cards belonging to `programKey`, preserving the
+ * `cardList` meta entry. When no program is given, the list is returned unchanged.
+ */
+function filterCardsListByProgram(cardsList: WorkspaceCardsList | undefined, programKey: CardProgramKey | undefined): WorkspaceCardsList | undefined {
+    if (!cardsList || !programKey) {
+        return cardsList;
+    }
+
+    const result: WorkspaceCardsList = {};
+    if (cardsList.cardList) {
+        result.cardList = cardsList.cardList;
+    }
+    forEachAssignedCard(cardsList, (card) => {
+        if (!isCardInProgram(card, programKey)) {
+            return;
+        }
+        result[card.cardID.toString()] = card;
+    });
+    return result;
+}
+
+/**
+ * Country suffix appended to a feed's label when a domain has more than one program, so the rows are distinguishable
+ * (e.g. `deptagency.com` for US and `deptagency.com GB` for GB). US programs stay unsuffixed so single-feed domains look unchanged.
+ */
+function getExpensifyCardProgramCountrySuffix(programKey: CardProgramKey): string {
+    return programKey === CONST.COUNTRY.GB ? CONST.COUNTRY.GB : '';
+}
+
+/**
+ * Narrows a stored program value (e.g. the `lastSelectedExpensifyCardProgram` Onyx string) to a selectable program key.
+ * Only US and GB are user-selectable; anything else (including undefined) falls back to US so single-program feeds are unaffected.
+ */
+function getSelectableCardProgramKey(programKey: string | undefined): CardProgramKey {
+    return programKey === CONST.COUNTRY.GB ? CONST.COUNTRY.GB : CONST.COUNTRY.US;
+}
+
 function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): NestedExpensifyCardSettings | undefined {
     if (!cardSettings) {
         return undefined;
@@ -1433,6 +1502,15 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
         getMergedProgramSettings(CONST.COUNTRY.GB) ??
         (cardSettings as NestedExpensifyCardSettings)
     );
+}
+
+/**
+ * Resolves the settings for the display page's currently-selected program, falling back to auto-detect when that program
+ * is not nested on the NVP. This keeps legacy domains the backend still sends flat (or single-program feeds that default to
+ * US) working, without changing `getCardSettings`, whose strict-`programKey` behavior other callers (e.g. currency resolution) rely on.
+ */
+function getCardSettingsForSelectedProgram(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey | undefined): NestedExpensifyCardSettings | undefined {
+    return getCardSettings(cardSettings, programKey) ?? getCardSettings(cardSettings);
 }
 
 /** Backend may nest linkedPolicyIDs under each program block (not only on the settings root). */
@@ -2065,7 +2143,14 @@ export {
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
     getCardSettings,
+    getCardSettingsForSelectedProgram,
     getCardProgramKey,
+    getConfiguredExpensifyCardProgramKeys,
+    getProgramKeyForCard,
+    isCardInProgram,
+    filterCardsListByProgram,
+    getExpensifyCardProgramCountrySuffix,
+    getSelectableCardProgramKey,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
     getDomainNameFromExpensifyCardSettings,

@@ -1681,18 +1681,30 @@ function updateSelectedFeed(feed: CompanyCardFeedWithDomainID, policyID: string 
     ]);
 }
 
-function updateSelectedExpensifyCardFeed(feed: number, policyID: string | undefined) {
+function updateSelectedExpensifyCardFeed(feed: number, policyID: string | undefined, programKey?: CardProgramKey) {
     if (!policyID) {
         return;
     }
 
-    Onyx.update([
+    const updates: Parameters<typeof Onyx.update>[0] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`,
             value: feed,
         },
-    ]);
+    ];
+
+    // A single feed (fundID) can hold more than one program (US/GB). Persist which one is selected so the
+    // card list, currency and details resolve to the right program. Callers that only change the feed leave it untouched.
+    if (programKey) {
+        updates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_PROGRAM}${policyID}`,
+            value: programKey,
+        });
+    }
+
+    Onyx.update(updates);
 }
 
 function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: number) {
