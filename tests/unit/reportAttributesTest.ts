@@ -222,6 +222,56 @@ describe('reportAttributes compute — policy change code flow', () => {
         expect(result?.reports.r3?.reportName).toBe('Old Name 3');
     });
 
+    it('recomputes a child invoice report when only its receiver workspace policy loads', () => {
+        // A B2B invoice keeps the receiver policy on the invoice room, not on the child invoice report
+        // (whose own policyID is the sender). computeReportName reads the receiver policy off the room, so
+        // when the receiver policy arrives in its own batch the child report must recompute too — otherwise
+        // its name stays stale from when it was computed without the receiver policy present.
+        const senderPolicy: Policy = {...basePolicy, id: 'senderPolicy'};
+        const receiverPolicy: Policy = {...basePolicy, id: 'receiverPolicy'};
+
+        const invoiceRoom: Report = {
+            ...createRandomReport(30, CONST.REPORT.CHAT_TYPE.INVOICE),
+            reportID: 'invoiceRoom',
+            policyID: 'senderPolicy',
+            chatReportID: undefined,
+            invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: 'receiverPolicy'},
+        };
+        const invoiceChild: Report = {...createRandomReport(31, undefined), reportID: 'invoiceChild', policyID: 'senderPolicy', chatReportID: 'invoiceRoom'};
+        const invoiceReports: OnyxCollection<Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}invoiceRoom`]: invoiceRoom,
+            [`${ONYXKEYS.COLLECTION.REPORT}invoiceChild`]: invoiceChild,
+        };
+
+        // Seed previousPolicies with just the sender policy, as if it arrived in an earlier batch.
+        config.compute(buildArgs({[`${ONYXKEYS.COLLECTION.POLICY}senderPolicy`]: senderPolicy}, invoiceReports), {
+            currentValue: undefined,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}senderPolicy`]: senderPolicy}},
+        });
+
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                invoiceRoom: {reportName: 'Old Room', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                invoiceChild: {reportName: 'Old Child', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+        };
+
+        // The receiver policy now arrives in its own batch.
+        const bothPolicies: OnyxCollection<Policy> = {
+            [`${ONYXKEYS.COLLECTION.POLICY}senderPolicy`]: senderPolicy,
+            [`${ONYXKEYS.COLLECTION.POLICY}receiverPolicy`]: receiverPolicy,
+        };
+        const result = config.compute(buildArgs(bothPolicies, invoiceReports), {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}receiverPolicy`]: receiverPolicy}},
+        });
+
+        // Both the room (own invoiceReceiver) and the child (receiver read from its parent room) recompute.
+        expect(result?.reports.invoiceRoom?.reportName).not.toBe('Old Room');
+        expect(result?.reports.invoiceChild?.reportName).not.toBe('Old Child');
+    });
+
     it('only recomputes reports for the changed policy when a tracked field changes', () => {
         // Seed previousPolicies by doing an initial compute
         config.compute(buildArgs(), {

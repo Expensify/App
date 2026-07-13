@@ -270,8 +270,21 @@ export default createOnyxDerivedValueConfig({
                 }
                 if (changedPolicyIDs.size > 0) {
                     for (const [reportKey, report] of Object.entries(reports ?? {})) {
-                        const invoiceReceiverPolicyID = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
-                        if ((report?.policyID && changedPolicyIDs.has(report.policyID)) || (invoiceReceiverPolicyID && changedPolicyIDs.has(invoiceReceiverPolicyID))) {
+                        if (!report) {
+                            continue;
+                        }
+                        // The report's own policy — the sender workspace for an invoice.
+                        if (report.policyID && changedPolicyIDs.has(report.policyID)) {
+                            policyChangedReportKeys.push(reportKey);
+                            continue;
+                        }
+                        // An invoice follows its receiver workspace. The invoice room carries the receiver
+                        // on itself; a child invoice report doesn't, so we read it from its parent room
+                        // (chatReportID) — the same place computeReportName looks for the invoice name.
+                        const ownReceiverPolicyID = report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
+                        const room = report.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : undefined;
+                        const roomReceiverPolicyID = room?.invoiceReceiver && 'policyID' in room.invoiceReceiver ? room.invoiceReceiver.policyID : undefined;
+                        if ((ownReceiverPolicyID && changedPolicyIDs.has(ownReceiverPolicyID)) || (roomReceiverPolicyID && changedPolicyIDs.has(roomReceiverPolicyID))) {
                             policyChangedReportKeys.push(reportKey);
                         }
                     }
