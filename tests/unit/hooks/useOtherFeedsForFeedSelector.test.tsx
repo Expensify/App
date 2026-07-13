@@ -1,16 +1,9 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useCardFeedErrors from '@hooks/useCardFeedErrors';
-import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
-import useCompanyCards from '@hooks/useCompanyCards';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
-import useLocalize from '@hooks/useLocalize';
 import useOtherFeedsForFeedSelector from '@hooks/useOtherFeedsForFeedSelector';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
-import useThemeStyles from '@hooks/useThemeStyles';
 
-import * as CardFeedUtilsModule from '@libs/CardFeedUtils';
+import {getVisibleCompanyCardFeedsForSelector} from '@libs/CardFeedUtils';
+import type {CardFeedForDisplay} from '@libs/CardFeedUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,61 +22,103 @@ const mockPolicyCollection = {
     [`${ONYXKEYS.COLLECTION.POLICY}${otherPolicyID.toUpperCase()}`]: {name: 'Other workspace'},
 };
 
-const mockUseOnyx = jest.fn();
+type MockUseOnyxReturn = [unknown, {status?: string}];
+type MockUseLocalizeReturn = {translate: (phrase: string) => string};
+type MockUseThemeStylesReturn = {mr3: {marginRight: number}; cardIcon: Record<string, never>};
+type MockUseCardFeedErrorsReturn = {shouldShowRbrForFeedNameWithDomainID: Record<string, boolean>};
+type MockUseCompanyCardsReturn = {feedName?: string; companyCardFeeds: Record<string, {feed: string}>};
+type MockUseCurrentUserPersonalDetailsReturn = {accountID: number};
+type MockUseFeedKeysWithAssignedCardsReturn = Record<string, true> | undefined;
+
+const mockUseOnyx = jest.fn<MockUseOnyxReturn, [key: string]>();
+const mockUseCardFeedErrors = jest.fn<MockUseCardFeedErrorsReturn, []>();
+const mockUseCompanyCardFeedIcons = jest.fn<Record<string, never>, []>();
+const mockUseCompanyCards = jest.fn<MockUseCompanyCardsReturn, [{policyID: string}]>();
+const mockUseCurrentUserPersonalDetails = jest.fn<MockUseCurrentUserPersonalDetailsReturn, []>();
+const mockUseFeedKeysWithAssignedCards = jest.fn<MockUseFeedKeysWithAssignedCardsReturn, []>();
+const mockUseLocalize = jest.fn<MockUseLocalizeReturn, []>();
+const mockUseThemeIllustrations = jest.fn<Record<string, never>, []>();
+const mockUseThemeStyles = jest.fn<MockUseThemeStylesReturn, []>();
+const mockGetCardFeedIcon = jest.fn<string, []>();
+const mockGetCardFeedWithDomainID = jest.fn<string, [feed: string, fundID: number]>();
+const mockGetCustomOrFormattedFeedName = jest.fn<string, [translate: MockUseLocalizeReturn['translate'], feedName: string, customName?: string]>();
+const mockGetDomainByFundID = jest.fn<{email?: string} | undefined, [allDomains: Record<string, {email?: string}> | undefined, fundID: number]>();
+const mockGetPlaidInstitutionIconUrl = jest.fn<string | undefined, [feedName: string]>();
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: (...args: unknown[]): [unknown, {status?: string}] => mockUseOnyx(...args) as [unknown, {status?: string}],
+    default: (key: string): MockUseOnyxReturn => mockUseOnyx(key),
 }));
 
 jest.mock('@libs/CardFeedUtils', () => ({
     __esModule: true,
-    ...jest.requireActual<typeof CardFeedUtilsModule>('@libs/CardFeedUtils'),
     getVisibleCompanyCardFeedsForSelector: jest.fn(),
+}));
+
+jest.mock('@libs/CardUtils', () => ({
+    __esModule: true,
+    getCardFeedIcon: (): string => mockGetCardFeedIcon(),
+    getCardFeedWithDomainID: (feed: string, fundID: number): string => mockGetCardFeedWithDomainID(feed, fundID),
+    getCustomOrFormattedFeedName: (translate: MockUseLocalizeReturn['translate'], feedName: string, customName?: string): string =>
+        mockGetCustomOrFormattedFeedName(translate, feedName, customName),
+    getDomainByFundID: (allDomains: Record<string, {email?: string}> | undefined, fundID: number): {email?: string} | undefined => mockGetDomainByFundID(allDomains, fundID),
+    getPlaidInstitutionIconUrl: (feedName: string): string | undefined => mockGetPlaidInstitutionIconUrl(feedName),
+}));
+
+jest.mock('@components/Icon', () => ({
+    __esModule: true,
+    default: 'Icon',
+}));
+
+jest.mock('@components/PlaidCardFeedIcon', () => ({
+    __esModule: true,
+    default: 'PlaidCardFeedIcon',
 }));
 
 jest.mock('@hooks/useCompanyCards', () => ({
     __esModule: true,
-    default: jest.fn(),
+    default: ({policyID}: {policyID: string}): MockUseCompanyCardsReturn => mockUseCompanyCards({policyID}),
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: jest.fn(),
+    default: (): MockUseCurrentUserPersonalDetailsReturn => mockUseCurrentUserPersonalDetails(),
 }));
 
 jest.mock('@hooks/useFeedKeysWithAssignedCards', () => ({
     __esModule: true,
-    default: jest.fn(),
+    default: (): MockUseFeedKeysWithAssignedCardsReturn => mockUseFeedKeysWithAssignedCards(),
 }));
 
 jest.mock('@hooks/useCardFeedErrors', () => ({
     __esModule: true,
-    default: jest.fn(),
+    default: (): MockUseCardFeedErrorsReturn => mockUseCardFeedErrors(),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
-    default: jest.fn(),
+    default: (): MockUseLocalizeReturn => mockUseLocalize(),
 }));
 
 jest.mock('@hooks/useThemeStyles', () => ({
     __esModule: true,
-    default: jest.fn(),
+    default: (): MockUseThemeStylesReturn => mockUseThemeStyles(),
 }));
 
 jest.mock('@hooks/useThemeIllustrations', () => ({
     __esModule: true,
-    default: jest.fn(),
+    default: (): Record<string, never> => mockUseThemeIllustrations(),
 }));
 
 jest.mock('@hooks/useCompanyCardIcons', () => ({
     __esModule: true,
-    useCompanyCardFeedIcons: jest.fn(),
+    useCompanyCardFeedIcons: (): Record<string, never> => mockUseCompanyCardFeedIcons(),
 }));
 
-const mockVisibleFeeds = (feeds: CardFeedUtilsModule.CardFeedForDisplay[]): void => {
-    (CardFeedUtilsModule.getVisibleCompanyCardFeedsForSelector as jest.Mock).mockReturnValue(feeds);
+const mockGetVisibleCompanyCardFeedsForSelector = jest.mocked(getVisibleCompanyCardFeedsForSelector);
+
+const mockVisibleFeeds = (feeds: CardFeedForDisplay[]): void => {
+    mockGetVisibleCompanyCardFeedsForSelector.mockReturnValue(feeds);
 };
 
 describe('useOtherFeedsForFeedSelector', () => {
@@ -100,14 +135,19 @@ describe('useOtherFeedsForFeedSelector', () => {
             return [undefined, {}];
         });
 
-        (useLocalize as jest.Mock).mockReturnValue({translate: (phrase: string) => phrase});
-        (useThemeStyles as jest.Mock).mockReturnValue({mr3: {marginRight: 12}, cardIcon: {}});
-        (useThemeIllustrations as jest.Mock).mockReturnValue({});
-        (useCompanyCardFeedIcons as jest.Mock).mockReturnValue({});
-        (useCardFeedErrors as jest.Mock).mockReturnValue({shouldShowRbrForFeedNameWithDomainID: {}});
-        (useCompanyCards as jest.Mock).mockReturnValue({feedName: undefined, companyCardFeeds: {}});
-        (useCurrentUserPersonalDetails as jest.Mock).mockReturnValue({accountID: 999});
-        (useFeedKeysWithAssignedCards as jest.Mock).mockReturnValue(undefined);
+        mockUseLocalize.mockReturnValue({translate: (phrase: string) => phrase});
+        mockUseThemeStyles.mockReturnValue({mr3: {marginRight: 12}, cardIcon: {}});
+        mockUseThemeIllustrations.mockReturnValue({});
+        mockUseCompanyCardFeedIcons.mockReturnValue({});
+        mockUseCardFeedErrors.mockReturnValue({shouldShowRbrForFeedNameWithDomainID: {}});
+        mockUseCompanyCards.mockReturnValue({feedName: undefined, companyCardFeeds: {}});
+        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 999});
+        mockUseFeedKeysWithAssignedCards.mockReturnValue(undefined);
+        mockGetCardFeedIcon.mockReturnValue('mock-icon');
+        mockGetCardFeedWithDomainID.mockImplementation((feed: string, fundID: number) => `${feed}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${fundID}`);
+        mockGetCustomOrFormattedFeedName.mockImplementation((translate: MockUseLocalizeReturn['translate'], feedName: string, customName?: string) => customName ?? translate(feedName));
+        mockGetDomainByFundID.mockImplementation((allDomains: Record<string, {email?: string}> | undefined, fundID: number) => allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`]);
+        mockGetPlaidInstitutionIconUrl.mockReturnValue(undefined);
         mockVisibleFeeds([]);
     });
 
@@ -138,7 +178,7 @@ describe('useOtherFeedsForFeedSelector', () => {
         // Build the key the same way production does (`${feed}${separator}${fundID}`) via a computed property name,
         // which keeps the dotted feed key out of a string literal and avoids a naming-convention violation.
         const activePolicyFeedKey = `oauth.chase.com${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}999`;
-        (useCompanyCards as jest.Mock).mockReturnValue({feedName: undefined, companyCardFeeds: {[activePolicyFeedKey]: {feed: 'oauth.chase.com'}}});
+        mockUseCompanyCards.mockReturnValue({feedName: undefined, companyCardFeeds: {[activePolicyFeedKey]: {feed: 'oauth.chase.com'}}});
         mockVisibleFeeds([
             {
                 id: '999_oauth.chase.com',
@@ -185,7 +225,7 @@ describe('useOtherFeedsForFeedSelector', () => {
 
     it('should set isSelected when feed id matches the selected feed from useCompanyCards', () => {
         const feedId = '999_oauth.chase.com';
-        (useCompanyCards as jest.Mock).mockReturnValue({feedName: feedId, companyCardFeeds: {}});
+        mockUseCompanyCards.mockReturnValue({feedName: feedId, companyCardFeeds: {}});
         mockVisibleFeeds([
             {
                 id: feedId,
@@ -203,7 +243,7 @@ describe('useOtherFeedsForFeedSelector', () => {
 
     it('should surface RBR when shouldShowRbrForFeedNameWithDomainID is true for the feed id', () => {
         const feedId = '999_visa';
-        (useCardFeedErrors as jest.Mock).mockReturnValue({
+        mockUseCardFeedErrors.mockReturnValue({
             shouldShowRbrForFeedNameWithDomainID: {[feedId]: true},
         });
         mockVisibleFeeds([

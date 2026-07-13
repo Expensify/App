@@ -993,8 +993,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Portefeuille',
             },
             addVirtualCardPersonalDetails: {
-                title: 'Ajoutez vos informations personnelles',
-                subtitle: 'Ajoutez vos informations pour afficher et commencer à utiliser votre Carte Expensify.',
+                title: 'Ajoutez vos informations pour voir et commencer à utiliser votre Carte Expensify.',
+                subtitle: 'Carte Expensify',
                 cta: 'Ajouter des détails',
             },
             enterSignerInfo: {title: 'Informations du signataire requises', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Compte bancaire ${bankAccountLastFour}`},
@@ -2158,7 +2158,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstall: 'Veuillez mettre à jour vers la dernière version de New Expensify',
         pleaseInstallExpensifyClassic: 'Veuillez installer la dernière version d’Expensify',
         toGetLatestChanges: 'Sur mobile, téléchargez et installez la dernière version. Sur le web, actualisez votre navigateur.',
-        newAppNotAvailable: "L'application New Expensify n'est plus disponible.",
+        newAppNotAvailable: 'Mettez à jour maintenant et vous nous remercierez plus tard.',
     },
     initialSettingsPage: {
         about: 'À propos',
@@ -9268,6 +9268,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     },
     actionableMentionTrackExpense: {
         submit: 'Soumettre à quelqu’un',
+        submitToFriend: 'Soumettre à un ami',
+        submitToEmployer: 'Soumettre à mon employeur',
         categorize: 'Catégorisez-la',
         share: 'Partager avec mon comptable',
         nothing: 'Rien pour l’instant',

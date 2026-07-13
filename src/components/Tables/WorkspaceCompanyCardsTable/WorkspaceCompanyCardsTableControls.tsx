@@ -181,7 +181,7 @@ function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountI
     return (
         <View style={[styles.w100, styles.ph5, styles.pb3, !shouldUseNarrowTableLayout && styles.flexRow]}>
             <ButtonWithDropdownMenu<WorkspaceCompanyCardBulkActionType>
-                success
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => {}}
                 customText={translate('workspace.common.selected', {count: selectedCards.length})}
                 options={getBulkActionOptions()}
