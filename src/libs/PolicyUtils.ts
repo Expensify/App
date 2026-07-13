@@ -2391,30 +2391,6 @@ function getValidConnectedIntegration(policy: Policy | undefined, connectionName
     return connectionNames.find((integration) => !!policy?.connections?.[integration] && !isConnectionUnverified(policy, integration));
 }
 
-/**
- * Returns a set of connected integration names for the given policies.
- * @param policies - Collection of policies to get connected integrations.
- * @param policyIDs - Policy IDs to filter by. When provided, only integrations from these policies are included.
- */
-function getConnectedIntegrationNamesForPolicies(policies: OnyxCollection<Policy> | undefined, policyIDs?: string[]): Set<string> {
-    if (!policies) {
-        return new Set();
-    }
-
-    const connectedIntegrationNames = new Set<string>();
-    const hasWorkspaceFilter = policyIDs && policyIDs.length > 0;
-    const policiesToCheck = hasWorkspaceFilter ? policyIDs.map((id) => policies[`${ONYXKEYS.COLLECTION.POLICY}${id}`]) : Object.values(policies);
-
-    for (const policy of policiesToCheck) {
-        const connectedIntegration = getValidConnectedIntegration(policy, getAccountingConnectionNames());
-        if (connectedIntegration) {
-            connectedIntegrationNames.add(connectedIntegration);
-        }
-    }
-
-    return connectedIntegrationNames;
-}
-
 function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
     if (!isAccountingConnectionName(connectedIntegration)) {
         return false;
@@ -2449,7 +2425,7 @@ function hasOnlyPersonalPolicies(policies: OnyxCollection<Policy>) {
 }
 
 function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | undefined {
-    return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
+    return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].optimisticPreviousTaxCode === taxID || taxIDKey === taxID);
 }
 
 function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
@@ -2736,6 +2712,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
         policy?.connections?.quickbooksOnline?.config?.export?.exporter,
         policy?.connections?.xero?.config?.export?.exporter,
         policy?.connections?.netsuite?.options?.config?.exporter,
+        policy?.connections?.rillet?.config?.export?.exporter,
     ];
 }
 
@@ -2801,7 +2778,6 @@ export {
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
-    getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
     findVendorByID,
     getMatchingVendorByID,
@@ -2851,6 +2827,7 @@ export {
     isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
+    isPaidGroupPolicyByType,
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,

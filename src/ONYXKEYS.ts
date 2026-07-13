@@ -230,6 +230,9 @@ const ONYXKEYS = {
     /** This NVP contains the training modals the user denied showing again */
     NVP_HAS_SEEN_TRACK_TRAINING: 'nvp_hasSeenTrackTraining',
 
+    /** Whether the "For You" section has ever shown an actionable to-do (keeps the section visible once seen) */
+    NVP_HAS_SEEN_FOR_YOU_TODO: 'nvp_hasSeenForYouTodo',
+
     /** Indicates which locale should be used */
     NVP_PREFERRED_LOCALE: 'nvp_preferredLocale',
 
@@ -815,6 +818,9 @@ const ONYXKEYS = {
         /** Session-scoped loading/error flags for a report's action list.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_REPORT_LOADING_STATE: 'reportLoadingState_',
+        /** Session-scoped loading flags for company cards page and feeds.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_COMPANY_CARDS_LOADING_STATE: 'companyCardsLoadingState_',
         /** Pagination cursors for a report's action list. */
         REPORT_PAGINATION_STATE: 'reportPaginationState_',
         REPORT_ACTIONS: 'reportActions_',
@@ -924,6 +930,9 @@ const ONYXKEYS = {
 
         /** Errors related to a domain */
         DOMAIN_ERRORS: 'domainErrors_',
+
+        /** Newly added domain item identifiers pending a scroll-and-highlight animation */
+        DOMAIN_HIGHLIGHT_ITEMS: 'domainHighlightItems_',
 
         /**
          * Local passkeys storage for WebAuthn/Passkeys authentication.
@@ -1214,6 +1223,7 @@ const ONYXKEYS = {
         PERSONAL_AND_WORKSPACE_CARD_LIST: 'personalAndWorkspaceCardList',
         CARD_FEED_ERRORS: 'cardFeedErrors',
         RAM_ONLY_SORTED_REPORT_ACTIONS: 'sortedReportActions',
+        LOGIN_TO_ACCOUNT_ID_MAP: 'loginToAccountIDMap',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1383,6 +1393,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_DRAFT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
     [ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE]: OnyxTypes.ReportPaginationState;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
@@ -1436,6 +1447,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
+    [ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS]: OnyxTypes.DomainHighlightItems;
     [ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION]: OnyxTypes.CodingRuleMatchingTransaction;
     [ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS]: OnyxTypes.LocalPasskeyCredentialsEntry;
     [ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
@@ -1572,6 +1584,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
+    [ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
     [ONYXKEYS.IS_BETA]: boolean;
@@ -1708,6 +1721,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.PersonalAndWorkspaceCardListDerivedValue;
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
+    [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: OnyxTypes.LoginToAccountIDMapDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;
