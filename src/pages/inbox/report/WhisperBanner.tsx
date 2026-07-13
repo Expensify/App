@@ -41,7 +41,7 @@ function WhisperBanner({whisperedTo}: WhisperBannerProps) {
                 <Icon
                     fill={theme.icon}
                     src={expensifyIcons.Eye}
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                 />
             </View>
             <Text style={[styles.chatItemMessageHeaderTimestamp]}>
