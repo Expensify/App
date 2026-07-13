@@ -2901,8 +2901,36 @@ ${amount} para ${merchant} - ${date}`,
             updateAvatar: 'Ocorreu um problema ao atualizar o avatar deste agente',
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'Novo agente',
+        buildCustomAgent: 'Criar agente personalizado',
+        orStartWithTemplate: 'Ou comece com um modelo:',
+        role: 'Agente',
+        templates: {
+            cheapskateCharlie: {
+                name: 'Cheapskate Charlie',
+                description: 'Fica de olho em todas as despesas acima do gasto médio.',
+                prompt: 'Sinalize qualquer despesa que seja significativamente maior do que o gasto médio da sua categoria. Quando encontrar uma, adicione uma observação pedindo que a pessoa justifique o valor e confirme que não havia uma opção mais barata. Aprove as despesas que estejam de acordo com o gasto habitual.',
+            },
+            enforcerEliza: {
+                name: 'Enforcer Eliza',
+                description: 'Garante que não haja gastos em coisas duvidosas e mantém registros auditáveis.',
+                prompt: 'Rejeite despesas com qualquer coisa que não seja uma necessidade clara do negócio, como jogos de azar, álcool ou entretenimento pessoal. Exija um recibo legível em cada despesa e lembre as pessoas de adicioná-lo quando estiver faltando. Mantenha os registros organizados e prontos para auditoria.',
+            },
+            reductionRob: {
+                name: 'Reduction Rob',
+                description: 'Busca ativamente formas de reduzir custos e avisa sobre qualquer economia possível.',
+                prompt: 'Revise as despesas em busca de oportunidades de economizar dinheiro, como assinaturas recorrentes, ferramentas duplicadas ou alternativas mais caras a uma opção mais barata. Quando encontrar economias possíveis, avise a pessoa com uma sugestão. Aprove as despesas que já representam um bom custo-benefício.',
+            },
+            funTimeFiona: {
+                name: 'Fun-time Fiona',
+                description: 'Deixa todo mundo gastar e se divertir, e sinaliza apenas as despesas que fogem totalmente do normal.',
+                prompt: 'Dê espaço para as pessoas gastarem sem microgerenciar. Aprove a maioria das despesas automaticamente e sinalize apenas as realmente absurdas, que estão muito além de qualquer coisa razoável. Mantenha o clima leve e intervenha apenas quando algo parecer muito fora do lugar.',
+            },
+        },
+    },
+    addAgentPage: {
+        title: 'Criar agente personalizado',
         agentName: 'Nome do agente',
         instructions: 'Escrever instruções personalizadas',
         createAgent: 'Criar agente',

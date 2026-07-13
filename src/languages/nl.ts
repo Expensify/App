@@ -2911,8 +2911,36 @@ ${amount} voor ${merchant} - ${date}`,
             updateAvatar: 'Er is een probleem opgetreden bij het bijwerken van de avatar van deze agent',
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'Nieuwe agent',
+        buildCustomAgent: 'Eigen agent bouwen',
+        orStartWithTemplate: 'Of begin met een sjabloon:',
+        role: 'Agent',
+        templates: {
+            cheapskateCharlie: {
+                name: 'Cheapskate Charlie',
+                description: 'Let op alle uitgaven boven de gemiddelde uitgave.',
+                prompt: 'Markeer elke uitgave die aanzienlijk hoger is dan de gemiddelde uitgave voor die categorie. Wanneer je er een opmerkt, voeg dan een notitie toe waarin je de indiener vraagt het bedrag te onderbouwen en te bevestigen dat er geen goedkoper alternatief was. Keur uitgaven goed die in lijn zijn met de gebruikelijke uitgaven.',
+            },
+            enforcerEliza: {
+                name: 'Enforcer Eliza',
+                description: 'Zorgt dat er niet aan dubieuze zaken wordt uitgegeven en houdt controleerbare gegevens bij.',
+                prompt: 'Wijs uitgaven af voor alles wat geen duidelijke zakelijke noodzaak is, zoals gokken, alcohol of persoonlijk vermaak. Vereis een leesbare bon bij elke uitgave en herinner indieners eraan er een toe te voegen wanneer die ontbreekt. Houd de administratie schoon en klaar voor controle.',
+            },
+            reductionRob: {
+                name: 'Reduction Rob',
+                description: 'Zoekt actief naar manieren om kosten te besparen en meldt mogelijke besparingen.',
+                prompt: 'Bekijk uitgaven op mogelijkheden om geld te besparen, zoals terugkerende abonnementen, dubbele tools of duurdere alternatieven voor een goedkopere optie. Wanneer je mogelijke besparingen vindt, meld dit dan aan de indiener met een suggestie. Keur uitgaven goed die al een goede prijs-kwaliteitverhouding bieden.',
+            },
+            funTimeFiona: {
+                name: 'Fun-time Fiona',
+                description: 'Laat iedereen uitgeven en plezier maken, en markeert alleen uitgaven die echt buitensporig zijn.',
+                prompt: 'Geef mensen ruimte om uit te geven zonder te micromanagen. Keur de meeste uitgaven automatisch goed en markeer alleen de echt buitensporige die ver buiten alles vallen wat redelijk is. Houd het luchtig en grijp alleen in wanneer iets er echt ver naast zit.',
+            },
+        },
+    },
+    addAgentPage: {
+        title: 'Eigen agent bouwen',
         agentName: 'Naam medewerker',
         instructions: 'Schrijf aangepaste instructies',
         createAgent: 'Agent aanmaken',

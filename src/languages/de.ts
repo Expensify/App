@@ -2919,8 +2919,36 @@ ${amount} für ${merchant} – ${date}`,
             updateAvatar: 'Beim Aktualisieren des Avatars dieser Vertretung ist ein Problem aufgetreten',
         },
     },
+    newAgentPage: {
+        title: 'Neue:r Agent:in',
+        buildCustomAgent: 'Eigenen Agenten erstellen',
+        orStartWithTemplate: 'Oder mit einer Vorlage beginnen:',
+        role: 'Agent',
+        templates: {
+            cheapskateCharlie: {
+                name: 'Cheapskate Charlie',
+                description: 'Achtet auf alle Ausgaben, die über den durchschnittlichen Ausgaben liegen.',
+                prompt: 'Markiere jede Ausgabe, die deutlich höher ist als die durchschnittlichen Ausgaben in ihrer Kategorie. Wenn du eine entdeckst, füge eine Notiz hinzu, in der du die einreichende Person bittest, den Betrag zu begründen und zu bestätigen, dass es keine günstigere Option gab. Genehmige Ausgaben, die dem üblichen Ausgabenniveau entsprechen.',
+            },
+            enforcerEliza: {
+                name: 'Enforcer Eliza',
+                description: 'Stellt sicher, dass kein Geld für zweifelhafte Dinge ausgegeben wird, und sorgt für prüfbare Aufzeichnungen.',
+                prompt: 'Lehne Ausgaben für alles ab, was kein klarer geschäftlicher Bedarf ist, etwa Glücksspiel, Alkohol oder private Unterhaltung. Verlange für jede Ausgabe einen lesbaren Beleg und erinnere die einreichenden Personen daran, einen hinzuzufügen, wenn er fehlt. Halte die Aufzeichnungen sauber und prüfungsbereit.',
+            },
+            reductionRob: {
+                name: 'Reduction Rob',
+                description: 'Sucht aktiv nach Möglichkeiten, Kosten zu senken, und weist auf mögliche Einsparungen hin.',
+                prompt: 'Prüfe Ausgaben auf Möglichkeiten, Geld zu sparen, etwa wiederkehrende Abonnements, doppelte Tools oder teurere Alternativen zu einer günstigeren Option. Wenn du mögliche Einsparungen findest, benachrichtige die einreichende Person mit einem Vorschlag. Genehmige Ausgaben, die bereits ein gutes Preis-Leistungs-Verhältnis bieten.',
+            },
+            funTimeFiona: {
+                name: 'Fun-time Fiona',
+                description: 'Lässt alle Geld ausgeben und Spaß haben und markiert nur Ausgaben, die völlig überzogen sind.',
+                prompt: 'Gib den Leuten Spielraum beim Ausgeben, ohne alles bis ins Detail zu kontrollieren. Genehmige die meisten Ausgaben automatisch und markiere nur die wirklich überzogenen, die weit außerhalb jedes vernünftigen Rahmens liegen. Bleib locker und greife nur ein, wenn etwas völlig aus dem Ruder läuft.',
+            },
+        },
+    },
     addAgentPage: {
-        title: 'Neue Kontaktperson',
+        title: 'Eigenen Agenten erstellen',
         agentName: 'Name der Ansprechperson',
         instructions: 'Eigene Anweisungen schreiben',
         createAgent: 'Agent erstellen',

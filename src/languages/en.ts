@@ -2989,8 +2989,36 @@ const translations = {
             updateAvatar: "There was a problem updating this agent's avatar",
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'New agent',
+        buildCustomAgent: 'Build custom agent',
+        orStartWithTemplate: 'Or start with a template:',
+        role: 'Agent',
+        templates: {
+            cheapskateCharlie: {
+                name: 'Cheapskate Charlie',
+                description: 'Looks out for all expenses above the average spend.',
+                prompt: "Flag any expense that is meaningfully higher than the average spend for its category. When you spot one, add a note asking the submitter to justify the amount and confirm there wasn't a cheaper option. Approve expenses that are in line with typical spend.",
+            },
+            enforcerEliza: {
+                name: 'Enforcer Eliza',
+                description: 'Ensures no spend on dodgy stuff and upholds auditable records.',
+                prompt: "Reject expenses for anything that isn't a clear business need, such as gambling, alcohol, or personal entertainment. Require a legible receipt on every expense and remind submitters to add one when it's missing. Keep records clean and audit-ready.",
+            },
+            reductionRob: {
+                name: 'Reduction Rob',
+                description: 'Actively seeks ways to cut costs and notifies any potential savings.',
+                prompt: 'Review expenses for opportunities to save money, such as recurring subscriptions, duplicate tools, or pricier alternatives to a cheaper option. When you find potential savings, notify the submitter with a suggestion. Approve expenses that already represent good value.',
+            },
+            funTimeFiona: {
+                name: 'Fun-time Fiona',
+                description: 'Lets everyone spend and have a good time, and only flags expenses that are wild.',
+                prompt: 'Give people room to spend without micromanaging. Approve most expenses automatically and only flag the truly wild ones that are far outside anything reasonable. Keep things light and only step in when something looks way off.',
+            },
+        },
+    },
+    addAgentPage: {
+        title: 'Build custom agent',
         agentName: 'Agent name',
         instructions: 'Write custom instructions',
         createAgent: 'Create agent',

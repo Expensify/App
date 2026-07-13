@@ -2913,8 +2913,36 @@ ${amount} per ${merchant} - ${date}`,
             updateAvatar: "Si è verificato un problema durante l'aggiornamento dell'avatar di questo agente",
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'Nuovo agente',
+        buildCustomAgent: 'Crea un agente personalizzato',
+        orStartWithTemplate: 'Oppure inizia con un modello:',
+        role: 'Agente',
+        templates: {
+            cheapskateCharlie: {
+                name: 'Cheapskate Charlie',
+                description: "Tiene d'occhio tutte le spese superiori alla spesa media.",
+                prompt: "Segnala qualsiasi spesa che sia significativamente più alta della spesa media della sua categoria. Quando ne individui una, aggiungi una nota chiedendo a chi l'ha inviata di giustificare l'importo e di confermare che non esisteva un'opzione più economica. Approva le spese in linea con la spesa abituale.",
+            },
+            enforcerEliza: {
+                name: 'Enforcer Eliza',
+                description: 'Garantisce che non si spenda in cose sospette e mantiene registri verificabili.',
+                prompt: "Rifiuta le spese per qualsiasi cosa che non sia una chiara esigenza aziendale, come gioco d'azzardo, alcol o intrattenimento personale. Richiedi una ricevuta leggibile per ogni spesa e ricorda a chi la invia di aggiungerne una quando manca. Mantieni i registri in ordine e pronti per la verifica.",
+            },
+            reductionRob: {
+                name: 'Reduction Rob',
+                description: 'Cerca attivamente modi per ridurre i costi e segnala qualsiasi possibile risparmio.',
+                prompt: "Esamina le spese per individuare opportunità di risparmio, come abbonamenti ricorrenti, strumenti duplicati o alternative più costose rispetto a un'opzione più economica. Quando trovi possibili risparmi, avvisa chi ha inviato la spesa con un suggerimento. Approva le spese che rappresentano già un buon rapporto qualità-prezzo.",
+            },
+            funTimeFiona: {
+                name: 'Fun-time Fiona',
+                description: 'Lascia che tutti spendano e si divertano, e segnala solo le spese davvero fuori dal normale.',
+                prompt: 'Dai alle persone spazio per spendere senza microgestire. Approva automaticamente la maggior parte delle spese e segnala solo quelle davvero assurde, che vanno ben oltre qualsiasi cosa ragionevole. Mantieni un tono leggero e intervieni solo quando qualcosa sembra davvero fuori posto.',
+            },
+        },
+    },
+    addAgentPage: {
+        title: 'Crea un agente personalizzato',
         agentName: 'Nome agente',
         instructions: 'Scrivi istruzioni personalizzate',
         createAgent: 'Crea agente',

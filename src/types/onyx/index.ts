@@ -105,6 +105,7 @@ import type MapboxAccessToken from './MapboxAccessToken';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
+import type NewAgentTemplate from './NewAgentTemplate';
 import type NewGroupChatDraft from './NewGroupChatDraft';
 import type OdometerDraft from './OdometerDraft';
 import type Onboarding from './Onboarding';
@@ -360,6 +361,7 @@ export type {
     LastPaymentMethod,
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
+    NewAgentTemplate,
     NewGroupChatDraft,
     PolicyJoinMember,
     SearchResults,

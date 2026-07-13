@@ -1524,7 +1524,7 @@ const ROUTES = {
     SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_AGENTS: 'settings/agents',
-    SETTINGS_AGENTS_ADD: {
+    SETTINGS_AGENTS_NEW: {
         route: 'settings/agents/new',
         getRoute: ({policyID}: {policyID?: string} = {}) => {
             const params = new URLSearchParams();
@@ -1535,7 +1535,18 @@ const ROUTES = {
             return `settings/agents/new${query ? `?${query}` : ''}` as const;
         },
     },
-    SETTINGS_AGENTS_ADD_AVATAR: 'settings/agents/new/avatar',
+    SETTINGS_AGENTS_ADD: {
+        route: 'settings/agents/new/custom',
+        getRoute: ({policyID}: {policyID?: string} = {}) => {
+            const params = new URLSearchParams();
+            if (policyID) {
+                params.set('policyID', policyID);
+            }
+            const query = params.toString();
+            return `settings/agents/new/custom${query ? `?${query}` : ''}` as const;
+        },
+    },
+    SETTINGS_AGENTS_ADD_AVATAR: 'settings/agents/new/custom/avatar',
     SETTINGS_AGENTS_EDIT: {
         route: 'settings/agents/:accountID/edit',
         getRoute: (accountID: number) => `settings/agents/${accountID}/edit` as const,

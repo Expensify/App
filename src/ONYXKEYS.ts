@@ -105,6 +105,9 @@ const ONYXKEYS = {
     /** Cropped image the avatar crop screen writes back for its opener */
     AVATAR_CROP_RESULT: 'avatarCropResult',
 
+    /** Template picked in the "New agent" screen, consumed by the custom-agent builder to pre-fill its fields */
+    NEW_AGENT_TEMPLATE: 'newAgentTemplate',
+
     /** Contains all the info for Tasks */
     TASK: 'task',
 
@@ -1480,6 +1483,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ODOMETER_DRAFT]: OnyxTypes.OdometerDraft;
     [ONYXKEYS.AVATAR_CROP_DRAFT]: OnyxTypes.AvatarCropDraft;
     [ONYXKEYS.AVATAR_CROP_RESULT]: OnyxTypes.AvatarCropResult;
+    [ONYXKEYS.NEW_AGENT_TEMPLATE]: OnyxTypes.NewAgentTemplate;
     [ONYXKEYS.FULLSCREEN_VISIBILITY]: boolean;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;

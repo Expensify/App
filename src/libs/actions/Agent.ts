@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
@@ -102,6 +103,16 @@ function createAgent(
     );
 
     return {optimisticAccountID, avatarURI};
+}
+
+/** Stash the template chosen in the "New agent" picker so the custom-agent builder can open pre-filled. Persisted, so the selection survives a refresh. Returns the write promise so callers can wait for it to land before navigating into the builder. */
+function setNewAgentTemplate(template: NewAgentTemplate) {
+    return Onyx.set(ONYXKEYS.NEW_AGENT_TEMPLATE, template);
+}
+
+/** Drop any stashed template so the custom-agent builder opens blank (e.g. "Build custom agent" or after the agent is created). Returns the write promise so callers can wait for it to land before navigating into the builder. */
+function clearNewAgentTemplate() {
+    return Onyx.set(ONYXKEYS.NEW_AGENT_TEMPLATE, null);
 }
 
 function clearAgentError(optimisticAccountID: number) {
@@ -332,6 +343,8 @@ export {
     openAgentsPage,
     openProfilePage,
     createAgent,
+    setNewAgentTemplate,
+    clearNewAgentTemplate,
     clearAgentError,
     clearAgentUpdateError,
     clearAgentNameUpdateError,

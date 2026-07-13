@@ -2925,8 +2925,36 @@ ${amount} pour ${merchant} - ${date}`,
             updateAvatar: "Un problème est survenu lors de la mise à jour de l'avatar de cet agent",
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'Nouvel agent',
+        buildCustomAgent: 'Créer un agent personnalisé',
+        orStartWithTemplate: 'Ou commencez avec un modèle :',
+        role: 'Agent',
+        templates: {
+            cheapskateCharlie: {
+                name: 'Cheapskate Charlie',
+                description: 'Surveille toutes les dépenses supérieures à la dépense moyenne.',
+                prompt: "Signalez toute dépense nettement supérieure à la dépense moyenne de sa catégorie. Lorsque vous en repérez une, ajoutez une note demandant à l'auteur de justifier le montant et de confirmer qu'il n'existait pas d'option moins chère. Approuvez les dépenses conformes aux dépenses habituelles.",
+            },
+            enforcerEliza: {
+                name: 'Enforcer Eliza',
+                description: "Veille à ce qu'aucune dépense douteuse ne soit engagée et à la tenue de registres vérifiables.",
+                prompt: "Rejetez toute dépense qui ne correspond pas à un besoin professionnel clair, comme les jeux d'argent, l'alcool ou les loisirs personnels. Exigez un reçu lisible pour chaque dépense et rappelez aux auteurs d'en ajouter un lorsqu'il manque. Gardez des registres propres et prêts pour un audit.",
+            },
+            reductionRob: {
+                name: 'Reduction Rob',
+                description: 'Recherche activement des moyens de réduire les coûts et signale toute économie potentielle.',
+                prompt: "Examinez les dépenses à la recherche d'occasions d'économiser, comme les abonnements récurrents, les outils en double ou les alternatives plus chères à une option moins coûteuse. Lorsque vous trouvez des économies potentielles, informez l'auteur avec une suggestion. Approuvez les dépenses qui représentent déjà un bon rapport qualité-prix.",
+            },
+            funTimeFiona: {
+                name: 'Fun-time Fiona',
+                description: 'Laisse chacun dépenser et profiter, et ne signale que les dépenses extravagantes.',
+                prompt: "Laissez aux gens la liberté de dépenser sans microgestion. Approuvez automatiquement la plupart des dépenses et ne signalez que celles qui sont vraiment extravagantes et bien au-delà de tout ce qui est raisonnable. Restez décontracté et n'intervenez que lorsque quelque chose semble vraiment anormal.",
+            },
+        },
+    },
+    addAgentPage: {
+        title: 'Créer un agent personnalisé',
         agentName: 'Nom de l’agent',
         instructions: 'Rédiger des instructions personnalisées',
         createAgent: 'Créer un agent',

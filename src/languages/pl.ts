@@ -2898,8 +2898,36 @@ ${amount} dla ${merchant} - ${date}`,
             updateAvatar: 'Wystąpił problem z aktualizacją awatara tego agenta',
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'Nowy agent',
+        buildCustomAgent: 'Utwórz własnego agenta',
+        orStartWithTemplate: 'Lub zacznij od szablonu:',
+        role: 'Agent',
+        templates: {
+            cheapskateCharlie: {
+                name: 'Cheapskate Charlie',
+                description: 'Pilnuje wszystkich wydatków powyżej średniej.',
+                prompt: 'Oznaczaj każdy wydatek, który jest znacząco wyższy niż średni wydatek w swojej kategorii. Gdy taki zauważysz, dodaj notatkę z prośbą, aby osoba zgłaszająca uzasadniła kwotę i potwierdziła, że nie było tańszej opcji. Zatwierdzaj wydatki zgodne z typowym poziomem wydatków.',
+            },
+            enforcerEliza: {
+                name: 'Enforcer Eliza',
+                description: 'Dba o to, aby nie wydawać na podejrzane rzeczy, i utrzymuje możliwe do audytu zapisy.',
+                prompt: 'Odrzucaj wydatki na wszystko, co nie jest wyraźną potrzebą biznesową, takie jak hazard, alkohol czy rozrywka osobista. Wymagaj czytelnego paragonu przy każdym wydatku i przypominaj osobom zgłaszającym o jego dodaniu, gdy go brakuje. Utrzymuj zapisy w porządku i gotowe do audytu.',
+            },
+            reductionRob: {
+                name: 'Reduction Rob',
+                description: 'Aktywnie szuka sposobów na obniżenie kosztów i powiadamia o możliwych oszczędnościach.',
+                prompt: 'Przeglądaj wydatki pod kątem możliwości zaoszczędzenia pieniędzy, takich jak cykliczne subskrypcje, zduplikowane narzędzia lub droższe alternatywy dla tańszej opcji. Gdy znajdziesz potencjalne oszczędności, powiadom osobę zgłaszającą wraz z sugestią. Zatwierdzaj wydatki, które już oferują dobrą wartość.',
+            },
+            funTimeFiona: {
+                name: 'Fun-time Fiona',
+                description: 'Pozwala wszystkim wydawać i dobrze się bawić, a oznacza tylko wydatki, które są naprawdę szalone.',
+                prompt: 'Daj ludziom swobodę wydawania bez nadmiernej kontroli. Zatwierdzaj większość wydatków automatycznie i oznaczaj tylko te naprawdę szalone, które są daleko poza wszystkim, co rozsądne. Zachowaj luźne podejście i interweniuj tylko wtedy, gdy coś wygląda naprawdę nie tak.',
+            },
+        },
+    },
+    addAgentPage: {
+        title: 'Utwórz własnego agenta',
         agentName: 'Nazwa agenta',
         instructions: 'Napisz niestandardowe instrukcje',
         createAgent: 'Utwórz agenta',

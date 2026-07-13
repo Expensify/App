@@ -2813,8 +2813,36 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             updateAvatar: '更新此代理的头像时出现问题',
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: '新代理',
+        buildCustomAgent: '构建自定义代理',
+        orStartWithTemplate: '或使用模板开始：',
+        role: '代理',
+        templates: {
+            cheapskateCharlie: {
+                name: 'Cheapskate Charlie',
+                description: '密切关注所有高于平均支出的费用。',
+                prompt: '标记任何明显高于同类别平均支出的费用。发现后，添加备注，要求提交者说明该金额的合理性，并确认没有更便宜的选择。批准与通常支出水平一致的费用。',
+            },
+            enforcerEliza: {
+                name: 'Enforcer Eliza',
+                description: '确保不在可疑事项上花钱，并保持可供审计的记录。',
+                prompt: '拒绝任何并非明确业务需求的费用，例如赌博、酒类或个人娱乐。要求每笔费用都附上清晰可辨的收据，并在缺少收据时提醒提交者添加。保持记录整洁、随时可供审计。',
+            },
+            reductionRob: {
+                name: 'Reduction Rob',
+                description: '积极寻找降低成本的方法，并提示任何可能的节省。',
+                prompt: '审查费用，寻找节省开支的机会，例如经常性订阅、重复的工具，或本可选择更便宜方案的较贵替代品。发现可能的节省时，向提交者提出建议并告知。对于已经物有所值的费用予以批准。',
+            },
+            funTimeFiona: {
+                name: 'Fun-time Fiona',
+                description: '让大家尽情消费、享受乐趣，只标记那些离谱的费用。',
+                prompt: '给大家留出消费的空间，不要事事插手。自动批准大多数费用，只标记那些真正离谱、远超合理范围的费用。保持轻松的态度，只有当某笔费用明显不对劲时才介入。',
+            },
+        },
+    },
+    addAgentPage: {
+        title: '构建自定义代理',
         agentName: '代理名称',
         instructions: '编写自定义说明',
         createAgent: '创建代理',

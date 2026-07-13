@@ -9,6 +9,8 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AddAgentPage from '@pages/settings/Agents/AddAgentPage';
 import {setInitialPresetID, setNavigationToken} from '@pages/settings/Agents/pendingAgentAvatarStore';
 
+import {clearNewAgentTemplate, createAgent} from '@userActions/Agent';
+
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -16,6 +18,8 @@ import React from 'react';
 
 jest.mock('@userActions/Agent', () => ({
     createAgent: jest.fn(() => ({optimisticAccountID: -123456, avatarURI: undefined})),
+    clearNewAgentTemplate: jest.fn(),
+    setNewAgentTemplate: jest.fn(),
 }));
 
 const mockTranslate = jest.fn().mockImplementation((key: string, param?: string) => (param !== undefined ? `${key}(${param})` : key));
@@ -48,6 +52,7 @@ jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}])
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
+    dismissModal: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -115,6 +120,9 @@ const mockSetInitialPresetID = jest.mocked(setInitialPresetID);
 const mockSetNavigationToken = jest.mocked(setNavigationToken);
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockGoBack = jest.mocked(Navigation.goBack);
+const mockDismissModal = jest.mocked(Navigation.dismissModal);
+const mockCreateAgent = jest.mocked(createAgent);
+const mockClearNewAgentTemplate = jest.mocked(clearNewAgentTemplate);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 
 type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
@@ -230,12 +238,12 @@ describe('AddAgentPage', () => {
         expect(mockSetInitialPresetID).toHaveBeenCalledTimes(1);
     });
 
-    describe('submit branching', () => {
+    describe('submit', () => {
         beforeEach(() => {
             mockFormOnSubmit = undefined;
         });
 
-        it('goes back when policyID is absent in route params', () => {
+        it('creates the agent, clears the stashed template, and dismisses the whole creation flow', () => {
             render(
                 <AddAgentPage
                     route={makeRoute({})}
@@ -245,11 +253,15 @@ describe('AddAgentPage', () => {
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
-            expect(mockGoBack).toHaveBeenCalledTimes(1);
+            expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', expect.anything(), undefined, undefined, undefined);
+            expect(mockClearNewAgentTemplate).toHaveBeenCalledTimes(1);
+            expect(mockDismissModal).toHaveBeenCalledTimes(1);
+            // Submit dismisses the modal instead of walking back a screen at a time.
+            expect(mockGoBack).not.toHaveBeenCalled();
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
-        it('goes back when policyID is present without navigating to a workflow editor', () => {
+        it('passes the policyID through to createAgent when present', () => {
             render(
                 <AddAgentPage
                     route={makeRoute({policyID: 'POL_42'})}
@@ -259,7 +271,8 @@ describe('AddAgentPage', () => {
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
-            expect(mockGoBack).toHaveBeenCalledTimes(1);
+            expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', expect.anything(), undefined, undefined, 'POL_42');
+            expect(mockDismissModal).toHaveBeenCalledTimes(1);
             expect(mockNavigate).not.toHaveBeenCalled();
         });
     });

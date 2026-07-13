@@ -2780,8 +2780,36 @@ ${amount} para ${merchant} - ${date}`,
             updateAvatar: 'Hubo un problema al actualizar el avatar de este agente',
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'Nuevo agente',
+        buildCustomAgent: 'Crear agente personalizado',
+        orStartWithTemplate: 'O empieza con una plantilla:',
+        role: 'Agente',
+        templates: {
+            cheapskateCharlie: {
+                name: 'Cheapskate Charlie',
+                description: 'Vigila todos los gastos por encima del gasto promedio.',
+                prompt: 'Marca cualquier gasto que sea considerablemente superior al gasto promedio de su categoría. Cuando detectes uno, añade una nota pidiendo al usuario que justifique el importe y confirme que no había una opción más barata. Aprueba los gastos que estén en línea con el gasto habitual.',
+            },
+            enforcerEliza: {
+                name: 'Enforcer Eliza',
+                description: 'Se asegura de que no haya gastos sospechosos y mantiene registros auditables.',
+                prompt: 'Rechaza los gastos de cualquier cosa que no sea una clara necesidad de negocio, como juegos de azar, alcohol o entretenimiento personal. Exige un recibo legible en cada gasto y recuerda al usuario que lo añada cuando falte. Mantén los registros limpios y listos para auditar.',
+            },
+            reductionRob: {
+                name: 'Reduction Rob',
+                description: 'Busca activamente formas de reducir costes y avisa de cualquier posible ahorro.',
+                prompt: 'Revisa los gastos en busca de oportunidades para ahorrar dinero, como suscripciones recurrentes, herramientas duplicadas o alternativas más caras a una opción más barata. Cuando encuentres posibles ahorros, avisa al usuario con una sugerencia. Aprueba los gastos que ya representen una buena relación calidad-precio.',
+            },
+            funTimeFiona: {
+                name: 'Fun-time Fiona',
+                description: 'Deja que todos gasten y se lo pasen bien, y solo marca los gastos que se salen de lo normal.',
+                prompt: 'Da margen a la gente para gastar sin microgestionar. Aprueba la mayoría de los gastos automáticamente y solo marca los realmente disparatados que se salen de todo lo razonable. Mantén un tono relajado e interviene solo cuando algo parezca muy fuera de lugar.',
+            },
+        },
+    },
+    addAgentPage: {
+        title: 'Crear agente personalizado',
         agentName: 'Nombre del agente',
         instructions: 'Escribe instrucciones personalizadas',
         createAgent: 'Crear agente',
