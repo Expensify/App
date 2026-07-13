@@ -1,19 +1,20 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
-index 12375d9..1fb7c8c 100644
---- a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
-+++ b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
-@@ -1,4 +1,10 @@
+index 12375d9..581068e 100644
+@@ -1,4 +1,13 @@
 +import { Platform } from "react-native";
  import { RVLayoutManager, } from "./LayoutManager";
-+// Recent cross-axis sizes kept for oscillation detection. A strict A,B,A,B pattern needs 4 samples.
-+const BOUNDED_SIZE_HISTORY_LENGTH = 4;
++// Recent (rounded) cross-axis sizes kept for scrollbar oscillation detection.
++const BOUNDED_SIZE_HISTORY_LENGTH = 8;
++// Number of times the size must flip between the two values before it counts as an oscillation.
++// A resize drag sweeps through fresh values and never returns to a previous one, so it never flips.
++const MIN_OSCILLATION_FLIPS = 2;
 +// Max cross-axis delta (px) treated as a scrollbar-induced oscillation rather than a real resize.
 +// Classic desktop scrollbars are ~15-17px; the headroom covers thicker/zoomed scrollbars.
 +const SCROLLBAR_OSCILLATION_TOLERANCE = 25;
  /**
   * LinearLayoutManager implementation that arranges items in a single row or column.
   * Supports both horizontal and vertical layouts with dynamic item sizing.
-@@ -23,9 +29,42 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
+@@ -23,9 +32,17 @@
          const prevHorizontal = this.horizontal;
          super.updateLayoutParams(params);
          const oldBoundedSize = this.boundedSize;
@@ -21,39 +22,81 @@ index 12375d9..1fb7c8c 100644
 +        const measuredBoundedSize = this.horizontal
              ? params.windowSize.height
              : params.windowSize.width;
-+        // --- Scrollbar oscillation guard (web only) ---
-+        // On web a vertical scrollbar appearing/disappearing changes the measured cross-axis size by
-+        // the scrollbar width. That feeds back into layout and toggles the scrollbar again, an
-+        // infinite layout loop that crashes the app. Native uses overlay scrollbars and never
-+        // oscillates, so this runs on web only.
-+        // We treat a change as scrollbar-induced only when ALL hold,
-+        // so a manual window resize is never misread:
-+        //   (1) the last 4 rounded sizes strictly alternate between exactly two values (A,B,A,B),
-+        //   (2) which is 3 consecutive flips — a drag never revisits the same two pixels that often,
-+        //   (3) the two values differ by no more than a scrollbar's width.
-+        // When detected we settle on the smaller value (it already accounts for the scrollbar, so
-+        // items never overflow the client width).
-+        let nextBoundedSize = measuredBoundedSize;
-+        if (Platform.OS === "web") {
-+            const history = this.recentBoundedSizes ?? (this.recentBoundedSizes = []);
-+            history.push(Math.round(measuredBoundedSize));
-+            if (history.length > BOUNDED_SIZE_HISTORY_LENGTH) {
-+                history.shift();
-+            }
-+            if (history.length === BOUNDED_SIZE_HISTORY_LENGTH) {
-+                const [a, b, c, d] = history;
-+                const isScrollbarOscillation = a === c &&
-+                    b === d &&
-+                    a !== b &&
-+                    Math.abs(a - b) <= SCROLLBAR_OSCILLATION_TOLERANCE;
-+                if (isScrollbarOscillation) {
-+                    // Settle on the smaller of the two oscillating values.
-+                    nextBoundedSize = Math.min(a, b);
-+                }
-+            }
-+        }
-+        this.boundedSize = nextBoundedSize;
-+        // --- end guard ---
++        // On web a classic (non-overlay) scrollbar appearing/disappearing changes the measured
++        // cross-axis size by the scrollbar width, which feeds back into layout and toggles the
++        // scrollbar again: an infinite layout loop that crashes with "Maximum update depth exceeded".
++        // Native uses overlay scrollbars and never oscillates, so this only runs on web.
++        this.boundedSize =
++            Platform.OS === "web"
++                ? this.settleScrollbarOscillation(measuredBoundedSize)
++                : measuredBoundedSize;
          if (oldBoundedSize !== this.boundedSize ||
              prevHorizontal !== this.horizontal) {
              if (this.layouts.length > 0) {
+@@ -36,6 +53,66 @@
+         }
+     }
+     /**
++     * Web only. Breaks the scrollbar <-> layout feedback loop by pinning the cross-axis size once the
++     * measured size is seen bouncing between two scrollbar-width-apart values.
++     *
++     * The measured cross-axis size is the scroll viewport's *client* width, which excludes a classic
++     * scrollbar. So while the loop runs it can only ever report two values: with-scrollbar and
++     * without. We wait until the history shows exactly those two values, no further apart than a
++     * scrollbar, having flipped at least twice, and then settle on the smaller one - it already
++     * accounts for the scrollbar, so items never overflow the client width.
++     *
++     * Detection deliberately does not assume the flips alternate on every single pass: the scrollbar
++     * only toggles once the re-rendered items have been re-measured, which can lag the size change by
++     * a pass, producing runs like A,A,B,B,A,A. Requiring strict A,B,A,B alternation misses those and
++     * lets the loop run to the crash.
++     *
++     * A real resize is never misread: dragging sweeps through many distinct sizes (more than two), so
++     * it cannot match. Once settled, any size outside the oscillating pair means a genuine layout
++     * change, which releases the pin and restarts detection.
++     * @param measuredBoundedSize Cross-axis size just measured from the DOM
++     * @returns The size to lay out with
++     */
++    settleScrollbarOscillation(measuredBoundedSize) {
++        var _a;
++        // Rounded, so the comparisons below are robust against subpixel drift.
++        const size = Math.round(measuredBoundedSize);
++        const settledPair = this.scrollbarOscillationPair;
++        if (settledPair) {
++            if (size === settledPair[0] || size === settledPair[1]) {
++                return settledPair[0];
++            }
++            // Outside the pair: a real layout change. Forget the oscillation and start over.
++            this.scrollbarOscillationPair = undefined;
++            this.recentBoundedSizes = undefined;
++        }
++        const history = ((_a = this.recentBoundedSizes) !== null && _a !== void 0 ? _a : (this.recentBoundedSizes = []));
++        history.push(size);
++        if (history.length > BOUNDED_SIZE_HISTORY_LENGTH) {
++            history.shift();
++        }
++        const distinctSizes = Array.from(new Set(history));
++        if (distinctSizes.length !== 2 ||
++            Math.abs(distinctSizes[0] - distinctSizes[1]) > SCROLLBAR_OSCILLATION_TOLERANCE) {
++            return measuredBoundedSize;
++        }
++        let flips = 0;
++        for (let i = 1; i < history.length; i++) {
++            if (history[i] !== history[i - 1]) {
++                flips++;
++            }
++        }
++        if (flips < MIN_OSCILLATION_FLIPS) {
++            return measuredBoundedSize;
++        }
++        const smaller = Math.min(distinctSizes[0], distinctSizes[1]);
++        this.scrollbarOscillationPair = [
++            smaller,
++            Math.max(distinctSizes[0], distinctSizes[1]),
++        ];
++        return smaller;
++    }
++    /**
+      * Processes layout information for items, updating their dimensions.
+      * For horizontal layouts, also normalizes heights of items.
+      * @param layoutInfo Array of layout information for items

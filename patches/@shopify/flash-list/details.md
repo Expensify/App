@@ -132,15 +132,21 @@
 
 ### [@shopify+flash-list+2.3.0+012+fix-scrollbar-oscillation-crash.patch](@shopify+flash-list+2.3.0+012+fix-scrollbar-oscillation-crash.patch)
 
-- Reason: Fixes a "Maximum update depth exceeded" (#185) infinite render loop on web with classic (non-overlay) scrollbars — i.e. Windows/Linux Chrome and macOS with "Always show scroll bars". For a vertical list FlashList derives its cross-axis bounded size from `firstChildViewLayout.width` (the scroll viewport's **client** width, which excludes the scrollbar). When the vertical scrollbar toggles, that width steps by the scrollbar size (e.g. 375 ↔ 355); each change re-triggers layout, which changes content height, which toggles the scrollbar again — an infinite loop. This patch breaks the loop inside `LinearLayoutManager.updateLayoutParams` by detecting the scrollbar ping-pong and settling `boundedSize` instead of thrashing it — reserving no width. A change is treated as scrollbar-induced only when all hold, so a real window resize is never misread:
-  1. **Strict alternation**: the last 4 *rounded* cross-axis sizes form a clean `A,B,A,B` (exactly two values, three consecutive flips). A manual drag sweeps through many distinct values and never matches; rounding keeps the equality robust against subpixel drift.
-  2. **Scrollbar-sized delta**: the two values differ by no more than `SCROLLBAR_OSCILLATION_TOLERANCE` (25px — classic scrollbars are ~15–17px, with headroom for thicker/zoomed bars).
+- Reason: Fixes a "Maximum update depth exceeded" (#185) infinite render loop on web with classic (non-overlay) scrollbars — i.e. Windows/Linux Chrome and macOS with "Always show scroll bars". For a vertical list FlashList derives its cross-axis bounded size from `firstChildViewLayout.width` (the scroll viewport's **client** width, which excludes the scrollbar), and that size is what `getLayoutSize().width` — and therefore `ViewHolderCollection`'s `fixedContainerSize` — reports. When the vertical scrollbar toggles, the width steps by the scrollbar size (e.g. 375 ↔ 355); `ViewHolderCollection`'s `useLayoutEffect([fixedContainerSize])` calls `recyclerViewContext.layout()`, which re-renders and re-measures, which changes content height, which toggles the scrollbar again — an infinite layout-effect → setState loop that throws #185 from `<ViewHolderCollection>`. This patch breaks the loop inside `LinearLayoutManager.updateLayoutParams` (via `settleScrollbarOscillation`) by detecting the scrollbar ping-pong and pinning `boundedSize` instead of thrashing it — reserving no width.
 
-  When detected, `boundedSize` settles on the **smaller** of the two values, which already accounts for the scrollbar so items never overflow the client width.
+  Because the measured value is the client width, while the loop runs it can only ever report **two** values: with-scrollbar and without. A size change is treated as scrollbar-induced only when all hold, so a real window resize is never misread:
+
+  1. **Exactly two distinct values** among the last 8 *rounded* cross-axis sizes. A manual drag sweeps through many distinct values and never matches; rounding keeps the equality robust against subpixel drift.
+  2. **At least `MIN_OSCILLATION_FLIPS` (2) flips** between them — the size has to keep coming *back* to a value it already had. A drag only ever moves on to fresh values, so it cannot flip.
+  3. **Scrollbar-sized delta**: the two values differ by no more than `SCROLLBAR_OSCILLATION_TOLERANCE` (25px — classic scrollbars are ~15–17px, with headroom for thicker/zoomed bars).
+
+  When detected, `boundedSize` is pinned to the **smaller** of the two values, which already accounts for the scrollbar so items never overflow the client width. The pair is latched: while the measured size stays within it the pinned value keeps being used, and the first size *outside* the pair is taken as a genuine layout change, which releases the pin and restarts detection.
+
+  Detection deliberately does **not** require the flips to alternate on every single pass (the original `A,B,A,B` rule). The scrollbar only toggles once the re-rendered items have been re-measured, which can lag the size change by a pass and produce runs like `A,A,B,B,A,A`. A strict-alternation detector never matches those, so the loop ran on to the crash — that is #95719.
 - Files changed: `dist/recyclerview/layout-managers/LinearLayoutManager.js` only.
 - Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2334
-- E/App issue: https://github.com/Expensify/App/issues/91584, https://github.com/Expensify/App/issues/92263
-- PR introducing patch: https://github.com/Expensify/App/pull/92520
+- E/App issue: https://github.com/Expensify/App/issues/91584, https://github.com/Expensify/App/issues/92263, https://github.com/Expensify/App/issues/95719
+- PR introducing patch: https://github.com/Expensify/App/pull/92520 (hardened for #95719)
 
 ### [@shopify+flash-list+2.3.0+013+improve-scroll-key-handling.patch](@shopify+flash-list+2.3.0+013+improve-scroll-key-handling.patch)
 
