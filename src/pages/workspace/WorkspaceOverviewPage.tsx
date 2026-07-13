@@ -315,11 +315,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         clearWorkspaceOwnerChangeFlow(policyID);
         requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
         Navigation.navigate(
-            ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(
-                policyID,
-                currentUserPersonalDetails.accountID,
-                'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
-                Navigation.getActiveRoute(),
+            createDynamicRoute(
+                DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, currentUserPersonalDetails.accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>),
             ),
         );
     };

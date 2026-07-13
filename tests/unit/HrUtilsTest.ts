@@ -8,6 +8,7 @@ import {
     isAnyHRReadOnlyWorkflowMode,
     isMergeHRCompleteSetupNeeded,
     isMergeHRConnected,
+    isMergeHRManualSyncLimitReached,
     shouldShowHRConnectionError,
 } from '@libs/HRUtils';
 
@@ -103,6 +104,7 @@ function makeMergeHRConnection({
             ...makeLastSync(lastSync),
             syncStatus: lastSync?.syncStatus,
             syncType: lastSync?.syncType,
+            manualSyncTimestamps: lastSync?.manualSyncTimestamps,
         },
     };
 }
@@ -465,6 +467,44 @@ describe('HRUtils', () => {
                 connections: {zenefits: makeZenefitsConnection({lastSync: {isSuccessful: false, errorDate: new Date().toISOString()}})},
             });
             expect(shouldShowHRConnectionError(policy, true, true)).toBe(false);
+        });
+    });
+
+    describe('isMergeHRManualSyncLimitReached', () => {
+        const dbTimeHoursAgo = (hoursAgo: number) => new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19);
+
+        const makeMergePolicyWithSyncTimestamps = (manualSyncTimestamps?: string[]) =>
+            makePolicy({
+                connections: {[MERGE_HR]: makeMergeHRConnection({config: {integration: 'workday'}, lastSync: {manualSyncTimestamps}})},
+            });
+
+        it('returns false for undefined policy', () => {
+            expect(isMergeHRManualSyncLimitReached(undefined)).toBe(false);
+        });
+
+        it('returns false when there is no merge_hris connection', () => {
+            expect(isMergeHRManualSyncLimitReached(makePolicy())).toBe(false);
+        });
+
+        it('returns false when there are no manual sync timestamps', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps(undefined))).toBe(false);
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([]))).toBe(false);
+        });
+
+        it('returns false when only one sync happened within the last 24 hours', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(1)]))).toBe(false);
+        });
+
+        it('returns false when both syncs are older than 24 hours', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(25), dbTimeHoursAgo(48)]))).toBe(false);
+        });
+
+        it('returns false when only one of the two syncs falls within the window', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(2), dbTimeHoursAgo(30)]))).toBe(false);
+        });
+
+        it('returns true when two syncs happened within the last 24 hours', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(1), dbTimeHoursAgo(10)]))).toBe(true);
         });
     });
 });

@@ -2138,7 +2138,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstall: 'Atualize para a versão mais recente do New Expensify',
         pleaseInstallExpensifyClassic: 'Instale a versão mais recente do Expensify',
         toGetLatestChanges: 'Para mobile, faça o download e instale a versão mais recente. Para web, atualize o seu navegador.',
-        newAppNotAvailable: 'O aplicativo New Expensify não está mais disponível.',
+        newAppNotAvailable: 'Atualize agora e você vai agradecer a gente depois.',
     },
     initialSettingsPage: {
         about: 'Sobre',
@@ -6918,7 +6918,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 optionFixedDistanceTitle: 'Excluir uma distância fixa por solicitação',
                 optionFixedDistanceHelp: 'Remova a mesma distância de deslocamento de cada reembolso. Ideal para membros que enviam um reembolso por dia de trabalho.',
                 distanceLabel: 'Distância',
-                errors: {distanceMustBePositive: 'A distância deve ser um número inteiro positivo.'},
+                errors: {distanceMustBePositive: 'A distância deve ser um número inteiro positivo.', distanceTooLarge: 'A distância é muito grande.'},
             },
             distance: 'Distância',
             centrallyManage: 'Gerencie tarifas centralmente, acompanhe em milhas ou quilômetros e defina uma categoria padrão.',
@@ -7898,6 +7898,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Concluir configuração</a>` : 'Concluir configuração'} para importar funcionários.</muted-text-label>`,
                 groups: {title: 'Grupos', description: 'Escolha os grupos de funcionários que você gostaria de sincronizar com este workspace'},
+                syncLimitReached: {title: 'Tente novamente amanhã', prompt: 'Você atingiu o limite de sincronizações de hoje.'},
             },
             notSync: 'Não sincronizado',
             authenticationError: (providerName: string) => `Não é possível conectar a ${providerName} devido a uma conexão expirada.`,
@@ -10291,5 +10292,21 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         negativeButton: 'Na verdade, não',
     },
     monthPickerPage: {month: 'Mês', selectMonth: 'Selecione um mês por favor'},
+    aiFeaturesPromoModal: {
+        subtitle: 'Novo no Concierge AI',
+        confirmText: 'Vamos lá!',
+        spendAnalysis: {
+            title: 'Análise interativa de gastos',
+            description: `<muted-text>O Concierge apresenta insights mensais de gastos e permite que você aprofunde nos detalhes por trás de cada número. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Saiba mais</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Conheça seu novo assistente de despesas',
+            description: `<muted-text>Converse com o Concierge para criar e atualizar despesas, direto no app ou por e-mail ou SMS. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Saiba mais</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Crie seus próprios agentes',
+            description: `<muted-text>Crie agentes personalizados para revisar, aprovar e direcionar despesas com base nas regras que você definir. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Saiba mais</a>.</muted-text>`,
+        },
+    },
 };
 export default translations;
