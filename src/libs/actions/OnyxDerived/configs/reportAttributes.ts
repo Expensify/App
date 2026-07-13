@@ -1,10 +1,22 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
 import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
-import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isPolicyAdmin, isPolicyExpenseChat, isValidReport} from '@libs/ReportUtils';
+import {
+    generateIsEmptyReport,
+    generateReportAttributes,
+    hasViolations,
+    hasVisibleReportFieldViolations,
+    isArchivedReport,
+    isOpenReport,
+    isPolicyAdmin,
+    isPolicyExpenseChat,
+    isProcessingReport,
+    isValidReport,
+} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
@@ -12,15 +24,18 @@ import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
-let previousDisplayNames: Record<string, string | undefined> = {};
+// The name-related fields we saw for each account last time, so we can spot which accounts changed.
+let previousDisplayNames: Record<string, string> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
 let previousPolicies: OnyxCollection<Policy>;
+
+const RECOMPUTE_ALL = 'all' as const;
 
 const prepareReportKeys = (keys: string[]) => {
     return [
@@ -52,33 +67,131 @@ const hasPolicyRelevantFieldChanged = (prev: Policy | null | undefined, next: Po
     );
 };
 
-const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList>) => {
-    if (!personalDetails) {
-        return false;
+// A short string built from the fields a report name can come from: displayName and firstName.
+const displayNameSignature = (details: PersonalDetails | null): string => JSON.stringify([details?.displayName ?? '', details?.firstName ?? '']);
+
+const snapshotDisplayNames = (personalDetails: PersonalDetailsList): Record<string, string> => {
+    const snapshot: Record<string, string> = {};
+    for (const [key, value] of Object.entries(personalDetails)) {
+        snapshot[key] = displayNameSignature(value);
     }
+    return snapshot;
+};
 
-    // Fast path: if reference hasn't changed, display names are definitely the same
-    if (previousPersonalDetails === personalDetails) {
-        return false;
-    }
-
-    const currentDisplayNames = Object.fromEntries(Object.entries(personalDetails).map(([key, value]) => [key, value?.displayName]));
-
-    if (Object.keys(previousDisplayNames).length === 0) {
-        previousDisplayNames = currentDisplayNames;
-        previousPersonalDetails = personalDetails;
-        return Object.keys(currentDisplayNames).length > 0;
-    }
-
-    const currentKeys = Object.keys(currentDisplayNames);
-    const previousKeys = Object.keys(previousDisplayNames);
-
-    const displayNamesChanged = currentKeys.length !== previousKeys.length || currentKeys.some((key) => currentDisplayNames[key] !== previousDisplayNames[key]);
-
-    previousDisplayNames = currentDisplayNames;
+// Remembers the personal details we just used, so the next change can be compared against them.
+// Updating both variables together here keeps them from getting out of sync.
+const commitDisplayNamesBaseline = (personalDetails: OnyxEntry<PersonalDetailsList>, snapshot: Record<string, string>) => {
+    previousDisplayNames = snapshot;
     previousPersonalDetails = personalDetails;
+};
 
-    return displayNamesChanged;
+// Records the current names the first time we have them on a pass that wasn't itself a personal-details
+// change. The report names already match these names, so there's nothing to recompute — we just save them
+// so the next personal-details change can be compared and narrowed to the reports it actually affects.
+const seedDisplayNamesBaseline = (personalDetails: OnyxEntry<PersonalDetailsList>) => {
+    if (!personalDetails || previousPersonalDetails === personalDetails || Object.keys(previousDisplayNames).length > 0) {
+        return;
+    }
+    commitDisplayNamesBaseline(personalDetails, snapshotDisplayNames(personalDetails));
+};
+
+// Works out which accounts had a name change since last time. Returns the set of those accountIDs, or null
+// when nothing changed, or 'all' when there's no previous data to compare against yet and every report needs
+// refreshing.
+const getDisplayNameChanges = (personalDetails: OnyxEntry<PersonalDetailsList>): Set<number> | typeof RECOMPUTE_ALL | null => {
+    if (!personalDetails) {
+        return null;
+    }
+
+    if (previousPersonalDetails === personalDetails) {
+        return null;
+    }
+
+    const hadBaseline = Object.keys(previousDisplayNames).length > 0;
+    const nextSnapshot: Record<string, string> = {};
+    const changedAccountIDs = new Set<number>();
+
+    // Build the new snapshot and compare it against the old one in the same loop.
+    for (const [key, value] of Object.entries(personalDetails)) {
+        const signature = displayNameSignature(value);
+        nextSnapshot[key] = signature;
+        if (hadBaseline && signature !== previousDisplayNames[key]) {
+            changedAccountIDs.add(Number(key));
+        }
+    }
+    // An account that existed before but is gone now also affects any report name that used it.
+    if (hadBaseline) {
+        for (const key of Object.keys(previousDisplayNames)) {
+            if (!(key in nextSnapshot)) {
+                changedAccountIDs.add(Number(key));
+            }
+        }
+    }
+
+    commitDisplayNamesBaseline(personalDetails, nextSnapshot);
+
+    if (!hadBaseline) {
+        return Object.keys(nextSnapshot).length > 0 ? RECOMPUTE_ALL : null;
+    }
+    return changedAccountIDs.size > 0 ? changedAccountIDs : null;
+};
+
+// True when the report's name could depend on one of these accounts. We look at the accounts stored on the report itself.
+const reportReferencesAccountIDs = (report: Report, accountIDs: Set<number>): boolean => {
+    if (report.ownerAccountID !== undefined && accountIDs.has(report.ownerAccountID)) {
+        return true;
+    }
+    if (report.managerID !== undefined && accountIDs.has(report.managerID)) {
+        return true;
+    }
+    if (report.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL && accountIDs.has(report.invoiceReceiver.accountID)) {
+        return true;
+    }
+    for (const participantID of Object.keys(report.participants ?? {})) {
+        if (accountIDs.has(Number(participantID))) {
+            return true;
+        }
+    }
+    return false;
+};
+
+// Returns the report-preview action ID of the oldest child in `reportIDs` matching `predicate`
+// (oldest by preview-action creation time), or undefined when none match.
+const getOldestPreviewActionID = (chatReportID: string, reportIDs: string[] | undefined, reports: OnyxCollection<Report>, predicate?: (childReport: OnyxEntry<Report>) => boolean) => {
+    let oldestCreated: string | undefined;
+    let targetReportActionID: string | undefined;
+    for (const childReportID of reportIDs ?? []) {
+        if (predicate && !predicate(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`])) {
+            continue;
+        }
+        const reportPreviewAction = getReportPreviewAction(chatReportID, childReportID);
+        if (!reportPreviewAction) {
+            continue;
+        }
+        if (oldestCreated === undefined || reportPreviewAction.created < oldestCreated) {
+            oldestCreated = reportPreviewAction.created;
+            targetReportActionID = reportPreviewAction.reportActionID;
+        }
+    }
+    return targetReportActionID;
+};
+
+const isActionable = (childReport: OnyxEntry<Report>) => isOpenReport(childReport) || isProcessingReport(childReport);
+
+// Open/processing and the user still needs to fix a violation on it. Violations are read directly from
+// transactionViolations so this works even when owner data is absent (e.g. masked Onyx exports).
+const needsViolationFix = (
+    childReport: OnyxEntry<Report>,
+    policies: OnyxCollection<Policy>,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    currentUserAccountID: number,
+    currentUserEmail: string,
+) => {
+    if (!childReport || !isActionable(childReport)) {
+        return false;
+    }
+    const childPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${childReport.policyID}`];
+    return hasViolations(childReport.reportID, transactionViolations, currentUserAccountID, currentUserEmail, true, undefined, childReport, childPolicy);
 };
 
 /**
@@ -117,40 +230,38 @@ export default createOnyxDerivedValueConfig({
             conciergeReportID,
             introSelected,
         ],
-        {currentValue, sourceValues, triggeredKeys},
+        {currentValue, sourceValues},
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
         // Check if display names changed when personal details are updated
-        let displayNamesChanged = false;
-        if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys)) {
-            // Must run regardless — it updates the tracked previous display names.
-            displayNamesChanged = checkDisplayNamesChanged(personalDetails);
-
-            // Only short-circuit when personal details were the sole trigger; coalescing can batch them
-            // with report/transaction changes, and returning early would drop those.
-            const personalDetailsIsOnlyTrigger = triggeredKeys?.size === 1;
-            if (!displayNamesChanged && personalDetailsIsOnlyTrigger) {
+        let displayNameChanges: Set<number> | typeof RECOMPUTE_ALL | null = null;
+        if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
+            displayNameChanges = getDisplayNameChanges(personalDetails);
+            if (!displayNameChanges) {
                 return currentValue ?? {reports: {}, locale: null};
             }
         } else if (!sourceValues) {
             previousDisplayNames = {};
             previousPersonalDetails = undefined;
+        } else {
+            // Save the current names now, so the first real name change can be narrowed to the reports it affects.
+            seedDisplayNamesBaseline(personalDetails);
         }
 
-        // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
-        // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
-        // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
+        // Refresh every report when the language changes (names depend on it) or on the very first personal-details
+        // load, when there's nothing to compare against. A normal name change does not land here — it only refreshes
+        // the reports that use the changed accounts (further down).
         let needsFullRecompute =
-            (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, triggeredKeys) && preferredLocale !== currentValue?.locale) ||
-            displayNamesChanged ||
-            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, triggeredKeys) ||
-            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys);
+            (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) ||
+            displayNameChanges === RECOMPUTE_ALL ||
+            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues) ||
+            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, sourceValues);
 
         // if policies are loaded first time, we need to recompute all report attributes to get correct action badge in LHN, such as Approve because it depends on policy's type (see canApproveIOU function)
         const policyChangedReportKeys: string[] = [];
-        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, triggeredKeys)) {
+        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
             if (Object.keys(previousPolicies ?? {}).length === 0 && Object.keys(policies ?? {}).length > 0) {
                 needsFullRecompute = true;
             } else if (!needsFullRecompute) {
@@ -206,6 +317,18 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
+        // When only some accounts changed their name, refresh just the reports that use those accounts
+        // Skipped when we're already refreshing everything (first load or a
+        // locale change); in that case useIncrementalUpdates is false and the full scan below handles it.
+        const personalDetailsChangedReportKeys: string[] = [];
+        if (displayNameChanges instanceof Set && useIncrementalUpdates) {
+            for (const [reportKey, report] of Object.entries(reports)) {
+                if (report && reportReferencesAccountIDs(report, displayNameChanges)) {
+                    personalDetailsChangedReportKeys.push(reportKey);
+                }
+            }
+        }
+
         const updates = [
             ...Object.keys(reportUpdates),
             ...Object.keys(reportMetadataUpdates),
@@ -213,6 +336,7 @@ export default createOnyxDerivedValueConfig({
             ...Object.keys(reportNameValuePairsUpdates),
             ...Array.from(reportUpdatesRelatedToReportActions),
             ...policyChangedReportKeys,
+            ...personalDetailsChangedReportKeys,
         ];
 
         if (useIncrementalUpdates) {
@@ -326,6 +450,7 @@ export default createOnyxDerivedValueConfig({
                     isReportArchived,
                     allTransactions: transactions,
                     reports,
+                    policies,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserLogin: session?.email ?? '',
                 });
@@ -413,11 +538,18 @@ export default createOnyxDerivedValueConfig({
         );
 
         // Propagate errors from IOU reports to their parent chat reports.
-        const chatReportIDsWithErrors = new Set<string>();
+        const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        const currentUserEmail = session?.email ?? '';
+        const erroredChildReportIDsByChat = new Map<string, string[]>();
+        const childReportIDsByChat = new Map<string, string[]>();
         for (const report of Object.values(reports)) {
-            if (!report?.reportID) {
+            if (!report?.reportID || !report.chatReportID || report.reportID === report.chatReportID) {
                 continue;
             }
+
+            const childReportIDs = childReportIDsByChat.get(report.chatReportID) ?? [];
+            childReportIDs.push(report.reportID);
+            childReportIDsByChat.set(report.chatReportID, childReportIDs);
 
             // If this is an IOU report and its calculated attributes have an error,
             // then we need to mark its parent chat report.
@@ -425,27 +557,37 @@ export default createOnyxDerivedValueConfig({
             // pass suppresses the child's own brickRoadStatus when the parent workspace chat is accessible —
             // we still need to propagate the error up so the parent shows the indicator.
             const attributes = reportAttributes[report.reportID];
-            if (
-                report.chatReportID &&
-                report.reportID !== report.chatReportID &&
-                (attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR)
-            ) {
-                chatReportIDsWithErrors.add(report.chatReportID);
+            if (attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+                const erroredChildReportIDs = erroredChildReportIDsByChat.get(report.chatReportID) ?? [];
+                erroredChildReportIDs.push(report.reportID);
+                erroredChildReportIDsByChat.set(report.chatReportID, erroredChildReportIDs);
             }
         }
 
         // Apply the error status to the parent chat reports.
-        for (const chatReportID of chatReportIDsWithErrors) {
+        for (const [chatReportID, erroredChildReportIDs] of erroredChildReportIDsByChat) {
             if (!reportAttributes[chatReportID]) {
                 continue;
             }
 
+            const chatAttributes = reportAttributes[chatReportID];
+            let actionTargetReportActionID = chatAttributes.actionTargetReportActionID;
+
+            actionTargetReportActionID =
+                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, isActionable) ??
+                getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, (childReport) =>
+                    needsViolationFix(childReport, policies, transactionViolations, currentUserAccountID, currentUserEmail),
+                ) ??
+                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports) ??
+                actionTargetReportActionID;
+
             // Clone the entry before mutating — it may be a reference carried over from
             // currentValue.reports that wasn't recomputed in this incremental run.
             reportAttributes[chatReportID] = {
-                ...reportAttributes[chatReportID],
+                ...chatAttributes,
                 brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
                 actionBadge: CONST.REPORT.ACTION_BADGE.FIX,
+                actionTargetReportActionID,
             };
         }
 

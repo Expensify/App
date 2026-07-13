@@ -4,13 +4,11 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
 import EmployeesSeeTagsAsText from '@components/EmployeesSeeTagsAsText';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import type {WorkspaceTagTableRowData} from '@components/Tables/WorkspaceTagsTable';
 import WorkspaceTagsTable from '@components/Tables/WorkspaceTagsTable';
 import Text from '@components/Text';
@@ -18,7 +16,6 @@ import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
-import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -112,7 +109,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
-    const genericIllustration = useGenericEmptyStateIllustration();
 
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
@@ -590,7 +586,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     )}
                     {secondaryActions.length > 0 && (
                         <ButtonWithDropdownMenu
-                            success={false}
                             onPress={() => {}}
                             shouldAlwaysShowDropdownMenu
                             customText={translate('common.more')}
@@ -742,10 +737,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         return (
             <ButtonWithDropdownMenu
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
-                buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+                size={CONST.BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTagKeys.length})}
                 options={options}
                 style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
@@ -808,33 +804,27 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     }, [hasAccountingConnections, translate, environmentURL, policyID, canWriteTags, styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]);
 
-    const emptyStateContent = (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-            <GenericEmptyStateComponent
-                {...genericIllustration}
-                title={translate('workspace.tags.emptyTags.title')}
-                subtitleText={subtitleText}
-                headerStyles={styles.emptyStateCardIllustrationContainer}
-                buttons={
-                    canWriteTags && !hasAccountingConnections
-                        ? [
-                              {
-                                  icon: expensifyIcons.Table,
-                                  buttonText: translate('common.import'),
-                                  buttonAction: navigateToImportSpreadsheet,
-                              },
-                              {
-                                  success: true,
-                                  buttonAction: navigateToCreateTagPage,
-                                  icon: expensifyIcons.Plus,
-                                  buttonText: translate('workspace.tags.addTag'),
-                              },
-                          ]
-                        : undefined
-                }
-            />
-        </ScrollView>
-    );
+    const tagsTableEmptyState = {
+        title: translate('workspace.tags.emptyTags.title'),
+        subtitleText,
+        headerStyles: styles.emptyStateCardIllustrationContainer,
+        buttons:
+            canWriteTags && !hasAccountingConnections
+                ? [
+                      {
+                          icon: expensifyIcons.Table,
+                          buttonText: translate('common.import'),
+                          buttonAction: navigateToImportSpreadsheet,
+                      },
+                      {
+                          success: true,
+                          buttonAction: navigateToCreateTagPage,
+                          icon: expensifyIcons.Plus,
+                          buttonText: translate('workspace.tags.addTag'),
+                      },
+                  ]
+                : undefined,
+    };
 
     return (
         <>
@@ -894,10 +884,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 selectedKeys={selectedTagKeys}
                                 isMultiLevelTags={isMultiLevelTags}
                                 hasDependentTags={hasDependentTags}
-                                shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                                 shouldShowApproverColumn={shouldShowApproverColumn}
+                                shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                                emptyState={tagsTableEmptyState}
                                 onRowSelectionChange={setSelectedTagKeys}
-                                EmptyStateComponent={emptyStateContent}
                             />
                         </>
                     )}

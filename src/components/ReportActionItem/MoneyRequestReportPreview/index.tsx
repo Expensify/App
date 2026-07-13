@@ -69,7 +69,7 @@ function MoneyRequestReportPreview({
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {markReportIDAsExpense, markReportIDAsMultiTransactionExpense} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     const personalDetailsList = usePersonalDetails();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -166,7 +166,9 @@ function MoneyRequestReportPreview({
     });
     const isFocused = useIsFocused();
     const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions, pendingNewTransactionIDs, chatReportID, isFocused);
-    const newTransactionIDs = new Set(newTransactions.map((transaction) => transaction.transactionID));
+    // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
+    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
+    const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
@@ -221,7 +223,7 @@ function MoneyRequestReportPreview({
                 // just-thawed, still-loading report drops the first transaction-row tap.
                 if (getPlatform() === CONST.PLATFORM.WEB) {
                     const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
-                    markReportIDAsExpense(childReportID);
+                    markReportRHPWidth(childReportID, 'wide');
                     setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID));
                     // Open the report first, then defer the expense's RHP by one frame so the report lands as its own
                     // browser-history entry — hard/browser back and the header back both stop on the report, then the
@@ -245,10 +247,10 @@ function MoneyRequestReportPreview({
             // and back again to the chat.
             if (iouReportID) {
                 const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()});
-                markReportIDAsMultiTransactionExpense(iouReportID);
+                markReportRHPWidth(iouReportID, 'super-wide');
                 Navigation.navigate(reportRoute);
                 setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID)).then(() => {
-                    markReportIDAsExpense(childReportID);
+                    markReportRHPWidth(childReportID, 'wide');
                     // Let the report's wide RHP settle before opening the pressed expense on top, so the two
                     // panels open as a cascade rather than at once.
                     setTimeout(() => {
@@ -260,11 +262,11 @@ function MoneyRequestReportPreview({
 
             // Fallback when the parent report is unknown: open the pressed expense alone in the wide RHP.
             setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID)).then(() => {
-                markReportIDAsExpense(childReportID);
+                markReportRHPWidth(childReportID, 'wide');
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
             });
         },
-        [isSmallScreenWidth, iouReportID, markReportIDAsExpense, markReportIDAsMultiTransactionExpense, transactions],
+        [isSmallScreenWidth, iouReportID, markReportRHPWidth, transactions],
     );
 
     const openTransactionFromPreview = useCallback(
