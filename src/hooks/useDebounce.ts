@@ -33,15 +33,17 @@ type UseDebounceOptions = DebounceSettings & {
 export default function useDebounce<T extends GenericFunction>(func: T, wait: number, options?: UseDebounceOptions): T {
     const debouncedFnRef = useRef<DebouncedFunc<T> | undefined>(undefined);
     const {leading, maxWait, trailing = true, shouldExecuteOnUnmount = false} = options ?? {};
-    const isUnmounted = useRef(false);
 
-    // Registered before the debounce effect so this cleanup runs first on unmount and the debounce
-    // cleanup can distinguish unmount from a dependency change.
+    // Registered after the debounce effect so this cleanup runs first on unmount and can flush
+    // before the debounced function is cancelled.
     useEffect(() => {
         return () => {
-            isUnmounted.current = true;
+            if (!shouldExecuteOnUnmount) {
+                return;
+            }
+            debouncedFnRef.current?.flush();
         };
-    }, []);
+    }, [shouldExecuteOnUnmount]);
 
     useEffect(() => {
         const debouncedFn = lodashDebounce(func, wait, {leading, maxWait, trailing});
@@ -49,13 +51,9 @@ export default function useDebounce<T extends GenericFunction>(func: T, wait: nu
         debouncedFnRef.current = debouncedFn;
 
         return () => {
-            if (shouldExecuteOnUnmount && isUnmounted.current) {
-                debouncedFn.flush();
-                return;
-            }
             debouncedFn.cancel();
         };
-    }, [func, wait, leading, maxWait, trailing, shouldExecuteOnUnmount]);
+    }, [func, wait, leading, maxWait, trailing]);
 
     const debounceCallback = (...args: Parameters<T>) => {
         const debouncedFn = debouncedFnRef.current;
