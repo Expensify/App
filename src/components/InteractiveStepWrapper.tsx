@@ -116,16 +116,16 @@ function InteractiveStepWrapper({
                     subtitle={headerSubtitle}
                     onBackButtonPress={handleBackButtonPress}
                 />
+                {!!stepNames && (
+                    <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                        <InteractiveStepSubHeader
+                            startStepIndex={startStepIndex}
+                            stepNames={stepNames}
+                            currentStepAccessibilityDescription={headerTitle}
+                        />
+                    </View>
+                )}
             </CollapsibleHeaderOnKeyboard>
-            {!!stepNames && (
-                <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                    <InteractiveStepSubHeader
-                        startStepIndex={startStepIndex}
-                        stepNames={stepNames}
-                        currentStepAccessibilityDescription={headerTitle}
-                    />
-                </View>
-            )}
 
             {children}
         </ScreenWrapper>
