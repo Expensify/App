@@ -1,12 +1,18 @@
-import React from 'react';
-import {PolarChart} from 'victory-native';
 import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {COLOR_KEY, LABEL_KEY, VALUE_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
 import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
+
 import useCurrentTimezone from '@hooks/useCurrentTimezone';
+import useTheme from '@hooks/useTheme';
+
+import ThemeContext from '@styles/theme/context/ThemeContext';
+
+import React from 'react';
+import {PolarChart} from 'victory-native';
+
 import VictoryChartCategories from './VictoryChartCategories';
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
@@ -21,6 +27,7 @@ type VictoryChartPolarProps = {
  */
 function VictoryChartPolar({explicitSize, headless}: VictoryChartPolarProps) {
     const {tnode, data, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
+    const theme = useTheme();
     const timezone = useCurrentTimezone();
     const designWidth = getChartDesignWidth(explicitSize, chartContentStyles.width);
 
@@ -57,7 +64,13 @@ function VictoryChartPolar({explicitSize, headless}: VictoryChartPolarProps) {
             colorKey={COLOR_KEY}
             {...getChartLayoutModeProps(explicitSize, headless)}
         >
-            {headless ? chartContent : <ChartFontsLoaderProvider>{chartContent}</ChartFontsLoaderProvider>}
+            {headless ? (
+                <ThemeContext.Provider value={theme}>{chartContent}</ThemeContext.Provider>
+            ) : (
+                <ThemeContext.Provider value={theme}>
+                    <ChartFontsLoaderProvider>{chartContent}</ChartFontsLoaderProvider>
+                </ThemeContext.Provider>
+            )}
         </PolarChart>
     );
 }

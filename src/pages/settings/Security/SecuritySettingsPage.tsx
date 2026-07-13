@@ -1,6 +1,3 @@
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
@@ -9,6 +6,7 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -19,16 +17,26 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+
 import {openSecuritySettingsPage} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
+import {useIsAgentAccount} from '@libs/SessionUtils';
 import {hasDeviceManagementError} from '@libs/UserUtils';
+
 import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+
 import useSecuritySettingsSectionIllustration from './useSecuritySettingsSectionIllustration';
 
 type BaseMenuItemType = WithSentryLabel & {
@@ -60,6 +68,7 @@ function SecuritySettingsPage() {
     const {showLockedAccountModal} = useLockedAccountActions();
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const isAgentAccount = useIsAgentAccount();
 
     const hasEverRegisteredForMultifactorAuthentication = account?.multifactorAuthenticationPublicKeyIDs !== CONST.MULTIFACTOR_AUTHENTICATION.PUBLIC_KEYS_AUTHENTICATION_NEVER_REGISTERED;
 
@@ -68,8 +77,11 @@ function SecuritySettingsPage() {
     }, []);
 
     const securityMenuItems = useMemo(() => {
-        const baseMenuItems: BaseMenuItemType[] = [
-            {
+        const baseMenuItems: BaseMenuItemType[] = [];
+
+        // Agent accounts can't have two-factor/multifactor authentication, so hide those options for them.
+        if (!isAgentAccount) {
+            baseMenuItems.push({
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: icons.Shield,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.TWO_FACTOR_AUTH,
@@ -84,10 +96,10 @@ function SecuritySettingsPage() {
                     }
                     Navigation.navigate(getTwoFactorAuthRoute());
                 },
-            },
-        ];
+            });
+        }
 
-        if (hasEverRegisteredForMultifactorAuthentication) {
+        if (!isAgentAccount && hasEverRegisteredForMultifactorAuthentication) {
             baseMenuItems.push({
                 translationKey: 'multifactorAuthentication.revoke.title',
                 icon: icons.Fingerprint,
@@ -175,6 +187,7 @@ function SecuritySettingsPage() {
         icons.Monitor,
         isAccountLocked,
         isActingAsDelegate,
+        isAgentAccount,
         getTwoFactorAuthRoute,
         showDelegateNoAccessModal,
         showLockedAccountModal,

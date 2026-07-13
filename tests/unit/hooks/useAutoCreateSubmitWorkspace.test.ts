@@ -1,4 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -6,10 +7,13 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
+
 import * as navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
+
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 
 jest.mock('@hooks/useOnyx', () => {
@@ -137,12 +141,12 @@ describe('useAutoCreateSubmitWorkspace', () => {
         );
     });
 
-    it('clears onboarding state after the flow completes', () => {
+    it('clears onboarding state after the flow completes', async () => {
         // Given a user completing the onboarding flow
 
         // When autoCreateSubmitWorkspace finishes
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
-        result.current('John', 'Doe');
+        await result.current('John', 'Doe');
 
         // Then the transient onboarding Onyx keys should be cleared so the onboarding
         // flow is not re-triggered on subsequent app launches
@@ -150,12 +154,12 @@ describe('useAutoCreateSubmitWorkspace', () => {
         expect(setOnboardingPolicyIDSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('navigates to the submit workspace page after completing onboarding', () => {
+    it('navigates to the submit workspace page after completing onboarding', async () => {
         // Given a user completing the EMPLOYER onboarding flow
 
         // When autoCreateSubmitWorkspace finishes setting up the workspace
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
-        result.current('John', 'Doe');
+        await result.current('John', 'Doe');
 
         // Then the user should be navigated to the newly created Submit workspace
         // so they land on their workspace immediately after onboarding
@@ -251,7 +255,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
         expect(completeOnboardingSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('still completes onboarding and navigates even when workspace creation is skipped', () => {
+    it('still completes onboarding and navigates even when workspace creation is skipped', async () => {
         // Given a user who cannot create a workspace due to domain restrictions
         (usePreferredPolicy as jest.Mock).mockReturnValue({
             isRestrictedToPreferredPolicy: false,
@@ -261,7 +265,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
         // When the onboarding flow runs
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
-        result.current('Jane', 'Smith');
+        await result.current('Jane', 'Smith');
 
         // Then onboarding should still be completed and navigation should still occur
         // because the user needs to finish onboarding regardless of workspace creation

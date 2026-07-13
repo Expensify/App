@@ -1,9 +1,14 @@
+import useStyleUtils from '@hooks/useStyleUtils';
+
+import type {AvatarSizeName} from '@styles/utils';
+
+import CONST from '@src/CONST';
+
+import type {SvgProps} from 'react-native-svg';
+
 import React from 'react';
 import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
-import useStyleUtils from '@hooks/useStyleUtils';
-import type {AvatarSizeName} from '@styles/utils';
-import CONST from '@src/CONST';
+
 import ImageSVG from './ImageSVG';
 
 type ColoredLetterAvatarProps = {

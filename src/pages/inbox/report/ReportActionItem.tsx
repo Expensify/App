@@ -1,12 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
-import {deepEqual} from 'fast-equals';
-import mapValues from 'lodash/mapValues';
-import React, {useContext, useEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent, TextInput} from 'react-native';
-import {Keyboard, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Hoverable from '@components/Hoverable';
 import InlineSystemMessage from '@components/InlineSystemMessage';
@@ -20,6 +11,7 @@ import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType} from '@components/ShowContextMenuContext';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -29,6 +21,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import Accessibility from '@libs/Accessibility';
 import {cleanUpMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {isSafari} from '@libs/Browser';
 import {isChronosOOOListAction} from '@libs/ChronosUtils';
@@ -47,6 +41,7 @@ import {
     getReportActionMessage,
     getReportActionText,
     getWhisperedTo,
+    isCreatedTaskReportAction,
     isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
     isMoneyRequestAction,
@@ -62,12 +57,16 @@ import {
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
-import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
+import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
+
+import {ReactionListContext} from '@pages/inbox/ReactionListContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {expandURLPreview} from '@userActions/Report';
 import {clearError} from '@userActions/Transaction';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -75,10 +74,23 @@ import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
+
+import type {GestureResponderEvent, TextInput} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useNavigation} from '@react-navigation/native';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
+import {deepEqual} from 'fast-equals';
+import mapValues from 'lodash/mapValues';
+import React, {useContext, useEffect, useRef, useState} from 'react';
+import {Keyboard, View} from 'react-native';
+
+import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
+
 import ActionContentRouter from './actionContents/ActionContentRouter';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
-import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
 import LinkPreviewer from './LinkPreviewer';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
@@ -175,6 +187,7 @@ function ReportActionItem({
     const reportID = report?.reportID ?? action?.reportID;
     const originalReportID = useOriginalReportID(report?.reportID, action);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`, {selector: getStableReportSelector});
+    const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
@@ -190,10 +203,12 @@ function ReportActionItem({
 
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
-    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID)});
-
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, datetimeToCalendarTime} = useLocalize();
+    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, translate)}, [
+        action.actorAccountID,
+        translate,
+    ]);
     const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
@@ -210,6 +225,8 @@ function ReportActionItem({
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
 
+    const shouldBreakGrouping = shouldBreakAccessibilityGrouping();
+    const isScreenReaderActive = Accessibility.useScreenReaderStatus();
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
 
     const highlightedBackgroundColorIfNeeded = isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {};
@@ -239,7 +256,7 @@ function ReportActionItem({
     const dismissError = () => {
         const transactionIDToDismiss = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (isSendingMoney && transactionIDToDismiss && reportID) {
-            cleanUpMoneyRequest(transactionIDToDismiss, action, reportID, transactionThreadReport, report, chatReport, undefined, originalReportID, true);
+            cleanUpMoneyRequest(transactionIDToDismiss, action, reportID, transactionThreadReport, report, chatReport, undefined, originalReportID, true, iouPolicy);
             return;
         }
         if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isReportActionLinked) {
@@ -498,6 +515,7 @@ function ReportActionItem({
                     )}
                     <PressableWithSecondaryInteraction
                         ref={popoverAnchorRef}
+                        accessible={shouldBreakGrouping && isScreenReaderActive && isCreatedTaskReportAction(action) ? false : undefined}
                         onPress={() => {
                             if (!hasDraft) {
                                 onPress?.();
@@ -552,10 +570,15 @@ function ReportActionItem({
                                             />
                                         )}
                                         <View
-                                            style={StyleUtils.getReportActionItemStyle(
-                                                hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || hasDraft || isPaymentMethodPopoverActive,
-                                                !hasDraft && !!onPress,
-                                            )}
+                                            style={[
+                                                StyleUtils.getReportActionItemStyle(
+                                                    hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || hasDraft || isPaymentMethodPopoverActive,
+                                                    !hasDraft && !!onPress,
+                                                ),
+                                                // The Pressable above renders as a role=button, whose UA text-align:center is inherited by
+                                                // bare inline content (e.g. an auto-linked URL with no wrapping Text). Reset it to left here.
+                                                styles.textAlignLeft,
+                                            ]}
                                         >
                                             <OfflineWithFeedback
                                                 onClose={onClose}
@@ -593,6 +616,7 @@ function ReportActionItem({
                                                             <ActionContentRouter
                                                                 action={action}
                                                                 report={report}
+                                                                chatReport={chatReport}
                                                                 reportID={reportID}
                                                                 originalReportID={originalReportID}
                                                                 iouReport={iouReport}

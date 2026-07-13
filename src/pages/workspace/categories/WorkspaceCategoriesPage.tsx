@@ -1,31 +1,29 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
+import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import type {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
+
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
-import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -33,6 +31,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -43,17 +42,23 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {close} from '@userActions/Modal';
 import {clearCategoryErrors, deleteWorkspaceCategories, downloadCategoriesCSV, openPolicyCategoriesPage, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PolicyCategories} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCategoriesPageProps =
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>
@@ -83,13 +88,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canWrite: canWriteCategories, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const [selectedCategoryKeys, setSelectedCategoryKeys] = useState<string[]>([]);
     const canSelectMultiple = canWriteCategories && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Gear', 'Plus', 'Table', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen']);
-    const genericIllustration = useGenericEmptyStateIllustration();
 
     const {
         taskReport: setupCategoryTaskReport,
@@ -216,12 +222,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const navigateToCategory = useCallback(
         (category: PolicyCategories[string]) => {
             const path = isQuickSettingsFlow
-                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.name, backTo)
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(category.name))
                 : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(category.name));
 
             Navigation.navigate(path);
         },
-        [backTo, isQuickSettingsFlow, policyId],
+        [isQuickSettingsFlow],
     );
 
     const handleCategoryToggle = useCallback(
@@ -257,7 +263,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, [categories, policy?.rules?.approvalRules]);
 
     const shouldShowGLCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['GL Code']) && isControlPolicyWithWideLayout;
-    const shouldShowApproverColumn = isControlPolicyWithWideLayout && !!policy?.areRulesEnabled && Object.keys(categoryApproverEmails).length > 0;
+    const shouldShowApproverColumn = isControlPolicyWithWideLayout && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(categoryApproverEmails).length > 0;
 
     const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
         return categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
@@ -347,7 +353,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        if (canWriteCategories) {
+        if (canWriteCategories && !isRulesRevampEnabled) {
             menuItems.push({
                 icon: icons.Gear,
                 text: translate('common.settings'),
@@ -395,6 +401,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         translate,
         navigateToCategoriesSettings,
         canWriteCategories,
+        isRulesRevampEnabled,
         policyHasAccountingConnections,
         hasVisibleCategories,
         navigateToImportSpreadsheet,
@@ -519,9 +526,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return (
                 <ButtonWithDropdownMenu
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {count: selectedCategoryKeys.length})}
                     options={options}
                     isSplitButton={false}
@@ -547,7 +555,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 )}
                 {secondaryActions.length > 0 && (
                     <ButtonWithDropdownMenu
-                        success={false}
                         onPress={() => {}}
                         shouldAlwaysShowDropdownMenu
                         customText={translate('common.more')}
@@ -605,33 +612,21 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         canWriteCategories,
     ]);
 
-    const emptyStateContent = (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-            <GenericEmptyStateComponent
-                {...genericIllustration}
-                title={translate('workspace.categories.emptyCategories.title')}
-                subtitleText={subtitleText}
-                headerStyles={styles.emptyStateCardIllustrationContainer}
-                buttons={
-                    !policyHasAccountingConnections
-                        ? [
-                              {
-                                  icon: icons.Table,
-                                  buttonText: translate('common.import'),
-                                  buttonAction: navigateToImportSpreadsheet,
-                              },
-                              {
-                                  icon: icons.Plus,
-                                  buttonText: translate('workspace.categories.addCategory'),
-                                  buttonAction: navigateToCreateCategoryPage,
-                                  success: true,
-                              },
-                          ]
-                        : undefined
-                }
-            />
-        </ScrollView>
-    );
+    const emptyStateButtons: EmptyStateButton[] | undefined = !policyHasAccountingConnections
+        ? [
+              {
+                  icon: icons.Table,
+                  buttonText: translate('common.import'),
+                  buttonAction: navigateToImportSpreadsheet,
+              },
+              {
+                  icon: icons.Plus,
+                  buttonText: translate('workspace.categories.addCategory'),
+                  buttonAction: navigateToCreateCategoryPage,
+                  success: true,
+              },
+          ]
+        : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -704,10 +699,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             categories={categoryRows}
                             selectionEnabled={canWriteCategories}
                             selectedKeys={selectedCategoryKeys}
+                            emptyStateSubtitleText={subtitleText}
+                            emptyStateButtons={emptyStateButtons}
                             shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                             shouldShowApproverColumn={shouldShowApproverColumn}
-                            onRowSelectionChange={(selectedRowKeys) => setSelectedCategoryKeys(selectedRowKeys)}
-                            EmptyStateComponent={emptyStateContent}
+                            onRowSelectionChange={setSelectedCategoryKeys}
                         />
                     </>
                 )}

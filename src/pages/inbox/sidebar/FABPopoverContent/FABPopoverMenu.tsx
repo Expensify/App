@@ -1,17 +1,22 @@
-import React, {Activity, useState} from 'react';
-import type {ActivityProps, RefObject} from 'react';
-import {View} from 'react-native';
 import CompactMenuContext from '@components/CompactMenuContext';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {close} from '@libs/actions/Modal';
 import {isSafari} from '@libs/Browser';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
+
 import CONST from '@src/CONST';
+
+import type {ActivityProps, RefObject} from 'react';
+
+import React, {Activity, useState} from 'react';
+import {View} from 'react-native';
+
 import {FABMenuContext} from './FABMenuContext';
 
 const FAB_ITEM_ORDER = [
@@ -84,10 +89,10 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
         onItemSelected();
         if (options?.shouldCallAfterModalHide && !isSafari()) {
             close(() => {
-                navigateAfterInteraction(onSelected);
+                onSelected();
             });
         } else {
-            navigateAfterInteraction(onSelected);
+            onSelected();
         }
         setFocusedIndex(-1);
     };

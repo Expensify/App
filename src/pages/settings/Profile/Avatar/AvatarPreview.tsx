@@ -1,25 +1,33 @@
-import React from 'react';
-import {View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+
 import useAvatarMenu from '@hooks/useAvatarMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getDefaultAvatarName, isCatalogAvatar, isLetterAvatar} from '@libs/UserAvatarUtils';
+import {isCatalogAvatar, isGeneratedLetterAvatarURL, isLetterAvatar} from '@libs/UserAvatarUtils';
+
+import {deleteAvatar} from '@userActions/PersonalDetails';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
-import AvatarCapture from './AvatarCapture';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {AvatarCaptureHandle} from './AvatarCapture/types';
+
+import AvatarCapture from './AvatarCapture';
 
 type AvatarPreviewProps = {
     /** The selected avatar ID */
@@ -34,12 +42,8 @@ type AvatarPreviewProps = {
     setImageData: (imageData: ImageData) => void;
     /** The function to set the error */
     setError: (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => void;
-    /** The function to set the crop image data */
-    setCropImageData: (cropImageData: ImageData) => void;
-    /** Whether the avatar crop modal is open */
-    isAvatarCropModalOpen: boolean;
-    /** The function to set whether the avatar crop modal is open */
-    setIsAvatarCropModalOpen: (isAvatarCropModalOpen: boolean) => void;
+    /** Opens the avatar crop screen for the picked image */
+    openCropper: (image: FileObject) => void;
 };
 
 type ImageData = {
@@ -51,7 +55,7 @@ type ImageData = {
 
 const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
 
-function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropModalOpen, setIsAvatarCropModalOpen, imageData, setImageData, setError, setCropImageData}: AvatarPreviewProps) {
+function AvatarPreview({selected, avatarCaptureRef, setSelected, imageData, setImageData, setError, openCropper}: AvatarPreviewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -73,8 +77,13 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
     } else {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
     }
-    // Weather avatar view & edit options should be hidden. False if user uploaded their own avatar.
-    const shouldHideAvatarEdit = (!imageData.uri && (isCatalogAvatar(currentUserPersonalDetails?.avatar) || isLetterAvatar(currentUserPersonalDetails?.originalFileName))) || !!selected;
+    // Whether avatar view & edit options should be hidden. False if user uploaded their own avatar.
+    const shouldHideAvatarEdit =
+        (!imageData.uri &&
+            (isCatalogAvatar(currentUserPersonalDetails?.avatar) ||
+                isGeneratedLetterAvatarURL(currentUserPersonalDetails?.avatar) ||
+                isLetterAvatar(currentUserPersonalDetails?.originalFileName))) ||
+        !!selected;
 
     /**
      * Validates an image and opens avatar crop modal if valid
@@ -87,14 +96,8 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
                     return;
                 }
 
-                setIsAvatarCropModalOpen(true);
                 setError(null, {});
-                setCropImageData({
-                    uri: image.uri ?? '',
-                    name: image.name ?? '',
-                    type: image.type ?? '',
-                    file: null,
-                });
+                openCropper(image);
             })
             .catch(() => {
                 setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
@@ -102,12 +105,8 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
     };
 
     const onImageRemoved = () => {
-        setSelected(
-            getDefaultAvatarName({
-                accountID: currentUserPersonalDetails?.accountID,
-                accountEmail: currentUserPersonalDetails?.email,
-            }),
-        );
+        deleteAvatar(currentUserPersonalDetails);
+        setSelected(undefined);
         setImageData({...EMPTY_FILE});
     };
 
@@ -153,7 +152,6 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
                                 icon={icons.Upload}
                                 text={translate('avatarPage.uploadPhoto')}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
-                                isDisabled={isAvatarCropModalOpen}
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
@@ -165,9 +163,7 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
 
                     return (
                         <ButtonWithDropdownMenu
-                            success={false}
                             shouldUseOptionIcon
-                            isDisabled={isAvatarCropModalOpen}
                             onPress={() => {}}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                             customText={translate('common.edit')}
