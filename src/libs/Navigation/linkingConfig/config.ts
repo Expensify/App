@@ -1821,42 +1821,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: {
                     screens: {
-                        [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.CATEGORY]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.TAG]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.CONFIRMATION]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.route,
-                            exact: true,
-                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_MERCHANT.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_CATEGORY.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_TAG.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_DESCRIPTION.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_TAX_CODE.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REIMBURSABLE.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_BILLABLE.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CONFIRMATION]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: {

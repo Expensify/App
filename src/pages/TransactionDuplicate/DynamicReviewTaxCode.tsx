@@ -1,35 +1,41 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import {compareDuplicateTransactionFields, getTransactionID} from '@libs/TransactionUtils';
+import {getTaxByID} from '@libs/PolicyUtils';
+import {calculateTaxAmount, compareDuplicateTransactionFields, getAmount, getDefaultTaxCode, getTaxValue, getTransactionID} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 
 import type {FieldItemType} from './ReviewFields';
 
 import ReviewFields from './ReviewFields';
 
-function ReviewCategory() {
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.CATEGORY>>();
+function DynamicReviewTaxCode() {
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE>>();
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
-    const transactionID = getTransactionID(report);
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`);
+    const policy = usePolicy(report?.policyID);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
+    const transactionID = getTransactionID(transactionThreadReport);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const allDuplicateIDs = useMemo(
@@ -38,54 +44,60 @@ function ReviewCategory() {
     );
     const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
     const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reviewDuplicates?.reportID)}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
 
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
-        Object.keys(compareResult.change ?? {}),
-        'category',
-        route.params.threadReportID,
-        route.params.backTo,
-    );
+    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'taxCode', route.params.reportID);
+
     const options = useMemo(
         () =>
-            compareResult.change.category?.map((category) =>
-                !category
-                    ? {text: translate('violations.none'), value: ''}
+            compareResult.change.taxCode?.map((taxID) =>
+                !taxID
+                    ? {text: translate('violations.none'), value: getDefaultTaxCode(policy, transaction) ?? ''}
                     : {
-                          text: getDecodedCategoryName(category),
-                          value: category,
+                          text: getTaxByID(policy, taxID)?.name ?? '',
+                          value: taxID,
                       },
             ),
-        [compareResult.change.category, translate],
+        [compareResult.change.taxCode, policy, transaction, translate],
+    );
+    const getTaxAmount = useCallback(
+        (taxID: string) => {
+            const taxPercentage = getTaxValue(policy, transaction, taxID);
+            const decimals = getCurrencyDecimals(transaction?.currency);
+            return convertToBackendAmount(calculateTaxAmount(taxPercentage ?? '', getAmount(transaction), decimals));
+        },
+        [policy, transaction, getCurrencyDecimals],
     );
 
-    const setCategory = (data: FieldItemType<'category'>) => {
-        if (data.value !== undefined) {
-            setReviewDuplicatesKey({category: data.value});
-        }
-        navigateToNextScreen();
-    };
+    const setTaxCode = useCallback(
+        (data: FieldItemType<'taxCode'>) => {
+            if (data.value !== undefined) {
+                setReviewDuplicatesKey({taxCode: data.value, taxAmount: getTaxAmount(data.value)});
+            }
+            navigateToNextScreen();
+        },
+        [getTaxAmount, navigateToNextScreen],
+    );
 
     return (
-        <ScreenWrapper testID="ReviewCategory">
+        <ScreenWrapper testID="ReviewDescription">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
             />
-            <ReviewFields<'category'>
+            <ReviewFields<'taxCode'>
                 stepNames={stepNames}
-                label={translate('violations.categoryToKeep')}
+                label={translate('violations.taxCodeToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={setCategory}
-                selectedValue={reviewDuplicates?.category}
+                onSelectRow={setTaxCode}
+                selectedValue={reviewDuplicates?.taxCode}
             />
         </ScreenWrapper>
     );
 }
 
-export default ReviewCategory;
+export default DynamicReviewTaxCode;

@@ -677,7 +677,6 @@ describe('TransactionPreviewUtils', () => {
 
     describe('getReviewNavigationRoute', () => {
         const threadReportID = 'threadReport123';
-        const backTo = 'backRoute';
         const fakeReportID = 'fakeReportID';
         const fakeReport = {
             reportID: fakeReportID,
@@ -696,7 +695,7 @@ describe('TransactionPreviewUtils', () => {
                 transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
             });
 
-            const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], undefined, undefined, {}, fakeReport);
+            const route = getReviewNavigationRoute(threadReportID, transaction1, [transaction2], undefined, undefined, {}, fakeReport);
             expect(route).toContain('duplicates/confirm');
         });
 
@@ -714,7 +713,7 @@ describe('TransactionPreviewUtils', () => {
                 merchant: 'Merchant B',
             };
 
-            const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], undefined, undefined, {}, fakeReport);
+            const route = getReviewNavigationRoute(threadReportID, transaction1, [transaction2], undefined, undefined, {}, fakeReport);
             expect(route).toContain('duplicates/review/merchant');
         });
 
@@ -745,7 +744,7 @@ describe('TransactionPreviewUtils', () => {
             };
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
-            const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], fakePolicy, undefined, policyTags, fakeReport);
+            const route = getReviewNavigationRoute(threadReportID, transaction1, [transaction2], fakePolicy, undefined, policyTags, fakeReport);
             expect(route).toContain('duplicates/review/tag');
         });
 
@@ -776,7 +775,7 @@ describe('TransactionPreviewUtils', () => {
             };
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
-            const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], fakePolicy, undefined, policyTags, fakeReport);
+            const route = getReviewNavigationRoute(threadReportID, transaction1, [transaction2], fakePolicy, undefined, policyTags, fakeReport);
             // Since Marketing is disabled, only 1 enabled tag available, so tag review is skipped
             expect(route).toContain('duplicates/confirm');
         });

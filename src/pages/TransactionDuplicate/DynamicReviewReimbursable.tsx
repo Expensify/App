@@ -23,10 +23,10 @@ import type {FieldItemType} from './ReviewFields';
 
 import ReviewFields from './ReviewFields';
 
-function ReviewBillable() {
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
+function DynamicReviewReimbursable() {
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE>>();
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
     const transactionID = getTransactionID(report);
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -35,7 +35,6 @@ function ReviewBillable() {
         () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
         [transactionViolations],
     );
-
     const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
     const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reviewDuplicates?.reportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
@@ -44,44 +43,39 @@ function ReviewBillable() {
 
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
-        Object.keys(compareResult.change ?? {}),
-        'billable',
-        route.params.threadReportID,
-        route.params.backTo,
-    );
+    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'reimbursable', route.params.reportID);
     const options = useMemo(
         () =>
-            compareResult.change.billable?.map((billable) => ({
-                text: billable ? translate('common.yes') : translate('common.no'),
-                value: billable ?? false,
+            compareResult.change.reimbursable?.map((reimbursable) => ({
+                text: reimbursable ? translate('common.yes') : translate('common.no'),
+                value: reimbursable ?? false,
             })),
-        [compareResult.change.billable, translate],
+        [compareResult.change.reimbursable, translate],
     );
 
-    const setBillable = (data: FieldItemType<'billable'>) => {
+    const setReimbursable = (data: FieldItemType<'reimbursable'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({billable: data.value});
+            setReviewDuplicatesKey({reimbursable: data.value});
         }
         navigateToNextScreen();
     };
 
     return (
-        <ScreenWrapper testID="ReviewBillable">
+        <ScreenWrapper testID="ReviewReimbursable">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
             />
-            <ReviewFields<'billable'>
+            <ReviewFields<'reimbursable'>
                 stepNames={stepNames}
-                label={translate('violations.isTransactionBillable')}
+                label={translate('violations.isTransactionReimbursable')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={setBillable}
-                selectedValue={reviewDuplicates?.billable}
+                onSelectRow={setReimbursable}
+                selectedValue={reviewDuplicates?.reimbursable}
             />
         </ScreenWrapper>
     );
 }
 
-export default ReviewBillable;
+export default DynamicReviewReimbursable;
