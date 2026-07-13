@@ -32,8 +32,6 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     policyTagLists?: PolicyTagLists;
     nonPersonalAndWorkspaceCards?: CardList;
     isAttendeesEnabledForMovingPolicy?: boolean;
-
-    /** The chat report (e.g. the invoice room) the transaction's report belongs to, forwarded to the Pay action cell */
     chatReport?: Report;
 };
 
