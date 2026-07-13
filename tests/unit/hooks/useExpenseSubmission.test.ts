@@ -17,7 +17,6 @@ const mockSubmitPerDiemExpenseAction = jest.fn();
 const mockSubmitPerDiemExpenseForSelfDMAction = jest.fn();
 const mockCleanupAfterExpenseCreate = jest.fn();
 const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
-const mockResolveChatTargetForSubmitCleanup = jest.fn();
 
 jest.mock('@userActions/IOU/TrackExpense', () => ({
     requestMoney: (...args: unknown[]) => mockRequestMoneyAction(...args),
@@ -37,10 +36,6 @@ jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
 jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({
     __esModule: true,
     default: (...args: unknown[]) => mockCleanupAndNavigateAfterExpenseCreate(...args),
-}));
-
-jest.mock('@pages/iou/request/step/resolveChatTarget', () => ({
-    resolveChatTargetForSubmitCleanup: (...args: unknown[]) => mockResolveChatTargetForSubmitCleanup(...args),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
@@ -191,7 +186,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
         jest.clearAllMocks();
         await Onyx.clear();
         mockRequestMoneyAction.mockReturnValue({iouReport: {reportID: 'iou-1'}});
-        mockResolveChatTargetForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, chatReportID: 'fallback-id', optimisticChatReportID: undefined});
     });
 
     describe('requestMoney path', () => {
@@ -271,8 +265,8 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             );
         });
 
-        // The IOU action owns post-submit navigation now, so the hook no longer derives a chat target for cleanup nav.
-        it('does not derive the chat target via resolveChatTargetForSubmitCleanup (the IOU action owns post-submit nav)', async () => {
+        // The IOU action owns post-submit navigation now, so the hook performs no cleanup navigation of its own.
+        it('does not run cleanup navigation from the hook (the IOU action owns post-submit nav)', async () => {
             mockRequestMoneyAction.mockReturnValue({iouReport: {reportID: 'iou-1', chatReportID: 'iou-chat-77'}});
 
             const {result} = renderHook(() => useExpenseSubmission(buildParams()));
@@ -283,7 +277,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            expect(mockResolveChatTargetForSubmitCleanup).not.toHaveBeenCalled();
             expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
             expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
         });
@@ -421,7 +414,6 @@ describe('useExpenseSubmission action-bailout safety', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         await Onyx.clear();
-        mockResolveChatTargetForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, chatReportID: 'fallback-id', optimisticChatReportID: undefined});
     });
 
     it('skips requestMoney entirely (including the action call) when SUBMIT batch is missing linked-track metadata', async () => {

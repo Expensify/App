@@ -473,7 +473,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
         if (isTrackExpense) {
             const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
-            submitPerDiemExpenseForSelfDM({
+            const result = submitPerDiemExpenseForSelfDM({
                 selfDMReport,
                 policy,
                 transactionParams: {
@@ -495,6 +495,22 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             });
             if (shouldHandleNavigation) {
                 dismissModalAndOpenReportInInboxTabHelper(optimisticChatReportID, false, false);
+                // Keep the historical dismiss-to-self-DM navigation, but match the other flows'
+                // global-create growl. There's no iouReportID in the self-DM, so the growl resolves
+                // its "View" link from the transaction thread directly.
+                if (getIsFromGlobalCreate(transaction)) {
+                    surfaceExpenseCreatedFeedback({
+                        transactionID: result?.transactionID,
+                        transactionThreadReportID: result?.transactionThreadReportID,
+                    });
+                }
+            } else {
+                // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths) - surface
+                // feedback wherever the user lands, matching the workspace per-diem branch below.
+                surfaceExpenseCreatedFeedback({
+                    transactionID: result?.transactionID,
+                    transactionThreadReportID: result?.transactionThreadReportID,
+                });
             }
         } else {
             const isExpenseReport = isMoneyRequestReportReportUtils(report);

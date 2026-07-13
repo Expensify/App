@@ -38,6 +38,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModalWithReport: jest.fn(),
     pop: jest.fn(),
     navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => ''),
     revealRouteBeforeDismissingModal: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
@@ -60,6 +61,10 @@ jest.mock('@libs/Growl', () => ({
 jest.mock('@libs/actions/Report', () => ({
     createTransactionThreadReport: jest.fn(),
     setOptimisticTransactionThread: jest.fn(),
+}));
+
+jest.mock('@libs/actions/TransactionThreadNavigation', () => ({
+    setActiveTransactionIDs: jest.fn(() => Promise.resolve()),
 }));
 
 describe('navigateAfterExpenseCreate', () => {
@@ -102,6 +107,27 @@ describe('navigateAfterExpenseCreate', () => {
 
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
         expect(Growl.success).toHaveBeenCalledWith(expect.any(String), expect.any(Number), expect.objectContaining({label: expect.any(String), onPress: expect.any(Function)}));
+    });
+
+    it('should defer thread materialization to View press instead of growl-show time', () => {
+        const {setOptimisticTransactionThread} = require('@libs/actions/Report') as {setOptimisticTransactionThread: jest.Mock};
+
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            transactionID: 'txn-1',
+            transactionThreadReportID: 'thread-1',
+            isFromGlobalCreate: false,
+            hasMultipleTransactions: false,
+            shouldAlwaysShowFeedback: true,
+        });
+
+        // Showing the growl must not touch the thread report.
+        expect(setOptimisticTransactionThread).not.toHaveBeenCalled();
+
+        const growlAction = (Growl.success as jest.Mock).mock.calls.at(0)?.at(2) as {onPress: () => void};
+        growlAction.onPress();
+
+        expect(setOptimisticTransactionThread).toHaveBeenCalledWith('thread-1', undefined, undefined, undefined);
     });
 
     it('should dismiss to report when user is on inbox tab', () => {

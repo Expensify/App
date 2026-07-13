@@ -1115,6 +1115,8 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
     TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
 
     notifyNewAction(chatReport.reportID, undefined, true);
+
+    return {transactionID: transaction.transactionID, transactionThreadReportID};
 }
 
 export {

@@ -12,8 +12,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import Onyx from 'react-native-onyx';
 
 const mockUseIsFocused = jest.fn((): boolean => true);
+const mockUseNetwork = jest.fn((): {isOffline: boolean} => ({isOffline: false}));
 
 jest.mock('@libs/actions/Search');
+jest.mock('@hooks/useNetwork', () => ({
+    __esModule: true,
+    default: () => mockUseNetwork(),
+}));
 jest.mock('@react-navigation/native', () => ({
     useIsFocused: () => mockUseIsFocused(),
     createNavigationContainerRef: () => ({}),
@@ -33,6 +38,7 @@ jest.mock('@rnmapbox/maps', () => ({
 
 beforeEach(() => {
     mockUseIsFocused.mockReturnValue(true);
+    mockUseNetwork.mockReturnValue({isOffline: false});
 });
 
 afterEach(() => {
@@ -214,6 +220,63 @@ describe('useSearchAutoRefetch', () => {
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should defer search while offline and fire it exactly once after reconnect', () => {
+        mockUseNetwork.mockReturnValue({isOffline: true});
+
+        const initialProps = {
+            ...baseProps,
+            transactions: {'1': {transactionID: '1'}},
+            previousTransactions: {'1': {transactionID: '1'}},
+        };
+
+        const {rerender} = renderHook((props: UseSearchAutoRefetchParams) => useSearchAutoRefetch(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps,
+        });
+
+        // A new transaction lands while offline: the search must be stashed, not fired.
+        const offlineChangeProps = {
+            ...baseProps,
+            transactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+            },
+            previousTransactions: {'1': {transactionID: '1'}},
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(offlineChangeProps);
+        expect(search).not.toHaveBeenCalled();
+
+        // Reconnect with the diff no longer detectable (previous caught up) - only the pending
+        // flag stashed while offline can trigger the search now.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const reconnectedProps = {
+            ...baseProps,
+            transactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+            },
+            previousTransactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(reconnectedProps);
+        expect(search).toHaveBeenCalledTimes(1);
+
+        // Further data-identical updates must not re-fire.
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender({...reconnectedProps, transactions: {...reconnectedProps.transactions}});
+        expect(search).toHaveBeenCalledTimes(1);
     });
 
     it('should not trigger search for chat when report actions removed and focused', () => {

@@ -93,8 +93,13 @@ type ShowExpenseAddedGrowlParams = {
  * The IOU action's optimistic data is typically not yet in the Onyx cache when this runs — the
  * `API.write` is deferred (deferred-for-search pattern) until Search's content layout flushes the
  * channel. We subscribe to the iouReport's reportActions and wait for the optimistic iouAction
- * to land, then build the thread + show the growl. A safety timeout falls back to a growl
- * without the "View" link if the iouAction never appears.
+ * to land, then show the growl. A safety timeout falls back to a growl without the "View" link
+ * if the iouAction never appears.
+ *
+ * The transaction thread itself is only materialized (context merge, or optimistic creation with
+ * its OpenReport write) when the user actually presses "View" — matching how every other thread
+ * navigation entry point builds the thread at navigation time, and keeping untapped growls free
+ * of Onyx/API side effects.
  */
 function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInvoice}: ShowExpenseAddedGrowlParams) {
     if (!transactionID) {
@@ -126,24 +131,41 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
         return threadReportID;
     };
 
-    const showGrowl = (threadReportID: string | undefined) => {
-        if (!threadReportID) {
+    // Pure mirror of buildThreadFromOnyx's requirements, used at show time to decide whether "View"
+    // can be offered without materializing anything: a known thread ID, or an anchor to build one
+    // from (the IOU report, or the cached transaction for tracked/unreported expenses).
+    const canResolveThread = (): boolean => {
+        const iouAction = iouReportID ? getIOUActionForReportID(iouReportID, transactionID) : undefined;
+        if (providedTransactionThreadReportID ?? iouAction?.childReportID) {
+            return true;
+        }
+        return !!(iouReportID && getReportOrDraftReport(iouReportID)) || !!allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    };
+
+    const showGrowl = () => {
+        if (!canResolveThread()) {
             Log.warn('[showExpenseAddedGrowl] Unable to resolve transaction thread reportID; growl without View.');
             Growl.success(growlMessage, CONST.GROWL.DURATION_LONG);
             return;
         }
-        const resolvedThreadReportID = threadReportID;
         const navigateToExpenseRHP = () => {
+            // Everything resolves at press time (not growl-show time): the thread is only materialized
+            // if the user actually taps "View" (with the freshest data available by then), and navigation
+            // matches whatever surface the user is looking at, even if they switched tabs while the
+            // growl was up.
+            const threadReportID = buildThreadFromOnyx();
+            if (!threadReportID) {
+                Log.warn('[showExpenseAddedGrowl] Unable to resolve transaction thread reportID on View press.');
+                return;
+            }
             const backTo = Navigation.getActiveRoute();
-            // Resolved at press time (not growl-show time) so navigation matches whatever surface the
-            // user is actually looking at, even if they switched tabs while the growl was up.
             const openOnInbox = isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute();
 
             if (!openOnInbox) {
                 // Spend context: open the transaction thread RHP within Search (the report is shown
                 // underneath via the Wide RHP machinery).
                 setActiveTransactionIDs([transactionID]).then(() => {
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: resolvedThreadReportID, backTo}));
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
                 });
                 return;
             }
@@ -151,7 +173,7 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
             // Inbox + narrow layout: super wide RHP is unavailable, so open the transaction thread
             // as a full report view (matches MoneyRequestReportPreview's narrow-screen behavior).
             if (getIsNarrowLayout()) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(resolvedThreadReportID, undefined, undefined, backTo));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(threadReportID, undefined, undefined, backTo));
                 return;
             }
 
@@ -172,13 +194,13 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
                 // Defer so the thread RHP stacks on top of the expense report navigation above.
                 setNavigationActionToMicrotaskQueue(() => {
                     setActiveTransactionIDs([transactionID]).then(() => {
-                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: resolvedThreadReportID, backTo: Navigation.getActiveRoute()}));
+                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: Navigation.getActiveRoute()}));
                     });
                 });
                 return;
             }
             setActiveTransactionIDs([transactionID]).then(() => {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: resolvedThreadReportID, backTo}));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
             });
         };
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- imperative module (not a React component); no useLocalize hook available here
@@ -188,14 +210,13 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
     // Fast path: the thread is already resolvable, so show the growl immediately instead of waiting on
     // the reportActions subscription (which would otherwise hit the 8s safety timeout). This covers:
     // - personal tracked expenses (unreported/self-DM): there's no iouReportID to subscribe to, and the
-    //   thread ID passed in directly is the only handle we'll ever get, so build from it right away;
+    //   thread ID passed in directly is the only handle we'll ever get;
     // - the iouAction already being in Onyx (retry / non-deferred edge cases).
     // When an iouReportID exists but the iouAction hasn't landed yet (deferred write), a provided thread
     // ID is NOT enough - its optimistic report data is inside the deferred write too, so "View" would
     // open a broken RHP. Fall through to the subscription and wait for the action instead.
     if ((providedTransactionThreadReportID && !iouReportID) || (iouReportID && getIOUActionForReportID(iouReportID, transactionID)?.reportActionID)) {
-        const threadReportID = buildThreadFromOnyx();
-        showGrowl(threadReportID);
+        showGrowl();
         return;
     }
 
@@ -204,13 +225,12 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
     // fire via the safety timeout. Resolve immediately with the same fallback the timeout would produce
     // (a growl without "View" when no thread is resolvable).
     if (!iouReportID) {
-        showGrowl(buildThreadFromOnyx());
+        showGrowl();
         return;
     }
 
     // Slow path: wait for Search to render → flushDeferredWrite('search') → API.write applies
     // optimistic data → iouAction lands → we show the growl.
-    const SAFETY_TIMEOUT_MS = 8000;
     let resolved = false;
     let safetyTimeoutID: ReturnType<typeof setTimeout> | undefined;
     const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}` as const;
@@ -227,8 +247,7 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
             resolved = true;
             clearTimeout(safetyTimeoutID);
             Onyx.disconnect(connectionId);
-            const threadReportID = buildThreadFromOnyx();
-            showGrowl(threadReportID);
+            showGrowl();
         },
     });
 
@@ -238,9 +257,8 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
         }
         resolved = true;
         Onyx.disconnect(connectionId);
-        const threadReportID = buildThreadFromOnyx();
-        showGrowl(threadReportID);
-    }, SAFETY_TIMEOUT_MS);
+        showGrowl();
+    }, CONST.TIMING.EXPENSE_ADDED_GROWL_SAFETY_TIMEOUT);
 
     // If the connect callback somehow resolved before the timeout was assigned, its clearTimeout was a no-op - drop the now-useless timer.
     if (resolved) {
