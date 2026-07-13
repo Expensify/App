@@ -7,6 +7,7 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSearchResults from '@hooks/useSearchResults';
@@ -14,13 +15,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import variables from '@styles/variables';
 
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import {SPEND_RULE_CATEGORIES} from '@src/types/form/SpendRuleForm';
 
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
 type CategoryListItem = ListItem & {
     value: SpendRuleCategory;
@@ -36,6 +38,7 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const [selectedCategories, setSelectedCategories] = useState<SpendRuleCategory[]>(categories);
+    const initialSelectedCategories = useInitialSelection(categories, {resetOnFocus: true});
 
     const categoryItems: CategoryListItem[] = SPEND_RULE_CATEGORIES.map((category) => ({
         keyForList: category,
@@ -53,6 +56,10 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
     };
 
     const [inputValue, setInputValue, filteredCategoryItems] = useSearchResults(categoryItems, filterCategory, sortCategories);
+    const orderedCategoryItems = useMemo(
+        () => (inputValue ? filteredCategoryItems : moveInitialSelectionToTop(filteredCategoryItems, initialSelectedCategories)),
+        [filteredCategoryItems, initialSelectedCategories, inputValue],
+    );
 
     const toggleCategory = (item: CategoryListItem) => {
         setSelectedCategories((prev) => {
@@ -103,12 +110,12 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
                 canSelectMultiple
                 shouldUpdateFocusedIndex
                 ListItem={MultiSelectListItem}
-                data={filteredCategoryItems}
+                data={orderedCategoryItems}
                 selectedItems={selectedCategories}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onSelectRow={toggleCategory}
                 onSelectionButtonPress={toggleCategory}
-                onSelectAll={filteredCategoryItems.length > 0 ? toggleSelectAll : undefined}
+                onSelectAll={orderedCategoryItems.length > 0 ? toggleSelectAll : undefined}
                 textInputOptions={{
                     value: inputValue,
                     label: translate('common.search'),
