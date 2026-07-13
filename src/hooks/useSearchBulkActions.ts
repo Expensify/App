@@ -1468,7 +1468,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
 
-            const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
+            // Read the policy through the Search-snapshot fallback: this hook renders outside SearchScopeProvider, so on a
+            // fresh load / cache clear the policy may only exist in the search snapshot and not yet in live Onyx.
+            const policy = selectedPolicyIDs.length === 1 ? getPolicyFromSearchSnapshot(selectedPolicyIDs.at(0), currentSearchResults?.data, policies) : undefined;
             const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
 
             const exportOptions: PopoverMenuItem[] = [];
@@ -1484,7 +1486,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return false;
                 }
 
-                const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                const reportPolicy = getPolicyFromSearchSnapshot(report.policyID, currentSearchResults?.data, policies);
                 const snapshotReport = getReportFromSearchSnapshot(report.reportID, currentSearchResults?.data, allReports);
 
                 if (!snapshotReport) {
