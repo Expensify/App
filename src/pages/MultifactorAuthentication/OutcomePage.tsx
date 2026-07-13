@@ -2,10 +2,16 @@ import {DefaultClientFailureScreen} from '@components/MultifactorAuthentication/
 import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
+import SCREENS from '@src/SCREENS';
 
 import React from 'react';
+
+type OutcomeRouteName = typeof SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS | typeof SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE;
+type MultifactorAuthenticationOutcomePageProps = PlatformStackScreenProps<MultifactorAuthenticationModalNavigatorParamList, OutcomeRouteName>;
 
 const SERVER_FAILURE_REASONS = new Set<string>([
     ...Object.values(CONST.MULTIFACTOR_AUTHENTICATION.REASON.SERVER_ERRORS),
@@ -16,7 +22,7 @@ function shouldShowServerFailureScreen(error: MFAError): boolean {
     return SERVER_FAILURE_REASONS.has(error.reason);
 }
 
-function MultifactorAuthenticationOutcomePage() {
+function MultifactorAuthenticationOutcomePage({route}: MultifactorAuthenticationOutcomePageProps) {
     const {state} = useMultifactorAuthenticationInternal();
     const {scenario, error} = state;
 
@@ -24,8 +30,12 @@ function MultifactorAuthenticationOutcomePage() {
         return <DefaultClientFailureScreen />;
     }
 
-    if (!error) {
+    if (route.name === SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS && !error) {
         return scenario.successScreen;
+    }
+
+    if (!error) {
+        return scenario.defaultClientFailureScreen;
     }
 
     const reasonScreen = scenario.failureScreens?.[error.reason];
