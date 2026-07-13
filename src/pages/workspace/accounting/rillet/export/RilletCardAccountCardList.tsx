@@ -75,7 +75,7 @@ function RilletCardAccountCardList({
                     : '';
                 return (
                     <OfflineWithFeedback
-                        key={feedKey}
+                        key={cardID}
                         pendingAction={getCardsCustomExportPendingAction(
                             cardFeeds ?? {},
                             {feedWithDomainID: cardList},
