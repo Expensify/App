@@ -4,6 +4,7 @@ import Table, {composeTableHeaderComponent} from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,6 +12,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -47,6 +49,8 @@ export default function AgentsTable({agents, headerComponent}: AgentsTableProps)
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['TvScreenRobot', 'AiBot']);
 
+    const [areAgentsLoaded] = useOnyx(ONYXKEYS.ARE_AGENTS_LOADED);
+
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const agentsTableColumns: Array<TableColumn<AgentsTableColumnKey>> = [
@@ -80,6 +84,16 @@ export default function AgentsTable({agents, headerComponent}: AgentsTableProps)
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
+
+    if (!areAgentsLoaded) {
+        // The page header stays visible above the loading skeleton so the layout doesn't jump once the table renders.
+        return (
+            <>
+                {headerComponent}
+                <Table.LoadingState context="AgentsTable" />
+            </>
+        );
+    }
 
     const searchBarComponent = <Table.FilterBar label={translate('agentsPage.findAgent')} />;
     const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
