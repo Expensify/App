@@ -10,6 +10,8 @@
 // resolves @types/bun's global augmentations (it redeclares `require`), which conflicts with the
 // generic `require<T>` overload `src/types/global.d.ts` registers for the rest of the root TS program.
 const {plugin} = globalThis.Bun;
+const fs = require('node:fs');
+const path = require('node:path');
 
 const STUBS = {
     'react-native': {
@@ -54,6 +56,19 @@ const STUBS = {
     '@react-navigation/native': {},
     'expo-audio': {},
 };
+
+// Bun's `module()` hook only matches an exact specifier (unlike `onResolve`'s regex `filter`, which is
+// bundler-only and never fires for bare-specifier imports at runtime — verified against Bun v1.3.14).
+// To catch every unscoped `react-native-*` package, not just the ones with a detailed stub above, list
+// the ones actually installed and fall back to an empty stub for any that aren't already in STUBS. This
+// preserves the blanket `id.startsWith('react-native')` coverage the old ts-node require-hook had, so a
+// new transitive RN dependency added later can't crash a script with a Flow-syntax parse error.
+const nodeModulesDir = path.join(__dirname, '..', 'node_modules');
+for (const entry of fs.readdirSync(nodeModulesDir)) {
+    if (entry.startsWith('react-native') && !(entry in STUBS)) {
+        STUBS[entry] = {};
+    }
+}
 
 plugin({
     name: 'stub-react-native',
