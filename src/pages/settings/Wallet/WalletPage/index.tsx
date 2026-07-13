@@ -234,7 +234,12 @@ function WalletPage() {
             return;
         }
         if (accountPolicyID) {
-            navigateToBankAccountRoute({policyID: accountPolicyID, backTo: ROUTES.SETTINGS_WALLET});
+            navigateToBankAccountRoute({
+                policyID: accountPolicyID,
+                backTo: ROUTES.SETTINGS_WALLET,
+                policyCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${accountPolicyID}`]?.outputCurrency,
+                bankAccountState: accountData?.state,
+            });
             return;
         }
         navigateToBankAccountRoute({bankAccountID, backTo: ROUTES.SETTINGS_WALLET});
