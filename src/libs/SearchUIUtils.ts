@@ -41,6 +41,7 @@ import type {
     SearchQueryJSON,
     SearchSortBy,
     SearchStatus,
+    SearchTextFilterKeys,
     SearchView,
     SearchWithdrawalStatus,
     SearchWithdrawalType,
@@ -62,7 +63,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS, TEXT_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {HasFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -2297,11 +2298,12 @@ function getReportNameValuePairsFromKey(data: OnyxTypes.SearchResults['data'], r
 function getSearchReportAvatarProps(
     report: OnyxTypes.Report,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    translate: LocalizedTranslate,
     personalDetailsList: OnyxTypes.PersonalDetailsList,
     policy?: OnyxTypes.Policy,
     isReportArchived = false,
 ) {
-    const avatarIcons = getIcons(report, formatPhoneNumber, personalDetailsList, null, '', -1, policy, undefined, isReportArchived);
+    const avatarIcons = getIcons(report, formatPhoneNumber, translate, personalDetailsList, null, '', -1, policy, undefined, isReportArchived);
     const hasSecondAvatar = avatarIcons.length > 1 && !!avatarIcons.at(1)?.name;
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
@@ -2606,7 +2608,7 @@ function getTaskSections(
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
                 const parentReportName = getReportName(parentReport, reportAttributesDerivedValue);
-                const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
+                const icons = getIcons(parentReport, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
 
                 result.parentReportName = parentReportName;
@@ -2908,7 +2910,7 @@ function getReportSections({
 
                 const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(reportItem);
                 const reportIsArchived = isArchivedReport(getReportNameValuePairsFromKey(data, reportItem));
-                const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, mergedPersonalDetails, policy, reportIsArchived);
+                const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, translate, mergedPersonalDetails, policy, reportIsArchived);
 
                 const isRejectedReport =
                     reportItem.stateNum === CONST.REPORT.STATE_NUM.OPEN &&
@@ -5494,6 +5496,10 @@ function shouldShowFilter(skipFilters: Set<SearchAdvancedFiltersKey> | undefined
     return !skipFilters?.has(key) && isFilterSupported(key, type) && value && (!Array.isArray(value) || value.length > 0);
 }
 
+function isTextFilterKey(key: string): key is SearchTextFilterKeys {
+    return (TEXT_FILTER_KEYS as Set<string>).has(key);
+}
+
 const isAmountFilterKey = (key: SearchFilter['key']): key is SearchAmountFilterKeys => {
     return AMOUNT_FILTER_KEYS.includes(key as SearchAmountFilterKeys);
 };
@@ -5885,9 +5891,9 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: shouldShowCommentsColumn,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: false,
           }
         : {
               [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
@@ -5955,11 +5961,11 @@ function getColumnsToShow({
             }
 
             if (shouldShowCommentsColumn && !addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
-                const totalIndex = result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
-                if (totalIndex === -1) {
+                const totalAmountIndex = result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+                if (totalAmountIndex === -1) {
                     result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
                 } else {
-                    result.splice(totalIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+                    result.splice(totalAmountIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
                 }
             }
 
@@ -6059,7 +6065,7 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }
             if (hasExchangeRate && isExpenseReportView) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT] = true;
+                columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL] = true;
             }
 
             if (!Array.isArray(data)) {
@@ -6499,6 +6505,7 @@ export {
     getDateDisplayValue,
     shouldShowFilter,
     mapFiltersFormToLabelValueList,
+    isTextFilterKey,
     isAmountFilterKey,
     isDateFilterKey,
     getSingleSelectFilterOptions,

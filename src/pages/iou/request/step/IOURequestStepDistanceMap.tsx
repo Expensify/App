@@ -335,7 +335,7 @@ function IOURequestStepDistanceMap({
         if (isEditing) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {waypoints}, policy);
+                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {waypoints}, policy, personalPolicy?.outputCurrency);
                 navigateBack();
                 return;
             }
@@ -365,6 +365,7 @@ function IOURequestStepDistanceMap({
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
                     delegateAccountID,
+                    personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 });
             }
             transactionWasSaved.current = true;
@@ -402,6 +403,7 @@ function IOURequestStepDistanceMap({
         recentWaypoints,
         distanceOriginalPolicy,
         delegateAccountID,
+        personalPolicy?.outputCurrency,
     ]);
 
     const renderItem = useCallback(

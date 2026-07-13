@@ -5,31 +5,31 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-const mockIsReportTopmostSplitNavigator = jest.fn();
-const mockIsSearchTopmostFullScreenRoute = jest.fn();
-const mockIsReportOpenInRHP = jest.fn();
-const mockGetIsNarrowLayout = jest.fn();
-const mockGetTrackingState = jest.fn();
+const mockIsReportTopmostSplitNavigator = jest.fn<boolean, []>();
+const mockIsSearchTopmostFullScreenRoute = jest.fn<boolean, []>();
+const mockIsReportOpenInRHP = jest.fn<boolean, []>();
+const mockGetIsNarrowLayout = jest.fn<boolean, []>();
+const mockGetTrackingState = jest.fn<boolean, unknown[]>();
 // Declared but assigned after jest.mock hoisting - use require() to access the mock in tests
 let mockSetPendingSubmitFollowUpAction: jest.Mock;
-const mockGetCurrentSearchQueryJSON = jest.fn();
+const mockGetCurrentSearchQueryJSON = jest.fn<undefined, []>();
 
-jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => () => mockIsReportTopmostSplitNavigator() as boolean);
-jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute() as boolean);
-jest.mock('@libs/Navigation/helpers/isReportOpenInRHP', () => () => mockIsReportOpenInRHP() as boolean);
-jest.mock('@libs/Navigation/helpers/isReportOpenInSuperWideRHP', () => () => false as boolean);
+jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => () => mockIsReportTopmostSplitNavigator());
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute());
+jest.mock('@libs/Navigation/helpers/isReportOpenInRHP', () => () => mockIsReportOpenInRHP());
+jest.mock('@libs/Navigation/helpers/isReportOpenInSuperWideRHP', () => () => false);
 jest.mock('@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue', () => (callback: () => void) => {
     callback();
 });
-jest.mock('@libs/getIsNarrowLayout', () => () => mockGetIsNarrowLayout() as boolean);
+jest.mock('@libs/getIsNarrowLayout', () => () => mockGetIsNarrowLayout());
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
-    isTracking: (...args: unknown[]) => mockGetTrackingState(...args) as boolean,
+    isTracking: (...args: unknown[]) => mockGetTrackingState(...args),
     endSubmitFollowUpActionSpan: jest.fn(),
     setPendingSubmitFollowUpAction: jest.fn(),
 }));
 jest.mock('@libs/SearchQueryUtils', () => ({
     buildCannedSearchQuery: jest.fn(({type}: {type: string}) => `type:${type}`),
-    getCurrentSearchQueryJSON: () => mockGetCurrentSearchQueryJSON() as undefined,
+    getCurrentSearchQueryJSON: () => mockGetCurrentSearchQueryJSON(),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -106,7 +106,11 @@ describe('navigateAfterExpenseCreate', () => {
         });
 
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
-        expect(Growl.success).toHaveBeenCalledWith(expect.any(String), expect.any(Number), expect.objectContaining({label: expect.any(String), onPress: expect.any(Function)}));
+        const [growlText, growlDuration, growlAction] = jest.mocked(Growl.success).mock.calls.at(0) ?? [];
+        expect(growlText).toEqual(expect.any(String));
+        expect(growlDuration).toEqual(expect.any(Number));
+        expect(growlAction?.label).toEqual(expect.any(String));
+        expect(growlAction?.onPress).toEqual(expect.any(Function));
     });
 
     it('should defer thread materialization to View press instead of growl-show time', () => {
@@ -124,8 +128,8 @@ describe('navigateAfterExpenseCreate', () => {
         // Showing the growl must not touch the thread report.
         expect(setOptimisticTransactionThread).not.toHaveBeenCalled();
 
-        const growlAction = (Growl.success as jest.Mock).mock.calls.at(0)?.at(2) as {onPress: () => void};
-        growlAction.onPress();
+        const growlAction = jest.mocked(Growl.success).mock.calls.at(0)?.[2];
+        growlAction?.onPress();
 
         expect(setOptimisticTransactionThread).toHaveBeenCalledWith('thread-1', undefined, undefined, undefined);
     });

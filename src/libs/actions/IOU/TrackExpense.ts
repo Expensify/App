@@ -124,7 +124,7 @@ import type {
 } from './types/TrackedExpenseParams';
 
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
-import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations, getMoneyRequestPolicyTags} from './index';
+import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations} from './index';
 import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
 import {handleNavigateAfterExpenseCreate} from './NavigationHelpers';
 import {getSearchOnyxUpdate} from './SearchUpdate';
@@ -196,8 +196,7 @@ type GetTrackExpenseInformationParams = {
     defaultWorkspaceName?: string;
     optimisticChatReportID?: string;
     currentUserLocalCurrency: string | undefined;
-    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
     isDraftChatReport?: boolean;
 };
@@ -1738,15 +1737,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
         existingIOUReport,
         participantParams,
-        policyParams: {
-            ...policyParams,
-            policyTagList: getMoneyRequestPolicyTags({
-                existingIOUReport,
-                moneyRequestReportID,
-                parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
-                participant: participantParams.participant,
-            }),
-        },
+        policyParams,
         transactionParams,
         moneyRequestReportID,
         existingTransactionID,
@@ -1978,6 +1969,7 @@ function convertBulkTrackedExpensesToIOU({
     personalDetails,
     betas,
     policyTagList,
+    delegateAccountID,
 }: {
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -1991,6 +1983,7 @@ function convertBulkTrackedExpensesToIOU({
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    delegateAccountID: number | undefined;
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -2111,6 +2104,7 @@ function convertBulkTrackedExpensesToIOU({
             policyParams: {
                 policyTagList,
             },
+            delegateAccountID,
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);

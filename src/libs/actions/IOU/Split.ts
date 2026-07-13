@@ -144,8 +144,7 @@ type CreateDistanceRequestInformation = {
     optimisticReportPreviewActionID?: string;
     shouldDeferAutoSubmit?: boolean;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
-    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -1246,6 +1245,7 @@ function setDraftSplitTransaction(
     splitTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
     transactionChanges: TransactionChanges = {},
     policy?: OnyxEntry<OnyxTypes.Policy>,
+    personalPolicyOutputCurrency?: string,
 ) {
     if (!transactionID) {
         return undefined;
@@ -1264,6 +1264,7 @@ function setDraftSplitTransaction(
               shouldUpdateReceiptState: false,
               policy,
               isSplitTransaction: true,
+              personalPolicyOutputCurrency,
           })
         : null;
 
@@ -2071,6 +2072,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             reportPreviewAction,
             transactionThreadReportID,
             createdReportActionIDForThread,
+            payerAccountID,
             payerEmail,
             onyxData: moneyRequestOnyxData,
         } = getMoneyRequestInformation({
@@ -2167,6 +2169,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             reimbursable,
             transactionThreadReportID,
             createdReportActionIDForThread,
+            payerAccountID,
             payerEmail,
             customUnitRateID,
             customUnitPolicyID,

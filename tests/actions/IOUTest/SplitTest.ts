@@ -2134,6 +2134,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             existingTransactionDraft: undefined,
             personalDetails: {},
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2362,6 +2363,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             existingTransactionDraft: undefined,
             personalDetails: {},
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2948,6 +2950,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -3127,6 +3130,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -3311,6 +3315,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -3505,6 +3510,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -3764,6 +3770,7 @@ describe('updateSplitTransactions', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -3898,6 +3905,7 @@ describe('updateSplitTransactions', () => {
             personalDetails: {},
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4032,6 +4040,7 @@ describe('updateSplitTransactions', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4177,6 +4186,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4434,6 +4444,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4496,6 +4507,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4541,6 +4553,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4659,6 +4672,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4740,6 +4754,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4812,6 +4827,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4879,6 +4895,7 @@ describe('updateSplitTransactions', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -7485,6 +7502,7 @@ describe('createDistanceRequest', () => {
             recentWaypoints: recentWaypoints ?? [],
             personalDetails: distanceMockPersonalDetails,
             betas: [CONST.BETAS.ALL],
+            delegateAccountID: undefined,
         };
     }
 
@@ -7495,6 +7513,7 @@ describe('createDistanceRequest', () => {
         createDistanceRequest({
             ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
             participants: [],
+            delegateAccountID: undefined,
         });
 
         expect(notifyNewAction).toHaveBeenCalledTimes(0);
@@ -7507,6 +7526,7 @@ describe('createDistanceRequest', () => {
         createDistanceRequest({
             ...getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1}, recentWaypoints),
             participants: [],
+            delegateAccountID: undefined,
         });
 
         expect(notifyNewAction).toHaveBeenCalledTimes(1);
@@ -7562,6 +7582,7 @@ describe('createDistanceRequest', () => {
             ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
             iouType: CONST.IOU.TYPE.SPLIT,
             participants: [],
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -7572,6 +7593,7 @@ describe('createDistanceRequest', () => {
             iouType: CONST.IOU.TYPE.SPLIT,
             participants: [],
             quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -7591,6 +7613,7 @@ describe('createDistanceRequest', () => {
             iouType: CONST.IOU.TYPE.SPLIT,
             policyRecentlyUsedCurrencies: initialCurrencies,
             personalDetails: distanceMockPersonalDetails,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -7666,6 +7689,7 @@ describe('createDistanceRequest', () => {
                 {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL},
                 {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL},
             ],
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -7723,6 +7747,7 @@ describe('createDistanceRequest', () => {
         createDistanceRequest({
             ...getDefaultDistanceRequestParams(policyExpenseChat, {amount: 2500, merchant: 'Work Trip', comment: 'Business travel', category: testCategory}, recentWaypoints),
             policyParams: {policy: fakePolicy, policyCategories: fakeCategories},
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -7872,6 +7897,7 @@ describe('createDistanceRequest', () => {
         createDistanceRequest({
             ...getDefaultDistanceRequestParams(testReport, {amount: 1500, comment: 'Billable distance', billable: true}, recentWaypoints),
             policyParams: {policy: fakePolicy},
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -7906,6 +7932,7 @@ describe('createDistanceRequest', () => {
         createDistanceRequest({
             ...getDefaultDistanceRequestParams(testReport, {comment: 'Tax distance', taxCode: testTaxCode, taxAmount: testTaxAmount}, recentWaypoints),
             policyParams: {policy: fakePolicy},
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -7959,7 +7986,7 @@ describe('createDistanceRequest', () => {
         const allTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
         expect(Object.keys(allReports ?? {}).length).toBeGreaterThan(initialReportsCount);
         expect(Object.keys(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
-        const createdTransaction = Object.values(allTransactions ?? {}).at(0) as Transaction | undefined;
+        const createdTransaction = Object.values(allTransactions ?? {}).at(0);
         expect(createdTransaction).toBeTruthy();
     });
 });

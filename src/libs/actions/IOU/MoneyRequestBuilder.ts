@@ -30,6 +30,7 @@ import {
     isExpenseReport,
     isGroupChat,
     isInvoiceReport as isInvoiceReportReportUtils,
+    isMoneyRequestReport,
     isOneTransactionReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isSelfDM,
@@ -204,8 +205,7 @@ type RequestMoneyInformation = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;
-    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
 };
 
 type MoneyRequestInformationParams = {
@@ -239,8 +239,7 @@ type MoneyRequestInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -288,8 +287,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
     personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     /** Whether this is a selfDM split transaction */
     isSelfDMSplit?: boolean;
@@ -686,6 +684,25 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             value: {
                 hasOnceLoadedReportActions: true,
             },
+        });
+    }
+
+    // Flag for the highlight rail only when the add makes the report multi-tx (its table fresh-mounts with the tx present, so the diff misses it); never the first tx (0→1), which would leave a stale flag; no successData (races the mount).
+    const existingReportTransactions = iou.report?.reportID
+        ? getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID)
+        : [];
+    const addMakesReportMultiTransaction =
+        isMoneyRequestReport(iou.report) && existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && addMakesReportMultiTransaction) {
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
+            value: {pendingNewTransactionIDs: {[transaction.transactionID]: true}},
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
+            value: {pendingNewTransactionIDs: {[transaction.transactionID]: null}},
         });
     }
 
@@ -1126,7 +1143,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     });
 
     if (violationsOnyxData) {
-        const reportTransactions = [...getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID), transaction];
+        const reportTransactions = [...existingReportTransactions, transaction];
         const shouldFixViolations = hasSubmissionBlockingViolationInReport(
             reportTransactions,
             transactionViolations,

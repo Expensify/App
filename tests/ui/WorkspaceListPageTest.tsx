@@ -9,6 +9,7 @@ import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
@@ -133,6 +134,35 @@ describe('WorkspaceListPage', () => {
 
         const newWorkspaceButton = screen.queryByAccessibilityHint('New');
         expect(newWorkspaceButton).toBeOnTheScreen();
+    });
+
+    it('should show the owner email of a pending join request workspace when the owner is not in the personal details list', async () => {
+        const TEST_POLICY_ID = 'pending-policy-id';
+        const OWNER_EMAIL = 'owner@example.com';
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {
+            id: TEST_POLICY_ID,
+            isJoinRequestPending: true,
+            policyDetailsForNonMembers: {
+                [TEST_POLICY_ID]: {
+                    name: 'Pending Workspace',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    ownerAccountID: 42,
+                    ownerEmail: OWNER_EMAIL,
+                },
+            },
+        });
+
+        renderPage();
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('Pending Workspace')).toBeOnTheScreen();
+        expect(screen.getByText(new RegExp(OWNER_EMAIL))).toBeOnTheScreen();
+        // The workspace default icon is derived from nonMemberDetails.name ("Pending Workspace"), so the
+        // rendered SVG test ID is keyed by its first alphanumeric character. The icon is decorative and
+        // hidden from accessibility, so the query must include hidden elements.
+        expect(screen.getByTestId('SvgDefaultAvatar_p Icon', {includeHiddenElements: true})).toBeOnTheScreen();
     });
 
     it('should show a "New workspace" button when there are workspaces but no domains', async () => {

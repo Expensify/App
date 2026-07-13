@@ -838,6 +838,7 @@ type ChangeTransactionsReportProps = {
     transactions: Transaction[];
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
     allReports: OnyxCollection<Report>;
+    personalPolicyOutputCurrency: string | undefined;
 };
 
 function changeTransactionsReport({
@@ -853,6 +854,7 @@ function changeTransactionsReport({
     transactions,
     allTransactionViolation = {},
     allReports: allReportsParam,
+    personalPolicyOutputCurrency,
 }: ChangeTransactionsReportProps) {
     const reports = allReportsParam ?? allReports;
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1230,7 +1232,7 @@ function changeTransactionsReport({
                     };
 
                     if (!isFetchingWaypointsFromServer(transaction)) {
-                        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+                        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
                         const {unit, rate} = updatedMileageRate;
                         const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
                         const calculatedAmount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);

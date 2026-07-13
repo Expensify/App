@@ -35,4 +35,4 @@ function resolveChatTargetForScan({iouType, participant, report, currentUserAcco
     return {report: undefined, chatReportID: resolved.chatReportID, optimisticChatReportID: resolved.optimisticChatReportID};
 }
 
-export {resolveChatTargetForScan};
+export default resolveChatTargetForScan;
