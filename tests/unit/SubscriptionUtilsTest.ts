@@ -33,7 +33,7 @@ import type PrivatePromoDiscount from '@src/types/onyx/PrivatePromoDiscount';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {addDays, addMinutes, format as formatDate, getUnixTime, subDays} from 'date-fns';
+import {addDays, addMinutes, format as formatDate, getUnixTime, subDays, subSeconds} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
@@ -190,7 +190,9 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return true if the current date is on the same date of free trial start date', async () => {
-            const firstDayFreeTrial = formatDate(new Date(), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            // Subtract 1 second so firstDayFreeTrial is always in the past relative to when isUserOnFreeTrial reads new Date() internally,
+            // avoiding a race condition where both timestamps land at the exact same millisecond and isAfter() returns false.
+            const firstDayFreeTrial = formatDate(subSeconds(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             const lastDayFreeTrial = formatDate(addDays(new Date(), 3), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,

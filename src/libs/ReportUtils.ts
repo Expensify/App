@@ -4378,6 +4378,7 @@ function getReasonAndReportActionThatRequiresAttention(
     isReportArchived = false,
     allReportActionsParam?: OnyxCollection<ReportActions>,
     reports?: OnyxCollection<Report>,
+    policiesParam?: OnyxCollection<Policy>,
 ): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
@@ -4421,11 +4422,13 @@ function getReasonAndReportActionThatRequiresAttention(
     }
 
     const optionReportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${optionOrReport.reportID}`];
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    const policy = getPolicy(optionOrReport.policyID);
+    // Prefer the policies collection callers already have on hand (e.g. reportAttributes.ts's own OnyxDerived
+    // dependency) over the deprecated allPolicies module cache, which is populated by its own independently-timed
+    // Onyx.connect and can still be stale/missing a policy that's already present in the caller's own snapshot.
+    const resolvePolicy = (policyID: string | undefined) => (policiesParam ? policiesParam[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : getPolicy(policyID));
+    const policy = resolvePolicy(optionOrReport.policyID);
     const invoiceReceiverPolicyID = optionOrReport?.invoiceReceiver && 'policyID' in optionOrReport.invoiceReceiver ? optionOrReport.invoiceReceiver.policyID : undefined;
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    const invoiceReceiverPolicy = invoiceReceiverPolicyID ? getPolicy(invoiceReceiverPolicyID) : undefined;
+    const invoiceReceiverPolicy = invoiceReceiverPolicyID ? resolvePolicy(invoiceReceiverPolicyID) : undefined;
     const actionTypeForAssigneeToComplete = getActionTypeForAssigneeToComplete(optionOrReport, parentReportAction);
 
     // Compute IOU candidate upfront so we can compare timestamps with task candidate
@@ -5112,6 +5115,18 @@ function canEditMultipleTransactions(
     return true;
 }
 
+function canUnreportedBeMoved(transaction: OnyxEntry<Transaction>, policies: OnyxCollection<Policy>): boolean {
+    if (!isPerDiemRequest(transaction)) {
+        return true;
+    }
+    const perDiemPolicy = getPolicyByCustomUnitID(transaction, policies);
+    const perDiemCustomUnit = getPerDiemCustomUnit(perDiemPolicy);
+    if (!isPerDiemEnabled(perDiemPolicy) || isEmptyObject(perDiemCustomUnit?.rates)) {
+        return false;
+    }
+    return true;
+}
+
 /**
  * Checks if the current user can edit the provided property of an expense
  *
@@ -5151,6 +5166,12 @@ function canEditFieldOfMoneyRequest({
         CONST.EDIT_REQUEST_FIELD.REPORT,
         CONST.EDIT_REQUEST_FIELD.BILLABLE,
     ];
+
+    // Legacy/imported unreported transactions may not have an IOU report action, so bypass the action guard and allow moving them to a report.
+    const isUnreportedLegacyTransaction = !reportAction && (!transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT && isUnreportedLegacyTransaction) {
+        return canUnreportedBeMoved(transaction, allPolicies);
+    }
 
     if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, isChatReportArchived, report, policy)) {
         return false;
@@ -5226,15 +5247,7 @@ function canEditFieldOfMoneyRequest({
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
         if (isUnreportedExpense) {
-            if (isPerDiemRequest(transaction)) {
-                // For unreported per diem expenses, check if there's a valid policy with rates.
-                const perDiemPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
-                const perDiemCustomUnit = getPerDiemCustomUnit(perDiemPolicy);
-                if (!isPerDiemEnabled(perDiemPolicy) || isEmptyObject(perDiemCustomUnit?.rates)) {
-                    return false;
-                }
-            }
-            return true;
+            return canUnreportedBeMoved(transaction, allPolicies);
         }
 
         if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, reportNameValuePairs)) {
@@ -12763,6 +12776,7 @@ function generateReportAttributes({
     isReportArchived = false,
     allTransactions,
     reports,
+    policies,
     currentUserLogin,
     currentUserAccountID,
 }: {
@@ -12777,6 +12791,7 @@ function generateReportAttributes({
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
     actionTargetReportActionID?: string;
     reports?: OnyxCollection<Report>;
+    policies?: OnyxCollection<Policy>;
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
@@ -12787,7 +12802,7 @@ function generateReportAttributes({
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
     const {reason, actionBadge, reportAction} =
-        getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived, reportActions, reports) ?? {};
+        getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived, reportActions, reports, policies) ?? {};
 
     return {
         hasViolationsToDisplayInLHN,
