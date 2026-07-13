@@ -103,9 +103,10 @@ const INIT_STEP_EVENT_TYPE = 'xstate.init';
 const DELAYED_EVENT_PREFIX = 'xstate.after';
 const ACTOR_DONE_EVENT_PREFIX = 'xstate.done.actor.';
 const ACTOR_ERROR_EVENT_PREFIX = 'xstate.error.actor.';
+const VALIDATE_DEVICE_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}validateDevice`;
+const VALIDATE_DEVICE_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}validateDevice`;
 
-type ActorOutcome = {kind: 'resolve'; output: unknown} | {kind: 'reject'};
-type PathSteps = ReadonlyArray<{event: {type: string; output?: unknown}}>;
+type PathSteps = ReadonlyArray<{event: {type: string}}>;
 
 type MfaSnapshot = SnapshotFrom<typeof mfaMachine>;
 
@@ -114,28 +115,9 @@ function isAutoDrivenEvent(eventType: string): boolean {
 }
 
 /**
- * Derives the settlement each invoked actor must produce from the graph path. A done step carries the
- * output fixture its branch was generated from, so the mock resolves with exactly that value, and an
- * error step makes it reject. This keeps the walk generic: adding another actor only requires a
- * corresponding mock implementation.
- */
-function getActorOutcomes(steps: PathSteps): Record<string, ActorOutcome> {
-    const outcomes: Record<string, ActorOutcome> = {};
-    for (const step of steps) {
-        const {type, output} = step.event;
-        if (type.startsWith(ACTOR_DONE_EVENT_PREFIX)) {
-            outcomes[type.slice(ACTOR_DONE_EVENT_PREFIX.length)] = {kind: 'resolve', output};
-        } else if (type.startsWith(ACTOR_ERROR_EVENT_PREFIX)) {
-            outcomes[type.slice(ACTOR_ERROR_EVENT_PREFIX.length)] = {kind: 'reject'};
-        }
-    }
-    return outcomes;
-}
-
-/**
  * A path is UI-drivable when the walk can produce every step. A delayed transition would need real
- * timers, so a path containing one is not drivable. Actor completion events are auto-driven by promise
- * settlement and stay in the path so their expected outcomes can configure the actor mocks.
+ * timers, so a path containing one is not drivable. Actor completion events stay in the path so their
+ * executors can settle the controlled actor mocks at the correct transition.
  */
 function isUiDrivablePath(path: {steps: PathSteps}): boolean {
     return path.steps.every((step) => !step.event.type.startsWith(DELAYED_EVENT_PREFIX));
@@ -205,9 +187,8 @@ function getDrivingJourneyPaths() {
  * reachability over the unfiltered graph, while the walk-coverage guard in
  * `viewMatchesMachine.test.tsx` catches a state that loses every UI-drivable route.
  *
- * `path.test` skips a step whose event has no executor, which keeps framework steps such as
- * `xstate.init` and actor completion harmless while the executor table still forces an executor for
- * every user-driven event.
+ * `path.test` skips framework steps without an executor, such as `xstate.init`. Actor completion
+ * steps keep their executors so the UI walk settles the corresponding mock at the correct transition.
  */
 function getWalkedPaths() {
     const coveragePaths = mfaTestModel.getPaths(() => getMfaShortestPaths());
@@ -216,5 +197,4 @@ function getWalkedPaths() {
 }
 
 export default getWalkedPaths;
-export {getDrivingJourneyPaths, getMfaShortestPaths, getActorOutcomes, isAutoDrivenEvent};
-export type {ActorOutcome};
+export {getDrivingJourneyPaths, getMfaShortestPaths, isAutoDrivenEvent, VALIDATE_DEVICE_DONE_EVENT_TYPE, VALIDATE_DEVICE_ERROR_EVENT_TYPE};

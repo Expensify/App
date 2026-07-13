@@ -4,16 +4,18 @@ import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 import {mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 
+import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
 import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
 import type {SnapshotFrom} from 'xstate';
 
-import getWalkedPaths, {getActorOutcomes, isAutoDrivenEvent} from 'tests/utils/mfa/flowPaths';
+import getWalkedPaths, {isAutoDrivenEvent, VALIDATE_DEVICE_DONE_EVENT_TYPE, VALIDATE_DEVICE_ERROR_EVENT_TYPE} from 'tests/utils/mfa/flowPaths';
 import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
-import {pendingModalClose, resetMfaUiMocks, setActorOutcomes} from 'tests/utils/mfa/realUi/mocks';
+import {pendingModalClose, rejectValidateDevice, resetMfaUiMocks, resolveValidateDevice} from 'tests/utils/mfa/realUi/mocks';
 import {translateLocal} from 'tests/utils/TestHelper';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 import {matchesState} from 'xstate';
@@ -54,6 +56,10 @@ type MfaEventExecutorStep<Type extends MfaEventType> = {event: {type: Type}};
 type MfaEventExecutors = {
     [Type in MfaEventType]: (step: MfaEventExecutorStep<Type>) => Promise<void>;
 };
+type ValidateDeviceActorEventExecutors = {
+    [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step: {event: {type: typeof VALIDATE_DEVICE_DONE_EVENT_TYPE; output: MFAResult}}) => Promise<void>;
+    [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => Promise<void>;
+};
 
 type ExecuteScenario = ReturnType<typeof renderMfaUi>['executeScenario'];
 
@@ -69,6 +75,10 @@ function isMfaInitEvent(event: {type: string}): event is MfaInitEvent {
  */
 /* eslint-disable @typescript-eslint/naming-convention -- keys mirror the machine's event type union. */
 function createMfaEventExecutors(executeScenario: ExecuteScenario) {
+    const settleValidateDevice = async (settle: () => void) => {
+        await act(async () => settle());
+    };
+
     return {
         INIT: async (step) => {
             const {event} = step;
@@ -86,14 +96,20 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             await waitForBatchedUpdatesWithAct();
         },
         CLOSE_MODAL: async () => {
-            fireEvent.press(screen.getByTestId(TEST_ID.OUTCOME_CONFIRM_BUTTON));
+            if (screen.queryByTestId(TEST_ID.OUTCOME_SCREEN)) {
+                fireEvent.press(screen.getByTestId(TEST_ID.OUTCOME_CONFIRM_BUTTON));
+            } else {
+                fireEvent.press(screen.getByTestId(TEST_ID.MODAL_BACKDROP));
+            }
             await waitForBatchedUpdatesWithAct();
         },
         MODAL_CLOSED: async () => {
             act(() => pendingModalClose.run());
             await waitForBatchedUpdatesWithAct();
         },
-    } satisfies MfaEventExecutors;
+        [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step) => settleValidateDevice(() => resolveValidateDevice(step.event.output)),
+        [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => settleValidateDevice(rejectValidateDevice),
+    } satisfies MfaEventExecutors & ValidateDeviceActorEventExecutors;
 }
 /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -105,11 +121,9 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.VALIDATING_DEVICE}`]: () => {
-            // The mock device-check actor settles on the microtask queue, so by the time this assertion
-            // runs the live machine has already advanced to an outcome and the outcome screen has
-            // replaced the initial one. The mounted modal is the only part of this state the walk can
-            // still observe.
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: () => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
@@ -175,9 +189,6 @@ describe('the real MFA modal matches the machine at every step of every generate
     });
 
     it.each(walkedPathTestCases)('$title', async ({path}) => {
-        // Drive each invoked actor to the outcome this path expects (resolve or reject) so the real
-        // machine follows the same branch the graph generated.
-        setActorOutcomes(getActorOutcomes(path.steps));
         const {executeScenario} = renderMfaUi();
         await waitForBatchedUpdatesWithAct();
         await path.test({...testConfig, events: createMfaEventExecutors(executeScenario)});

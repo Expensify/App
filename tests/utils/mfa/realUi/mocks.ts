@@ -7,13 +7,15 @@ import type Navigation from '@libs/Navigation/Navigation';
 
 import {fromPromise} from 'xstate';
 
-import type {ActorOutcome} from '../flowPaths';
-
 // This module keeps mutable mock state and factory bodies outside the test so the test stays focused on
 // mock registrations and assertions.
 
 type CapturedCallback = () => void;
 type NavigationTransitionOverrides = Pick<typeof Navigation, 'runAfterTransition' | 'runAfterUpcomingTransition'>;
+type PendingValidateDevice = {
+    resolve: (result: MFAResult) => void;
+    reject: (error: Error) => void;
+};
 
 let pendingCloseCallback: CapturedCallback | undefined;
 
@@ -48,50 +50,41 @@ const biometricsMock: Pick<UseBiometricsReturn, 'serverKnownCredentialIDs' | 'ar
     areLocalCredentialsKnownToServer: () => Promise.resolve(false),
 };
 
-/**
- * Per-path outcomes for the mock actors the walk provides, keyed by actor id. The walk sets this from a
- * path's graph events before rendering, so an `xstate.error.actor.<id>` step makes that actor reject and
- * an `xstate.done.actor.<id>` step makes it resolve with the output fixture the graph generated the
- * branch from. Unlisted actors default to resolving with their mock's default output.
- */
-let actorOutcomes: Record<string, ActorOutcome> = {};
+let pendingValidateDeviceCall: PendingValidateDevice | undefined;
 
-function setActorOutcomes(outcomes: Record<string, ActorOutcome>) {
-    actorOutcomes = outcomes;
+function takePendingValidateDeviceCall(): PendingValidateDevice {
+    const pendingCall = pendingValidateDeviceCall;
+    pendingValidateDeviceCall = undefined;
+    if (!pendingCall) {
+        throw new Error('No pending validateDevice call is available.');
+    }
+    return pendingCall;
 }
 
-function getActorOutcome(actorId: string): ActorOutcome {
-    return actorOutcomes[actorId] ?? {kind: 'resolve', output: undefined};
+function resolveValidateDevice(result: MFAResult) {
+    takePendingValidateDeviceCall().resolve(result);
+}
+
+function rejectValidateDevice() {
+    takePendingValidateDeviceCall().reject(new Error('Mock validateDevice actor rejected for this path'));
 }
 
 function resetMfaUiMocks() {
     pendingModalClose.clear();
-    actorOutcomes = {};
+    pendingValidateDeviceCall = undefined;
 }
 
-function makeActorMock<TInput, TOutput>(actorID: string, defaultOutput: TOutput) {
-    return fromPromise<TOutput, TInput>(async () => {
-        const outcome = getActorOutcome(actorID);
-        if (outcome.kind === 'reject') {
-            throw new Error(`Mock MFA actor "${actorID}" rejected for this path`);
-        }
-        if (outcome.output === undefined) {
-            return defaultOutput;
-        }
-        // The recorded output originates from this actor's typed done-event fixtures in `flowPaths.ts`,
-        // and the generic outcome record cannot carry that link, so it narrows back to the output type.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        return outcome.output as TOutput;
-    });
-}
+const validateDeviceMock = fromPromise<MFAResult, ValidateDeviceInput>(
+    () =>
+        new Promise<MFAResult>((resolve, reject) => {
+            pendingValidateDeviceCall = {resolve, reject};
+        }),
+);
 
-/**
- * Replaces the machine's side-effect actors with graph-driven promises. `satisfies` makes adding a real
- * actor a type error here until the UI walk defines its mock.
- */
+/** Replaces the machine's side-effect actors with controlled test implementations. */
 function mfaActorsMock() {
     const actors = {
-        validateDevice: makeActorMock<ValidateDeviceInput, MFAResult>('validateDevice', {success: true}),
+        validateDevice: validateDeviceMock,
     } satisfies ReturnType<typeof createActors>;
 
     return {
@@ -149,4 +142,4 @@ function navigationMock() {
     };
 }
 
-export {pendingModalClose, setActorOutcomes, resetMfaUiMocks, mfaActorsMock, biometricsHookMock, renderHtmlMock, syncHistoryMock, navigationMock};
+export {pendingModalClose, resolveValidateDevice, rejectValidateDevice, resetMfaUiMocks, mfaActorsMock, biometricsHookMock, renderHtmlMock, syncHistoryMock, navigationMock};
