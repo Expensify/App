@@ -1,8 +1,11 @@
 import {
     getCompletedStepsForBankAccount,
+    getBankAccountConnectionStatus,
+    getBankAccountState,
     getDefaultCompanyWebsite,
     getLastFourDigits,
     getRequiredKYBDocuments,
+    hasBankAccountAllowDebit,
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
@@ -243,6 +246,82 @@ describe('BankAccountUtils', () => {
             {state: '', name: 'empty string'},
         ])('returns false for $name state', ({state}) => {
             expect(isBankAccountPartiallySetup(state)).toBe(false);
+        });
+    });
+
+    describe('getBankAccountState', () => {
+        it('returns the state from accountData', () => {
+            expect(getBankAccountState({state: CONST.BANK_ACCOUNT.STATE.OPEN} as AccountData)).toBe(CONST.BANK_ACCOUNT.STATE.OPEN);
+        });
+
+        it('returns undefined when accountData is undefined', () => {
+            expect(getBankAccountState(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('hasBankAccountAllowDebit', () => {
+        it('returns true when accountData allows debit', () => {
+            expect(hasBankAccountAllowDebit({allowDebit: true} as AccountData)).toBe(true);
+        });
+
+        it('returns false when accountData does not allow debit', () => {
+            expect(hasBankAccountAllowDebit({allowDebit: false} as AccountData)).toBe(false);
+        });
+
+        it('returns false when accountData is undefined', () => {
+            expect(hasBankAccountAllowDebit(undefined)).toBe(false);
+        });
+    });
+
+    describe('getBankAccountConnectionStatus', () => {
+        it('maps OPEN bank accounts to Active without an RBR', () => {
+            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.OPEN)).toEqual({
+                labelKey: 'walletPage.bankAccountStatus.active',
+                tone: 'success',
+            });
+        });
+
+        it('maps SETUP bank accounts to Incomplete with the finish action', () => {
+            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.SETUP)).toEqual({
+                labelKey: 'walletPage.bankAccountStatus.incomplete',
+                messageKey: 'walletPage.bankAccountStatus.finishAddingBankAccount',
+                actionKey: 'walletPage.bankAccountStatus.finish',
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            });
+        });
+
+        it('maps PENDING bank accounts to Pending with the confirm action', () => {
+            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.PENDING)).toEqual({
+                labelKey: 'walletPage.bankAccountStatus.pending',
+                messageKey: 'walletPage.bankAccountStatus.confirmTestTransactions',
+                actionKey: 'common.confirm',
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            });
+        });
+
+        it('maps VERIFYING bank accounts to Verifying with only a tooltip', () => {
+            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.VERIFYING)).toEqual({
+                labelKey: 'walletPage.bankAccountStatus.verifying',
+                tooltipKey: 'walletPage.bankAccountStatus.reviewingDocumentation',
+                tone: 'default',
+            });
+        });
+
+        it('maps LOCKED bank accounts to Locked with the unlock action', () => {
+            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.LOCKED)).toEqual({
+                labelKey: 'common.locked',
+                messageKey: 'walletPage.bankAccountStatus.accountRequiresAttention',
+                actionKey: 'walletPage.bankAccountStatus.unlock',
+                requiresUnlockHandler: true,
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            });
+        });
+
+        it.each([undefined, '', 'UNKNOWN'])('returns undefined for unsupported state "%s"', (state) => {
+            expect(getBankAccountConnectionStatus(state)).toBeUndefined();
         });
     });
 
