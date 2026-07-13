@@ -201,20 +201,25 @@ export default function WorkspaceExpensifyCardsTable({
     );
 
     const cardListHeaderContent = (
-        <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1, styles.mb5]}>
-            <WorkspaceCardListLabels
-                policyID={policyID}
-                cardSettings={cardSettingsBase}
-            />
-            {!!errorMessage && (
-                <View style={[styles.mh5, styles.pr4, styles.mt2]}>
-                    <FormHelpMessage
-                        isError
-                        message={errorMessage}
-                    />
-                </View>
-            )}
-        </View>
+        <>
+            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1, styles.mb5]}>
+                <WorkspaceCardListLabels
+                    policyID={policyID}
+                    cardSettings={cardSettingsBase}
+                />
+                {!!errorMessage && (
+                    <View style={[styles.mh5, styles.pr4, styles.mt2]}>
+                        <FormHelpMessage
+                            isError
+                            message={errorMessage}
+                        />
+                    </View>
+                )}
+            </View>
+            <Table.FilterBar label={translate('workspace.expensifyCard.findCard')} />
+            <Table.NoResultsState />
+            <Table.Header />
+        </>
     );
 
     return (
@@ -235,9 +240,6 @@ export default function WorkspaceExpensifyCardsTable({
             ListFooterComponentStyle={listFooterComponentStyle}
             ListHeaderComponent={cardListHeaderContent}
         >
-            <Table.FilterBar label={translate('workspace.expensifyCard.findCard')} />
-            <Table.NoResultsState />
-            <Table.Header />
             <Table.Body contentContainerStyle={listContentContainerStyle} />
         </Table>
     );
