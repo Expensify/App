@@ -1,4 +1,3 @@
-import {deviceCheckFailureReason, deviceVerificationType, doesDeviceSupportAuthenticationMethod} from '@components/MultifactorAuthentication/biometrics/operations';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
@@ -7,6 +6,8 @@ import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFARes
 import CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
+
+import {deviceCheckFailureReason, deviceVerificationType, doesDeviceSupportAuthenticationMethod} from './operations';
 
 /**
  * Confirms the device can complete a biometric ceremony through two ordered gates that mirror the
