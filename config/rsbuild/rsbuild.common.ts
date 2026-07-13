@@ -40,13 +40,6 @@ const localBranchName = getCurrentBranchName();
 
 /**
  * React Compiler + react-native-worklets loaders.
- *
- * `isDevServer` (true only for the interactive `rsbuild dev` command) enables React Fast Refresh:
- * `jsx.development`/`jsx.refresh` make the OXC loader emit the `$RefreshReg$`/`$RefreshSig$` calls
- * ReactRefreshRspackPlugin's runtime needs (the plugin alone doesn't inject these — see
- * @rsbuild/plugin-react, which wires the same two options together for its own swc-loader), and
- * `reactCompiler.isDev` keeps React Compiler's fast-refresh signature hashing in sync so compiled
- * components refresh correctly instead of resetting state on every edit.
  */
 function getOxcAndWorkletsLoaders(isDevServer: boolean) {
     return [
