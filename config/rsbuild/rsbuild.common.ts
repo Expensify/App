@@ -40,16 +40,23 @@ const localBranchName = getCurrentBranchName();
 
 /**
  * React Compiler + react-native-worklets loaders.
+ *
+ * `isDevServer` (true only for the interactive `rsbuild dev` command) enables React Fast Refresh:
+ * `jsx.development`/`jsx.refresh` make the OXC loader emit the `$RefreshReg$`/`$RefreshSig$` calls
+ * ReactRefreshRspackPlugin's runtime needs (the plugin alone doesn't inject these — see
+ * @rsbuild/plugin-react, which wires the same two options together for its own swc-loader), and
+ * `reactCompiler.isDev` keeps React Compiler's fast-refresh signature hashing in sync so compiled
+ * components refresh correctly instead of resetting state on every edit.
  */
-function getOxcAndWorkletsLoaders() {
+function getOxcAndWorkletsLoaders(isDevServer: boolean) {
     return [
         {loader: path.resolve(dirname, './loaders/worklets-loader.mjs')},
         {
             loader: path.resolve(dirname, './loaders/oxc-react-compiler-loader.mjs'),
             options: {
-                reactCompiler: {target: '19', panicThreshold: 'none'},
+                reactCompiler: {target: '19', panicThreshold: 'none', isDev: isDevServer},
                 target: 'node20',
-                jsx: {runtime: 'automatic'},
+                jsx: {runtime: 'automatic', development: isDevServer, refresh: isDevServer},
             },
         },
     ];
@@ -136,7 +143,7 @@ function getDefineValues(file: string): DefinePluginOptions {
  * (HTML template, service worker, Sentry release upload, static asset copying), since Storybook
  * manages its own HTML/output and isn't a deployable release of the app.
  */
-const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => {
+const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environment): RsbuildConfig => {
     /* eslint-disable @typescript-eslint/naming-convention */
     return {
         source: {
@@ -269,7 +276,7 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                         // Exclude ALL node_modules (including the included-node_modules allowlist, handled below).
                         exclude: [/node_modules/, /\.native\.(js|jsx|ts|tsx)$/],
                         use: [
-                            ...getOxcAndWorkletsLoaders(),
+                            ...getOxcAndWorkletsLoaders(isDevServer),
                             // Fullstory annotation.
                             {
                                 loader: path.resolve(dirname, './loaders/fullstory-annotation-loader.mjs'),
@@ -282,7 +289,7 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                         test: /\.(js|ts)x?$/,
                         include: [includedNodeModulesRegex],
                         exclude: [/\.native\.(js|jsx|ts|tsx)$/],
-                        use: getOxcAndWorkletsLoaders(),
+                        use: getOxcAndWorkletsLoaders(isDevServer),
                     },
                 ]);
 
@@ -296,9 +303,9 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
 /**
  * Get a production grade Rsbuild config for web
  */
-const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment): RsbuildConfig => {
+const getCommonConfiguration = ({file = '.env', platform = 'web', isDevServer = false}: Environment): RsbuildConfig => {
     const isDevelopment = file === '.env' || file === '.env.development';
-    const shared = getSharedConfiguration({file, platform});
+    const shared = getSharedConfiguration({file, platform, isDevServer});
     const sharedRspackTool = shared.tools?.rspack;
 
     if (!isDevelopment) {
