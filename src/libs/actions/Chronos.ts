@@ -10,16 +10,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {ChronosOOOEvent} from '@src/types/onyx/OriginalMessage';
-import type {Timezone} from '@src/types/onyx/PersonalDetails';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
-type ChronosTimerOnyxUpdate = OnyxUpdate<
-    typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_CHRONOS_TIME_TRACKING | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
->;
+type ChronosTimerOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_CHRONOS_TIME_TRACKING>;
 
 const removeEvent = (reportID: string | undefined, reportActionID: string, eventID: string, events: ChronosOOOEvent[]) => {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
@@ -78,7 +75,7 @@ const removeEvent = (reportID: string | undefined, reportActionID: string, event
  *
  * @param previousStartTime the current NVP `startTime` (falsy when no timer is running)
  */
-const startOrStopChronosTimer = (report: Report, currentUserAccountID: number, timezoneParam: Timezone, previousStartTime: string | null, delegateAccountID?: number) => {
+const startOrStopChronosTimer = (report: Report, currentUserAccountID: number, previousStartTime: string | null, delegateAccountID?: number) => {
     const reportID = report.reportID;
     if (!reportID) {
         return;
@@ -146,18 +143,6 @@ const startOrStopChronosTimer = (report: Report, currentUserAccountID: number, t
         clientCreatedTime: reportAction.created,
         idempotencyKey: Str.guid(),
     };
-
-    // Refresh the user's timezone if it's been long enough since the last comment (mirrors addComment).
-    if (DateUtils.canUpdateTimezone() && currentUserAccountID) {
-        const timezone = DateUtils.getCurrentTimezone(timezoneParam);
-        parameters.timezone = JSON.stringify(timezone);
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[currentUserAccountID]: {timezone}},
-        });
-        DateUtils.setTimezoneUpdated();
-    }
 
     API.write(WRITE_COMMANDS.ADD_COMMENT, parameters, {optimisticData, successData, failureData});
 };

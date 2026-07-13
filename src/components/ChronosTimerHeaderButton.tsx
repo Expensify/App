@@ -32,7 +32,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const {accountID: currentUserAccountID, timezone: timezoneParam} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
 
     // The Chronos timer NVP is the true source of whether a timer is running: a non-empty `startTime` means it is.
@@ -49,7 +49,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
     }
 
     function toggleChronosTimer() {
-        startOrStopChronosTimer(report, currentUserAccountID, timezoneParam ?? CONST.DEFAULT_TIME_ZONE, timerStartTime, delegateAccountID);
+        startOrStopChronosTimer(report, currentUserAccountID, timerStartTime, delegateAccountID);
     }
 
     const options: Array<DropdownOption<ChronosAction>> = [
