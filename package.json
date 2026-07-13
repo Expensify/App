@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.4.33-1",
+  "version": "9.4.33-2",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -220,6 +220,7 @@
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
+    "scheduler": "0.27.0",
     "victory-native": "^41.21.0",
     "xlsx": "^0.18.5"
   },
@@ -428,7 +429,10 @@
         "expo-keep-awake"
       ],
       "android": {
-        "buildFromSource": ["expo-task-manager", "unimodules-app-loader"]
+        "buildFromSource": [
+          "expo-task-manager",
+          "unimodules-app-loader"
+        ]
       }
     }
   },
