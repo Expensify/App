@@ -160,6 +160,7 @@ describe('CopyPolicySettingsUtils', () => {
             connectedIntegrationCount: 1,
             hasWorkflowRules: true,
             hasWorkspaceRules: true,
+            hasCategoryRules: false,
             codingRulesCount: 1,
             hasInvoiceConfiguration: true,
             isCollectPolicy: false,
@@ -188,6 +189,12 @@ describe('CopyPolicySettingsUtils', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('codingRules', {...baseContext, codingRulesCount: 0})).toBe(false);
             expect(isCopyPolicySettingsPartEnabledOnSource('codingRules', {...baseContext, isCollectPolicy: true})).toBe(false);
             expect(isCopyPolicySettingsPartEnabledOnSource('codingRules', baseContext)).toBe(true);
+        });
+
+        it('shows rules when the source has workspace or category rules and is not collect', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('rules', {...baseContext, hasWorkspaceRules: false, hasCategoryRules: false, isCollectPolicy: true})).toBe(false);
+            expect(isCopyPolicySettingsPartEnabledOnSource('rules', {...baseContext, hasWorkspaceRules: false, hasCategoryRules: true})).toBe(true);
+            expect(isCopyPolicySettingsPartEnabledOnSource('rules', baseContext)).toBe(true);
         });
 
         it('hides travel when the source policy does not have travel enabled', () => {

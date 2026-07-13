@@ -57,10 +57,10 @@ function categoryHasLegacyReceiptRules(category: PolicyCategory | undefined): bo
 
 function categoryHasAnyRequireFieldsRule(category: PolicyCategory): boolean {
     return (
-        !!category.areCommentsRequired ||
-        !!category.areAttendeesRequired ||
-        hasCategoryReceiptOverride(category.maxAmountNoReceipt) ||
-        hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt)
+        isRequireFieldEnabledForDisplay(category, INPUT_IDS.REQUIRE_DESCRIPTION) ||
+        isRequireFieldEnabledForDisplay(category, INPUT_IDS.REQUIRE_ATTENDEES) ||
+        hasCategoryReceiptOverrideForDisplay(category, 'maxAmountNoReceipt') ||
+        hasCategoryReceiptOverrideForDisplay(category, 'maxAmountNoItemizedReceipt')
     );
 }
 
@@ -83,12 +83,52 @@ function isRequireFieldEnabled(category: PolicyCategory | undefined, field: Requ
     }
 }
 
+function isRequireFieldPendingDelete(category: PolicyCategory | undefined, field: RequireFieldsRuleToggleFieldKey): boolean {
+    if (!category?.pendingFields) {
+        return false;
+    }
+
+    switch (field) {
+        case INPUT_IDS.REQUIRE_DESCRIPTION:
+            return category.pendingFields.areCommentsRequired === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        case INPUT_IDS.REQUIRE_ATTENDEES:
+            return category.pendingFields.areAttendeesRequired === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        case INPUT_IDS.REQUIRE_RECEIPT:
+            return category.pendingFields.maxAmountNoReceipt === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        case INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT:
+            return category.pendingFields.maxAmountNoItemizedReceipt === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        default:
+            return false;
+    }
+}
+
+function isRequireFieldEnabledForDisplay(category: PolicyCategory | undefined, field: RequireFieldsRuleToggleFieldKey): boolean {
+    if (isRequireFieldPendingDelete(category, field)) {
+        return false;
+    }
+
+    return isRequireFieldEnabled(category, field);
+}
+
+function hasCategoryReceiptOverrideForDisplay(category: PolicyCategory | undefined, field: 'maxAmountNoReceipt' | 'maxAmountNoItemizedReceipt'): boolean {
+    if (!category) {
+        return false;
+    }
+
+    const pendingField = field === 'maxAmountNoReceipt' ? category.pendingFields?.maxAmountNoReceipt : category.pendingFields?.maxAmountNoItemizedReceipt;
+    if (pendingField === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        return false;
+    }
+
+    return hasCategoryReceiptOverride(category[field]);
+}
+
 function getRequireFieldsFormFromCategory(category: PolicyCategory | undefined): Partial<RequireFieldsRuleForm> {
     return {
-        [INPUT_IDS.REQUIRE_DESCRIPTION]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_DESCRIPTION),
-        [INPUT_IDS.REQUIRE_ATTENDEES]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_ATTENDEES),
-        [INPUT_IDS.REQUIRE_RECEIPT]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_RECEIPT),
-        [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: isRequireFieldEnabled(category, INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT),
+        [INPUT_IDS.REQUIRE_DESCRIPTION]: isRequireFieldEnabledForDisplay(category, INPUT_IDS.REQUIRE_DESCRIPTION),
+        [INPUT_IDS.REQUIRE_ATTENDEES]: isRequireFieldEnabledForDisplay(category, INPUT_IDS.REQUIRE_ATTENDEES),
+        [INPUT_IDS.REQUIRE_RECEIPT]: isRequireFieldEnabledForDisplay(category, INPUT_IDS.REQUIRE_RECEIPT),
+        [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: isRequireFieldEnabledForDisplay(category, INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT),
     };
 }
 
@@ -187,12 +227,28 @@ function getRequireFieldsRuleDescription(
     }
 }
 
-function getRequireFieldsPendingAction(pendingFields: PolicyCategories[string]['pendingFields']): PendingAction | undefined {
-    const pendingActions = [pendingFields?.areCommentsRequired, pendingFields?.areAttendeesRequired, pendingFields?.maxAmountNoReceipt, pendingFields?.maxAmountNoItemizedReceipt].filter(
-        (pendingAction): pendingAction is PendingAction => !!pendingAction,
-    );
+function getRequireFieldsPendingAction(category: PolicyCategory): PendingAction | undefined {
+    if (category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        return CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    }
 
-    return pendingActions.find((pendingAction) => isPendingDeleteOrUpdate(pendingAction)) ?? pendingActions.at(0);
+    const pendingFieldActions = [
+        category.pendingFields?.areCommentsRequired,
+        category.pendingFields?.areAttendeesRequired,
+        category.pendingFields?.maxAmountNoReceipt,
+        category.pendingFields?.maxAmountNoItemizedReceipt,
+    ].filter((pendingAction): pendingAction is PendingAction => !!pendingAction);
+
+    if (pendingFieldActions.length === 0) {
+        return undefined;
+    }
+
+    // Field-level removals use pending DELETE on the field, but the row should stay visible and editable.
+    if (pendingFieldActions.some((pendingAction) => isPendingDeleteOrUpdate(pendingAction))) {
+        return CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    }
+
+    return pendingFieldActions.at(0);
 }
 
 function formatRequireFieldsRuleDescriptions(descriptions: string[]): string {
@@ -215,11 +271,11 @@ function getRequireFieldsRuleDescriptionsForCategory(
 ): string[] {
     const descriptions: string[] = [];
 
-    if (category.areCommentsRequired) {
+    if (isRequireFieldEnabledForDisplay(category, INPUT_IDS.REQUIRE_DESCRIPTION)) {
         descriptions.push(getRequireFieldsRuleDescription(translate, CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_DESCRIPTION, undefined, convertToDisplayString, policyCurrency));
     }
 
-    if (hasCategoryReceiptOverride(category.maxAmountNoReceipt)) {
+    if (hasCategoryReceiptOverrideForDisplay(category, 'maxAmountNoReceipt')) {
         descriptions.push(
             getRequireFieldsRuleDescription(
                 translate,
@@ -231,7 +287,7 @@ function getRequireFieldsRuleDescriptionsForCategory(
         );
     }
 
-    if (hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt)) {
+    if (hasCategoryReceiptOverrideForDisplay(category, 'maxAmountNoItemizedReceipt')) {
         descriptions.push(
             getRequireFieldsRuleDescription(
                 translate,
@@ -243,7 +299,7 @@ function getRequireFieldsRuleDescriptionsForCategory(
         );
     }
 
-    if (category.areAttendeesRequired) {
+    if (isRequireFieldEnabledForDisplay(category, INPUT_IDS.REQUIRE_ATTENDEES)) {
         descriptions.push(getRequireFieldsRuleDescription(translate, CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ATTENDEES, undefined, convertToDisplayString, policyCurrency));
     }
 
@@ -281,14 +337,14 @@ function getRequireFieldsTableData({
             continue;
         }
 
-        const pendingAction = getRequireFieldsPendingAction(category.pendingFields);
-        const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        const pendingAction = getRequireFieldsPendingAction(category);
+        const isCategoryPendingDelete = category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-        if (!isOffline && isPendingDelete) {
+        if (!isOffline && isCategoryPendingDelete) {
             continue;
         }
 
-        if (!categoryHasAnyRequireFieldsRule(category) && !isPendingDelete) {
+        if (!categoryHasAnyRequireFieldsRule(category) && !isCategoryPendingDelete) {
             continue;
         }
 
@@ -306,7 +362,7 @@ function getRequireFieldsTableData({
             ruleDescription,
             searchTokens: [decodedCategoryName, ruleDescription, typeLabel, ...ruleDescriptions],
             pendingAction,
-            disabled: pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            disabled: isCategoryPendingDelete,
             action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
         });
     }
@@ -314,5 +370,21 @@ function getRequireFieldsTableData({
     return rules.sort((a, b) => localeCompare(a.conditionText, b.conditionText));
 }
 
-export {categoryHasLegacyReceiptRules, deleteRequireFieldsRule, getEffectiveRequireFieldsRuleForm, getRequireFieldsFormFromCategory, getRequireFieldsTableData, saveRequireFieldsRule};
+function countCategoriesWithRequireFieldsRules(policyCategories: PolicyCategories | undefined): number {
+    if (!policyCategories) {
+        return 0;
+    }
+
+    return Object.values(policyCategories).filter((category) => category?.enabled && categoryHasAnyRequireFieldsRule(category)).length;
+}
+
+export {
+    categoryHasLegacyReceiptRules,
+    countCategoriesWithRequireFieldsRules,
+    deleteRequireFieldsRule,
+    getEffectiveRequireFieldsRuleForm,
+    getRequireFieldsFormFromCategory,
+    getRequireFieldsTableData,
+    saveRequireFieldsRule,
+};
 export type {RequireFieldsTableItem};

@@ -26,12 +26,14 @@ import {
     isCopyPolicySettingsPartEnabledOnSource,
     shouldShowCopyPolicySettingsUpgradeStep,
 } from '@libs/CopyPolicySettingsUtils';
+import {countCategoriesWithFlagForReviewRules} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
 import {createFilteredMemberCountSelector, createInvoiceConfigurationTextSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
+import {countCategoriesWithRequireFieldsRules} from '@libs/RequireFieldsRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} from '@pages/workspace/duplicate/utils';
@@ -109,7 +111,8 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const perDiemCount = Object.values(perDiemRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const formattedAddress = !isEmptyObject(sourcePolicy) && !isEmptyObject(sourcePolicy.address) ? formatAddressToString(sourcePolicy.address) : '';
     const workflows = getWorkflowRules(sourcePolicy, translate);
-    const rules = getWorkspaceRules(sourcePolicy, translate);
+    const rules = getWorkspaceRules(sourcePolicy, translate, policyCategories);
+    const categoryRulesCount = countCategoriesWithRequireFieldsRules(policyCategories) + countCategoriesWithFlagForReviewRules(policyCategories);
 
     const sourceFeatureContext = {
         policy: sourcePolicy,
@@ -123,6 +126,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         connectedIntegrationCount: connectedIntegration?.length ?? 0,
         hasWorkflowRules: !!workflows?.length,
         hasWorkspaceRules: !!rules?.length,
+        hasCategoryRules: categoryRulesCount > 0,
         codingRulesCount,
         hasInvoiceConfiguration: !!sourcePolicy?.areInvoicesEnabled && !!invoiceConfigurationText,
         isCollectPolicy: isCollectPolicy(sourcePolicy),

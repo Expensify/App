@@ -40,7 +40,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import RulesCardRestrictionsTab from './tabs/RulesCardRestrictionsTab';
@@ -98,6 +98,18 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const [selectedRuleKeysByTab, setSelectedRuleKeysByTab] = useState<Partial<Record<Exclude<RulesTab, typeof RULES_TAB.GENERAL>, string[]>>>({});
 
     const {showConfirmModal} = useConfirmModal();
+
+    const isPolicyLoaded = !!policy?.id && !policy?.isLoading;
+    const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
+    const shouldShowCategoryRulesTabs = !isPolicyLoaded || areCategoriesEnabled;
+
+    useEffect(() => {
+        if (!isPolicyLoaded || areCategoriesEnabled || (activeTab !== RULES_TAB.REQUIRE_FIELDS && activeTab !== RULES_TAB.FLAG_FOR_REVIEW)) {
+            return;
+        }
+
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, RULES_TAB.GENERAL);
+    }, [activeTab, areCategoriesEnabled, isPolicyLoaded]);
 
     useEffect(() => {
         // Fetch once on mount (and when policyID changes). setPolicyCodingRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
@@ -191,33 +203,41 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         ];
     };
 
-    const tabs: TabSelectorBaseItem[] = [
-        {
-            key: RULES_TAB.GENERAL,
-            title: translate('workspace.rules.tabs.general'),
-            icon: icons.Feed,
-        },
-        {
-            key: RULES_TAB.CARD_RESTRICTIONS,
-            title: translate('workspace.rules.tabs.cardRestrictions'),
-            icon: icons.CreditCardExclamation,
-        },
-        {
-            key: RULES_TAB.EXPENSE_DEFAULTS,
-            title: translate('workspace.rules.tabs.expenseDefaults'),
-            icon: icons.DocumentMagicWand,
-        },
-        {
-            key: RULES_TAB.REQUIRE_FIELDS,
-            title: translate('workspace.rules.tabs.requireFields'),
-            icon: icons.Task,
-        },
-        {
-            key: RULES_TAB.FLAG_FOR_REVIEW,
-            title: translate('workspace.rules.tabs.flagForReview'),
-            icon: icons.Flag,
-        },
-    ];
+    const tabs: TabSelectorBaseItem[] = useMemo(() => {
+        const allTabs: TabSelectorBaseItem[] = [
+            {
+                key: RULES_TAB.GENERAL,
+                title: translate('workspace.rules.tabs.general'),
+                icon: icons.Feed,
+            },
+            {
+                key: RULES_TAB.CARD_RESTRICTIONS,
+                title: translate('workspace.rules.tabs.cardRestrictions'),
+                icon: icons.CreditCardExclamation,
+            },
+            {
+                key: RULES_TAB.EXPENSE_DEFAULTS,
+                title: translate('workspace.rules.tabs.expenseDefaults'),
+                icon: icons.DocumentMagicWand,
+            },
+            {
+                key: RULES_TAB.REQUIRE_FIELDS,
+                title: translate('workspace.rules.tabs.requireFields'),
+                icon: icons.Task,
+            },
+            {
+                key: RULES_TAB.FLAG_FOR_REVIEW,
+                title: translate('workspace.rules.tabs.flagForReview'),
+                icon: icons.Flag,
+            },
+        ];
+
+        if (shouldShowCategoryRulesTabs) {
+            return allTabs;
+        }
+
+        return allTabs.filter((tab) => tab.key !== RULES_TAB.REQUIRE_FIELDS && tab.key !== RULES_TAB.FLAG_FOR_REVIEW);
+    }, [shouldShowCategoryRulesTabs, icons.CreditCardExclamation, icons.DocumentMagicWand, icons.Feed, icons.Flag, icons.Task, translate]);
 
     const handleNewRule = () => {
         if (!canWriteRules) {

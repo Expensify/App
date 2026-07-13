@@ -168,5 +168,21 @@ function getFlagForReviewTableData({
     return rules;
 }
 
-export {deleteFlagForReviewRule, getEffectiveFlagForReviewRuleForm, getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, getFlagForReviewTableData, saveFlagForReviewRule};
+function countCategoriesWithFlagForReviewRules(policyCategories: PolicyCategories | undefined): number {
+    if (!policyCategories) {
+        return 0;
+    }
+
+    return Object.values(policyCategories).filter((category) => category?.enabled && hasExplicitFlagAmount(category.maxExpenseAmount)).length;
+}
+
+export {
+    countCategoriesWithFlagForReviewRules,
+    deleteFlagForReviewRule,
+    getEffectiveFlagForReviewRuleForm,
+    getFlagForReviewFormFromCategory,
+    getFlagForReviewRuleAmountError,
+    getFlagForReviewTableData,
+    saveFlagForReviewRule,
+};
 export type {FlagForReviewTableItem};
