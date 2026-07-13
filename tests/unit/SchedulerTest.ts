@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention -- The scheduler package exposes unstable_* named exports, so the mock must mirror those exact names. */
-import schedulePreInsertWhenIdle from '@hooks/usePreMountDestination/schedulePreInsertWhenIdle';
+import {Scheduler} from '@libs/Scheduler';
 
 import CONST from '@src/CONST';
 
@@ -23,7 +23,7 @@ jest.mock('scheduler', () => ({
     unstable_cancelCallback: jest.fn(),
 }));
 
-describe('schedulePreInsertWhenIdle', () => {
+describe('Scheduler.scheduleWhenIdle', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         jest.useFakeTimers();
@@ -37,7 +37,7 @@ describe('schedulePreInsertWhenIdle', () => {
     it('schedules idle work without an unsupported scheduler timeout option', () => {
         const callback = jest.fn();
 
-        schedulePreInsertWhenIdle(callback);
+        Scheduler.scheduleWhenIdle(callback);
 
         expect(scheduleCallback).toHaveBeenCalledWith(IdlePriority, expect.any(Function));
         expect(jest.mocked(scheduleCallback).mock.calls.at(0)).toHaveLength(2);
@@ -46,7 +46,7 @@ describe('schedulePreInsertWhenIdle', () => {
     it('runs the callback once from the idle queue and clears the fallback timer', () => {
         const callback = jest.fn();
 
-        schedulePreInsertWhenIdle(callback);
+        Scheduler.scheduleWhenIdle(callback);
         mockScheduledCallback?.();
         jest.advanceTimersByTime(CONST.PRE_INSERT_FULLSCREEN_DELAY);
 
@@ -57,7 +57,7 @@ describe('schedulePreInsertWhenIdle', () => {
     it('runs the callback from the fallback timer if idle work is starved', () => {
         const callback = jest.fn();
 
-        schedulePreInsertWhenIdle(callback);
+        Scheduler.scheduleWhenIdle(callback);
         jest.advanceTimersByTime(CONST.PRE_INSERT_FULLSCREEN_DELAY - 1);
         expect(callback).not.toHaveBeenCalled();
 
@@ -70,7 +70,7 @@ describe('schedulePreInsertWhenIdle', () => {
     it('cancels both the idle task and fallback timer', () => {
         const callback = jest.fn();
 
-        const task = schedulePreInsertWhenIdle(callback);
+        const task = Scheduler.scheduleWhenIdle(callback);
         task.cancel();
         mockScheduledCallback?.();
         jest.advanceTimersByTime(CONST.PRE_INSERT_FULLSCREEN_DELAY);

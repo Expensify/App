@@ -86,7 +86,6 @@ Use `usePreMountDestination` when **all** of these are true:
 - The flow dismisses an RHP/modal to reveal a **different** fullscreen destination
 - The destination route is **known at mount time**
 - The user spends enough time on the confirmation screen for pre-insert to complete before dismiss (narrow layout)
-- The transition currently has a visible gap or flash worth fixing
 
 ### When NOT to use
 

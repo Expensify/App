@@ -302,6 +302,16 @@ const CONST = {
     // from concurrent navigation state mutations, but short enough to finish well before most users
     // tap submit. If the user submits before this fires, the fallback (non-pre-insert) path is used.
     PRE_INSERT_FULLSCREEN_DELAY: 300,
+    /**
+     * Controls when a fullscreen destination is placed behind an open RHP on narrow layout.
+     */
+    NARROW_DESTINATION_STRATEGY: {
+        /** Put the destination behind the RHP before submit, so closing the RHP shows an already-rendered screen. */
+        PRE_INSERT: 'preInsert',
+
+        /** Wait until submit to put the destination behind the RHP, avoiding early navigation changes. */
+        REVEAL: 'reveal',
+    },
     LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
 

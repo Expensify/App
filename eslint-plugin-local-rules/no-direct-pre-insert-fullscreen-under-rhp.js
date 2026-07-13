@@ -18,7 +18,7 @@ const meta = {
     schema: [],
     messages: {
         useHookInstead:
-            'Use usePreMountDestination for RHP-to-fullscreen pre-mounting instead of calling Navigation.preInsertFullscreenUnderRHP directly. See .claude/skills/coding-standards/rules/perf-17-use-pre-mount-destination.md.',
+            'Use usePreMountDestination for RHP-to-fullscreen pre-mounting instead of calling Navigation.preInsertFullscreenUnderRHP directly. See .claude/skills/coding-standards/rules/perf-18-use-pre-mount-destination.md.',
     },
 };
 

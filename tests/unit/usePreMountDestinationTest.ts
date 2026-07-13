@@ -1,18 +1,30 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import usePreMountDestination from '@hooks/usePreMountDestination';
-import schedulePreInsertWhenIdle from '@hooks/usePreMountDestination/schedulePreInsertWhenIdle';
+import type {NarrowDestinationStrategy} from '@hooks/usePreMountDestination/types';
 
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {Scheduler} from '@libs/Scheduler';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
 const PRE_INSERT_OPEN_TRANSITION_START_WAIT_MS = 500;
-const PRE_INSERT_STARTED_NARROW_OPTIONS = {shouldIgnoreLayout: true};
 
 const mockGetIsNarrowLayout = jest.fn<boolean, []>();
+
+type PendingPreInsert = {
+    callback: () => void;
+    cancelled: boolean;
+};
+
+type NarrowDestinationStrategyProps = {
+    narrowDestinationStrategy: NarrowDestinationStrategy;
+};
+
+const pendingIdlePreInserts: PendingPreInsert[] = [];
 
 jest.mock('@hooks/useResponsiveLayout', () => () => ({
     shouldUseNarrowLayout: true,
@@ -29,26 +41,19 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
     runAfterTransitions: jest.fn(() => ({cancel: jest.fn()})),
 }));
+jest.mock('@libs/Scheduler', () => ({
+    Scheduler: {
+        scheduleWhenIdle: jest.fn((callback: () => void) => {
+            const pendingPreInsert: PendingPreInsert = {callback, cancelled: false};
+            pendingIdlePreInserts.push(pendingPreInsert);
 
-type PendingPreInsert = {
-    callback: () => void;
-    cancelled: boolean;
-};
-
-const pendingIdlePreInserts: PendingPreInsert[] = [];
-
-jest.mock('@hooks/usePreMountDestination/schedulePreInsertWhenIdle', () => ({
-    __esModule: true,
-    default: jest.fn((callback: () => void) => {
-        const pendingPreInsert: PendingPreInsert = {callback, cancelled: false};
-        pendingIdlePreInserts.push(pendingPreInsert);
-
-        return {
-            cancel: jest.fn(() => {
-                pendingPreInsert.cancelled = true;
-            }),
-        };
-    }),
+            return {
+                cancel: jest.fn(() => {
+                    pendingPreInsert.cancelled = true;
+                }),
+            };
+        }),
+    },
 }));
 
 function flushPendingIdlePreInserts() {
@@ -121,29 +126,46 @@ describe('usePreMountDestination', () => {
                     waitForUpcomingTransition: true,
                 }),
             );
-            expect(schedulePreInsertWhenIdle).not.toHaveBeenCalled();
+            expect(Scheduler.scheduleWhenIdle).not.toHaveBeenCalled();
             expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalled();
 
             act(() => {
                 finishOpenTransition();
             });
-            expect(schedulePreInsertWhenIdle).toHaveBeenCalledWith(expect.any(Function));
+            expect(Scheduler.scheduleWhenIdle).toHaveBeenCalledWith(expect.any(Function));
 
             act(() => {
                 flushPendingIdlePreInserts();
             });
 
-            expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(route, PRE_INSERT_STARTED_NARROW_OPTIONS);
+            expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(route);
         });
 
         it('does not pre-insert on wide layout', () => {
             mockGetIsNarrowLayout.mockReturnValue(false);
             renderHook(() => usePreMountDestination(route));
             expect(TransitionTracker.runAfterTransitions).not.toHaveBeenCalled();
-            expect(schedulePreInsertWhenIdle).not.toHaveBeenCalled();
+            expect(Scheduler.scheduleWhenIdle).not.toHaveBeenCalled();
         });
 
-        it('uses the flow-start layout when deciding whether to pre-insert', () => {
+        it('uses reveal-time navigation on narrow layout when configured', () => {
+            const {result} = renderHook(() =>
+                usePreMountDestination(route, {
+                    narrowDestinationStrategy: CONST.NARROW_DESTINATION_STRATEGY.REVEAL,
+                }),
+            );
+
+            expect(TransitionTracker.runAfterTransitions).not.toHaveBeenCalled();
+            expect(Scheduler.scheduleWhenIdle).not.toHaveBeenCalled();
+
+            act(() => {
+                result.current.reveal(afterTransition);
+            });
+
+            expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(route, {afterTransition});
+        });
+
+        it('does not start pre-insert after starting on wide layout and resizing to narrow', () => {
             mockGetIsNarrowLayout.mockReturnValue(false);
             const {rerender} = renderHook(() => usePreMountDestination(route));
 
@@ -151,11 +173,11 @@ describe('usePreMountDestination', () => {
             rerender(undefined);
 
             expect(TransitionTracker.runAfterTransitions).not.toHaveBeenCalled();
-            expect(schedulePreInsertWhenIdle).not.toHaveBeenCalled();
+            expect(Scheduler.scheduleWhenIdle).not.toHaveBeenCalled();
             expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalled();
         });
 
-        it('keeps the narrow-start pre-insert strategy when resized before scheduled work runs', () => {
+        it('runs the scheduled pre-insert attempt after resizing from narrow to wide', () => {
             const {finishOpenTransition} = mockOpenTransitionWait();
             const {rerender} = renderHook(() => usePreMountDestination(route));
 
@@ -167,7 +189,7 @@ describe('usePreMountDestination', () => {
                 flushPendingIdlePreInserts();
             });
 
-            expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(route, PRE_INSERT_STARTED_NARROW_OPTIONS);
+            expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(route);
         });
 
         it('cleans up pending pre-insert on unmount and preserves route after submit ref', () => {
@@ -295,6 +317,37 @@ describe('usePreMountDestination', () => {
             const {result, rerender} = preMountRoute(route);
             mockGetIsNarrowLayout.mockReturnValue(false);
             rerender(undefined);
+
+            act(() => {
+                result.current.reveal(afterTransition);
+            });
+
+            expect(Navigation.clearFullscreenPreInsertedFlag).toHaveBeenCalled();
+            expect(Navigation.dismissModal).toHaveBeenCalledWith({afterTransition});
+            expect(Navigation.revealRouteBeforeDismissingModal).not.toHaveBeenCalled();
+        });
+
+        it('reveal dismisses over an owned pre-inserted route after switching to reveal strategy', () => {
+            const {finishOpenTransition} = mockOpenTransitionWait();
+            mockSuccessfulPreInsert();
+            const {result, rerender} = renderHook(
+                ({narrowDestinationStrategy}: NarrowDestinationStrategyProps) =>
+                    usePreMountDestination(route, {
+                        narrowDestinationStrategy,
+                    }),
+                {
+                    initialProps: {narrowDestinationStrategy: CONST.NARROW_DESTINATION_STRATEGY.PRE_INSERT} as NarrowDestinationStrategyProps,
+                },
+            );
+
+            act(() => {
+                finishOpenTransition();
+                flushPendingIdlePreInserts();
+            });
+
+            rerender({narrowDestinationStrategy: CONST.NARROW_DESTINATION_STRATEGY.REVEAL});
+
+            expect(Navigation.removePreInsertedFullscreenIfNeeded).not.toHaveBeenCalled();
 
             act(() => {
                 result.current.reveal(afterTransition);

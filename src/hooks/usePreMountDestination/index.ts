@@ -1,15 +1,15 @@
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {Scheduler} from '@libs/Scheduler';
+import type {IdleTask} from '@libs/Scheduler';
 
+import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
 import {useEffect, useRef} from 'react';
 
-import type {IdlePreInsertTask} from './schedulePreInsertWhenIdle';
 import type {AfterTransition, UsePreMountDestinationOptions, UsePreMountDestinationResult} from './types';
-
-import schedulePreInsertWhenIdle from './schedulePreInsertWhenIdle';
 
 const PRE_INSERT_OPEN_TRANSITION_START_WAIT_MS = 500;
 
@@ -25,10 +25,9 @@ type TransitionCancelHandle = {
  * dismiss creates a visible gap (narrow) or flashes the previous page (wide) while React mounts the destination tree.
  */
 function usePreMountDestination(route: Route | undefined, options?: UsePreMountDestinationOptions): UsePreMountDestinationResult {
-    const shouldPreservePreInsertedRouteOnUnmount = options?.shouldPreservePreInsertedRouteOnUnmount;
+    const {narrowDestinationStrategy = CONST.NARROW_DESTINATION_STRATEGY.PRE_INSERT, shouldPreservePreInsertedRouteOnUnmount} = options ?? {};
 
-    const shouldUseNarrowLayoutAtFlowStartRef = useRef(getIsNarrowLayout());
-    const preInsertTaskRef = useRef<IdlePreInsertTask | undefined>(undefined);
+    const preInsertTaskRef = useRef<IdleTask | undefined>(undefined);
     const transitionCancelHandleRef = useRef<TransitionCancelHandle | undefined>(undefined);
     const hasRevealBeenCalledRef = useRef(false);
     const preInsertedRouteRef = useRef<Route | undefined>(undefined);
@@ -53,59 +52,19 @@ function usePreMountDestination(route: Route | undefined, options?: UsePreMountD
         preInsertedRouteRef.current = undefined;
     }
 
-    useEffect(() => {
-        hasRevealBeenCalledRef.current = false;
-    }, [route]);
+    function runPreInsert(routeToPreInsert: Route) {
+        preInsertTaskRef.current = undefined;
 
-    // Keep this passive so route-change cleanup reads the preserve callback from the route being cleaned up.
-    useEffect(() => {
-        shouldPreservePreInsertedRouteOnUnmountRef.current = shouldPreservePreInsertedRouteOnUnmount;
-    }, [shouldPreservePreInsertedRouteOnUnmount]);
-
-    useEffect(() => {
-        return () => {
-            cancelPreInsert();
-
-            if (hasRevealBeenCalledRef.current || shouldPreservePreInsertedRouteOnUnmountRef.current?.()) {
-                return;
-            }
-
-            removePreInsertedRouteIfNeeded();
-        };
-    }, [route]);
-
-    useEffect(() => {
-        // Layout is intentionally treated as a flow-start decision. If the window is resized
-        // mid-flow, finish using the strategy selected when this hook mounted.
-        if (!route || !shouldUseNarrowLayoutAtFlowStartRef.current || preInsertedRouteRef.current === route) {
+        if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
             return;
         }
 
-        const runPreInsert = () => {
-            preInsertTaskRef.current = undefined;
+        Navigation.preInsertFullscreenUnderRHP(routeToPreInsert);
 
-            if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
-                return;
-            }
-
-            Navigation.preInsertFullscreenUnderRHP(route, {
-                shouldIgnoreLayout: true,
-            });
-            if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
-                preInsertedRouteRef.current = route;
-            }
-        };
-
-        transitionCancelHandleRef.current = TransitionTracker.runAfterTransitions({
-            callback: () => {
-                preInsertTaskRef.current = schedulePreInsertWhenIdle(runPreInsert);
-            },
-            maxWaitForUpcomingTransitionMs: PRE_INSERT_OPEN_TRANSITION_START_WAIT_MS,
-            waitForUpcomingTransition: true,
-        });
-
-        return cancelPreInsert;
-    }, [route]);
+        if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+            preInsertedRouteRef.current = routeToPreInsert;
+        }
+    }
 
     function revealDestination(afterTransition?: AfterTransition) {
         hasRevealBeenCalledRef.current = true;
@@ -135,6 +94,41 @@ function usePreMountDestination(route: Route | undefined, options?: UsePreMountD
         cancelPreInsert();
         removePreInsertedRouteIfNeeded();
     }
+
+    // Keep this passive so route-change cleanup reads the preserve callback from the route being cleaned up.
+    useEffect(() => {
+        shouldPreservePreInsertedRouteOnUnmountRef.current = shouldPreservePreInsertedRouteOnUnmount;
+    }, [shouldPreservePreInsertedRouteOnUnmount]);
+
+    useEffect(() => {
+        hasRevealBeenCalledRef.current = false;
+
+        return () => {
+            cancelPreInsert();
+
+            if (hasRevealBeenCalledRef.current || shouldPreservePreInsertedRouteOnUnmountRef.current?.()) {
+                return;
+            }
+
+            removePreInsertedRouteIfNeeded();
+        };
+    }, [route]);
+
+    useEffect(() => {
+        if (route && narrowDestinationStrategy === CONST.NARROW_DESTINATION_STRATEGY.PRE_INSERT && getIsNarrowLayout() && preInsertedRouteRef.current !== route) {
+            transitionCancelHandleRef.current = TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    preInsertTaskRef.current = Scheduler.scheduleWhenIdle(() => runPreInsert(route));
+                },
+                maxWaitForUpcomingTransitionMs: PRE_INSERT_OPEN_TRANSITION_START_WAIT_MS,
+                waitForUpcomingTransition: true,
+            });
+        }
+
+        return () => {
+            cancelPreInsert();
+        };
+    }, [route, narrowDestinationStrategy]);
 
     return {
         reveal: revealDestination,
