@@ -62,8 +62,8 @@ function makeTransaction(reportID: string, amount = 100): SelectedTransactions[s
 function makeSearchResults(count: number, total: number): OnyxEntry<SearchResults> {
     return {
         search: {
+            hash: 1,
             type: mockSearchType,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             offset: 0,
             hasMoreResults: true,
             hasResults: true,
@@ -73,7 +73,7 @@ function makeSearchResults(count: number, total: number): OnyxEntry<SearchResult
             currency: 'USD',
         },
         data: {},
-    } as OnyxEntry<SearchResults>;
+    };
 }
 
 describe('SearchSelectionFooter all-matching exclusions', () => {

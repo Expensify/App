@@ -80,7 +80,13 @@ jest.mock('@components/Search/SearchContext', () => ({
         currentSearchResults: {search: {count: mockSearchCount, isLoading: mockSearchIsLoading}},
     }),
 }));
-jest.mock('@libs/ReportUtils', () => ({isExpenseReport: () => false}));
+jest.mock('@libs/ReportUtils', () => {
+    const reportUtils: unknown = jest.requireActual('@libs/ReportUtils');
+    if (!reportUtils || typeof reportUtils !== 'object') {
+        throw new Error('Expected ReportUtils to export an object');
+    }
+    return {...reportUtils, isExpenseReport: () => false};
+});
 jest.mock('@libs/shouldPopoverUseScrollView', () => ({__esModule: true, default: () => false}));
 
 const queryJSON = buildSearchQueryJSON('type:expense');
