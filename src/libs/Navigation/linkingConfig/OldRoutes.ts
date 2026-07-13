@@ -115,6 +115,7 @@ const oldRoutes: Record<string, string> = {
     '/settings/wallet/enable-payments/fees': '/settings/wallet/enable-payments/fees-and-terms/fees',
     '/settings/wallet/enable-payments/fees/*': '/settings/wallet/enable-payments/fees-and-terms/fees/$1',
     '/settings/wallet/enable-payments/terms*': '/settings/wallet/enable-payments/fees-and-terms/terms$1',
+    '/missing-personal-details/*': '/settings/wallet/missing-personal-details/$1',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 

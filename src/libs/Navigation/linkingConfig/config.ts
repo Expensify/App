@@ -2001,11 +2001,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: {
                     screens: {
-                        [SCREENS.MISSING_PERSONAL_DETAILS]: {
-                            path: ROUTES.MISSING_PERSONAL_DETAILS.route,
-                            exact: true,
-                        },
-                        [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.route,
+                        [SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS]: DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.path,
+                        [SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE]: {

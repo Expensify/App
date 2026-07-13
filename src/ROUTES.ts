@@ -198,6 +198,39 @@ const DYNAMIC_ROUTES = {
         ],
         getRoute: (policyID: string, fieldID: string) => `edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const,
     },
+    MISSING_PERSONAL_DETAILS: {
+        path: 'missing-personal-details/:cardID/:subPage?/:action?',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.HOME,
+            SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.SETTINGS.WALLET.DOMAIN_CARD,
+            SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
+        ],
+        getRoute: (cardID: string, subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                return `missing-personal-details/${cardID}` as const;
+            }
+            return `missing-personal-details/${cardID}/${subPage}${action ? `/${action}` : ''}` as const;
+        },
+    },
+    MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: {
+        path: 'missing-personal-details/:cardID/confirm-magic-code',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.HOME,
+            SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.SETTINGS.WALLET.DOMAIN_CARD,
+            SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
+        ],
+        getRoute: (cardID: string) => `missing-personal-details/${cardID}/confirm-magic-code` as const,
+    },
     PROFILE: {
         path: 'a/:accountID',
         entryScreens: ['*'],
@@ -3680,19 +3713,6 @@ const ROUTES = {
     RESTRICTED_ACTION: {
         route: 'restricted-action/workspace/:policyID',
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
-    },
-    MISSING_PERSONAL_DETAILS: {
-        route: 'missing-personal-details/:cardID/:subPage?/:action?',
-        getRoute: (cardID: string, subPage?: string, action?: 'edit') => {
-            if (!subPage) {
-                return `missing-personal-details/${cardID}` as const;
-            }
-            return `missing-personal-details/${cardID}/${subPage}${action ? `/${action}` : ''}` as const;
-        },
-    },
-    MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: {
-        route: 'missing-personal-details/:cardID/confirm-magic-code',
-        getRoute: (cardID: string) => `missing-personal-details/${cardID}/confirm-magic-code` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
         route: 'workspaces/:policyID/accounting/netsuite/subsidiary-selector',
