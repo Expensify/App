@@ -3698,6 +3698,7 @@ describe('getSecondaryExportReportActions', () => {
         const policy = createQBOPolicy(CONST.POLICY.ROLE.USER, true);
 
         const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
@@ -3765,6 +3766,74 @@ describe('getSecondaryExportReportActions', () => {
 
         const result = getSecondaryExportReportActions(ADMIN_ACCOUNT_ID, ADMIN_EMAIL, report, {}, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
+    it('does not include EXPORT option when policy is undefined', () => {
+        const report: Report = {
+            reportID: `${REPORT_ID}`,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+
+        const result = getSecondaryExportReportActions(ADMIN_ACCOUNT_ID, ADMIN_EMAIL, report, {}, undefined);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(false);
+    });
+
+    it('does not include EXPORT option for unfinished expense report', () => {
+        const report: Report = {
+            reportID: `${REPORT_ID}`,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const policy = createQBOPolicy(CONST.POLICY.ROLE.ADMIN, false);
+
+        const result = getSecondaryExportReportActions(ADMIN_ACCOUNT_ID, ADMIN_EMAIL, report, {}, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(false);
+    });
+
+    it('does not include MARK_AS_EXPORTED option when policy is undefined', () => {
+        const report: Report = {
+            reportID: `${REPORT_ID}`,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+
+        const result = getSecondaryExportReportActions(ADMIN_ACCOUNT_ID, ADMIN_EMAIL, report, {}, undefined);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(false);
+    });
+
+    it('does not include MARK_AS_EXPORTED option for unfinished expense report', () => {
+        const report: Report = {
+            reportID: `${REPORT_ID}`,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const policy = createQBOPolicy(CONST.POLICY.ROLE.ADMIN, false);
+
+        const result = getSecondaryExportReportActions(ADMIN_ACCOUNT_ID, ADMIN_EMAIL, report, {}, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(false);
+    });
+
+    it('does not include MARK_AS_EXPORTED option for non-expense report', () => {
+        const report: Report = {
+            reportID: `${REPORT_ID}`,
+            type: CONST.REPORT.TYPE.CHAT,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+        const policy = createQBOPolicy(CONST.POLICY.ROLE.ADMIN, false);
+
+        const result = getSecondaryExportReportActions(ADMIN_ACCOUNT_ID, ADMIN_EMAIL, report, {}, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(false);
     });
 
     it('does not include EXPORT option for user without export permissions', () => {
