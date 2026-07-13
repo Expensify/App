@@ -989,8 +989,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Portemonnee',
             },
             addVirtualCardPersonalDetails: {
-                title: 'Voeg je persoonlijke gegevens toe',
-                subtitle: 'Voeg je gegevens toe om je Expensify Kaart te bekijken en te gaan gebruiken.',
+                title: 'Voeg je gegevens toe om je Expensify Kaart te bekijken en te gebruiken.',
+                subtitle: 'Expensify Kaart',
                 cta: 'Details toevoegen',
             },
             enterSignerInfo: {title: 'Ondertekenaargegevens vereist', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankrekening ${bankAccountLastFour}`},
@@ -2145,7 +2145,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstall: 'Werk New Expensify bij naar de nieuwste versie',
         pleaseInstallExpensifyClassic: 'Installeer de nieuwste versie van Expensify',
         toGetLatestChanges: 'Voor mobiel: download en installeer de nieuwste versie. Voor web: vernieuw je browser.',
-        newAppNotAvailable: 'De nieuwe Expensify-app is niet meer beschikbaar.',
+        newAppNotAvailable: 'Werk nu bij en je zult ons later dankbaar zijn.',
     },
     initialSettingsPage: {
         about: 'Over',
@@ -9187,6 +9187,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     },
     actionableMentionTrackExpense: {
         submit: 'Dien het bij iemand in',
+        submitToFriend: 'Indienen bij een vriend',
+        submitToEmployer: 'Indienen bij mijn werkgever',
         categorize: 'Categoriseer het',
         share: 'Deel het met mijn accountant',
         nothing: 'Niets voor nu',
