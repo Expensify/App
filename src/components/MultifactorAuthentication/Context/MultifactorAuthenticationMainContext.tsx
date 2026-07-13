@@ -29,6 +29,7 @@ import type {DeviceBiometrics} from '@src/types/onyx';
 import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -240,7 +241,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             // Need validate code before registration
             if (!validateCode) {
                 addMFABreadcrumb('Validate code requested');
-                requestValidateCodeAction();
+                requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REGISTER_AUTHENTICATION_KEY});
                 mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
                 return;
             }
