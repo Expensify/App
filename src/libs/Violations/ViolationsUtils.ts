@@ -1175,7 +1175,7 @@ const ViolationsUtils = {
             // Check if any violation is not dismissed and should be shown based on user role and violation type
             return transactionViolations.some((violation: TransactionViolation) => {
                 return (
-                    !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy) &&
+                    !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy, currentUserEmail) &&
                     shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)
                 );
             });
