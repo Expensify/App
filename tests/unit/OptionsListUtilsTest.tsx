@@ -7948,6 +7948,7 @@ describe('OptionsListUtils', () => {
                 privateIsArchivedMap,
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
+                translateLocal,
                 formatPersonalDetails,
                 true,
                 undefined,
