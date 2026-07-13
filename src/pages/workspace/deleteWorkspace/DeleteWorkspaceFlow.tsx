@@ -105,6 +105,8 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         !isEmptyObject(cardsList) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
+    // While offline we can't get the real rejection reason from the backend, so if we already know locally that the workspace has active Expensify Cards, block the delete up front instead of queuing one that will fail on reconnect.
+    const hasDeleteWorkspaceExpensifyCardsError = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID && !isEmptyObject(cardsList) && !!isOffline;
 
     const policyLatestErrorMessage = getLatestErrorMessage(policy);
     const isPendingDelete = isPendingDeletePolicy(policy);
@@ -168,7 +170,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
-            isConfirmLoading: isPendingDelete,
+            ...(hasDeleteWorkspaceExpensifyCardsError ? {} : {isConfirmLoading: isPendingDelete}),
         }).then((result) => {
             if (!policyName || result.action !== ModalActions.CONFIRM) {
                 onDismiss();
@@ -190,11 +192,14 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
                 lastUsedPaymentMethods: lastPaymentMethod,
                 localeCompare,
                 personalPolicyID,
+                hasDeleteWorkspaceExpensifyCardsError,
                 currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 accountIDToLogin: accountIDToLogin ?? {},
             });
 
-            if (isOffline) {
+            if (hasDeleteWorkspaceExpensifyCardsError) {
+                showDeleteWorkspaceErrorModal(translate('workspace.common.deleteOpenExpensifyCardsError'));
+            } else if (isOffline) {
                 closeModal();
                 onDeleteComplete?.();
                 onDismiss();
