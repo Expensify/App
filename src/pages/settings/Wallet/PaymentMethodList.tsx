@@ -286,7 +286,7 @@ function PaymentMethodList({
                 if (card.fundID) {
                     const feedNameWithDomainID = getCardFeedWithDomainID(card.bank, card.fundID);
                     shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
-                } else if (card.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV) {
+                } else if (!isUserPersonalCard && card.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV) {
                     // Don't show red dot for CSV imported cards without fundID
                     shouldShowRBR = true;
                 }
