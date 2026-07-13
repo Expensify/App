@@ -1,0 +1,188 @@
+diff --git a/node_modules/react-native-vision-camera/ios/Core/CameraSession.swift b/node_modules/react-native-vision-camera/ios/Core/CameraSession.swift
+index 10b0f33..0e1d6fd 100644
+--- a/node_modules/react-native-vision-camera/ios/Core/CameraSession.swift
++++ b/node_modules/react-native-vision-camera/ios/Core/CameraSession.swift
+@@ -113,8 +113,22 @@ final class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
+ 
+     VisionLogger.log(level: .info, message: "configure { ... }: Waiting for lock...")
+ 
++    let slowConfigurationWarning = DispatchWorkItem {
++      VisionLogger.log(level: .warning, message: "configure { ... }: is still running after 2 seconds.")
++    }
++    CameraQueues.cameraQueue.asyncAfter(deadline: .now() + .seconds(2), execute: slowConfigurationWarning)
++
++    let completionGroup = DispatchGroup()
++
++    completionGroup.enter()
++    completionGroup.notify(queue: CameraQueues.cameraQueue) {
++      slowConfigurationWarning.cancel()
++      VisionLogger.log(level: .info, message: "configure { ... }: completed.")
++    }
++
+     // Set up Camera (Video) Capture Session (on camera queue, acts like a lock)
+     CameraQueues.cameraQueue.async {
++      defer { completionGroup.leave() }
+       // Let caller configure a new configuration for the Camera.
+       let config = CameraConfiguration(copyOf: self.configuration)
+       do {
+@@ -215,7 +229,9 @@ final class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
+ 
+       // Set up Audio Capture Session (on audio queue)
+       if difference.audioSessionChanged {
++        completionGroup.enter()
+         CameraQueues.audioQueue.async {
++          defer { completionGroup.leave() }
+           do {
+             // Lock Capture Session for configuration
+             VisionLogger.log(level: .info, message: "Beginning AudioSession configuration...")
+@@ -234,7 +250,9 @@ final class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
+ 
+       // Set up Location streaming (on location queue)
+       if difference.locationChanged {
++        completionGroup.enter()
+         CameraQueues.locationQueue.async {
++          defer { completionGroup.leave() }
+           do {
+             VisionLogger.log(level: .info, message: "Beginning Location Output configuration...")
+             try self.configureLocationOutput(configuration: config)
+@@ -265,7 +283,7 @@ final class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
+     }
+   }
+ 
+-  public final func captureOutput(_ captureOutput: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
++  final func captureOutput(_ captureOutput: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+     switch captureOutput {
+     case is AVCaptureVideoDataOutput:
+       onVideoFrame(sampleBuffer: sampleBuffer, orientation: connection.orientation, isMirrored: connection.isVideoMirrored)
+diff --git a/node_modules/react-native-vision-camera/ios/React/CameraView.swift b/node_modules/react-native-vision-camera/ios/React/CameraView.swift
+index c773975..0be6e47 100644
+--- a/node_modules/react-native-vision-camera/ios/React/CameraView.swift
++++ b/node_modules/react-native-vision-camera/ios/React/CameraView.swift
+@@ -101,7 +101,7 @@ public final class CameraView: UIView, CameraSessionDelegate, PreviewViewDelegat
+   var cameraSession = CameraSession()
+   var previewView: PreviewView?
+   var isMounted = false
+-  private var currentConfigureCall: DispatchTime?
++  private let currentConfigureCall: Counter = .init()
+   private let fpsSampleCollector = FpsSampleCollector()
+ 
+   // CameraView+Zoom
+@@ -135,10 +135,18 @@ public final class CameraView: UIView, CameraSessionDelegate, PreviewViewDelegat
+         onViewReadyEvent?(nil)
+       }
+     } else {
++      deactivateCameraSession()
+       fpsSampleCollector.stop()
+     }
+   }
+ 
++  deinit {
++    // Allow phone to sleep
++    UIApplication.shared.isIdleTimerDisabled = false
++    // Bail on any in flight configure calls
++    currentConfigureCall.increment()
++  }
++
+   override public func layoutSubviews() {
+     if let previewView {
+       previewView.frame = frame
+@@ -181,17 +189,18 @@ public final class CameraView: UIView, CameraSessionDelegate, PreviewViewDelegat
+   // pragma MARK: Props updating
+   override public final func didSetProps(_ changedProps: [String]!) {
+     VisionLogger.log(level: .info, message: "Updating \(changedProps.count) props: [\(changedProps.joined(separator: ", "))]")
+-    let now = DispatchTime.now()
+-    currentConfigureCall = now
++    let currentConfigureCall = self.currentConfigureCall
++    let now = currentConfigureCall.increment()
+ 
+     cameraSession.configure { [self] config in
+       // Check if we're still the latest call to configure { ... }
+-      guard currentConfigureCall == now else {
++      guard currentConfigureCall.check(now) else {
+         // configure waits for a lock, and if a new call to update() happens in the meantime we can drop this one.
+         // this works similar to how React implemented concurrent rendering, the newer call to update() has higher priority.
+-        VisionLogger.log(level: .info, message: "A new configure { ... } call arrived, aborting this one...")
++        VisionLogger.log(level: .info, message: "A new configure { ... } call arrived, aborting this one [\(now)]…")
+         throw CameraConfiguration.AbortThrow.abort
+       }
++      VisionLogger.log(level: .info, message: "configure { ... } [\(now)]")
+ 
+       // Input Camera Device
+       config.cameraId = cameraId as? String
+@@ -283,6 +292,36 @@ public final class CameraView: UIView, CameraSessionDelegate, PreviewViewDelegat
+     UIApplication.shared.isIdleTimerDisabled = isActive
+   }
+ 
++  private func deactivateCameraSession() {
++    // Allow phone to sleep
++    UIApplication.shared.isIdleTimerDisabled = false
++
++    #if VISION_CAMERA_ENABLE_FRAME_PROCESSORS
++      frameProcessor = nil
++    #endif
++
++    let currentConfigureCall = self.currentConfigureCall
++    let now = currentConfigureCall.increment()
++
++    cameraSession.configure { config in
++      // Check if we're still the latest call to configure { ... }
++      guard currentConfigureCall.check(now) else {
++        // configure waits for a lock, and if a new call to update() happens in the meantime we can drop this one.
++        // this works similar to how React implemented concurrent rendering, the newer call to update() has higher priority.
++        VisionLogger.log(level: .info, message: "A new configure { ... } call arrived, aborting this one [\(now)]…")
++        throw CameraConfiguration.AbortThrow.abort
++      }
++      VisionLogger.log(level: .info, message: "configure { ... } [\(now)]")
++      config.photo = .disabled
++      config.video = .disabled
++      config.audio = .disabled
++      config.codeScanner = .disabled
++      config.enableLocation = false
++      config.torch = .off
++      config.isActive = false
++    }
++  }
++
+   func updatePreview() {
+     if preview && previewView == nil {
+       // Create PreviewView and add it
+diff --git a/node_modules/react-native-vision-camera/ios/React/Utils/Counter.swift b/node_modules/react-native-vision-camera/ios/React/Utils/Counter.swift
+new file mode 100644
+index 0000000..35dd931
+--- /dev/null
++++ b/node_modules/react-native-vision-camera/ios/React/Utils/Counter.swift
+@@ -0,0 +1,34 @@
++import os.lock
++
++final class Counter {
++  /**
++    * https://forums.swift.org/t/atomic-property-wrapper-for-standard-library/30468/18
++  */
++  private var unfair_lock: os_unfair_lock_t
++  private var count = 1
++  init() {
++    unfair_lock = .allocate(capacity: 1)
++    unfair_lock.initialize(to: os_unfair_lock())
++  }
++  deinit {
++    unfair_lock.deinitialize(count: 1)
++    unfair_lock.deallocate()
++  }
++  private func lock() {
++    os_unfair_lock_lock(unfair_lock)
++  }
++  private func unlock() {
++    os_unfair_lock_unlock(unfair_lock)
++  }
++  func increment() -> Int {
++    lock()
++    defer { unlock() }
++    count &+= 1
++    return count
++  }
++  func check(_ count: Int) -> Bool {
++    lock()
++    defer { unlock() }
++    return self.count == count
++  }
++}
