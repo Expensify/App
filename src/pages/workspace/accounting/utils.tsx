@@ -441,7 +441,6 @@ function getAccountingIntegrationData(
                     cardList ?? {},
                     CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
                 ),
-                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.RILLET)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
                     CONST.RILLET_CONFIG.ACCOUNTING_METHOD,
