@@ -129,6 +129,8 @@ type CreateDistanceRequestInformation = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionParams: DistanceRequestTransactionParams;
     policyParams?: BasePolicyParams;
+
+    /** Report the flow started from, post-create navigation returns there instead of the written-to chat. */
     backToReport?: string;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
@@ -137,10 +139,12 @@ type CreateDistanceRequestInformation = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     customUnitPolicyID?: string;
     /**
-     * Whether this action owns the post-create flow: dismiss the money request screens, navigate to the
+     * Whether the action owns the post-create flow: dismiss the money request screens, navigate to the
      * destination and surface the "Expense added" feedback. Defaults to true.
      */
     shouldHandleNavigation?: boolean;
+
+    /** Defer the API.write until Search flushes it (the deferred-for-search pattern). */
     shouldDeferForSearch?: boolean;
     shouldPlaySound?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;

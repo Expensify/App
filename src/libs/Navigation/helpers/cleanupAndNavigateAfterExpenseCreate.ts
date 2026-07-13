@@ -16,6 +16,8 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
 
     /** IOU report the expense landed in; lets the "Expense added" growl resolve its "View" deep link. */
     iouReportID?: string;
+
+    /** Transaction thread report the growl's "View" action opens. */
     transactionThreadReportID?: string;
     isFromGlobalCreate: boolean | undefined;
     backToReport?: string;

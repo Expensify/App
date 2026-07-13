@@ -65,13 +65,28 @@ Onyx.connectWithoutView({
 });
 
 type NavigateAfterExpenseCreateParams = {
+    /** Report to open when navigation stays on the Inbox tab. */
     activeReportID?: string;
+
+    /** IOU report the transaction landed in, used to resolve the growl's "View" deep link. */
     iouReportID?: string;
+
+    /** The created transaction's ID. */
     transactionID?: string;
+
+    /** Transaction thread report the growl's "View" action opens. */
     transactionThreadReportID?: string;
+
+    /** Whether the expense was created from the global create (FAB). */
     isFromGlobalCreate?: boolean;
+
+    /** Whether the expense is an invoice. */
     isInvoice?: boolean;
+
+    /** Whether the target report already holds other transactions. */
     hasMultipleTransactions: boolean;
+
+    /** Mark the new transaction for the in-report row highlight. */
     shouldAddPendingNewTransactionIDs?: boolean;
 
     /** Show the "Expense added" growl even on the non-global-create path (e.g. the Share flow, whose drafts never set isFromGlobalCreate). */
@@ -79,8 +94,13 @@ type NavigateAfterExpenseCreateParams = {
 };
 
 type ShowExpenseAddedGrowlParams = {
+    /** IOU report the transaction landed in, used to resolve the growl's "View" deep link. */
     iouReportID?: string;
+
+    /** The created transaction. */
     transactionID?: string;
+
+    /** Transaction thread report the growl's "View" action opens. */
     transactionThreadReportID?: string;
 
     /** Whether this confirmation is for an invoice (changes the toast copy from "Expense added"). */
@@ -267,8 +287,13 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
 }
 
 type SurfaceExpenseCreatedFeedbackParams = {
+    /** IOU report the transaction landed in, used to resolve the growl's "View" deep link. */
     iouReportID?: string;
+
+    /** The created transaction. */
     transactionID?: string;
+
+    /** Transaction thread report the growl's "View" action opens. */
     transactionThreadReportID?: string;
 
     /**
@@ -277,7 +302,7 @@ type SurfaceExpenseCreatedFeedbackParams = {
      */
     isMoneyRequestReport?: boolean;
 
-    /** Whether this is an invoice (changes the growl copy). */
+    /** Whether the expense is an invoice (changes the growl copy). */
     isInvoice?: boolean;
 };
 

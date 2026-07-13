@@ -17,14 +17,31 @@ import {useEffect, useRef} from 'react';
 import useNetwork from './useNetwork';
 
 type UseSearchAutoRefetchParams = {
+    /** Current search snapshot. */
     searchResults: OnyxEntry<SearchResults>;
+
+    /** Live transaction collection. */
     transactions: OnyxCollection<Transaction>;
+
+    /** Previous transaction collection. */
     previousTransactions: OnyxCollection<Transaction>;
+
+    /** Live report-actions collection. */
     reportActions: OnyxCollection<ReportActions>;
+
+    /** Previous report-actions collection. */
     previousReportActions: OnyxCollection<ReportActions>;
+
+    /** Parsed query driving the refetch. */
     queryJSON: SearchQueryJSON;
+
+    /** Suggested-search key passed through to the refetch. */
     searchKey: SearchKey | undefined;
+
+    /** Pagination offset passed through to the refetch. */
     offset: number;
+
+    /** Whether the refetch should recompute list totals. */
     shouldCalculateTotals: boolean;
 };
 

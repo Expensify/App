@@ -26,7 +26,7 @@ type CreateTrackExpenseParams = {
     isRetry?: boolean;
     shouldPlaySound?: boolean;
     /**
-     * Whether this action owns the post-create flow: dismiss the money request screens, navigate to the
+     * Whether the action owns the post-create flow: dismiss the money request screens, navigate to the
      * destination and surface the "Expense added" feedback. Defaults to true.
      */
     shouldHandleNavigation?: boolean;
