@@ -1,24 +1,10 @@
-import {WRITE_COMMANDS} from '@libs/API/types';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import {isRecord} from '@libs/ObjectUtils';
+import {RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
 
 import {getAll, getOngoingRequest} from '@userActions/PersistedRequests';
 
 import type {PendingReceipt} from './types';
-
-const RECEIPT_BEARING_COMMANDS = new Set<string>([
-    WRITE_COMMANDS.REQUEST_MONEY,
-    WRITE_COMMANDS.TRACK_EXPENSE,
-    WRITE_COMMANDS.SPLIT_BILL,
-    WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT,
-    WRITE_COMMANDS.START_SPLIT_BILL,
-    WRITE_COMMANDS.REPLACE_RECEIPT,
-    WRITE_COMMANDS.SEND_MONEY_ELSEWHERE,
-    WRITE_COMMANDS.SEND_MONEY_WITH_WALLET,
-    WRITE_COMMANDS.SHARE_TRACKED_EXPENSE,
-    WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE,
-    WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY,
-]);
 
 function toPendingReceipt(receipt: unknown): PendingReceipt | undefined {
     if (!isRecord(receipt)) {
