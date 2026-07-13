@@ -230,12 +230,16 @@ function getAmountHasUnsavedChanges({typedAmount, committedAmount, isCreateEntry
     return typedAmountInBackendUnits !== committedAmount || currencyChanged;
 }
 
-/** Whether a raw-string money-request step (hours, manual distance) has unsaved input. */
+/**
+ * Whether a raw-string money-request step (hours, manual distance) has unsaved input.
+ */
 function getStringFieldHasUnsavedChanges(typedValue: string, committedValue: string, isCreateEntry: boolean): boolean {
     return isCreateEntry ? typedValue !== '' || committedValue !== '' : typedValue !== committedValue;
 }
 
-/** Whether the distance (map) step has unsaved waypoints. */
+/**
+ * Whether the distance (map) step has unsaved waypoints.
+ */
 function getWaypointsHasUnsavedChanges(
     transaction: OnyxEntry<Transaction>,
     committedWaypoints: WaypointCollection | undefined,
