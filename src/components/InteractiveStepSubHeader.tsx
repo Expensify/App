@@ -84,6 +84,12 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, currentStepAcc
                 const isLockedStep = currentStep < index;
                 const isLockedLine = currentStep < index + 1;
                 const hasUnion = index < amountOfUnions;
+                const isCurrentStep = currentStep === index;
+                const stepPositionLabel = translate('stepCounter', {
+                    step: index + 1,
+                    total: stepNames.length,
+                });
+                const stepAccessibilityLabel = isCurrentStep && currentStepAccessibilityDescription ? `${stepPositionLabel}, ${currentStepAccessibilityDescription}` : stepPositionLabel;
 
                 const moveToStep = () => {
                     if (isLockedStep || !onStepSelected) {
@@ -96,29 +102,20 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, currentStepAcc
                     }
                 };
 
-                return (
-                    <View
-                        style={[styles.interactiveStepHeaderStepContainer, hasUnion && styles.flex1]}
-                        key={stepName}
-                    >
-                        <PressableWithFeedback
-                            style={[
-                                styles.interactiveStepHeaderStepButton,
-                                isLockedStep && styles.interactiveStepHeaderLockedStepButton,
-                                isCompletedStep && styles.interactiveStepHeaderCompletedStepButton,
-                                !onStepSelected && styles.cursorDefault,
-                            ]}
-                            disabled={isLockedStep || !onStepSelected}
-                            onPress={moveToStep}
-                            role={CONST.ROLE.GROUP}
-                            aria-current={currentStep === index ? 'step' : undefined}
-                            accessibilityState={{selected: currentStep === index}}
-                            accessibilityLabel={translate('stepCounter', {
-                                step: index + 1,
-                                total: stepNames.length,
-                                text: currentStep === index ? currentStepAccessibilityDescription : undefined,
-                            })}
-                            sentryLabel={CONST.SENTRY_LABEL.INTERACTIVE_STEP_SUB_HEADER.STEP_BUTTON}
+                const stepButtonStyle = [
+                    styles.interactiveStepHeaderStepButton,
+                    isLockedStep && styles.interactiveStepHeaderLockedStepButton,
+                    isCompletedStep && styles.interactiveStepHeaderCompletedStepButton,
+                    !onStepSelected && styles.cursorDefault,
+                ];
+
+                const stepAccessibilityContent = (
+                    <>
+                        <Text style={styles.screenReaderOnlyAnchor}>{stepAccessibilityLabel}</Text>
+                        <View
+                            aria-hidden
+                            importantForAccessibility="no-hide-descendants"
+                            accessibilityElementsHidden
                         >
                             {isCompletedStep ? (
                                 <Icon
@@ -128,9 +125,43 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, currentStepAcc
                                     fill={colors.white}
                                 />
                             ) : (
-                                <Text style={[styles.interactiveStepHeaderStepText, isLockedStep && styles.textSupporting]}>{index + 1}</Text>
+                                <Text
+                                    accessible={false}
+                                    aria-hidden
+                                    style={[styles.interactiveStepHeaderStepText, isLockedStep && styles.textSupporting]}
+                                >
+                                    {index + 1}
+                                </Text>
                             )}
-                        </PressableWithFeedback>
+                        </View>
+                    </>
+                );
+
+                return (
+                    <View
+                        style={[styles.interactiveStepHeaderStepContainer, hasUnion && styles.flex1]}
+                        key={stepName}
+                    >
+                        {onStepSelected ? (
+                            <PressableWithFeedback
+                                style={stepButtonStyle}
+                                onPress={moveToStep}
+                                disabled={isLockedStep}
+                                role={CONST.ROLE.BUTTON}
+                                aria-current={isCurrentStep ? 'step' : undefined}
+                                sentryLabel={CONST.SENTRY_LABEL.INTERACTIVE_STEP_SUB_HEADER.STEP_BUTTON}
+                            >
+                                {stepAccessibilityContent}
+                            </PressableWithFeedback>
+                        ) : (
+                            <View
+                                style={stepButtonStyle}
+                                aria-current={isCurrentStep ? 'step' : undefined}
+                                tabIndex={0}
+                            >
+                                {stepAccessibilityContent}
+                            </View>
+                        )}
                         {hasUnion ? <View style={[styles.interactiveStepHeaderStepLine, isLockedLine && styles.interactiveStepHeaderLockedStepLine]} /> : null}
                     </View>
                 );
