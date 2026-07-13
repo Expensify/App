@@ -61,6 +61,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         hasActiveFilters,
         hasSearchString,
         isEmptyResult,
+        originalDataLength,
     } = useTableContext<DataType>();
     const {contentContainerStyle: listContentContainerStyle, ListEmptyComponent, ListHeaderComponent, ...restListProps} = listProps ?? {};
 
@@ -87,7 +88,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
-    if (isEmptyResult && !ListEmptyComponent && !ListHeaderComponent) {
+    if ((isEmptyResult || !originalDataLength) && !ListEmptyComponent && !ListHeaderComponent) {
         return null;
     }
 
