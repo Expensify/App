@@ -8,9 +8,10 @@ function referencesWorklet(source) {
     return source.includes('react-native-reanimated') || source.includes('worklet');
 }
 
-export default function workletsLoader(source) {
+export default function workletsLoader(source, inputSourceMap) {
     if (!referencesWorklet(source)) {
-        return source;
+        this.callback(null, source, inputSourceMap);
+        return undefined;
     }
 
     const callback = this.async();
@@ -22,6 +23,7 @@ export default function workletsLoader(source) {
             filename: this.resourcePath,
             plugins: ['react-native-worklets/plugin'],
             sourceMaps: !!this.sourceMap,
+            inputSourceMap: inputSourceMap ?? undefined,
         },
         (error, result) => {
             if (error) {
