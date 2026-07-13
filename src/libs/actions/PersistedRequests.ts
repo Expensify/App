@@ -85,7 +85,7 @@ Onyx.connectWithoutView({
                     }
                 }
                 persistedRequests = [...persistedRequests, ...newFromOtherTabs];
-                trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests));
+                persistQueue(persistedRequests);
                 crossTabRequestsCallback?.();
                 return;
             }
@@ -150,7 +150,7 @@ Onyx.connectWithoutView({
             }
             const requests = [...persistedRequests, ...pendingSaveOperations];
             persistedRequests = requests;
-            trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests));
+            persistQueue(requests);
             pendingSaveOperations = [];
         }
 
@@ -256,7 +256,7 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<vo
         newQueueLength: requests.length,
     });
 
-    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests as AnyRequest[]))
+    return persistQueue(requests as AnyRequest[])
         .then(() => {
             Log.info('[PersistedRequests] Request successfully persisted to disk', false, {
                 command: requestToPersist.command,
@@ -320,7 +320,7 @@ function endRequestAndRemoveFromQueue<TKey extends OnyxKey>(requestToRemove: Req
 
     trackOnyxWrite(
         Onyx.multiSet({
-            [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
+            [ONYXKEYS.PERSISTED_REQUESTS]: stripFilesForDisk(persistedRequests),
             [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
         }),
     ).then(() => {
@@ -339,7 +339,7 @@ function deleteRequestsByIndices(indices: number[]): Promise<void> {
     persistedRequests = persistedRequests.filter((_, index) => !indicesSet.has(index));
 
     // Update the persisted requests in storage or state as necessary
-    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests))
+    return persistQueue(persistedRequests)
         .then(() => {
             Log.info(`Multiple (${indices.length}) requests removed from the queue. Queue length is ${persistedRequests.length}`);
         })
@@ -363,7 +363,7 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     if (requestIndex != null) {
         knownRequestIDs.add(requestIndex);
     }
-    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests)).catch((error) => {
+    return persistQueue(requests).catch((error) => {
         // Swallow so the conflict promise resolves (in-memory queue is the source of truth); alert as a storage emergency.
         Log.alert('[PersistedRequests] ERROR: Failed to persist updated request to disk', {
             command: newRequest.command,
@@ -373,16 +373,49 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     });
 }
 
-function shouldPersistOngoingRequest(request: AnyRequest | null): boolean {
-    if (!request?.data) {
-        return true;
+function dataContainsFileOrBlob(data: Record<string, unknown> | undefined): boolean {
+    if (!data) {
+        return false;
     }
+    return Object.values(data).some((value) => (typeof File !== 'undefined' && value instanceof File) || (typeof Blob !== 'undefined' && value instanceof Blob));
+}
 
-    return !Object.values(request.data).some((value) => {
-        const isFile = typeof File !== 'undefined' && value instanceof File;
-        const isBlob = typeof Blob !== 'undefined' && value instanceof Blob;
-        return isFile || isBlob;
+/**
+ * Files/Blobs in request data (e.g. `data.receipt` on ReplaceReceipt) get persisted INLINE in the
+ * single networkRequestQueue value. At scale that one record exceeds IndexedDB's blob path and the
+ * whole write fails (`Failed to write blobs (InvalidBlob)`), which deadlocks the queue. Keep files
+ * in the in-memory queue so live uploads still work, but strip them from what we persist so the
+ * record stays small. A request rehydrated without its file is skipped at send time (see
+ * prepareRequestPayload). Also logs how often we strip — telemetry to size the impact in prod.
+ */
+function stripFilesForDisk(requests: AnyRequest[]): AnyRequest[] {
+    let strippedCount = 0;
+    const result = requests.map((request) => {
+        if (!dataContainsFileOrBlob(request.data)) {
+            return request;
+        }
+        strippedCount++;
+        const data: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(request.data ?? {})) {
+            if ((typeof File !== 'undefined' && value instanceof File) || (typeof Blob !== 'undefined' && value instanceof Blob)) {
+                continue;
+            }
+            data[key] = value;
+        }
+        return {...request, data} as AnyRequest;
     });
+    if (strippedCount > 0) {
+        Log.info('[PersistedRequests] Stripped inline file(s) from persisted queue to keep the record writable', false, {strippedCount, queueLength: requests.length});
+    }
+    return result;
+}
+
+function persistQueue(requests: AnyRequest[]): Promise<void> {
+    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, stripFilesForDisk(requests)));
+}
+
+function shouldPersistOngoingRequest(request: AnyRequest | null): boolean {
+    return !dataContainsFileOrBlob(request?.data);
 }
 
 function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
@@ -454,14 +487,14 @@ function processNextRequest(): AnyRequest | null {
     if (shouldPersistOngoingRequest(ongoingRequest)) {
         trackOnyxWrite(
             Onyx.multiSet({
-                [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
+                [ONYXKEYS.PERSISTED_REQUESTS]: stripFilesForDisk(persistedRequests),
                 [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: ongoingRequest,
             }),
         );
     } else {
         trackOnyxWrite(
             Onyx.multiSet({
-                [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
+                [ONYXKEYS.PERSISTED_REQUESTS]: stripFilesForDisk(persistedRequests),
                 [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
             }),
         ).finally(() => {
@@ -511,7 +544,7 @@ function rollbackOngoingRequest() {
     // the rolled-back request or leave a stale ongoingRequest on disk.
     trackOnyxWrite(
         Onyx.multiSet({
-            [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
+            [ONYXKEYS.PERSISTED_REQUESTS]: stripFilesForDisk(persistedRequests),
             [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
         }),
     );
