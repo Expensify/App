@@ -193,6 +193,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'configureApprovals',
             label: translate('homePage.gettingStartedSection.configureApprovals'),
+            subText: translate('homePage.gettingStartedSection.configureApprovalsSubText'),
             isComplete: hasCustomApprovalWorkflow(policy),
             route: ROUTES.WORKSPACE_WORKFLOWS.getRoute(activePolicyID),
         });

@@ -1147,6 +1147,7 @@ const translations = {
             issueExpensifyCards: 'Issue Expensify cards',
             issueExpensifyCardsSubtitle: 'Customize controls and streamline spending',
             configureApprovals: 'Configure approval workflow',
+            configureApprovalsSubText: 'Define report approvals',
             setupRules: 'Set up spend rules',
             setupRulesSubText: 'Require receipts, flag high spend, and more',
             needHelp: 'Need help?',
