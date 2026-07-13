@@ -11,6 +11,7 @@ import type {
     ReplaceTwoFactorDeviceParams,
     RequestNewValidateCodeParams,
     RequestUnlinkValidationLinkParams,
+    ResendValidateCodeParams,
     ResetSMSDeliveryFailureStatusParams,
     SignInUserWithLinkParams,
     SignUpUserParams,
@@ -101,7 +102,7 @@ Onyx.connect({
             authPromiseResolver(true);
             authPromiseResolver = null;
         }
-        if (CONFIG.IS_HYBRID_APP && isHybridAppSetupFinished && session.authToken && session.authToken !== INVALID_TOKEN && !isAnonymousUser(value)) {
+        if (CONFIG.IS_HYBRID_APP && isHybridAppSetupFinished && session.authToken && !isAnonymousUser(value)) {
             HybridAppModule.sendAuthToken({authToken: session.authToken});
         }
     },
@@ -528,7 +529,7 @@ function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => an
 /**
  * Request a new validate / magic code for user to sign in via passwordless flow
  */
-function resendValidateCode(login = credentials.login) {
+function resendValidateCode(reasonParams: ResendValidateCodeParams, login = credentials.login) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -550,7 +551,7 @@ function resendValidateCode(login = credentials.login) {
     ];
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: RequestNewValidateCodeParams = {email: login, deviceInfo};
+        const params: RequestNewValidateCodeParams = {email: login, deviceInfo, ...reasonParams};
         API.write(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE, params, {optimisticData, finallyData});
     });
 }
@@ -849,6 +850,21 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
         API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod, deviceInfo}, {optimisticData, failureData, finallyData});
     });
     NetworkStore.setLastShortAuthToken(authToken);
+}
+
+/**
+ * Marks (or clears) that a short-lived-token sign-in is in progress.
+ *
+ * This should be set to `true` before opening the in-app browser for native SAML sign-in so the
+ * reauthentication middleware won't race against the SAML callback when the app resumes from the
+ * browser. On resume, `reconnectApp()` fires with the now-expired authToken and gets a 407; without
+ * this flag set, `reauthenticate()` takes the `isSAMLRequired` branch and calls `redirectToSignIn()`,
+ * wiping the session before the SAML callback can sign the user back in. `signInWithShortLivedAuthToken`
+ * resets this flag automatically once the sign-in succeeds, so the caller only needs to reset it if the
+ * browser is cancelled or fails.
+ */
+function setIsAuthenticatingWithShortLivedToken(isAuthenticating: boolean) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, isAuthenticating);
 }
 
 /**
@@ -1700,6 +1716,7 @@ export {
     signInWithValidateCodeAndNavigate,
     initAutoAuthState,
     signInWithShortLivedAuthToken,
+    setIsAuthenticatingWithShortLivedToken,
     cleanupSession,
     signOut,
     signOutAndRedirectToSignIn,
