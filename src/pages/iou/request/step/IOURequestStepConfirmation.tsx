@@ -87,7 +87,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -189,6 +189,10 @@ function IOURequestStepConfirmation({
         reportPolicyID: realPolicyID ?? draftPolicyID,
         action,
         iouType,
+        // Forward the draft policy so a freshly created draft workspace (e.g. "Submit to my employer" with no existing
+        // workspace) resolves here. Without it `policy` is undefined for drafts, `isDraftPolicy` is false, and the submit
+        // is routed to ConvertTrackedExpenseToRequest (which needs a real payer) instead of AddTrackedExpenseToPolicy.
+        policyDraft,
         isPerDiemRequest,
     });
     const policyID = policy?.id;
@@ -895,8 +899,8 @@ function IOURequestStepConfirmation({
                                 <PrevNextButtons
                                     isPrevButtonDisabled={currentTransactionIndex === 0}
                                     isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
-                                    onNext={showNextTransaction}
-                                    onPrevious={showPreviousTransaction}
+                                    onNext={() => startTransition(showNextTransaction)}
+                                    onPrevious={() => startTransition(showPreviousTransaction)}
                                 />
                             ) : null}
                         </HeaderWithBackButton>
