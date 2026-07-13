@@ -472,6 +472,25 @@ function getCombinedCardFeedsFromAllFeeds(
     }, {});
 }
 
+function findMatchingCards(cardFeeds: CombinedCardFeeds, cardLists: Record<string, WorkspaceCardsList | undefined>, cardFeed?: CardFeed, cardID?: number) {
+    const feedKeys = Object.values(cardFeeds).map((cardFeed) => cardFeed.feed as CardFeed);
+    return Object.values(cardLists)
+        .flatMap((cardList) => Object.values(cardList ?? {}))
+        .filter((card) => {
+            const feedKey = card.bank as CardFeed;
+            if (!feedKeys.some((key) => key === feedKey)) {
+                return false;
+            }
+            if (cardFeed && cardFeed !== feedKey) {
+                return false;
+            }
+            if (cardID && cardID !== card.cardID) {
+                return false;
+            }
+            return true;
+        });
+}
+
 function getCardsUsingCustomExportCount(
     cardFeeds: CombinedCardFeeds,
     cardLists: Record<string, WorkspaceCardsList | undefined>,
@@ -480,24 +499,18 @@ function getCardsUsingCustomExportCount(
     perFeedCount: Partial<Record<CardFeed, number>>;
     totalCount: number;
 } {
-    const feedKeys = Object.values(cardFeeds).map((cardFeed) => cardFeed.feed as CardFeed);
     const perFeedCount: Partial<Record<CardFeed, number>> = {};
     let totalCount = 0;
-    for (const cardList of Object.values(cardLists)) {
-        for (const card of Object.values(cardList ?? {})) {
-            const feedKey = card.bank as CardFeed;
-            if (!feedKeys.some((key) => key === feedKey)) {
-                continue;
-            }
-            if (typeof card.nameValuePairs !== 'object') {
-                continue;
-            }
-            if (!(exportType in card.nameValuePairs)) {
-                continue;
-            }
-            perFeedCount[feedKey] = (perFeedCount[feedKey] ?? 0) + 1;
-            totalCount += 1;
+    for (const card of findMatchingCards(cardFeeds, cardLists)) {
+        const feedKey = card.bank as CardFeed;
+        if (typeof card.nameValuePairs !== 'object') {
+            continue;
         }
+        if (!(exportType in card.nameValuePairs)) {
+            continue;
+        }
+        perFeedCount[feedKey] = (perFeedCount[feedKey] ?? 0) + 1;
+        totalCount += 1;
     }
     return {perFeedCount, totalCount};
 }
@@ -509,27 +522,15 @@ function getCardsCustomExportPendingAction(
     cardFeed?: CardFeed,
     cardID?: number,
 ): PendingAction | undefined {
-    const feedKeys = Object.values(cardFeeds).map((cardFeed) => cardFeed.feed as CardFeed);
-    for (const cardList of Object.values(cardLists)) {
-        for (const card of Object.values(cardList ?? {})) {
-            const feedKey = card.bank as CardFeed;
-            if (!feedKeys.some((key) => key === feedKey)) {
-                continue;
-            }
-            if (cardFeed && cardFeed !== feedKey) {
-                continue;
-            }
-            if (cardID && cardID !== card.cardID) {
-                continue;
-            }
-            if (typeof card.nameValuePairs !== 'object') {
-                continue;
-            }
-            if (!(exportType in (card.nameValuePairs.pendingFields ?? {}))) {
-                continue;
-            }
-            return card.nameValuePairs.pendingFields?.[exportType];
+    for (const card of findMatchingCards(cardFeeds, cardLists, cardFeed, cardID)) {
+        const feedKey = card.bank as CardFeed;
+        if (typeof card.nameValuePairs !== 'object') {
+            continue;
         }
+        if (!(exportType in (card.nameValuePairs.pendingFields ?? {}))) {
+            continue;
+        }
+        return card.nameValuePairs.pendingFields?.[exportType];
     }
     return undefined;
 }
@@ -541,27 +542,14 @@ function areCardsCustomExportInErrorFields(
     cardFeed?: CardFeed,
     cardID?: number,
 ): boolean {
-    const feedKeys = Object.values(cardFeeds).map((cardFeed) => cardFeed.feed as CardFeed);
-    for (const cardList of Object.values(cardLists)) {
-        for (const card of Object.values(cardList ?? {})) {
-            const feedKey = card.bank as CardFeed;
-            if (!feedKeys.some((key) => key === feedKey)) {
-                continue;
-            }
-            if (cardFeed && cardFeed !== feedKey) {
-                continue;
-            }
-            if (cardID && cardID !== card.cardID) {
-                continue;
-            }
-            if (typeof card.nameValuePairs !== 'object') {
-                continue;
-            }
-            if (!(exportType in (card.nameValuePairs.errorFields ?? {}))) {
-                continue;
-            }
-            return true;
+    for (const card of findMatchingCards(cardFeeds, cardLists, cardFeed, cardID)) {
+        if (typeof card.nameValuePairs !== 'object') {
+            continue;
         }
+        if (!(exportType in (card.nameValuePairs.errorFields ?? {}))) {
+            continue;
+        }
+        return true;
     }
     return false;
 }
