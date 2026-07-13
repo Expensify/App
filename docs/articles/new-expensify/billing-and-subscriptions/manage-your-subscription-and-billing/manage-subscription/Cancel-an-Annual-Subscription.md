@@ -22,7 +22,7 @@ For more details, see, [When You Can Change Your Subscription](/articles/new-exp
 
 Only the Workspace owner can request a cancellation, and only when the workspace is on an **Annual** subscription. **Cancel subscription** appears under **Account > Subscription** after your free trial ends and once a payment card has been added or you've been billed at least once.
 
-If your workspace is already on Pay-per-use, there's no subscription to cancel. To stop billing in that case, delete the Workspace instead.
+If your workspace is already on Pay-per-use, there's no subscription to cancel. To stop billing in that case, delete the workspace instead.
 
 ---
 
@@ -58,7 +58,7 @@ Canceling does not stop future charges. As long as the workspace exists, you'll 
 
 Annual subscriptions are a 12-month commitment. Expensify may approve cancellation requests if you've only been billed once for the Annual subscription and have no outstanding balance. Otherwise, the subscription remains in effect for the rest of the commitment.
 
-If your request isn't approved, you'll continue to be billed for the remainder of your Annual subscription term. If you no longer want to manage the workspace, another Workspace admin can transfer ownership to themselves. Transferring ownership doesn't cancel the subscription or change the remaining billing commitment. [Learn how to transfer workspace ownership](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership).
+If your request isn't approved, you'll continue to be billed for the remainder of your Annual subscription term. If you no longer want to manage the workspace, another workspace admin can transfer ownership to themselves. Transferring ownership doesn't cancel the subscription or change the remaining billing commitment. [Learn how to transfer workspace ownership](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership).
 
 ---
 
@@ -74,4 +74,4 @@ No. Canceling only ends the annual commitment. Your workspace, expenses, and rep
 
 ## How do I stop being billed entirely?
 
-Delete the workspace to stop future billing. Canceling an Annual Subscription only switches the workspace to Pay-per-use, where monthly charges continue while the workspace remains active. 
+Delete the workspace to stop future billing. Canceling an Annual subscription only switches the workspace to Pay-per-use, where monthly charges continue while the workspace remains active.

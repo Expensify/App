@@ -11,13 +11,13 @@ order: 4
 
 # Change Your Workspace Plan
 
-Every Workspace uses either the Collect or Control plan. Your Workspace plan determines which features are available. If your needs change, you can switch the Workspace's **Plan type**. 
+Every workspace uses either the Collect or Control plan. Your workspace plan determines which features are available. If your needs change, you can switch the workspace's **Plan type**. 
 
 To learn which plan is right for your organization, see [Compare Collect and Control Plans](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans).
 
 ---
 
-## Who can change the Workspace plan
+## Who can change the workspace plan
 
 Only the Workspace owner can change a workspace's plan. 
 
@@ -38,7 +38,7 @@ If you have an Annual subscription, changes to your plan may be restricted. To l
 ## Related articles
 
  - [View Your Plan and Subscription](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/View-Your-Plan-and-Subscription)
- - [Understand Expensify pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
+ - [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
    
 ---
 
@@ -46,7 +46,7 @@ If you have an Annual subscription, changes to your plan may be restricted. To l
 
 ## Can I switch back to Control after downgrading to Collect?
 
-Yes. You can upgrade a Workspace to Control at any time by returning to the **Plan type** setting.
+Yes. You can upgrade a workspace to Control at any time by returning to the **Plan type** setting.
 
 ## Why is my Plan type locked?
 

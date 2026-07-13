@@ -30,8 +30,8 @@ The Workspace owner can make changes to the **Auto-renew**, and **Auto-increase 
 ## What each Annual subscription setting controls
 
  - **Subscription size** is the maximum number of active members covered by your Annual subscription. You can increase your subscription size at any time, but you can't decrease it until the subscription term ends. Any time you increase it—whether manually or through Auto-increase—you start a new 12-month subscription at that larger size.
- - **Auto-renew** keeps your Annual subscription going. When it's enabled, the subscription renews for another 12 months at the end of the term. When it's disabled, the Annual subscription does not renew and your Workspace continues on Pay-per-use billing after the renewal date.
- - **Auto-increase annual seats** removes the need to adjust your subscription size manually as your team grows. When it's enabled and your active members exceed your Subscription size, Expensify raises the size to cover them—which starts a new 12-month subscription and extends your subscription end date.
+ - **Auto-renew** keeps your Annual subscription going. When it's enabled, the subscription renews for another 12 months at the end of the term. When it's disabled, the Annual subscription does not renew and your workspace continues on Pay-per-use billing after the renewal date.
+ - **Auto-increase annual seats** removes the need to adjust your subscription size manually as your team grows. When it's enabled and your active members exceed your **Subscription size**, Expensify raises the size to cover them—which starts a new 12-month subscription and extends your subscription end date.
 
 ---
 
@@ -64,17 +64,17 @@ While it's enabled, any month your active members exceed your subscription size,
 2. Choose **Subscription settings**.
 3. Disable **Auto-renew** and confirm your choice.
 
-Your Annual subscription stays active until the renewal date shown on the page. After that, your Workspace continues on Pay-per-use billing.
+Your Annual subscription stays active until the renewal date shown on the page. After that, your workspace continues on Pay-per-use billing.
 
 ---
 
 # FAQ
 
-## Can I reduce my Subscription size during my Annual term?
+## Can I reduce my subscription size during my Annual term?
 
 No. You can increase your **Subscription size** at any time, but you can't reduce it until your current Annual subscription term ends.
 
-## What happens if I increase my Subscription size?
+## What happens if I increase my subscription size?
 
 Increasing your **Subscription size** starts a new 12-month Annual subscription at the larger size. Your new subscription end date is based on the date of the increase.
 
@@ -84,7 +84,7 @@ If your number of active members exceeds your **Subscription size**, Expensify a
 
 ## What happens if I disable Auto-renew?
 
-Your Annual subscription remains active until its renewal date. After that, your Workspace moves to a Pay-per-use subscription unless you renew before the term ends.
+Your Annual subscription remains active until its renewal date. After that, your workspace moves to a Pay-per-use subscription unless you renew before the term ends.
 
 ## Can I change my Annual subscription settings if I'm a Workspace Admin?
 

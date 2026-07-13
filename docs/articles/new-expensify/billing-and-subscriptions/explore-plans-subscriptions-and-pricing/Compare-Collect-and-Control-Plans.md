@@ -11,12 +11,12 @@ order: 2
 
 # Compare Collect and Control Plans
 
-Expensify offers two Workspace plans:
+Expensify offers two workspace plans:
 
 - **Collect** for organizations that need straightforward expense management and reimbursements.
 - **Control** for organizations that need advanced spend management, automation, integrations, and administrative controls.
 
-This article provides a high-level comparison to help you choose the right Workspace plan. For the complete feature comparison and current pricing, visit [Expensify Pricing](https://www.expensify.com/pricing).
+This article provides a high-level comparison to help you choose the right workspace plan. For the complete feature comparison and current pricing, visit [Expensify Pricing](https://www.expensify.com/pricing).
 
 ## When to choose the Collect plan
 
@@ -56,11 +56,11 @@ The table below highlights some of the most common feature differences between t
 
 # FAQ
 
-## Can I change my Workspace plan later?
+## Can I change my workspace plan later?
 
-Yes. You can change your Workspace plan as your organization's needs change. Some changes, such as downgrading to the Collect plan when on an Annual subscription, may not be available until the end of your current subscription term.
+Yes. You can change your workspace plan as your organization's needs change. Some changes, such as downgrading to the Collect plan when on an Annual subscription, may not be available until the end of your current subscription term.
 
-To learn more see [Learn About Plan and Subscription Management](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Learn-About-Plan-and-Subscription-Management).
+To learn more, see [Learn About Plan and Subscription Management](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Learn-About-Plan-and-Subscription-Management).
 
 ## Does every workspace have a plan?
 
@@ -68,6 +68,6 @@ Yes. Every workspace uses either the Collect or Control plan.
 
 ## Does the Expensify Card work with both plans?
 
-Yes. The Expensify Card works with both plans. Certain subscription pricing benefits are only available with eligible Control Workspaces.
+Yes. The Expensify Card works with both plans. Certain subscription pricing benefits are only available with eligible Control workspaces.
 
-To learn more see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
+To learn more, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).

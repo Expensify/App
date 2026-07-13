@@ -29,9 +29,9 @@ Before you can enable either program, you must have a valid payment card on file
 ## How to enable or disable Personal Karma
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Account**.
-1. Select **Save the World**.
-2. In the **Enable Personal Karma** section, turn Personal Karma on or off.
-3. Add a payment card if prompted.
+2. Select **Save the world**.
+3. In the **Enable Personal Karma** section, turn Personal Karma on or off.
+4. Add a payment card if prompted.
    
 ---
 
@@ -85,5 +85,5 @@ No. Donations are charged separately from your subscription.
 
 ## Can I make recurring donations without using Personal Karma or Corporate Karma?
 
-Yes. You can become an Expensify.org member and make a recurring monthly donation that's separate from Personal Karma and Corporate Karma. Learn more at [Donate to Expensify.org]((https://www.expensify.org/donate)).
+Yes. You can become an Expensify.org member and make a recurring monthly donation that's separate from Personal Karma and Corporate Karma. Learn more at [Donate to Expensify.org](https://www.expensify.org/donate).
 
