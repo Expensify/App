@@ -29,7 +29,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 
 type MoneyRequestViewReportFieldsProps = {
@@ -134,4 +134,4 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
     );
 }
 
-export default MoneyRequestViewReportFields;
+export default memo(MoneyRequestViewReportFields);

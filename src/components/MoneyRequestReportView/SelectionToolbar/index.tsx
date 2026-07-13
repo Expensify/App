@@ -40,7 +40,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {ValueOf} from 'type-fest';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {memo, useState} from 'react';
 import {View} from 'react-native';
 
 import SelectAllCheckbox from './SelectAllCheckbox';
@@ -355,4 +355,4 @@ function SelectionToolbarGate({reportID, transactions, reportActions}: Selection
     );
 }
 
-export default SelectionToolbarGate;
+export default memo(SelectionToolbarGate);

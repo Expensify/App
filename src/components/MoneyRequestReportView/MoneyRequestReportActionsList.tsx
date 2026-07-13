@@ -2,6 +2,7 @@ import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFrozenWhileBlurred from '@hooks/useFrozenWhileBlurred';
 import useIsReportActionsLoaded from '@hooks/useIsReportActionsLoaded';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
@@ -126,17 +127,37 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const reportID = report?.reportID;
 
+    // THIS
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID);
-    const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
+    // THIS
+    const reportActionsLive = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const {draftReportAction} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
 
+    // Freeze the two array props handed to the memoized MoneyRequestReportTransactionList while this screen is
+    // blurred. When a transaction RHP is layered on top and the user sends a message there, Onyx still hands these
+    // derived arrays fresh references, which would break the child's memo() and re-render the offscreen list.
+    // Freezing keeps the references stable until the report is refocused, at which point they resync to live data.
+    const reportActions = useFrozenWhileBlurred(reportActionsLive, isFocused);
+
+    // Frozen full-fidelity report for the memoized MoneyRequestViewReportFields sibling. The raw `report` churns on
+    // send (last* fields); freezing while blurred lets that sibling's memo() hold. Full report (not reportStable) so
+    // the OnyxEntry<Report> prop type is satisfied and no report field is missing.
+    const reportForFields = useFrozenWhileBlurred(report, isFocused);
+
+    const [shouldHideHeavyLists] = useOnyx(ONYXKEYS.SHOULD_HIDE_HEAVY_LISTS);
+
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true), [allReportTransactions, reportActions, isOffline]);
-    const transactions = useMemo(
+
+    // THIS
+    const transactionsLive = useMemo(
         () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) ?? [],
         [reportTransactions, isOffline],
     );
+
+    const transactions = useFrozenWhileBlurred(transactionsLive, isFocused);
+
     const hasPendingDeletionTransaction = useMemo(
         () => Object.values(allReportTransactions ?? {}).some((transaction) => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
         [allReportTransactions],
@@ -151,7 +172,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const linkedReportActionID = route?.params?.reportActionID;
 
-    const parentReportAction = useParentReportAction(report);
+    // Freeze parentReportAction while blurred: it's passed to every chat row via renderItem and churns on send
+    // (child counters mutate), which would re-render every offscreen row. Resyncs on refocus.
+    const parentReportActionLive = useParentReportAction(report);
+    const parentReportAction = useFrozenWhileBlurred(parentReportActionLive, isFocused);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -163,10 +187,12 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
+
+    // THIS
     // Scope the derived VISIBLE_REPORT_ACTIONS to this report only. Subscribing to the whole collection
     // re-rendered this list whenever ANY report's visibility changed; every action here belongs to `reportID`
     // (they come from usePaginatedReportActions(reportID)), so isReportActionVisible only ever reads this slice.
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+    const [visibleReportActionsDataLive] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
         selector: reportVisibleActionsSelector(reportID),
     });
 
@@ -178,7 +204,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
 
-    const visibleReportActions = useMemo(() => {
+    const visibleReportActionsData = useFrozenWhileBlurred(visibleReportActionsDataLive, isFocused);
+    // const transactionsForList = useFrozenWhileBlurred(transactions, isFocused);
+
+    const visibleReportActionsLive = useMemo(() => {
         const filteredActions = reportActions.filter((reportAction) => {
             const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowHarvestCreatedAction);
             if (!isActionVisibleOnMoneyReport) {
@@ -204,6 +233,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
         return filteredActions.slice().reverse();
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID]);
+
+    // Freeze the FlatList's data while blurred so a message sent in an RHP on top doesn't re-render the offscreen
+    // chat rows. Combined with the frozen parentReportAction, every renderItem dependency stays stable, so the
+    // VirtualizedList cells skip. Resyncs to live on refocus.
+    const visibleReportActions = useFrozenWhileBlurred(visibleReportActionsLive, isFocused);
 
     const shouldShowOpenReportLoadingSkeleton = !isOffline && !!showReportActionsLoadingState && visibleReportActions.length === 0;
     const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
@@ -691,14 +725,68 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState;
     const showEmptyState = isReportEmpty;
 
+    // This component bails the React Compiler (refs read during render), so inline props are NOT auto-memoized and
+    // would hand fresh references to FlatListWithScrollKey (which IS compiled) every render, defeating its
+    // memoization. Memoize them manually. While blurred every dep here is frozen/stable, so the FlatList subtree
+    // work is skipped on send.
+    const listContentContainerStyle = useMemo(() => [shouldUseNarrowLayout ? styles.pt4 : styles.pt3], [shouldUseNarrowLayout, styles.pt3, styles.pt4]);
+
+    const listHeaderComponent = useMemo(
+        () => (
+            <>
+                <MoneyRequestViewReportFields
+                    report={reportForFields}
+                    policy={policy}
+                />
+                {!!reportStable && (
+                    <MoneyRequestReportTransactionList
+                        report={reportStable}
+                        onLayout={onLayout}
+                        transactions={transactions}
+                        newTransactions={newTransactions}
+                        isReportVisible={isReportVisible}
+                        hasPendingDeletionTransaction={hasPendingDeletionTransaction}
+                        reportActions={reportActions}
+                        scrollToNewTransaction={scrollToNewTransaction}
+                        policy={policy}
+                        hasComments={visibleReportActions.length > 0}
+                        isLoadingInitialReportActions={showReportActionsLoadingState}
+                    />
+                )}
+            </>
+        ),
+        [
+            reportForFields,
+            policy,
+            reportStable,
+            onLayout,
+            transactions,
+            newTransactions,
+            isReportVisible,
+            hasPendingDeletionTransaction,
+            reportActions,
+            scrollToNewTransaction,
+            visibleReportActions.length,
+            showReportActionsLoadingState,
+        ],
+    );
+
     // DEV-ONLY re-render diagnostic (PoC — remove before merge). Focus: onLayout, transactions,
     // reportActions. Upstream sources are tracked too so we can see the causal chain when sending a
     // message (addComment -> optimistic report action + report.lastVisibleActionCreated update).
     useWhyDidIRender('MoneyRequestReportActionsList', {
+        // freeze gate — if this flips true on some sends, useFrozenWhileBlurred releases and the heavy tree re-renders (slow path)
+        isFocused,
+        shouldUseNarrowLayout,
         // suspects flagged by the profiler
         onLayout,
         transactions,
         reportActions,
+        // frozen-while-blurred versions actually handed to MoneyRequestReportTransactionList
+        // transactionsForList,
+        // reportActionsForList,
+        visibleReportActionsDataLive,
+
         // upstream of `reportActions`
         unfilteredReportActions,
         // upstream of `transactions`
@@ -719,7 +807,14 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         isOffline,
         reportLoadingState,
         reportPaginationState,
+        // remaining renderItem deps — the last two not yet tracked; if renderItem churns it must be one of these
+        firstVisibleReportActionID,
+        shouldShowHarvestCreatedAction,
     });
+
+    if (shouldHideHeavyLists) {
+        return null;
+    }
 
     if (!report) {
         return null;
@@ -754,7 +849,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 {showEmptyState && (
                     <ScrollView contentContainerStyle={styles.flexGrow1}>
                         <MoneyRequestViewReportFields
-                            report={report}
+                            report={reportForFields}
                             policy={policy}
                         />
                         <SearchMoneyRequestReportEmptyState
@@ -780,32 +875,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         onEndReachedThreshold={0.75}
                         onStartReached={onStartReached}
                         onStartReachedThreshold={0.75}
-                        ListHeaderComponent={
-                            <>
-                                <MoneyRequestViewReportFields
-                                    report={report}
-                                    policy={policy}
-                                />
-                                {!!reportStable && (
-                                    <MoneyRequestReportTransactionList
-                                        report={reportStable}
-                                        onLayout={onLayout}
-                                        transactions={transactions}
-                                        newTransactions={newTransactions}
-                                        isReportVisible={isReportVisible}
-                                        hasPendingDeletionTransaction={hasPendingDeletionTransaction}
-                                        reportActions={reportActions}
-                                        scrollToNewTransaction={scrollToNewTransaction}
-                                        policy={policy}
-                                        hasComments={visibleReportActions.length > 0}
-                                        isLoadingInitialReportActions={showReportActionsLoadingState}
-                                    />
-                                )}
-                            </>
-                        }
+                        ListHeaderComponent={listHeaderComponent}
                         keyboardShouldPersistTaps="handled"
-                        onScroll={trackVerticalScrolling}
-                        contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3]}
+                        onScroll={isFocused ? trackVerticalScrolling : undefined}
+                        contentContainerStyle={listContentContainerStyle}
                         ref={listRef}
                         ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
                         removeClippedSubviews={false}

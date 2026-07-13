@@ -13,6 +13,7 @@ import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,6 +25,7 @@ import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import Navigation from '@navigation/Navigation';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
@@ -66,6 +68,8 @@ function SearchPageWide({
     const {shouldUseLiveData} = useSearchResultsContext();
     const {currentSearchKey} = useSearchQueryContext();
     const {hasSelectedTransactions} = useSearchSelectionContext();
+    // DEV-ONLY perf-test toggle: when enabled, skip rendering this heavy page.
+    const [shouldHideHeavyLists] = useOnyx(ONYXKEYS.SHOULD_HIDE_HEAVY_LISTS);
 
     // The offline-indicator offset must track the footer's real visibility. SearchSelectionFooter shows on a
     // selection even when server totals are absent (e.g. expense-report searches), so a totals-only check leaves
@@ -100,6 +104,11 @@ function SearchPageWide({
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const splitContainerAnimatedStyle = useSearchSidebarContentOffsetStyle();
+
+    // DEV-ONLY perf-test toggle: hide this heavy page entirely (placed after all hooks to satisfy rules of hooks).
+    if (shouldHideHeavyLists) {
+        return null;
+    }
 
     return (
         <Animated.View

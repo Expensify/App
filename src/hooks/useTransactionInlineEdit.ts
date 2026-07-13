@@ -18,10 +18,12 @@ import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/Tr
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useIsFocused} from '@react-navigation/core';
 /**
  * Centralizes inline-editing logic for a transaction row so that permission
  * derivation, Onyx subscriptions, and edit handlers live in one place rather
@@ -88,7 +90,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const isUnreported = isExpenseUnreported(transaction);
     const selfDMReport = useSelfDMReport();
 
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: getStableReportSelector});
     const effectiveParentReport = isUnreported ? selfDMReport : parentReport;
     const effectiveParentReportID = effectiveParentReport?.reportID;
 
@@ -153,6 +155,8 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const {isOffline} = useNetwork();
     const personalPolicy = usePersonalPolicy();
+
+    const isFocused = useIsFocused();
 
     const permissions = getTransactionEditPermissions({
         transaction,
@@ -219,6 +223,25 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const onEditTag = (newTag: string) => {
         editTransactionTagInline(getEditParams(), newTag);
     };
+
+    if (!isFocused) {
+        return {
+            canEditDate: false,
+            canEditMerchant: false,
+            canEditDescription: false,
+            canEditCategory: false,
+            canEditAmount: false,
+            canEditTag: false,
+            transactionThreadReportID: undefined,
+            onEditDate: () => {},
+            onEditMerchant: () => {},
+            onEditDescription: () => {},
+            onEditCategory: () => {},
+            onEditAmount: () => {},
+            onEditTag: () => {},
+            wasEditingOnMouseDownRef: {current: false},
+        };
+    }
 
     return {
         ...permissions,

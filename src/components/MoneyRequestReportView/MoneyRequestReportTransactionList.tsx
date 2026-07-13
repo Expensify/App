@@ -84,7 +84,7 @@ import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import isEmpty from 'lodash/isEmpty';
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {memo, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import MoneyRequestReportGroupHeader from './MoneyRequestReportGroupHeader';
@@ -221,6 +221,8 @@ function MoneyRequestReportTransactionList({
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    // DEV-ONLY perf-test toggle: when enabled, skip rendering this heavy list.
+    const [shouldHideHeavyLists] = useOnyx(ONYXKEYS.SHOULD_HIDE_HEAVY_LISTS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
 
@@ -260,6 +262,11 @@ function MoneyRequestReportTransactionList({
         report,
         policy,
         onLayout,
+        // previously-untracked props — a churn in any of these shows up as "no tracked value changed"
+        scrollToNewTransaction,
+        isReportVisible,
+        hasComments,
+        isLoadingInitialReportActions,
     });
 
     const toggleTransaction = (transactionID: string) => {
@@ -826,6 +833,11 @@ function MoneyRequestReportTransactionList({
         </OfflineWithFeedback>
     );
 
+    // DEV-ONLY perf-test toggle: hide this heavy list entirely (placed after all hooks to satisfy rules of hooks).
+    if (shouldHideHeavyLists) {
+        return null;
+    }
+
     if (isEmptyTransactions) {
         return (
             <>
@@ -996,5 +1008,5 @@ function MoneyRequestReportTransactionList({
     );
 }
 
-export default MoneyRequestReportTransactionList;
+export default memo(MoneyRequestReportTransactionList);
 export type {TransactionWithOptionalHighlight};
