@@ -4,10 +4,11 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
-import {filterInactiveCardsForWorkspace, getCardSettings} from '@libs/CardUtils';
+import {filterCardsListByProgram, filterInactiveCardsForWorkspace, getCardSettingsForSelectedProgram} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -20,7 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 
 import WorkspaceExpensifyCardListPage from './WorkspaceExpensifyCardListPage';
 import WorkspaceExpensifyCardPageEmptyState from './WorkspaceExpensifyCardPageEmptyState';
@@ -32,10 +33,14 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.expensifyCard');
     const defaultFundID = useDefaultFundID(policyID);
+    const selectedProgramKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const settings = getCardSettings(cardSettings);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
+    const settings = getCardSettingsForSelectedProgram(cardSettings, selectedProgramKey);
+    const [allProgramsCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
+
+    // A single feed holds both programs' cards in one Onyx list, so keep only the selected program's cards.
+    const cardsList = useMemo(() => filterCardsListByProgram(allProgramsCardsList, selectedProgramKey), [allProgramsCardsList, selectedProgramKey]);
 
     const fetchExpensifyCards = useCallback(() => {
         updateSelectedExpensifyCardFeed(defaultFundID, policyID);
@@ -70,6 +75,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                 <WorkspaceExpensifyCardListPage
                     cardsList={cardsList}
                     fundID={defaultFundID}
+                    programKey={selectedProgramKey}
                     route={route}
                 />
             );
