@@ -199,6 +199,51 @@ describe('NewChatPage', () => {
         expect(scrollToSpy).not.toHaveBeenCalled();
     });
 
+    it('should toggle selection correctly via the row checkbox with the deferred selection update', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+        });
+        render(<NewChatPage />, {wrapper});
+        await waitForBatchedUpdatesWithAct();
+        act(() => {
+            triggerTransitionEnd();
+        });
+
+        // Enter group-selection mode by selecting one user.
+        const addButton = await waitFor(() => {
+            const button = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
+            expect(button).toBeTruthy();
+            return button;
+        });
+        if (!addButton) {
+            return;
+        }
+        fireEvent.press(addButton);
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(translateLocal('common.next'))).toBeVisible();
+
+        // Toggle the selected row's checkbox (it is only rendered on selected rows). The selection update now runs
+        // as a transition, so this covers that deferring it does not change the toggle semantics: the user is
+        // unselected and group-selection mode is exited.
+        const checkedCheckbox = screen.getAllByTestId(new RegExp(`^${CONST.SELECTION_BUTTON_TEST_ID}`)).at(0);
+        expect(checkedCheckbox).toBeTruthy();
+        if (!checkedCheckbox) {
+            return;
+        }
+        fireEvent.press(checkedCheckbox);
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(translateLocal('common.next'))).toBeNull();
+        expect(screen.queryAllByTestId(new RegExp(`^${CONST.SELECTION_BUTTON_TEST_ID}`))).toHaveLength(0);
+
+        // And selecting again from the empty state still works.
+        const buttonAfter = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
+        if (buttonAfter) {
+            fireEvent.press(buttonAfter);
+        }
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(translateLocal('common.next'))).toBeVisible();
+    });
+
     describe('should not display "Add to group" button on expensify emails', () => {
         const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE && value !== CONST.EMAIL.NOTIFICATIONS).map((email) => [email]);
 

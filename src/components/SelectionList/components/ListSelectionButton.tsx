@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 type ListSelectionButtonProps<TItem extends ListItem> = {
     /** The item to render the selection button for */
@@ -50,13 +50,28 @@ function ListSelectionButton<TItem extends ListItem>({
 }: ListSelectionButtonProps<TItem> & {role: typeof CONST.ROLE.CHECKBOX | typeof CONST.ROLE.RADIO}) {
     const label = accessibilityLabel ?? item.text ?? '';
 
+    // Paint the checkmark immediately on press, even when the parent defers the (expensive) selection-state
+    // update in a transition. The optimistic value is dropped as soon as the item prop catches up
+    // (state-adjustment-during-render, see https://react.dev/reference/react/useState#storing-information-from-previous-renders).
+    const isCheckedProp = item.isSelected ?? false;
+    const [prevCheckedProp, setPrevCheckedProp] = useState(isCheckedProp);
+    const [optimisticChecked, setOptimisticChecked] = useState<boolean | null>(null);
+    if (prevCheckedProp !== isCheckedProp) {
+        setPrevCheckedProp(isCheckedProp);
+        setOptimisticChecked(null);
+    }
+    const isChecked = optimisticChecked ?? isCheckedProp;
+
     return (
         <SelectionButton
             shouldSelectOnPressEnter
             role={role}
             accessibilityLabel={label}
-            isChecked={item.isSelected ?? false}
-            onPress={() => onSelectRow(item)}
+            isChecked={isChecked}
+            onPress={() => {
+                setOptimisticChecked(!isChecked);
+                onSelectRow(item);
+            }}
             disabled={disabled}
             style={style}
             containerStyle={containerStyle}
