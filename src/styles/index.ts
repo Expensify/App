@@ -2737,6 +2737,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingLeft: 20,
             height: variables.contentHeaderHeight,
             width: '100%',
+            backgroundColor: theme.appBG,
         },
 
         reportSearchHeaderBar: {
@@ -5997,6 +5998,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             width: '100%',
             border: 'none',
+        },
+
+        featureTrainingModalNavButtons: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            gap: variables.spacing2,
         },
 
         twoColumnLayoutCol: {
