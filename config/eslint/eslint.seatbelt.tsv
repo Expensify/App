@@ -594,7 +594,6 @@
 "../../src/hooks/useLifecycleActions.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useListKeyboardNav.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useNativeCamera.ts"	"react-hooks/refs"	1
-"../../src/hooks/useNewTransactions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useNewTransactions.ts"	"react-hooks/refs"	2
 "../../src/hooks/useOnboardingTaskInformation.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useOnyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
