@@ -8543,6 +8543,7 @@ ${reportName}`,
     },
     search: {
         resultsAreLimited: '検索結果は制限されています。',
+        goTo: ({destination}: {destination: string}) => `${destination}に移動`,
         viewResults: '結果を表示',
         applyFilters: 'フィルターを適用する',
         appliedFilters: '適用されたフィルター',

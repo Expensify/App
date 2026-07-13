@@ -8672,6 +8672,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     },
     search: {
         resultsAreLimited: 'Suchergebnisse sind begrenzt.',
+        goTo: ({destination}: {destination: string}) => `Gehe zu ${destination}`,
         viewResults: 'Ergebnisse anzeigen',
         applyFilters: 'Filter anwenden',
         appliedFilters: 'Angewandte filter',

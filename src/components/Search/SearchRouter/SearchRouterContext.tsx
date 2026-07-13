@@ -33,7 +33,7 @@ type SearchRouterStateContextType = {
 
 type SearchRouterActionsContextType = {
     openSearchRouter: (query?: string, isFromSearchPage?: boolean) => void;
-    closeSearchRouter: () => void;
+    closeSearchRouter: (afterTransition?: () => void) => void;
     toggleSearch: () => void;
 };
 
@@ -95,12 +95,12 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         );
     };
 
-    const closeSearchRouter = () => {
+    const closeSearchRouter = (afterTransition?: () => void) => {
         cancelSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
         cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT);
         cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE);
         cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
-        closeSearch(setIsSearchRouterDisplayed);
+        closeSearch(setIsSearchRouterDisplayed, afterTransition);
         searchRouterDisplayedRef.current = false;
     };
 

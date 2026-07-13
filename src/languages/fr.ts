@@ -8709,6 +8709,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     },
     search: {
         resultsAreLimited: 'Les résultats de recherche sont limités.',
+        goTo: ({destination}: {destination: string}) => `Aller à ${destination}`,
         viewResults: 'Afficher les résultats',
         applyFilters: 'Appliquer des filtres',
         appliedFilters: 'Filtres appliqués',
