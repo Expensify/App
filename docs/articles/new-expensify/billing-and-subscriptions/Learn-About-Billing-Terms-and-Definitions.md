@@ -11,19 +11,19 @@ order: 3
 
 # Learn About Billing Terms and Definitions
 
-Expensify uses several terms to describe your Workspace, subscription, and billing settings. Understanding these definitions makes it easier to interpret your billing receipt, compare subscription options, and understand your subscription.
+Expensify uses several terms to describe your workspace, subscription, and billing settings. Understanding these definitions makes it easier to interpret your billing receipt, compare subscription options, and understand your subscription.
 
-Most billing terminology is intended for Workspace owners, since only Workspace owners manage subscriptions.
+Most billing terminology is intended for workspace owners, since only workspace owners manage subscriptions.
 
 ---
 
 ## What subscription terms mean
 
-A **subscription** is the billing arrangement for a Workspace. It determines how Expensify charges for your Workspace and is managed by the Workspace owner under **Settings > Workspaces > Workspace name > Subscription**.
+A **subscription** is the billing arrangement for a workspace. It determines how Expensify charges for your workspace and is managed by the Workspace owner under **Settings > Workspaces > Workspace name > Subscription**.
 
 Every subscription includes both a **plan** and a **subscription type**.
 
-A **plan** determines which features are available for your Workspace. Expensify currently offers:
+A **plan** determines which features are available for your workspace. Expensify currently offers:
 
 - **Collect**
 - **Control**
@@ -43,25 +43,23 @@ To learn more, see [Learn How Billing and Subscriptions Work](/articles/new-expe
 
 A **member** is anyone who belongs to a workspace.
 
-A **unique member** is every member in the Workspace, regardless of whether they used Expensify during the billing period.
+A **unique member** is every member in the workspace, regardless of whether they used Expensify during the billing period.
 
 An **active member** is a member who performed billable activity during the billing period.
 
 **Billable activity** includes creating, editing, submitting, approving, or exporting expense data, or chatting with Concierge.
 
-An **inactive member** is a member who belongs to a Workspace but did not perform billable activity during the billing period.
+An **inactive member** is a member who belongs to a workspace but did not perform billable activity during the billing period.
 
-A **Workspace Admin** is a member who has permissions to manage the Workspace settings.
+A **Workspace Admin** is a member who has permissions to manage the workspace settings.
 
-The **Workspace owner** is the Workspace Admin who is responsible for managing the Workspace's subscription and payment card.
-
-<!-- LINK: Workspace member roles article when created -->
+The **Workspace owner** is the Workspace Admin who is responsible for managing the workspace's subscription and payment card.
 
 ---
 
-## What Annual subscription terms mean 
+## What Annual subscription terms mean
 
-Some Annual subscription settings affect how your Workspace is billed over time.
+Some Annual subscription settings affect how your workspace is billed over time.
 
 **Subscription size** (sometimes called **seats**) is the number of members included in your annual commitment. You can increase your subscription size at any time, but you can't reduce it until your annual term ends.
 
@@ -69,7 +67,7 @@ Some Annual subscription settings affect how your Workspace is billed over time.
 
 **Auto-increase annual seats** automatically increases your subscription size if your member count exceeds your committed subscription size.
 
-To learn more, see [Manage Annual Subscription Settings](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Manage-Annual-Subscription-Setting).
+To learn more, see [Manage Annual Subscription Settings](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Manage-Annual-Subscription-Settings).
 
 ---
 
