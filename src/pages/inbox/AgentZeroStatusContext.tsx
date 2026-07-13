@@ -59,8 +59,9 @@ const AgentZeroStatusStateContext = createContext<AgentZeroStatusState>(defaultS
 const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defaultActions);
 
 /**
- * Cheap outer guard — only subscribes to the scalar CONCIERGE_REPORT_ID and the report's chat
- * metadata. For non-AgentZero reports (the common case), returns children directly.
+ * Cheap outer guard — subscribes to scalar report metadata plus this report's processing-indicator
+ * NVP. For non-AgentZero reports with no server-driven indicator (the common case), returns
+ * children directly.
  *
  * AgentZero chats include Concierge DMs, policy #admins rooms, and custom-agent chats (any
  * report with a participant whose personalDetails carries `isCustomAgent: true`, stamped
@@ -72,13 +73,15 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
     const [agentParticipantAccountID] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: getCustomAgentParticipantAccountID(participantAccountIDs)});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [serverAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingAgentIDsSelector});
 
     const isConciergeChat = reportID === conciergeReportID;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
     const isCustomAgentChat = agentParticipantAccountID !== undefined;
+    const hasServerDrivenStatus = (serverAgentIDs?.length ?? 0) > 0;
     const otherParticipantCount = currentUserAccountID === undefined ? 0 : (participantAccountIDs ?? []).filter((accountID) => accountID !== currentUserAccountID).length;
     const customAgentDMAccountID = isCustomAgentChat && isDMReport && otherParticipantCount === 1 ? agentParticipantAccountID : undefined;
-    const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat;
+    const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat || hasServerDrivenStatus;
 
     if (!reportID || !isAgentZeroChat) {
         return children;
