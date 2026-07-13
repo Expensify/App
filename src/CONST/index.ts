@@ -230,7 +230,10 @@ const CONST = {
     TASK_TITLE_DISABLED_RULES: ['image'],
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],
-    CUSTOM_FIELD_KEYS: {customField1: 'employeeUserID', customField2: 'employeePayrollID'},
+    CUSTOM_FIELD_KEYS: {
+        customField1: 'employeeUserID',
+        customField2: 'employeePayrollID',
+    },
     WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
     ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
     ANIMATED_HIGHLIGHT_ENTRY_DURATION: 300,
@@ -302,6 +305,16 @@ const CONST = {
     // from concurrent navigation state mutations, but short enough to finish well before most users
     // tap submit. If the user submits before this fires, the fallback (non-pre-insert) path is used.
     PRE_INSERT_FULLSCREEN_DELAY: 300,
+    /**
+     * Controls when a fullscreen destination is placed behind an open RHP on narrow layout.
+     */
+    NARROW_DESTINATION_STRATEGY: {
+        /** Put the destination behind the RHP before submit, so closing the RHP shows an already-rendered screen. */
+        PRE_INSERT: 'preInsert',
+
+        /** Wait until submit to put the destination behind the RHP, avoiding early navigation changes. */
+        REVEAL: 'reveal',
+    },
     LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
 
@@ -976,7 +989,6 @@ const CONST = {
         BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
-        DATE_BOUND_MILEAGE_RATE: 'dateBoundMileageRate',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         CERTINIA: 'financialForceNewDot',
@@ -984,6 +996,7 @@ const CONST = {
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1069,7 +1082,10 @@ const CONST = {
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
                 DEFAULT: {input: 'k', modifierFlags: keyModifierShiftControl},
-                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_OS_MACOS]: {
+                    input: 'k',
+                    modifierFlags: keyModifierShiftCommand,
+                },
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -1110,8 +1126,14 @@ const CONST = {
             modifiers: ['CTRL'],
             trigger: {
                 DEFAULT: {input: keyInputEnter, modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
+                [PLATFORM_OS_MACOS]: {
+                    input: keyInputEnter,
+                    modifierFlags: keyModifierCommand,
+                },
+                [PLATFORM_IOS]: {
+                    input: keyInputEnter,
+                    modifierFlags: keyModifierCommand,
+                },
             },
         },
         COPY: {
@@ -1198,7 +1220,10 @@ const CONST = {
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
                 DEFAULT: {input: 'g', modifierFlags: keyModifierShiftControl},
-                [PLATFORM_OS_MACOS]: {input: 'g', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_OS_MACOS]: {
+                    input: 'g',
+                    modifierFlags: keyModifierShiftCommand,
+                },
                 [PLATFORM_IOS]: {input: 'g', modifierFlags: keyModifierShiftCommand},
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -1209,7 +1234,10 @@ const CONST = {
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
                 DEFAULT: {input: 'p', modifierFlags: keyModifierShiftControl},
-                [PLATFORM_OS_MACOS]: {input: 'p', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_OS_MACOS]: {
+                    input: 'p',
+                    modifierFlags: keyModifierShiftCommand,
+                },
                 [PLATFORM_IOS]: {input: 'p', modifierFlags: keyModifierShiftCommand},
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -3720,6 +3748,11 @@ const CONST = {
             CATEGORIZE: 'categorize',
             SHARE: 'share',
         },
+        // Destination chosen from the track-expense "Submit" whisper on the Submit (submit2026) plan.
+        SUBMIT_DESTINATION: {
+            FRIEND: 'friend',
+            EMPLOYER: 'employer',
+        },
         DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
@@ -6014,6 +6047,17 @@ const CONST = {
         SMALL: 'small',
     },
 
+    BUTTON_VARIANT: {
+        SUCCESS: 'success',
+        DANGER: 'danger',
+    },
+
+    BUTTON_REMOVE_BORDER_RADIUS: {
+        LEFT: 'left',
+        RIGHT: 'right',
+        ALL: 'all',
+    },
+
     ICON_SIZE: {
         EXTRA_SMALL: 'extra-small',
         SMALL: 'small',
@@ -6633,44 +6677,184 @@ const CONST = {
          */
         get COLUMN_AVAILABILITY() {
             return {
-                RECEIPT: {column: this.TABLE_COLUMNS.RECEIPT, search: true, reportView: true},
-                DATE: {column: this.TABLE_COLUMNS.DATE, search: true, reportView: true},
-                STATUS: {column: this.TABLE_COLUMNS.STATUS, search: true, reportView: false},
-                SUBMITTED: {column: this.TABLE_COLUMNS.SUBMITTED, search: true, reportView: false},
-                APPROVED: {column: this.TABLE_COLUMNS.APPROVED, search: true, reportView: false},
-                POSTED: {column: this.TABLE_COLUMNS.POSTED, search: true, reportView: true},
-                EXPORTED: {column: this.TABLE_COLUMNS.EXPORTED, search: true, reportView: false},
-                MERCHANT: {column: this.TABLE_COLUMNS.MERCHANT, search: true, reportView: true},
-                DESCRIPTION: {column: this.TABLE_COLUMNS.DESCRIPTION, search: true, reportView: true},
-                FROM: {column: this.TABLE_COLUMNS.FROM, search: true, reportView: false},
+                RECEIPT: {
+                    column: this.TABLE_COLUMNS.RECEIPT,
+                    search: true,
+                    reportView: true,
+                },
+                DATE: {
+                    column: this.TABLE_COLUMNS.DATE,
+                    search: true,
+                    reportView: true,
+                },
+                STATUS: {
+                    column: this.TABLE_COLUMNS.STATUS,
+                    search: true,
+                    reportView: false,
+                },
+                SUBMITTED: {
+                    column: this.TABLE_COLUMNS.SUBMITTED,
+                    search: true,
+                    reportView: false,
+                },
+                APPROVED: {
+                    column: this.TABLE_COLUMNS.APPROVED,
+                    search: true,
+                    reportView: false,
+                },
+                POSTED: {
+                    column: this.TABLE_COLUMNS.POSTED,
+                    search: true,
+                    reportView: true,
+                },
+                EXPORTED: {
+                    column: this.TABLE_COLUMNS.EXPORTED,
+                    search: true,
+                    reportView: false,
+                },
+                MERCHANT: {
+                    column: this.TABLE_COLUMNS.MERCHANT,
+                    search: true,
+                    reportView: true,
+                },
+                DESCRIPTION: {
+                    column: this.TABLE_COLUMNS.DESCRIPTION,
+                    search: true,
+                    reportView: true,
+                },
+                FROM: {
+                    column: this.TABLE_COLUMNS.FROM,
+                    search: true,
+                    reportView: false,
+                },
                 TO: {column: this.TABLE_COLUMNS.TO, search: true, reportView: false},
-                POLICY_NAME: {column: this.TABLE_COLUMNS.POLICY_NAME, search: true, reportView: false},
-                CARD: {column: this.TABLE_COLUMNS.CARD, search: true, reportView: true},
-                CATEGORY: {column: this.TABLE_COLUMNS.CATEGORY, search: true, reportView: true},
-                CATEGORY_GL_CODE: {column: this.TABLE_COLUMNS.CATEGORY_GL_CODE, search: true, reportView: true},
-                ATTENDEES: {column: this.TABLE_COLUMNS.ATTENDEES, search: true, reportView: true},
-                TOTAL_PER_ATTENDEE: {column: this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, search: true, reportView: true},
+                POLICY_NAME: {
+                    column: this.TABLE_COLUMNS.POLICY_NAME,
+                    search: true,
+                    reportView: false,
+                },
+                CARD: {
+                    column: this.TABLE_COLUMNS.CARD,
+                    search: true,
+                    reportView: true,
+                },
+                CATEGORY: {
+                    column: this.TABLE_COLUMNS.CATEGORY,
+                    search: true,
+                    reportView: true,
+                },
+                CATEGORY_GL_CODE: {
+                    column: this.TABLE_COLUMNS.CATEGORY_GL_CODE,
+                    search: true,
+                    reportView: true,
+                },
+                ATTENDEES: {
+                    column: this.TABLE_COLUMNS.ATTENDEES,
+                    search: true,
+                    reportView: true,
+                },
+                TOTAL_PER_ATTENDEE: {
+                    column: this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
+                    search: true,
+                    reportView: true,
+                },
                 TAG: {column: this.TABLE_COLUMNS.TAG, search: true, reportView: true},
-                TAG_GL_CODE: {column: this.TABLE_COLUMNS.TAG_GL_CODE, search: true, reportView: true},
-                EXCHANGE_RATE: {column: this.TABLE_COLUMNS.EXCHANGE_RATE, search: true, reportView: true},
-                ORIGINAL_AMOUNT: {column: this.TABLE_COLUMNS.ORIGINAL_AMOUNT, search: true, reportView: true},
-                REPORT_ID: {column: this.TABLE_COLUMNS.REPORT_ID, search: true, reportView: false},
-                BASE_62_REPORT_ID: {column: this.TABLE_COLUMNS.BASE_62_REPORT_ID, search: true, reportView: false},
-                REIMBURSABLE: {column: this.TABLE_COLUMNS.REIMBURSABLE, search: true, reportView: true},
-                BILLABLE: {column: this.TABLE_COLUMNS.BILLABLE, search: true, reportView: true},
+                TAG_GL_CODE: {
+                    column: this.TABLE_COLUMNS.TAG_GL_CODE,
+                    search: true,
+                    reportView: true,
+                },
+                EXCHANGE_RATE: {
+                    column: this.TABLE_COLUMNS.EXCHANGE_RATE,
+                    search: true,
+                    reportView: true,
+                },
+                ORIGINAL_AMOUNT: {
+                    column: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+                    search: true,
+                    reportView: true,
+                },
+                REPORT_ID: {
+                    column: this.TABLE_COLUMNS.REPORT_ID,
+                    search: true,
+                    reportView: false,
+                },
+                BASE_62_REPORT_ID: {
+                    column: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
+                    search: true,
+                    reportView: false,
+                },
+                REIMBURSABLE: {
+                    column: this.TABLE_COLUMNS.REIMBURSABLE,
+                    search: true,
+                    reportView: true,
+                },
+                BILLABLE: {
+                    column: this.TABLE_COLUMNS.BILLABLE,
+                    search: true,
+                    reportView: true,
+                },
                 MCC: {column: this.TABLE_COLUMNS.MCC, search: true, reportView: true},
-                TAX_CODE: {column: this.TABLE_COLUMNS.TAX_CODE, search: true, reportView: true},
-                TAX_RATE: {column: this.TABLE_COLUMNS.TAX_RATE, search: true, reportView: true},
-                TAX_AMOUNT: {column: this.TABLE_COLUMNS.TAX_AMOUNT, search: true, reportView: true},
-                TITLE: {column: this.TABLE_COLUMNS.TITLE, search: true, reportView: false},
-                AMOUNT: {column: this.TABLE_COLUMNS.TOTAL_AMOUNT, search: true, reportView: true},
-                TOTAL: {column: this.TABLE_COLUMNS.TOTAL, search: false, reportView: true},
-                EXPORTED_TO: {column: this.TABLE_COLUMNS.EXPORTED_TO, search: true, reportView: false},
-                ACTION: {column: this.TABLE_COLUMNS.ACTION, search: true, reportView: false},
-                WITHDRAWAL_ID: {column: this.TABLE_COLUMNS.WITHDRAWAL_ID, search: true, reportView: true},
-                SUBMITTER_USER_ID: {column: this.TABLE_COLUMNS.SUBMITTER_USER_ID, search: true, reportView: true},
-                SUBMITTER_PAYROLL_ID: {column: this.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID, search: true, reportView: true},
-                ORDER_DEAL_NUMBERS: {column: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS, search: true, reportView: true},
+                TAX_CODE: {
+                    column: this.TABLE_COLUMNS.TAX_CODE,
+                    search: true,
+                    reportView: true,
+                },
+                TAX_RATE: {
+                    column: this.TABLE_COLUMNS.TAX_RATE,
+                    search: true,
+                    reportView: true,
+                },
+                TAX_AMOUNT: {
+                    column: this.TABLE_COLUMNS.TAX_AMOUNT,
+                    search: true,
+                    reportView: true,
+                },
+                TITLE: {
+                    column: this.TABLE_COLUMNS.TITLE,
+                    search: true,
+                    reportView: false,
+                },
+                AMOUNT: {
+                    column: this.TABLE_COLUMNS.TOTAL_AMOUNT,
+                    search: true,
+                    reportView: true,
+                },
+                TOTAL: {
+                    column: this.TABLE_COLUMNS.TOTAL,
+                    search: false,
+                    reportView: true,
+                },
+                EXPORTED_TO: {
+                    column: this.TABLE_COLUMNS.EXPORTED_TO,
+                    search: true,
+                    reportView: false,
+                },
+                ACTION: {
+                    column: this.TABLE_COLUMNS.ACTION,
+                    search: true,
+                    reportView: false,
+                },
+                WITHDRAWAL_ID: {
+                    column: this.TABLE_COLUMNS.WITHDRAWAL_ID,
+                    search: true,
+                    reportView: true,
+                },
+                SUBMITTER_USER_ID: {
+                    column: this.TABLE_COLUMNS.SUBMITTER_USER_ID,
+                    search: true,
+                    reportView: true,
+                },
+                SUBMITTER_PAYROLL_ID: {
+                    column: this.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+                    search: true,
+                    reportView: true,
+                },
+                ORDER_DEAL_NUMBERS: {
+                    column: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+                    search: true,
+                    reportView: true,
+                },
             };
         },
         get TYPE_CUSTOM_COLUMNS() {
@@ -6841,7 +7025,6 @@ const CONST = {
         },
         STATUS: {
             EXPENSE: {
-                ALL: '',
                 UNREPORTED: 'unreported',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
@@ -6851,7 +7034,6 @@ const CONST = {
                 DELETED: 'deleted',
             },
             EXPENSE_REPORT: {
-                ALL: '',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
@@ -6859,18 +7041,15 @@ const CONST = {
                 PAID: 'paid',
             },
             INVOICE: {
-                ALL: '',
                 OUTSTANDING: 'outstanding',
                 PAID: 'paid',
             },
             TRIP: {
-                ALL: '',
                 CURRENT: 'current',
                 PAST: 'past',
             },
             CHAT: {},
             TASK: {
-                ALL: '',
                 OUTSTANDING: 'outstanding',
                 COMPLETED: 'completed',
             },
@@ -6960,7 +7139,6 @@ const CONST = {
         },
         SYNTAX_ROOT_KEYS: {
             TYPE: 'type',
-            STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             VIEW: 'view',

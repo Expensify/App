@@ -82,7 +82,10 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                 disabled={isDeleting}
                 accessibilityLabel={accessibilityLabel}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                offlineWithFeedback={{pendingAction: item.pendingAction, shouldHideOnDelete: false}}
+                offlineWithFeedback={{
+                    pendingAction: item.pendingAction,
+                    shouldHideOnDelete: false,
+                }}
                 onPress={item.action}
                 checkboxReplacementElement={lockIcon}
             >
@@ -104,11 +107,18 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                                         isCondensed
                                     />
                                     <TextWithTooltip
-                                        text={item.ruleSummary}
+                                        shouldShowTooltip
+                                        text={item.cardSummary}
                                         numberOfLines={1}
                                         style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
                                     />
                                 </View>
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    text={item.ruleSummary}
+                                    numberOfLines={1}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mt1]}
+                                />
                             </View>
                         )}
 
@@ -126,6 +136,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                                 </View>
                                 <View style={[styles.flex1]}>
                                     <TextWithTooltip
+                                        shouldShowTooltip
                                         numberOfLines={1}
                                         text={item.cardSummary}
                                         style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -133,6 +144,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                                 </View>
                                 <View style={[styles.flex1]}>
                                     <TextWithTooltip
+                                        shouldShowTooltip
                                         numberOfLines={1}
                                         text={item.ruleSummary}
                                         style={[styles.lh16, styles.optionDisplayName, styles.pre]}

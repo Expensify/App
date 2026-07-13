@@ -5,7 +5,7 @@ import Text from '@components/Text';
 import styles from '@src/styles';
 import {defaultTheme} from '@src/styles/theme';
 
-import type {Meta} from '@storybook/react-webpack5';
+import type {Meta} from 'storybook-react-rsbuild';
 
 import React, {useState} from 'react';
 import {Image, View} from 'react-native';
