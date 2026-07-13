@@ -9,7 +9,7 @@ import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryAct
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, SearchResults} from '@src/types/onyx';
+import type {Connections, Report, SearchResults} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -17,6 +17,7 @@ import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentConte
 
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
+import createMock from '../../utils/createMock';
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -438,7 +439,7 @@ describe('useSearchBulkActions - report export options resolve from the search s
             ...createRandomPolicy(1),
             id: POLICY_ID,
             // Only the presence of the connection key matters for getConnectedIntegration.
-            connections: {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {}} as Policy['connections'],
+            connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {}}),
         };
         mockCurrentSearchResults = searchResults;
 
