@@ -52,6 +52,7 @@ import {
 } from './netsuite/utils';
 import getQuickbooksDesktopSetupEntryRoute from './qbd/utils';
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,

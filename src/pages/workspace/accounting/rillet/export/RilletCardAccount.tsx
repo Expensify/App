@@ -18,7 +18,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {CardFeed, CardFeedWithDomainID} from '@src/types/onyx';
+import type {CardFeed, CardFeedWithDomainID} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';

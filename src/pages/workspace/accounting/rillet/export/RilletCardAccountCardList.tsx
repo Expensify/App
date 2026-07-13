@@ -8,7 +8,7 @@ import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {areCardsCustomExportInErrorFields, getCardsCustomExportPendingAction, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
+import {areCardsCustomExportInErrorFields, getCardsCustomExportPendingAction} from '@libs/CardFeedUtils';
 import {getCardDescription, getCustomOrFormattedFeedName, splitCardFeedWithDomainID} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,9 +20,9 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Card, CardFeed, CardFeedWithDomainID} from '@src/types/onyx';
+import type {Card, CardFeed} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
