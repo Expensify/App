@@ -209,6 +209,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            delegateAccountID: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -359,6 +360,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            delegateAccountID: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -439,6 +441,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 existingTransactionDraft: undefined,
                                 betas: [],
                                 personalDetails: {},
+                                delegateAccountID: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -486,6 +489,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 existingTransactionDraft: undefined,
                                 betas: [],
                                 personalDetails: {},
+                                delegateAccountID: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -714,6 +718,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 existingTransactionDraft: undefined,
                                 betas: [],
                                 personalDetails: {},
+                                delegateAccountID: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -761,6 +766,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 existingTransactionDraft: undefined,
                                 betas: [],
                                 personalDetails: {},
+                                delegateAccountID: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -958,6 +964,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            delegateAccountID: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1165,6 +1172,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    delegateAccountID: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -1761,7 +1769,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            expect(canSubmitReport(report, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
+            expect(canSubmitReport(report, submitterEmail, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
 
             submitReport({
                 submitterLogin: undefined,
@@ -1823,7 +1831,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            expect(canSubmitReport(report, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
+            expect(canSubmitReport(report, submitterEmail, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
 
             submitReport({
                 submitterLogin: undefined,
