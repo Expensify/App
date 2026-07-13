@@ -536,6 +536,47 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('formatViolationSnapshotStartedAtDate', () => {
+        const originalTZ = process.env.TZ;
+
+        beforeEach(() => {
+            process.env.TZ = 'UTC';
+        });
+
+        afterEach(() => {
+            process.env.TZ = originalTZ;
+        });
+
+        it('should return empty string when violationSnapshotStartedAt is empty', () => {
+            expect(DateUtils.formatViolationSnapshotStartedAtDate('', UTC as SelectedTimezone)).toBe('');
+        });
+
+        it('should return empty string when timeZone is undefined', () => {
+            expect(DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', undefined)).toBe('');
+        });
+
+        it('should format a date-only value in the target timezone', () => {
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', UTC as SelectedTimezone);
+            expect(result).toBe('June 20th, 2026');
+        });
+
+        it('should format a UTC datetime value in the target timezone', () => {
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20 00:00:00', UTC as SelectedTimezone);
+            expect(result).toBe('June 20th, 2026');
+        });
+
+        it('should format a UTC datetime using the target timezone date', () => {
+            const americaNewYork = 'America/New_York' as SelectedTimezone;
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20 02:00:00', americaNewYork);
+            expect(result).toBe('June 19th, 2026');
+        });
+
+        it('should return empty string for invalid date', () => {
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('invalid-date', UTC as SelectedTimezone);
+            expect(result).toBe('');
+        });
+    });
+
     describe('normalizeDateToStartOfDay', () => {
         const originalTZ = process.env.TZ;
 
