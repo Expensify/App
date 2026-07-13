@@ -862,7 +862,8 @@ function setCompanyCardExportAccount(policyID: string, domainOrWorkspaceAccountI
                         errorFields: {
                             [accountKey]: null,
                         },
-                        [accountKey]: newAccount,
+                        // An empty string signifies clearing the custom account
+                        [accountKey]: newAccount || null,
                     },
                 },
             },
