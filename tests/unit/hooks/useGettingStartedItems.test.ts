@@ -668,7 +668,7 @@ describe('useGettingStartedItems', () => {
             expect(companyCardsItem).toBeUndefined();
         });
 
-        it('should carry the subtitle and navigate to the workspace Expensify Card route', async () => {
+        it('should carry the subText and navigate to the workspace Expensify Card route', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {areCompanyCardsEnabled: false, areExpensifyCardsEnabled: true, policyAccountID: WORKSPACE_ACCOUNT_ID},
@@ -679,7 +679,7 @@ describe('useGettingStartedItems', () => {
 
             const expensifyCardItem = result.current.items.find((item) => item.key === 'issueExpensifyCards');
             expect(expensifyCardItem?.route).toBe(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(POLICY_ID));
-            expect(expensifyCardItem?.subtitle).toBeTruthy();
+            expect(expensifyCardItem?.subText).toBeTruthy();
         });
 
         it('should be not completed when the workspace has no Expensify card provisioned', async () => {
