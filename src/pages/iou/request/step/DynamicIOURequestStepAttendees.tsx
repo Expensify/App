@@ -1,5 +1,6 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -19,6 +20,7 @@ import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttende
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Attendee} from '@src/types/onyx/IOU';
 
@@ -30,14 +32,15 @@ import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotF
 import StepScreenWrapper from './StepScreenWrapper';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepAttendeesProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES>;
+type DynamicIOURequestStepAttendeesProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ATTENDEES>;
 
-function IOURequestStepAttendees({
+function DynamicIOURequestStepAttendees({
     route: {
-        params: {transactionID, reportID, iouType, backTo, action},
+        params: {transactionID, reportID, iouType, action},
     },
-}: IOURequestStepAttendeesProps) {
+}: DynamicIOURequestStepAttendeesProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.path);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || CONST.DEFAULT_NUMBER_ID}`);
@@ -88,11 +91,11 @@ function IOURequestStepAttendees({
             }
         }
 
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     }, [
         attendees,
         previousAttendees,
-        backTo,
+        backPath,
         transactionID,
         isEditing,
         report,
@@ -110,7 +113,7 @@ function IOURequestStepAttendees({
     ]);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     return (
@@ -118,7 +121,7 @@ function IOURequestStepAttendees({
             headerTitle={translate('iou.attendees')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID="IOURequestStepAttendees"
+            testID="DynamicIOURequestStepAttendees"
         >
             <MoneyRequestAttendeeSelector
                 onFinish={saveAttendees}
@@ -131,4 +134,4 @@ function IOURequestStepAttendees({
     );
 }
 
-export default withWritableReportOrNotFound(IOURequestStepAttendees);
+export default withWritableReportOrNotFound(DynamicIOURequestStepAttendees);
