@@ -1,6 +1,6 @@
 import {navigate as mfaNavigate, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 
-import {createUnhandledExceptionMFAError, getMFAResultError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import {createUnhandledExceptionMFAError, getMFAFailureError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -122,7 +122,7 @@ const MFAMachine = setup({
                                 // outcome, where the screen is chosen from the error reason.
                                 onDone: [
                                     {guard: ({event}) => event.output.success, target: SUCCESS_TARGET},
-                                    {target: FAILURE_TARGET, actions: assign({error: ({event}) => getMFAResultError(event.output)})},
+                                    {target: FAILURE_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
                                 ],
                                 // Expected refusals travel as failed results through onDone, so a
                                 // rejection means the platform check itself threw unexpectedly.
