@@ -53,6 +53,7 @@ import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportActionsToRender';
 import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
+import ReportActionsListTailIndicator from '@pages/inbox/report/ReportActionsListTailIndicator';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
@@ -126,7 +127,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID);
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
-    const {draftReportAction} = useConciergeDraft();
+    const {draftReportAction, hasActiveDraft} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
 
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
@@ -687,6 +688,13 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         return null;
     }
 
+    const listFooterComponent = (
+        <ReportActionsListTailIndicator
+            reportID={report.reportID}
+            hasActiveDraft={hasActiveDraft}
+        />
+    );
+
     const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report,
@@ -734,7 +742,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         style={styles.overscrollBehaviorContain}
                         data={visibleReportActions}
                         renderItem={renderItem}
-                        extraData={draftReportActionID}
+                        extraData={[draftReportActionID, hasActiveDraft]}
                         onViewableItemsChanged={onViewableItemsChanged}
                         keyExtractor={keyExtractor}
                         onLayout={recordTimeToMeasureItemLayout}
@@ -765,6 +773,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                                 )}
                             </>
                         }
+                        ListFooterComponent={listFooterComponent}
                         keyboardShouldPersistTaps="handled"
                         onScroll={trackVerticalScrolling}
                         contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3]}
