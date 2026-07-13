@@ -7,6 +7,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -25,6 +26,7 @@ import {sendInvoice} from '@userActions/IOU/SendInvoice';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestCompanyInfoForm';
 
@@ -38,11 +40,11 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepCompanyInfoProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO> &
-    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO>;
+type DynamicIOURequestStepCompanyInfoProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO>;
 
-function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepCompanyInfoProps) {
-    const {backTo} = route.params;
+function DynamicIOURequestStepCompanyInfo({report, transaction}: DynamicIOURequestStepCompanyInfoProps) {
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.path);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -119,9 +121,9 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     return (
         <StepScreenWrapper
             headerTitle={translate('iou.companyInfo')}
-            onBackButtonPress={() => Navigation.goBack(backTo)}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
             shouldShowWrapper
-            testID="IOURequestStepCompanyInfo"
+            testID="DynamicIOURequestStepCompanyInfo"
         >
             <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('iou.companyInfoDescription')}</Text>
             <FormProvider
@@ -158,4 +160,4 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     );
 }
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepCompanyInfo));
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(DynamicIOURequestStepCompanyInfo));

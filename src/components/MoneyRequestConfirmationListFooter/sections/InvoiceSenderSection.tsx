@@ -27,15 +27,13 @@ function InvoiceSenderSection({selectedParticipants}: InvoiceSenderSectionProps)
 }
 
 function InvoiceSenderSectionContent({selectedParticipants}: InvoiceSenderSectionProps) {
-    const {iouType, reportID, transactionID, isReadOnly, didConfirm} = useConfirmationFields();
+    const {transactionID, isReadOnly, didConfirm} = useConfirmationFields();
     const transaction = useTransactionSelector(transactionID, invoiceSenderSliceSelector);
     return (
         <InvoiceSenderField
             selectedParticipants={selectedParticipants}
             isReadOnly={isReadOnly}
             didConfirm={didConfirm}
-            iouType={iouType}
-            reportID={reportID}
             transaction={transaction}
         />
     );

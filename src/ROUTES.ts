@@ -1020,6 +1020,14 @@ const DYNAMIC_ROUTES = {
         path: 'task-share-destination',
         entryScreens: [SCREENS.NEW_TASK.DYNAMIC_ROOT],
     },
+    MONEY_REQUEST_STEP_SEND_FROM: {
+        path: 'send-from',
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
+    },
+    MONEY_REQUEST_STEP_COMPANY_INFO: {
+        path: 'company-info',
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
+    },
     PRIVATE_NOTES_LIST: {
         path: 'notes',
         entryScreens: [
@@ -1749,16 +1757,6 @@ const ROUTES = {
             }
             return `${action as string}/${iouType as string}/start/${transactionID}/${reportID}` as const;
         },
-    },
-    MONEY_REQUEST_STEP_SEND_FROM: {
-        route: 'create/:iouType/from/:transactionID/:reportID',
-
-        getRoute: (iouType: IOUType, transactionID: string, reportID: string, backTo = '') => getUrlWithBackToParam(`create/${iouType as string}/from/${transactionID}/${reportID}`, backTo),
-    },
-    MONEY_REQUEST_STEP_COMPANY_INFO: {
-        route: 'create/:iouType/company-info/:transactionID/:reportID',
-        getRoute: (iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType as string}/company-info/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
         route: ':action/:iouType/confirmation/:transactionID/:reportID/:backToReport?',
@@ -4437,8 +4435,8 @@ function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAtt
     return `${url}${sourceParam}${typeParam}${reportIDParam}${reportActionIDParam}${attachmentIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam} ` as const;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractRouteName<TRoute> = TRoute extends {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getRoute: (...args: any[]) => infer TRouteName;
 }
     ? TRouteName
