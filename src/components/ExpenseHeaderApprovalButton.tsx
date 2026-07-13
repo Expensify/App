@@ -136,7 +136,6 @@ function ExpenseHeaderApprovalButton({
 
         return (
             <ButtonWithDropdownMenu
-                success
                 options={approvalOptions}
                 menuHeaderText={hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount')}
                 onPress={() => {}}
