@@ -92,12 +92,6 @@ Billing history only includes subscription charges made while you're the Workspa
 
 If you need to review previous subscription charges, ask the previous Workspace owner to follow the steps to [make billing receipts visible to other Workspace Admins](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Find-Your-Expensify-Billing-Receipt#how-can-i-make-billing-receipts-visible-to-other-workspace-admins). 
 
-## The transfer won't complete or keeps loading. What can I do?
+## How can I confirm the workspace ownership transfer worked?
 
-If the transfer doesn't complete or the screen loads indefinitely, try the following:
-
- - Confirm you're a Workspace Admin on **every** workspace included in the subscription. To take over an Annual subscription, you must be an admin on all of its workspaces.
- - Make sure you have a valid payment card on file before starting the transfer.
- - Hard refresh the page or try again in an incognito/private browser window to rule out a caching issue.
-
-If the transfer still won't complete, contact Concierge for help.
+Click the navigation tabs (on the left on web, on the bottom on mobile), then select **Workspaces**. In the **Owner** column, verify that your name appears as the owner of the workspace.
