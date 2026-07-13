@@ -11,7 +11,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,7 +38,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {AddAgentRuleFormID} from './AddAgentRuleWriteTab';
@@ -69,9 +68,15 @@ function AddAgentRulePage({
     const policy = usePolicy(policyID);
     const linkPressedRef = useRef(false);
     const {showConfirmModal, closeModal} = useConfirmModal();
-    const [lastSelectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.AGENT_RULE_TAB_TYPE}`);
-    const activeTab: AgentRuleTab = lastSelectedTab && isAgentRuleTab(lastSelectedTab) ? lastSelectedTab : CONST.TAB.AGENT_RULE.SUGGESTIONS;
+    const [activeTab, setActiveTab] = useState<AgentRuleTab>(CONST.TAB.AGENT_RULE.SUGGESTIONS);
+    const [activeTabPolicyID, setActiveTabPolicyID] = useState(policyID);
     const tabIcons = useMemoizedLazyExpensifyIcons(['Feed', 'Pencil']);
+
+    // Reset the active tab to Suggestions when the workspace changes.
+    if (activeTabPolicyID !== policyID) {
+        setActiveTabPolicyID(policyID);
+        setActiveTab(CONST.TAB.AGENT_RULE.SUGGESTIONS);
+    }
 
     useEffect(() => {
         Tab.setSelectedTab(CONST.TAB.AGENT_RULE_TAB_TYPE, CONST.TAB.AGENT_RULE.SUGGESTIONS);
@@ -95,8 +100,20 @@ function AddAgentRulePage({
     ];
 
     const selectSuggestion = (suggestion: SuggestedAgentRule) => {
+        if (!suggestion.prompt?.trim()) {
+            return;
+        }
         setDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {[INPUT_IDS.PROMPT]: suggestion.prompt});
+        setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
         Tab.setSelectedTab(CONST.TAB.AGENT_RULE_TAB_TYPE, CONST.TAB.AGENT_RULE.WRITE);
+    };
+
+    const selectTab = (key: string) => {
+        if (!isAgentRuleTab(key)) {
+            return;
+        }
+        setActiveTab(key);
+        Tab.setSelectedTab(CONST.TAB.AGENT_RULE_TAB_TYPE, key);
     };
 
     const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>): void => {
@@ -165,12 +182,7 @@ function AddAgentRulePage({
                         <TabSelectorBase
                             tabs={tabs}
                             activeTabKey={activeTab}
-                            onTabPress={(key) => {
-                                if (!isAgentRuleTab(key)) {
-                                    return;
-                                }
-                                Tab.setSelectedTab(CONST.TAB.AGENT_RULE_TAB_TYPE, key);
-                            }}
+                            onTabPress={selectTab}
                             equalWidth
                         />
                     </TabSelectorContextProvider>
