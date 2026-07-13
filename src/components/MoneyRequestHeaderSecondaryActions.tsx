@@ -149,6 +149,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const rawTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`];
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     // NVP subscriptions
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -310,6 +311,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             policy,
             transactionThreadReport: report,
             outstandingReportsByPolicyID,
+            reportNameValuePairs,
             isChatReportArchived: isChatIOUReportArchived,
             grandParentReport,
             isProduction,

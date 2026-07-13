@@ -47,7 +47,7 @@ describe('getPendingReceiptRequests', () => {
             buildRequest(WRITE_COMMANDS.REQUEST_MONEY, {source: 'file:///receipt-a.jpg', filename: 'a.jpg', type: 'image/jpeg'}),
             buildRequest(WRITE_COMMANDS.TRACK_EXPENSE, {localSource: 'file:///receipt-b.jpg', source: 'https://remote.example/b.jpg', filename: 'b.jpg', type: 'image/png'}),
             buildRequest(WRITE_COMMANDS.REPLACE_RECEIPT, {source: 'file:///receipt-c.jpg'}),
-            buildRequest(WRITE_COMMANDS.SPLIT_BILL, {source: 'https://remote.example/d.jpg'}),
+            buildRequest(WRITE_COMMANDS.TRACK_EXPENSE, {source: 'https://remote.example/d.jpg'}),
             buildRequest(WRITE_COMMANDS.REQUEST_MONEY),
             buildRequest('OpenReport', {source: 'file:///not-a-receipt.jpg'}),
         ]);
@@ -71,7 +71,7 @@ describe('getPendingReceiptRequests', () => {
     });
 
     it('returns nothing when no receipt requests are pending', () => {
-        mockedGetAll.mockReturnValue([buildRequest('OpenReport'), buildRequest(WRITE_COMMANDS.SPLIT_BILL, {source: 'https://remote.example/x.jpg'})]);
+        mockedGetAll.mockReturnValue([buildRequest('OpenReport'), buildRequest(WRITE_COMMANDS.TRACK_EXPENSE, {source: 'https://remote.example/x.jpg'})]);
 
         expect(getPendingReceiptRequests()).toEqual([]);
     });
