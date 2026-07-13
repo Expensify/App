@@ -140,10 +140,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
             ({route: optionRoute}) => {
                 // Extend common options if they are defined for the screen.
                 if (OPTIONS_PER_SCREEN[optionRoute.name as Screen]) {
-                    return {
-                        ...screenOptions({route: optionRoute}),
-                        ...OPTIONS_PER_SCREEN[optionRoute.name as Screen],
-                    };
+                    return {...screenOptions({route: optionRoute}), ...OPTIONS_PER_SCREEN[optionRoute.name as Screen]};
                 }
                 return screenOptions({route: optionRoute});
             },
