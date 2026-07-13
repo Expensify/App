@@ -59,7 +59,7 @@ import {
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
 
-import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
+import {ReactionListContext} from '@pages/inbox/ReactionListContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
@@ -203,10 +203,12 @@ function ReportActionItem({
 
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
-    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID)});
-
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, datetimeToCalendarTime} = useLocalize();
+    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, translate)}, [
+        action.actorAccountID,
+        translate,
+    ]);
     const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();

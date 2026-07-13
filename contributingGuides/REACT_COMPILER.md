@@ -4,7 +4,7 @@
 
 [React Compiler](https://react.dev/learn/react-compiler) is a tool designed to enhance the performance of React applications by automatically memoizing components that lack optimizations.
 
-React Compiler is enabled in both the webpack (web) and metro (mobile) build pipelines via `babel-plugin-react-compiler`.
+React Compiler is enabled in both the Rspack (web) and metro (mobile) build pipelines via `babel-plugin-react-compiler`.
 
 ## React Compiler CI check
 
