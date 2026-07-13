@@ -274,6 +274,7 @@ function updateMoneyRequestDate({
             updatedTaxValue: distanceRateTaxUpdates?.taxValue,
             distanceOriginalPolicy,
             currentTransactionViolations,
+            reportPolicyTags,
             personalPolicyOutputCurrency,
         });
         return;
@@ -1186,6 +1187,7 @@ function updateMoneyRequestDistanceRate({
     distanceOriginalPolicy,
     currentTransactionViolations: currentTransactionViolationsParam,
     personalPolicyOutputCurrency,
+    reportPolicyTags,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -1211,6 +1213,7 @@ function updateMoneyRequestDistanceRate({
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
     currentTransactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
     personalPolicyOutputCurrency: string | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
@@ -1259,8 +1262,7 @@ function updateMoneyRequestDistanceRate({
             transactionChanges,
             policy,
             policyTagList,
-            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+            reportPolicyTags,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
