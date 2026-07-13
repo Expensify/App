@@ -57,15 +57,19 @@ function MigratedUserWelcomeModal() {
         [illustrations.ChatBubbles, illustrations.ConciergeBot, illustrations.MagnifyingGlassReceipt],
     );
 
-    const handleDismiss = () => {
+    const persistDismissal = () => {
         Log.hmmm('[MigratedUserWelcomeModal] dismissing product training');
         dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
     };
 
-    useBeforeRemove(handleDismiss);
+    useBeforeRemove(persistDismissal);
 
-    const handleClose = () => Navigation.goBack();
+    const handleClose = () => {
+        const spendRoute = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})});
+        Navigation.goBack(undefined, {
+            afterTransition: () => Navigation.navigate(spendRoute),
+        });
+    };
 
     const illustrationProps = isReduceMotionEnabled
         ? {image: illustrations.PlanetWithMobileApp}
@@ -81,7 +85,7 @@ function MigratedUserWelcomeModal() {
         const employeeUrl = shouldUseNarrowLayout ? CONST.STORYLANE.EMPLOYEE_MIGRATED_MOBILE : CONST.STORYLANE.EMPLOYEE_MIGRATED;
         const helpUrl = isCurrentUserPolicyAdmin ? adminUrl : employeeUrl;
         openExternalLink(helpUrl);
-        dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
+        persistDismissal();
     };
 
     return (
