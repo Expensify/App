@@ -1609,6 +1609,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: 'zmieniono',
         removed: 'usunięto',
         transactionPending: 'Transakcja w toku.',
+        transactionPendingDescription: 'Transakcja w toku. Zaksięgowanie może potrwać kilka dni.',
         chooseARate: 'Wybierz stawkę zwrotu kosztów za milę lub kilometr dla przestrzeni roboczej',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} do ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Ważne od ${startDate}`,

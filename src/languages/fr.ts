@@ -1624,6 +1624,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: 'modifié',
         removed: 'supprimé',
         transactionPending: 'Transaction en attente.',
+        transactionPendingDescription: "Transaction en attente. L'enregistrement peut prendre quelques jours.",
         chooseARate: 'Sélectionnez un taux de remboursement par mile ou kilomètre pour l’espace de travail',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} au ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Valide à partir du ${startDate}`,

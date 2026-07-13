@@ -1560,6 +1560,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: '已更改',
         removed: '已移除',
         transactionPending: '交易处理中。',
+        transactionPendingDescription: '交易处理中。可能需要几天时间才能入账。',
         chooseARate: '选择工作区每英里或每公里的报销费率',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} 至 ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `有效期自 ${startDate}`,
