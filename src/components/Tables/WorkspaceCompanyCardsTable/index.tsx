@@ -447,7 +447,7 @@ function WorkspaceCompanyCardsTable({
                             subtitleStyle={styles.textSupporting}
                         />
                         <Button
-                            text={translate('workspace.companyCards.error.tryAgain')}
+                            text={translate('common.tryAgain')}
                             isDisabled={isOffline}
                             onPress={feedErrorReloadAction}
                         />
