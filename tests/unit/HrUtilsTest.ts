@@ -8,6 +8,7 @@ import {
     isAnyHRReadOnlyWorkflowMode,
     isMergeHRCompleteSetupNeeded,
     isMergeHRConnected,
+    isMergeHRManualSyncLimitReached,
     shouldShowHRConnectionError,
 } from '@libs/HRUtils';
 
@@ -103,6 +104,7 @@ function makeMergeHRConnection({
             ...makeLastSync(lastSync),
             syncStatus: lastSync?.syncStatus,
             syncType: lastSync?.syncType,
+            manualSyncTimestamps: lastSync?.manualSyncTimestamps,
         },
     };
 }
@@ -118,8 +120,6 @@ function makeSyncProgress(connectionName: string, stage: string, minutesAgo = 1)
 
 const stubGetLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'] = (datetime) => (datetime ? new Date(datetime) : new Date(0));
 const stubTranslate = ((key: string) => key) as unknown as LocaleContextProps['translate'];
-const allBetasEnabled: GetHRCardsParams['isBetaEnabled'] = () => true;
-const noBetasEnabled: GetHRCardsParams['isBetaEnabled'] = () => false;
 
 function getRow(card: HRCardDescriptor | undefined, field: string) {
     return card?.configRows?.find((row) => row.field === field);
@@ -130,7 +130,6 @@ function makeGetHRCardsParams(overrides: Partial<GetHRCardsParams> = {}): GetHRC
         policy: makePolicy(),
         connectionSyncProgress: undefined,
         getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
-        isBetaEnabled: allBetasEnabled,
         translate: stubTranslate,
         policyID: POLICY_ID,
         gustoIcon: STUB_ICON,
@@ -470,6 +469,44 @@ describe('HRUtils', () => {
             expect(shouldShowHRConnectionError(policy, true, true)).toBe(false);
         });
     });
+
+    describe('isMergeHRManualSyncLimitReached', () => {
+        const dbTimeHoursAgo = (hoursAgo: number) => new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19);
+
+        const makeMergePolicyWithSyncTimestamps = (manualSyncTimestamps?: string[]) =>
+            makePolicy({
+                connections: {[MERGE_HR]: makeMergeHRConnection({config: {integration: 'workday'}, lastSync: {manualSyncTimestamps}})},
+            });
+
+        it('returns false for undefined policy', () => {
+            expect(isMergeHRManualSyncLimitReached(undefined)).toBe(false);
+        });
+
+        it('returns false when there is no merge_hris connection', () => {
+            expect(isMergeHRManualSyncLimitReached(makePolicy())).toBe(false);
+        });
+
+        it('returns false when there are no manual sync timestamps', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps(undefined))).toBe(false);
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([]))).toBe(false);
+        });
+
+        it('returns false when only one sync happened within the last 24 hours', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(1)]))).toBe(false);
+        });
+
+        it('returns false when both syncs are older than 24 hours', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(25), dbTimeHoursAgo(48)]))).toBe(false);
+        });
+
+        it('returns false when only one of the two syncs falls within the window', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(2), dbTimeHoursAgo(30)]))).toBe(false);
+        });
+
+        it('returns true when two syncs happened within the last 24 hours', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(1), dbTimeHoursAgo(10)]))).toBe(true);
+        });
+    });
 });
 
 describe('getHRCardState', () => {
@@ -703,18 +740,17 @@ describe('getApprovalModeLabel', () => {
 });
 
 describe('getHRCards', () => {
-    it('returns Gusto and Zenefits cards', () => {
-        const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled: noBetasEnabled}));
-        expect(cards).toHaveLength(2);
+    it('returns Gusto and Zenefits cards first, followed by the Merge HR provider cards', () => {
+        const cards = getHRCards(makeGetHRCardsParams());
+        expect(cards).toHaveLength(2 + Object.keys(MERGE_HR_PROVIDERS).length);
         expect(cards?.at(0)?.key).toBe('gusto');
         expect(cards?.at(0)?.connectionName).toBe(GUSTO);
         expect(cards?.at(1)?.key).toBe('zenefits');
         expect(cards?.at(1)?.connectionName).toBe(ZENEFITS);
     });
 
-    it('returns all Merge HR provider cards when merge beta is enabled', () => {
-        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
-        const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
+    it('returns all Merge HR provider cards', () => {
+        const cards = getHRCards(makeGetHRCardsParams());
 
         const mergeKeys = Object.keys(MERGE_HR_PROVIDERS);
         for (const slug of mergeKeys) {
@@ -724,7 +760,7 @@ describe('getHRCards', () => {
 
     it('sets correct routes for a connected Gusto card', () => {
         const policy = makePolicy({connections: {[GUSTO]: makeGustoConnection()}});
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: noBetasEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
 
         expect(getRow(cards?.at(0), 'approvalMode')?.route).toBe(ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.getRoute(POLICY_ID));
         expect(getRow(cards?.at(0), 'finalApprover')?.route).toBe(ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER.getRoute(POLICY_ID));
@@ -732,7 +768,7 @@ describe('getHRCards', () => {
 
     it('sets correct routes for a connected Zenefits card', () => {
         const policy = makePolicy({connections: {[ZENEFITS]: makeZenefitsConnection()}});
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: noBetasEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
         const zenefits = cards.find((c) => c.key === 'zenefits');
 
         expect(getRow(zenefits, 'approvalMode')?.route).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE.getRoute(POLICY_ID));
@@ -743,8 +779,7 @@ describe('getHRCards', () => {
         const policy = makePolicy({
             connections: {[MERGE_HR]: makeMergeHRConnection({config: {integration: 'bamboohr'}})},
         });
-        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
         const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
 
         expect(getRow(bamboo, 'approvalMode')?.route).toBe(ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(POLICY_ID));
@@ -757,7 +792,7 @@ describe('getHRCards', () => {
                 [ZENEFITS]: makeZenefitsConnection({config: {approvalMode: CONST.ZENEFITS.APPROVAL_MODE.BASIC, finalApprover: 'admin@test.com'}, lastSync: {isSuccessful: true}}),
             },
         });
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: noBetasEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
         const zenefits = cards.find((c) => c.key === 'zenefits');
 
         expect(zenefits?.isConnected).toBe(true);
@@ -770,7 +805,7 @@ describe('getHRCards', () => {
                 [GUSTO]: makeGustoConnection({config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.BASIC, finalApprover: 'admin@test.com'}, lastSync: {isSuccessful: true}}),
             },
         });
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: noBetasEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
 
         expect(cards?.at(0)?.isConnected).toBe(true);
         expect(cards?.at(0)?.config).toBeDefined();
@@ -783,8 +818,7 @@ describe('getHRCards', () => {
                 [MERGE_HR]: makeMergeHRConnection({config: {integration: 'bamboohr', approvalMode: CONST.MERGE_HR.APPROVAL_MODE.MANAGER}}),
             },
         });
-        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
 
         const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
         const workday = cards.find((c) => c.key === 'merge_workday');
@@ -807,8 +841,7 @@ describe('getHRCards', () => {
                 [MERGE_HR]: makeMergeHRConnection({config: {integration: 'bamboohr'}, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.FAILED, errorMessage: 'Auth failed'}}),
             },
         });
-        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
 
         const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
         expect(bamboo?.hasError).toBe(true);
@@ -821,8 +854,7 @@ describe('getHRCards', () => {
                 [MERGE_HR]: makeMergeHRConnection({config: {integration: 'bamboohr'}, lastSync: {isSuccessful: false, errorDate: new Date().toISOString(), errorMessage: 'Auth failed'}}),
             },
         });
-        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
 
         const workday = cards.find((c) => c.key === 'merge_workday');
         expect(workday?.isConnected).toBe(false);
@@ -839,8 +871,7 @@ describe('getHRCards', () => {
                 }),
             },
         });
-        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
-        const cards = getHRCards(makeGetHRCardsParams({policy, connectionSyncProgress: undefined, isBetaEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({policy, connectionSyncProgress: undefined}));
 
         const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
         expect(bamboo?.isSyncInProgress).toBe(true);
@@ -851,15 +882,14 @@ describe('getHRCards', () => {
     it('uses provider icons from params for static providers', () => {
         const gustoIcon = {testId: 'gusto'} as unknown as IconAsset;
         const trinetIcon = {testId: 'zenefits'} as unknown as IconAsset;
-        const cards = getHRCards(makeGetHRCardsParams({gustoIcon, trinetIcon, isBetaEnabled: noBetasEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({gustoIcon, trinetIcon}));
 
         expect(cards?.at(0)?.icon).toBe(gustoIcon);
         expect(cards?.at(1)?.icon).toBe(trinetIcon);
     });
 
     it('uses provider iconUrl for Merge cards', () => {
-        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
-        const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams());
         const mergeCards = cards.filter((c) => c.key.startsWith('merge_'));
 
         expect(mergeCards.length).toBeGreaterThan(0);
@@ -884,7 +914,7 @@ describe('getHRCards', () => {
                 }),
             },
         });
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: (beta) => beta === CONST.BETAS.MERGE_HR}));
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
         const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
 
         expect(getRow(bamboo, 'groups')?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -902,7 +932,7 @@ describe('getHRCards', () => {
                 }),
             },
         });
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: (beta) => beta === CONST.BETAS.MERGE_HR}));
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
 
         const bambooCard = cards.find((c) => c.key === 'merge_bamboohr');
         expect(bambooCard?.isConnected).toBe(true);
@@ -919,7 +949,7 @@ describe('getHRCards', () => {
                 }),
             },
         });
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: (beta) => beta === CONST.BETAS.MERGE_HR}));
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
 
         const bambooCard = cards.find((c) => c.key === 'merge_bamboohr');
         expect(bambooCard?.completeSetupRoute).toBe(ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(POLICY_ID));
@@ -933,7 +963,7 @@ describe('getHRCards', () => {
                 [MERGE_HR]: makeMergeHRConnection({config: {integration: 'bamboohr', groups: ['g1', 'missing']}, data: {groups: [{id: 'g1', name: 'Test group', type: 'Department'}]}}),
             },
         });
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: (beta) => beta === CONST.BETAS.MERGE_HR}));
+        const cards = getHRCards(makeGetHRCardsParams({policy}));
 
         const bambooCard = cards.find((c) => c.key === 'merge_bamboohr');
         expect(getRow(bambooCard, 'groups')?.title).toBe('Test group');

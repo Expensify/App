@@ -9,7 +9,7 @@ import {createAvatarCatalog} from './AvatarCatalog';
 
 type AgentAvatarID = 'bot-avatar--blue' | 'bot-avatar--green' | 'bot-avatar--ice' | 'bot-avatar--pink' | 'bot-avatar--tangerine' | 'bot-avatar--yellow';
 
-const CDN_BOT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars/bots`;
+const CDN_BOT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars`;
 
 const AGENT_AVATAR_ENTRIES: Record<AgentAvatarID, AvatarEntry> = {
     'bot-avatar--blue': {local: BotAvatarBlue, url: `${CDN_BOT_AVATARS}/bot-avatar--blue.png`},
