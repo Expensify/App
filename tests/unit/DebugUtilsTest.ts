@@ -1321,13 +1321,13 @@ describe('DebugUtils', () => {
                     const MOCK_CHAT_REPORT: Report = {
                         reportID: '1',
                         type: CONST.REPORT.TYPE.CHAT,
-                        ownerAccountID: 12345,
+                        ownerAccountID: RORY_ACCOUNT_ID,
                     };
                     const MOCK_IOU_REPORT: Report = {
                         reportID: '2',
                         type: CONST.REPORT.TYPE.IOU,
                         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                        ownerAccountID: 12345,
+                        ownerAccountID: RORY_ACCOUNT_ID,
                     };
                     const MOCK_CHAT_REPORT_ACTIONS: ReportActions = {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -1354,7 +1354,7 @@ describe('DebugUtils', () => {
                             message: {
                                 IOUTransactionID: '1',
                             },
-                            actorAccountID: 12345,
+                            actorAccountID: RORY_ACCOUNT_ID,
                         }),
                     };
                     await Onyx.multiSet({
@@ -1368,7 +1368,7 @@ describe('DebugUtils', () => {
                         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_CHAT_REPORT_ACTIONS,
                         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2` as const]: MOCK_IOU_REPORT_ACTIONS,
                         [ONYXKEYS.SESSION]: {
-                            accountID: 12345,
+                            accountID: RORY_ACCOUNT_ID,
                         },
                     });
                     const mockTransactions: OnyxCollection<Transaction> = {
