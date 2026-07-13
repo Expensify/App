@@ -149,7 +149,10 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     {!shouldDisplayButtonsInSeparateLine && headerContent}
                 </HeaderWithBackButton>
                 {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
-                <DomainAdminsTable admins={admins} />
+                <DomainAdminsTable
+                    domainAccountID={domainAccountID}
+                    admins={admins}
+                />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
     );
