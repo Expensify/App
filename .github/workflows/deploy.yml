@@ -342,22 +342,6 @@ jobs:
           name: android-apk-artifact
           path: ./
 
-      - name: Setup 1Password CLI
-        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
-        with:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
-
-      - name: Load BrowserStack Automate credentials from 1Password
-        id: load-browserstack-automate
-        # v4.0.0
-        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
-        with:
-          export-env: false
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          BROWSERSTACK_AUTOMATE: op://${{ vars.OP_VAULT }}/BROWSERSTACK_AUTOMATE/notesPlain
-
       - name: Find APK path
         id: find-apk
         run: |
@@ -373,6 +357,22 @@ jobs:
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ steps.find-apk.outputs.APK_PATH }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Setup 1Password CLI
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
+
+      - name: Load BrowserStack Automate credentials from 1Password
+        id: load-browserstack-automate
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          BROWSERSTACK_AUTOMATE: op://${{ vars.OP_VAULT }}/BROWSERSTACK_AUTOMATE/notesPlain
 
       - name: Upload Android build to BrowserStack Automate
         if: ${{ fromJSON(env.IS_APP_REPO) }}
@@ -592,22 +592,6 @@ jobs:
           name: iosBuild-artifact
           path: ./
 
-      - name: Setup 1Password CLI
-        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
-        with:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
-
-      - name: Load BrowserStack Automate credentials from 1Password
-        id: load-browserstack-automate
-        # v4.0.0
-        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
-        with:
-          export-env: false
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          BROWSERSTACK_AUTOMATE: op://${{ vars.OP_VAULT }}/BROWSERSTACK_AUTOMATE/notesPlain
-
       - name: Find IPA path
         id: find-ipa
         run: |
@@ -623,6 +607,22 @@ jobs:
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ steps.find-ipa.outputs.IPA_PATH }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Setup 1Password CLI
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
+
+      - name: Load BrowserStack Automate credentials from 1Password
+        id: load-browserstack-automate
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          BROWSERSTACK_AUTOMATE: op://${{ vars.OP_VAULT }}/BROWSERSTACK_AUTOMATE/notesPlain
 
       - name: Upload iOS build to BrowserStack Automate
         if: ${{ fromJSON(env.IS_APP_REPO) }}
