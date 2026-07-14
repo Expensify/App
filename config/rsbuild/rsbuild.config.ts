@@ -34,7 +34,7 @@ switch (process.env.ENV) {
 
 export default defineConfig(async ({command}) => {
     const isDevServer = command === 'dev';
-    const common: RsbuildConfig = getCommonConfiguration({file: envFile, platform: 'web', isDevServer});
+    const common: RsbuildConfig = await getCommonConfiguration({file: envFile, platform: 'web', isDevServer});
 
     if (!isDevServer) {
         return {
