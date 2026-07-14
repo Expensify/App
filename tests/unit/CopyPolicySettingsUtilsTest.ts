@@ -1,10 +1,13 @@
+import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
 import {
     areAllTargetsAccountingCompatible,
     areAllTargetsCompatibleForAccountingPart,
     arePoliciesAccountingCompatible,
     FEATURE_ROWS,
     getAccountingConnectionIdentity,
+    getCollectTargetsToUpgrade,
     getConnectionCompanyID,
+    getControlOnlySelectedParts,
     getReceiptPartnersCopySettingsDescription,
     getTimeTrackingCopySettingsDescription,
     hasCurrencyConflictWithAnyTarget,
@@ -12,6 +15,7 @@ import {
     isCurrencyBlockedByTargetBA,
     isTargetCompatibleForAccountingPart,
     needsCurrencyForWorkflows,
+    shouldShowCopyPolicySettingsUpgradeStep,
 } from '@libs/CopyPolicySettingsUtils';
 import type {CopyPolicySettingsSourceFeatureContext} from '@libs/CopyPolicySettingsUtils';
 
@@ -422,6 +426,59 @@ describe('CopyPolicySettingsUtils', () => {
             expect(parts).toContain('travel');
             expect(parts).toContain('timeTracking');
             expect(parts).toContain('receiptPartners');
+        });
+    });
+
+    describe('copy-settings upgrade eligibility', () => {
+        const collectTarget = (id: number) => createRandomPolicy(id, CONST.POLICY.TYPE.TEAM);
+        const controlTarget = (id: number) => createRandomPolicy(id, CONST.POLICY.TYPE.CORPORATE);
+
+        describe('getControlOnlySelectedParts', () => {
+            it('returns the selected parts a Collect target cannot access', () => {
+                const result = getControlOnlySelectedParts([collectTarget(1)], ['rules', 'perDiem', 'categories'] as Part[]);
+                expect(result).toEqual(expect.arrayContaining(['rules', 'perDiem']));
+                expect(result).not.toContain('categories');
+            });
+
+            it('returns nothing when no selected part is Control-only', () => {
+                expect(getControlOnlySelectedParts([collectTarget(1)], ['categories', 'tags'] as Part[])).toEqual([]);
+            });
+
+            it('returns nothing when there are no Collect targets', () => {
+                expect(getControlOnlySelectedParts([controlTarget(1)], ['rules'] as Part[])).toEqual([]);
+            });
+        });
+
+        describe('getCollectTargetsToUpgrade', () => {
+            it('returns every Collect target when a Control-only part is selected', () => {
+                const collectA = collectTarget(1);
+                const collectB = collectTarget(2);
+                const result = getCollectTargetsToUpgrade([collectA, collectB, controlTarget(3)], ['rules'] as Part[]);
+                expect(result).toHaveLength(2);
+                expect(result.map((policy) => policy.id)).toEqual(expect.arrayContaining([collectA.id, collectB.id]));
+            });
+
+            it('returns nothing when no Control-only part is selected', () => {
+                expect(getCollectTargetsToUpgrade([collectTarget(1)], ['categories'] as Part[])).toEqual([]);
+            });
+
+            it('ignores unresolved targets', () => {
+                expect(getCollectTargetsToUpgrade([undefined, controlTarget(1)], ['rules'] as Part[])).toEqual([]);
+            });
+        });
+
+        describe('shouldShowCopyPolicySettingsUpgradeStep', () => {
+            it('is true when a Control-only part targets a Collect workspace', () => {
+                expect(shouldShowCopyPolicySettingsUpgradeStep([collectTarget(1)], ['rules'] as Part[])).toBe(true);
+            });
+
+            it('is false when every target is already Control', () => {
+                expect(shouldShowCopyPolicySettingsUpgradeStep([controlTarget(1)], ['rules'] as Part[])).toBe(false);
+            });
+
+            it('is false when no Control-only part is selected', () => {
+                expect(shouldShowCopyPolicySettingsUpgradeStep([collectTarget(1)], ['categories'] as Part[])).toBe(false);
+            });
         });
     });
 });

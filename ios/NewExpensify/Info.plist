@@ -23,7 +23,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>9.4.27</string>
+	<string>9.4.34</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -44,7 +44,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>9.4.27.2</string>
+	<string>9.4.34.5</string>
 	<key>FullStory</key>
 	<dict>
 		<key>OrgId</key>
@@ -81,6 +81,8 @@
 	<string>Your location is used to determine your default currency and timezone.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Required for video capture</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Motion data is used to detect your device's orientation when capturing photos and receipts.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Your camera roll is used to store chat attachments.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
