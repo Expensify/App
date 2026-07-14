@@ -2207,18 +2207,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Sair',
         restoreStashed: 'Restaurar login armazenado',
         signOutConfirmationText: 'Você perderá quaisquer alterações offline se sair.',
-        saveReceiptsConfirmation: {
-            title: 'Salvar seus recibos?',
-            prompt: ({count}: {count: number}) =>
-                `${count === 1 ? 'Ainda há 1 recibo' : `Ainda há ${count} recibos`} sendo enviado. Se você sair agora, ${count === 1 ? 'nós o salvaremos' : 'nós os salvaremos'} nas suas fotos para que você possa ${count === 1 ? 'adicioná-lo' : 'adicioná-los'} a uma nova despesa mais tarde.`,
-            confirm: 'Salvar e sair',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Salvar seus recibos?',
-            prompt: ({count}: {count: number}) =>
-                `${count === 1 ? 'Ainda há 1 recibo' : `Ainda há ${count} recibos`} sendo enviado. Se você sair agora, ${count === 1 ? 'nós o salvaremos' : 'nós os salvaremos'} nas suas fotos para que você possa ${count === 1 ? 'adicioná-lo' : 'adicioná-los'} a uma nova despesa mais tarde. Você perderá quaisquer outras alterações offline.`,
-            confirm: 'Salvar e sair',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leia os <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço</a> e a <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Política de Privacidade</a>.`,
         help: 'Ajuda',
@@ -10005,6 +9993,18 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             chat: 'Converse em qualquer despesa para resolver dúvidas rapidamente',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Quer um plano de funcionário GRÁTIS?',
+        description: 'Não espere sua empresa adotar o Expensify. Criamos um plano gratuito só para você:',
+        confirmText: 'Obter o plano gratuito',
+        dismissText: 'Não, obrigado',
+        features: {
+            getReimbursed: 'Seja reembolsado mais rápido, direto no Expensify',
+            buildReports: 'Crie relatórios de despesas em segundos',
+            categorize: 'Categorize suas despesas',
+            inviteBoss: 'Convide seu chefe quando estiver pronto',
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renomeie suas buscas salvas</strong> aqui!</tooltip>',
@@ -10293,6 +10293,17 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         description: 'Avise-nos para que possamos ajudar a tornar sua experiência com despesas ainda melhor.',
         positiveButton: 'Sim!',
         negativeButton: 'Na verdade, não',
+    },
+    trialPaymentReminder: {
+        title: 'Antecipe-se ao prazo',
+        subtitle: 'Não espere até o último minuto, adicione seu método de pagamento hoje para garantir o acesso contínuo às suas despesas no Expensify.',
+        trialEndsInDays: () => ({
+            one: 'O período de teste termina em 1 dia',
+            other: (pluralCount: number) => `O período de teste termina em ${pluralCount} dias`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `O período de teste termina em ${hours}h : ${minutes}m : ${seconds}s`,
+        closeButton: 'Fechar',
+        addPaymentCardButton: 'Adicionar cartão de pagamento',
     },
     monthPickerPage: {month: 'Mês', selectMonth: 'Selecione um mês por favor'},
     aiFeaturesPromoModal: {

@@ -125,6 +125,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Callback fired synchronously when the user presses submit, before validation runs */
     onBeforeSubmit?: () => void;
 
+    /** Whether the confirm button should show a spinner immediately on press */
+    shouldShowLoadingImmediatelyOnPress?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
 };
@@ -146,6 +149,7 @@ function FormProvider({
     shouldHideFixErrorsAlert = false,
     keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
     onBeforeSubmit,
+    shouldShowLoadingImmediatelyOnPress = true,
     ref,
     ...rest
 }: FormProviderProps) {
@@ -281,7 +285,9 @@ function FormProvider({
         [touchedInputs],
     );
 
-    const {isLoading, startWithLoading} = usePressLoading({isLoading: !!formState?.isLoading || isOnyxLoading});
+    const isExternalLoading = !!formState?.isLoading || isOnyxLoading;
+    const {isLoading: isPressLoading, startWithLoading} = usePressLoading({isLoading: isExternalLoading});
+    const isLoading = shouldShowLoadingImmediatelyOnPress ? isPressLoading : isExternalLoading;
 
     const submit = useDebounceNonReactive(
         useCallback(() => {
@@ -315,7 +321,7 @@ function FormProvider({
                 return;
             }
 
-            startWithLoading(() => {
+            const runSubmit = () => {
                 if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
                     KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
                 } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
@@ -323,8 +329,28 @@ function FormProvider({
                 } else {
                     onSubmit(trimmedStringValues);
                 }
-            });
-        }, [enabledWhenOffline, isLoading, inputValues, isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior, onBeforeSubmit, startWithLoading]),
+            };
+
+            if (!shouldShowLoadingImmediatelyOnPress) {
+                runSubmit();
+                return;
+            }
+
+            startWithLoading(runSubmit);
+        }, [
+            enabledWhenOffline,
+            isLoading,
+            inputValues,
+            isOffline,
+            onSubmit,
+            onValidate,
+            shouldTrimValues,
+            hasServerError,
+            keyboardSubmitBehavior,
+            onBeforeSubmit,
+            shouldShowLoadingImmediatelyOnPress,
+            startWithLoading,
+        ]),
         1000,
         {leading: true, trailing: false},
     );
