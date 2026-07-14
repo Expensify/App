@@ -31,3 +31,5 @@ function resolveIconSize(size: IconSize | undefined, extraSmall: boolean, small:
 }
 
 export default resolveIconSize;
+
+export type {IconSize};

@@ -292,7 +292,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                             contentSize={{width: variables.iconSizeExtraSmall, height: variables.iconSizeExtraSmall}}
                                             src={icons.DownArrow}
                                             additionalStyles={[styles.pRelative, styles.t0, isMenuVisible ? styles.flipUpsideDown : undefined]}
-                                            fill={success ? theme.buttonSuccessText : theme.buttonIcon}
+                                            fill={variant === CONST.BUTTON_VARIANT.SUCCESS ? theme.buttonSuccessText : theme.buttonIcon}
                                             testID="dropdown-arrow-icon"
                                         />
                                     ) : (
