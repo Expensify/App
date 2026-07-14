@@ -17,7 +17,7 @@ function TableChildrenRenderer({tnode}: {tnode: TNode}) {
         <>
             {children.map((child, index) => (
                 <TNodeRenderer
-                    key={`${child.tagName ?? 'node'}-${index}`}
+                    key={`${child.tagName ?? 'node'}-${child.nodeIndex}`}
                     tnode={child}
                     renderIndex={index}
                     renderLength={children.length}

@@ -1,8 +1,10 @@
+import ScrollView from '@components/ScrollView';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 
 import TableChildrenRenderer from './TableChildrenRenderer';
 
