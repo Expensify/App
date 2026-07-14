@@ -162,35 +162,40 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
         return Promise.resolve(response);
     }
     const previousLastUpdateIDAppliedToClient = lastUpdateIDAppliedToClient;
-    const didAdvanceLastUpdateID = !!lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient);
-    if (didAdvanceLastUpdateID) {
-        Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
-    }
+    const shouldAdvanceLastUpdateID = !!lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient);
 
-    // The watermark is advanced before the updates are applied, so if applying fails the updates are silently lost
-    // and the client goes stale. Surface that case in Sentry.
-    const logApplyFailureIfNeeded = <T>(promise: Promise<T>): Promise<T> =>
-        promise.catch((error) => {
-            if (didAdvanceLastUpdateID) {
-                Log.alert('[OnyxUpdateManagerError] lastUpdateID was advanced but applying the updates failed, the updates may be lost', {
-                    type,
-                    command: request?.command,
-                    lastUpdateID,
-                    previousLastUpdateIDAppliedToClient,
-                    error: error instanceof Error ? error.message : String(error),
-                });
-            }
-            throw error;
-        });
+    // Advance the watermark only after the updates are successfully applied. If we advanced first and applying
+    // then failed (e.g. a storage write error), the updates would be silently lost and the client would go stale.
+    // Keeping the watermark where it is lets the next reconnect refetch and reapply the missed updates.
+    const advanceLastUpdateIDAfterApply = <T>(promise: Promise<T>): Promise<T> =>
+        promise
+            .then((result) => {
+                if (shouldAdvanceLastUpdateID) {
+                    Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
+                }
+                return result;
+            })
+            .catch((error) => {
+                if (shouldAdvanceLastUpdateID) {
+                    Log.alert('[OnyxUpdateManagerError] Applying the updates failed, not advancing lastUpdateID so the client can recover on the next reconnect', {
+                        type,
+                        command: request?.command,
+                        lastUpdateID,
+                        previousLastUpdateIDAppliedToClient,
+                        error: error instanceof Error ? error.message : String(error),
+                    });
+                }
+                throw error;
+            });
 
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
-        return logApplyFailureIfNeeded(applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID)));
+        return advanceLastUpdateIDAfterApply(applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID)));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
-        return logApplyFailureIfNeeded(applyPusherOnyxUpdates(updates, Number(lastUpdateID)));
+        return advanceLastUpdateIDAfterApply(applyPusherOnyxUpdates(updates, Number(lastUpdateID)));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.AIRSHIP && updates) {
-        return logApplyFailureIfNeeded(applyAirshipOnyxUpdates(updates, Number(lastUpdateID)));
+        return advanceLastUpdateIDAfterApply(applyAirshipOnyxUpdates(updates, Number(lastUpdateID)));
     }
 }
 
