@@ -188,7 +188,7 @@ function SearchSaveForm({queryJSONToSave, formToDisplay, saveAsNewViewQuery}: Se
         }
     };
 
-    const appliedFilters = mapFiltersFormToLabelValueList(formToDisplay, undefined, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
+    const appliedFilters = mapFiltersFormToLabelValueList(formToDisplay, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
     const appliedDisplays = getAppliedDisplays(formToDisplay, queryJSONToSave, translate);
 
     const {inputCallbackRef} = useAutoFocusInput();

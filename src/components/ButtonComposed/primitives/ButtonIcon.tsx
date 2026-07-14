@@ -30,9 +30,9 @@ function ButtonIcon({src, style, hoverFill, fill}: ButtonIconProps) {
     const {isHovered, variant, size} = useButtonContext();
 
     let defaultFill = theme.buttonIcon;
-    if (variant === 'danger') {
+    if (variant === CONST.BUTTON_VARIANT.DANGER) {
         defaultFill = theme.buttonDangerText;
-    } else if (variant === 'success') {
+    } else if (variant === CONST.BUTTON_VARIANT.SUCCESS) {
         defaultFill = theme.textLight;
     }
     const propsFill = isHovered ? hoverFill : fill;
@@ -41,9 +41,7 @@ function ButtonIcon({src, style, hoverFill, fill}: ButtonIconProps) {
             <Icon
                 src={src}
                 fill={propsFill ?? defaultFill}
-                small={size === CONST.BUTTON_SIZE.SMALL}
-                medium={size === CONST.BUTTON_SIZE.MEDIUM}
-                large={size === CONST.BUTTON_SIZE.LARGE}
+                size={size}
                 isButtonIcon
             />
         </View>

@@ -9,9 +9,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearSavedViewEditMode} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getFilterNegatableValue} from '@libs/SearchUIUtils';
 
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React, {useContext, useEffect} from 'react';
@@ -47,7 +49,7 @@ function SearchAdvancedFiltersBase() {
             <FilterList
                 contentContainerStyle={[styles.pb5]}
                 type={currentDraftFilters.type}
-                policyID={currentDraftFilters.policyID}
+                policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, currentDraftFilters)}
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
             />
             {shouldShowEditFooter && (

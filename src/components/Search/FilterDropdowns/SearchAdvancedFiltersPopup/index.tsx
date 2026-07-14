@@ -13,7 +13,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {clearSavedViewEditMode, saveSavedViewEdits} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSaveEditedView} from '@libs/SearchUIUtils';
+import {canSaveEditedView, getFilterNegatableValue} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -92,7 +92,7 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay, 
                 <FilterList
                     style={[styles.typeFiltersPopupContainer]}
                     type={searchAdvancedFiltersForm?.type}
-                    policyID={searchAdvancedFiltersForm?.policyID}
+                    policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, searchAdvancedFiltersForm)}
                     selectedFilter={selectedFilter}
                     onHoverIn={setSelectedFilter}
                     onFocus={setSelectedFilter}
@@ -104,7 +104,6 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay, 
                     <SearchAdvancedFiltersContent
                         values={searchAdvancedFiltersForm}
                         filterKey={selectedFilter}
-                        policyIDQuery={queryJSON.policyID}
                         components={{
                             Common: CommonFilterContentPopupWrapper,
                             Text: TextInputFilterContentPopupWrapper,
