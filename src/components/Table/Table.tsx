@@ -160,6 +160,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
     onRowSelectionChange,
+    onSearchStringChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
@@ -264,6 +265,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         selectionEnabled,
         shouldEnableSelectionInNarrowPaneModal,
         isMobileSelectionEnabled,
+        onSearchStringChange,
     };
 
     return (

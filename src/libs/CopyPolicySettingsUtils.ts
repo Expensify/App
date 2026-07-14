@@ -92,11 +92,11 @@ function getConnectionCompanyID(policy: Policy | undefined, connectionName: Conn
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO: {
             const realmId = connections[CONST.POLICY.CONNECTIONS.NAME.QBO]?.config?.realmId;
-            return realmId || undefined;
+            return realmId ?? undefined;
         }
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE: {
             const netsuiteAccountID = connections[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.accountID;
-            return netsuiteAccountID || undefined;
+            return netsuiteAccountID ?? undefined;
         }
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return readCredentialsCompanyID(connections[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.config);
