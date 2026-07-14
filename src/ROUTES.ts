@@ -4130,11 +4130,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/rillet/export/card-account/:feed',
         getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/rillet/export/card-account/${encodeURIComponent(feed)}` as const,
     },
-    POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT_SELECTOR: {
-        route: 'workspaces/:policyID/accounting/rillet/export/card-account/:feed/:cardID',
-        getRoute: (policyID: string, feed: CardFeedWithDomainID, cardID: string) =>
-            `workspaces/${policyID}/accounting/rillet/export/card-account/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
-    },
     POLICY_ACCOUNTING_RILLET_ADVANCED: {
         route: 'workspaces/:policyID/accounting/rillet/advanced',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced` as const,
