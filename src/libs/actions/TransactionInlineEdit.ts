@@ -167,6 +167,8 @@ type TransactionEditPermissionsParams = {
 
     chatReportNVP?: OnyxEntry<ReportNameValuePairs>;
 
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+
     originalTransaction?: OnyxEntry<Transaction>;
 
     /** When true, all editing is disabled regardless of permissions. */
@@ -191,6 +193,7 @@ type GetIouParamsInput = {
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
     distanceOriginalPolicy?: OnyxEntry<Policy>;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -219,6 +222,7 @@ function getIouParamsForTransaction({
     parentReportNextStep,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
+    isTrackIntentUser,
 }: GetIouParamsInput) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -280,6 +284,7 @@ function getIouParamsForTransaction({
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserEmail,
         isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas),
+        isTrackIntentUser,
         // delegateAccountID: will be threaded in PR 11; updateMoneyRequest* falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
         delegateAccountID: undefined,
         // Field-specific extras
@@ -409,6 +414,7 @@ function getTransactionEditPermissions({
     policyTags,
     transactionThreadNVP,
     chatReportNVP,
+    reportNameValuePairs,
     originalTransaction,
     disabled,
     shouldSelectPolicyForUnreported,
@@ -503,6 +509,7 @@ function getTransactionEditPermissions({
                 reportAction: parentReportAction,
                 fieldToEdit: field,
                 isChatReportArchived,
+                reportNameValuePairs,
                 transaction,
                 report: parentReport,
                 policy,

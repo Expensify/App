@@ -65,7 +65,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	105
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	104
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -739,7 +739,7 @@
 "../../src/libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtensionUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/DebugTabNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/Navigation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
-"../../src/libs/Navigation/OnyxTabNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../src/libs/Navigation/OnyxTabNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/Navigation/PlatformStackNavigation/ScreenLayout.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenFreezeWrapper/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Navigation/PlatformStackNavigation/navigationOptions/animation/withAnimation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
@@ -1321,10 +1321,10 @@
 "../../src/pages/inbox/sidebar/FABPopoverContent/useScanActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/sidebar/SidebarLinksData.tsx"	"react-hooks/refs"	1
 "../../src/pages/inbox/sidebar/SignInButton.tsx"	"no-restricted-imports"	1
+"../../src/pages/iou/DynamicSplitExpenseEditPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/iou/DynamicSplitExpenseEditPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/iou/MoneyRequestAmountForm.tsx"	"no-restricted-imports"	1
 "../../src/pages/iou/MoneyRequestAmountForm.tsx"	"react-hooks/set-state-in-effect"	3
-"../../src/pages/iou/SplitExpenseEditPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/iou/SplitExpenseEditPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/iou/SplitExpensePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/SplitExpensePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/iou/SplitExpensePage.tsx"	"react-hooks/set-state-in-effect"	3
@@ -2114,7 +2114,6 @@
 "../../tests/unit/Search/SearchListRenderCountTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/Search/SearchQueryUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/unit/Search/SearchSingleSelectionPickerTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/Search/SearchUIUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	135
 "../../tests/unit/Search/buildCardFilterDataTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../tests/unit/Search/buildSubstitutionsMapTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/Search/handleActionButtonPressTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
@@ -2319,5 +2318,6 @@
 "../../tests/utils/getIsUsingFakeTimers.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../rsbuild/CustomVersionFilePlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../rsbuild/ModuleInitTimingPlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../rsbuild/loaders/fullstory-annotation-loader.mjs"	"rulesdir/no-negated-variables"	1
 "../rsbuild/rsbuild.common.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../rspack/RspackPreloadPlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1

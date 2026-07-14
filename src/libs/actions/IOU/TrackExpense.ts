@@ -1649,6 +1649,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         personalDetails,
         shouldDeferAutoSubmit,
         delegateAccountID,
+        isTrackIntentUser,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1758,6 +1759,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         betas,
         personalDetails,
         delegateAccountID,
+        isTrackIntentUser,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -1947,6 +1949,7 @@ function convertBulkTrackedExpensesToIOU({
     betas,
     policyTagList,
     delegateAccountID,
+    isTrackIntentUser,
 }: {
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -1961,6 +1964,7 @@ function convertBulkTrackedExpensesToIOU({
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -2082,6 +2086,7 @@ function convertBulkTrackedExpensesToIOU({
                 policyTagList,
             },
             delegateAccountID,
+            isTrackIntentUser,
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);

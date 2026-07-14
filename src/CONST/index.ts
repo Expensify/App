@@ -305,6 +305,16 @@ const CONST = {
     // from concurrent navigation state mutations, but short enough to finish well before most users
     // tap submit. If the user submits before this fires, the fallback (non-pre-insert) path is used.
     PRE_INSERT_FULLSCREEN_DELAY: 300,
+    /**
+     * Controls when a fullscreen destination is placed behind an open RHP on narrow layout.
+     */
+    NARROW_DESTINATION_STRATEGY: {
+        /** Put the destination behind the RHP before submit, so closing the RHP shows an already-rendered screen. */
+        PRE_INSERT: 'preInsert',
+
+        /** Wait until submit to put the destination behind the RHP, avoiding early navigation changes. */
+        REVEAL: 'reveal',
+    },
     LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
 
@@ -986,6 +996,7 @@ const CONST = {
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -6396,6 +6407,11 @@ const CONST = {
     },
     ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
+    TRIAL_REMINDER_VARIANT: {
+        BASIC: 'basic',
+        NEAR_END: 'nearEnd',
+        COUNTDOWN: 'countdown',
+    },
     ONBOARDING_ACCOUNTING_MAPPING,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
@@ -7449,6 +7465,7 @@ const CONST = {
         SCREENS.SAML_SIGN_IN,
         SCREENS.VALIDATE_LOGIN,
         SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT,
+        SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT,
         SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT,
         SCREENS.MONEY_REQUEST.STEP_SCAN,
         SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP,
@@ -7984,6 +8001,10 @@ const CONST = {
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 
+    // Backend NVP name for the Submit migration modal. The Onyx key is prefixed with `nvp_`
+    // (ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN), but the API expects the unprefixed name.
+    SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME: 'submitMigrationModalShown',
+
     AI_FEATURES_PROMO_MODAL: 'aiFeaturesPromoModal',
 
     AI_FEATURES_PROMO_LEARN_MORE_URLS: {
@@ -8338,6 +8359,8 @@ const CONST = {
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
+            PARTICIPANTS_ROW: 'Report-ParticipantsRow',
+            ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
         },
         SIDEBAR: {
             SIGN_IN_BUTTON: 'Sidebar-SignInButton',
@@ -8687,6 +8710,9 @@ const CONST = {
                 ADD_BUTTON: 'WorkspaceTags-AddButton',
                 MORE_DROPDOWN: 'WorkspaceTags-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTags-BulkActionsDropdown',
+            },
+            REPORT_FIELDS: {
+                LIST_VALUE_ROW: 'WorkspaceReportFields-ListValueRow',
             },
             TAXES: {
                 ROW: 'WorkspaceTaxes-Row',
