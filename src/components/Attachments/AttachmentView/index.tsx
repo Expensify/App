@@ -11,7 +11,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 
-import useCachedAttachmentSource from '@hooks/useCachedAttachmentSource';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -182,11 +181,10 @@ function AttachmentView({
 
     const [imageError, setImageError] = useState(false);
 
-    const cachedSource = useCachedAttachmentSource(attachmentID, typeof source === 'string' ? source : undefined);
-
-    const [prevCachedSource, setPrevCachedSource] = useState(cachedSource);
-    if (cachedSource !== prevCachedSource) {
-        setPrevCachedSource(cachedSource);
+    const sourceString = typeof source === 'string' ? source : undefined;
+    const [prevSource, setPrevSource] = useState(sourceString);
+    if (sourceString !== prevSource) {
+        setPrevSource(sourceString);
         setImageError(false);
     }
 
@@ -334,7 +332,7 @@ function AttachmentView({
             );
         }
 
-        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (cachedSource ?? (source as string));
+        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string);
 
         if (isHighResolution) {
             if (!isUploaded) {

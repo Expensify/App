@@ -1,6 +1,6 @@
 import type {AttachmentSource} from '@components/Attachments/types';
 
-import useCachedImageSource from '@hooks/useCachedImageSource';
+import useCachedAttachmentSource from '@hooks/useCachedAttachmentSource';
 
 import getImageRecyclingKey from '@libs/getImageRecyclingKey';
 
@@ -14,7 +14,7 @@ import React, {useCallback, useContext, useEffect} from 'react';
 import type {BaseImageProps} from './types';
 
 function BaseImage({onLoad, onLoadStart, source, style, ...props}: BaseImageProps) {
-    const cachedSource = useCachedImageSource(typeof source === 'object' && !Array.isArray(source) ? source : undefined);
+    const cachedSource = useCachedAttachmentSource(typeof source === 'object' && !Array.isArray(source) ? source : undefined);
     const resolvedSource = cachedSource !== undefined ? cachedSource : source;
 
     const {setAttachmentLoaded, isAttachmentLoaded} = useContext(AttachmentStateContext);

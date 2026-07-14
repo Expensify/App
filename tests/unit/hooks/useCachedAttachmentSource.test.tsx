@@ -1,8 +1,12 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
+
 import type {ImageSource} from 'expo-image';
+
 import React from 'react';
+
+import type useCachedAttachmentSource from '../../../src/hooks/useCachedAttachmentSource';
+
 import {AttachmentIDContext} from '../../../src/components/Attachments/AttachmentIDContext';
-import type useCachedImageSource from '../../../src/hooks/useCachedImageSource';
 
 const MOCK_URI = 'https://example.com/image.png';
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -56,18 +60,18 @@ afterEach(() => {
     jest.restoreAllMocks();
 });
 
-describe('useCachedImageSource (web)', () => {
+describe('useCachedAttachmentSource (web)', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports, import/extensions
-    const useCachedImageSourceWeb: typeof useCachedImageSource = require('../../../src/hooks/useCachedImageSource/index.ts').default;
+    const useCachedAttachmentSourceWeb: typeof useCachedAttachmentSource = require('../../../src/hooks/useCachedAttachmentSource/index.ts').default;
 
     it('should return undefined when source is undefined', () => {
-        const {result} = renderHook(() => useCachedImageSourceWeb(undefined), {wrapper: createWrapper()});
+        const {result} = renderHook(() => useCachedAttachmentSourceWeb(undefined), {wrapper: createWrapper()});
         expect(result.current).toBeUndefined();
     });
 
     it('should return source as-is when it has no headers and no attachmentID', () => {
         const source: ImageSource = {uri: MOCK_URI};
-        const {result} = renderHook(() => useCachedImageSourceWeb(source), {wrapper: createWrapper()});
+        const {result} = renderHook(() => useCachedAttachmentSourceWeb(source), {wrapper: createWrapper()});
         expect(result.current).toBe(source);
     });
 
@@ -75,7 +79,7 @@ describe('useCachedImageSource (web)', () => {
         const source: ImageSource = {uri: MOCK_URI};
         mockGetAttachmentLocalSource.mockReturnValue(MOCK_CACHED_URI);
 
-        const {result} = renderHook(() => useCachedImageSourceWeb(source), {wrapper: createWrapper('test-id')});
+        const {result} = renderHook(() => useCachedAttachmentSourceWeb(source), {wrapper: createWrapper('test-id')});
 
         await waitFor(() => {
             expect(result.current).toEqual({uri: MOCK_CACHED_URI});
@@ -88,7 +92,7 @@ describe('useCachedImageSource (web)', () => {
         const source: ImageSource = {uri: MOCK_URI};
         mockUseOnyx.mockReturnValue([{attachmentID: 'test-id', source: '/path/to/file'}, {status: 'loaded'}]);
 
-        const {result} = renderHook(() => useCachedImageSourceWeb(source), {wrapper: createWrapper('test-id')});
+        const {result} = renderHook(() => useCachedAttachmentSourceWeb(source), {wrapper: createWrapper('test-id')});
 
         await waitFor(() => {
             expect(result.current).toEqual({uri: MOCK_CACHED_URI});
@@ -99,7 +103,7 @@ describe('useCachedImageSource (web)', () => {
         const source: ImageSource = {uri: MOCK_URI};
         mockGetCachedAttachment.mockResolvedValue(undefined);
 
-        const {result} = renderHook(() => useCachedImageSourceWeb(source), {wrapper: createWrapper('test-id')});
+        const {result} = renderHook(() => useCachedAttachmentSourceWeb(source), {wrapper: createWrapper('test-id')});
 
         await waitFor(() => {
             expect(result.current).toBe(source);
@@ -110,7 +114,7 @@ describe('useCachedImageSource (web)', () => {
         const source: ImageSource = {uri: MOCK_URI};
         mockGetCachedAttachment.mockRejectedValue(new Error('Network error'));
 
-        const {result} = renderHook(() => useCachedImageSourceWeb(source), {wrapper: createWrapper('test-id')});
+        const {result} = renderHook(() => useCachedAttachmentSourceWeb(source), {wrapper: createWrapper('test-id')});
 
         await waitFor(() => {
             expect(result.current).toBe(source);
@@ -120,7 +124,7 @@ describe('useCachedImageSource (web)', () => {
     it('should return source when URI starts with blob: and cachedUri is null', () => {
         const source: ImageSource = {uri: 'blob:http://localhost/existing-blob'};
         mockGetCachedAttachment.mockReturnValue(new Promise(() => {}));
-        const {result} = renderHook(() => useCachedImageSourceWeb(source), {wrapper: createWrapper('test-id')});
+        const {result} = renderHook(() => useCachedAttachmentSourceWeb(source), {wrapper: createWrapper('test-id')});
 
         expect(result.current).toBe(source);
     });
@@ -129,7 +133,7 @@ describe('useCachedImageSource (web)', () => {
         const source: ImageSource = {uri: MOCK_URI};
         mockUseOnyx.mockReturnValue([undefined, {status: 'loading'}]);
 
-        renderHook(() => useCachedImageSourceWeb(source), {wrapper: createWrapper('test-id')});
+        renderHook(() => useCachedAttachmentSourceWeb(source), {wrapper: createWrapper('test-id')});
 
         expect(mockGetCachedAttachment).not.toHaveBeenCalled();
     });
@@ -139,7 +143,7 @@ describe('useCachedImageSource (web)', () => {
         mockGetCachedAttachment.mockReturnValue(new Promise(() => {}));
         mockUseOnyx.mockReturnValue([{attachmentID: 'test-id', source: '/path/to/file'}, {status: 'loaded'}]);
 
-        const {result} = renderHook(() => useCachedImageSourceWeb(source), {wrapper: createWrapper('test-id')});
+        const {result} = renderHook(() => useCachedAttachmentSourceWeb(source), {wrapper: createWrapper('test-id')});
 
         // Initially null while the async effect runs
         expect(result.current).toBeNull();
@@ -151,7 +155,7 @@ describe('useCachedImageSource (web)', () => {
         const secondCachedUri = 'blob:http://localhost/second-cached-url';
         mockUseOnyx.mockReturnValue([{attachmentID: 'test-id', source: '/path/to/file'}, {status: 'loaded'}]);
 
-        const {result, rerender} = renderHook(({source}: {source: ImageSource}) => useCachedImageSourceWeb(source), {
+        const {result, rerender} = renderHook(({source}: {source: ImageSource}) => useCachedAttachmentSourceWeb(source), {
             initialProps: {source: source1},
             wrapper: createWrapper('test-id'),
         });
@@ -175,7 +179,7 @@ describe('useCachedImageSource (web)', () => {
         const secondCachedUri = 'blob:http://localhost/second-cached-url';
         mockUseOnyx.mockReturnValue([{attachmentID: 'test-id', source: '/path/to/file'}, {status: 'loaded'}]);
 
-        const {result, rerender} = renderHook(({source}: {source: ImageSource}) => useCachedImageSourceWeb(source), {
+        const {result, rerender} = renderHook(({source}: {source: ImageSource}) => useCachedAttachmentSourceWeb(source), {
             initialProps: {source: source1},
             wrapper: createWrapper('test-id'),
         });
@@ -198,18 +202,18 @@ describe('useCachedImageSource (web)', () => {
     });
 });
 
-describe('useCachedImageSource (native)', () => {
+describe('useCachedAttachmentSource (native)', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const useCachedImageSourceNative: typeof useCachedImageSource = require('../../../src/hooks/useCachedImageSource/index.native').default;
+    const useCachedAttachmentSourceNative: typeof useCachedAttachmentSource = require('../../../src/hooks/useCachedAttachmentSource/index.native').default;
 
     it('should return undefined when source is undefined', () => {
-        const {result} = renderHook(() => useCachedImageSourceNative(undefined), {wrapper: createWrapper()});
+        const {result} = renderHook(() => useCachedAttachmentSourceNative(undefined), {wrapper: createWrapper()});
         expect(result.current).toBeUndefined();
     });
 
     it('should return source as-is when no attachmentID', () => {
         const source: ImageSource = {uri: MOCK_URI};
-        const {result} = renderHook(() => useCachedImageSourceNative(source), {wrapper: createWrapper()});
+        const {result} = renderHook(() => useCachedAttachmentSourceNative(source), {wrapper: createWrapper()});
         expect(result.current).toBe(source);
     });
 
@@ -218,7 +222,7 @@ describe('useCachedImageSource (native)', () => {
         mockUseOnyx.mockReturnValue([{attachmentID: 'test-id', source: '/path/to/file'}, {status: 'loaded'}]);
         mockGetCachedAttachment.mockResolvedValue('file:///path/to/file');
 
-        const {result} = renderHook(() => useCachedImageSourceNative(source), {wrapper: createWrapper('test-id')});
+        const {result} = renderHook(() => useCachedAttachmentSourceNative(source), {wrapper: createWrapper('test-id')});
 
         await waitFor(() => expect(result.current).toEqual({uri: 'file:///path/to/file'}));
     });
@@ -227,7 +231,7 @@ describe('useCachedImageSource (native)', () => {
         const source: ImageSource = {uri: MOCK_URI};
         mockGetCachedAttachment.mockResolvedValue(undefined);
 
-        const {result} = renderHook(() => useCachedImageSourceNative(source), {wrapper: createWrapper('test-id')});
+        const {result} = renderHook(() => useCachedAttachmentSourceNative(source), {wrapper: createWrapper('test-id')});
 
         await waitFor(() => expect(result.current).toBe(source));
     });
@@ -236,7 +240,7 @@ describe('useCachedImageSource (native)', () => {
         const source: ImageSource = {uri: MOCK_URI};
         mockGetCachedAttachment.mockRejectedValue(new Error('Cache error'));
 
-        const {result} = renderHook(() => useCachedImageSourceNative(source), {wrapper: createWrapper('test-id')});
+        const {result} = renderHook(() => useCachedAttachmentSourceNative(source), {wrapper: createWrapper('test-id')});
 
         await waitFor(() => expect(result.current).toBe(source));
     });
@@ -246,7 +250,7 @@ describe('useCachedImageSource (native)', () => {
         mockGetCachedAttachment.mockReturnValue(new Promise(() => {}));
         mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
 
-        const {result} = renderHook(() => useCachedImageSourceNative(source), {wrapper: createWrapper('test-id')});
+        const {result} = renderHook(() => useCachedAttachmentSourceNative(source), {wrapper: createWrapper('test-id')});
 
         expect(result.current).toBe(source);
     });
@@ -255,7 +259,7 @@ describe('useCachedImageSource (native)', () => {
         const source: ImageSource = {uri: MOCK_URI};
         mockUseOnyx.mockReturnValue([undefined, {status: 'loading'}]);
 
-        renderHook(() => useCachedImageSourceNative(source), {wrapper: createWrapper('test-id')});
+        renderHook(() => useCachedAttachmentSourceNative(source), {wrapper: createWrapper('test-id')});
 
         expect(mockGetCachedAttachment).not.toHaveBeenCalled();
     });
@@ -265,7 +269,7 @@ describe('useCachedImageSource (native)', () => {
         mockGetCachedAttachment.mockReturnValue(new Promise(() => {}));
         mockUseOnyx.mockReturnValue([{attachmentID: 'test-id', source: '/path/to/file'}, {status: 'loaded'}]);
 
-        const {result} = renderHook(() => useCachedImageSourceNative(source), {wrapper: createWrapper('test-id')});
+        const {result} = renderHook(() => useCachedAttachmentSourceNative(source), {wrapper: createWrapper('test-id')});
 
         // Initially null while the async effect runs
         expect(result.current).toBeNull();
