@@ -17,6 +17,7 @@ import useReportTransactionViolations from '@hooks/useReportTransactionViolation
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {
     getReportOrDraftReport,
@@ -80,6 +81,7 @@ function PayActionButton() {
     );
 
     const [transactionViolations] = useReportTransactionViolations(transactions);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
@@ -114,6 +116,7 @@ function PayActionButton() {
                 full: true,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
+                isTrackIntentUser,
             });
         }
     };
@@ -148,6 +151,7 @@ function PayActionButton() {
                     isSelfTourViewed,
                     defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),
                     chatReportActions: getChatReportActions(payAsBusiness),
+                    isTrackIntentUser,
                 });
             } else {
                 payMoneyRequest({
@@ -169,6 +173,7 @@ function PayActionButton() {
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                     onPaid: startAnimation,
                     chatReportActions: getChatReportActions(false),
+                    isTrackIntentUser,
                 });
             }
         }

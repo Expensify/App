@@ -573,7 +573,6 @@ export type {default as UpdateAgentNameParams} from './UpdateAgentNameParams';
 export type {default as UpdateAgentPromptParams} from './UpdateAgentPromptParams';
 export type {default as UpdateAgentAvatarParams} from './UpdateAgentAvatarParams';
 export type {default as DeleteAgentParams} from './DeleteAgentParams';
-export type {default as ResendValidateCodeParams} from './ResendValidateCodeParams';
 export type {default as SendExportFileFromConciergeParams} from './SendExportFileFromConciergeParams';
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
 export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
