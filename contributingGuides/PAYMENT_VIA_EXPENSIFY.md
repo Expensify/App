@@ -6,7 +6,7 @@ Contributors are eligible to be paid via Expensify 18 months after they were ass
     - You can do this in **oldDot** by navigating to: Settings > Account > Wallet > Add Personal Bank Account > Connect manually.
   - Skydo is a service that contributors in India have used [Slack Thread](https://expensify.slack.com/archives/C02NK2DQWUX/p1761116747758089).
 - View [Enable Global Reimbursement](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Enable-Global-Reimbursement) to get more details on setting up reimbursements in United States (USD), Canada (CAD), United Kingdom (GBP), European Union (EUR), Australia (AUD) and Singapore (SGD) currencies.
-- View [Receive Payments](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Receive-Payments) for details on receiving payments in the US and internationally, including via Wise (formerly TransferWise), Paypal, Venmo and more.  
+- View [Receive Payments](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Receive-Payments) for details on receiving payments in the US and internationally, including via Wise (formerly TransferWise), Paypal, Venmo and more. The account number needs to be a local account for the currency you are selecting to add it as.  For example, if you have a UK USD account, you can't put those details in as a USD bank account. 
 
 After approval it can take between 1 business day and a week, depending on the country and service you use.  
 
