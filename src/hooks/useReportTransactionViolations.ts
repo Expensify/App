@@ -18,9 +18,10 @@ function useReportTransactionViolations(transactions: Transaction[]) {
         (allViolations: OnyxCollection<TransactionViolations>) => transactionViolationsByIDsSelector(transactionIDs)(allViolations),
         [transactionIDs],
     );
-    // Pass `transactionIDs` as a dependency so the selector re-runs once the transactions hydrate (otherwise
-    // it stays closed over the initial empty list and violations would never be selected on first load).
-    return useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations}, [transactionIDs]);
+    // `selectTransactionViolations` is memoized on `transactionIDs`, so its reference changes once the
+    // transactions hydrate and useOnyx re-runs the selector (otherwise it would stay closed over the
+    // initial empty list and violations would never be selected on first load).
+    return useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations});
 }
 
 export default useReportTransactionViolations;
