@@ -203,6 +203,8 @@ function FormWrapper({
             isAlertVisible={isAlertVisible}
             isLoading={isLoading}
             message={isEmptyObject(serverErrorFields) ? serverErrorMessage : undefined}
+            // FormProvider drives the loading state, so opt out here to delay the spinner until after validations run.
+            shouldShowLoadingImmediatelyOnPress={false}
             onSubmit={onSubmit}
             footerContent={footerContent}
             onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}

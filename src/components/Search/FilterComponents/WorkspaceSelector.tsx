@@ -30,11 +30,9 @@ import type {MultiSelectItem} from './MultiSelect';
 
 import ListFilterView from './ListFilterViewWrapper';
 
-type WorkspaceSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
-    policyIDQuery: string[] | undefined;
-};
+type WorkspaceSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
-function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: WorkspaceSelectorProps) {
+function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: WorkspaceSelectorProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -52,14 +50,12 @@ function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, s
             icons: workspace.icons,
         }));
 
-    const policyID = value ?? policyIDQuery ?? [];
-
     const updateSelectedItems = (item: ListItem) => {
         let newValue;
         if (item.isSelected) {
-            newValue = policyID.filter((i) => i !== item.keyForList);
+            newValue = value.filter((i) => i !== item.keyForList);
         } else {
-            newValue = [...policyID, item.keyForList];
+            newValue = [...value, item.keyForList];
         }
         onChange(newValue);
     };
@@ -67,7 +63,7 @@ function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, s
     const listData: ListItem[] = workspaceOptions.map((item) => ({
         text: item.text,
         keyForList: item.value,
-        isSelected: policyID.includes(item.value),
+        isSelected: value.includes(item.value),
         icons: item.icons,
     }));
 
