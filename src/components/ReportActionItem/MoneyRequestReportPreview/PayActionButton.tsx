@@ -15,6 +15,7 @@ import useReportTransactionViolations from '@hooks/useReportTransactionViolation
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {
     getReportOrDraftReport,
@@ -67,6 +68,7 @@ function PayActionButton() {
     const transactions = useReportPreviewFilteredTransactions(iouReportID);
 
     const [transactionViolations] = useReportTransactionViolations(transactions);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
@@ -110,6 +112,7 @@ function PayActionButton() {
                     isSelfTourViewed,
                     defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),
                     chatReportActions: getChatReportActions(payAsBusiness),
+                    isTrackIntentUser,
                 });
             } else {
                 payMoneyRequest({
@@ -131,6 +134,7 @@ function PayActionButton() {
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                     onPaid: startAnimation,
                     chatReportActions: getChatReportActions(false),
+                    isTrackIntentUser,
                 });
             }
         }
