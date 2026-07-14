@@ -558,26 +558,6 @@ function isSearchStringMatch(searchValue: string, searchText?: string | null, pa
     return matching;
 }
 
-function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string, translate: LocalizedTranslate) {
-    let memberDetails = '';
-    if (personalDetail.login) {
-        memberDetails += ` ${personalDetail.login}`;
-    }
-    if (personalDetail.firstName) {
-        memberDetails += ` ${personalDetail.firstName}`;
-    }
-    if (personalDetail.lastName) {
-        memberDetails += ` ${personalDetail.lastName}`;
-    }
-    if (personalDetail.displayName) {
-        memberDetails += ` ${temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, translate})}`;
-    }
-    if (personalDetail.phoneNumber) {
-        memberDetails += ` ${personalDetail.phoneNumber}`;
-    }
-    return isSearchStringMatch(searchValue.trim(), memberDetails.toLowerCase());
-}
-
 function getLatestVisibleMoneyRequestAction(
     reportID: string,
     canUserPerformWrite: boolean | undefined,
@@ -3387,7 +3367,6 @@ export {
     isDisablingOrDeletingLastEnabledTag,
     isMakingLastRequiredTagListOptional,
     isPersonalDetailsReady,
-    isSearchStringMatchUserDetails,
     optionsOrderBy,
     orderOptions,
     orderPersonalDetailsOptions,

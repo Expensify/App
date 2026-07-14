@@ -34,6 +34,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -108,6 +109,7 @@ function IOURequestStepTag({
     // has no tags configured. Without this the picker would render an empty list with no way to
     // restore the previously selected value.
     const [allTransactionsForSplitParent] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const parentTransactionTag = useMemo(() => {
         if (!isEditingSplit) {
             return '';
@@ -171,6 +173,7 @@ function IOURequestStepTag({
                 isOffline,
                 delegateAccountID,
                 reportPolicyTags,
+                isTrackIntentUser,
             });
             navigateBack();
             return;
