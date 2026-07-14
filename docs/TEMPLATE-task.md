@@ -7,6 +7,8 @@ title: Clear task-based title using the feature name
 description: A concise summary of the article for search results.
 keywords: [primary search phrases]
 internalScope: Audience is [who this article is for]. Covers [single workflow]. Does not cover [closely related workflows].
+contentType: task
+platform: [platform value]
 contentType: topic
 platform: [platform]
 ---
