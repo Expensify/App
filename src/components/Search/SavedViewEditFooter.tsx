@@ -50,8 +50,8 @@ function SavedViewEditFooter({onCancel, onSaveEdits, onSaveAsNewView, style}: Sa
                 <Button.Text>{translate('common.cancel')}</Button.Text>
             </Button>
             <ButtonWithDropdownMenu<SaveViewAction>
-                success
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                variant="success"
+                size={CONST.BUTTON_SIZE.LARGE}
                 onPress={(_event, value) => {
                     saveOptions.find((option) => option.value === value)?.onSelected?.();
                 }}
