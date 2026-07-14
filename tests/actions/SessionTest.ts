@@ -154,6 +154,66 @@ describe('Session', () => {
         redirectToSignInSpy.mockRestore();
     });
 
+    describe('SAML reauthentication redirect coalescing', () => {
+        beforeEach(async () => {
+            // Reset the module-level coalescing guard between tests. Setting the short-lived-token flag to
+            // true is what clears the guard, so toggle it on and back off to start each test from a clean state.
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, false);
+            await waitForBatchedUpdates();
+        });
+
+        test('coalesces a burst of concurrent SAML reauthentication calls into a single sign-in redirect', async () => {
+            // Given a SAML-required account whose session token has expired
+            await Onyx.set(ONYXKEYS.ACCOUNT, {isSAMLRequired: true, isLoading: true});
+            await waitForBatchedUpdates();
+
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            // When several requests fail with 407 in the same tick and each triggers reauthenticate
+            const results = await Promise.all([reauthenticate('ReconnectApp'), reauthenticate('OpenApp'), reauthenticate('AuthenticatePusher')]);
+            await waitForBatchedUpdates();
+
+            // Then only the first request redirects to the SAML sign-in page; the rest are skipped, so the page
+            // is not torn down and re-mounted (and SAML re-initiated) once per concurrent 407
+            expect(results).toEqual([false, false, false]);
+            expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
+            expect(redirectToSignInSpy).toHaveBeenCalledWith(undefined, true);
+
+            redirectToSignInSpy.mockRestore();
+        });
+
+        test('allows a fresh SAML sign-in redirect once a new short-lived-token exchange has begun', async () => {
+            // Given a SAML-required account that has already been redirected to sign in
+            await Onyx.set(ONYXKEYS.ACCOUNT, {isSAMLRequired: true, isLoading: true});
+            await waitForBatchedUpdates();
+
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            await reauthenticate('ReconnectApp');
+            await waitForBatchedUpdates();
+            expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
+
+            // A later 407 in the same burst is still coalesced and does not redirect again
+            await reauthenticate('OpenApp');
+            await waitForBatchedUpdates();
+            expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
+
+            // When the user begins a new SAML sign-in, the short-lived-token exchange starts and then settles
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
+            await waitForBatchedUpdates();
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, false);
+            await waitForBatchedUpdates();
+
+            // Then a later token expiry is allowed to redirect to SAML again
+            await reauthenticate('ReconnectApp');
+            await waitForBatchedUpdates();
+            expect(redirectToSignInSpy).toHaveBeenCalledTimes(2);
+
+            redirectToSignInSpy.mockRestore();
+        });
+    });
+
     test('Authenticate is called with saved credentials when a session expires', async () => {
         // Given a test user and set of authToken with subscriptions to session and credentials
         const TEST_USER_LOGIN = 'test@testguy.com';
