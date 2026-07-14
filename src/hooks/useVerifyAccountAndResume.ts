@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {isUserValidatedSelector} from '@selectors/Account';
-import {useEffect, useEffectEvent, useState} from 'react';
+import {useCallback, useEffect, useEffectEvent, useState} from 'react';
 
 import useOnyx from './useOnyx';
 
@@ -52,12 +52,12 @@ function useVerifyAccountAndResume<TPayload>(onResume: (payload: TPayload) => vo
         return () => handle.cancel();
     }, [isUserValidated, pendingAction]);
 
-    const verifyAccountAndResume = (payload: TPayload) => {
+    const verifyAccountAndResume = useCallback((payload: TPayload) => {
         const verifyAccountRoute = createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
         const [verifyAccountPath] = splitPathAndQuery(verifyAccountRoute);
         setPendingAction(verifyAccountPath ? {payload, verifyAccountPath} : null);
         Navigation.navigate(verifyAccountRoute);
-    };
+    }, []);
 
     return {isUserValidated, verifyAccountAndResume};
 }
