@@ -35,8 +35,6 @@ Your documentation should include your VAT number (or RUT if your organization i
 
 Expensify reviews your documentation and contacts you if additional information is required. Once your request has been processed, Concierge will send you a message to confirm your account has tax exempt status.
 
-Sales tax may continue to be applied to any bills issued while your request is under review. Once your request is approved, you can request a refund of any tax charged in the interim (see the FAQ below).
-
 After your request is approved, sales tax will no longer be applied to future Expensify subscription billings. 
 
 # FAQ
