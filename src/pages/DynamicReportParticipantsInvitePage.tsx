@@ -133,15 +133,6 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         if (selectedOptions.length === 0) {
             return;
         }
-        const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
-        for (const option of selectedOptions) {
-            const login = option.login ?? '';
-            const accountID = option.accountID;
-            if (!login.toLowerCase().trim() || !accountID) {
-                continue;
-            }
-            invitedEmailsToAccountIDs[login] = accountID;
-        }
         inviteToGroupChat(report, invitedEmailsToAccountIDs, newAccountIDsAndLogins?.newAccountIDs ?? [], newAccountIDsAndLogins?.newLogins ?? [], formatPhoneNumber);
         goBack();
     };

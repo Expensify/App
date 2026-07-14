@@ -26,7 +26,7 @@ import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getNewAccountIDsAndLogins, getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
+import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {
     findSelfDMReportID,
@@ -193,7 +193,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     } = params;
 
     // Localization
-    const {formatPhoneNumber, translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
 
     // Permissions
     const {isBetaEnabled} = usePermissions();

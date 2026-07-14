@@ -84,7 +84,6 @@ import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PhoneNumber from '@libs/PhoneNumber';
 import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,

@@ -4404,7 +4404,6 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Call moveIOUReportToPolicyAndInviteSubmitter
-            const formatPhoneNumber = (phoneNumber: string) => phoneNumber;
             Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true);
             await waitForBatchedUpdates();
 

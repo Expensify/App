@@ -326,7 +326,7 @@ function getNewAccountIDsAndLogins(invitedEmailsToAccountIDs: InvitedEmailsToAcc
             }
             return acc;
         },
-        {newAccountIDs: <number[]>[], newLogins: <string[]>[]},
+        {newAccountIDs: [] as number[], newLogins: [] as string[]},
     );
 }
 

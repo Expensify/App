@@ -1,4 +1,4 @@
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
@@ -18,7 +18,6 @@ import fileDownload from '@libs/fileDownload';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
@@ -29,17 +28,7 @@ import * as FormActions from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    ImportedSpreadsheetMemberData,
-    InvitedEmailsToAccountIDs,
-    PersonalDetailsList,
-    Policy,
-    PolicyEmployee,
-    PolicyOwnershipChangeChecks,
-    Report,
-    ReportAction,
-    ReportActions,
-} from '@src/types/onyx';
+import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';

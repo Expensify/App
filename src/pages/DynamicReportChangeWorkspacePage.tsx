@@ -64,7 +64,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const reportTransactions = useReportTransactions(reportID);
 
     const reportPreviewAction = useParentReportAction(report);
