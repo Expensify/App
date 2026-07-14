@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
+import {getSelectableCardProgramKey} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -31,7 +32,7 @@ type WorkspaceExpensifyCardVerifyWorkAccountPageProps = PlatformStackScreenProps
 type WorkspaceExpensifyCardVerifyWorkAccountPageContentProps = Pick<WorkspaceExpensifyCardVerifyWorkAccountPageProps, 'route'>;
 
 function WorkspaceExpensifyCardVerifyWorkAccountPageContent({route}: WorkspaceExpensifyCardVerifyWorkAccountPageContentProps) {
-    const {policyID, fundID} = route.params;
+    const {policyID, fundID, feedCountry} = route.params;
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const workEmail = usePrimaryContactMethod();
@@ -59,9 +60,9 @@ function WorkspaceExpensifyCardVerifyWorkAccountPageContent({route}: WorkspaceEx
         if (!isWorkEmailValidated) {
             return;
         }
-        linkCardFeedToPolicy(Number(fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
+        linkCardFeedToPolicy(Number(fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD, feedCountry)
             .then(() => {
-                updateSelectedExpensifyCardFeed(Number(fundID), policyID);
+                updateSelectedExpensifyCardFeed(Number(fundID), policyID, getSelectableCardProgramKey(feedCountry));
                 Navigation.closeRHPFlow();
             })
             .catch((error: TranslationPaths) => {
@@ -69,7 +70,7 @@ function WorkspaceExpensifyCardVerifyWorkAccountPageContent({route}: WorkspaceEx
                     error: getMicroSecondOnyxErrorWithTranslationKey(error),
                 });
             });
-    }, [fundID, isWorkEmailValidated, policyID]);
+    }, [feedCountry, fundID, isWorkEmailValidated, policyID]);
 
     return (
         <ValidateCodeActionContent

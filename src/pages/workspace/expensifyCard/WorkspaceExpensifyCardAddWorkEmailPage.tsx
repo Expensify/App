@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {setContactMethodAsDefault} from '@libs/actions/User';
+import {getSelectableCardProgramKey} from '@libs/CardUtils';
 import {addErrorMessage, getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -45,7 +46,7 @@ import React, {useEffect, useState} from 'react';
 type WorkspaceExpensifyCardAddWorkEmailPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL>;
 
 function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardAddWorkEmailPageProps) {
-    const {policyID, fundID} = route.params;
+    const {policyID, fundID, feedCountry} = route.params;
     const primaryContactMethod = usePrimaryContactMethod();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -68,14 +69,14 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
         if (existingLoginKey) {
             if (!isExistingLoginValidated) {
                 setEmail(submittedEmail);
-                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID));
+                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID, feedCountry));
                 return;
             }
             setContactMethodAsDefault(currentUserPersonalDetails, existingLoginKey, formatPhoneNumber, undefined, true, '');
             setLoading(true);
-            linkCardFeedToPolicy(Number(fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
+            linkCardFeedToPolicy(Number(fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD, feedCountry)
                 .then(() => {
-                    updateSelectedExpensifyCardFeed(Number(fundID), policyID);
+                    updateSelectedExpensifyCardFeed(Number(fundID), policyID, getSelectableCardProgramKey(feedCountry));
                     Navigation.closeRHPFlow();
                 })
                 .catch((error: TranslationPaths) => {
@@ -96,8 +97,8 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
         if (!email || !primaryContactMethod || primaryContactMethod.toLowerCase() !== email.toLowerCase() || isWorkEmailValidated) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID));
-    }, [primaryContactMethod, email, policyID, fundID, isWorkEmailValidated]);
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID, feedCountry));
+    }, [primaryContactMethod, email, policyID, fundID, feedCountry, isWorkEmailValidated]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>): Errors => {
         const errors = {};
