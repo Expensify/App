@@ -32,6 +32,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import {getStringFieldHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {getDistanceInMeters} from '@libs/TransactionUtils';
@@ -130,6 +131,7 @@ function IOURequestStepDistanceManual({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
         iouType,
@@ -236,6 +238,7 @@ function IOURequestStepDistanceManual({
                     parentReportNextStep,
                     recentWaypoints,
                     delegateAccountID,
+                    isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 });
             }
@@ -290,6 +293,7 @@ function IOURequestStepDistanceManual({
             optimisticTransactionID,
             optimisticChatReportID,
             reportDraft,
+            isTrackIntentUser,
             delegateAccountID,
             policyTagList,
         });
