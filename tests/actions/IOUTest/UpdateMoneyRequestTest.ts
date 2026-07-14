@@ -176,6 +176,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -258,6 +259,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     isASAPSubmitBetaEnabled: false,
                     parentReportNextStep: undefined,
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
 
                 await waitForBatchedUpdates();
@@ -306,6 +308,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     isASAPSubmitBetaEnabled: false,
                     parentReportNextStep: undefined,
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
 
                 await waitForBatchedUpdates();
@@ -365,6 +368,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -435,6 +439,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -506,6 +511,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policyRecentlyUsedCurrencies: [],
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -652,6 +658,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policyRecentlyUsedCurrencies: [],
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -690,6 +697,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -725,6 +733,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -787,6 +796,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             waitForBatchedUpdates();
@@ -846,6 +856,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -920,6 +931,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isOffline: false,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -979,6 +991,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isOffline: false,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1013,6 +1026,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isOffline: false,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1102,6 +1116,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 odometerEnd: 15000,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             mockFetch?.resume?.();
@@ -1201,6 +1216,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1312,6 +1328,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 odometerEnd: 50350,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             mockFetch?.resume?.();
@@ -1385,6 +1402,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1439,6 +1457,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1502,6 +1521,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1536,6 +1556,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1597,6 +1618,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1651,6 +1673,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1756,6 +1779,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     parentReportNextStep: undefined,
                     isOffline,
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
 
                 await waitForBatchedUpdates();
@@ -2014,6 +2038,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
@@ -2142,6 +2167,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2025-06-15'}), expect.anything());
@@ -2239,6 +2265,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
@@ -2357,6 +2384,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2027-06-15'}), expect.anything());
@@ -2477,6 +2505,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
