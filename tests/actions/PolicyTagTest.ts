@@ -340,6 +340,55 @@ describe('actions/Policy', () => {
             expect(newTagSuccess?.pendingAction).toBeFalsy();
         });
 
+        it('restores stale requiresTag when creating a tag in a required tag list', async () => {
+            // Given a required tag list where the policy-level flag is stale until the next backend refresh
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+            fakePolicy.requiresTag = false;
+
+            const tagListName = 'Fake tag';
+            const newTagName = 'new tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName);
+            fakePolicyTags[tagListName].required = true;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            mockFetch.pause();
+            await waitForBatchedUpdates();
+
+            const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            // When creating a new tag in the required list
+            createPolicyTag({
+                policyData: policyData.current,
+                tagName: newTagName,
+                setupTagsTaskReport: undefined,
+                setupTagsTaskParentReport: undefined,
+                isSetupTagsTaskParentReportArchived: false,
+                setupTagsHasOutstandingChildTask: false,
+                setupTagsParentReportAction: undefined,
+                setupCategoriesAndTagsTaskReport: undefined,
+                setupCategoriesAndTagsTaskParentReport: undefined,
+                isSetupCategoriesAndTagsTaskParentReportArchived: false,
+                setupCategoriesAndTagsHasOutstandingChildTask: false,
+                setupCategoriesAndTagsParentReportAction: undefined,
+                currentUserAccountID: 0,
+                policyHasCustomCategories: false,
+            });
+            await waitForBatchedUpdates();
+            rerender(fakePolicy.id);
+
+            // Then the frontend restores requiresTag without waiting for a page refresh.
+            expect(policyData.current.policy?.requiresTag).toBe(true);
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+            rerender(fakePolicy.id);
+
+            expect(policyData.current.policy?.requiresTag).toBe(true);
+        });
+
         it('reset new policy tag when api returns error', async () => {
             // Given a policy with existing tags
             const fakePolicy = createRandomPolicy(0);
