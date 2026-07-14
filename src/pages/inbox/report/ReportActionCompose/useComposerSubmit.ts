@@ -7,11 +7,12 @@ import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 
-import {addAttachmentWithComment, addComment} from '@libs/actions/Report';
+import {addAttachmentWithComment, addComment, clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
+import {isConciergeChatReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {generateAccountID} from '@libs/UserUtils';
 
@@ -71,6 +72,14 @@ function useComposerSubmit(reportID: string) {
 
         if (!draftMessageTrimmed && !attachmentFileRef.current) {
             return;
+        }
+
+        // A new user message supersedes any Concierge processing indicator from a prior turn (e.g. a persisted
+        // "...is working on your chat" while a human is handling it). Clear it optimistically so it disappears
+        // the instant the user sends, instead of lingering until the ProcessAgentZeroRequest job runs; the
+        // backend re-establishes the correct status afterward.
+        if (isConciergeChatReport(report, conciergeReportID)) {
+            clearAgentZeroProcessingIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE);
         }
 
         if (attachmentFileRef.current) {
