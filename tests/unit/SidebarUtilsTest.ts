@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook} from '@testing-library/react-native';
 
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {generateTransactionID} from '@libs/actions/Transaction';
@@ -1205,6 +1207,39 @@ describe('SidebarUtils', () => {
 
     describe('getWelcomeMessage', () => {
         const MOCK_CONCIERGE_REPORT_ID = 'concierge-report-id';
+
+        it('resolves the policy expense chat owner name through the provided translate function', async () => {
+            const hiddenOwnerAccountID = 780080;
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                ownerAccountID: hiddenOwnerAccountID,
+            };
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                        ...LHNTestUtils.fakePersonalDetails,
+                        // Owner without displayName/login resolves to the hidden label provided by translate.
+                        [hiddenOwnerAccountID]: {accountID: hiddenOwnerAccountID, login: '', displayName: ''},
+                    },
+                });
+            });
+            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithHiddenMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
+            expect(result.messageHtml).toContain('HiddenMarker');
+        });
 
         it('do not return pronouns in the welcome message text when it is group chat', async () => {
             const MOCK_REPORT: Report = {
