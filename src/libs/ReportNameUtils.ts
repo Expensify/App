@@ -140,6 +140,7 @@ import {
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
+    getPendingDeleteMemberAccountIDs,
     getReportMetadata,
     getReportOrDraftReport,
     getTransactionReportName,
@@ -271,11 +272,7 @@ function getGroupChatName(
     }
 
     // TODO: Remove the getReportMetadata fallback once https://github.com/Expensify/App/issues/66421 is done
-    const resolvedPendingDeleteMemberAccountIDs =
-        pendingDeleteMemberAccountIDs ??
-        getReportMetadata(report?.reportID)
-            ?.pendingChatMembers?.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .map((member) => member.accountID);
+    const resolvedPendingDeleteMemberAccountIDs = pendingDeleteMemberAccountIDs ?? getPendingDeleteMemberAccountIDs(getReportMetadata(report?.reportID)?.pendingChatMembers);
 
     const pendingMemberAccountIDs = new Set(resolvedPendingDeleteMemberAccountIDs);
     let participantAccountIDs =

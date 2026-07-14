@@ -15,6 +15,7 @@ import {
     isPolicyAdmin,
     isPolicyExpenseChat,
     isProcessingReport,
+    getPendingDeleteMemberAccountIDs,
     isValidReport,
 } from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -515,9 +516,7 @@ export default createOnyxDerivedValueConfig({
                 }
 
                 const reportReportMetadata = reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
-                const pendingDeleteMemberAccountIDs = reportReportMetadata?.pendingChatMembers
-                    ?.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-                    .map((member) => member.accountID);
+                const pendingDeleteMemberAccountIDs = getPendingDeleteMemberAccountIDs(reportReportMetadata?.pendingChatMembers);
 
                 acc[report.reportID] = {
                     reportName: report

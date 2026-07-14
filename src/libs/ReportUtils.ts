@@ -6067,6 +6067,31 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 }
 
 /**
+ * Returns account IDs whose latest pending action is DELETE.
+ * Uses `findLast` so that a subsequent ADD (e.g. re-invite while offline) takes precedence over an earlier DELETE.
+ */
+function getPendingDeleteMemberAccountIDs(pendingChatMembers: PendingChatMember[] | undefined): string[] {
+    if (!pendingChatMembers?.length) {
+        return [];
+    }
+
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const member of pendingChatMembers) {
+        seen.add(member.accountID);
+    }
+
+    for (const accountID of seen) {
+        const latestAction = pendingChatMembers.findLast((member) => member.accountID === accountID);
+        if (latestAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            result.push(accountID);
+        }
+    }
+
+    return result;
+}
+
+/**
  * Gets the parent navigation subtitle for the report
  */
 function getParentNavigationSubtitle(
@@ -13629,6 +13654,7 @@ export {
     getParticipantsAccountIDsForDisplay,
     getParticipantsList,
     getPendingChatMembers,
+    getPendingDeleteMemberAccountIDs,
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
     getPolicyExpenseChat,
