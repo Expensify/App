@@ -89,7 +89,6 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                                 icon={column === '<' ? icons.BackArrow : undefined}
                                 onLongPress={() => handleLongPress(column)}
                                 onPress={() => numberPressed(column)}
-                                shouldUseSingleExecution={false}
                                 onPressIn={ControlSelection.block}
                                 onPressOut={() => {
                                     if (timer) {

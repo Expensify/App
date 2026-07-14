@@ -42,7 +42,6 @@ function GenericPressable({
     fullDisabled = false,
     interactive = true,
     isNested = false,
-    shouldUseSingleExecution = true,
     ref,
     dataSet,
     forwardedFSClass,
@@ -141,8 +140,6 @@ function GenericPressable({
         [onPressHandler],
     );
 
-    const conditionalOnPressHandler = shouldUseSingleExecution ? singleExecution(onPressHandler) : voidOnPressHandler;
-
     const onKeyboardShortcutPressHandler = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
             onPressHandler(event);
@@ -186,7 +183,7 @@ function GenericPressable({
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref as ForwardedRef<View>}
             disabled={fullDisabled || undefined}
-            onPress={!isDisabled ? conditionalOnPressHandler : undefined}
+            onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? handleKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}

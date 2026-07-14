@@ -13,12 +13,16 @@ type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
 export default function useSingleExecution() {
     const [isExecuting, setIsExecuting] = useState(false);
     const isExecutingRef = useRef<boolean | undefined>(undefined);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const transitionHandleRef = useRef<CancelHandle | null>(null);
 
     isExecutingRef.current = isExecuting;
 
     useEffect(
         () => () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
             transitionHandleRef.current?.cancel();
         },
         [],
@@ -35,21 +39,21 @@ export default function useSingleExecution() {
                 isExecutingRef.current = true;
 
                 const execution = action(...params);
-                // The capped waitForUpcomingTransition wait is a minimum debounce applied to every press, TransitionTracker's
-                // active-transition check afterwards is an extra safety net in case a transition is still in progress once the wait ends.
-                transitionHandleRef.current = TransitionTracker.runAfterTransitions({
-                    waitForUpcomingTransition: true,
-                    maxWaitForUpcomingTransitionMs: CONST.TIMING.SINGLE_EXECUTION_DEBOUNCE_TIME,
-                    callback: () => {
-                        if (!(execution instanceof Promise)) {
-                            setIsExecuting(false);
-                            return;
-                        }
-                        execution.finally(() => {
-                            setIsExecuting(false);
-                        });
-                    },
-                });
+                // The timeout is a minimum debounce applied to every press; checking TransitionTracker afterwards
+                // is an extra safety net in case a transition is still in progress once the debounce ends.
+                timeoutRef.current = setTimeout(() => {
+                    transitionHandleRef.current = TransitionTracker.runAfterTransitions({
+                        callback: () => {
+                            if (!(execution instanceof Promise)) {
+                                setIsExecuting(false);
+                                return;
+                            }
+                            execution.finally(() => {
+                                setIsExecuting(false);
+                            });
+                        },
+                    });
+                }, CONST.TIMING.SINGLE_EXECUTION_DEBOUNCE_TIME);
             },
         [],
     );

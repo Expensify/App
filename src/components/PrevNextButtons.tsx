@@ -43,7 +43,6 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                 style={[styles.h7, styles.mr1, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onPrevious}
                 sentryLabel={CONST.SENTRY_LABEL.PREV_NEXT_BUTTONS.PREV_BUTTON}
-                shouldUseSingleExecution={false}
             >
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isPrevButtonDisabled && styles.buttonOpacityDisabled]}>
                     <Icon
@@ -62,7 +61,6 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                 style={[styles.h7, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onNext}
                 sentryLabel={CONST.SENTRY_LABEL.PREV_NEXT_BUTTONS.NEXT_BUTTON}
-                shouldUseSingleExecution={false}
             >
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isNextButtonDisabled && styles.buttonOpacityDisabled]}>
                     <Icon

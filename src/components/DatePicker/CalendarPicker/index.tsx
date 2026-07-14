@@ -265,7 +265,6 @@ function CalendarPicker({
                         accessibilityLabel={translate('common.previousMonth')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.PREV_MONTH}
-                        shouldUseSingleExecution={false}
                     >
                         <ArrowIcon
                             disabled={isAtMinBoundary}
@@ -305,7 +304,6 @@ function CalendarPicker({
                         accessibilityLabel={translate('common.nextMonth')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.NEXT_MONTH}
-                        shouldUseSingleExecution={false}
                     >
                         <ArrowIcon disabled={isAtMaxBoundary} />
                     </PressableWithFeedback>
@@ -320,7 +318,6 @@ function CalendarPicker({
                         accessibilityLabel={translate('common.previousYear')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.PREV_YEAR}
-                        shouldUseSingleExecution={false}
                     >
                         <ArrowIcon
                             disabled={isAtMinYear}
@@ -359,7 +356,6 @@ function CalendarPicker({
                         accessibilityLabel={translate('common.nextYear')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.NEXT_YEAR}
-                        shouldUseSingleExecution={false}
                     >
                         <ArrowIcon disabled={isAtMaxYear} />
                     </PressableWithFeedback>
@@ -420,7 +416,6 @@ function CalendarPicker({
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     role={CONST.ROLE.BUTTON}
                                     sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.DAY}
-                                    shouldUseSingleExecution={false}
                                 >
                                     {({hovered, pressed}) => (
                                         <DayComponent
