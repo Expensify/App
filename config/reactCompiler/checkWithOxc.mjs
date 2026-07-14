@@ -53,7 +53,7 @@ function mapOxcError(error, source) {
     };
 }
 
-export function checkReactCompilerWithOxc(source, filename) {
+function checkReactCompilerWithOxc(source, filename) {
     const ext = path.extname(filename).slice(1);
     const lang = getLang(ext);
     const transformOptions = {
@@ -111,6 +111,8 @@ export function checkReactCompilerWithOxc(source, filename) {
     }
 }
 
-export function didReactCompilerCompileFile(source, filename) {
+function didReactCompilerCompileFile(source, filename) {
     return checkReactCompilerWithOxc(source, filename).status === 'compiled';
 }
+
+export {checkReactCompilerWithOxc, didReactCompilerCompileFile};
