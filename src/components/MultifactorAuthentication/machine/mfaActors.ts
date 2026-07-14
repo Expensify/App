@@ -7,15 +7,14 @@ import {fromPromise} from 'xstate';
 import type {ValidateDeviceInput} from './types';
 
 /**
- * Runs {@link checkDeviceEligibility} with the scenario's allowed methods. See its documentation for
- * how a refusal settles as a failed result while a rejection means an unexpected platform error.
+ * A refused device resolves as a failed MFAResult, so the machine's onError transition for this
+ * actor fires only when the platform check throws unexpectedly.
  */
 const validateDevice = fromPromise<MFAResult, ValidateDeviceInput>(({input}) => checkDeviceEligibility(input.allowedAuthenticationMethods));
 
 /**
- * Builds the machine's real side-effect actors. Each slice adds the actors its states invoke, so
- * setup() always wires real implementations and never a throwing stub. This slice contributes only
- * the device check.
+ * Builds the side-effect actors that the machine states invoke. The machine is always created with
+ * these working implementations, so no caller needs to provide stubs or overrides.
  */
 function createActors() {
     return {validateDevice};

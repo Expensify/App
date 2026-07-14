@@ -4,9 +4,7 @@ import {isSensorAvailable} from '@sbaiahmed1/react-native-biometrics';
 
 /**
  * Platform-resolved biometric operations for the device check. These functions read no Onyx and no
- * React state, so the MFA machine actors and other non-React callers can import them directly. Native
- * resolves to this file and web resolves to the `index.ts` sibling. Later slices add the registration
- * and authorization operations here.
+ * React state, so the MFA machine actors and other non-React callers can import them directly.
  */
 
 /** The authentication method this platform verifies with. Native verifies with HSM-backed biometrics. */

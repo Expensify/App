@@ -12,12 +12,10 @@ import {deviceCheckFailureReason, deviceVerificationType, doesDeviceSupportAuthe
 type AllowedAuthenticationMethods = ReadonlyArray<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>;
 
 /**
- * Confirms the device can complete a biometric ceremony through ordered gates that mirror the legacy
- * flow. The gates refuse a device whose verification type the caller does not allow and a device that
- * cannot actually perform that method, for example a browser without WebAuthn or a phone with no
- * enrolled biometrics. When more than one gate would refuse, the earliest one picks the error. A
- * refusal is an expected outcome, so it resolves as a failed result carrying the blocking MFAError.
- * A rejection therefore always means the platform check itself threw unexpectedly.
+ * Checks that the caller allows this platform's verification method and that the device can actually
+ * perform it, which fails for example in a browser without WebAuthn or on a phone with no enrolled
+ * biometrics. A failed check is an expected outcome, so it resolves as a failed result carrying the
+ * blocking MFAError. A rejection always means the platform check itself threw unexpectedly.
  */
 async function checkDeviceEligibility(allowedAuthenticationMethods: AllowedAuthenticationMethods): Promise<MFAResult> {
     if (!allowedAuthenticationMethods.includes(deviceVerificationType)) {

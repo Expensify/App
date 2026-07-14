@@ -4,9 +4,7 @@ import CONST from '@src/CONST';
 
 /**
  * Platform-resolved biometric operations for the device check. These functions read no Onyx and no
- * React state, so the MFA machine actors and other non-React callers can import them directly. Web
- * resolves to this file and native resolves to the `index.native.ts` sibling. Later slices add the
- * registration and authorization operations here.
+ * React state, so the MFA machine actors and other non-React callers can import them directly.
  */
 
 /** The authentication method this platform verifies with. Web verifies with passkeys. */
