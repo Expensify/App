@@ -124,6 +124,8 @@ function IOURequestStepMerchant({
         setCurrentMerchant(value);
     };
 
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
+
     const updateMerchant = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
         const newMerchant = value.moneyRequestMerchant?.trim();
 
@@ -163,6 +165,7 @@ function IOURequestStepMerchant({
                 parentReportNextStep,
                 isOffline,
                 delegateAccountID,
+                reportPolicyTags,
                 isTrackIntentUser,
             });
         } else if (!newMerchant) {

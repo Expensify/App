@@ -460,6 +460,7 @@ function updateMoneyRequestMerchant({
     isOffline,
     hash,
     delegateAccountID,
+    reportPolicyTags,
     isTrackIntentUser,
 }: {
     transactionID: string;
@@ -476,6 +477,7 @@ function updateMoneyRequestMerchant({
     isOffline: boolean;
     hash?: number;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
@@ -493,8 +495,7 @@ function updateMoneyRequestMerchant({
             transactionChanges,
             policy,
             policyTagList,
-            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+            reportPolicyTags,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
