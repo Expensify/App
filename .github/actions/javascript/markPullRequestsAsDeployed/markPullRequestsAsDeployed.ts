@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-import * as core from '@actions/core';
-import {context} from '@actions/github';
-import type {RequestError} from '@octokit/types';
-import memoize from 'lodash/memoize';
 import * as ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
+
+import type {RequestError} from '@octokit/types';
+
+import * as core from '@actions/core';
+import {context} from '@actions/github';
+import memoize from 'lodash/memoize';
 
 type PlatformResult = 'success' | 'cancelled' | 'skipped' | 'failure';
 
@@ -99,7 +101,9 @@ async function run() {
     const prList = (ActionUtils.getJSONInput('PR_LIST', {required: true}) as string[]).map((num) => Number.parseInt(num, 10));
     const mobileExpensifyPRListInput = ActionUtils.getJSONInput('MOBILE_EXPENSIFY_PR_LIST', {required: false});
     const mobileExpensifyPRList = Array.isArray(mobileExpensifyPRListInput) ? mobileExpensifyPRListInput.map((num: string) => Number.parseInt(num, 10)) : [];
-    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true}) as boolean;
+    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {
+        required: true,
+    }) as boolean;
     const version = core.getInput('DEPLOY_VERSION', {required: true});
 
     const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}) as PlatformResult);
@@ -108,6 +112,8 @@ async function run() {
 
     const date = core.getInput('DATE');
     const note = core.getInput('NOTE');
+    const androidSentryUrl = core.getInput('ANDROID_SENTRY_URL');
+    const iosSentryUrl = core.getInput('IOS_SENTRY_URL');
 
     function getDeployMessage(deployer: string, deployVerb: string): string {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
@@ -122,6 +128,16 @@ async function run() {
 
         if (note) {
             message += `\n\n_Note:_ ${note}`;
+        }
+
+        if (androidSentryUrl || iosSentryUrl) {
+            message += `\n\n**Bundle Size Analysis (Sentry):**`;
+            if (androidSentryUrl) {
+                message += `\n- [Android](${androidSentryUrl})`;
+            }
+            if (iosSentryUrl) {
+                message += `\n- [iOS](${iosSentryUrl})`;
+            }
         }
 
         return message;

@@ -276,12 +276,16 @@ key "key"
       / to
       / taxRate
       / cardID
+      / bankAccount
       / from
       / attendee
       / payer
       / exporter
       / expenseType
+      / receiptType
       / withdrawalType
+      / withdrawalStatus
+      / paidStatus
       / withdrawalID
       / submitted
       / approved

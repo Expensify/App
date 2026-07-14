@@ -1,8 +1,10 @@
-import fastMerge from 'expensify-common/dist/fastMerge';
+import Log from '@libs/Log';
+
+import {fastMerge} from 'expensify-common';
 import {useCallback} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
-import Log from '@libs/Log';
+
 import runOnUISync from './runOnUISync';
 
 // When you need to debug state machine change this to true
@@ -94,7 +96,6 @@ function useWorkletStateMachine<SM extends StateMachine<string, string>, P>(stat
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/restrict-template-expressions
         client(`[StateMachine] ${message}. Params: ${JSON.stringify(params)}`);
     }, []);
 

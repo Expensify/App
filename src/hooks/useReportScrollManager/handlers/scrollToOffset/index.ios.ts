@@ -6,17 +6,17 @@ import type {ScrollToOffsetHandlerParams} from '@hooks/useReportScrollManager/ty
  * covered by the keyboard when it is visible.
  * */
 
-function scrollToOffsetHandler({flatListRef, offset, isKeyboardActive, keyboardHeight}: ScrollToOffsetHandlerParams) {
-    if (!flatListRef?.current) {
+function scrollToOffsetHandler({listRef, offset, isKeyboardActive, keyboardHeight}: ScrollToOffsetHandlerParams) {
+    if (!listRef?.current) {
         return;
     }
 
     if (isKeyboardActive) {
-        flatListRef.current?.scrollToOffset({animated: false, offset: offset - keyboardHeight});
+        listRef.current?.scrollToOffset({animated: false, offset: offset - keyboardHeight});
         return;
     }
 
-    flatListRef.current.scrollToOffset({offset, animated: false});
+    listRef.current.scrollToOffset({offset, animated: false});
 }
 
 export default scrollToOffsetHandler;

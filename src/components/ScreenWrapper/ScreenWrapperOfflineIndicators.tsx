@@ -1,15 +1,20 @@
-import type {ReactNode} from 'react';
-import React, {useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import Animated from 'react-native-reanimated';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import OfflineIndicator from '@components/OfflineIndicator';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useNetwork from '@hooks/useNetwork';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useMemo} from 'react';
+import Animated from 'react-native-reanimated';
+
 import useOfflineIndicatorKeyboardHandlingStyles from './useOfflineIndicatorKeyboardHandlingStyles';
 
 type ScreenWrapperOfflineIndicatorsProps = {

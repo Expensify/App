@@ -1,8 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
@@ -15,9 +10,11 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
@@ -28,38 +25,41 @@ import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
-import {
-    getAllCardsForWorkspace,
-    getCardFeedIcon,
-    getCardFeedWithDomainID,
-    getCompanyFeeds,
-    getPlaidInstitutionIconUrl,
-    isExpensifyCardFullySetUp,
-    lastFourNumbersFromCardName,
-    maskCardNumber,
-} from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
+import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {canMemberAssignRole, canMemberManageMemberWithRole, canMemberWrite, isControlPolicy, isPolicyApprover, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import variables from '@styles/variables';
-import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
+
+import {clearWorkspaceOwnerChangeFlow, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -76,15 +76,16 @@ function isNameValuePairsObject(value: unknown): value is Record<string, unknown
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
+    const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info', 'Transfer']);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
@@ -99,19 +100,23 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const prevMember = usePrevious(member);
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details));
+    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate}));
     const isSelectedMemberOwner = policy?.owner === details.login;
-    const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
-    const isCurrentUserAdmin = policy?.employeeList?.[personalDetails?.[currentUserPersonalDetails?.accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
-    const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
+    const isSelectedMemberCurrentUser = accountID === currentUserAccountID;
+    const isCurrentUserAdmin = policy?.employeeList?.[currentUserLogin]?.role === CONST.POLICY.ROLE.ADMIN;
+    const isCurrentUserOwner = policy?.owner === currentUserLogin;
+    const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
+    const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
-    const policyOwnerDisplayName = formatPhoneNumber(getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
-    const hasMultipleFeeds = Object.keys(getCompanyFeeds(cardFeeds, false, true)).length > 0;
+    const policyOwnerDisplayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate})) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}`;
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
-    const isReimburser = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.achAccount?.reimburser === memberLogin;
+    const isReimburser =
+        (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) &&
+        policy?.achAccount?.reimburser === memberLogin;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -119,15 +124,20 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         policy,
         personalDetails: personalDetails ?? {},
         localeCompare,
+        currentUserLogin,
     });
 
     useEffect(() => {
         openPolicyMemberProfilePage(policyID, accountID);
     }, [policyID, accountID]);
 
-    const memberCards = workspaceCards ? Object.values(workspaceCards).filter((card) => card.accountID === accountID) : [];
+    // Filter out travel cards — they should not appear on the member profile page
+    // as they expose card-level controls and data not intended for workspace admin view.
+    const memberCards = workspaceCards
+        ? Object.values(workspaceCards).filter((card) => card.accountID === accountID && card.nameValuePairs?.feedCountry !== CONST.TRAVEL.PROGRAM_TRAVEL_US)
+        : [];
 
-    const isApprover = isApproverUserAction(policy, memberLogin);
+    const isApprover = isPolicyApprover(policy, memberLogin);
     const isTechnicalContact = policy?.technicalContact === details?.login;
     const exporters = [
         policy?.connections?.intacct?.config?.export?.exporter,
@@ -157,17 +167,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     } else if (!isApprover) {
         confirmModalPrompt = translate('workspace.people.removeMemberPrompt', displayName);
     } else if (isApprover) {
-        confirmModalPrompt = translate('workspace.people.removeMemberPromptApprover', {
-            approver: displayName,
-            workspaceOwner: policyOwnerDisplayName,
-        });
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptApprover', displayName, policyOwnerDisplayName);
     }
 
     useEffect(() => {
         if (!prevMember || prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
-        navigateAfterInteraction(() => Navigation.goBack());
+        Navigation.goBack();
     }, [member?.pendingAction, prevMember]);
 
     // Function to remove a member and close the modal
@@ -177,7 +184,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         const remainingEmployeeCount = previousEmployeesCount - 1;
         if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
             // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
-            setPolicyPreventSelfApproval(policyID, false);
+            setPolicyPreventSelfApproval(policyID, false, policy.preventSelfApproval);
         }
     };
 
@@ -186,7 +193,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         const removedApprover = personalDetails?.[accountID];
 
         // If the user is not an approver, proceed with member removal
-        if (!isApproverUserAction(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
+        if (!isPolicyApprover(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
             removeMemberAndCloseModal();
             return;
         }
@@ -243,33 +250,29 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const navigateToProfile = () => {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
     };
 
     const navigateToDetails = (card: MemberCard) => {
         if (card.bank === CONST.EXPENSIFY_CARD.BANK) {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, card.cardID.toString(), Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(card.cardID.toString())));
             return;
         }
         if (!card.fundID) {
             return;
         }
         Navigation.navigate(
-            ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
-                policyID,
-                getCardFeedWithDomainID(card.bank, card.fundID) as CompanyCardFeedWithDomainID,
-                card.cardID.toString(),
-                Navigation.getActiveRoute(),
+            createDynamicRoute(
+                DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(getCardFeedWithDomainID(card.bank, card.fundID) as CompanyCardFeedWithDomainID, card.cardID.toString()),
             ),
         );
     };
 
     const startChangeOwnershipFlow = () => {
         clearWorkspaceOwnerChangeFlow(policyID);
-        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>)));
     };
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
         !member || (member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
@@ -277,12 +280,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         return <NotFoundPage />;
     }
 
-    const shouldShowCardsSection = Object.values(expensifyCardSettings ?? {}).some((cardSettings) => isExpensifyCardFullySetUp(policy, cardSettings)) || hasMultipleFeeds;
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -327,7 +329,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <Button
                                     text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
                                     onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
-                                    isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
+                                    isDisabled={!canRemoveSelectedMember}
                                     icon={icons.RemoveMembers}
                                     style={styles.mb5}
                                 />
@@ -342,12 +344,24 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 copyable
                             />
                             <MenuItemWithTopDescription
-                                disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
+                                disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser || !canManageSelectedMemberRole}
                                 title={translate(`workspace.common.roleName`, member?.role)}
-                                interactive={!isReimburser}
+                                interactive={!isReimburser && canManageSelectedMemberRole}
                                 description={translate('common.role')}
-                                shouldShowRightIcon={!isReimburser}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID))}
+                                shouldShowRightIcon={!isReimburser && canManageSelectedMemberRole}
+                                onPress={() => {
+                                    if (
+                                        tryNavigateToSubmitWorkspaceUpgrade(
+                                            policy,
+                                            true,
+                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
+                                            ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
+                                        )
+                                    ) {
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
+                                }}
                                 hintText={isReimburser ? translate('common.roleCannotBeChanged', workspaceWorkflowsPageURL) : undefined}
                                 shouldRenderHintAsHTML
                             />
@@ -357,7 +371,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         <MenuItemWithTopDescription
                                             description={translate('workspace.common.customField1')}
                                             title={member?.employeeUserID}
-                                            shouldShowRightIcon
+                                            shouldShowRightIcon={canWriteMembers}
+                                            interactive={canWriteMembers}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1'))}
                                         />
                                     </OfflineWithFeedback>
@@ -365,7 +380,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         <MenuItemWithTopDescription
                                             description={translate('workspace.common.customField2')}
                                             title={member?.employeePayrollID}
-                                            shouldShowRightIcon
+                                            shouldShowRightIcon={canWriteMembers}
+                                            interactive={canWriteMembers}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2'))}
                                         />
                                     </OfflineWithFeedback>
@@ -378,15 +394,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 onPress={navigateToProfile}
                                 shouldShowRightIcon
                             />
-                            {shouldShowCardsSection && (
+                            {memberCards.length > 0 && (
                                 <>
-                                    {memberCards.length > 0 && (
-                                        <View style={[styles.ph5, styles.pv3]}>
-                                            <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
-                                                {translate('walletPage.assignedCards')}
-                                            </Text>
-                                        </View>
-                                    )}
+                                    <View style={[styles.ph5, styles.pv3]}>
+                                        <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
+                                            {translate('walletPage.assignedCards')}
+                                        </Text>
+                                    </View>
                                     {memberCards.map((memberCard) => {
                                         const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                                         const plaidUrl = getPlaidInstitutionIconUrl(memberCard?.bank);
@@ -407,7 +421,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     description={memberCard?.lastFourPAN ?? lastFourNumbersFromCardName(memberCard?.cardName)}
                                                     badgeText={
                                                         memberCard.bank === CONST.EXPENSIFY_CARD.BANK && unapprovedExpenseLimit !== undefined
-                                                            ? convertToDisplayString(unapprovedExpenseLimit)
+                                                            ? convertToDisplayString(unapprovedExpenseLimit, CONST.CURRENCY.USD)
                                                             : ''
                                                     }
                                                     icon={getCardFeedIcon(memberCard.bank as CompanyCardFeed, illustrations, companyCardFeedIcons)}

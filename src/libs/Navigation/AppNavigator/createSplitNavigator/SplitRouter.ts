@@ -1,14 +1,19 @@
-import type {CommonActions, ParamListBase, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import {StackActions, StackRouter} from '@react-navigation/native';
-import pick from 'lodash/pick';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {CommonActions, ParamListBase, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+
+import {StackActions, StackRouter} from '@react-navigation/native';
+import pick from 'lodash/pick';
+
 import type SplitNavigatorRouterOptions from './types';
+
 import {getPreservedNavigatorState} from './usePreserveNavigatorState';
 
 type StackState = StackNavigationState<ParamListBase> | PartialState<StackNavigationState<ParamListBase>>;
@@ -35,7 +40,7 @@ type AdaptStateIfNecessaryArgs = {
  */
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
     if (!navigationRef.isReady()) {
-        Log.warn('[src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts] NavigationRef is not ready. Returning the original state without adaptation.');
+        Log.hmmm('[src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts] NavigationRef is not ready. Returning the original state without adaptation.');
     }
 
     const isNarrowLayout = getIsNarrowLayout();
@@ -116,9 +121,19 @@ function shouldPopEntireNavigator(state: StackState, action: CommonActions.Actio
 
 function SplitRouter(options: SplitNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
+
+    const getRehydratedState = (partialState: StackState, configOptions: RouterConfigOptions): StackNavigationState<ParamListBase> => {
+        const adaptedState = adaptStateIfNecessary({state: partialState, options});
+        return stackRouter.getRehydratedState(adaptedState, configOptions);
+    };
+
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType, configOptions: RouterConfigOptions) {
+            if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET) {
+                const result = stackRouter.getStateForAction(state, action, configOptions);
+                return result ? getRehydratedState(result, configOptions) : result;
+            }
             if (isPushingSidebarOnCentralPane(state, action, options)) {
                 if (getIsNarrowLayout()) {
                     const newAction = StackActions.popToTop();
@@ -147,10 +162,7 @@ function SplitRouter(options: SplitNavigatorRouterOptions) {
             return maybeAdaptedState as StackNavigationState<ParamListBase>;
         },
 
-        getRehydratedState(partialState: StackState, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
-            const adaptedState = adaptStateIfNecessary({state: partialState, options});
-            return stackRouter.getRehydratedState(adaptedState, {routeNames, routeParamList, routeGetIdList});
-        },
+        getRehydratedState,
     };
 }
 

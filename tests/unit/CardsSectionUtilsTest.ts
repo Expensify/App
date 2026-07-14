@@ -1,13 +1,16 @@
 import {renderHook} from '@testing-library/react-native';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-// eslint-disable-next-line no-restricted-syntax
+
 import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
+
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {BillingStatusResult} from '@src/pages/settings/Subscription/CardSection/utils';
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
 import type IconAsset from '@src/types/utils/IconAsset';
+
 import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- this param is required for the mock
@@ -108,7 +111,7 @@ describe('CardSectionUtils', () => {
                 fundList: undefined,
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             }),
         ).toBeUndefined();
     });
@@ -129,7 +132,7 @@ describe('CardSectionUtils', () => {
                 fundList: undefined,
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
-                ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
+                ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwed.title',
@@ -168,7 +171,7 @@ describe('CardSectionUtils', () => {
                 fundList: undefined,
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
-                ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
+                ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
@@ -195,7 +198,7 @@ describe('CardSectionUtils', () => {
                 fundList: undefined,
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
-                ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
+                ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
@@ -222,7 +225,7 @@ describe('CardSectionUtils', () => {
                 fundList: undefined,
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
-                ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
+                ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerUnderInvoicing.title',
@@ -249,7 +252,7 @@ describe('CardSectionUtils', () => {
                 fundList: undefined,
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
-                ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
+                ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerUnderInvoicingOverdue.title',
@@ -276,7 +279,7 @@ describe('CardSectionUtils', () => {
                 fundList: undefined,
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
-                ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
+                ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.billingDisputePending.title',
@@ -303,7 +306,7 @@ describe('CardSectionUtils', () => {
                 fundList: undefined,
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
-                ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
+                ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardAuthenticationRequired.title',
@@ -330,7 +333,7 @@ describe('CardSectionUtils', () => {
                 fundList: undefined,
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
-                ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
+                ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.insufficientFunds.title',
@@ -357,7 +360,7 @@ describe('CardSectionUtils', () => {
                 fundList: undefined,
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
-                ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
+                ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpired.title',
@@ -378,7 +381,7 @@ describe('CardSectionUtils', () => {
                 fundList: undefined,
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
-                ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
+                ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpired.title',
@@ -405,7 +408,7 @@ describe('CardSectionUtils', () => {
                 fundList: undefined,
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
-                ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
+                ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpireSoon.title',
@@ -433,7 +436,7 @@ describe('CardSectionUtils', () => {
                 fundList: undefined,
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
-                ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
+                ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.retryBillingSuccess.title',
@@ -460,7 +463,7 @@ describe('CardSectionUtils', () => {
                 fundList: undefined,
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
-                ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
+                ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.retryBillingError.title',

@@ -1,21 +1,27 @@
-import type {PropsWithChildren, RefObject} from 'react';
-import React, {createContext, useEffect, useRef, useState} from 'react';
-// Import Animated directly from 'react-native' as animations are used with navigation.
-// eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import SidePanelActions from '@libs/actions/SidePanel';
+import DateUtils from '@libs/DateUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, shouldShowPolicy} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {emailSelector} from '@src/selectors/Session';
 import type {SidePanel} from '@src/types/onyx';
+
+import type {PropsWithChildren, RefObject} from 'react';
+
+import React, {createContext, useEffect, useRef, useState} from 'react';
+// Import Animated directly from 'react-native' as animations are used with navigation.
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
 
 type SidePanelStateContextProps = {
     isSidePanelTransitionEnded: boolean;
@@ -27,12 +33,12 @@ type SidePanelStateContextProps = {
     sidePanelOffset: RefObject<Animated.Value>;
     sidePanelTranslateX: RefObject<Animated.Value>;
     sidePanelNVP?: SidePanel;
-    reportID?: string;
+    sessionStartTime: string | null;
 };
 
 type SidePanelActionsContextProps = {
-    openSidePanel: () => void;
-    closeSidePanel: () => void;
+    openSidePanel: (options?: {forceConcierge?: boolean}) => void;
+    closeSidePanel: (options?: {afterTransition?: () => void}) => void;
 };
 
 const SidePanelStateContext = createContext<SidePanelStateContextProps>({
@@ -44,7 +50,10 @@ const SidePanelStateContext = createContext<SidePanelStateContextProps>({
     shouldHideToolTip: false,
     sidePanelOffset: {current: new Animated.Value(0)},
     sidePanelTranslateX: {current: new Animated.Value(0)},
+    sessionStartTime: null,
 });
+
+const SidePanelReportIDContext = createContext<string | undefined>(undefined);
 
 const SidePanelActionsContext = createContext<SidePanelActionsContextProps>({
     openSidePanel: () => {},
@@ -77,11 +86,25 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     });
 
     const isRHPAdminsRoom = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
-    const isUserAdmin = isPolicyAdmin(activePolicy, sessionEmail);
+    const isRHPHomePage = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
+    const isUserAdmin = canEditWorkspaceSettings(activePolicy);
     const isPolicyActive = shouldShowPolicy(activePolicy, false, sessionEmail ?? '');
     const adminsChatReportID = activePolicy?.chatReportIDAdmins?.toString();
 
-    const reportID = isRHPAdminsRoom && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
+    const reportID = !sidePanelNVP?.forceConcierge && (isRHPAdminsRoom || isRHPHomePage) && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
+
+    const onCloseCompleteRef = useRef<(() => void) | undefined>(undefined);
+    const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
+    const [prevShouldHideSidePanel, setPrevShouldHideSidePanel] = useState(shouldHideSidePanel);
+
+    if (prevShouldHideSidePanel !== shouldHideSidePanel) {
+        setPrevShouldHideSidePanel(shouldHideSidePanel);
+        if (shouldHideSidePanel) {
+            setSessionStartTime(null);
+        } else if (!sessionStartTime) {
+            setSessionStartTime(DateUtils.getDBTime());
+        }
+    }
 
     useEffect(() => {
         sidePanelWidthRef.current = sidePanelWidth;
@@ -104,20 +127,30 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
                 duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
-        ]).start(() => setIsSidePanelTransitionEnded(true));
+        ]).start(() => {
+            setIsSidePanelTransitionEnded(true);
+            onCloseCompleteRef.current?.();
+            onCloseCompleteRef.current = undefined;
+        });
     }, [shouldHideSidePanel, shouldApplySidePanelOffset]);
 
-    const closeSidePanel = (shouldUpdateNarrow = false) => {
+    const closeSidePanel = (options?: {afterTransition?: () => void}) => {
         // User shouldn't be able to close side panel if side panel NVP is undefined
         if (!sidePanelNVP) {
             return;
         }
 
+        onCloseCompleteRef.current = options?.afterTransition;
         setIsSidePanelTransitionEnded(false);
-        SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth || shouldUpdateNarrow);
+        SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth);
 
         // Focus the composer after closing the Side Panel
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
+    };
+
+    const openSidePanel = (options?: {forceConcierge?: boolean}) => {
+        setSessionStartTime(DateUtils.getDBTime());
+        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge);
     };
 
     // Because of the React Compiler we don't need to memoize it manually
@@ -132,22 +165,24 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         sidePanelOffset,
         sidePanelTranslateX,
         sidePanelNVP,
-        reportID,
+        sessionStartTime,
     };
 
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsValue = {
-        openSidePanel: () => SidePanelActions.openSidePanel(!isExtraLargeScreenWidth),
+        openSidePanel,
         closeSidePanel,
     };
 
     return (
         <SidePanelStateContext.Provider value={stateValue}>
-            <SidePanelActionsContext.Provider value={actionsValue}>{children}</SidePanelActionsContext.Provider>
+            <SidePanelReportIDContext.Provider value={reportID}>
+                <SidePanelActionsContext.Provider value={actionsValue}>{children}</SidePanelActionsContext.Provider>
+            </SidePanelReportIDContext.Provider>
         </SidePanelStateContext.Provider>
     );
 }
 
 export default SidePanelContextProvider;
-export {SidePanelStateContext, SidePanelActionsContext};
+export {SidePanelStateContext, SidePanelReportIDContext, SidePanelActionsContext};

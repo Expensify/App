@@ -1,4 +1,5 @@
 import type {ListItem} from '@components/SelectionList/types';
+
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type TagListItem = ListItem & {
@@ -36,5 +37,4 @@ type PolicyTagList = {
     pendingAction?: PendingAction | null;
 };
 
-// eslint-disable-next-line import/prefer-default-export
 export type {TagListItem, PolicyTag, PolicyTagList};

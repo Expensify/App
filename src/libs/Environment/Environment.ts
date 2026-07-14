@@ -1,8 +1,11 @@
-import Config from 'react-native-config';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import getEnvironment from './getEnvironment';
+
+import Config from 'react-native-config';
+
 import type Environment from './getEnvironment/types';
+
+import getEnvironment from './getEnvironment';
 
 const ENVIRONMENT_URLS = {
     [CONST.ENVIRONMENT.DEV]: CONST.DEV_NEW_EXPENSIFY_URL + CONFIG.DEV_PORT,
@@ -23,13 +26,6 @@ const OLDDOT_ENVIRONMENT_URLS = {
  */
 function isDevelopment(): boolean {
     return (Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV;
-}
-
-/**
- * Are we running the app in staging?
- */
-function isStaging(): boolean {
-    return (Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.STAGING;
 }
 
 /**
@@ -69,4 +65,4 @@ function getOldDotEnvironmentURL(): Promise<string> {
     return getEnvironment().then((environment) => OLDDOT_ENVIRONMENT_URLS[environment]);
 }
 
-export {getEnvironment, isInternalTestBuild, isDevelopment, isStaging, isProduction, getEnvironmentURL, getOldDotEnvironmentURL, getOldDotURLFromEnvironment};
+export {isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getOldDotEnvironmentURL, getOldDotURLFromEnvironment};

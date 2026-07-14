@@ -1,5 +1,3 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CountryPicker from '@components/CountryPicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -9,16 +7,24 @@ import StatePicker from '@components/StatePicker';
 import type {State} from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import type {CountryZipRegex, CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useCallback, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 const STEP_FIELDS = [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.ADDRESS_LINE_2, INPUT_IDS.CITY, INPUT_IDS.STATE, INPUT_IDS.ZIP_POST_CODE, INPUT_IDS.COUNTRY];
 
@@ -26,10 +32,25 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [currentCountry, setCurrentCountry] = useState(personalDetailsValues[INPUT_IDS.COUNTRY]);
-    const [state, setState] = useState(personalDetailsValues[INPUT_IDS.STATE]);
+    const currentCountryDraft = personalDetailsValues[INPUT_IDS.COUNTRY];
+    const currentStateDraft = personalDetailsValues[INPUT_IDS.STATE];
+    const [currentCountry, setCurrentCountry] = useState(currentCountryDraft);
+    const [state, setState] = useState(currentStateDraft);
     const [city, setCity] = useState(personalDetailsValues[INPUT_IDS.CITY]);
     const [zipcode, setZipcode] = useState(personalDetailsValues[INPUT_IDS.ZIP_POST_CODE]);
+
+    const prevCountryDraft = useRef(currentCountryDraft);
+    const prevStateDraft = useRef(currentStateDraft);
+
+    if (prevCountryDraft.current !== currentCountryDraft) {
+        prevCountryDraft.current = currentCountryDraft;
+        setCurrentCountry(currentCountryDraft);
+    }
+
+    if (prevStateDraft.current !== currentStateDraft) {
+        prevStateDraft.current = currentStateDraft;
+        setState(currentStateDraft);
+    }
 
     const handleSubmit = usePersonalDetailsFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -62,7 +83,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
             }
 
             // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-            const countryRegexDetails = (values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
+            const countryRegexDetails = (values.country ? COMMON_CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
 
             // The postal code system might not exist for a country, so no regex either for them.
             const countrySpecificZipRegex = countryRegexDetails?.regex;
@@ -75,7 +96,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                         errors[INPUT_IDS.ZIP_POST_CODE] = translate('common.error.fieldRequired');
                     }
                 }
-            } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values[INPUT_IDS.ZIP_POST_CODE]?.trim()?.toUpperCase() ?? '')) {
+            } else if (!COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(values[INPUT_IDS.ZIP_POST_CODE]?.trim()?.toUpperCase() ?? '')) {
                 errors[INPUT_IDS.ZIP_POST_CODE] = translate('privatePersonalDetails.error.incorrectZipFormat');
             }
             return errors;
@@ -113,9 +134,9 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
 
     const isUSAForm = currentCountry === CONST.COUNTRY.US;
 
-    const zipSampleFormat = (currentCountry && (CONST.COUNTRY_ZIP_REGEX_DATA[currentCountry] as CountryZipRegex)?.samples) ?? '';
+    const zipSampleFormat = (currentCountry && (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[currentCountry] as CountryZipRegex)?.samples) ?? '';
 
-    const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
+    const zipFormat = translate('common.zipCodeExampleFormat', zipSampleFormat);
 
     return (
         <FormProvider

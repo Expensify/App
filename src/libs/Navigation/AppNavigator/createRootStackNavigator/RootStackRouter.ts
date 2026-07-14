@@ -1,42 +1,44 @@
-import {CommonActions, StackRouter} from '@react-navigation/native';
-import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import type {ParamListBase} from '@react-navigation/routers';
 import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
+import {getTabScreenParam} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import {
-    handleDismissModalAction,
-    handleNavigatingToModalFromModal,
-    handleOpenDomainSplitAction,
-    handleOpenWorkspaceSplitAction,
-    handlePushFullscreenAction,
-    handleReplaceReportsSplitNavigatorAction,
-    handleToggleSidePanelWithHistoryAction,
-} from './GetStateForActionHandlers';
-import syncBrowserHistory from './syncBrowserHistory';
+
+import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase} from '@react-navigation/routers';
+
+import {CommonActions, StackRouter} from '@react-navigation/native';
+
 import type {
     DismissModalActionType,
-    OpenDomainSplitActionType,
-    OpenWorkspaceSplitActionType,
     PreloadActionType,
     PushActionType,
+    RemoveFullscreenUnderRHPActionType,
     ReplaceActionType,
+    ReplaceFullscreenUnderRHPActionType,
     RootStackNavigatorAction,
     RootStackNavigatorRouterOptions,
+    ToggleMfaModalNavigatorWithHistoryActionType,
+    ToggleModalWithHistoryActionType,
     ToggleSidePanelWithHistoryActionType,
 } from './types';
 
-function isOpenWorkspaceSplitAction(action: RootStackNavigatorAction): action is OpenWorkspaceSplitActionType {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
-}
-
-function isOpenDomainSplitAction(action: RootStackNavigatorAction): action is OpenDomainSplitActionType {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_DOMAIN_SPLIT;
-}
+import {
+    handleDismissModalAction,
+    handleNavigatingToModalFromModal,
+    handlePushFullscreenAction,
+    handleRemoveFullscreenUnderRHP,
+    handleReplaceFullscreenUnderRHP,
+    handleReplaceReportsSplitNavigatorAction,
+    handleToggleMfaModalNavigatorWithHistoryAction,
+    handleToggleModalWithHistoryAction,
+    handleToggleSidePanelWithHistoryAction,
+} from './GetStateForActionHandlers';
+import syncBrowserHistory from './syncBrowserHistory';
 
 function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH;
@@ -50,8 +52,24 @@ function isDismissModalAction(action: RootStackNavigatorAction): action is Dismi
     return action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
 }
 
+function isReplaceFullscreenUnderRHPAction(action: RootStackNavigatorAction): action is ReplaceFullscreenUnderRHPActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
+}
+
+function isRemoveFullscreenUnderRHPAction(action: RootStackNavigatorAction): action is RemoveFullscreenUnderRHPActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
+}
+
 function isToggleSidePanelWithHistoryAction(action: RootStackNavigatorAction): action is ToggleSidePanelWithHistoryActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
+}
+
+function isToggleMfaModalNavigatorWithHistoryAction(action: RootStackNavigatorAction): action is ToggleMfaModalNavigatorWithHistoryActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY;
+}
+
+function isToggleModalWithHistoryAction(action: RootStackNavigatorAction): action is ToggleModalWithHistoryActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY;
 }
 
 function isPreloadAction(action: RootStackNavigatorAction): action is PreloadActionType {
@@ -84,7 +102,7 @@ function handleNavigationGuards(
     if (guardResult.type === 'REDIRECT') {
         const redirectState = getAdaptedStateFromPath(guardResult.route, linkingConfig.config);
 
-        if (!redirectState || !redirectState.routes) {
+        if (!redirectState?.routes) {
             return null;
         }
 
@@ -133,26 +151,34 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
                 return handleToggleSidePanelWithHistoryAction(state, action);
             }
 
-            if (isOpenWorkspaceSplitAction(action)) {
-                return handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
+            if (isToggleMfaModalNavigatorWithHistoryAction(action)) {
+                return handleToggleMfaModalNavigatorWithHistoryAction(state, action);
             }
 
-            if (isOpenDomainSplitAction(action)) {
-                return handleOpenDomainSplitAction(state, action, configOptions, stackRouter);
+            if (isToggleModalWithHistoryAction(action)) {
+                return handleToggleModalWithHistoryAction(state, action);
             }
 
             if (isDismissModalAction(action)) {
                 return handleDismissModalAction(state, configOptions, stackRouter);
             }
 
-            if (isReplaceAction(action) && action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+            if (isReplaceFullscreenUnderRHPAction(action)) {
+                return handleReplaceFullscreenUnderRHP(state, action, configOptions, stackRouter);
+            }
+
+            if (isRemoveFullscreenUnderRHPAction(action)) {
+                return handleRemoveFullscreenUnderRHP(state, action, configOptions, stackRouter);
+            }
+
+            if (isReplaceAction(action) && (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || getTabScreenParam(action.payload) === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
                 return handleReplaceReportsSplitNavigatorAction(state, action, configOptions, stackRouter);
             }
 
             // When navigating to a specific workspace from WorkspaceListPage there should be entering animation for its sidebar (only case where we want animation for sidebar)
             // That's why we have a separate handler for opening it called handleOpenWorkspaceSplitAction
             // options for WorkspaceSplitNavigator can be found in AuthScreens.tsx > getWorkspaceSplitNavigatorOptions
-            if (isPushAction(action) && isFullScreenName(action.payload.name) && action.payload.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+            if (isPushAction(action) && isFullScreenName(action.payload.name) && action.payload.name !== NAVIGATORS.WORKSPACE_NAVIGATOR) {
                 return handlePushFullscreenAction(state, action, configOptions, stackRouter);
             }
 

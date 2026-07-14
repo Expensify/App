@@ -1,11 +1,17 @@
-import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
-import {createNavigatorFactory} from '@react-navigation/native';
 import SearchSidebar from '@components/Navigation/SearchSidebar';
+
 import usePreserveNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import addPushParamsRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addPushParamsRouterExtension';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
+
 import createPlatformStackNavigatorComponent from '@navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
 import type {CustomEffectsHookProps, PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@navigation/PlatformStackNavigation/types';
+
+import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
+
+import {createNavigatorFactory} from '@react-navigation/native';
+
 import SearchFullscreenRouter from './SearchFullscreenRouter';
 import useCustomState from './useCustomState';
 
@@ -15,7 +21,7 @@ function useCustomEffects(props: CustomEffectsHookProps) {
 }
 
 const SearchFullscreenNavigatorComponent = createPlatformStackNavigatorComponent('SearchFullscreenNavigator', {
-    createRouter: SearchFullscreenRouter,
+    createRouter: addPushParamsRouterExtension(SearchFullscreenRouter),
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     useCustomEffects,
     useCustomState,

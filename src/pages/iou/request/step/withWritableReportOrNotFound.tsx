@@ -1,19 +1,28 @@
-import type {ComponentType} from 'react';
-import React, {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import {openReport} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
+
+import type {ComponentType} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect} from 'react';
 
 type WithWritableReportOrNotFoundOnyxProps = {
     /** The report corresponding to the reportID in the route params */
@@ -28,6 +37,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION
     | typeof SCREENS.MONEY_REQUEST.STEP_DATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
+    | typeof SCREENS.MONEY_REQUEST.STEP_VENDOR
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE
@@ -58,21 +68,26 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL
     | typeof SCREENS.MONEY_REQUEST.STEP_TIME_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_HOURS
-    | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT;
+    | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT
+    | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE;
 
 type WithWritableReportOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
+
+function dismissMoneyRequestModal() {
+    Navigation.dismissModal();
+}
 
 export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>>(
     WrappedComponent: ComponentType<TProps>,
     shouldIncludeDeprecatedIOUType = false,
 ): React.ComponentType<Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>> {
-    // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>) {
         const {route} = props;
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
         const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
         const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
         const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+        const [betas] = useOnyx(ONYXKEYS.BETAS);
         const isReportArchived = useReportIsArchived(report?.reportID);
 
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
@@ -84,21 +99,24 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
                 return;
             }
-            openReport({reportID: route.params.reportID, introSelected});
+            openReport({reportID: route.params.reportID, introSelected, betas});
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 
         if (isEditing && isLoadingApp) {
-            return <FullScreenLoadingIndicator />;
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'withWritableReportOrNotFound',
+                isLoadingApp,
+            };
+            return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
         }
 
         if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''}, isReportArchived)) {
-            return <FullPageNotFoundView shouldShow />;
+            return <NotFoundPage onBackButtonPress={dismissMoneyRequestModal} />;
         }
 
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 report={report}
                 reportDraft={reportDraft}

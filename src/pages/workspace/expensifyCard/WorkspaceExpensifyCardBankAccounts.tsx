@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import BankAccountVerificationView from '@components/BankAccountVerificationView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -8,6 +6,8 @@ import getBankIcon from '@components/Icon/BankIcons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -15,20 +15,29 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
+import {canEditWorkspaceSettings} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {configureExpensifyCardsForPolicy, setIssueNewCardStepAndData} from '@userActions/Card';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceExpensifyCardBankAccountsProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT>;
 
@@ -36,9 +45,11 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     const policyID = route?.params?.policyID;
     const policy = usePolicy(policyID);
+    const canStartBankAccountSetup = canEditWorkspaceSettings(policy, currentUserLogin);
 
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
@@ -66,14 +77,13 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         Navigation.navigate(
             ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
                 policyID,
-                stepToOpen: REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW,
                 backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID),
             }),
         );
     };
 
     const handleSelectBankAccount = (value?: number) => {
-        configureExpensifyCardsForPolicy(policyID, policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID, value);
+        configureExpensifyCardsForPolicy(policyID, policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID, value);
     };
 
     const renderBankOptions = () => {
@@ -111,12 +121,15 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const verificationState = getVerificationState();
 
-    const icons = useMemoizedLazyExpensifyIcons(['Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const handleVerifiedButtonPress = () => {
+        if (!policyID) {
+            return;
+        }
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
         Navigation.dismissModal();
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
 
     const getHeaderButtonText = () => {
@@ -136,6 +149,9 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+            shouldBeBlocked={!canStartBankAccountSetup}
         >
             <ScreenWrapper
                 testID="WorkspaceExpensifyCardBankAccounts"

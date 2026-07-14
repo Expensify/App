@@ -1,14 +1,18 @@
+import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
-import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {CustomFlatListProps} from './types';
 
 // FlatList wrapped with the freeze component will lose its scroll state when frozen (only for Android).
 // CustomFlatList saves the offset and use it for scrollToOffset() when unfrozen.
-function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMomentumScrollEnd, shouldHideContent = false, ...restProps}: CustomFlatListProps<T>) {
+function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMomentumScrollEnd, onScroll, shouldHideContent = false, ...restProps}: CustomFlatListProps<T>) {
     const lastScrollOffsetRef = useRef(0);
     const styles = useThemeStyles();
 
@@ -24,7 +28,6 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
         }
     }, [ref]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleScrollEnd = useCallback(
         (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             onMomentumScrollEnd?.(event);
@@ -32,6 +35,11 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
         },
         [onMomentumScrollEnd],
     );
+
+    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        lastScrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+        onScroll?.(event);
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -44,9 +52,9 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
     if (enableAnimatedKeyboardDismissal) {
         return (
             <KeyboardDismissibleFlatList
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restProps}
                 ref={ref}
+                onScroll={handleScroll}
                 onMomentumScrollEnd={handleScrollEnd}
                 contentContainerStyle={contentContainerStyle}
             />
@@ -55,9 +63,9 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
 
     return (
         <FlatList<T>
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             ref={ref}
+            onScroll={handleScroll}
             onMomentumScrollEnd={handleScrollEnd}
             contentContainerStyle={contentContainerStyle}
         />

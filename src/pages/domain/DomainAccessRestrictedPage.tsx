@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -10,21 +8,29 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {domainNameSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type DomainAccessRestrictedPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED>;
 
@@ -44,8 +50,13 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
     const {domainAccountID} = route.params;
     const [domainName, domainNameResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
 
-    if (isLoadingOnyxValue(domainNameResults)) {
-        return <FullScreenLoadingIndicator />;
+    const isDomainNameLoading = isLoadingOnyxValue(domainNameResults);
+    if (isDomainNameLoading) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'DomainAccessRestrictedPage',
+            isDomainNameLoading,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (!domainName) {

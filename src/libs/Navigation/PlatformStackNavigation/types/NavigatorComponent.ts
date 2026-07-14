@@ -1,4 +1,5 @@
 import type {EventMapBase, ParamListBase, RouteProp, StackActionHelpers} from '@react-navigation/native';
+
 import type {
     PlatformSpecificEventMap,
     PlatformSpecificNavigationOptions,
@@ -56,6 +57,7 @@ type CreatePlatformStackNavigatorComponentOptions<RouterOptions extends Platform
     useCustomEffects?: CustomEffectsHook<ParamList>;
     ExtraContent?: ExtraContent;
     NavigationContentWrapper?: NavigationContentWrapper;
+    freezeNonTopScreens?: boolean;
 };
 
 export type {CustomCodeProps, CustomStateHookProps, CustomEffectsHookProps, CreatePlatformStackNavigatorComponentOptions, ExtraContentProps};

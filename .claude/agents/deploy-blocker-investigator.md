@@ -1,7 +1,7 @@
 ---
 name: deploy-blocker-investigator
 description: Investigates deploy blockers to find the causing PR and recommend resolution.
-tools: Glob, Grep, Read, Bash, BashOutput
+tools: Glob, Grep, Read, Write, Bash, BashOutput
 model: inherit
 ---
 
@@ -114,11 +114,9 @@ See Decision Tree below for label actions.
 
 ### Step 7: Post comment and update labels
 
-Post your findings (use single quotes for the body to handle special characters):
+Write the comment body to a temp file using the Write tool, then post it:
 ```bash
-gh issue comment "$ISSUE_URL" --body '## 🔍 Investigation Summary
-...your comment here...
-'
+gh issue comment "$ISSUE_URL" --body-file /tmp/investigation-summary.md
 ```
 
 Remove label only if the decision tree warrants it:
@@ -128,6 +126,15 @@ removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlocker      # For Frontend bugs
 ```
 
 Call scripts by name only (e.g., `removeDeployBlockerLabel.sh`), not with full paths.
+
+### Step 8: Assign contributors
+
+If the primary causing PR has at least medium confidence, assign its author and approving reviewers to the deploy blocker issue. Only assign contributors from this single PR.
+
+```bash
+gh pr view <PR_NUMBER> --json reviews
+gh issue edit "$ISSUE_URL" --add-assignee <logins>
+```
 
 ---
 
@@ -168,7 +175,7 @@ Choose ONE:
 
 ## Comment Format
 
-Post ONE comment using this exact format:
+Use the Write tool to create `/tmp/investigation-summary.md` with the following markdown structure. Every field and heading must be present.
 
 ```markdown
 ## 🔍 Investigation Summary
@@ -182,6 +189,7 @@ Post ONE comment using this exact format:
 Brief explanation of why this recommendation (1-2 sentences).
 
 
+**Assigned**: @author (PR author), @reviewer (approving reviewer) from highest-confidence causing PR only — omit if no causing PR identified
 **Labels**: [Describe any label changes made]
 
 <details>
@@ -201,6 +209,8 @@ Technical explanation of what went wrong in the code.
 
 </details>
 ```
+
+Then post with: `gh issue comment "$ISSUE_URL" --body-file /tmp/investigation-summary.md`
 ---
 
 ## Constraints
@@ -213,7 +223,7 @@ Technical explanation of what went wrong in the code.
 - Make assumptions about code you haven't read
 - Recommend DEMOTE for bugs affecting core functionality (auth, payments, data loss)
 - Close the issue—only update labels and comment
-- Use heredocs, temp files, or shell redirects for comments
+- Use heredocs or shell redirects for comments
 
 **DO:**
 - Always verify the causing PR touches the affected code before concluding

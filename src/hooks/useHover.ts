@@ -1,14 +1,15 @@
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
+
 import {useState} from 'react';
-import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 
 const useHover = () => {
     const [hovered, setHovered] = useState(false);
-    const canUseTouchScreen = canUseTouchScreenUtil();
+    const deviceHasHoverSupport = hasHoverSupport();
     return {
         hovered,
         bind: {
-            onMouseEnter: () => !canUseTouchScreen && setHovered(true),
-            onMouseLeave: () => !canUseTouchScreen && setHovered(false),
+            onMouseEnter: () => deviceHasHoverSupport && setHovered(true),
+            onMouseLeave: () => deviceHasHoverSupport && setHovered(false),
         },
     };
 };

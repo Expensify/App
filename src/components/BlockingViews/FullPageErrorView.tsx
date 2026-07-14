@@ -1,9 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
 
@@ -32,7 +36,6 @@ type FullPageErrorViewProps = {
     containerStyle?: StyleProp<ViewStyle>;
 };
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 function FullPageErrorView({testID, children = null, shouldShow = false, title = '', subtitle = '', shouldForceFullScreen = false, subtitleStyle, containerStyle}: FullPageErrorViewProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
@@ -61,5 +64,4 @@ function FullPageErrorView({testID, children = null, shouldShow = false, title =
     return children;
 }
 
-export type {FullPageErrorViewProps};
 export default FullPageErrorView;

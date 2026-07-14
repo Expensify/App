@@ -1,13 +1,17 @@
-import Onyx from 'react-native-onyx';
 import {createPolicyTax, deletePolicyTaxes, renamePolicyTax, setPolicyTaxCode, setPolicyTaxesEnabled, updatePolicyTaxValue} from '@libs/actions/TaxRate';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, TaxRate} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../utils/TestHelper';
+
 import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
@@ -52,7 +56,7 @@ describe('actions/PolicyTax', () => {
         it('Set policy`s custom tax name', () => {
             const customTaxName = 'Custom tag name';
             mockFetch?.pause?.();
-            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName);
+            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName, undefined);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -93,7 +97,7 @@ describe('actions/PolicyTax', () => {
             const originalCustomTaxName = fakePolicy?.taxRates?.name;
 
             mockFetch?.pause?.();
-            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName);
+            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName, originalCustomTaxName);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -140,7 +144,7 @@ describe('actions/PolicyTax', () => {
             const taxCode = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode, undefined);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -181,7 +185,7 @@ describe('actions/PolicyTax', () => {
             const originalDefaultExternalID = fakePolicy?.taxRates?.defaultExternalID;
 
             mockFetch?.pause?.();
-            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode, originalDefaultExternalID);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -227,7 +231,7 @@ describe('actions/PolicyTax', () => {
             const taxCode = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode, undefined);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -269,7 +273,7 @@ describe('actions/PolicyTax', () => {
             const originalDefaultForeignCurrencyID = fakePolicy?.taxRates?.foreignTaxDefault;
 
             mockFetch?.pause?.();
-            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode, originalDefaultForeignCurrencyID);
             return waitForBatchedUpdates()
                 .then(
                     () =>

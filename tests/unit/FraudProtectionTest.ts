@@ -1,9 +1,11 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockSetAuthenticationData = jest.fn();
-const mockSetAttribute = jest.fn();
+const mockSetAttribute = jest.fn<void, unknown[]>();
 
 jest.mock('@libs/FraudProtection/GroupIBSdkBridge', () => ({
     init: jest.fn(),
@@ -12,15 +14,26 @@ jest.mock('@libs/FraudProtection/GroupIBSdkBridge', () => ({
     setAuthenticationData: mockSetAuthenticationData,
 }));
 
-// Load the module once. Onyx connections are registered at module scope.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-require('@libs/FraudProtection');
+// Captured snapshot of the setAttribute calls made by FraudProtection's initial sweep when it loads with an
+// already-authenticated session in Onyx. Captured in beforeAll so the restored-session assertions can read it
+// after beforeEach clears the live mock state for the rest of the tests.
+let initialSweepSetAttributeCalls: unknown[][] = [];
 
-beforeAll(() =>
-    Onyx.init({
-        keys: ONYXKEYS,
-    }),
-);
+beforeAll(async () => {
+    Onyx.init({keys: ONYXKEYS});
+
+    // Pre-populate Onyx with a restored session BEFORE loading FraudProtection so the module's initial session
+    // callback observes an existing authToken without first observing a signed-out state — the "session restored
+    // from disk on app boot" scenario.
+    await Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: 'restored@expensify.com', requiresTwoFactorAuth: false, validated: true});
+    await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'restoredToken', accountID: 99, authMethod: 'google'});
+    await waitForBatchedUpdates();
+
+    require('@libs/FraudProtection');
+    await waitForBatchedUpdates();
+
+    initialSweepSetAttributeCalls = mockSetAttribute.mock.calls.slice();
+});
 
 beforeEach(async () => {
     await Onyx.clear();
@@ -170,5 +183,20 @@ describe('FraudProtection', () => {
         await waitForBatchedUpdates();
 
         expect(mockSetAttribute).toHaveBeenCalledWith('mfa', '2fa_disabled', false, true);
+    });
+
+    it('should forward session.authMethod as the authentication attribute on a fresh sign-in', async () => {
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: 'user@expensify.com', requiresTwoFactorAuth: false, validated: true});
+        await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'token123', accountID: 12345, authMethod: 'shortLivedAuthToken'});
+        await waitForBatchedUpdates();
+
+        expect(mockSetAttribute).toHaveBeenCalledWith('authentication', 'shortLivedAuthToken', false, true);
+    });
+
+    it('should report authentication=infiniteSession when an authenticated session is restored on app boot', () => {
+        // Asserts against the snapshot captured in beforeAll. Even though the restored session stores
+        // authMethod='google', the freshly-loaded module overrides it with infiniteSession because no
+        // signed-out state was observed during this lifetime.
+        expect(initialSweepSetAttributeCalls).toContainEqual(['authentication', 'infiniteSession', false, true]);
     });
 });

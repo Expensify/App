@@ -1,10 +1,15 @@
-import React from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
+
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React from 'react';
+
 import NetSuiteImportAddCustomListContent from './NetSuiteImportAddCustomListContent';
 
 function NetSuiteImportAddCustomListPage({policy, route}: WithPolicyConnectionsProps) {
@@ -12,7 +17,7 @@ function NetSuiteImportAddCustomListPage({policy, route}: WithPolicyConnectionsP
     const isLoading = isLoadingOnyxValue(draftValuesMetadata);
 
     if (isLoading) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'NetSuiteImportAddCustomListPage'}} />;
     }
 
     return (

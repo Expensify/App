@@ -1,8 +1,12 @@
-import type {ComponentType} from 'react';
-import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {ComponentType} from 'react';
+
+import React from 'react';
 
 type HOCProps = {
     currentUserPersonalDetails: CurrentUserPersonalDetails;
@@ -15,7 +19,6 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps>(Wra
         const currentUserPersonalDetails = useCurrentUserPersonalDetails();
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 currentUserPersonalDetails={currentUserPersonalDetails}
             />

@@ -1,14 +1,15 @@
 #!/usr/bin/env ts-node
-/* eslint-disable @typescript-eslint/naming-convention */
-import * as core from '@actions/core';
-import {format} from 'date-fns/format';
-import fs from 'fs';
 import CONST from '@github/libs/CONST';
 import {generateDeployChecklistBodyAndAssignees, getDeployChecklistData} from '@github/libs/DeployChecklistUtils';
 import type {ChecklistItem, DeployChecklistData} from '@github/libs/DeployChecklistUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 import type {MergedPR, SubmoduleUpdate} from '@github/libs/GitUtils';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import * as core from '@actions/core';
+import {format} from 'date-fns/format';
+import fs from 'fs';
 
 type IssuesCreateResponse = Awaited<ReturnType<typeof GithubUtils.octokit.issues.create>>['data'];
 
@@ -314,7 +315,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             const {data: newChecklist} = await GithubUtils.octokit.issues.create({
                 ...defaultPayload,
                 title: `Deploy Checklist: New Expensify ${format(new Date(), CONST.DATE_FORMAT_STRING)}`,
-                labels: [CONST.LABELS.STAGING_DEPLOY, CONST.LABELS.LOCK_DEPLOY],
+                labels: [CONST.LABELS.STAGING_DEPLOY, CONST.LABELS.LOCK_DEPLOY, CONST.LABELS.DAILY],
                 assignees: [CONST.APPLAUSE_BOT as string].concat(checklistAssignees),
             });
             console.log(`Successfully created new deploy checklist! 🎉 ${newChecklist.html_url}`);

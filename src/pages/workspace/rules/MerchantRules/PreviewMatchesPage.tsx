@@ -1,30 +1,38 @@
-import type {ListRenderItem} from '@shopify/flash-list';
-import {FlashList} from '@shopify/flash-list';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getTransactionsMatchingCodingRule} from '@libs/actions/Policy/Rules';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import type {CodingRuleFilter} from '@src/types/onyx/Policy';
+
+import type {ListRenderItem} from '@shopify/flash-list';
+
+import {FlashList} from '@shopify/flash-list';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 type PreviewMatchesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES>;
 
@@ -63,6 +71,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const matchingTransactionsArray = Object.values(matchingTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const hasMatchingTransactions = !!(merchant && matchingTransactionsArray.length);
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PreviewMatchesPage', isLoadingFromOnyx: !!isLoading};
     const isLoadedAndEmpty = !isLoading && !hasMatchingTransactions;
     const isLoadedWithTransactions = !isLoading && hasMatchingTransactions;
 
@@ -71,8 +80,9 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
         <UnreportedExpenseListItem
             readOnly
             showTooltip
-            item={item}
+            item={{...item, keyForList: item.transactionID, errors: undefined}}
             onSelectRow={() => {}}
+            keyForList={item.transactionID}
         />
     );
 
@@ -102,8 +112,9 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <ActivityIndicator
                                 color={theme.spinner}
-                                size={25}
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                 style={[styles.pl3]}
+                                reasonAttributes={reasonAttributes}
                             />
                         </View>
                     )}

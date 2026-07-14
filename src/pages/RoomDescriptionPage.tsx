@@ -1,7 +1,3 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -12,25 +8,34 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {canEditReportDescription, getReportDescription} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+
 import variables from '@styles/variables';
+
 import {updateDescription} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReportDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type RoomDescriptionPageProps = {
     /** Policy for the current report */
@@ -41,8 +46,7 @@ type RoomDescriptionPageProps = {
 };
 
 function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
-    const route = useRoute<PlatformStackRouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>>();
-    const backTo = route.params.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path);
     const styles = useThemeStyles();
     const [description, setDescription] = useState(() => Parser.htmlToMarkdown(getReportDescription(report)));
     const reportDescriptionInputRef = useRef<BaseTextInputRef | null>(null);
@@ -55,8 +59,8 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     }, []);
 
     const goBack = useCallback(() => {
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backTo ?? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)));
-    }, [report.reportID, backTo]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backPath));
+    }, [backPath]);
 
     const submitForm = useCallback(() => {
         const newValue = description.trim();

@@ -1,6 +1,8 @@
-import {getDeepestFocusedScreenName, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
+import {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
+
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';
@@ -18,8 +20,8 @@ function useSidePanelDisplayStatus() {
     const isAnonymousUser = useIsAnonymousUser();
     const isSidePanelVisible = isExtraLargeScreenWidth ? sidePanelNVP?.open : sidePanelNVP?.openNarrowScreen;
     const isIn2FASetupFlow = useRootNavigationState((state) => {
-        const focusedScreenName = getDeepestFocusedScreenName(state);
-        return isTwoFactorSetupScreen(focusedScreenName);
+        const focusedScreen = getDeepestFocusedScreen(state);
+        return isTwoFactorSetupScreen(focusedScreen?.name);
     });
 
     // The Side Panel is hidden when:

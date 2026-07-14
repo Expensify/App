@@ -1,54 +1,44 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import type * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {AppState, Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
-import DelegateNoAccessModalProvider from './components/DelegateNoAccessModalProvider';
-import EmojiPicker from './components/EmojiPicker/EmojiPicker';
-import GrowlNotification from './components/GrowlNotification';
+
+import type {BootsplashGateStatus} from './libs/telemetry/bootsplashTelemetry';
+import type {Route} from './ROUTES';
+
 import {useInitialURLActions} from './components/InitialURLContextProvider';
-import ProactiveAppReviewModalManager from './components/ProactiveAppReviewModalManager';
-import ScreenShareRequestModal from './components/ScreenShareRequestModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
-import UpdateAppModal from './components/UpdateAppModal';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import DeepLinkHandler from './DeepLinkHandler';
 import DelegateAccessHandler from './DelegateAccessHandler';
 import FullstoryInitHandler from './FullstoryInitHandler';
+import GlobalModals from './GlobalModals';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
 import {updateLastRoute} from './libs/actions/App';
-import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import './libs/actions/replaceOptimisticReportWithActualReport';
+import {initReconnect} from './libs/actions/Reconnect';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
-import {growlRef} from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
+// This lib needs to be imported for its module-level NetInfo and Onyx subscriptions
+import './libs/NetworkState';
 import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
-import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
-import './libs/Notification/PushNotification/subscribeToPushNotifications';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import './libs/registerPaginationConfig';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
-import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import './libs/UnreadIndicatorUpdater';
+import {startBootsplashMonitor} from './libs/telemetry/bootsplashTelemetry';
+import {cleanupTelemetryTrackers, initializeTelemetryTrackers} from './libs/telemetry/TelemetrySynchronizer';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
-import PopoverReportActionContextMenu from './pages/inbox/report/ContextMenu/PopoverReportActionContextMenu';
-import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import PriorityModeHandler from './PriorityModeHandler';
-import type {Route} from './ROUTES';
-import {accountIDSelector} from './selectors/Session';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 
 Onyx.registerLogger(({level, message, parameters}) => {
@@ -70,33 +60,31 @@ function Expensify() {
     const {setSplashScreenState} = useSplashScreenActions();
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {preferredLocale} = useLocalize();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
+    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
+    const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
-
     useDebugShortcut();
 
     useEffect(() => {
-        initializeMemoryTrackingTelemetry();
+        initializeTelemetryTrackers();
         return () => {
-            cleanupMemoryTrackingTelemetry();
+            cleanupTelemetryTrackers();
         };
     }, []);
 
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
-    const [initialUrl, setInitialUrl] = useState<Route | null>(null);
+    const [initialUrl, setInitialUrl] = useState<Route | null | undefined>(undefined);
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
     useEffect(() => {
-        bootsplashSpan.current = startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {
-            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
-            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
-            parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
-        });
+        bootsplashSpan.current =
+            startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {
+                name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+                op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
+            }) ?? null;
 
         startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX, {
             name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,
@@ -154,6 +142,22 @@ function Expensify() {
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
 
+    // We store this in a ref to get the latest values in BootsplashMonitor callback
+    const gateStatusRef = useRef<BootsplashGateStatus | null>(null);
+    gateStatusRef.current = {
+        splashScreenState,
+        isOnyxMigrated,
+        isCheckingPublicRoom,
+        hasAttemptedToOpenPublicRoom,
+        isNavigationReady,
+        preferredLocale,
+        shouldInit,
+        shouldHideSplash,
+        isAuthenticated,
+        updateRequired,
+        lastVisitedPath,
+    };
+
     useEffect(() => {
         if (!shouldHideSplash) {
             return;
@@ -208,12 +212,7 @@ function Expensify() {
     useLayoutEffect(() => {
         // Initialize this client as being an active client
         ActiveClientManager.init();
-
-        // Used for the offline indicator appearing when someone is offline
-        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo(accountID);
-
-        return unsubscribeNetInfo;
-    }, [accountID]);
+    }, []);
 
     // Log the platform and config to debug .env issues
     useEffect(() => {
@@ -221,22 +220,10 @@ function Expensify() {
     }, []);
 
     useEffect(() => {
-        setTimeout(() => {
-            const appState = AppState.currentState;
-            Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
+        return startBootsplashMonitor(gateStatusRef);
+    }, []);
 
-            if (splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE) {
-                const propsToLog = {
-                    isCheckingPublicRoom,
-                    updateRequired,
-                    updateAvailable,
-                    isAuthenticated,
-                    lastVisitedPath,
-                };
-                Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
-            }
-        }, 30 * 1000);
-
+    useEffect(() => {
         // Run any Onyx schema migrations and then continue loading the main app
         migrateOnyx().then(() => {
             // In case of a crash that led to disconnection, we want to remove all the push notifications.
@@ -267,6 +254,15 @@ function Expensify() {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
+    const didInitReconnectRef = useRef(false);
+    useEffect(() => {
+        if (didInitReconnectRef.current) {
+            return;
+        }
+        didInitReconnectRef.current = true;
+        initReconnect();
+    }, []);
+
     useLayoutEffect(() => {
         if (!isNavigationReady || !lastRoute) {
             return;
@@ -288,35 +284,29 @@ function Expensify() {
 
     return (
         <>
-            {shouldInit && (
-                <>
-                    <GrowlNotification ref={growlRef} />
-                    <DelegateNoAccessModalProvider>
-                        <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
-                    </DelegateNoAccessModalProvider>
-                    <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
-                    {/* We include the modal for showing a new update at the top level so the option is always present. */}
-                    {updateAvailable && !updateRequired ? <UpdateAppModal /> : null}
-                    {/* Proactive app review modal shown when user has completed a trigger action */}
-                    <ProactiveAppReviewModalManager />
-                    <ScreenShareRequestModal />
-                </>
-            )}
-
+            {shouldInit && <GlobalModals />}
             <PriorityModeHandler />
             <DelegateAccessHandler />
             <FullstoryInitHandler />
             <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
-            {hasAttemptedToOpenPublicRoom && (
+            {/* Wait for the initial URL to resolve before mounting NavigationRoot, because its initialState
+                is computed once on mount. In HybridApp, getInitialURL() may never resolve (OldDot native
+                bridge), so we skip this guard to avoid blocking the app. */}
+            {hasAttemptedToOpenPublicRoom && (CONFIG.IS_HYBRID_APP || initialUrl !== undefined) && (
                 <NavigationRoot
                     onReady={setNavigationReady}
                     authenticated={isAuthenticated}
                     lastVisitedPath={lastVisitedPath as Route}
-                    initialUrl={initialUrl}
+                    initialUrl={initialUrl ?? null}
                 />
             )}
-            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            {(isSplashVisible || isSplashReadyToBeHidden) && (
+                <SplashScreenHider
+                    shouldHideSplash={shouldHideSplash}
+                    onHide={onSplashHide}
+                />
+            )}
         </>
     );
 }

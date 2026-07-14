@@ -1,12 +1,18 @@
 import {act, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import DateUtils from '@libs/DateUtils';
+import {setHasRadio} from '@libs/NetworkState';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type {ReportNameValuePairsCollectionDataSet} from '@src/types/onyx/ReportNameValuePairs';
+
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -14,7 +20,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('@src/libs/Permissions');
-jest.mock('@src/components/Icon/Expensicons');
 jest.mock('@src/hooks/useRootNavigationState');
 
 const TEST_USER_ACCOUNT_ID = 1;
@@ -33,11 +38,11 @@ describe('Sidebar', () => {
     beforeEach(async () => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        setHasRadio(true);
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
             // Initialize the network key for OfflineWithFeedback
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
         });
 
         await waitForBatchedUpdatesWithAct();

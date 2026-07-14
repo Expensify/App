@@ -3,11 +3,11 @@ import type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType}
 const defaultShowContextMenuStateContextValue: ShowContextMenuStateContextType = {
     anchor: null,
     report: undefined,
-    isReportArchived: false,
     action: undefined,
     transactionThreadReport: undefined,
     isDisabled: true,
     shouldDisplayContextMenu: true,
+    originalReportID: undefined,
 };
 
 const defaultShowContextMenuActionsContextValue: ShowContextMenuActionsContextType = {

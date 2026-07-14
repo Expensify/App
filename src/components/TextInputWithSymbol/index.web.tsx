@@ -1,14 +1,16 @@
-import React, {useRef} from 'react';
 import type {TextInputSelectionChangeEvent} from 'react-native';
-import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
+
+import React, {useRef} from 'react';
+
 import type {TextInputWithSymbolProps} from './types';
+
+import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
 
 function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: TextInputWithSymbolProps) {
     const textInputRef = useRef<HTMLFormElement | null>(null);
 
     return (
         <BaseTextInputWithSymbol
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={(element) => {
                 textInputRef.current = element as HTMLFormElement;

@@ -1,15 +1,19 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
-import type {EdgeInsets} from 'react-native-safe-area-context';
+import useInboxTabSpanLifecycle from '@hooks/useInboxTabSpanLifecycle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {endSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {EdgeInsets} from 'react-native-safe-area-context';
+
+import {useIsFocused} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
+import React, {useCallback, useRef} from 'react';
+import {View} from 'react-native';
+
 import SidebarLinks from './SidebarLinks';
 
 type SidebarLinksDataProps = {
@@ -23,29 +27,13 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const {translate} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
-    const {orderedReports, currentReportID} = useSidebarOrderedReportsState('SidebarLinksData');
+    const {filteredReports, orderedReportIDs, currentReportID} = useSidebarOrderedReportsState();
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
 
-    // Guards against ending the span before the first layout has completed.
-    const hasHadFirstLayout = useRef(false);
-    const onLayout = useCallback(() => {
-        hasHadFirstLayout.current = true;
-        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
-    }, []);
-
-    // On re-visits, react-freeze serves the cached layout — onLayout never fires.
-    // useFocusEffect fires on unfreeze, which is when the screen becomes visible.
-    useFocusEffect(
-        useCallback(() => {
-            if (!hasHadFirstLayout.current) {
-                return;
-            }
-            endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
-        }, []),
-    );
+    const onLayout = useInboxTabSpanLifecycle();
 
     return (
         <View
@@ -61,7 +49,8 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
                 priorityMode={priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}
                 // Data props:
                 isActiveReport={isActiveReport}
-                optionListItems={orderedReports}
+                optionListItems={filteredReports}
+                hasReportData={orderedReportIDs.length > 0}
             />
         </View>
     );

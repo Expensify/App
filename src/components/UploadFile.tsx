@@ -1,14 +1,19 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -49,6 +54,9 @@ type UploadFileProps = {
 
     /** The total size limit of the files that can be selected. */
     totalFilesSizeLimit?: number;
+
+    /** The maximum size of a single file that can be selected. */
+    maxFileSize?: number;
 };
 
 function UploadFile({
@@ -63,8 +71,9 @@ function UploadFile({
     onInputChange = () => {},
     totalFilesSizeLimit = 0,
     fileLimit = 0,
+    maxFileSize = 0,
 }: UploadFileProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -73,9 +82,17 @@ function UploadFile({
 
         const totalSize = resultedFiles.reduce((sum, file) => sum + (file.size ?? 0), 0);
 
+        if (maxFileSize) {
+            const oversizedFile = files.find((file) => (file.size ?? 0) > maxFileSize);
+            if (oversizedFile) {
+                setError(translate('attachmentPicker.sizeExceededWithLimit', maxFileSize / (1024 * 1024)));
+                return;
+            }
+        }
+
         if (totalFilesSizeLimit) {
             if (totalSize > totalFilesSizeLimit) {
-                setError(translate('attachmentPicker.sizeExceededWithValue', {maxUploadSizeInMB: totalFilesSizeLimit / (1024 * 1024)}));
+                setError(translate('attachmentPicker.sizeExceededWithValue', totalFilesSizeLimit / (1024 * 1024)));
                 return;
             }
         }
@@ -131,7 +148,7 @@ function UploadFile({
                     <Icon
                         src={icons.Paperclip}
                         fill={theme.icon}
-                        medium
+                        size={CONST.ICON_SIZE.MEDIUM}
                     />
                     <TextWithMiddleEllipsis
                         text={file.name ?? ''}
@@ -147,7 +164,7 @@ function UploadFile({
                         <Icon
                             src={icons.Close}
                             fill={theme.icon}
-                            medium
+                            size={CONST.ICON_SIZE.MEDIUM}
                         />
                     </PressableWithFeedback>
                 </View>

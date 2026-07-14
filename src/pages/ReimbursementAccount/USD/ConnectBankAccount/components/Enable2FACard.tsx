@@ -1,26 +1,26 @@
-import React from 'react';
-import {View} from 'react-native';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
+
 import Navigation from '@navigation/Navigation';
-import ROUTES from '@src/ROUTES';
 
-type Enable2FACardProps = {
-    policyID?: string | undefined;
-};
+import React from 'react';
+import {View} from 'react-native';
 
-function Enable2FACard({policyID}: Enable2FACardProps) {
+function Enable2FACard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
-    const icons = useMemoizedLazyExpensifyIcons(['Shield'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Shield']);
+    const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
     return (
         <Section
@@ -31,8 +31,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
             menuItems={[
                 {
                     title: translate('connectBankAccountStep.secureYourAccount'),
-                    // Assuming user is validated here, validation is checked at the beginning of ConnectBank Flow
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID}))),
+                    onPress: () => Navigation.navigate(getTwoFactorAuthRoute()),
                     icon: icons.Shield,
                     shouldShowRightIcon: true,
                     outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,

@@ -1,5 +1,3 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import LottieAnimations from '@components/LottieAnimations';
@@ -10,18 +8,26 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@navigation/Navigation';
+
 import {clearPersonalBankAccount, updateAddPersonalBankAccountDraft} from '@userActions/BankAccounts';
 import {openExternalLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 type AccountFlowEntryPointProps = {
     /** The workspace name */
@@ -36,13 +42,23 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock']);
 
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
+    const [personalBankAccount, personalBankAccountResult] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const isLoadingPersonalBankAccount = isLoadingOnyxValue(personalBankAccountResult);
+    const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute;
 
     useEffect(() => {
-        clearPersonalBankAccount();
-    }, []);
+        if (isLoadingPersonalBankAccount) {
+            return;
+        }
+
+        // Clear stale flow state on entry while preserving onSuccessFallbackRoute if it was set before entering this screen (e.g. from a pay/KYC flow or deep link).
+        // openPersonalBankAccountSetupView also resets state, but this handles direct navigation to this screen.
+        clearPersonalBankAccount(onSuccessFallbackRoute ? {onSuccessFallbackRoute} : undefined);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoadingPersonalBankAccount]);
 
     const handleConnectManually = () => {
         updateAddPersonalBankAccountDraft({
@@ -85,7 +101,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                             src={expensifyIcons.Lightbulb}
                             fill={theme.icon}
                             additionalStyles={styles.mr2}
-                            medium
+                            size={CONST.ICON_SIZE.MEDIUM}
                         />
                         <Text
                             style={[styles.textLabelSupportingNormal, styles.flex1]}

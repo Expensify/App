@@ -1,24 +1,30 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import {doesContainReservedWord, isValidLegalName} from '@libs/ValidationUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/LegalNameForm';
+import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type BaseLegalNamePageProps<TFormID extends OnyxFormKey> = {
     children?: ReactNode;
@@ -36,7 +42,7 @@ type BaseLegalNamePageProps<TFormID extends OnyxFormKey> = {
 /**
  * Appends an error message to the given field, joining with a newline if one already exists.
  */
-function appendErrorMessage(errors: FormInputErrors<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>, key: keyof FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>, message: string) {
+function appendErrorMessage(errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, key: keyof FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, message: string) {
     const existing = errors[key];
     // eslint-disable-next-line no-param-reassign
     errors[key] = existing ? `${existing}\n${message}` : message;
@@ -46,15 +52,15 @@ function appendErrorMessage(errors: FormInputErrors<typeof ONYXKEYS.FORMS.LEGAL_
  * Validates legal first/last name fields.
  * Shared by LegalNamePage and TravelLegalNamePage.
  */
-function validateLegalName(values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>, translate: LocalizedTranslate): FormInputErrors<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM> {
-    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM> = {};
+function validateLegalName(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, translate: LocalizedTranslate): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> {
+    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
     const firstName = values[INPUT_IDS.LEGAL_FIRST_NAME] ?? '';
     const lastName = values[INPUT_IDS.LEGAL_LAST_NAME] ?? '';
 
     if (!firstName) {
         errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('common.error.fieldRequired');
-    } else if (!isValidLegalName(firstName)) {
-        errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('privatePersonalDetails.error.hasInvalidCharacter');
+    } else if (!isValidDisplayName(firstName)) {
+        errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
     } else if (firstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
         appendErrorMessage(errors, INPUT_IDS.LEGAL_FIRST_NAME, translate('common.error.characterLimitExceedCounter', firstName.length, CONST.LEGAL_NAME.MAX_LENGTH));
     }
@@ -64,8 +70,8 @@ function validateLegalName(values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NA
 
     if (!lastName) {
         errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('common.error.fieldRequired');
-    } else if (!isValidLegalName(lastName)) {
-        errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('privatePersonalDetails.error.hasInvalidCharacter');
+    } else if (!isValidDisplayName(lastName)) {
+        errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
     } else if (lastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
         appendErrorMessage(errors, INPUT_IDS.LEGAL_LAST_NAME, translate('common.error.characterLimitExceedCounter', lastName.length, CONST.LEGAL_NAME.MAX_LENGTH));
     }
@@ -108,7 +114,12 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
                     onBackButtonPress={onBackButtonPress ?? (() => Navigation.goBack())}
                 />
                 {isLoadingApp ? (
-                    <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={{context: 'BaseLegalNamePage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
+                        />
+                    </View>
                 ) : (
                     <FormProvider
                         style={[styles.flexGrow1, styles.ph5]}
@@ -157,5 +168,4 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
 }
 
 export {validateLegalName};
-export type {BaseLegalNamePageProps};
 export default BaseLegalNamePage;

@@ -1,4 +1,5 @@
 import {processFrequentlyUsedEmojis} from '@libs/EmojiUtils';
+
 import type {FrequentlyUsedEmoji} from '@src/types/onyx';
 
 // Mock the Emojis module
@@ -7,30 +8,35 @@ jest.mock('@assets/emojis', () => ({
         // eslint-disable-next-line @typescript-eslint/naming-convention
         '😀': {
             code: '😀',
+            hexcode: '1F600',
             name: 'grinning_face',
             keywords: ['face', 'grin', 'grinning'],
         },
         // eslint-disable-next-line @typescript-eslint/naming-convention
         '😃': {
             code: '😃',
+            hexcode: '1F603',
             name: 'grinning_face_with_big_eyes',
             keywords: ['face', 'grin', 'grinning'],
         },
         // eslint-disable-next-line @typescript-eslint/naming-convention
         '😄': {
             code: '😄',
+            hexcode: '1F604',
             name: 'grinning_face_with_smiling_eyes',
             keywords: ['face', 'grin', 'grinning'],
         },
         // eslint-disable-next-line @typescript-eslint/naming-convention
         '👋': {
             code: '👋',
+            hexcode: '1F44B',
             name: 'waving_hand',
             keywords: ['hand', 'wave', 'waving'],
         },
         // eslint-disable-next-line @typescript-eslint/naming-convention
         '👍': {
             code: '👍',
+            hexcode: '1F44D',
             name: 'thumbs_up',
             keywords: ['hand', 'thumb', 'up'],
         },
@@ -39,18 +45,21 @@ jest.mock('@assets/emojis', () => ({
         // eslint-disable-next-line @typescript-eslint/naming-convention
         grinning_face: {
             code: '😀',
+            hexcode: '1F600',
             name: 'grinning_face',
             keywords: ['face', 'grin', 'grinning'],
         },
         // eslint-disable-next-line @typescript-eslint/naming-convention
         waving_hand: {
             code: '👋',
+            hexcode: '1F44B',
             name: 'waving_hand',
             keywords: ['hand', 'wave', 'waving'],
         },
         // eslint-disable-next-line @typescript-eslint/naming-convention
         thumbs_up: {
             code: '👍',
+            hexcode: '1F44D',
             name: 'thumbs_up',
             keywords: ['hand', 'thumb', 'up'],
         },
@@ -90,14 +99,16 @@ describe('processFrequentlyUsedEmojis', () => {
         expect(result.at(0)).toEqual({
             code: '😀',
             name: 'grinning_face',
-            keywords: ['face', 'grin', 'grinning'],
+            hexcode: '1F600',
+            types: undefined,
             count: 5,
             lastUpdatedAt: 1000,
         });
         expect(result.at(1)).toEqual({
             code: '👋',
             name: 'waving_hand',
-            keywords: ['hand', 'wave', 'waving'],
+            hexcode: '1F44B',
+            types: undefined,
             count: 3,
             lastUpdatedAt: 2000,
         });
@@ -119,7 +130,8 @@ describe('processFrequentlyUsedEmojis', () => {
         expect(result.at(0)).toEqual({
             code: '😀',
             name: 'grinning_face',
-            keywords: ['face', 'grin', 'grinning'],
+            hexcode: '1F600',
+            types: undefined,
             count: 5,
             lastUpdatedAt: 1000,
         });
@@ -141,7 +153,8 @@ describe('processFrequentlyUsedEmojis', () => {
         expect(result.at(0)).toEqual({
             code: '👋',
             name: 'waving_hand',
-            keywords: ['hand', 'wave', 'waving'],
+            hexcode: '1F44B',
+            types: undefined,
             count: 3,
             lastUpdatedAt: 2000,
         });
@@ -191,7 +204,8 @@ describe('processFrequentlyUsedEmojis', () => {
         expect(result.at(0)).toEqual({
             code: '😀',
             name: 'grinning_face',
-            keywords: ['face', 'grin', 'grinning'],
+            hexcode: '1F600',
+            types: undefined,
             count: 8,
             lastUpdatedAt: 2000,
         });

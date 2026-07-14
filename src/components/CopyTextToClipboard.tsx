@@ -1,11 +1,17 @@
-import React, {useCallback} from 'react';
-import type {AccessibilityRole, StyleProp, TextStyle} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+
 import Clipboard from '@libs/Clipboard';
+
 import CONST from '@src/CONST';
-import PressableWithDelayToggle from './Pressable/PressableWithDelayToggle';
+
+import type {AccessibilityRole, StyleProp, TextStyle} from 'react-native';
+
+import React, {useCallback} from 'react';
+
 import type {PressableWithDelayToggleProps} from './Pressable/PressableWithDelayToggle';
+
+import PressableWithDelayToggle from './Pressable/PressableWithDelayToggle';
 
 type CopyTextToClipboardProps = {
     /** The text to display and copy to the clipboard */
@@ -32,7 +38,7 @@ function CopyTextToClipboard({
     styles,
 }: CopyTextToClipboardProps) {
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Copy'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy']);
 
     const copyToClipboard = useCallback(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case

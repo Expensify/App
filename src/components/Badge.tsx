@@ -1,11 +1,16 @@
-import React, {useCallback} from 'react';
-import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
@@ -47,6 +52,9 @@ type BadgeProps = {
     /** Any additional styles to pass to the left icon container. */
     iconStyles?: StyleProp<ViewStyle>;
 
+    /** Override fill color for the icon */
+    iconFill?: string;
+
     /** Additional styles from OfflineWithFeedback applied to the row */
     style?: StyleProp<ViewStyle>;
 
@@ -67,6 +75,7 @@ function Badge({
     onPress = () => {},
     icon,
     iconStyles = [],
+    iconFill,
     style,
     shouldUseXXSmallIcon = false,
 }: BadgeProps) {
@@ -92,6 +101,10 @@ function Badge({
         [styles.defaultBadge, styles.condensedBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles, isCondensed, isStrong],
     );
 
+    if (!text && !icon) {
+        return null;
+    }
+
     return (
         <Wrapper
             style={pressable ? wrapperStyles : wrapperStyles({focused: false, hovered: false, isDisabled: false, isScreenReaderActive: false, pressed: false})}
@@ -102,31 +115,34 @@ function Badge({
             accessible={false}
         >
             {!!icon && (
-                <View style={[styles.mr2, iconStyles]}>
+                <View style={[!!text && styles.mr1, iconStyles]}>
                     <Icon
                         width={iconSize}
                         height={iconSize}
                         src={icon}
-                        fill={iconColor}
+                        fill={iconFill ?? iconColor}
                     />
                 </View>
             )}
-            <Text
-                style={[
-                    styles.badgeText,
-                    styles.textStrong,
-                    isCondensed && styles.condensedBadgeText,
-                    !isStrong && !success && !error && styles.badgeDefaultText,
-                    !isStrong && success && styles.badgeSuccessText,
-                    !isStrong && error && styles.badgeDangerText,
-                    isStrong && (success || error) && styles.badgeStrongText,
-                    textStyles,
-                    isDeleted ? styles.offlineFeedbackDeleted : {},
-                ]}
-                numberOfLines={1}
-            >
-                {text}
-            </Text>
+            {!!text && (
+                <Text
+                    style={[
+                        styles.badgeText,
+                        styles.textStrong,
+                        isCondensed && styles.condensedBadgeText,
+                        !isStrong && !success && !error && styles.badgeDefaultText,
+                        !isStrong && success && styles.badgeSuccessText,
+                        !isStrong && error && styles.badgeDangerText,
+                        isStrong && success && styles.buttonSuccessText,
+                        isStrong && error && styles.buttonDangerText,
+                        textStyles,
+                        isDeleted ? styles.offlineFeedbackDeleted : {},
+                    ]}
+                    numberOfLines={1}
+                >
+                    {text}
+                </Text>
+            )}
         </Wrapper>
     );
 }

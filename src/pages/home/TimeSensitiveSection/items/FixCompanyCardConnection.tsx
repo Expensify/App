@@ -1,20 +1,27 @@
-import React, {useCallback, useEffect} from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+
 import {openPolicyCompanyCardsPage} from '@libs/actions/CompanyCards';
 import {getCustomOrFormattedFeedName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card} from '@src/types/onyx';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+
+import React, {useCallback, useEffect} from 'react';
+
 import FixCompanyCardConnectionSkeleton from './FixCompanyCardConnectionSkeleton';
 
 // Tracks in-flight fundID fetches to prevent duplicate API calls when multiple
@@ -41,7 +48,7 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`);
 
     const fetchCardFeeds = useCallback(() => {
-        if (cardFeeds !== undefined || !card.fundID || !policy?.workspaceAccountID) {
+        if (cardFeeds !== undefined || !card.fundID || !policy?.policyAccountID) {
             return;
         }
 
@@ -57,7 +64,7 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
 
         const emailList = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
         openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
-    }, [cardFeeds, card.fundID, policy?.workspaceAccountID, policy?.employeeList, policyID, translate]);
+    }, [cardFeeds, card.fundID, policy?.policyAccountID, policy?.employeeList, policyID, translate]);
 
     const {isOffline} = useNetwork({
         onReconnect: fetchCardFeeds,
@@ -80,7 +87,12 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
     }, [cardFeeds, card.fundID]);
 
     if (!cardFeeds || cardFeeds.isLoading) {
-        return <FixCompanyCardConnectionSkeleton />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'TimeSensitiveSection.FixCompanyCardConnectionSkeleton',
+            isCardFeedsUndefined: !cardFeeds,
+            isCardFeedsLoading: !!cardFeeds?.isLoading,
+        };
+        return <FixCompanyCardConnectionSkeleton reasonAttributes={reasonAttributes} />;
     }
 
     const customFeedName = cardFeeds?.settings?.companyCardNicknames?.[card.bank as CompanyCardFeed];

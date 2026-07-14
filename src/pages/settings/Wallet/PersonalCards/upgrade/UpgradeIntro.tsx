@@ -1,10 +1,9 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -12,10 +11,15 @@ import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type Props = {
     buttonDisabled?: boolean;
@@ -32,12 +36,8 @@ function UpgradeIntro({onUpgrade, buttonDisabled}: Props) {
 
     const getFormattedPrice = () => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return `${convertToShortDisplayString(
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            CONST.SUBSCRIPTION_PRICES[upgradeCurrency][CONST.POLICY.TYPE.TEAM][CONST.SUBSCRIPTION.TYPE.ANNUAL],
-            upgradeCurrency,
-        )} `;
+
+        return `${convertToShortDisplayString(CONST.SUBSCRIPTION_PRICES[upgradeCurrency][CONST.POLICY.TYPE.TEAM][CONST.SUBSCRIPTION.TYPE.ANNUAL], upgradeCurrency)} `;
     };
 
     const formattedPrice = getFormattedPrice();
@@ -87,7 +87,7 @@ function UpgradeIntro({onUpgrade, buttonDisabled}: Props) {
                 />
             </View>
             <View style={[styles.mt6, styles.renderHTML]}>
-                <RenderHTML html={translate('personalCard.note', {subscriptionLink})} />
+                <RenderHTML html={translate('personalCard.note', subscriptionLink)} />
             </View>
         </View>
     );

@@ -1,7 +1,11 @@
-import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import {verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
+
 import type {HeicConverterFunction} from './types';
 
 /**
@@ -41,7 +45,7 @@ const convertImageWithManipulator = (
             onSuccess(convertedFile);
         })
         .catch((err) => {
-            console.error('Error converting HEIC/HEIF to JPEG:', err);
+            Log.warn('Error converting HEIC/HEIF to JPEG', {error: err instanceof Error ? err.message : String(err)});
             onError(err, file);
         })
         .finally(() => {
@@ -103,7 +107,7 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
             onSuccess(file);
         })
         .catch((err) => {
-            console.error('Error processing the file:', err);
+            Log.warn('Error processing the file', {error: err instanceof Error ? err.message : String(err)});
             onError(err, file);
         })
         .finally(() => {

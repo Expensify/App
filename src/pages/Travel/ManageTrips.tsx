@@ -1,20 +1,29 @@
-import React, {useCallback, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
-import {Linking, View} from 'react-native';
 import BookTravelButton from '@components/BookTravelButton';
 import Button from '@components/Button';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import Accessibility from '@libs/Accessibility';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+
+import React, {useCallback, useRef, useState} from 'react';
+import {Linking, View} from 'react-native';
 
 type ManageTripsProps = {
     policyID: string;
@@ -26,7 +35,8 @@ function ManageTrips({policyID}: ManageTripsProps) {
     const {translate} = useLocalize();
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
 
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts'] as const);
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts', 'EmptyStateTravel']);
 
     const tripsFeatures: FeatureListItem[] = [
         {
@@ -66,8 +76,8 @@ function ManageTrips({policyID}: ManageTripsProps) {
                         menuItems={tripsFeatures}
                         title={translate('travel.title')}
                         subtitle={translate('travel.subtitle')}
-                        illustration={LottieAnimations.TripsEmptyState}
-                        illustrationStyle={[styles.mv4]}
+                        illustration={isReduceMotionEnabled ? illustrations.EmptyStateTravel : LottieAnimations.TripsEmptyState}
+                        illustrationStyle={isReduceMotionEnabled ? [styles.mv4, {width: variables.tripsIllustrationW, height: variables.tripsIllustrationH}] : [styles.mv4]}
                         illustrationBackgroundColor={colors.blue600}
                         titleStyles={styles.textHeadlineH1}
                         contentPaddingOnLargeScreens={styles.p5}

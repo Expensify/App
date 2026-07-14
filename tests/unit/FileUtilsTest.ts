@@ -1,25 +1,23 @@
-import {Platform} from 'react-native';
-import ImageSize from 'react-native-image-size';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import DateUtils from '@libs/DateUtils';
 import {
     ANDROID_SAFE_FILE_NAME_LENGTH,
     appendTimeToFileName,
     canvasFallback,
+    getExportFileName,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
     splitExtensionFromFileName,
-    validateAttachment,
 } from '@libs/fileDownload/FileUtils';
+
 import CONST from '@src/CONST';
+
+import {Platform} from 'react-native';
+import ImageSize from 'react-native-image-size';
 
 jest.useFakeTimers();
 jest.mock('react-native-image-size');
-
-const createMockFile = (name: string, size: number) => ({
-    name,
-    size,
-});
 
 const createFileNameFromLength = ({length, extension}: {length: number; extension?: string | undefined}): string => `${'a'.repeat(length)}${extension ? `.${extension}` : ''}`;
 
@@ -104,53 +102,17 @@ describe('FileUtils', () => {
         });
     });
 
-    describe('validateAttachment', () => {
-        it('should not return FILE_TOO_SMALL when validating small attachment', () => {
-            const file = createMockFile('file.csv', CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE - 1);
-            const error = validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: false});
-            expect(error).not.toBe(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL);
+    describe('getExportFileName', () => {
+        it('builds the expensify_<name>_<id> filename, sanitizes and lowercases the export name', () => {
+            expect(getExportFileName('Current view', '123abc')).toEqual('expensify_current_view_123abc.csv');
         });
 
-        it('should return FILE_TOO_SMALL when validating small receipt', () => {
-            const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE - 1);
-            const error = validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
-            expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL);
+        it('replaces every illegal character in the export name with an underscore', () => {
+            expect(getExportFileName('All Data - expense level', 'abc')).toEqual('expensify_all_data_-_expense_level_abc.csv');
         });
 
-        it('should return FILE_TOO_LARGE for large non-image file', () => {
-            const file = createMockFile('file.pdf', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
-            const error = validateAttachment(file);
-            expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE);
-        });
-
-        it('should return FILE_TOO_LARGE_MULTIPLE when checking multiple files', () => {
-            const file = createMockFile('file.pdf', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
-            const error = validateAttachment(file, {isValidatingMultipleFiles: true, isValidatingReceipts: false});
-            expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE);
-        });
-
-        it('should return WRONG_FILE_TYPE for invalid receipt extension', () => {
-            const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1);
-            const error = validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
-            expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
-        });
-
-        it('should prioritize WRONG_FILE_TYPE over FILE_TOO_LARGE for receipts', () => {
-            const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 10);
-            const error = validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
-            expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
-        });
-
-        it('should return WRONG_FILE_TYPE_MULTIPLE when checking multiple invalid receipt files', () => {
-            const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 10);
-            const error = validateAttachment(file, {isValidatingMultipleFiles: true, isValidatingReceipts: true});
-            expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE);
-        });
-
-        it('should return empty string for valid image receipt', () => {
-            const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1);
-            const error = validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
-            expect(error).toBe('');
+        it('honors a custom extension', () => {
+            expect(getExportFileName('Current view', 'abc', 'xlsx')).toEqual('expensify_current_view_abc.xlsx');
         });
     });
 
@@ -521,7 +483,7 @@ describe('FileUtils', () => {
         const mockTranslate = ((path: string) => path) as LocaleContextProps['translate'];
 
         it('should return correct error text for IMAGE_DIMENSIONS_TOO_LARGE', () => {
-            const result = getFileValidationErrorText(mockTranslate, CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+            const result = getFileValidationErrorText(mockTranslate, {error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE});
 
             expect(result.title).toBe('attachmentPicker.attachmentError');
             expect(result.reason).toBe('attachmentPicker.imageDimensionsTooLarge');

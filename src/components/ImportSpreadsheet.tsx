@@ -1,23 +1,28 @@
-import React, {useRef, useState} from 'react';
-import {PanResponder, PixelRatio, Platform, View} from 'react-native';
-import RNFetchBlob from 'react-native-blob-util';
-import type {TupleToUnion} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
 import {setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as Routes} from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {TupleToUnion} from 'type-fest';
+
+import React, {useRef, useState} from 'react';
+import {PanResponder, PixelRatio, Platform, View} from 'react-native';
+import RNFetchBlob from 'react-native-blob-util';
+
 import Button from './Button';
 import DragAndDropConsumer from './DragAndDrop/Consumer';
 import DragAndDropProvider from './DragAndDrop/Provider';
@@ -35,11 +40,14 @@ type ImportSpreadsheetProps = {
     // The route to navigate to after the file import is completed.
     goTo: Routes;
 
+    // If true, replace the current route after import instead of pushing on top.
+    shouldForceReplaceNavigation?: boolean;
+
     /** Whether the spreadsheet is importing multi-level tags */
     isImportingMultiLevelTags?: boolean;
 };
 
-function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpreadsheetProps) {
+function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, isImportingMultiLevelTags}: ImportSpreadsheetProps) {
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer']);
     const styles = useThemeStyles();
@@ -145,7 +153,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                         );
                     })
                     .then(() => {
-                        Navigation.navigate(goTo);
+                        Navigation.navigate(goTo, {forceReplace: shouldForceReplaceNavigation});
                     })
                     .catch(() => {
                         showUploadFileError('spreadsheet.importFailedTitle', 'spreadsheet.invalidFileMessage');
@@ -188,7 +196,6 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
             </View>
             <View
                 style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb1]}>{isImportingMultiLevelTags ? translate('spreadsheet.import') : translate('spreadsheet.upload')}</Text>

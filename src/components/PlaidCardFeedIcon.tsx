@@ -1,11 +1,16 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import {useCompanyCardBankIcons, useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import ActivityIndicator from './ActivityIndicator';
 import Icon from './Icon';
 import Image from './Image';
@@ -52,6 +57,7 @@ function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall, useSkeletonLoader
                 />
             ) : (
                 <>
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                     <Image
                         source={{uri: plaidUrl}}
                         style={plaidLoadedStyle}
@@ -63,6 +69,7 @@ function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall, useSkeletonLoader
                         <CardIconSkeleton
                             width={iconWidth}
                             height={iconHeight}
+                            reasonAttributes={reasonAttributes}
                         />
                     )}
                     {loading && !useSkeletonLoader && (

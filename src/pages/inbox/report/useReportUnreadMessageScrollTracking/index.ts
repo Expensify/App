@@ -1,11 +1,14 @@
-import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
-import type {RefObject} from 'react';
+import CONST from '@src/CONST';
+
 import type {ViewToken} from 'react-native';
-import {useAnimatedReaction} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
-import {readNewestAction} from '@userActions/Report';
-import floatingMessageCounterVisibilityHandler from './floatingMessageCounterVisibilityHandler';
+
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect, useRef, useState} from 'react';
+import {useAnimatedReaction} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
+import getPillVisibilityOffsetY from './getPillVisibilityOffsetY';
 
 type Args = {
     /** The report ID */
@@ -14,14 +17,23 @@ type Args = {
     /** Whether the FlatList is inverted, we need it to determine if the current unread message is visible. */
     isInverted: boolean;
 
-    /** Ref for whether read action was skipped */
-    readActionSkippedRef: RefObject<boolean>;
+    /** Called when the unread-marker action is within the viewport, on every viewability change */
+    onUnreadActionVisible: () => void;
 
     /** The index of the unread report action */
     unreadMarkerReportActionIndex: number;
 
-    /** Whether the report actions have been loaded at least once */
-    hasOnceLoadedReportActions: boolean;
+    /** Whether the report has newer actions to load */
+    hasNewerActions: boolean;
+
+    /** The index of the action badge target report action in the sorted visible actions list (-1 if none) */
+    actionBadgeTargetIndex?: number;
+
+    /** Whether the report is aligned to the top. When true, the "Latest messages" pill should never be shown. */
+    shouldBeAlignedToTop?: boolean;
+
+    /** If pill tracking should be disabled, used during initial linked message positioning */
+    shouldDisablePillTracking?: boolean;
 
     /** The current offset of scrolling from either top or bottom of chat list */
     currentVerticalScrollingOffset: SharedValue<number>;
@@ -32,32 +44,44 @@ type Args = {
 
 export default function useReportUnreadMessageScrollTracking({
     reportID,
-    readActionSkippedRef,
-    unreadMarkerReportActionIndex,
-    isInverted,
-    hasOnceLoadedReportActions,
     currentVerticalScrollingOffset,
     keyboardHeight,
+    hasNewerActions,
+    onUnreadActionVisible,
+    unreadMarkerReportActionIndex,
+    isInverted,
+    actionBadgeTargetIndex = -1,
+    shouldBeAlignedToTop = false,
+    shouldDisablePillTracking = false,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
+    const [isActionBadgeAboveViewport, setIsActionBadgeAboveViewport] = useState(false);
     const isFocused = useIsFocused();
-    const ref = useRef<{previousViewableItems: ViewToken[]; reportID: string; unreadMarkerReportActionIndex: number; isFocused: boolean; hasOnceLoadedReportActions: boolean}>({
+    const ref = useRef<{
+        previousViewableItems: ViewToken[];
+        reportID: string;
+        unreadMarkerReportActionIndex: number;
+        isFocused: boolean;
+        onUnreadActionVisible: () => void;
+        actionBadgeTargetIndex: number;
+    }>({
         reportID,
         unreadMarkerReportActionIndex,
         previousViewableItems: [],
         isFocused: true,
-        hasOnceLoadedReportActions,
+        onUnreadActionVisible,
+        actionBadgeTargetIndex,
     });
     const wasManuallySetRef = useRef(false);
 
-    const updateFloatingMessageCounterVisibility = useCallback((visible: boolean) => {
+    const updateFloatingMessageCounterVisibility = (visible: boolean) => {
         wasManuallySetRef.current = true;
         setIsFloatingMessageCounterVisible(visible);
 
         requestAnimationFrame(() => {
             wasManuallySetRef.current = false;
         });
-    }, []);
+    };
 
     // We want to save the updated value on ref to use it in onViewableItemsChanged
     // because FlatList requires the callback to be stable and we cannot add a dependency on the useCallback.
@@ -71,14 +95,40 @@ export default function useReportUnreadMessageScrollTracking({
     }, [isFocused]);
 
     useEffect(() => {
-        ref.current.hasOnceLoadedReportActions = hasOnceLoadedReportActions;
-    }, [hasOnceLoadedReportActions]);
+        ref.current.onUnreadActionVisible = onUnreadActionVisible;
+    }, [onUnreadActionVisible]);
+
+    const updatePillVisibilityInternal = (offsetY: number, kHeight: number) => {
+        const platformOffsetY = getPillVisibilityOffsetY({offsetY, kHeight});
+
+        if (shouldDisablePillTracking || wasManuallySetRef.current) {
+            return;
+        }
+
+        const hasUnreadMarkerReportAction = unreadMarkerReportActionIndex !== -1;
+
+        // display floating button if we're scrolled more than the offset
+        if (
+            platformOffsetY > CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
+            !isFloatingMessageCounterVisible &&
+            !hasUnreadMarkerReportAction &&
+            !shouldBeAlignedToTop
+        ) {
+            setIsFloatingMessageCounterVisible(true);
+        }
+
+        // hide floating button if we're scrolled closer than the offset and mark message as read
+        if (platformOffsetY < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible && !hasUnreadMarkerReportAction && !hasNewerActions) {
+            setIsFloatingMessageCounterVisible(false);
+        }
+    };
 
     /**
-     * On every scroll event we want to:
      * Show/hide the latest message pill when user is scrolling back/forth in the history of messages.
-     * Call any other callback that the component might need
      */
+    const updatePillVisibility = () => {
+        updatePillVisibilityInternal(currentVerticalScrollingOffset.get(), keyboardHeight.get());
+    };
 
     useAnimatedReaction(
         () => {
@@ -87,19 +137,11 @@ export default function useReportUnreadMessageScrollTracking({
                 kHeight: keyboardHeight.get(),
             };
         },
-        ({offsetY, kHeight}) =>
-            floatingMessageCounterVisibilityHandler({
-                isFloatingMessageCounterVisible,
-                kHeight,
-                offsetY,
-                setIsFloatingMessageCounterVisible,
-                unreadMarkerReportActionIndex,
-                wasManuallySetRef,
-            }),
-        [isFloatingMessageCounterVisible, reportID, readActionSkippedRef, unreadMarkerReportActionIndex],
+        ({offsetY, kHeight}) => scheduleOnRN(updatePillVisibilityInternal, offsetY, kHeight),
+        [reportID, unreadMarkerReportActionIndex],
     );
 
-    const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    const onViewableItemsChanged = ({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         if (!ref.current.isFocused) {
             return;
         }
@@ -126,17 +168,25 @@ export default function useReportUnreadMessageScrollTracking({
             setIsFloatingMessageCounterVisible(false);
         }
 
-        // if we're scrolled closer than the offset and read action has been skipped then mark message as read
-        if (unreadActionVisible && readActionSkippedRef.current) {
-            // eslint-disable-next-line no-param-reassign
-            readActionSkippedRef.current = false;
-            readNewestAction(ref.current.reportID, ref.current.hasOnceLoadedReportActions);
+        // when the unread action scrolls into view, the consumer decides whether a skipped mark-as-read needs completing
+        if (hasUnreadMarkerReportAction && unreadActionVisible) {
+            ref.current.onUnreadActionVisible();
+        }
+
+        // Track whether the action badge target is above the viewport (i.e., not visible and at a higher index in the inverted list)
+        const badgeTargetIndex = ref.current.actionBadgeTargetIndex;
+        if (badgeTargetIndex !== -1) {
+            // In an inverted list, higher indexes are "above" (older messages). The target is above the viewport
+            // when its index is greater than the max visible index.
+            const isAbove = isInverted ? badgeTargetIndex > maxIndex : badgeTargetIndex < minIndex;
+            setIsActionBadgeAboveViewport(isAbove);
+        } else {
+            setIsActionBadgeAboveViewport(false);
         }
 
         // FlatList requires a stable onViewableItemsChanged callback for optimal performance.
         // Therefore, we use a ref to store values instead of adding them as dependencies.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    };
 
     // When unreadMarkerReportActionIndex changes we will manually call onViewableItemsChanged with previousViewableItems to recalculate
     // the state of floating button because onViewableItemsChanged on  FlatList will only be called when viewable items change.
@@ -148,9 +198,18 @@ export default function useReportUnreadMessageScrollTracking({
         }
     }, [onViewableItemsChanged, unreadMarkerReportActionIndex]);
 
+    // When actionBadgeTargetIndex changes, recalculate visibility
+    useEffect(() => {
+        ref.current.actionBadgeTargetIndex = actionBadgeTargetIndex;
+        onViewableItemsChanged({viewableItems: ref.current.previousViewableItems, changed: []});
+    }, [onViewableItemsChanged, actionBadgeTargetIndex]);
+
     return {
         isFloatingMessageCounterVisible,
-        setIsFloatingMessageCounterVisible: updateFloatingMessageCounterVisibility,
+        setIsFloatingMessageCounterVisible,
+        updateFloatingMessageCounterVisibility,
+        isActionBadgeAboveViewport,
         onViewableItemsChanged,
+        updatePillVisibility,
     };
 }

@@ -1,13 +1,16 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
 import Tooltip from '@components/Tooltip';
+
+import React from 'react';
 
 // Mock the Tooltip component since it uses portals which aren't supported in RNTL
 jest.mock('@components/Tooltip');
 
 describe('TabSelectorItem Component', () => {
     const title = 'Test Tab';
+    const tabKey = 'test-tab';
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -20,6 +23,7 @@ describe('TabSelectorItem Component', () => {
                 title={title}
                 shouldShowLabelWhenInactive={false}
                 isActive={false}
+                tabKey={tabKey}
             />,
         );
 
@@ -40,6 +44,7 @@ describe('TabSelectorItem Component', () => {
                 title={title}
                 shouldShowLabelWhenInactive={false}
                 isActive
+                tabKey={tabKey}
             />,
         );
 
@@ -61,6 +66,7 @@ describe('TabSelectorItem Component', () => {
                 title={title}
                 shouldShowLabelWhenInactive
                 isActive={false}
+                tabKey={tabKey}
             />,
         );
 

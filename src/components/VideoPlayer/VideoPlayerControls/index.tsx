@@ -1,18 +1,27 @@
-import type {VideoPlayer, VideoView} from 'expo-video';
-import type {RefObject} from 'react';
-import React, {useCallback, useMemo, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
+import {Trigger as PopoverMenuTrigger} from '@components/PopoverMenu/v2';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {convertSecondsToTime} from '@components/VideoPlayer/utils';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {useVideoPopoverMenuActions} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {VideoPlayer, VideoView} from 'expo-video';
+import type {RefObject} from 'react';
+import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+
 import ProgressBar from './ProgressBar';
 import VolumeButton from './VolumeButton';
 
@@ -39,10 +48,7 @@ type VideoPlayerControlsProps = {
     small?: boolean;
 
     /** Style of video player controls. */
-    style?: StyleProp<ViewStyle>;
-
-    /** Function called to show popover menu. */
-    showPopoverMenu: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+    style?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /** Function to play and pause the video.  */
     togglePlayCurrentVideo: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
@@ -50,7 +56,41 @@ type VideoPlayerControlsProps = {
     controlsStatus: ValueOf<typeof CONST.VIDEO_PLAYER.CONTROLS_STATUS>;
 
     reportID: string | undefined;
+
+    /** Callback when user starts dragging the progress bar. */
+    onSeekStart?: () => void;
+
+    /** Callback when user finishes dragging the progress bar. */
+    onSeekEnd?: (shouldResumeAfterSeek: boolean) => void;
 };
+
+/** Three-dots overflow trigger; records the active player + source before opening. */
+function MoreMenuTrigger({videoPlayerRef, url, small}: {videoPlayerRef: RefObject<VideoPlayer | null>; url: string; small: boolean}) {
+    const {updateVideoPopoverMenuPlayerRef, updateSource} = useVideoPopoverMenuActions();
+    const icons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
+    const {translate} = useLocalize();
+
+    const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (!videoPlayerRef.current) {
+            event?.preventDefault();
+            return;
+        }
+        updateVideoPopoverMenuPlayerRef(videoPlayerRef.current);
+        updateSource(url);
+    };
+
+    return (
+        <PopoverMenuTrigger>
+            <IconButton
+                src={icons.ThreeDots}
+                tooltipText={translate('common.more')}
+                onPress={handlePress}
+                small={small}
+                sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.MORE_BUTTON}
+            />
+        </PopoverMenuTrigger>
+    );
+}
 
 function VideoPlayerControls({
     duration,
@@ -61,15 +101,17 @@ function VideoPlayerControls({
     isPlaying,
     small = false,
     style,
-    showPopoverMenu,
     togglePlayCurrentVideo,
     controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
     reportID,
+    onSeekStart,
+    onSeekEnd,
 }: VideoPlayerControlsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ThreeDots', 'Pause', 'Play', 'Fullscreen']);
+    const icons = useMemoizedLazyExpensifyIcons(['Pause', 'Play', 'Fullscreen']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
+    const report = useReportOrReportDraft(reportID);
     const [shouldShowTime, setShouldShowTime] = useState(false);
     const iconSpacing = small ? styles.mr3 : styles.mr4;
 
@@ -78,9 +120,9 @@ function VideoPlayerControls({
     };
 
     const enterFullScreenMode = useCallback(() => {
-        updateCurrentURLAndReportID(url, reportID);
+        updateCurrentURLAndReportID(url, report, reportID);
         videoViewRef.current?.enterFullscreen();
-    }, [reportID, updateCurrentURLAndReportID, url, videoViewRef]);
+    }, [report, reportID, updateCurrentURLAndReportID, url, videoViewRef]);
 
     const seekPosition = useCallback(
         (newPosition: number) => {
@@ -134,12 +176,10 @@ function VideoPlayerControls({
                             small={small}
                             sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.FULLSCREEN_BUTTON}
                         />
-                        <IconButton
-                            src={icons.ThreeDots}
-                            tooltipText={translate('common.more')}
-                            onPress={showPopoverMenu}
+                        <MoreMenuTrigger
+                            videoPlayerRef={videoPlayerRef}
+                            url={url}
                             small={small}
-                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.MORE_BUTTON}
                         />
                     </View>
                 </View>
@@ -150,6 +190,8 @@ function VideoPlayerControls({
                         duration={duration}
                         position={position}
                         seekPosition={seekPosition}
+                        onSeekStart={onSeekStart}
+                        onSeekEnd={onSeekEnd}
                     />
                 </View>
                 {controlsStatus === CONST.VIDEO_PLAYER.CONTROLS_STATUS.VOLUME_ONLY && <VolumeButton style={styles.ml3} />}

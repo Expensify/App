@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -9,6 +7,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -20,16 +19,25 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openLink} from '@libs/actions/Link';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
+import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing, shouldUseSimplifiedCollectSubscriptionUI} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import Navigation from '@navigation/Navigation';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function SubscriptionSettings() {
     const {translate} = useLocalize();
@@ -52,6 +60,8 @@ function SubscriptionSettings() {
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
     });
     const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins?.toString() : undefined;
+    const shouldUseSimplifiedCollectUI = shouldUseSimplifiedCollectSubscriptionUI(subscriptionPlan, hasTeam2025Pricing);
+    const collectPriceDisplay = convertToShortDisplayString(subscriptionPrice, preferredCurrency);
 
     const openAdminsRoom = () => {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
@@ -82,7 +92,8 @@ function SubscriptionSettings() {
     }
 
     if (!privateSubscription) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SubscriptionSettings', privateSubscriptionLoaded: false};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
@@ -96,43 +107,65 @@ function SubscriptionSettings() {
             />
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.mobileReducedFunctionalityMessage')}</Text>
-                <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
-                <View style={[styles.renderHTML, styles.mb5]}>
-                    <RenderHTML
-                        html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
-                        onLinkPress={(_evt, href) => handleLinkPress(href)}
-                    />
-                </View>
-                <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
-                <Text style={styles.mv1}>{priceDetails}</Text>
-                <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.changesBasedOn')}</Text>
-                {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
-                    <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
-                        <Icon
-                            src={themeIllustrations.ExpensifyApprovedLogo}
-                            width={variables.modalTopIconWidth}
-                            height={variables.menuIconSize}
+                {shouldUseSimplifiedCollectUI ? (
+                    <>
+                        <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.collectBillingDescription')}</Text>
+                        <View style={[styles.renderHTML, styles.mb5]}>
+                            <RenderHTML
+                                html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
+                                onLinkPress={(_evt, href) => handleLinkPress(href)}
+                            />
+                        </View>
+                        <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.pricing')}</Text>
+                        <Text style={styles.mv1}>{translate('subscription.yourPlan.pricePerMemberPerMonth', collectPriceDisplay)}</Text>
+                        <OptionItem
+                            title="subscription.details.payPerUse"
+                            icon={illustrations.SubscriptionPPU}
+                            style={[styles.mt5, styles.flex0]}
+                            isDisabled
                         />
-                        <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('subscription.details.zeroCommitment')}</Text>
-                    </View>
+                    </>
                 ) : (
                     <>
-                        {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE ? (
-                            <OptionItem
-                                title="subscription.details.payPerUse"
-                                icon={illustrations.SubscriptionPPU}
-                                style={[styles.mt5, styles.flex0]}
-                                isDisabled
+                        <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
+                        <View style={[styles.renderHTML, styles.mb5]}>
+                            <RenderHTML
+                                html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
+                                onLinkPress={(_evt, href) => handleLinkPress(href)}
                             />
+                        </View>
+                        <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
+                        <Text style={styles.mv1}>{priceDetails}</Text>
+                        <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.changesBasedOn')}</Text>
+                        {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
+                            <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
+                                <Icon
+                                    src={themeIllustrations.ExpensifyApprovedLogo}
+                                    width={variables.modalTopIconWidth}
+                                    height={variables.menuIconSize}
+                                />
+                                <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('subscription.details.zeroCommitment')}</Text>
+                            </View>
                         ) : (
-                            <OptionItem
-                                title="subscription.details.annual"
-                                icon={illustrations.SubscriptionAnnual}
-                                style={[styles.mt5, styles.flex0]}
-                                isDisabled
-                            />
+                            <>
+                                {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE ? (
+                                    <OptionItem
+                                        title="subscription.details.payPerUse"
+                                        icon={illustrations.SubscriptionPPU}
+                                        style={[styles.mt5, styles.flex0]}
+                                        isDisabled
+                                    />
+                                ) : (
+                                    <OptionItem
+                                        title="subscription.details.annual"
+                                        icon={illustrations.SubscriptionAnnual}
+                                        style={[styles.mt5, styles.flex0]}
+                                        isDisabled
+                                    />
+                                )}
+                                {subscriptionSizeSection}
+                            </>
                         )}
-                        {subscriptionSizeSection}
                     </>
                 )}
             </ScrollView>

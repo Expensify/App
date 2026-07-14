@@ -1,5 +1,3 @@
-import {useRef} from 'react';
-import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {importPlaidAccounts} from '@libs/actions/Plaid';
 import {
     getCompanyCardFeed,
@@ -11,18 +9,25 @@ import {
     isCustomFeed,
     isSelectedFeedExpired,
 } from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDomainNameForPolicy, getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+
 import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
+
+import {useRef} from 'react';
+
+import type {CombinedCardFeed} from './useCardFeeds';
+
 import useCardFeedErrors from './useCardFeedErrors';
 import useCardFeeds from './useCardFeeds';
-import type {CombinedCardFeed} from './useCardFeeds';
 import {useCurrencyListState} from './useCurrencyList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useLocalize from './useLocalize';
@@ -48,7 +53,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
     const {translate} = useLocalize();
 
     const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const companyCards = getCompanyFeeds(cardFeeds);
     const selectedFeedData = feedName && companyCards[feedName];
@@ -66,12 +71,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
     const isSelectedFeedConnectionBroken = !!feedErrors?.isFeedConnectionBroken || !!feedErrors?.hasFeedErrors;
 
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
-
-    const {isActingAsDelegate} = useDelegateNoAccessState();
-    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
-
     const getInitialAssignCardStep = useInitialAssignCardStep({policyID, selectedFeed: feedName});
 
     /**
@@ -83,12 +83,6 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
         if (isAssigningCardDisabled) {
             return;
         }
-
-        if (isActingAsDelegate) {
-            showDelegateNoAccessModal();
-            return;
-        }
-
         if (!feedName || !cardID) {
             return;
         }
@@ -123,7 +117,9 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
                     break;
                 case CONST.COMPANY_CARD.STEP.ASSIGNEE:
                 default:
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed: feedName, cardID}));
+                    Navigation.navigate(
+                        createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(feedName, cardID), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)),
+                    );
                     break;
             }
         });
@@ -175,7 +171,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
         // Refetch plaid card list
         if (!isFeedExpired && plaidAccessToken && !hasImportedPlaidAccounts.current) {
             const country = feedData?.country ?? '';
-            importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', undefined, undefined, plaidAccessToken);
+            importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', plaidAccessToken);
             hasImportedPlaidAccounts.current = true;
         }
 

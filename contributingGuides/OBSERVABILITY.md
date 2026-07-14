@@ -64,27 +64,13 @@ The difference is that the latter adds a `canceled` attribute to the span indica
 
 ### Debugging Spans
 
-Sentry is disabled in development by default. To enable it, add `ENABLE_SENTRY_ON_DEV=true` to your `.env` file. This activates an internal debug transport that logs span data locally instead of sending it to Sentry.
-
-To view spans in the DevConsole, go to **Account → Troubleshoot → Log Sentry requests to console**.
-
-In rare cases where you need to inspect spans directly in the Sentry dashboard, comment out the `transport` line in [`src/setup/telemetry/index.ts`](../src/setup/telemetry/index.ts):
-
-```typescript
-Sentry.init({
-    dsn: CONFIG.SENTRY_DSN,
-    // transport: isDevelopment() ? makeDebugTransport : undefined,
-    ...
-});
-```
-
-This sends spans to the real Sentry project instead of the local console.
+In development, Sentry is always initialized but does not send data by default. To start sending data to the Sentry dashboard, go to **Account → Troubleshoot** and toggle **Send data to Sentry** ON. To view spans in the DevConsole, toggle **Log Sentry to console** ON.
 
 ### Constants
 
 Defined in `src/CONST/index.ts` under `CONST.TELEMETRY`:
 - Span names: `SPAN_OPEN_REPORT`, `SPAN_SEND_MESSAGE`
-- Tag names: `TAG_ACTIVE_POLICY`, `TAG_AUTHENTICATION_ERROR_TYPE`
+- Tag names: `TAGS.ACTIVE_POLICY`, `TAGS.AUTHENTICATION_ERROR_TYPE`
 - Attribute names: `ATTRIBUTE_REPORT_ID`, `ATTRIBUTE_MESSAGE_LENGTH`
 - Configuration: `CONFIG.SKELETON_MIN_DURATION`
 
@@ -163,7 +149,9 @@ Add span name, tags, and attributes to `src/CONST/index.ts`:
 ```typescript
 TELEMETRY: {
     SPAN_YOUR_OPERATION: 'ManualYourOperation',
-    TAG_YOUR_TAG: 'your_tag',
+    TAGS: {
+        YOUR_TAG: 'your_tag',
+    },
     ATTRIBUTE_YOUR_ATTR: 'your_attr'
 }
 ```
@@ -182,7 +170,7 @@ startSpan(spanId, {
 ```typescript
 const span = getSpan(spanId);
 span?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_YOUR_ATTR, value);
-span?.setTag(CONST.TELEMETRY.TAG_YOUR_TAG, value);
+span?.setTag(CONST.TELEMETRY.TAGS.YOUR_TAG, value);
 ```
 
 #### 5. Finish Span

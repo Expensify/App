@@ -1,12 +1,16 @@
-import React from 'react';
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
+
+import type CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
+
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
-import type CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
+
+import React from 'react';
+
 import type {ContextMenuAction} from './ContextMenuActions';
 
 type OnConfirm = () => void;
@@ -25,14 +29,9 @@ type ShowContextMenuParams = {
     report?: {
         reportID?: string;
         originalReportID?: string;
-        isArchivedRoom?: boolean;
-        isChronos?: boolean;
-        isPinnedChat?: boolean;
-        isUnreadChat?: boolean;
     };
     reportAction?: {
         reportActionID?: string;
-        draftMessage?: string;
         isThreadReportParentAction?: boolean;
     };
     callbacks?: {
@@ -52,6 +51,9 @@ type HideContextMenuParams = {
     callbacks?: {
         onHide?: () => void;
     };
+    /** Delay before hiding (ms). Run on the UI thread via Reanimated.
+     *  https://github.com/Expensify/App/issues/89069 */
+    hideDelayMs?: number;
 };
 type HideContextMenu = (params?: HideContextMenuParams) => void;
 
@@ -71,9 +73,25 @@ type ReportActionContextMenu = {
 
 const contextMenuRef = React.createRef<ReportActionContextMenu>();
 
+// Retry budget for waiting on the lazy-mounted popover ref.
+// 10 attempts × ~16ms ≈ 160ms total, enough to cover React.lazy chunk load + commit
+// on a cold start without blocking user interaction for long.
+const MAX_CONTEXT_MENU_MOUNT_RETRIES = 10;
+const CONTEXT_MENU_MOUNT_RETRY_INTERVAL_MS = 16;
+
+// Bridge used when PopoverReportActionContextMenu is lazy-mounted: lets showContextMenu
+// trigger eager mount if the user interacts before the idle-deferred mount runs.
+let ensureContextMenuMounted: (() => void) | null = null;
+
+function registerEnsureContextMenuMounted(handler: (() => void) | null) {
+    ensureContextMenuMounted = handler;
+}
+
+// How long the success icon (Checkmark / "Copied!") stays visible before the menu hides.
+const SUCCESS_STATE_HIDE_DELAY_MS = 800;
+
 /**
  * Hide the ReportActionContextMenu modal popover.
- * Hides the popover menu with an optional delay
  * @param [shouldDelay] - whether the menu should close after a delay
  * @param [onHideCallback] - Callback to be called after Context Menu is completely hidden
  */
@@ -82,30 +100,14 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}, param
         return;
     }
 
-    const paramsWithCallback = {
+    contextMenuRef.current.hideContextMenu({
+        ...params,
         callbacks: {
             ...params?.callbacks,
             onHide: onHideCallback,
         },
-        ...params,
-    };
-
-    if (!shouldDelay) {
-        contextMenuRef.current.hideContextMenu(paramsWithCallback);
-        return;
-    }
-
-    // Save the active instanceID for which hide action was called.
-    // If menu is being closed with a delay, check that whether the same instance exists or a new was created.
-    // If instance is not same, cancel the hide action
-    const instanceID = contextMenuRef.current.instanceIDRef.current;
-    setTimeout(() => {
-        if (contextMenuRef.current?.instanceIDRef.current !== instanceID) {
-            return;
-        }
-
-        contextMenuRef.current.hideContextMenu(paramsWithCallback);
-    }, 800);
+        ...(shouldDelay ? {hideDelayMs: SUCCESS_STATE_HIDE_DELAY_MS} : {}),
+    });
 }
 
 /**
@@ -118,16 +120,25 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}, param
  * @param reportID - Active Report Id
  * @param reportActionID - ReportActionID for ContextMenu
  * @param originalReportID - The current Report Id of the reportAction
- * @param draftMessage - ReportAction draft message
  * @param [onShow=() => {}] - Run a callback when Menu is shown
  * @param [onHide=() => {}] - Run a callback when Menu is hidden
- * @param isArchivedRoom - Whether the provided report is an archived room
- * @param isChronosReport - Flag to check if the chat participant is Chronos
- * @param isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
- * @param isUnreadChat - Flag to check if the chat has unread messages in the LHN. Used for the Mark as Read/Unread action
  */
 function showContextMenu(showContextMenuParams: ShowContextMenuParams) {
     if (!contextMenuRef.current) {
+        // Popover is lazy-mounted; trigger eager mount and retry until the ref is populated
+        // so a fast cold-start interaction isn't silently dropped.
+        ensureContextMenuMounted?.();
+        let retries = MAX_CONTEXT_MENU_MOUNT_RETRIES;
+        const attempt = () => {
+            if (contextMenuRef.current) {
+                showContextMenu(showContextMenuParams);
+                return;
+            }
+            if (retries-- > 0) {
+                setTimeout(attempt, CONTEXT_MENU_MOUNT_RETRY_INTERVAL_MS);
+            }
+        };
+        attempt();
         return;
     }
     const show = () => {
@@ -182,5 +193,5 @@ function clearActiveReportAction() {
     return contextMenuRef.current.clearActiveReportAction();
 }
 
-export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};
+export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal, registerEnsureContextMenuMounted};
 export type {ContextMenuType, ReportActionContextMenu, ContextMenuAnchor};

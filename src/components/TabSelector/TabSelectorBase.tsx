@@ -1,14 +1,19 @@
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import useIsResizing from '@hooks/useIsResizing';
+import ScrollView from '@components/ScrollView';
+
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useMemo, useState} from 'react';
+
+import type {TabSelectorBaseProps} from './types';
+
 import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
+import {useTabSelectorActions, useTabSelectorState} from './TabSelectorContext';
 import TabSelectorItem from './TabSelectorItem';
-import type {TabSelectorBaseProps} from './types';
 
 /**
  * Navigation-agnostic tab selector UI that renders a row of TabSelectorItem components.
@@ -21,23 +26,24 @@ function TabSelectorBase({
     tabs,
     activeTabKey,
     onTabPress = () => {},
+    onLongTabPress,
+    onActiveTabPress = () => {},
     position,
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
-    shouldShowProductTrainingTooltip = false,
-    renderProductTrainingTooltip,
+    contentContainerStyles,
 }: TabSelectorBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const isResizing = useIsResizing();
 
     const routesLength = tabs.length;
 
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: routesLength}, (_v, i) => i), [routesLength]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
-    const viewRef = useRef<View>(null);
-    const [selectorWidth, setSelectorWidth] = useState(0);
-    const [selectorX, setSelectorX] = useState(0);
+
+    const {containerRef} = useTabSelectorState();
+    const {onContainerLayout, onContainerScroll} = useTabSelectorActions();
+    const triggerScrollEvent = useScrollEventEmitter();
 
     const activeIndex = tabs.findIndex((tab) => tab.key === activeTabKey);
 
@@ -51,34 +57,24 @@ function TabSelectorBase({
         return () => clearTimeout(timerID);
     }, [defaultAffectedAnimatedTabs, activeIndex]);
 
-    const measure = useCallback(() => {
-        viewRef.current?.measureInWindow((x, _y, width) => {
-            setSelectorX(x);
-            setSelectorWidth(width);
-        });
-    }, []);
-
-    // Measure location/width after initial mount and when layout animations settle.
-    useLayoutEffect(() => {
-        const timerID = setTimeout(() => {
-            measure();
-        }, CONST.TOOLTIP_ANIMATION_DURATION);
-
-        return () => clearTimeout(timerID);
-    }, [measure]);
-
-    // Re-measure when resizing ends so tooltips and equal-width layouts stay aligned.
-    useEffect(() => {
-        if (isResizing) {
-            return;
-        }
-        measure();
-    }, [measure, isResizing]);
-
     return (
-        <View
-            style={styles.tabSelector}
-            ref={viewRef}
+        <ScrollView
+            scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+            onLayout={onContainerLayout}
+            onScroll={(e) => {
+                onContainerScroll(e);
+                triggerScrollEvent();
+            }}
+            ref={containerRef}
+            style={styles.scrollableTabSelector}
+            // On iOS a horizontal ScrollView lays out its content along an unbounded main axis, so flex-1 tabs
+            // (equalWidth) divide their intrinsic content width instead of the viewport. Giving the content
+            // container a definite width lets the flex children split it evenly. Scoped to equalWidth so normal
+            // overflowing/scrollable tab rows are not constrained.
+            contentContainerStyle={[styles.tabSelectorContentContainer, equalWidth && styles.w100, contentContainerStyles]}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
         >
             {tabs.map((tab, index) => {
                 const isActive = index === activeIndex;
@@ -109,19 +105,21 @@ function TabSelectorBase({
 
                 const handlePress = () => {
                     if (isActive) {
+                        onActiveTabPress(tab.key);
                         return;
                     }
-
                     setAffectedAnimatedTabs([activeIndex, index]);
                     onTabPress(tab.key);
                 };
 
                 return (
                     <TabSelectorItem
+                        tabKey={tab.key}
                         key={tab.key}
                         icon={tab.icon}
                         title={tab.title}
                         onPress={handlePress}
+                        onLongPress={onLongTabPress ? () => onLongTabPress(tab.key) : undefined}
                         activeOpacity={activeOpacity}
                         inactiveOpacity={inactiveOpacity}
                         backgroundColor={backgroundColor}
@@ -129,15 +127,16 @@ function TabSelectorBase({
                         testID={tab.testID}
                         sentryLabel={tab.sentryLabel}
                         shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                        shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
-                        renderProductTrainingTooltip={renderProductTrainingTooltip}
-                        parentWidth={selectorWidth}
-                        parentX={selectorX}
                         equalWidth={equalWidth}
+                        badgeText={tab.badgeText}
+                        isBadgeCondensed={tab.isBadgeCondensed}
+                        badgeStyles={tab.badgeStyles}
+                        pendingAction={tab.pendingAction}
+                        isDisabled={tab.isDisabled}
                     />
                 );
             })}
-        </View>
+        </ScrollView>
     );
 }
 

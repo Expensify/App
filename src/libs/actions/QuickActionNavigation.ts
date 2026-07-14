@@ -1,11 +1,13 @@
 import {generateReportID} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+import type {IOURequestType} from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
-import type {IOURequestType} from './IOU';
-import {startDistanceRequest, startMoneyRequest} from './IOU';
+
+import {startDistanceRequest, startMoneyRequest} from './IOU/MoneyRequest';
 import {startOutCreateTaskQuickAction} from './Task';
 
 type NavigateToQuickActionParams = {
@@ -15,6 +17,7 @@ type NavigateToQuickActionParams = {
     lastDistanceExpenseType?: DistanceExpenseType;
     targetAccountPersonalDetails: PersonalDetails;
     currentUserAccountID: number;
+    draftTransactionIDs: string[] | undefined;
     isFromFloatingActionButton?: boolean;
 };
 
@@ -40,7 +43,7 @@ function getQuickActionRequestType(action: QuickActionName | undefined, lastDist
 }
 
 function navigateToQuickAction(params: NavigateToQuickActionParams) {
-    const {isValidReport, quickAction, selectOption, lastDistanceExpenseType, targetAccountPersonalDetails, currentUserAccountID, isFromFloatingActionButton} = params;
+    const {isValidReport, quickAction, selectOption, lastDistanceExpenseType, targetAccountPersonalDetails, currentUserAccountID, draftTransactionIDs, isFromFloatingActionButton} = params;
     const reportID = isValidReport && quickAction?.chatReportID ? quickAction?.chatReportID : generateReportID();
     const requestType = getQuickActionRequestType(quickAction?.action, lastDistanceExpenseType);
 
@@ -48,15 +51,15 @@ function navigateToQuickAction(params: NavigateToQuickActionParams) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
         case CONST.QUICK_ACTIONS.PER_DIEM:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true, undefined, undefined, isFromFloatingActionButton), true);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, requestType, true, undefined, isFromFloatingActionButton), true);
             break;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, reportID, requestType, true, undefined, undefined, isFromFloatingActionButton), true);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, reportID, draftTransactionIDs, requestType, true, undefined, isFromFloatingActionButton), true);
             break;
         case CONST.QUICK_ACTIONS.SEND_MONEY:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, undefined, true, undefined, undefined, isFromFloatingActionButton), false);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, draftTransactionIDs, undefined, true, undefined, isFromFloatingActionButton), false);
             break;
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             selectOption(() => startOutCreateTaskQuickAction(currentUserAccountID, isValidReport ? reportID : '', targetAccountPersonalDetails), false);
@@ -64,18 +67,19 @@ function navigateToQuickAction(params: NavigateToQuickActionParams) {
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
         case CONST.QUICK_ACTIONS.TRACK_PER_DIEM:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true, undefined, undefined, isFromFloatingActionButton), false);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, draftTransactionIDs, requestType, true, undefined, isFromFloatingActionButton), true);
             break;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true, undefined, isFromFloatingActionButton), false);
+            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, requestType, true, undefined, isFromFloatingActionButton), true);
             break;
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true, undefined, isFromFloatingActionButton), false);
+            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, reportID, draftTransactionIDs, requestType, true, undefined, isFromFloatingActionButton), true);
             break;
         case CONST.QUICK_ACTIONS.REQUEST_TIME:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, false, undefined, undefined, isFromFloatingActionButton), true);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, requestType, false, undefined, isFromFloatingActionButton), true);
             break;
         default:
     }
 }
-export {navigateToQuickAction, getQuickActionRequestType};
+// eslint-disable-next-line import/prefer-default-export
+export {navigateToQuickAction};

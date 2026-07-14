@@ -1,5 +1,6 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 /** Represents the transport method for a passkey credential */
 type PasskeyTransport = ValueOf<typeof CONST.PASSKEY_TRANSPORT>;
@@ -14,6 +15,9 @@ type PasskeyCredential = {
 
     /** Optional array of transport methods that can be used to communicate with the authenticator */
     transports?: PasskeyTransport[];
+
+    /** Authenticator model identifier (UUID). Identifies the authenticator provider (e.g. Apple Passwords, Google Password Manager). */
+    aaguid?: string;
 };
 
 /**

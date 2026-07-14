@@ -1,7 +1,8 @@
+import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
 
 type WorkflowRun = RestEndpointMethodTypes['actions']['listWorkflowRuns']['response']['data']['workflow_runs'][number];
 
@@ -121,6 +122,8 @@ ${errorMessage}
 **👀 Please look into the following:**
 1. **Why the PR caused the job to fail?**
 2. **Address any underlying issues.**
+
+**For detailed instructions, check [this SO](https://stackoverflowteams.com/c/expensify/questions/21936).**
 
 **🐛 We appreciate your help in squashing this bug!**`;
 

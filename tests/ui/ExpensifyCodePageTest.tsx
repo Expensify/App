@@ -1,22 +1,34 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import ExpensifyCodePage from '@pages/settings/Subscription/ExpensifyCodePage';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import {PortalProvider} from '@gorhom/portal';
+import * as NativeNavigation from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useNavigationState: () => true,
+}));
 
 jest.mock('@pages/settings/Subscription/ExpensifyCodePage', () =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -28,15 +40,27 @@ jest.mock('@userActions/Subscription', () => ({
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => {
-    const actual = jest.requireActual<typeof Navigation>('@libs/Navigation/Navigation');
     return {
-        ...actual,
         goBack: jest.fn(),
         getTopmostReportId: jest.fn(() => undefined),
         dismissModal: jest.fn(),
         getActiveRoute: jest.fn(() => ''),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
+        useIsFocused: () => true,
+        useNavigation: () => ({
+            navigate: jest.fn(),
+            addListener: jest.fn(),
+        }),
+        usePreventRemove: jest.fn(),
+        useNavigationState: () => true,
+        navigationRef: {
+            current: {},
+        },
     };
 });
+
+jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 jest.mock('@pages/ErrorPage/NotFoundPage', () => {
     // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -59,14 +83,14 @@ const renderPage = () =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
-                <NavigationContainer ref={navigationRef}>
+                <NativeNavigation.NavigationContainer ref={navigationRef}>
                     <Stack.Navigator initialRouteName={SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE}>
                         <Stack.Screen
                             name={SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE}
                             component={ExpensifyCodePage}
                         />
                     </Stack.Navigator>
-                </NavigationContainer>
+                </NativeNavigation.NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,
     );
@@ -85,7 +109,7 @@ describe('ExpensifyCodePage', () => {
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.clear();
-            await Onyx.set(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {expensifyCode: null});
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_CODE, null);
         });
         await waitForBatchedUpdatesWithAct();
     });
@@ -140,7 +164,7 @@ describe('ExpensifyCodePage', () => {
     it('show NotFoundPage when subscription already has expensifyCode', async () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {expensifyCode: 'APPLIED_CODE'});
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_CODE, 'APPLIED_CODE');
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -167,7 +191,7 @@ describe('ExpensifyCodePage', () => {
         expect(applyExpensifyCode).toHaveBeenCalledWith('2026EarlyAdoption50');
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {expensifyCode: '2026EarlyAdoption50'});
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_CODE, '2026EarlyAdoption50');
         });
         await waitFor(() => {
             expect(Navigation.goBack).toHaveBeenCalled();

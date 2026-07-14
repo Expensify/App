@@ -1,32 +1,46 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useImperativeHandle, useMemo, useRef} from 'react';
-import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
+import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
+import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
+
 import variables from '@styles/variables';
+
 import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingErrorMessage, setOnboardingPurposeSelected} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {useIsFocused} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useImperativeHandle, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
+
 import type {BaseOnboardingPurposeProps} from './types';
 
 const selectableOnboardingChoices = Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES);
@@ -42,20 +56,23 @@ function getOnboardingChoices(customChoices: OnboardingPurpose[]) {
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars', 'ReceiptUpload', 'PiggyBank', 'SplitBill']);
+    const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars', 'CalculatorMoney', 'ReceiptUpload', 'PiggyBank']);
 
     const menuIcons = useMemo(
         () => ({
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: illustrations.ReceiptUpload,
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: illustrations.Abacus,
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: illustrations.PiggyBank,
-            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: illustrations.SplitBill,
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: illustrations.CalculatorMoney,
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: illustrations.PiggyBank,
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: illustrations.Binoculars,
         }),
-        [illustrations.Abacus, illustrations.Binoculars, illustrations.ReceiptUpload, illustrations.PiggyBank, illustrations.SplitBill],
+        [illustrations.Abacus, illustrations.Binoculars, illustrations.CalculatorMoney, illustrations.ReceiptUpload, illustrations.PiggyBank],
     );
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PURPOSE);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {onboardingMessages} = useOnboardingMessages();
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
@@ -64,10 +81,15 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const [adminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
     const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
+    const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
     const [customChoices = getEmptyArray<OnboardingPurpose>()] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
@@ -95,9 +117,24 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     return;
                 }
 
+                if (choice === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+                    Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.getRoute(route.params?.backTo));
+                    return;
+                }
+
+                if (choice === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026) {
+                    if (personalDetailsForm?.firstName) {
+                        autoCreateSubmitWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '');
+                        return;
+                    }
+
+                    Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+                    return;
+                }
+
                 if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName) {
-                    if (choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
-                        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute(route.params?.backTo));
+                    if (isTrackOnboardingChoice(choice)) {
+                        autoCreateTrackWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '', choice);
                         return;
                     }
                     completeOnboarding({
@@ -109,7 +146,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         onboardingPolicyID,
                         companySize: onboardingCompanySize,
                         introSelected,
-                        betas,
+                        isSelfTourViewed,
+                        conciergeChat,
+                        adminsChatReport,
                     });
 
                     return;
@@ -142,7 +181,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 <HeaderWithBackButton
                     shouldShowBackButton={false}
                     iconFill={theme.iconColorfulBackground}
-                    progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 60 : 20}
+                    stepCounter={onboardingStep?.stepCounter}
+                    progressBarPercentage={onboardingStep?.progressBarPercentage}
                     shouldDisplayHelpButton={false}
                 />
             </View>

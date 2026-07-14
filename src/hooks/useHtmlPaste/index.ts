@@ -1,7 +1,10 @@
-import {useCallback, useEffect, useRef} from 'react';
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
+
 import CONST from '@src/CONST';
+
+import {useCallback, useEffect, useRef} from 'react';
+
 import type UseHtmlPaste from './types';
 
 const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: number) => {
@@ -80,10 +83,8 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                         bubbles: true,
                     }),
                 );
-                // eslint-disable-next-line no-empty
             } catch (e) {}
             // We only need to set the callback once.
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
         [maxLength, textInputRef],
     );
@@ -155,7 +156,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                 // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
                 if (embeddedImages.length > 0 && embeddedImages[0].src) {
                     // If HTML has emoji, then treat this as plain text.
-                    if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
+                    if (embeddedImages[0].dataset?.stringifyType === 'emoji') {
                         handlePastePlainText(event);
                         return;
                     }

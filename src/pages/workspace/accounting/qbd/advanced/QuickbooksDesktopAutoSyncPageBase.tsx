@@ -1,22 +1,30 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateQuickbooksDesktopAutoSync} from '@libs/actions/connections/QuickbooksDesktop';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useCallback} from 'react';
 
 type QuickbooksDesktopAutoSyncPageBaseParams = {
     policy: OnyxEntry<Policy>;
@@ -34,7 +42,7 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
         settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD], pendingFields);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(navigateBackTo ?? ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID));
+        Navigation.goBack(navigateBackTo ?? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)));
     }, [policyID, navigateBackTo]);
 
     return (

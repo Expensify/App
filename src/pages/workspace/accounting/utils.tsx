@@ -1,26 +1,37 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import ConnectToCertiniaFlow from '@components/ConnectToCertiniaFlow';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
 import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
+import ConnectToRilletFlow from '@components/ConnectToRilletFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import {isAuthenticationError} from '@libs/actions/connections';
-import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
-import getPlatform from '@libs/getPlatform';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type {ThemeStyles} from '@styles/index';
+
 import {getTrackingCategories} from '@userActions/connections/Xero';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {Account, ConnectionName, Connections, PolicyConnectionName, QBDNonReimbursableExportAccountType, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
+import type {AccountingIntegration} from './types';
+
 import {
     getImportCustomFieldsSettings,
     getInitialSubPageForNetsuiteTokenInput,
@@ -38,43 +49,59 @@ import {
     shouldHideTaxPostingAccountSelect,
     shouldShowInvoiceItemMenuItem,
 } from './netsuite/utils';
-import type {AccountingIntegration} from './types';
-
-const platform = getPlatform(true);
-const isMobile = [CONST.PLATFORM.MOBILE_WEB, CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID].some((value) => value === platform);
+import getQuickbooksDesktopSetupEntryRoute from './qbd/utils';
 
 function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
+    existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean; rillet: boolean},
     policy?: Policy,
     key?: number,
     integrationToDisconnect?: ConnectionName,
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
-    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare', IconAsset>,
+    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare', IconAsset>,
 ): AccountingIntegration | undefined {
+    const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
-    const hasPoliciesConnectedToSageIntacct = !!getAdminPoliciesConnectedToSageIntacct().length;
     const getBackToAfterWorkspaceUpgradeRouteForIntacct = () => {
         if (integrationToDisconnect) {
             return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
-        if (hasPoliciesConnectedToSageIntacct) {
+        if (existingConnections.sageIntacct) {
             return ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID);
         }
-        return ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID);
+        return createDynamicRoute(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path, basePath);
     };
     const getBackToAfterWorkspaceUpgradeRouteForQBD = () => {
         if (integrationToDisconnect) {
             return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
-        if (isMobile) {
-            return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL.getRoute(policyID);
+        if (existingConnections.qbd) {
+            return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXISTING_CONNECTIONS.getRoute(policyID);
         }
-        return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL.getRoute(policyID);
+        return getQuickbooksDesktopSetupEntryRoute(policyID);
+    };
+    const getBackToAfterWorkspaceUpgradeRouteForCertinia = () => {
+        if (integrationToDisconnect) {
+            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+        }
+        if (existingConnections.certinia) {
+            return ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.getRoute(policyID);
+        }
+        return ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID);
+    };
+    const getBackToAfterWorkspaceUpgradeRouteForRillet = () => {
+        if (integrationToDisconnect) {
+            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+        }
+        if (existingConnections.rillet) {
+            return ROUTES.POLICY_ACCOUNTING_RILLET_EXISTING_CONNECTIONS.getRoute(policyID);
+        }
+        return ROUTES.POLICY_ACCOUNTING_RILLET_SETUP.getRoute(policyID);
     };
 
     switch (connectionName) {
@@ -95,8 +122,9 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS,
                     CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS,
                     CONST.QUICKBOOKS_CONFIG.SYNC_TAX,
+                    CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS,
                 ],
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path, basePath)),
                 subscribedExportSettings: [
                     CONST.QUICKBOOKS_CONFIG.EXPORT,
                     CONST.QUICKBOOKS_CONFIG.EXPORT_DATE,
@@ -145,8 +173,14 @@ function getAccountingIntegrationData(
                     CONST.XERO_CONFIG.IMPORT_TAX_RATES,
                     ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`),
                 ],
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
-                subscribedExportSettings: [CONST.XERO_CONFIG.EXPORTER, CONST.XERO_CONFIG.BILL_DATE, CONST.XERO_CONFIG.BILL_STATUS, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, basePath)),
+                subscribedExportSettings: [
+                    CONST.XERO_CONFIG.EXPORTER,
+                    CONST.XERO_CONFIG.BILL_DATE,
+                    CONST.XERO_CONFIG.BILL_STATUS,
+                    CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
+                    CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+                ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.XERO)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
@@ -178,7 +212,7 @@ function getAccountingIntegrationData(
                     ...getImportCustomFieldsSettings(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, netsuiteConfig),
                     ...getImportCustomFieldsSettings(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, netsuiteConfig),
                 ],
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path)),
                 subscribedExportSettings: [
                     CONST.NETSUITE_CONFIG.EXPORTER,
                     CONST.NETSUITE_CONFIG.EXPORT_DATE,
@@ -246,7 +280,7 @@ function getAccountingIntegrationData(
                     CONST.SAGE_INTACCT_CONFIG.TAX,
                     ...(policy?.connections?.intacct?.config?.mappings?.dimensions ?? []).map((dimension) => `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimension.dimension}`),
                 ],
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
                 subscribedExportSettings: [
                     CONST.SAGE_INTACCT_CONFIG.EXPORTER,
                     CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE,
@@ -285,9 +319,9 @@ function getAccountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.getRoute(policyID)),
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID)),
-                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.QBD)),
-                onAdvancedPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path)),
+                onAdvancedPagePress: () =>
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
                 subscribedImportSettings: [
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES,
@@ -311,6 +345,108 @@ function getAccountingIntegrationData(
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForQBD(),
                 },
             };
+        case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
+            const certiniaConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA];
+            const certiniaConfig = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
+            const certiniaSubscribedExportSettings = certiniaConfig?.hasPSA
+                ? [CONST.CERTINIA_CONFIG.EXPORTER, CONST.CERTINIA_CONFIG.EXPORT_STATUS, CONST.CERTINIA_CONFIG.REIMBURSABLE, CONST.CERTINIA_CONFIG.NON_REIMBURSABLE]
+                : [
+                      CONST.CERTINIA_CONFIG.EXPORTER,
+                      CONST.CERTINIA_CONFIG.EXPORT_STATUS,
+                      CONST.CERTINIA_CONFIG.EXPORT_DATE,
+                      CONST.CERTINIA_CONFIG.VENDOR_ACCOUNT,
+                      CONST.CERTINIA_CONFIG.REIMBURSABLE,
+                      CONST.CERTINIA_CONFIG.NON_REIMBURSABLE,
+                  ];
+            const certiniaSubscribedImportSettings = certiniaConfig?.hasPSA
+                ? [CONST.CERTINIA_CONFIG.PARENT_TAG_MAPPING, CONST.CERTINIA_CONFIG.SYNC_MILESTONES]
+                : [
+                      CONST.CERTINIA_CONFIG.CODING_DIMENSION1,
+                      CONST.CERTINIA_CONFIG.CODING_DIMENSION2,
+                      CONST.CERTINIA_CONFIG.CODING_DIMENSION3,
+                      CONST.CERTINIA_CONFIG.CODING_DIMENSION4,
+                      CONST.CERTINIA_CONFIG.SYNC_TAX,
+                  ];
+            const certiniaSubscribedAdvancedSettings = certiniaConfig?.hasPSA
+                ? [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.TAX_NON_BILLABLE, CONST.CERTINIA_CONFIG.EXPORT_FOREIGN_CURRENCY]
+                : [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS];
+            let certiniaTitle = translate('workspace.certinia.title');
+            if (certiniaConnection && certiniaConfig?.hasPSA) {
+                certiniaTitle = translate('workspace.certinia.titlePSA');
+            } else if (certiniaConnection) {
+                certiniaTitle = translate('workspace.certinia.titleFFA');
+            }
+            return {
+                title: certiniaTitle,
+                icon: expensifyIcons?.CertiniaSquare,
+                setupConnectionFlow: (
+                    <ConnectToCertiniaFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: certiniaSubscribedImportSettings,
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
+                subscribedExportSettings: certiniaSubscribedExportSettings,
+                onAdvancedPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
+                subscribedAdvancedSettings: certiniaSubscribedAdvancedSettings,
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.CERTINIA)),
+                pendingFields: certiniaConfig?.pendingFields,
+                errorFields: certiniaConfig?.errorFields,
+                workspaceUpgradeNavigationDetails: {
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING[CONST.POLICY.CONNECTIONS.NAME.CERTINIA].alias,
+                    backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForCertinia(),
+                },
+            } as AccountingIntegration;
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
+            return {
+                title: translate('workspace.accounting.rillet'),
+                icon: expensifyIcons?.RilletSquare,
+                setupConnectionFlow: (
+                    <ConnectToRilletFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [
+                    CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES,
+                    CONST.RILLET_CONFIG.SYNC_TAX_RATES,
+                    ...(policy?.connections?.rillet?.data?.fields?.map((field) => `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`) ?? []),
+                ],
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [
+                    CONST.RILLET_CONFIG.EXPORTER,
+                    CONST.RILLET_CONFIG.EXPORT_DATE,
+                    CONST.RILLET_CONFIG.REIMBURSABLE,
+                    CONST.RILLET_CONFIG.COMPANY_CARD,
+                    CONST.RILLET_CONFIG.DEFAULT_VENDORID,
+                    CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE,
+                    CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
+                    CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNTS,
+                ],
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.RILLET)),
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [
+                    CONST.RILLET_CONFIG.ACCOUNTING_METHOD,
+                    CONST.RILLET_CONFIG.AUTO_SYNC,
+                    CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE,
+                    CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
+                    CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS,
+                    CONST.RILLET_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                ],
+                workspaceUpgradeNavigationDetails: {
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.rillet.alias,
+                    backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForRillet(),
+                },
+                pendingFields: policy?.connections?.rillet?.config?.pendingFields,
+                errorFields: policy?.connections?.rillet?.config?.errorFields,
+            };
+        }
         default:
             return undefined;
     }

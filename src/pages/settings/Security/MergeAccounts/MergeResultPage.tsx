@@ -1,8 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import {emailSelector} from '@selectors/Session';
-import React, {useEffect, useMemo} from 'react';
-import {InteractionManager, View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import type {ConfirmationPageProps} from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,32 +5,49 @@ import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextLink from '@components/TextLink';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openOldDotLink} from '@userActions/Link';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 function MergeResultPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
     const {environmentURL} = useEnvironment();
     const {result, login, backTo} = params;
     const lazyIllustrations = useMemoizedLazyIllustrations(['RunningTurtle', 'LockClosedOrange']);
+    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
+    const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
 
     const defaultResult = {
         heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
@@ -119,7 +131,7 @@ function MergeResultPage() {
                     }
                     openOldDotLink(CONST.OLDDOT_URLS.INBOX, false);
                 },
-                shouldShowSecondaryButton: true,
+                shouldShowSecondaryButton: !isClassicRedirectBlocked,
                 buttonText: translate('common.buttonConfirm'),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 illustration: lazyIllustrations.RunningTurtle,
@@ -180,7 +192,7 @@ function MergeResultPage() {
                 illustration: lazyIllustrations.LockClosedOrange,
             },
         };
-    }, [login, translate, userEmailOrPhone, styles, isTrackingGPS, environmentURL, lazyIllustrations.LockClosedOrange, lazyIllustrations.RunningTurtle]);
+    }, [login, translate, userEmailOrPhone, styles, isTrackingGPS, environmentURL, lazyIllustrations.LockClosedOrange, lazyIllustrations.RunningTurtle, isClassicRedirectBlocked]);
 
     useEffect(() => {
         /**
@@ -191,10 +203,13 @@ function MergeResultPage() {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS);
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS);
+            },
+            waitForUpcomingTransition: true,
         });
+        return () => handle.cancel();
     }, [result]);
 
     const {

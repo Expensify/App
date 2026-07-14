@@ -1,6 +1,9 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
+
+import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+
 import useHover from '@hooks/useHover';
+
 import CONST from '@src/CONST';
 
 jest.mock('@hooks/useHover', () => jest.fn());
@@ -21,6 +24,7 @@ describe('BaseListItem', () => {
         render(
             <BaseListItem
                 item={{keyForList: '1'}}
+                keyForList="1"
                 onSelectRow={() => {}}
                 showTooltip={false}
                 isFocused={false}

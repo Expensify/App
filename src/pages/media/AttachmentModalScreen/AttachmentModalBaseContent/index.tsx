@@ -1,37 +1,44 @@
-import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentCarousel from '@components/Attachments/AttachmentCarousel';
 import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
-import AttachmentView from '@components/Attachments/AttachmentView';
+import AttachmentView, {checkIsFileImage} from '@components/Attachments/AttachmentView';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
-import {AttachmentStateContext} from './AttachmentStateContextProvider';
+
+import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
+
 import type {AttachmentModalBaseContentProps} from './types';
+
+import {AttachmentStateContext} from './AttachmentStateContextProvider';
 
 function AttachmentModalBaseContent({
     source: sourceProp = '',
@@ -61,6 +68,7 @@ function AttachmentModalBaseContent({
     isRotating = false,
     submitRef,
     onDownloadAttachment,
+    shouldAllowDownloadOutsideReportContext = false,
     onClose,
     onConfirm,
     AttachmentContent,
@@ -70,6 +78,7 @@ function AttachmentModalBaseContent({
     footerActionButtons,
     customAttachmentContent,
     attachmentViewContainerStyles,
+    pdfRotation,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -97,6 +106,7 @@ function AttachmentModalBaseContent({
     const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const transaction = transactionProp ?? transactionFromOnyx;
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
+    const [currentPreviewSource, setCurrentPreviewSource] = useState<Attachment['previewSource']>();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
         addOfflineIndicatorBottomSafeAreaPadding: true,
@@ -133,6 +143,7 @@ function AttachmentModalBaseContent({
         (attachment: Attachment) => {
             setSource(attachment.source);
             setFile(attachment.file);
+            setCurrentPreviewSource(attachment.previewSource);
             setIsAuthTokenRequiredState(attachment.isAuthTokenRequired ?? false);
             onCarouselAttachmentChange(attachment);
             setCurrentAttachmentLink(attachment?.attachmentLink ?? '');
@@ -166,29 +177,16 @@ function AttachmentModalBaseContent({
             return;
         }
 
-        if (onConfirm) {
-            onConfirm(Object.assign(files ?? {}, {source} as FileObject));
-        }
-
         onClose?.();
+
+        // Defer onConfirm to the next frame so the target screen has time to unfreeze and re-mount its refs (e.g. composerRef.clearWorklet)
+        requestAnimationFrame(() => {
+            onConfirm?.(Object.assign(files ?? {}, {source} as FileObject));
+        });
     }, [isConfirmButtonDisabled, onConfirm, onClose, files, source]);
 
     // Close the modal when the escape key is pressed
-    useEffect(() => {
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                onClose?.();
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-            true,
-        );
-
-        return unsubscribeEscapeKey;
-    }, [onClose]);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => onClose?.(), {shouldBubble: true});
 
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
     useEffect(() => {
@@ -199,14 +197,30 @@ function AttachmentModalBaseContent({
 
     const {isAttachmentLoaded} = useContext(AttachmentStateContext);
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
+    const isFileImage = typeof source !== 'function' && checkIsFileImage(source, fileToDisplay?.name);
+    const isSourceLoaded = isAttachmentLoaded?.(source) || (!!currentPreviewSource && isAttachmentLoaded?.(currentPreviewSource));
     const shouldShowDownloadButton = useMemo(() => {
-        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH;
+        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH || shouldAllowDownloadOutsideReportContext;
         if (!isValidContext || isErrorInAttachment(source) || isEReceipt) {
             return false;
         }
 
-        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && isAttachmentLoaded?.(source);
-    }, [isAttachmentLoaded, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type, isEReceipt]);
+        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && (!isFileImage || isSourceLoaded);
+    }, [
+        isDownloadButtonReadyToBeShown,
+        isErrorInAttachment,
+        isFileImage,
+        isLocalSource,
+        isOffline,
+        isSourceLoaded,
+        onDownloadAttachment,
+        report,
+        shouldAllowDownloadOutsideReportContext,
+        shouldShowNotFoundPage,
+        source,
+        type,
+        isEReceipt,
+    ]);
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);
@@ -272,6 +286,7 @@ function AttachmentModalBaseContent({
                             transaction={transaction}
                             isUploaded={!isEmptyObject(report)}
                             reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
+                            rotation={pdfRotation}
                         />
                     </AttachmentCarouselPagerActionsContext.Provider>
                 </AttachmentCarouselPagerStateContext.Provider>
@@ -291,6 +306,7 @@ function AttachmentModalBaseContent({
         isWorkspaceAvatar,
         maybeIcon,
         onNavigate,
+        pdfRotation,
         report,
         reportID,
         setAttachmentError,
@@ -330,7 +346,15 @@ function AttachmentModalBaseContent({
                 subTitleLink={currentAttachmentLink ?? ''}
             />
             <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
-                {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
+                {isLoading && (
+                    <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            testID="attachment-loading-spinner"
+                            reasonAttributes={{context: 'AttachmentModalBaseContent'}}
+                        />
+                    </View>
+                )}
                 {shouldShowNotFoundPage && !isLoading && (
                     <BlockingView
                         icon={illustrations.ToddBehindCloud}

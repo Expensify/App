@@ -1,9 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
-import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import type {TextInput} from 'react-native';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -12,18 +6,23 @@ import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isValidAddress} from '@libs/ValidationUtils';
+
 import variables from '@styles/variables';
+
 import {removeWaypoint, saveWaypoint} from '@userActions/Transaction';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,8 +31,18 @@ import type SCREENS from '@src/SCREENS';
 import type {RecentWaypoint, Transaction} from '@src/types/onyx';
 import type {Waypoint} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
+
+import type {TextInput} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useNavigation} from '@react-navigation/native';
+import lodashIsEmpty from 'lodash/isEmpty';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 // Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
@@ -41,7 +50,7 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 function recentWaypointsSelector(waypoints: RecentWaypoint[] = []) {
     return waypoints
         .slice(0, CONST.RECENT_WAYPOINTS_NUMBER)
-        .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true)
+        .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true && waypoint.lat != null && waypoint.lng != null)
         .map((waypoint) => ({
             name: waypoint.name,
             description: waypoint.address ?? '',

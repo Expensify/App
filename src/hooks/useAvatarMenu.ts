@@ -1,11 +1,15 @@
-import {useCallback, useContext} from 'react';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
-import ROUTES from '@src/ROUTES';
+
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {useCallback, useContext} from 'react';
+
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 
@@ -32,7 +36,7 @@ type UseAvatarMenuParams = {
  * Custom hook to create avatar menu items
  */
 function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAvatarCropModal, clearError, source, originalFileName}: UseAvatarMenuParams) {
-    const icons = useMemoizedLazyExpensifyIcons(['Upload']);
+    const icons = useMemoizedLazyExpensifyIcons(['Upload', 'Trashcan', 'Eye']);
     const {translate} = useLocalize();
     const attachmentContext = useContext(AttachmentModalContext);
 
@@ -59,7 +63,7 @@ function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAva
             }
             if (!source) {
                 menuItems.push({
-                    icon: Expensicons.Trashcan,
+                    icon: icons.Trashcan,
                     text: translate('avatarWithImagePicker.removePhoto'),
                     value: null,
                     onSelected: () => {
@@ -73,16 +77,16 @@ function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAva
                 ...menuItems,
                 {
                     value: null,
-                    icon: Expensicons.Eye,
+                    icon: icons.Eye,
                     text: translate('avatarWithImagePicker.viewPhoto'),
                     onSelected: () => {
                         attachmentContext.setCurrentAttachment({source, originalFileName});
-                        Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_AVATAR.getRoute(accountID)));
                     },
                 },
             ];
         },
-        [icons.Upload, translate, shouldHideAvatarEdit, source, showAvatarCropModal, clearError, onImageRemoved, attachmentContext, originalFileName, accountID],
+        [icons.Upload, icons.Trashcan, icons.Eye, translate, shouldHideAvatarEdit, source, showAvatarCropModal, clearError, onImageRemoved, attachmentContext, originalFileName, accountID],
     );
 
     return {createMenuItems};

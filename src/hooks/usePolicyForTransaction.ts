@@ -1,10 +1,12 @@
-import {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {isExpenseUnreported} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 
@@ -21,6 +23,9 @@ type UsePolicyForTransactionParams = {
     /** The type of IOU (split, track, submit, etc.) */
     iouType: string;
 
+    /** The draft policy linked to the report */
+    policyDraft?: OnyxEntry<Policy>;
+
     /** Indicates if the request is a per diem request */
     isPerDiemRequest?: boolean;
 };
@@ -30,14 +35,11 @@ type UsePolicyForTransactionResult = {
     policy: OnyxEntry<Policy>;
 };
 
-function usePolicyForTransaction({transaction, reportPolicyID, action, iouType, isPerDiemRequest}: UsePolicyForTransactionParams): UsePolicyForTransactionResult {
+function usePolicyForTransaction({transaction, reportPolicyID, action, iouType, policyDraft, isPerDiemRequest}: UsePolicyForTransactionParams): UsePolicyForTransactionResult {
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-
-    const customUnitPolicy = useMemo(() => {
-        return getPolicyByCustomUnitID(transaction, allPolicies);
-    }, [transaction, allPolicies]);
+    const customUnitID = transaction?.comment?.customUnit?.customUnitID;
+    const [customUnitPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => getPolicyByCustomUnitID(transaction, policies)}, [customUnitID]);
 
     const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reportPolicyID}`);
 
@@ -45,7 +47,7 @@ function usePolicyForTransaction({transaction, reportPolicyID, action, iouType, 
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
     const policyForSelfDMExpense = isPerDiemRequest ? customUnitPolicy : policyForMovingExpenses;
-    const policy = isUnreportedExpense || isCreatingTrackExpense ? policyForSelfDMExpense : reportPolicy;
+    const policy = isUnreportedExpense || isCreatingTrackExpense ? policyForSelfDMExpense : (reportPolicy ?? policyDraft);
 
     return {policy};
 }

@@ -1,6 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {ChangeFieldParams, ExportedToIntegrationParams, IntegrationsMessageParams, MarkReimbursedFromIntegrationParams, ShareParams, UnshareParams} from '@src/languages/params';
+
+import type {ValueOf} from 'type-fest';
 
 /**
  *
@@ -141,6 +142,16 @@ type OriginalMessageOutdatedBankAccount = {
 /**
  *
  */
+type ReimbursementACHBounceOriginalMessage = {
+    /**
+     *
+     */
+    returnReason?: string;
+};
+
+/**
+ *
+ */
 type OriginalMessageReimbursementACHBounce = {
     /**
      *
@@ -149,7 +160,7 @@ type OriginalMessageReimbursementACHBounce = {
     /**
      *
      */
-    originalMessage: Record<string, unknown>;
+    originalMessage: Record<string, unknown> & ReimbursementACHBounceOriginalMessage;
 };
 
 /**
@@ -347,31 +358,7 @@ type OldDotOriginalMessageMap = {
 /**
  *
  */
-type OldDotLegacyMessage = {
-    /**
-     *
-     */
-    html?: string;
-    /**
-     *
-     */
-    text?: string;
-};
-
-/**
- *
- */
-type OldDotLegacyAction = {
-    /**
-     *
-     */
-    message: OldDotLegacyMessage[] | OldDotLegacyMessage;
-};
-
-/**
- *
- */
 type OldDotAction = ValueOf<OldDotOriginalMessageMap>;
 
 export default OldDotAction;
-export type {OldDotLegacyAction, OldDotOriginalMessageMap, OriginalMessageExportedToIntegration};
+export type {OldDotOriginalMessageMap, OriginalMessageExportedToIntegration};

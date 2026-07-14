@@ -1,20 +1,31 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
-import type {RefObject} from 'react';
-import type {TextInput} from 'react-native';
-import {InteractionManager} from 'react-native';
+import Accessibility from '@libs/Accessibility';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import {shouldSkipAutoFocusDueToExistingFocus} from '@libs/NavigationFocusReturn';
+import {Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusArbiter';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
+
+import type {RefObject} from 'react';
+import type {TextInput} from 'react-native';
+
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useCallback, useEffect, useRef, useState} from 'react';
+
+import useIsInLandscapeMode from './useIsInLandscapeMode';
 import useOnyx from './useOnyx';
 import useSidePanelState from './useSidePanelState';
 
 type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
     inputRef: RefObject<TextInput | null>;
+    cancelAutoFocus: () => void;
 };
 
 export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
@@ -22,43 +33,101 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const isPopoverVisible = modal?.willAlertModalBecomeVisible && modal?.isPopover;
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
 
     const {splashScreenState} = useSplashScreenState();
+    const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
 
     const inputRef = useRef<TextInput | null>(null);
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const transitionEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isAutoFocusCancelledRef = useRef(false);
 
-    useEffect(() => {
-        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
+    const clearTransitionEndTimeout = useCallback(() => {
+        if (!transitionEndTimeoutRef.current) {
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
-            if (inputRef.current && isMultiline) {
-                moveSelectionToEnd(inputRef.current);
-            }
-            isWindowReadyToFocus().then(() => inputRef.current?.focus());
-            setIsScreenTransitionEnded(false);
+        clearTimeout(transitionEndTimeoutRef.current);
+        transitionEndTimeoutRef.current = null;
+    }, []);
+
+    const cancelAutoFocus = () => {
+        isAutoFocusCancelledRef.current = true;
+        clearTransitionEndTimeout();
+        setIsScreenTransitionEnded(false);
+    };
+
+    useEffect(() => {
+        if (
+            isScreenReaderEnabled ||
+            !isScreenTransitionEnded ||
+            !isInputInitialized ||
+            !inputRef.current ||
+            splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN ||
+            isPopoverVisible ||
+            isInLandscapeMode
+        ) {
+            return;
+        }
+        const focusTaskHandle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                if (inputRef.current && isMultiline) {
+                    moveSelectionToEnd(inputRef.current);
+                }
+                isWindowReadyToFocus().then(() => {
+                    // Null-ref claim would block fallbacks on the destination screen.
+                    const input = inputRef.current;
+                    if (!input) {
+                        return;
+                    }
+                    if (shouldSkipAutoFocusDueToExistingFocus()) {
+                        return;
+                    }
+                    if (!tryClaim(Priorities.AUTO)) {
+                        return;
+                    }
+                    // Silent no-op (RN-Web TextInput hidden/disabled) leaves AUTO claimed; release so INITIAL/RETURN aren't blocked for 2s.
+                    const beforeActive = typeof document !== 'undefined' ? document.activeElement : null;
+                    input.focus();
+                    if (beforeActive !== null && document.activeElement === beforeActive) {
+                        resetCycle();
+                    }
+                });
+                setIsScreenTransitionEnded(false);
+            },
         });
 
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible]);
+    }, [isScreenReaderEnabled, isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible, isInLandscapeMode]);
 
     useFocusEffect(
         useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                setIsScreenTransitionEnded(true);
-            }, CONST.ANIMATED_TRANSITION);
-            return () => {
-                setIsScreenTransitionEnded(false);
-                if (!focusTimeoutRef.current) {
+            isAutoFocusCancelledRef.current = false;
+            setIsScreenTransitionEnded(false);
+            transitionEndTimeoutRef.current = setTimeout(() => {
+                if (isAutoFocusCancelledRef.current) {
                     return;
                 }
-                clearTimeout(focusTimeoutRef.current);
+                setIsScreenTransitionEnded(true);
+            }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
+
+            const unsubscribeTransitionEnd = navigation.addListener?.('transitionEnd', (event) => {
+                if (event?.data?.closing || isAutoFocusCancelledRef.current) {
+                    return;
+                }
+                clearTransitionEndTimeout();
+                setIsScreenTransitionEnded(true);
+            });
+            return () => {
+                setIsScreenTransitionEnded(false);
+                clearTransitionEndTimeout();
+                if (unsubscribeTransitionEnd) {
+                    unsubscribeTransitionEnd();
+                }
             };
-        }, []),
+        }, [clearTransitionEndTimeout, navigation]),
     );
 
     // Trigger focus when Side Panel transition ends
@@ -92,5 +161,5 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         setIsInputInitialized(true);
     };
 
-    return {inputCallbackRef, inputRef};
+    return {inputCallbackRef, inputRef, cancelAutoFocus};
 }

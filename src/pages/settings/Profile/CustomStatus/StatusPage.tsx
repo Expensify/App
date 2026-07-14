@@ -1,6 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import DelegatorList from '@components/DelegatorList';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
@@ -15,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -24,23 +22,31 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileChrome} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import focusAfterModalClose from '@libs/focusAfterModalClose';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {clearCustomStatus, clearDraftCustomStatus, updateCustomStatus, updateDraftCustomStatus} from '@userActions/User';
 import {clearVacationDelegateError} from '@userActions/VacationDelegate';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SettingsStatusSetForm';
 
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 const initialEmoji = '💬';
 
 function StatusPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Trashcan']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -51,7 +57,7 @@ function StatusPage() {
     // distinguish between large and small screens, so we rely on isSmallScreenWidth
     // to accurately detect the screen size.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
     const [draftStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
     const [formState] = useOnyx(ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM);
@@ -90,36 +96,8 @@ function StatusPage() {
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
     }, [draftClearAfter, currentUserClearAfter]);
 
-    const navigateBackToPreviousScreenTask = useRef<{
-        then: (
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            onfulfilled?: () => typeof InteractionManager.runAfterInteractions,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            onrejected?: () => typeof InteractionManager.runAfterInteractions,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-        ) => Promise<typeof InteractionManager.runAfterInteractions>;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        done: (...args: Array<typeof InteractionManager.runAfterInteractions>) => typeof InteractionManager.runAfterInteractions;
-        cancel: () => void;
-    } | null>(null);
-
-    useEffect(
-        () => () => {
-            if (!navigateBackToPreviousScreenTask.current) {
-                return;
-            }
-
-            navigateBackToPreviousScreenTask.current.cancel();
-        },
-        [],
-    );
-
-    const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
     const updateStatus = useCallback(
         ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
-            if (navigateBackToPreviousScreenTask.current) {
-                return;
-            }
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
             const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
@@ -127,36 +105,25 @@ function StatusPage() {
                 setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
                 return;
             }
-            updateCustomStatus({
+            updateCustomStatus(currentUserPersonalDetails.accountID, {
                 text: statusText,
                 emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
-                clearDraftCustomStatus();
-                navigateBackToPreviousScreen();
-            });
+            Navigation.goBack(undefined, {afterTransition: () => clearDraftCustomStatus()});
         },
-        [currentUserClearAfter, draftClearAfter, isValidClearAfterDate, navigateBackToPreviousScreen],
+        [currentUserClearAfter, draftClearAfter, isValidClearAfterDate, currentUserPersonalDetails.accountID],
     );
 
     const clearStatus = () => {
-        if (navigateBackToPreviousScreenTask.current) {
-            return;
-        }
-        clearCustomStatus();
+        clearCustomStatus(currentUserPersonalDetails.accountID);
         updateDraftCustomStatus({
             text: '',
             emojiCode: '',
             clearAfter: DateUtils.getEndOfToday(),
         });
         formRef.current?.resetForm({[INPUT_IDS.EMOJI_CODE]: ''});
-
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
-            navigateBackToPreviousScreen();
-        });
+        Navigation.goBack();
     };
 
     useEffect(() => setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR), [isValidClearAfterDate]);
@@ -188,6 +155,22 @@ function StatusPage() {
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
+    const saveButton = useMemo(
+        () => (
+            <Button
+                success
+                large
+                style={styles.w100}
+                text={translate('statusPage.save')}
+                onPress={() => formRef.current?.submit()}
+                pressOnEnter
+                enterKeyEventListenerPriority={1}
+                isLoading={isFormLoading}
+            />
+        ),
+        [translate, isFormLoading, styles.w100],
+    );
+
     return (
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.PROFILE.STATUS].backgroundColor)]}
@@ -198,7 +181,7 @@ function StatusPage() {
         >
             <HeaderWithBackButton
                 title={translate('statusPage.status')}
-                onBackButtonPress={navigateBackToPreviousScreen}
+                onBackButtonPress={Navigation.goBack}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM}
@@ -280,20 +263,11 @@ function StatusPage() {
                         </>
                     )}
                 </View>
+
+                {isInLandscapeMode && saveButton}
             </FormProvider>
 
-            <FixedFooter style={[styles.mtAuto]}>
-                <Button
-                    success
-                    large
-                    style={styles.w100}
-                    text={translate('statusPage.save')}
-                    onPress={() => formRef.current?.submit()}
-                    pressOnEnter
-                    enterKeyEventListenerPriority={1}
-                    isLoading={isFormLoading}
-                />
-            </FixedFooter>
+            {!isInLandscapeMode && <FixedFooter style={[styles.mtAuto]}>{saveButton}</FixedFooter>}
         </ScreenWrapper>
     );
 }

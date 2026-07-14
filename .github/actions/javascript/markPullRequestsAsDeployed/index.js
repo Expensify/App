@@ -12749,12 +12749,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-const core = __importStar(__nccwpck_require__(2186));
-const github_1 = __nccwpck_require__(5438);
-const memoize_1 = __importDefault(__nccwpck_require__(9885));
 const ActionUtils = __importStar(__nccwpck_require__(6981));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const core = __importStar(__nccwpck_require__(2186));
+const github_1 = __nccwpck_require__(5438);
+const memoize_1 = __importDefault(__nccwpck_require__(9885));
 /**
  * Return a nicely formatted message for the table based on the result of the GitHub action job
  */
@@ -12837,13 +12837,17 @@ async function run() {
     const prList = ActionUtils.getJSONInput('PR_LIST', { required: true }).map((num) => Number.parseInt(num, 10));
     const mobileExpensifyPRListInput = ActionUtils.getJSONInput('MOBILE_EXPENSIFY_PR_LIST', { required: false });
     const mobileExpensifyPRList = Array.isArray(mobileExpensifyPRListInput) ? mobileExpensifyPRListInput.map((num) => Number.parseInt(num, 10)) : [];
-    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', { required: true });
+    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {
+        required: true,
+    });
     const version = core.getInput('DEPLOY_VERSION', { required: true });
     const androidResult = getDeployTableMessage(core.getInput('ANDROID', { required: true }));
     const iOSResult = getDeployTableMessage(core.getInput('IOS', { required: true }));
     const webResult = getDeployTableMessage(core.getInput('WEB', { required: true }));
     const date = core.getInput('DATE');
     const note = core.getInput('NOTE');
+    const androidSentryUrl = core.getInput('ANDROID_SENTRY_URL');
+    const iosSentryUrl = core.getInput('IOS_SENTRY_URL');
     function getDeployMessage(deployer, deployVerb) {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
         message += ` by https://github.com/${deployer} in version: ${version} `;
@@ -12856,6 +12860,15 @@ async function run() {
         message += `\n🤖 android 🤖|${androidResult}\n🍎 iOS 🍎|${iOSResult}`;
         if (note) {
             message += `\n\n_Note:_ ${note}`;
+        }
+        if (androidSentryUrl || iosSentryUrl) {
+            message += `\n\n**Bundle Size Analysis (Sentry):**`;
+            if (androidSentryUrl) {
+                message += `\n- [Android](${androidSentryUrl})`;
+            }
+            if (iosSentryUrl) {
+                message += `\n- [iOS](${iosSentryUrl})`;
+            }
         }
         return message;
     }
@@ -13041,6 +13054,7 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
+        DAILY: 'Daily',
     },
     STATE: {
         OPEN: 'open',
@@ -13137,7 +13151,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
@@ -13225,11 +13239,11 @@ class GithubUtils {
     /**
      * Fetch all pull requests given a list of PR numbers.
      */
-    static fetchAllPullRequests(pullRequestNumbers) {
+    static fetchAllPullRequests(pullRequestNumbers, repo = CONST_1.default.APP_REPO) {
         const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
         return this.paginate(this.octokit.pulls.list, {
             owner: CONST_1.default.GITHUB_OWNER,
-            repo: CONST_1.default.APP_REPO,
+            repo,
             state: 'all',
             sort: 'created',
             direction: 'desc',

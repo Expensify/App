@@ -1,3 +1,12 @@
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import CONST from '@src/CONST';
+import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
+import type Locale from '@src/types/onyx/Locale';
+import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+
+import type {ValueOf} from 'type-fest';
+
 import {
     addDays,
     addHours,
@@ -32,12 +41,7 @@ import {
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import throttle from 'lodash/throttle';
-import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import CONST from '@src/CONST';
-import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
-import type Locale from '@src/types/onyx/Locale';
-import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+
 import {setCurrentDate} from './actions/CurrentDate';
 import {translate as translateLocalize} from './Localize';
 import Log from './Log';
@@ -305,6 +309,18 @@ function getMonthNames(): string[] {
 }
 
 /**
+ * Returns month list items for SelectionList.
+ */
+function getFilteredMonthItems(monthNames: string[], currentMonth: number) {
+    return monthNames.map((month, index) => ({
+        text: month.charAt(0).toUpperCase() + month.slice(1),
+        value: index,
+        keyForList: index.toString(),
+        isSelected: index === currentMonth,
+    }));
+}
+
+/**
  * @returns [Monday, Tuesday, Wednesday, ...]
  */
 function getDaysOfWeek(): string[] {
@@ -363,6 +379,14 @@ function addMillisecondsFromDateTime(dateTime: string, milliseconds: number): st
     const newTimestamp = addMilliseconds(date, milliseconds).valueOf();
 
     return getDBTime(newTimestamp);
+}
+
+/** Whole seconds left in a `windowMs` window that began at epoch-ms `requestedAt`. Clamped to [0, windowMs/1000]. */
+function getRemainingSecondsInWindow(requestedAt: number | undefined, windowMs: number): number {
+    if (!requestedAt) {
+        return 0;
+    }
+    return Math.max(0, Math.ceil((windowMs - (Date.now() - requestedAt)) / CONST.MILLISECONDS_PER_SECOND));
 }
 
 /**
@@ -805,16 +829,39 @@ function getFormattedTransportDateAndHour(date: Date): {date: string; hour: stri
 }
 
 /**
- * Returns a formatted cancellation date.
- * Dates are formatted as follows:
- * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
- * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
+ * Returns a human-readable timezone label for an ISO offset (e.g. `+07:00` -> `GMT+7`, `+00:00` -> `UTC`).
  */
-function getFormattedCancellationDate(date: Date): string {
-    if (isThisYear(date)) {
-        return format(date, 'EEEE, MMM d h:mm a');
+function getCancellationDateTimezoneLabel(venueTimezone: string): string {
+    const match = venueTimezone.match(/^([+-])(\d{2}):(\d{2})$/);
+    if (!match) {
+        return 'UTC';
     }
-    return format(date, 'EEEE, MMM d, yyyy h:mm a');
+    const [, sign, hours, minutes] = match;
+    const hoursNumber = Number(hours);
+    const minutesNumber = Number(minutes);
+    if (hoursNumber === 0 && minutesNumber === 0) {
+        return 'UTC';
+    }
+    return `GMT${sign}${hoursNumber}${minutesNumber > 0 ? `:${minutes}` : ''}`;
+}
+
+/**
+ * Returns a formatted cancellation date, preserving the venue's timezone from the ISO string offset.
+ * Dates are formatted as follows:
+ * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM, GMT+7
+ * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM, GMT+7
+ */
+function getFormattedCancellationDate(isoDateString: string): string {
+    if (!isoDateString) {
+        return '';
+    }
+    const offsetMatch = isoDateString.match(/([+-]\d{2}:\d{2})$/);
+    const venueTimezone = offsetMatch ? offsetMatch[1] : 'UTC';
+    const date = new Date(isoDateString);
+    const pattern = isThisYear(date) ? 'EEEE, MMM d h:mm a' : 'EEEE, MMM d, yyyy h:mm a';
+    // `formatInTimeZone`'s `zzz` token relies on `Intl.DateTimeFormat`, which rejects raw offset strings like
+    // `+07:00`, so the timezone label is derived from the offset and appended manually.
+    return `${formatInTimeZone(date, venueTimezone, pattern)}, ${getCancellationDateTimezoneLabel(venueTimezone)}`;
 }
 
 /**
@@ -840,13 +887,13 @@ function getFormattedDuration(translateParam: LocaleContextProps['translate'], d
 const TIME_UNIT_PADDING = 2; // Pad time units to 2 digits (e.g., "09" instead of "9")
 
 /**
- * Formats a countdown timer with hours, minutes, and seconds (e.g., "23h 59m 59s").
+ * Formats a countdown timer with hours, minutes, and seconds (e.g., "23h : 59m : 59s").
  */
 function formatCountdownTimer(translateParam: LocaleContextProps['translate'], hours: number, minutes: number, seconds: number): string {
     const paddedMinutes = minutes.toString().padStart(TIME_UNIT_PADDING, '0');
     const paddedSeconds = seconds.toString().padStart(TIME_UNIT_PADDING, '0');
 
-    return `${hours}${translateParam('common.hourAbbreviation')} ${paddedMinutes}${translateParam('common.minuteAbbreviation')} ${paddedSeconds}${translateParam('common.secondAbbreviation')}`;
+    return `${hours}${translateParam('common.hourAbbreviation')} : ${paddedMinutes}${translateParam('common.minuteAbbreviation')} : ${paddedSeconds}${translateParam('common.secondAbbreviation')}`;
 }
 
 function doesDateBelongToAPastYear(date: string): boolean {
@@ -1017,13 +1064,16 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
 /**
  * Returns a formatted date range.
  */
-function getFormattedDateRangeForSearch(startDate: string, endDate: string): string {
+function getFormattedDateRangeForSearch(startDate: string, endDate: string, shouldShowFullYear = false, shouldOmitCurrentYear = false): string {
     const start = parse(startDate, 'yyyy-MM-dd', new Date());
     const end = parse(endDate, 'yyyy-MM-dd', new Date());
-    if (isSameYear(new Date(start), new Date(end))) {
-        return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
+    if (shouldShowFullYear || !isSameYear(new Date(start), new Date(end))) {
+        return `${format(start, 'MMM d, yyyy')} - ${format(end, 'MMM d, yyyy')}`;
     }
-    return `${format(start, 'MMM d, yyyy')} - ${format(end, 'MMM d, yyyy')}`;
+    if (shouldOmitCurrentYear && isThisYear(start) && isThisYear(end)) {
+        return `${format(start, 'MMM d')} - ${format(end, 'MMM d')}`;
+    }
+    return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
 }
 
 function getYearDateRange(year: number): {start: string; end: string} {
@@ -1073,6 +1123,7 @@ const DateUtils = {
     getDBTime,
     subtractMillisecondsFromDateTime,
     addMillisecondsFromDateTime,
+    getRemainingSecondsInWindow,
     getEndOfToday,
     getStartOfToday,
     getDateFromStatusType,
@@ -1090,6 +1141,7 @@ const DateUtils = {
     isTomorrow,
     isYesterday,
     getMonthNames,
+    getFilteredMonthItems,
     getDaysOfWeek,
     formatWithUTCTimeZone,
     getWeekEndsOn,

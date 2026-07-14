@@ -1,28 +1,35 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Alert, AppState, InteractionManager, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabNavigatorSkeleton from '@components/Skeletons/TabNavigatorSkeleton';
 import TabSelector from '@components/TabSelector/TabSelector';
+
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addTempShareFile, addValidatedShareFile, clearShareData} from '@libs/actions/Share';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import {close as closeModal} from '@userActions/Modal';
+import Tab from '@userActions/Tab';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Alert, AppState, View} from 'react-native';
+
 import getFileSize from './getFileSize';
 import ShareTab from './ShareTab';
 import SubmitTab from './SubmitTab';
@@ -41,7 +48,7 @@ function showErrorAlert(title: string, message: string) {
 function ShareRootPage() {
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
 
-    const {validateFiles} = useFilesValidation(addValidatedShareFile);
+    const {validateFiles, ErrorModal} = useFilesValidation(addValidatedShareFile);
     const isTextShared = currentAttachment?.mimeType === 'txt';
 
     const validateFileIfNecessary = useCallback(
@@ -50,13 +57,25 @@ function ShareRootPage() {
                 return;
             }
 
-            validateFiles([
-                {
-                    name: file.id,
-                    uri: file.content,
-                    type: file.mimeType,
-                },
-            ]);
+            getFileSize(file.content)
+                .catch((error: unknown) => {
+                    Log.warn('[ShareRootPage] Failed to get file size for validation', {error});
+                    return undefined;
+                })
+                .then((size) => {
+                    validateFiles(
+                        [
+                            {
+                                name: file.id,
+                                uri: file.content,
+                                type: file.mimeType,
+                                size,
+                            },
+                        ],
+                        undefined,
+                        {isValidatingReceipts: false},
+                    );
+                });
         },
         [isTextShared, validateFiles],
     );
@@ -107,7 +126,10 @@ function ShareRootPage() {
                 });
             }
 
-            if (isImage) {
+            // Skip the standalone corruption check for files that go through `validateFileIfNecessary`,
+            // because `validateFiles` already runs corruption checks internally. Running both would
+            // surface a duplicate (and potentially misleading) "corrupt attachment" alert.
+            if (isImage && !shouldValidateFile(tempFile)) {
                 const fileObject: FileObject = {name: tempFile.id, uri: tempFile?.content, type: tempFile?.mimeType};
                 validateImageForCorruption(fileObject).catch(() => {
                     setErrorTitle(translate('attachmentPicker.attachmentError'));
@@ -120,6 +142,9 @@ function ShareRootPage() {
                 if (tempFile.mimeType) {
                     if (receiptFileFormats.includes(tempFile.mimeType) && fileExtension) {
                         setIsFileScannable(true);
+                        // Reset the persisted tab to SUBMIT so that defaultSelectedTab takes effect
+                        // even when a previous Share session left the tab on SHARE.
+                        Tab.setSelectedTab(CONST.TAB.SHARE.NAVIGATOR_ID, CONST.TAB.SHARE.SUBMIT);
                     } else {
                         setIsFileScannable(false);
                     }
@@ -164,25 +189,6 @@ function ShareRootPage() {
         [isFileReady],
     );
 
-    const shareTabInputRef = useRef<AnimatedTextInputRef | null>(null);
-    const submitTabInputRef = useRef<AnimatedTextInputRef | null>(null);
-
-    // We're focusing the input using internal onPageSelected to fix input focus inconsistencies on native.
-    // More info: https://github.com/Expensify/App/issues/59388
-    const onTabSelectFocusHandler = ({index}: {index: number}) => {
-        // We runAfterInteractions since the function is called in the animate block on web-based
-        // implementation, this fixes an animation glitch and matches the native internal delay
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            // Chat tab (0) / Room tab (1) according to OnyxTabNavigator (see below)
-            if (index === 0) {
-                shareTabInputRef.current?.focus();
-            } else if (index === 1) {
-                submitTabInputRef.current?.focus();
-            }
-        });
-    };
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -199,16 +205,17 @@ function ShareRootPage() {
                     <OnyxTabNavigator
                         id={CONST.TAB.SHARE.NAVIGATOR_ID}
                         tabBar={TabSelector}
+                        defaultSelectedTab={isFileScannable ? CONST.TAB.SHARE.SUBMIT : CONST.TAB.SHARE.SHARE}
                         lazyLoadEnabled
-                        onTabSelect={onTabSelectFocusHandler}
                     >
-                        <TopTab.Screen name={CONST.TAB.SHARE.SHARE}>{() => <ShareTab ref={shareTabInputRef} />}</TopTab.Screen>
-                        {isFileScannable && <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab ref={submitTabInputRef} />}</TopTab.Screen>}
+                        <TopTab.Screen name={CONST.TAB.SHARE.SHARE}>{() => <ShareTab />}</TopTab.Screen>
+                        {isFileScannable && <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab />}</TopTab.Screen>}
                     </OnyxTabNavigator>
                 ) : (
                     <TabNavigatorSkeleton reasonAttributes={reasonAttributes} />
                 )}
             </View>
+            {ErrorModal}
         </ScreenWrapper>
     );
 }

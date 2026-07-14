@@ -282,7 +282,7 @@ Since our codebase is very complex, it results in a large DOM tree rendered for 
 
 One of the most common issues is related to modals, popovers, and tooltips — elements that may appear on the screen. The problem is that they are usually present in the DOM tree even when initially invisible. Because of this, the initial render time of a screen may increase, ultimately slowing down the app.
 
-The solution is better control of invisible elements, making sure they are not included in the first render. This can be done, e.g., by a simple `return null`, smart usage of `lazy loading`, the `useTransition` hook, or the `<Deferred />` component.
+The solution is better control of invisible elements, making sure they are not included in the first render. This can be done, e.g., by a simple `return null`, smart usage of `lazy loading`, the `useTransition` hook, or the [`<NavigationDeferredMount />`](/src/components/NavigationDeferredMount.tsx) component. `<NavigationDeferredMount />` gates a heavy subtree behind navigation transition completion via `TransitionTracker`, rendering a cheap `placeholder` until the nav animation has finished, then mounting its `children` inside `startTransition` — ideal for heavy subtrees (e.g. report headers, page-level secondary actions) mounted during navigation transitions that pull many `useOnyx` subscriptions or heavy hooks but don't need to be interactive on first render.
 
 Another issue worth mentioning is unnecessary code execution, especially for elements that are never shown on a specific platform. In theory, we separate the logic between platforms by using index.tsx/index.native.tsx files, but sometimes platform-specific logic may slip in, causing unnecessary execution. For example, this may happen when logic specific to a wide layout (applicable only for web) is included.
 
@@ -294,6 +294,7 @@ Examples:
 - [PopoverWithMeasuredContent optimization for mobile](https://github.com/Expensify/App/pull/68223) - returns early to avoid unnecessary calculations
 - [Reduce confirm modal initial render count](https://github.com/Expensify/App/pull/67518) - returns early to reduce first load cost
 - [Do not render PopoverMenu until it gets opened](https://github.com/Expensify/App/pull/67877) - adds a wrapper to control if `PopoverMenu` should be rendered
+- [Defer mount of MoneyReportHeaderSecondaryActions](https://github.com/Expensify/App/pull/88522) - introduces `NavigationDeferredMount` and uses it to defer the "More" dropdown subtree (20+ `useOnyx` subscriptions) until the navigation transition completes
 
 # Proposing Performance Improvements
 

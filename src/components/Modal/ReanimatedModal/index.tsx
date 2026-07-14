@@ -1,19 +1,30 @@
-import noop from 'lodash/noop';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeEventSubscription, ViewStyle} from 'react-native';
-import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-native';
-import {LayoutAnimationConfig} from 'react-native-reanimated';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import getPlatform from '@libs/getPlatform';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {NativeEventSubscription, ViewStyle} from 'react-native';
+
+import noop from 'lodash/noop';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-native';
+import {LayoutAnimationConfig} from 'react-native-reanimated';
+
+import type ReanimatedModalProps from './types';
+
 import Backdrop from './Backdrop';
 import Container from './Container';
-import type ReanimatedModalProps from './types';
 
 function ReanimatedModal({
     testID,
@@ -47,6 +58,7 @@ function ReanimatedModal({
     initialFocus,
     shouldIgnoreBackHandlerDuringTransition = false,
     shouldEnableNewFocusManagement,
+    shouldReturnFocus,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -56,6 +68,7 @@ function ReanimatedModal({
 
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
     const handleRef = useRef<number | undefined>(undefined);
+    const transitionHandleRef = useRef<TransitionHandle | null>(null);
 
     const styles = useThemeStyles();
 
@@ -102,11 +115,15 @@ function ReanimatedModal({
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.clearInteractionHandle(handleRef.current);
             }
+            if (transitionHandleRef.current) {
+                TransitionTracker.endTransition(transitionHandleRef.current);
+                transitionHandleRef.current = null;
+            }
 
             setIsVisibleState(false);
             setIsContainerOpen(false);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [],
     );
 
@@ -114,13 +131,15 @@ function ReanimatedModal({
         if (isVisible && !isContainerOpen && !isTransitioning) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
+            transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillShow();
 
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsVisibleState(true);
             setIsTransitioning(true);
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
+            transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillHide();
 
             blurActiveElement();
@@ -141,6 +160,10 @@ function ReanimatedModal({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
+        if (transitionHandleRef.current) {
+            TransitionTracker.endTransition(transitionHandleRef.current);
+            transitionHandleRef.current = null;
+        }
         onModalShow();
     }, [onModalShow]);
 
@@ -148,8 +171,11 @@ function ReanimatedModal({
         setIsTransitioning(false);
         setIsContainerOpen(false);
         if (handleRef.current) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
+        }
+        if (transitionHandleRef.current) {
+            TransitionTracker.endTransition(transitionHandleRef.current);
+            transitionHandleRef.current = null;
         }
 
         // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
@@ -214,7 +240,6 @@ function ReanimatedModal({
             <Modal
                 transparent
                 animationType="none"
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 visible={modalVisibility}
                 onRequestClose={onBackButtonPressHandler}
                 statusBarTranslucent={statusBarTranslucent}
@@ -226,7 +251,6 @@ function ReanimatedModal({
                     }
                 }}
                 style={modalStyle}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {isBackdropMounted && hasBackdrop && backdropView}
@@ -242,7 +266,7 @@ function ReanimatedModal({
                     <FocusTrapForModal
                         active={modalVisibility}
                         initialFocus={initialFocus}
-                        shouldReturnFocus={!shouldEnableNewFocusManagement}
+                        shouldReturnFocus={shouldReturnFocus ?? !shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
                     >
                         {isVisibleState && containerView}

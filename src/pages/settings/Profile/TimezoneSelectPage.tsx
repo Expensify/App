@@ -1,19 +1,26 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+
 import {updateSelectedTimezone} from '@userActions/PersonalDetails';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import TIMEZONES from '@src/TIMEZONES';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo, useState} from 'react';
 
 type TimezoneSelectPageProps = Pick<WithCurrentUserPersonalDetailsProps, 'currentUserPersonalDetails'>;
 
@@ -28,13 +35,16 @@ const getUserTimezone = (currentUserPersonalDetails: ValueOf<WithCurrentUserPers
 function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProps) {
     const {translate} = useLocalize();
     const timezone = getUserTimezone(currentUserPersonalDetails);
-    const allTimezones = useInitialValue(() =>
-        TIMEZONES.filter((tz: string) => !tz.startsWith('Etc/GMT')).map((text: string) => ({
+    const allTimezones = useInitialValue(() => {
+        const options = TIMEZONES.filter((tz: string) => !tz.startsWith('Etc/GMT')).map((text: string) => ({
             text,
+            value: text,
             keyForList: getKey(text),
             isSelected: text === timezone.selected,
-        })),
-    );
+        }));
+        // Move the currently-selected timezone to the top so it's visible without scrolling when the page opens.
+        return moveInitialSelectionToTop(options, timezone.selected ? [timezone.selected] : []);
+    });
     const [timezoneInputText, setTimezoneInputText] = useState('');
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 
@@ -81,11 +91,11 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
             />
             <SelectionList
                 data={timezoneOptions}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={saveSelectedTimezone}
                 textInputOptions={textInputOptions}
                 initiallyFocusedItemKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
-                isDisabled={timezone.automatic}
+                isDisabled={!!timezone.automatic}
                 shouldShowTooltips={false}
                 shouldSingleExecuteRowSelect
                 showScrollIndicator

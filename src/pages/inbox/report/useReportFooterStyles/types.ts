@@ -1,5 +1,5 @@
-import type {ViewStyle} from 'react-native';
-import type {AnimatedStyle} from 'react-native-reanimated';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {AnimatedStyleHandle} from 'react-native-reanimated/src/hook/commonTypes';
 
 type UseReportFooterStylesParams = {
     headerHeight: number;
@@ -7,6 +7,6 @@ type UseReportFooterStylesParams = {
     isComposerFullSize?: boolean;
 };
 
-type UseReportFooterStyles = (params: UseReportFooterStylesParams) => ViewStyle | AnimatedStyle<ViewStyle>;
+type UseReportFooterStyles = (params: UseReportFooterStylesParams) => StyleProp<ViewStyle> | AnimatedStyleHandle<ViewStyle>;
 
 export type {UseReportFooterStylesParams, UseReportFooterStyles};

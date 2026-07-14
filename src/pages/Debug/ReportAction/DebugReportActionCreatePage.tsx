@@ -1,26 +1,27 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import {tierNameSelector} from '@selectors/UserWallet';
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import DebugUtils from '@libs/DebugUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
+
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
+
 import Debug from '@userActions/Debug';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,7 +29,25 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 type DebugReportActionCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
+
+function isParsedReportAction(value: unknown): value is ReportAction {
+    return typeof value === 'object' && value !== null && 'reportActionID' in value;
+}
+
+function parseReportActionJSON(draftReportAction: string): ReportAction | null {
+    try {
+        const parsedReportAction: unknown = JSON.parse(draftReportAction.replaceAll('\n', ''));
+        return isParsedReportAction(parsedReportAction) ? parsedReportAction : null;
+    } catch {
+        return null;
+    }
+}
 
 const getInitialReportAction = (reportID: string, session: OnyxEntry<Session>, personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     DebugUtils.stringifyJSON({
@@ -48,25 +67,27 @@ function DebugReportActionCreatePage({
 }: DebugReportActionCreatePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+
+    const reportAction = useMemo(() => parseReportActionJSON(draftReportAction), [draftReportAction]);
+
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
 
     const [error, setError] = useState<string>();
 
     const createReportAction = useCallback(() => {
-        const parsedReportAction = JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction;
+        if (!reportAction) {
+            return;
+        }
         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            [parsedReportAction.reportActionID]: parsedReportAction,
+            [reportAction.reportActionID]: reportAction,
         });
         Navigation.navigate(ROUTES.DEBUG_REPORT_TAB_ACTIONS.getRoute(reportID));
-    }, [draftReportAction, reportID]);
+    }, [reportAction, reportID]);
 
     const editJSON = useCallback(
         (updatedJSON: string) => {
@@ -113,23 +134,17 @@ function DebugReportActionCreatePage({
                         </View>
                         <View>
                             <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('debug.preview')}</Text>
-                            {!error ? (
+                            {!error && reportAction ? (
                                 <ReportActionItem
-                                    policies={policies}
-                                    action={JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction}
-                                    report={{reportID}}
+                                    action={reportAction}
+                                    transactionThreadReport={transactionThreadReport}
+                                    report={report}
+                                    chatReport={chatReport}
                                     parentReportAction={undefined}
                                     displayAsGroup={false}
-                                    isMostRecentIOUReportAction={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                     shouldDisplayContextMenu={false}
-                                    userWalletTierName={userWalletTierName}
-                                    isUserValidated={isUserValidated}
-                                    personalDetails={personalDetailsList}
-                                    userBillingFundID={userBillingFundID}
-                                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                                 />
                             ) : (
                                 <Text>{translate('debug.nothingToPreview')}</Text>

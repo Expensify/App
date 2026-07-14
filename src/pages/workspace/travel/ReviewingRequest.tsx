@@ -1,15 +1,18 @@
-import React from 'react';
 import Button from '@components/Button';
 import FeatureList from '@components/FeatureList';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import colors from '@styles/theme/colors';
+
+import React from 'react';
 
 function ReviewingRequest() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['PendingTravel'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PendingTravel']);
 
     return (
         <FeatureList

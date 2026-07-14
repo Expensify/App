@@ -1,0 +1,4 @@
+# Bun test discovery for server-side tooling (Jest owns src/ and tests/).
+[test]
+root = "server"
+pathIgnorePatterns = ["**/fixtures/**", "**/dist/**", "**/.dev/**", "**/__output__/**", "**/__golden__/**"]

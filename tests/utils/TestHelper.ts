@@ -1,15 +1,11 @@
 import {fireEvent, screen} from '@testing-library/react-native';
-import {Str} from 'expensify-common';
-import {Linking} from 'react-native';
-import Onyx from 'react-native-onyx';
-import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
+
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
-import DateUtils from '@libs/DateUtils';
-import {toLocaleDigit as toLocaleDigitUtil} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -19,7 +15,14 @@ import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
-import type {DismissedProductTraining, Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
+import type {Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
+
+import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
+
+import {Str} from 'expensify-common';
+import {Linking} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
@@ -68,63 +71,6 @@ function setupApp() {
             authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
         });
     });
-}
-
-function getNvpDismissedProductTraining(): OnyxEntry<DismissedProductTraining> {
-    return {
-        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER]: {
-            timestamp: DateUtils.getDBTime(new Date().valueOf()),
-            dismissedMethod: 'click',
-        },
-        [CONST.MIGRATED_USER_WELCOME_MODAL]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
-        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
-        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
-        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
-        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
-        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
-        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.OUTSTANDING_FILTER]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
-        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
-        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
-        [CONST.CHANGE_POLICY_TRAINING_MODAL]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
-        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
-        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
-    };
 }
 
 function buildPersonalDetails(login: string, accountID: number, firstName = 'Test'): PersonalDetails {
@@ -276,7 +222,7 @@ function signOutTestUser() {
  * - fail() - start returning a failure response
  * - success() - go back to returning a success response
  */
-function getGlobalFetchMock(): typeof fetch {
+function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
     let queue: QueueItem[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let responses = new Map<string, (params: any) => OnyxResponse<any>>();
@@ -303,6 +249,7 @@ function getGlobalFetchMock(): typeof fetch {
 
                       return Promise.resolve({jsonCode: 200});
                   },
+                  ...mockResponse,
               };
 
     const mockFetch = jest.fn().mockImplementation((input: RequestInfo, options?: RequestInit) => {
@@ -338,7 +285,11 @@ function getGlobalFetchMock(): typeof fetch {
     mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse<any>): void => {
         responses.set(command, responseHandler);
     };
-    return mockFetch as typeof fetch;
+    return mockFetch;
+}
+
+function getGlobalFetchMock(mockResponse?: Partial<Response>): typeof fetch {
+    return createGlobalFetchMock(mockResponse);
 }
 
 function setupGlobalFetchMock(): MockFetch {
@@ -444,11 +395,6 @@ function localeCompare(a: string, b: string): number {
     return customCollator.compare(a, b);
 }
 
-function toLocaleDigit(digit: string): string {
-    const currentLocale = IntlStore.getCurrentLocale();
-    return toLocaleDigitUtil(currentLocale, digit);
-}
-
 export type {MockFetch, FormData};
 export {
     translateLocal,
@@ -457,6 +403,7 @@ export {
     buildTestReportComment,
     getFetchMockCalls,
     getGlobalFetchMock,
+    createGlobalFetchMock,
     setPersonalDetails,
     signInWithTestUser,
     signOutTestUser,
@@ -470,6 +417,4 @@ export {
     formatPhoneNumber,
     localeCompare,
     STRIPE_CUSTOMER_ID,
-    getNvpDismissedProductTraining,
-    toLocaleDigit,
 };

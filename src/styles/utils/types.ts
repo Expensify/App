@@ -1,10 +1,12 @@
+import type colors from '@styles/theme/colors';
+import type variables from '@styles/variables';
+
+import type CONST from '@src/CONST';
+import type {Dimensions} from '@src/types/utils/Layout';
+
 import type {ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import type colors from '@styles/theme/colors';
-import type variables from '@styles/variables';
-import type CONST from '@src/CONST';
-import type {Dimensions} from '@src/types/utils/Layout';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
 type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
@@ -40,6 +42,11 @@ type AvatarStyle = Dimensions & {
 
 type ButtonSizeValue = ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 type ButtonStateName = ValueOf<typeof CONST.BUTTON_STATES>;
+type ButtonVariant = 'success' | 'danger';
+type ButtonVariantStyles = {
+    normal: Record<ButtonVariant, StyleProp<ViewStyle>>;
+    disabled: Record<ButtonVariant, StyleProp<ViewStyle>>;
+};
 type AvatarSize = {width: number};
 
 type SVGAvatarColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
@@ -66,6 +73,8 @@ export type {
     AvatarStyle,
     ButtonSizeValue,
     ButtonStateName,
+    ButtonVariant,
+    ButtonVariantStyles,
     AvatarSize,
     SVGAvatarColorStyle,
     EreceiptColorStyle,

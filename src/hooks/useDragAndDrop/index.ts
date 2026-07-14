@@ -1,6 +1,8 @@
+import {usePopoverActions} from '@components/PopoverProvider';
+
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {usePopoverActions} from '@components/PopoverProvider';
+
 import type UseDragAndDrop from './types';
 
 const COPY_DROP_EFFECT = 'copy';
@@ -26,7 +28,6 @@ const useDragAndDrop: UseDragAndDrop = ({
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const {close: closePopover} = usePopoverActions();
 
-    const dragCounter = useRef(0);
     const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Reset drag state when the screen loses focus or becomes disabled
@@ -43,7 +44,6 @@ const useDragAndDrop: UseDragAndDrop = ({
         if (isFocused && !isDisabled) {
             return;
         }
-        dragCounter.current = 0;
         if (debounceTimeoutRef.current) {
             clearTimeout(debounceTimeoutRef.current);
             debounceTimeoutRef.current = null;
@@ -96,27 +96,19 @@ const useDragAndDrop: UseDragAndDrop = ({
 
             switch (event.type) {
                 case DRAG_OVER_EVENT:
-                    handleDragEvent(event);
-                    break;
                 case DRAG_ENTER_EVENT:
                     handleDragEvent(event);
-                    dragCounter.current += 1;
-                    if (dragCounter.current === 1 && !isDraggingOver) {
+                    if (!isDraggingOver) {
                         setIsDraggingOver(true);
                     }
                     break;
                 case DRAG_LEAVE_EVENT:
-                    dragCounter.current -= 1;
-                    if (dragCounter.current <= 0) {
-                        dragCounter.current = 0;
-                        // Add small debounce to prevent rapid flickering
-                        debounceTimeoutRef.current = setTimeout(() => {
-                            setIsDraggingOver(false);
-                        }, 50);
-                    }
+                    // Add small debounce to prevent rapid flickering
+                    debounceTimeoutRef.current = setTimeout(() => {
+                        setIsDraggingOver(false);
+                    }, 50);
                     break;
                 case DROP_EVENT:
-                    dragCounter.current = 0;
                     setIsDraggingOver(false);
                     onDrop(event);
                     break;

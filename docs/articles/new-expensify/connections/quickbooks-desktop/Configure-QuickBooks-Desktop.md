@@ -83,15 +83,19 @@ These settings control how Expensify exports reports and transactions to QuickBo
   * **Vendor bill**
 * Configure accounts based on your selection:
 
-  * **Credit card account**: First credit card account in the imported list (default)
-  * **Debit card account**: First bank account in the imported list (default)
-  * **Accounts payable account**: First Accounts Payable account (for vendor bills)
-  * **Default vendor**: First vendor in the imported list (for vendor bills)
+  * **Credit card account**: Select a credit card account from the imported list
+  * **Debit card account**: Select a bank account from the imported list
+  * **Accounts payable account**: Select an Accounts Payable account (for vendor bills)
+  * **Default vendor**: Select a vendor from the imported list (for vendor bills)
 
 **Expensify Card Transactions:**
 
 * **Export Expensify Card transactions as**: Typically set to **Credit card**.
 * Expensify Card transactions automatically export to an "Expensify Card Liability Account" created with the integration.
+
+**Travel Expenses:**
+
+* **Export Consolidated Travel Billing expenses as**: This option appears only when [Consolidated Travel Billing](https://help.expensify.com/travel/hubs/consolidated-travel-billing/) is enabled. Click it, then select the **Travel payable account** where travel expenses will post in QuickBooks Desktop.
 
 ---
 
@@ -160,5 +164,13 @@ Yes. The QuickBooks Desktop integration is available on the **Control** plan.
 
 * **Tags**: Applied at the individual expense level, allowing different expenses on the same report to have different values
 * **Report fields**: Applied at the report level, meaning all expenses on a report share the same value
+
+## Can I export to an employee record instead of a vendor record?
+
+You can export to an employee record when exporting reports as **Journal Entries** or **Checks**. 
+
+By default, we'll look for a vendor record with an email address matching the report submitter. If we don't find one, we'll look for an employee record. Employees must have a **Main Email** in QuickBooks Desktop that matches the email associated with their Expensify account. 
+
+If there is no vendor or employee record and **Auto-create entities** is enabled, we'll create a new vendor record for the submitter.
 
 

@@ -1,9 +1,13 @@
-import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type {ValueSelectorModalProps} from './types';
+
 import ValueSelectionList from './ValueSelectionList';
 
 function ValueSelectorModal({
@@ -42,6 +46,7 @@ function ValueSelectorModal({
                 <ValueSelectionList
                     items={items}
                     selectedItem={selectedItem}
+                    isVisible={isVisible}
                     onItemSelected={onItemSelected}
                     shouldShowTooltips={shouldShowTooltips}
                     disableKeyboardShortcuts={disableKeyboardShortcuts}

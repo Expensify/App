@@ -1,21 +1,29 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import type {KeyValueMapping} from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportUtils';
+
 import HeaderView from '@pages/inbox/HeaderView';
+
 import {joinRoom} from '@userActions/Report';
-// eslint-disable-next-line no-restricted-syntax
 import type * as ReportType from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+import type {KeyValueMapping} from 'react-native-onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {createRandomReport} from '../../utils/collections/reports';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -50,7 +58,7 @@ describe('HeaderView', () => {
     });
 
     beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
+        Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
         initOnyxDerivedValues();
         return waitForBatchedUpdates();
     });
@@ -82,9 +90,7 @@ describe('HeaderView', () => {
             <LocaleContextProvider>
                 <OnyxListItemProvider>
                     <HeaderView
-                        report={report}
                         onNavigationMenuButtonClicked={() => {}}
-                        parentReportAction={null}
                         reportID={report.reportID}
                     />
                 </OnyxListItemProvider>
@@ -117,14 +123,14 @@ describe('HeaderView', () => {
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         };
 
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+        await waitForBatchedUpdates();
+
         render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <HeaderView
-                    report={report}
                     onNavigationMenuButtonClicked={() => {}}
-                    parentReportAction={null}
                     reportID={report.reportID}
-                    shouldUseNarrowLayout
                 />
             </ComposeProviders>,
         );
@@ -178,9 +184,7 @@ describe('HeaderView', () => {
             <LocaleContextProvider>
                 <OnyxListItemProvider>
                     <HeaderView
-                        report={threadReport}
                         onNavigationMenuButtonClicked={() => {}}
-                        parentReportAction={parentReportAction}
                         reportID={threadReport.reportID}
                     />
                 </OnyxListItemProvider>

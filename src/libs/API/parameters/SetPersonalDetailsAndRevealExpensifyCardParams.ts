@@ -1,4 +1,5 @@
 type SetPersonalDetailsAndRevealExpensifyCardParams = {
+    cardID: number | string;
     legalFirstName: string;
     legalLastName: string;
     phoneNumber: string;
@@ -7,10 +8,10 @@ type SetPersonalDetailsAndRevealExpensifyCardParams = {
     addressStreet2: string;
     addressZip: string;
     addressCountry: string;
-    addressState: string;
     dob: string;
+    addressState: string;
+    addressProvince: string;
     validateCode: string;
-    cardID: number;
 };
 
 export default SetPersonalDetailsAndRevealExpensifyCardParams;

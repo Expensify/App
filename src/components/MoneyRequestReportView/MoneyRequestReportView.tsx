@@ -1,39 +1,36 @@
-import {PortalHost} from '@gorhom/portal';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-// We use Animated for all functionality related to wide RHP to make it easier
-// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
-// eslint-disable-next-line no-restricted-imports
-import {Animated, InteractionManager, ScrollView, View} from 'react-native';
-import {KeyboardGestureArea} from 'react-native-keyboard-controller';
-import type {OnyxEntry} from 'react-native-onyx';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
+
+import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
-import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useParentReportAction from '@hooks/useParentReportAction';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
-import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
+import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
+import {getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import Navigation from '@navigation/Navigation';
-import ReportActionsView from '@pages/inbox/report/ReportActionsView';
+
+import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
+import UserTypingEventListener from '@pages/inbox/report/UserTypingEventListener';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,26 +38,40 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {ThemeStyles} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {LayoutChangeEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {PortalHost} from '@gorhom/portal';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+// We use Animated for all functionality related to wide RHP to make it easier
+// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
+// eslint-disable-next-line no-restricted-imports
+import {Animated, ScrollView, View} from 'react-native';
+import {KeyboardGestureArea} from 'react-native-keyboard-controller';
+
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
+
+const loadingAppReasonAttributes: SkeletonSpanReasonAttributes = {context: 'MoneyRequestReportView.isLoadingApp'};
 
 type MoneyRequestReportViewProps = {
     /** The report */
     report: OnyxEntry<OnyxTypes.Report>;
 
-    /** Metadata for report */
-    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
-
-    /** Current policy */
-    policy: OnyxEntry<OnyxTypes.Policy>;
+    /** Loading state for report */
+    reportLoadingState: OnyxEntry<OnyxTypes.ReportLoadingState>;
 
     /** Whether Report footer (that includes Composer) should be displayed */
     shouldDisplayReportFooter: boolean;
 
     /** The `backTo` route that should be used when clicking back button */
     backToRoute: Route | undefined;
+
+    /** Callback executed on layout */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-function goBackFromSearchMoneyRequest() {
+function goBackFromSearchMoneyRequest(options?: {afterTransition?: () => void}) {
     const rootState = navigationRef.getRootState();
     const lastRoute = rootState.routes.at(-1);
 
@@ -70,7 +81,7 @@ function goBackFromSearchMoneyRequest() {
     }
 
     if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-        Navigation.goBack();
+        Navigation.goBack(undefined, options);
         return;
     }
 
@@ -80,25 +91,31 @@ function goBackFromSearchMoneyRequest() {
     }
 
     if (rootState.routes.length > 1) {
-        Navigation.goBack();
+        Navigation.goBack(undefined, options);
         return;
     }
 
-    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}), options);
 }
 
-function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
+function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void; reasonAttributes: SkeletonSpanReasonAttributes}) {
     return (
-        <View style={[styles.flex1]}>
+        <View
+            style={[styles.flex1]}
+            onLayout={onLayout}
+        >
             <View style={[styles.appContentHeader, styles.borderBottom]}>
-                <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
+                <ReportHeaderSkeletonView
+                    onBackButtonPress={() => {}}
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
             <ReportActionsSkeletonView />
         </View>
     );
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -112,17 +129,16 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const reportID = report?.reportID;
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
-    const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
+    const {reportPendingAction, reportErrors: allReportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
-    const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
 
     const reportActions = useMemo(() => {
         return getFilteredReportActionsForReportView(unfilteredReportActions);
     }, [unfilteredReportActions]);
 
     const reportTransactions = useReportTransactionsCollection(reportID);
-    const hasPendingDeletionTransaction = Object.values(reportTransactions ?? {}).some((transaction) => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions, isOffline, true), [reportTransactions, reportActions, isOffline]);
 
     const visibleTransactions = useMemo(() => {
@@ -138,33 +154,26 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
         return transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [transactions, isOffline]);
+    const reportErrors = visibleTransactions.length === 1 && visibleTransactions.at(0)?.errors ? undefined : allReportErrors;
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
 
-    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions);
-
-    const parentReportAction = useParentReportAction(report);
-
-    const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
-    const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
+    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const dismissReportCreationError = useCallback(() => {
-        goBackFromSearchMoneyRequest();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeFailedReport(reportID));
+        goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
     }, [reportID]);
 
     // Special case handling a report that is a transaction thread
-    // If true we will use standard `ReportActionsView` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
+    // If true we will use the standard `ReportActionsList` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
     const isTransactionThreadView = isReportTransactionThread(report);
 
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
-    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportMetadata, isOffline);
+    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportLoadingState, isOffline);
 
     const shouldShowOpenReportLoadingSkeleton = !!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions;
 
-    const isEmptyTransactionReport = visibleTransactions && visibleTransactions.length === 0 && transactionThreadReportID === undefined;
+    const isEmptyTransactionReport = visibleTransactions?.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
     const onComposerLayout = useCallback((height: number) => setComposerHeight(height), []);
@@ -179,9 +188,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         () =>
             isTransactionThreadView ? (
                 <MoneyRequestHeader
-                    report={report}
-                    policy={policy}
-                    parentReportAction={parentReportAction}
+                    reportID={report?.reportID}
                     onBackButtonPress={() => {
                         if (!backToRoute) {
                             goBackFromSearchMoneyRequest();
@@ -192,11 +199,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 />
             ) : (
                 <MoneyReportHeader
-                    report={report}
-                    policy={policy}
-                    reportActions={reportActions}
-                    transactionThreadReportID={transactionThreadReportID}
-                    isLoadingInitialReportActions={isLoadingInitialReportActions}
+                    reportID={report?.reportID}
                     shouldDisplayBackButton
                     onBackButtonPress={() => {
                         if (!backToRoute) {
@@ -207,7 +210,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     }}
                 />
             ),
-        [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
+        [backToRoute, isTransactionThreadView, report?.reportID],
     );
 
     // We need to cancel telemetry span when user leaves the screen before full report data is loaded
@@ -217,15 +220,20 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         };
     }, [reportID]);
 
-    useEffect(() => {
-        if (!shouldShowOpenReportLoadingSkeleton || !report) {
-            return;
-        }
-        markOpenReportEnd(report, {warm: false});
-    }, [report, shouldShowOpenReportLoadingSkeleton]);
+    useMarkOpenReportEndOnSkeleton(report, shouldShowOpenReportLoadingSkeleton);
 
     if (shouldShowOpenReportLoadingSkeleton) {
-        return <InitialLoadingSkeleton styles={styles} />;
+        const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'MoneyRequestReportView.InitialLoadingSkeleton',
+            isLoadingInitialReportActions: !!isLoadingInitialReportActions,
+            shouldWaitForTransactions,
+        };
+        return (
+            <InitialLoadingSkeleton
+                styles={styles}
+                reasonAttributes={skeletonReasonAttributes}
+            />
+        );
     }
 
     if (reportActions.length === 0) {
@@ -239,16 +247,12 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     if (isLoadingApp) {
         return (
             <View style={styles.flex1}>
-                <ReportHeaderSkeletonView />
+                <ReportHeaderSkeletonView reasonAttributes={loadingAppReasonAttributes} />
                 <ReportActionsSkeletonView />
                 {shouldDisplayReportFooter ? (
                     <ReportFooter
-                        report={report}
-                        lastReportAction={lastReportAction}
                         onLayout={onComposerLayout}
                         headerHeight={headerHeight}
-                        // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
-                        transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                     />
                 ) : null}
             </View>
@@ -269,7 +273,9 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 needsOffscreenAlphaCompositing
                 shouldShowErrorMessages={false}
             >
-                <View onLayout={onHeaderLayout}>{reportHeaderView}</View>
+                <View onLayout={onHeaderLayout}>
+                    <CollapsibleHeaderOnKeyboard>{reportHeaderView}</CollapsibleHeaderOnKeyboard>
+                </View>
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 pendingAction={reportPendingAction}
@@ -288,6 +294,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                     report={transactionThreadReport}
                                     fillSpace
                                     isDisplayedInWideRHP
+                                    hasParentPendingAction={!!reportPendingAction}
                                 />
                             </ScrollView>
                         </Animated.View>
@@ -295,38 +302,22 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
                         {shouldDisplayMoneyRequestActionsList ? (
                             <MoneyRequestReportActionsList
-                                report={report}
-                                policy={policy}
-                                transactions={visibleTransactions}
-                                hasPendingDeletionTransaction={hasPendingDeletionTransaction}
-                                newTransactions={newTransactions}
-                                reportActions={reportActions}
-                                hasOlderActions={hasOlderActions}
-                                hasNewerActions={hasNewerActions}
-                                showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
-                                reportPendingAction={reportPendingAction}
+                                onLayout={onLayout}
                                 composerHeight={composerHeight}
                             />
                         ) : (
-                            <ReportActionsView
-                                report={report}
-                                reportActions={reportActions}
-                                isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
-                                hasNewerActions={hasNewerActions}
-                                hasOlderActions={hasOlderActions}
-                                parentReportAction={parentReportAction}
-                                transactionThreadReportID={transactionThreadReportID}
-                                composerHeight={composerHeight}
-                            />
+                            <>
+                                <ReportActionsList
+                                    reportID={report.reportID}
+                                    onLayout={onLayout}
+                                    composerHeight={composerHeight}
+                                />
+                                <UserTypingEventListener report={report} />
+                            </>
                         )}
                         {shouldDisplayReportFooter ? (
                             <>
                                 <ReportFooter
-                                    report={report}
-                                    lastReportAction={lastReportAction}
-                                    reportTransactions={transactions}
-                                    // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
-                                    transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                                     onLayout={onComposerLayout}
                                     headerHeight={headerHeight}
                                 />

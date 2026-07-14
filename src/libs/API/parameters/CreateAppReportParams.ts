@@ -6,5 +6,6 @@ type CreateAppReportParams = {
     reportPreviewReportActionID: string;
     ownerEmail?: string;
     shouldDismissEmptyReportsConfirmation?: boolean;
+    reportName?: string;
 };
 export default CreateAppReportParams;

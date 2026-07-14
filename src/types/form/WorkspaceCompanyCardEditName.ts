@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+
 import type Form from './Form';
 
 const INPUT_IDS = {
@@ -14,5 +15,5 @@ type WorkspaceCompanyCardEditName = Form<
     }
 >;
 
+// eslint-disable-next-line import/prefer-default-export
 export type {WorkspaceCompanyCardEditName};
-export default INPUT_IDS;

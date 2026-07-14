@@ -1,12 +1,17 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import type {NavigationState} from '@react-navigation/routers';
-import type {OnyxCollection} from 'react-native-onyx';
-import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
+import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
+
 import {getPolicyNameWithFallback, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {NavigationState} from '@react-navigation/routers';
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {findFocusedRoute} from '@react-navigation/native';
 
 type ContextualReportData = {
     contextualReportID: string | undefined;
@@ -86,4 +91,3 @@ function getContextualSearchQuery(item: SearchQueryItem, policies: OnyxCollectio
 }
 
 export {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery};
-export type {ContextualReportData};

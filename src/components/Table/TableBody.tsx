@@ -1,10 +1,16 @@
-import {FlashList} from '@shopify/flash-list';
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
-import Text from '@components/Text';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
+
+import {FlashList} from '@shopify/flash-list';
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+
+import type {TableData} from '.';
+
 import {useTableContext} from './TableContext';
 
 /**
@@ -43,11 +49,29 @@ type TableBodyProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
+function TableBody<DataType extends TableData>({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {processedData: filteredAndSortedData, activeSearchString, listProps, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
-    const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
+    const {
+        processedData: filteredAndSortedData,
+        activeSearchString,
+        listProps,
+        listRef,
+        shouldUseNarrowTableLayout,
+        hasActiveFilters,
+        hasSearchString,
+        isEmptyResult,
+        originalDataLength,
+    } = useTableContext<DataType>();
+    const {contentContainerStyle: listContentContainerStyle, ListEmptyComponent, ...restListProps} = listProps ?? {};
+
+    const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: shouldUseNarrowTableLayout ? styles.pb20 : styles.pb4,
+    });
+    const {minHeight: contentMinHeight} = StyleSheet.flatten(contentContainerStyle) ?? {};
+    const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
 
     // Determine the message based on what caused the empty result
     const getEmptyMessage = () => {
@@ -62,24 +86,34 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
 
     const message = getEmptyMessage();
 
-    const EmptyResultComponent = (
-        <View style={[styles.ph5, styles.pt3, styles.pb5]}>
-            <Text style={[styles.textNormal, styles.colorMuted]}>{message}</Text>
-        </View>
-    );
+    useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
+
+    if (isEmptyResult || (!originalDataLength && !ListEmptyComponent)) {
+        return null;
+    }
 
     return (
         <View
-            style={styles.flex1}
-            // eslint-disable-next-line react/jsx-props-no-spreading
+            style={[styles.flex1, styles.mnh0, style]}
             {...props}
         >
-            <FlashList<T>
+            <FlashList<DataType>
+                ref={listRef}
                 data={filteredAndSortedData}
-                ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
-                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, contentContainerStyle]}
+                style={[styles.flex1, styles.mnh0]}
+                showsVerticalScrollIndicator={false}
+                maintainVisibleContentPosition={{disabled: true}}
+                contentContainerStyle={[
+                    filteredAndSortedData.length === 0 && styles.flexGrow1,
+                    listContentContainerStyle,
+                    tableBodyContentContainerStyle,
+                    contentContainerStyle,
+                    shouldUseNarrowTableLayout &&
+                        typeof contentMinHeight === 'number' &&
+                        typeof tableBodyBottomPadding === 'number' && {minHeight: contentMinHeight + tableBodyBottomPadding},
+                ]}
                 keyboardShouldPersistTaps="handled"
-                // eslint-disable-next-line react/jsx-props-no-spreading
+                ListEmptyComponent={ListEmptyComponent}
                 {...restListProps}
             />
         </View>

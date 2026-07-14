@@ -1,27 +1,24 @@
-import truncate from 'lodash/truncate';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import truncate from 'lodash/truncate';
+
+import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils';
+
 import {setReviewDuplicatesKey} from './actions/Transaction';
 import {isCategoryMissing} from './CategoryUtils';
-import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {hasDynamicExternalWorkflow} from './PolicyUtils';
+import {hasDynamicExternalWorkflow, isGroupPolicy as isGroupPolicyUtil} from './PolicyUtils';
 import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicExternalWorkflowSubmitFailedAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
-import {
-    hasActionWithErrorsForTransaction,
-    hasReceiptError,
-    hasReportViolations,
-    isPaidGroupPolicyExpenseReport,
-    isPaidGroupPolicy as isPaidGroupPolicyUtil,
-    isReportApproved,
-    isReportOwner,
-    isSettled,
-} from './ReportUtils';
-import type {TransactionDetails} from './ReportUtils';
+import {hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isReportApproved, isSettled} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
@@ -43,10 +40,9 @@ import {
     isOnHold,
     isPending,
     isScanning,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
-import {filterReceiptViolations} from './Violations/ViolationsUtils';
+import {filterReceiptViolations, isHardViolationOrRateDateWarning} from './Violations/ViolationsUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
@@ -163,7 +159,7 @@ function getViolationTranslatePath(
 
     const filteredViolations = receiptFilteredViolations.filter((violation) => {
         if (shouldShowOnlyViolations) {
-            return violation.type === CONST.VIOLATION_TYPES.VIOLATION;
+            return isHardViolationOrRateDateWarning(violation);
         }
         return true;
     });
@@ -213,6 +209,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     currentUserEmail,
     currentUserAccountID,
     originalTransaction,
+    convertToDisplayString,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -227,6 +224,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     currentUserEmail: string;
     currentUserAccountID: number;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
@@ -239,9 +237,9 @@ function getTransactionPreviewTextAndTranslationPaths({
     const shouldShowHoldMessage = !(isMoneyRequestSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
     const isTransactionScanning = isScanning(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
-    const isPaidGroupPolicy = isPaidGroupPolicyUtil(iouReport);
+    const isGroupPolicy = isGroupPolicyUtil(policy);
 
-    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport, policy, true) && isPaidGroupPolicy;
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport, policy, true) && isGroupPolicy;
     const hasActionWithErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
@@ -256,7 +254,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         RBRMessage = {translationPath: 'iou.expenseWasPutOnHold'};
     }
 
-    const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold, !isPaidGroupPolicy);
+    const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold, !isGroupPolicy);
     if (path.translationPath === 'violations.reviewRequired' || (RBRMessage === undefined && violationMessage)) {
         RBRMessage = path;
     }
@@ -276,12 +274,15 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
-        const amountMissing = isAmountMissing(transaction);
-        const merchantMissing = isMerchantMissing(transaction);
+        const isFromExpenseReport = isExpenseReport(iouReport);
+        const amountMissing = isAmountMissing(transaction, isFromExpenseReport);
+        const merchantMissing = isFromExpenseReport && isMerchantMissing(transaction);
         if (amountMissing && merchantMissing) {
             RBRMessage = {translationPath: 'violations.reviewRequired'};
         } else if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
+        } else if (amountMissing) {
+            RBRMessage = {translationPath: 'iou.missingAmount'};
         }
     }
 
@@ -301,11 +302,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     let previewHeaderText: TranslationPathOrText[] = [{translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))}];
 
-    if (isDistanceRequest(transaction)) {
-        if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) {
-            RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
-        }
-    } else if (isTransactionScanning) {
+    if (isTransactionScanning) {
         previewHeaderText = [{translationPath: 'common.receipt'}];
     } else if (isBillSplit) {
         previewHeaderText = [{translationPath: 'iou.split'}];
@@ -341,7 +338,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     if (!isPreviewHeaderTextComplete) {
         if (hasViolationsOfTypeNotice && transaction && !isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID)) {
             previewHeaderText.push(dotSeparator, {translationPath: 'violations.reviewRequired'});
-        } else if (isPaidGroupPolicyExpenseReport(iouReport) && isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID) && !isPartialHold) {
+        } else if (isExpenseReport(iouReport) && isGroupPolicyUtil(policy) && isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID) && !isPartialHold) {
             previewHeaderText.push(dotSeparator, {translationPath: 'iou.approved'});
         } else if (iouReport?.isCancelledIOU) {
             previewHeaderText.push(dotSeparator, {translationPath: 'iou.canceled'});
@@ -404,7 +401,7 @@ function createTransactionPreviewConditionals({
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
 
     const hasViolationsOfTypeNotice =
-        hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) && iouReport && isPaidGroupPolicyUtil(iouReport);
+        hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) && iouReport && isGroupPolicyUtil(policy);
     const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
 
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
@@ -421,9 +418,7 @@ function createTransactionPreviewConditionals({
     const shouldShowCategory = !!categoryForDisplay && isReportAPolicyExpenseChat;
 
     const hasAnyViolations =
-        isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        hasViolationsOfTypeNotice ||
+        !!hasViolationsOfTypeNotice ||
         hasWarningTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy) ||
         hasViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) ||
         (isDistanceRequest(transaction) &&
@@ -431,8 +426,7 @@ function createTransactionPreviewConditionals({
                 (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
             ));
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
-    const hasReportViolationsOrActionErrors =
-        (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
+    const hasReportViolationsOrActionErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
     const isDEWSubmitFailed = hasDynamicExternalWorkflow(policy) && !!getMostRecentActiveDEWSubmitFailedAction(reportActions);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction) || isDEWSubmitFailed;
 
@@ -461,6 +455,111 @@ function createTransactionPreviewConditionals({
     };
 }
 
+/**
+ * Lightweight check for whether a transaction has any RBR (Red Brick Road) indicator.
+ * Evaluates transaction-level signals (violations, hold, missing fields, receipt errors,
+ * report action errors, and DEW submit failures) with proper context for dismissed
+ * violations and report settlement/approval status.
+ *
+ * This logic mirrors the `shouldShowRBR` computation in `createTransactionPreviewConditionals`.
+ */
+function transactionHasRBR(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    violations: OnyxTypes.TransactionViolations,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    reportActions?: OnyxTypes.ReportActions,
+    // Optional precomputed action-error state. When provided, the per-transaction action-error check is an O(1)
+    // lookup instead of re-scanning every report action — build it once with getActionErrorsByTransaction.
+    actionErrors?: ActionErrorsByTransaction,
+): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    // Check for non-dismissed violation-type or warning-type violations
+    if (
+        hasViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, policy, true) ||
+        hasWarningTypeViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, policy)
+    ) {
+        return true;
+    }
+
+    // Check for notice-type violations (only on group policies)
+    if (hasNoticeTypeViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, policy, true) && isGroupPolicyUtil(policy)) {
+        return true;
+    }
+
+    // Check for distance-request modified-amount violations (type VIOLATION or NOTICE)
+    if (
+        isDistanceRequest(transaction) &&
+        violations?.some(
+            (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
+        )
+    ) {
+        return true;
+    }
+
+    // Check if transaction is on hold — only counts as RBR when the report
+    // is not fully settled and not fully approved (matching createTransactionPreviewConditionals)
+    const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
+    const isFullySettled = isSettled(iouReport?.reportID) && !isSettlementOrApprovalPartial;
+    const isFullyApproved = isReportApproved({report: iouReport}) && !isSettlementOrApprovalPartial;
+    if (!isFullySettled && !isFullyApproved && isOnHold(transaction)) {
+        return true;
+    }
+
+    // Check if transaction has missing required fields (uses hasMissingSmartscanFields
+    // which guards against distance requests and receipts being scanned)
+    if (hasMissingSmartscanFields(transaction, iouReport)) {
+        return true;
+    }
+
+    // Check if transaction has receipt error
+    if (hasReceiptError(transaction)) {
+        return true;
+    }
+
+    // Check for report action errors associated with this transaction
+    if (hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions, actionErrors)) {
+        return true;
+    }
+
+    // Check for DEW submit failures
+    if (hasDynamicExternalWorkflow(policy) && !!getMostRecentActiveDEWSubmitFailedAction(reportActions)) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Compare two transactions by their RBR (Red Brick Road) status.
+ * Transactions with RBR indicators are sorted before those without.
+ * Returns 0 when both transactions have the same RBR status.
+ */
+function compareByRBR(
+    a: OnyxTypes.Transaction,
+    b: OnyxTypes.Transaction,
+    violations: Record<string, OnyxTypes.TransactionViolations | undefined> | undefined,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    reportActions?: OnyxTypes.ReportActions,
+): number {
+    const aViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${a.transactionID}`] ?? [];
+    const bViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${b.transactionID}`] ?? [];
+    const aHasRBR = transactionHasRBR(a, aViolations, currentUserEmail, currentUserAccountID, iouReport, policy, reportActions);
+    const bHasRBR = transactionHasRBR(b, bViolations, currentUserEmail, currentUserAccountID, iouReport, policy, reportActions);
+    if (aHasRBR === bHasRBR) {
+        return 0;
+    }
+    return aHasRBR ? -1 : 1;
+}
+
 export {
     getReviewNavigationRoute,
     getIOUPayerAndReceiver,
@@ -469,5 +568,7 @@ export {
     getViolationTranslatePath,
     getUniqueActionErrorsForTransaction,
     formatLastFourPAN,
+    transactionHasRBR,
+    compareByRBR,
 };
 export type {TranslationPathOrText};

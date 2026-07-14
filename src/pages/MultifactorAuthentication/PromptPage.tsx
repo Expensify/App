@@ -1,87 +1,66 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
-import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
+import useMFACancelOnEscape from '@components/MultifactorAuthentication/useMFACancelOnEscape';
 import ScreenWrapper from '@components/ScreenWrapper';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {markHasAcceptedSoftPrompt} from '@libs/actions/MultifactorAuthentication';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
-import Navigation from '@navigation/Navigation';
+import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navigation/types';
+
+import variables from '@styles/variables';
+
 import type SCREENS from '@src/SCREENS';
 
-type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultifactorAuthenticationParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT>;
+import React from 'react';
+import {View} from 'react-native';
+
+type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultifactorAuthenticationModalNavigatorParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT>;
 
 function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {cancel} = useMultifactorAuthentication();
-    const state = useMultifactorAuthenticationState();
+    const {requestCancel} = useMultifactorAuthentication();
     const {dispatch} = useMultifactorAuthenticationActions();
-    const {isOffline} = useNetwork();
+    const {isCancelConfirmVisible} = useMultifactorAuthenticationState();
+    const {accountID} = useCurrentUserPersonalDetails();
 
-    const {animation, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);
-
-    const [isCancelModalVisible, setCancelModalVisibility] = useState(false);
+    const {illustration, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);
+    const interceptFocusTrapEscape = useMFACancelOnEscape();
 
     const onConfirm = () => {
-        markHasAcceptedSoftPrompt();
+        markHasAcceptedSoftPrompt(accountID);
         dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
     };
-
-    const showCancelModal = () => {
-        if (isOffline) {
-            Navigation.closeRHPFlow();
-        } else {
-            setCancelModalVisibility(true);
-        }
-    };
-
-    const hideCancelModal = () => {
-        setCancelModalVisibility(false);
-    };
-
-    const cancelFlow = () => {
-        if (isCancelModalVisible) {
-            hideCancelModal();
-        }
-        cancel();
-    };
-
-    const focusTrapConfirmModal = () => {
-        setCancelModalVisibility(true);
-        return false;
-    };
-
-    const CancelConfirmModal = state.scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
 
     return (
         <ScreenWrapper
             testID={MultifactorAuthenticationPromptPage.displayName}
             focusTrapSettings={{
+                // Turn the trap off while the cancel confirmation modal is up so it can't swallow
+                // the modal's clicks, and back on when it closes. See https://github.com/Expensify/App/issues/93193
+                active: isCancelConfirmVisible ? false : undefined,
                 focusTrapOptions: {
-                    allowOutsideClick: focusTrapConfirmModal,
-                    clickOutsideDeactivates: focusTrapConfirmModal,
-                    escapeDeactivates: focusTrapConfirmModal,
+                    escapeDeactivates: interceptFocusTrapEscape,
                 },
             }}
         >
             <HeaderWithBackButton
                 title={translate('multifactorAuthentication.letsVerifyItsYou')}
-                onBackButtonPress={showCancelModal}
+                onBackButtonPress={requestCancel}
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
                 <MultifactorAuthenticationPromptContent
-                    animation={animation}
+                    illustration={illustration}
                     title={title}
                     subtitle={subtitle}
                 />
@@ -94,17 +73,11 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                             text={translate('common.buttonConfirm')}
                         />
                     ) : (
-                        <View style={[styles.w100, styles.h10]}>
-                            <LoadingIndicator />
+                        <View style={[styles.w100, styles.justifyContentCenter, {height: variables.componentSizeLarge}]}>
+                            <LoadingIndicator iconSize={28} />
                         </View>
                     )}
                 </FixedFooter>
-
-                <CancelConfirmModal
-                    isVisible={isCancelModalVisible}
-                    onConfirm={cancelFlow}
-                    onCancel={hideCancelModal}
-                />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );

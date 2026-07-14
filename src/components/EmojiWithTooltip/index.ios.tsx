@@ -1,11 +1,17 @@
-import {View} from 'react-native';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {View} from 'react-native';
+
 import type EmojiWithTooltipProps from './types';
 
-function EmojiWithTooltip({emojiCode, style = {}, isMedium = false}: EmojiWithTooltipProps) {
+function EmojiWithTooltip({emojiCode, style = {}, isMedium = false, isOnSeparateLine = false}: EmojiWithTooltipProps) {
     const styles = useThemeStyles();
     const isCustomEmoji = emojiCode === '\uE100';
+    if (isOnSeparateLine) {
+        return <Text style={[style, styles.emojisWithTextFontSizeAligned]}>{emojiCode}</Text>;
+    }
 
     return isMedium ? (
         <Text style={style}>

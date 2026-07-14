@@ -1,14 +1,17 @@
 /* eslint-disable default-case */
 /* eslint-disable max-classes-per-file */
-import {isMatch, isValid} from 'date-fns';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
-import SafeString from '@src/utils/SafeString';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
+
+import {isMatch, isValid} from 'date-fns';
+import {SafeString} from 'expensify-common';
+
 import {getLinkedTransactionID} from './ReportActionsUtils';
 import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
@@ -16,7 +19,9 @@ import {getTransactionID as TransactionUtilsGetTransactionID} from './Transactio
 
 class NumberError extends SyntaxError {
     constructor() {
-        super('debug.invalidValue', {cause: {expectedValues: 'number | undefined | ""'}});
+        super('debug.invalidValue', {
+            cause: {expectedValues: 'number | undefined | ""'},
+        });
     }
 }
 
@@ -56,7 +61,9 @@ type ObjectElement<TOnyx, K extends keyof TOnyx, TCollectionKey extends string |
     Required<TOnyx>[K] extends Record<string | number, infer ValueType>
         ? TCollectionKey extends string | number
             ? {[ValueTypeKey in KeysOfUnion<ValueType>]: ValueType[ValueTypeKey]}
-            : {[ElementKey in KeysOfUnion<Required<TOnyx>[K]>]: Required<Required<TOnyx>[K]>[ElementKey]}
+            : {
+                  [ElementKey in KeysOfUnion<Required<TOnyx>[K]>]: Required<Required<TOnyx>[K]>[ElementKey];
+              }
         : never;
 
 const OPTIONAL_BOOLEAN_STRINGS = ['true', 'false', 'undefined'];
@@ -225,7 +232,9 @@ function validateBoolean(value: string) {
         return;
     }
 
-    throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: OPTIONAL_BOOLEAN_STRINGS.join(' | ')}});
+    throw new SyntaxError('debug.invalidValue', {
+        cause: {expectedValues: OPTIONAL_BOOLEAN_STRINGS.join(' | ')},
+    });
 }
 
 /**
@@ -236,7 +245,9 @@ function validateDate(value: string) {
         return;
     }
 
-    throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: CONST.DATE.FNS_DB_FORMAT_STRING}});
+    throw new SyntaxError('debug.invalidValue', {
+        cause: {expectedValues: CONST.DATE.FNS_DB_FORMAT_STRING},
+    });
 }
 
 /**
@@ -254,7 +265,9 @@ function validateConstantEnum(value: string, constEnum: ConstantEnum) {
         return;
     }
 
-    throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: `${enumValues.join(' | ')} | undefined`}});
+    throw new SyntaxError('debug.invalidValue', {
+        cause: {expectedValues: `${enumValues.join(' | ')} | undefined`},
+    });
 }
 
 /**
@@ -383,7 +396,9 @@ function validateString(value: string) {
         const parsedValue = parseJSON(value);
 
         if (typeof parsedValue === 'object') {
-            throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: 'string | undefined'}});
+            throw new SyntaxError('debug.invalidValue', {
+                cause: {expectedValues: 'string | undefined'},
+            });
         }
     } catch (e) {
         // Only propagate error if value is a string representation of an object or array
@@ -443,6 +458,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'welcomeMessage':
         case 'origin':
         case 'originalID':
+        case 'submitterUserID':
+        case 'submitterPayrollID':
+        case 'orderDealNumbers':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -466,6 +484,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'unheldTotal':
         case 'nonReimbursableTotal':
         case 'unheldNonReimbursableTotal':
+        case 'reimbursableTotal':
+        case 'unheldReimbursableTotal':
         case 'transactionCount':
             return validateNumber(value);
         case 'chatType':
@@ -579,6 +599,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 policyID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                submitterUserID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                submitterPayrollID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                orderDealNumbers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -615,6 +638,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 total: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldNonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                reimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                unheldReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -623,6 +648,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 approved: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                export: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -795,10 +821,13 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 name: 'string',
                 receiptID: 'string',
                 source: 'string',
+                localSource: 'string',
                 filename: 'string',
                 reservationList: 'string',
                 isTestReceipt: 'boolean',
                 isTestDriveReceipt: 'boolean',
+                thumbnail: 'string',
+                receiptTraceId: 'string',
             });
         case 'childRecentReceiptTransactionIDs':
             return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
@@ -954,6 +983,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'category':
         case 'merchant':
         case 'taxCode':
+        case 'taxName':
         case 'modifiedCurrency':
         case 'modifiedMerchant':
         case 'transactionID':
@@ -963,11 +993,14 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'linkedTrackedExpenseReportID':
         case 'bank':
         case 'cardName':
+        case 'feedCountry':
         case 'cardNumber':
         case 'taxValue':
         case 'groupCurrency':
         case 'transactionType':
         case 'transactionThreadReportID':
+        case 'mcc':
+        case 'withdrawalID':
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
@@ -993,9 +1026,12 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'convertedTaxAmount':
         case 'groupAmount':
         case 'groupExchangeRate':
+        case 'currencyConversionRate':
             return validateNumber(value);
         case 'iouRequestType':
             return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
+        case 'selectedTransactionIDs':
+            return validateArray(value, 'string');
         case 'participants':
             return validateArray<ArrayElement<Transaction, 'participants'>>(value, {
                 accountID: 'number',
@@ -1044,6 +1080,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     comment: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     hold: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    vendor: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isLoading: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1059,10 +1096,12 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     defaultP2PRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     distanceUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    rateAutoUpdated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerStart: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerStartImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerEndImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    tripID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     amount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1083,13 +1122,16 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     modifiedMerchant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     modifiedWaypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     participantsAutoAssigned: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isMerchantSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionThreadReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    routeDistanceMeters: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    selectedTransactionIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isFromGlobalCreate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1100,6 +1142,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     cardID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     status: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     hasEReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    mcc: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     mccGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     modifiedMCCGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     originalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1112,6 +1155,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     bank: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     liabilityType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    feedCountry: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1121,12 +1165,16 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpensesTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    taxName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     pendingAutoCategorizationTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupExchangeRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    currencyConversionRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsStartDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1134,6 +1182,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateObject<ObjectElement<Transaction, 'receipt'>>(value, {
                 type: 'string',
                 source: 'string',
+                localSource: 'string',
                 name: 'string',
                 filename: 'string',
                 state: CONST.IOU.RECEIPT_STATE,
@@ -1141,6 +1190,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 reservationList: 'array',
                 isTestReceipt: 'boolean',
                 isTestDriveReceipt: 'boolean',
+                thumbnail: 'string',
+                receiptTraceId: 'string',
             });
         case 'taxRate':
             return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {
@@ -1162,6 +1213,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 source: 'string',
                 originalTransactionID: 'string',
                 liabilityType: CONST.TRANSACTION.LIABILITY_TYPE,
+                vendor: 'object',
                 splits: 'array',
                 dismissedViolations: 'object',
                 splitExpenses: 'array',
@@ -1175,6 +1227,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 odometerEnd: 'number',
                 odometerStartImage: 'object',
                 odometerEndImage: 'object',
+                tripID: 'string',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
@@ -1289,6 +1342,9 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 originalMessage: 'object',
                 previousMessage: 'object',
             });
+        case 'isAmountSet':
+        case 'isMerchantSet':
+            return validateBoolean(value);
     }
 }
 
@@ -1308,6 +1364,8 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 rejectedBy: 'string',
                 rejectReason: 'string',
                 formattedLimit: 'string',
+                amount: 'number',
+                currency: 'string',
                 surcharge: 'number',
                 invoiceMarkup: 'number',
                 maxAge: 'number',
@@ -1333,6 +1391,9 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 prohibitedExpenseRule: 'string',
                 comment: 'string',
                 cardID: 'number',
+                missingFields: 'array',
+                startDate: 'string',
+                endDate: 'string',
             });
         case 'showInReview':
             return validateBoolean(value);
@@ -1349,7 +1410,9 @@ function validateReportActionJSON(json: string) {
             continue;
         }
 
-        throw new SyntaxError('debug.missingProperty', {cause: {propertyName: key}});
+        throw new SyntaxError('debug.missingProperty', {
+            cause: {propertyName: key},
+        });
     }
     for (const [key, val] of Object.entries(parsedReportAction)) {
         try {
@@ -1358,8 +1421,12 @@ function validateReportActionJSON(json: string) {
             }
             validateReportActionDraftProperty(key as keyof ReportAction, onyxDataToString(val));
         } catch (e) {
-            const {cause} = e as SyntaxError & {cause: {expectedValues: string}};
-            throw new SyntaxError('debug.invalidProperty', {cause: {propertyName: key, expectedType: cause.expectedValues}});
+            const {cause} = e as SyntaxError & {
+                cause: {expectedValues: string};
+            };
+            throw new SyntaxError('debug.invalidProperty', {
+                cause: {propertyName: key, expectedType: cause.expectedValues},
+            });
         }
     }
 }
@@ -1371,14 +1438,20 @@ function validateTransactionViolationJSON(json: string) {
             continue;
         }
 
-        throw new SyntaxError('debug.missingProperty', {cause: {propertyName: key}});
+        throw new SyntaxError('debug.missingProperty', {
+            cause: {propertyName: key},
+        });
     }
     for (const [key, val] of Object.entries(parsedTransactionViolation)) {
         try {
             validateTransactionViolationDraftProperty(key as keyof TransactionViolation, onyxDataToString(val));
         } catch (e) {
-            const {cause} = e as SyntaxError & {cause: {expectedValues: string}};
-            throw new SyntaxError('debug.invalidProperty', {cause: {propertyName: key, expectedType: cause.expectedValues}});
+            const {cause} = e as SyntaxError & {
+                cause: {expectedValues: string};
+            };
+            throw new SyntaxError('debug.invalidProperty', {
+                cause: {propertyName: key, expectedType: cause.expectedValues},
+            });
         }
     }
 }
@@ -1395,6 +1468,9 @@ function getReasonForShowingRowInLHN({
     isInFocusMode = false,
     betas = undefined,
     draftComment,
+    currentUserLogin,
+    currentUserAccountID,
+    conciergeReportID,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1404,6 +1480,9 @@ function getReasonForShowingRowInLHN({
     isInFocusMode?: boolean;
     betas?: OnyxEntry<Beta[]>;
     draftComment: string | undefined;
+    currentUserLogin?: string;
+    currentUserAccountID?: number;
+    conciergeReportID: string | undefined;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1421,6 +1500,9 @@ function getReasonForShowingRowInLHN({
         includeSelfDM: true,
         isReportArchived,
         draftComment,
+        currentUserLogin,
+        currentUserAccountID,
+        conciergeReportID,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
@@ -1444,12 +1526,17 @@ type GBRReasonAndReportAction = {
 /**
  * Gets the reason and report action that is causing the GBR to show up in LHN row
  */
-function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>, isReportArchived = false): GBRReasonAndReportAction | null {
+function getReasonAndReportActionForGBRInLHNRow(
+    report: OnyxEntry<Report>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    isReportArchived = false,
+): GBRReasonAndReportAction | null {
     if (!report) {
         return null;
     }
 
-    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived) ?? {};
+    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, undefined, isReportArchived) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonGBR.${reason}`, reportAction};
@@ -1474,10 +1561,21 @@ function getReasonAndReportActionForRBRInLHNRow(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     hasViolations: boolean,
     reportErrors: Errors,
+    isOffline: boolean,
     isArchivedReport = false,
 ): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
-        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, chatReport, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isArchivedReport) ?? {};
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+            report,
+            chatReport,
+            reportActions,
+            hasViolations,
+            reportErrors,
+            transactions,
+            isOffline,
+            transactionViolations,
+            isArchivedReport,
+        ) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};

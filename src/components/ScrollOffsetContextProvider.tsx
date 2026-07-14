@@ -1,13 +1,17 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import type {ParamListBase} from '@react-navigation/native';
-import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+
 import {isSidebarScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationPartialRoute, State} from '@libs/Navigation/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import type {ParamListBase} from '@react-navigation/native';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
 
 type ScrollOffsetContextValue = {
     /** Save scroll offset of FlashList on given screen */
@@ -61,21 +65,25 @@ function getKey(route: PlatformStackRouteProp<ParamListBase> | NavigationPartial
 
 function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProps) {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [inboxTab] = useOnyx(ONYXKEYS.NVP_INBOX_TAB);
     const scrollOffsetsRef = useRef<Record<string, number>>({});
     const previousPriorityMode = usePrevious(priorityMode);
+    const previousInboxTab = usePrevious(inboxTab);
 
     useEffect(() => {
-        if (previousPriorityMode === null || previousPriorityMode === priorityMode) {
+        const priorityModeChanged = previousPriorityMode !== null && previousPriorityMode !== priorityMode;
+        const inboxTabChanged = previousInboxTab !== null && previousInboxTab !== inboxTab;
+        if (!priorityModeChanged && !inboxTabChanged) {
             return;
         }
 
-        // If the priority mode changes, we need to clear the scroll offsets for the home and search screens because it affects the size of the elements and scroll positions wouldn't be correct.
+        // If the priority mode or inbox tab changes, we need to clear the scroll offsets for the home and search screens because it affects the size of the elements and scroll positions wouldn't be correct.
         for (const key of Object.keys(scrollOffsetsRef.current)) {
             if (key.includes(SCREENS.INBOX) || key.includes(SCREENS.SEARCH.ROOT)) {
                 delete scrollOffsetsRef.current[key];
             }
         }
-    }, [priorityMode, previousPriorityMode]);
+    }, [priorityMode, previousPriorityMode, inboxTab, previousInboxTab]);
 
     const saveScrollOffset: ScrollOffsetContextValue['saveScrollOffset'] = useCallback((route, scrollOffset) => {
         scrollOffsetsRef.current[getKey(route)] = scrollOffset;

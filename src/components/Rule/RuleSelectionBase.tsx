@@ -1,12 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import RuleNotFoundPageWrapper from './RuleNotFoundPageWrapper';
 
 type SelectionItem = {
@@ -65,6 +69,7 @@ function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave
                         items={items}
                         onSaveSelection={onSave}
                         shouldAutoSave
+                        allowNoneOption
                     />
                 </View>
             </ScreenWrapper>

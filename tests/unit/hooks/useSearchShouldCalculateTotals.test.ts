@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -19,7 +21,6 @@ const mockUseOnyx = jest.fn(
 );
 
 jest.mock('@hooks/useOnyx', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: (key: string, options?: {selector?: (value: unknown) => unknown}) => mockUseOnyx(key, options),
 }));
@@ -74,5 +75,17 @@ describe('useSearchShouldCalculateTotals', () => {
         const {result} = renderHook(() => useSearchShouldCalculateTotals(undefined, 789, true));
 
         expect(result.current).toBe(false);
+    });
+
+    it('returns true for an ad-hoc search when all matching items are selected', () => {
+        const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 123, true, true));
+
+        expect(result.current).toBe(true);
+    });
+
+    it('returns true when all matching items are selected even when the hook is disabled (select-all bypasses the offset gate)', () => {
+        const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 123, false, true));
+
+        expect(result.current).toBe(true);
     });
 });

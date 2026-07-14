@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -34,6 +36,9 @@ type DelegateErrors = {
 
     /** Errors while removing a delegate keyed by email */
     removeDelegate?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while removing a delegator keyed by email */
+    removeDelegator?: Record<string, OnyxCommon.Errors>;
 
     /** Errors while connecting as a delegate keyed by email */
     connect?: Record<string, OnyxCommon.Errors>;
@@ -109,6 +114,12 @@ type Account = {
 
     /** The Report ID of the account manager */
     accountManagerReportID?: string;
+
+    /** The account ID of the partner manager */
+    partnerManagerAccountID?: number;
+
+    /** The email of the partner manager */
+    partnerManagerEmail?: string;
 
     /** The message to be displayed when code requested */
     message?: string;
@@ -208,11 +219,11 @@ type Account = {
     /** Whether or not the user is on a public domain email account or not */
     isFromPublicDomain?: boolean;
 
+    /** Whether the user's email domain is an internal Expensify domain (e.g. expensify.com) */
+    isFromInternalDomain?: boolean;
+
     /** Whether or not the user uses expensify card */
     isUsingExpensifyCard?: boolean;
-
-    /** Whether Expensify Card approval flow is ongoing - checking loginList for private domains */
-    isCheckingDomain?: boolean;
 
     /** Whether or not the user has lounge access */
     hasLoungeAccess?: boolean;

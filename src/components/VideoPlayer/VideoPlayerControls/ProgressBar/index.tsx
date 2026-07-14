@@ -1,11 +1,14 @@
-import React, {useEffect, useState} from 'react';
+import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {LayoutChangeEvent} from 'react-native';
 import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+
+import React, {useEffect, useState} from 'react';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 type ProgressBarProps = {
     /** Total duration of a video. */
@@ -16,13 +19,19 @@ type ProgressBarProps = {
 
     /** Function to seek to a specific position in the video. */
     seekPosition: (newPosition: number) => void;
+
+    /** Callback when user starts dragging the slider. */
+    onSeekStart?: () => void;
+
+    /** Callback when user finishes dragging the slider. */
+    onSeekEnd?: (shouldResumeAfterSeek: boolean) => void;
 };
 
 function getProgress(currentPosition: number, maxPosition: number): number {
     return Math.min(Math.max((currentPosition / maxPosition) * 100, 0), 100);
 }
 
-function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
+function ProgressBar({duration, position, seekPosition, onSeekStart, onSeekEnd}: ProgressBarProps) {
     const styles = useThemeStyles();
     const {pauseVideo, playVideo, checkIfVideoIsPlaying} = usePlaybackActionsContext();
     const [sliderWidth, setSliderWidth] = useState(1);
@@ -52,6 +61,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         .onBegin((event) => {
             setIsSliderPressed(true);
             checkIfVideoIsPlaying(onCheckIfVideoIsPlaying);
+            onSeekStart?.();
             pauseVideo();
             progressBarInteraction(event);
         })
@@ -60,7 +70,9 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         })
         .onFinalize(() => {
             setIsSliderPressed(false);
-            if (!wasVideoPlayingOnCheck.get()) {
+            const shouldResumeAfterSeek = wasVideoPlayingOnCheck.get();
+            onSeekEnd?.(shouldResumeAfterSeek);
+            if (onSeekEnd || !shouldResumeAfterSeek) {
                 return;
             }
             playVideo();

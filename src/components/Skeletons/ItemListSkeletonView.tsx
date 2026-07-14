@@ -1,10 +1,14 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useCallback, useMemo, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 type ListItemSkeletonProps = {
     shouldAnimate?: boolean;
@@ -12,6 +16,7 @@ type ListItemSkeletonProps = {
     fixedNumItems?: number;
     gradientOpacityEnabled?: boolean;
     itemViewStyle?: StyleProp<ViewStyle>;
+    itemContainerStyle?: StyleProp<ViewStyle>;
     itemViewHeight?: number;
     speed?: number;
     style?: StyleProp<ViewStyle>;
@@ -37,6 +42,7 @@ function ItemListSkeletonView({
     fixedNumItems,
     gradientOpacityEnabled = false,
     itemViewStyle = {},
+    itemContainerStyle,
     itemViewHeight = CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT,
     speed,
     style,
@@ -70,7 +76,7 @@ function ItemListSkeletonView({
         const items = [];
         for (let i = 0; i < numItems; i++) {
             const opacity = gradientOpacityEnabled ? 1 - i / (numItems - 1) : 1;
-            items.push(
+            const loader = (
                 <SkeletonViewContentLoader
                     speed={speed}
                     key={`skeletonContainer${i}`}
@@ -81,11 +87,25 @@ function ItemListSkeletonView({
                     style={[themeStyles.mr5, itemViewStyle, {opacity}, {minHeight: itemViewHeight}]}
                 >
                     {renderSkeletonItem({itemIndex: i})}
-                </SkeletonViewContentLoader>,
+                </SkeletonViewContentLoader>
             );
+
+            if (itemContainerStyle) {
+                const isLastItem = i === numItems - 1;
+                items.push(
+                    <View
+                        key={`skeletonContainer${i}`}
+                        style={[itemContainerStyle, isLastItem && {borderBottomWidth: 0}]}
+                    >
+                        {loader}
+                    </View>,
+                );
+            } else {
+                items.push(loader);
+            }
         }
         return items;
-    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, gradientOpacityEnabled, itemViewHeight, itemViewStyle, speed]);
+    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, gradientOpacityEnabled, itemViewHeight, itemViewStyle, speed, itemContainerStyle]);
 
     return (
         <View

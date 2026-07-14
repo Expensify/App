@@ -1,22 +1,26 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {SearchColumnType, SortOrder, TableColumnSize} from '@components/Search/types';
-import {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
-import SortableTableHeader from '@components/SelectionListWithSections/SortableTableHeader';
-import type {SortableColumnName} from '@components/SelectionListWithSections/types';
+import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
+import SortableTableHeader from '@components/Search/SortableTableHeader';
+import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from '@components/Search/types';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {isSortableColumnName} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
 type SearchTableHeaderProps = {
-    sortBy?: SortableColumnName;
+    sortBy?: SearchSortBy;
     sortOrder?: SortOrder;
-    onSortPress: (column: SortableColumnName, order: SortOrder) => void;
+    onSortPress: (column: SearchSortBy, order: SortOrder) => void;
     dateColumnSize: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
     columns: SearchColumnType[];
-    sortableColumns?: readonly SearchColumnType[];
+    shouldRemoveTotalColumnFlex?: boolean;
 };
 function MoneyRequestReportTableHeader({
     sortBy,
@@ -27,7 +31,7 @@ function MoneyRequestReportTableHeader({
     columns,
     amountColumnSize,
     taxAmountColumnSize,
-    sortableColumns,
+    shouldRemoveTotalColumnFlex,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
@@ -35,7 +39,7 @@ function MoneyRequestReportTableHeader({
         () => [
             ...getExpenseHeaders().map((header) => ({
                 ...header,
-                isColumnSortable: sortableColumns ? sortableColumns.includes(header.columnName) : header.isColumnSortable,
+                isColumnSortable: isSortableColumnName(header.columnName),
             })),
             {
                 columnName: CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
@@ -43,7 +47,7 @@ function MoneyRequestReportTableHeader({
                 isColumnSortable: false,
             },
         ],
-        [sortableColumns],
+        [],
     );
 
     const orderedColumnConfig = useMemo(() => {
@@ -88,6 +92,7 @@ function MoneyRequestReportTableHeader({
                 sortBy={sortBy}
                 sortOrder={sortOrder}
                 onSortPress={onSortPress}
+                shouldRemoveTotalColumnFlex={shouldRemoveTotalColumnFlex}
             />
         </View>
     );

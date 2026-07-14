@@ -3,6 +3,7 @@
 ## Repository Overview
 
 ### Technology Stack
+
 - **Framework**: React Native
 - **Language**: TypeScript
 - **State Management**: React Native Onyx
@@ -15,6 +16,7 @@
 **IMPORTANT**: NewDot refers to the new Expensify App, OldDot or Expensify Classic refers to our Old expensify app and website
 
 ### Key Integration Points
+
 - App (NewDot) and Mobile-Expensify (OldDot) are combined into a single mobile application
 - The HybridApp module (`@expensify/react-native-hybrid-app`) manages transitions between OldDot and NewDot
 - Build process merges dotenv configurations from both repositories
@@ -22,6 +24,7 @@
 - Mobile builds **must** be initiated from the Mobile-Expensify directory
 
 ### Build Modes
+
 - **Standalone**: Pure NewDot application (web)
 - **HybridApp**: Combined OldDot + NewDot (mobile apps)
 - Controlled via `STANDALONE_NEW_DOT` environment variable
@@ -29,13 +32,16 @@
 ## Core Architecture & Structure
 
 ### Entry Points
+
 - `src/App.tsx`: Main application component with provider hierarchy
 - `src/Expensify.tsx`: Core application logic and initialization
 - `src/HybridAppHandler.tsx`: Manages HybridApp transitions and authentication
 - `index.js`: React Native entry point
 
 ### Provider Architecture
+
 The application uses a nested provider structure for context management:
+
 1. **SplashScreenStateContextProvider**: Manages splash screen visibility
 2. **InitialURLContextProvider**: Handles deep linking
 3. **ThemeProvider**: Theme management
@@ -46,6 +52,7 @@ The application uses a nested provider structure for context management:
 8. **KeyboardProvider**: Keyboard state management
 
 ### Data Layer
+
 - **Onyx**: Custom data persistence layer for offline-first functionality
 - **ONYXKEYS.ts**: Centralized key definitions for data store
 - Supports optimistic updates and conflict resolution
@@ -53,6 +60,7 @@ The application uses a nested provider structure for context management:
 ## Key Features & Modules
 
 ### Core Functionality
+
 1. **Expense Management**
    - Receipt scanning and SmartScan
    - Expense creation and editing
@@ -111,11 +119,13 @@ The application uses a nested provider structure for context management:
 ## Navigation & Routing
 
 ### Structure
+
 - `src/SCREENS.ts`: Screen name constants
 - `src/ROUTES.ts`: Route definitions and builders
 - `src/NAVIGATORS.ts`: Navigator configuration
 
 ### Key Navigators
+
 - **ProtectedScreens**: Authenticated app screens
 - **PublicScreens**: Login and onboarding screens
 - **RHP (Right Hand Panel/Pane)**: Settings and details panel
@@ -126,6 +136,7 @@ The application uses a nested provider structure for context management:
 ## State Management
 
 ### Onyx Keys Organization
+
 - **Session**: Authentication and user session
 - **Personal Details**: User profiles and preferences
 - **Reports**: Chat and expense reports
@@ -134,7 +145,9 @@ The application uses a nested provider structure for context management:
 - **Forms**: Form state management
 
 ### Action Modules (`src/libs/actions/`)
+
 Major action categories:
+
 - `App.ts`: Application lifecycle
 - `IOU.ts`: Money requests and expenses
 - `Report.ts`: Report management
@@ -147,7 +160,9 @@ Major action categories:
 ## Build & Deployment
 
 ### CI/CD Workflows
+
 Key GitHub Actions workflows:
+
 - `deploy.yml`: Production deployment
 - `preDeploy.yml`: Staging deployment
 - `testBuild.yml`: PR test builds
@@ -158,6 +173,7 @@ Key GitHub Actions workflows:
 ## Related Repositories
 
 ### Mobile-Expensify (Submodule)
+
 - **Path**: `App/Mobile-Expensify/`
 - **Purpose**: Legacy OldDot application and mobile build source
 - **Critical**: All mobile builds originate from this directory
@@ -165,6 +181,7 @@ Key GitHub Actions workflows:
 - Manages the HybridApp integration layer
 
 ### expensify-common
+
 - **Purpose**: Shared libraries and utilities
 - Contains common validation, parsing, and utility functions
 - Used across multiple Expensify repositories
@@ -172,9 +189,11 @@ Key GitHub Actions workflows:
 ## Development Practices
 
 ### React Native Best Practices
+
 Use the `/react-native-best-practices` skill when working on performance-sensitive code, native modules, or release preparation. This ensures code respects established best practices from the start, resulting in more consistent code, fewer review iterations, and better resilience against regressions.
 
 The skill provides guidance on:
+
 - **Performance**: FPS optimization, virtualized lists (FlashList), memoization, atomic state, animations
 - **Bundle & App Size**: Barrel imports, tree shaking, bundle analysis, R8 shrinking
 - **Startup (TTI)**: Hermes bytecode optimization, native navigation, deferred work
@@ -183,50 +202,68 @@ The skill provides guidance on:
 - **Build Compliance**: Android 16KB page alignment (Google Play requirement)
 - **Platform Tooling**: Xcode/Android Studio profiling and debugging setup
 
+### Memoization
+
+React Compiler (`babel-plugin-react-compiler`) runs in the build pipeline (see `babel.config.js`) and auto-memoizes object literals, callbacks, JSX, and derived values inside components and hooks, excluding `tests/`.
+
 ### Code Quality
+
 - **TypeScript**: Strict mode enabled
-- **ESLint**: Linter
-- **Prettier**: Code formatting - run `npm run prettier` after making changes
+- **ESLint**: Linter. Pre-existing violations are grandfathered via [`eslint-seatbelt`](https://github.com/justjake/eslint-seatbelt).
+- **Oxfmt**: Code formatting - run `npm run fmt` after making changes
 - **Patch Management**: patch-package for dependency fixes
 
 ### Post-Edit Checklist (IMPORTANT)
+
 **ALWAYS run these steps after making code changes, before committing:**
-1. **Prettier**: Run `npx prettier --write <changed files>` on every file you modified. This is mandatory - CI will reject unformatted code.
-2. **ESLint**: Run `npx eslint <changed files> --max-warnings=0` to catch lint errors early.
+
+1. **Oxfmt**: Run `npm run fmt` on every file you modified. This is mandatory - CI will reject unformatted code.
+2. **ESLint**: Run `npm run lint-changed` to catch lint errors early.
 3. **TypeScript**: Run `npm run typecheck-tsgo` after changes that may affect typing (types, interfaces, or function signatures). It is ~10x faster and usually stricter than tsc. CI validates with `npm run typecheck` (tsc), which remains the required merge gate.
+4. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI: new components/hooks must compile, and existing compiled files must not regress. See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
 
 ### Testing
+
 - **Unit Tests**: Jest with React Native Testing Library
 - **Performance Tests**: Reassure framework
 
 ## Special Considerations
 
 ### Offline-First Architecture
+
 - All features work offline
 - Optimistic updates with rollback
 - Queue-based request handling
 - Conflict resolution strategies
 
 ### Mobile-Specific Notes
+
 - Push notifications via Airship
 - Mapbox integration for location features
 - Camera and gallery access
 
 ### Security
+
 - Content Security Policy enforcement
 - Two-factor authentication support
 
 ## Documentation Resources
 
 ### Help Documentation
+
 - **NewDot Help**: https://help.expensify.com/new-expensify/hubs/
 - **OldDot/Expensify Classic Help**: https://help.expensify.com/expensify-classic/hubs/
 
 ## Development Setup Requirements
 
+### Sentry analysis
+
+Use Sentry skill whenever user wants to analyze any data from Sentry. It may be: spans, metrics, crashes, crash free rate etc.
+
 ## Command Reference
 
 ### Common Tasks
+
 ```bash
 # Install dependencies
 npm install
@@ -243,14 +280,15 @@ npm run typecheck
 # Linting
 npm run lint
 
-# Format code with Prettier
-npm run prettier
+# Format code with Oxfmt
+npm run fmt
 
 # Testing
 npm run test
 ```
 
 ### Platform Builds
+
 ```bash
 # iOS build
 npm run ios
@@ -265,28 +303,37 @@ npm run web
 ## Development Environment
 
 ### Dev Server
+
 - **Location**: Runs on HOST machine (not in VM)
 - **URL**: `https://dev.new.expensify.com:8082/`
 - **Start command**: `npm run web`
 - **VM is only for**: Backend services (Auth, Bedrock, Integration-Server, Web-Expensify)
 
 ### Browser Testing
+
 Use the `/playwright-app-testing` skill to test and debug the App in a browser. Use this skill after making frontend changes to verify your work, or when the user requests testing.
+
+### Mobile Device Testing
+
+Use the `/agent-device` skill to drive the App on iOS and Android (simulators or real devices) for interactive testing, performance profiling, bug reproduction, and device-specific debugging. Requires `npm install -g agent-device` - the skill's pre-flight check will surface the install instruction if missing.
 
 ## Architecture Decisions
 
 ### React Native New Architecture
+
 - Fabric renderer enabled
 - TurboModules for native module integration
 - Hermes JavaScript engine
 
 ### State Management Choice
+
 - Custom Onyx library for offline-first capabilities
 - Optimistic updates as default pattern
 - Centralized action layer for API calls
 - Direct key-value storage with automatic persistence
 
 ### Navigation Strategy
+
 - React Navigation for cross-platform consistency
 - Custom navigation state management
 - Deep linking support
@@ -294,12 +341,14 @@ Use the `/playwright-app-testing` skill to test and debug the App in a browser. 
 ## Known Integration Points
 
 ### With Mobile-Expensify
+
 - Session sharing via HybridApp module
 - Navigation handoff between apps
 - Shared authentication state
 - Environment variable merging
 
 ### With Backend Services
+
 - RESTful API communication
 - WebSocket connections via Pusher
 - Real-time synchronization

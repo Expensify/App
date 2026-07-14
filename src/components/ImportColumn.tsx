@@ -1,20 +1,24 @@
-import {Str} from 'expensify-common';
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setColumnName} from '@libs/actions/ImportSpreadsheet';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import Text from './Text';
 
 // cspell:disable
-function findColumnName(header: string): string {
+function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
     let attribute = '';
-    const formattedHeader = Str.removeSpaces(String(header).toLowerCase().trim());
+    const formattedHeader = String(header).toLowerCase().trim().replaceAll(' ', '');
     switch (formattedHeader) {
         case 'email':
         case 'emailaddress':
@@ -76,7 +80,7 @@ function findColumnName(header: string): string {
         case 'reporttotal':
         case 'reporttotalthreshold':
         case 'approvallimit':
-            attribute = CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHHOLD;
+            attribute = CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD;
             break;
 
         case 'alternate':
@@ -96,11 +100,28 @@ function findColumnName(header: string): string {
             break;
 
         case 'amount':
+        case 'postedamount':
+        case 'posted_amount':
             attribute = CONST.CSV_IMPORT_COLUMNS.AMOUNT;
             break;
 
+        case 'cardnumber':
+        case 'card':
+        case 'number':
+            attribute = CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER;
+            break;
+
         case 'currency':
+        case 'postedcurrency':
+        case 'posted_currency':
             attribute = CONST.CSV_IMPORT_COLUMNS.CURRENCY;
+            break;
+
+        case 'posteddate':
+        case 'posted_date':
+        case 'postingdate':
+        case 'posting_date':
+            attribute = CONST.CSV_IMPORT_COLUMNS.POSTED_DATE;
             break;
 
         case 'date':
@@ -125,8 +146,34 @@ function findColumnName(header: string): string {
             attribute = CONST.CSV_IMPORT_COLUMNS.ENABLED;
             break;
 
+        case 'receiptsrequired':
+        case 'requirereceiptsover':
+        case 'maxamountnoreceipt':
+            attribute = CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_RECEIPT;
+            break;
+
+        case 'itemisedreceiptrequirement':
+        case 'itemizedreceiptrequirement':
+        case 'requireitemizedreceiptsover':
+        case 'maxamountnoitemizedreceipt':
+            attribute = CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_ITEMIZED_RECEIPT;
+            break;
+
         default:
             break;
+    }
+
+    // If the detected attribute isn't available in the current context but a semantic equivalent is,
+    // remap to it. This handles e.g. "Date" headers in company card imports where DATE is not a
+    // valid column role but POSTED_DATE is.
+    if (columnRoles && attribute) {
+        const isAvailable = columnRoles.some((role) => role.value === attribute);
+        if (!isAvailable) {
+            if (attribute === CONST.CSV_IMPORT_COLUMNS.DATE && columnRoles.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.POSTED_DATE)) {
+                return CONST.CSV_IMPORT_COLUMNS.POSTED_DATE;
+            }
+            return '';
+        }
     }
 
     return attribute;
@@ -183,7 +230,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
     const currentColumnValue = spreadsheet?.columns?.[columnIndex];
     // Treat 'ignore' as unmapped so auto-detection can still run
     const isMapped = currentColumnValue && currentColumnValue !== CONST.CSV_IMPORT_COLUMNS.IGNORE;
-    const autoDetectedColName = isMapped ? '' : findColumnName(column.at(0) ?? '');
+    const autoDetectedColName = isMapped ? '' : findColumnName(column.at(0) ?? '', columnRoles);
 
     const foundIndex = columnRoles?.findIndex((item) => item.value === (currentColumnValue ?? autoDetectedColName)) ?? -1;
     const selectedIndex = foundIndex !== -1 ? foundIndex : 0;
@@ -225,8 +272,8 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                     <View style={styles.ml2}>
                         <ButtonWithDropdownMenu
                             onPress={() => {}}
-                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                            shouldShowSelectedItemCheck
+                            buttonSize={CONST.BUTTON_SIZE.SMALL}
+                            shouldShowRadioButton
                             menuHeaderText={columnHeader}
                             isSplitButton={false}
                             onOptionSelected={(option) => {
@@ -235,6 +282,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                             defaultSelectedIndex={selectedIndex}
                             options={options}
                             success={false}
+                            shouldPopoverUseScrollView={options.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
                         />
                     </View>
                 )}

@@ -9,11 +9,36 @@ import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
-import ExpoModulesCore
 import Firebase
-import Expo
+internal import Expo
 import ActivityKit
 import AirshipFrameworkProxy
+
+private enum BackupExclusionHelper {
+    private static func excludeDirectoryFromBackup(_ directoryPath: String?) {
+        guard let directoryPath, !directoryPath.isEmpty else {
+            return
+        }
+
+        var directoryURL = URL(fileURLWithPath: directoryPath, isDirectory: true)
+        var resourceValues = URLResourceValues()
+        resourceValues.isExcludedFromBackup = true
+
+        do {
+            try directoryURL.setResourceValues(resourceValues)
+        } catch {
+            NSLog("Failed to exclude \(directoryPath) from backup: \(error.localizedDescription)")
+        }
+    }
+
+    static func excludeAllAppDataFromBackup() {
+        // Covers all app data: Documents directory, Library directory, and the shared app group container.
+        let fileManager = FileManager.default
+        excludeDirectoryFromBackup(fileManager.urls(for: .documentDirectory, in: .userDomainMask).first?.path)
+        excludeDirectoryFromBackup(fileManager.urls(for: .libraryDirectory, in: .userDomainMask).first?.path)
+        excludeDirectoryFromBackup(fileManager.containerURL(forSecurityApplicationGroupIdentifier: "group.com.expensify.new")?.path)
+    }
+}
 
 @main
 class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
@@ -22,15 +47,21 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   var reactNativeFactory: RCTReactNativeFactory?
 
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    // Initialize Sentry before any native telemetry (e.g. certificate pinning monitor reports).
+    SentryNativeSDKManager.shared.initialize()
+
+    // Initialize certificate pinning before any networking starts (Iteration 1 - NewDot).
+    CertificatePinning.initialize()
+    BackupExclusionHelper.excludeAllAppDataFromBackup()
+
     let appStartTimePreferencesKey = "AppStartTime"
     UserDefaults.standard.set(Date().timeIntervalSince1970 * 1000, forKey: appStartTimePreferencesKey)
     let delegate = ReactNativeDelegate()
-    let factory = RCTReactNativeFactory(delegate: delegate)
+    let factory = ExpoReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
 
     reactNativeDelegate = delegate
     reactNativeFactory = factory
-    bindReactNativeFactory(factory)
 
     window = UIWindow(frame: UIScreen.main.bounds)
     factory.startReactNative(

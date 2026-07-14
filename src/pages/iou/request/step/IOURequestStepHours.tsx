@@ -1,33 +1,43 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
 import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
-import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {navigateToConfirmationPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
+
 import variables from '@styles/variables';
-import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU';
+
+import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import StepScreenWrapper from './StepScreenWrapper';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useEffect, useRef, useState} from 'react';
+
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
+import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<
@@ -40,7 +50,7 @@ type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<
 function IOURequestStepHours({
     report,
     route: {
-        params: {iouType, reportID, transactionID = '-1', action, reportActionID},
+        params: {iouType, reportID, transactionID = '-1', action, reportActionID, backToReport},
         name: routeName,
     },
     transaction,
@@ -51,6 +61,9 @@ function IOURequestStepHours({
     const policyID = explicitPolicyID ?? report?.policyID;
     const isTransactionDraft = shouldUseTransactionDraft(action);
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -58,13 +71,14 @@ function IOURequestStepHours({
     const rate = transaction?.comment?.units?.rate ?? defaultPolicyRate;
 
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const canUseTouchScreen = canUseTouchScreenUtil();
     const textInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const moneyRequestTimeInputRef = useRef<NumberWithSymbolFormRef | null>(null);
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const [formError, setFormError] = useState('');
 
@@ -73,6 +87,16 @@ function IOURequestStepHours({
         setFormError('');
         moneyRequestTimeInputRef.current?.updateNumber(`${transaction?.comment?.units?.count ?? ''}`);
     }, [selectedTab, transaction?.comment?.units?.count]);
+
+    const {notifySaving} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => {
+            const typedCount = moneyRequestTimeInputRef.current?.getNumber() ?? '';
+            return typedCount !== `${transaction?.comment?.units?.count ?? ''}`;
+        },
+        onCancel: () => {
+            focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
+        },
+    });
 
     useFocusEffect(() => {
         focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -97,8 +121,9 @@ function IOURequestStepHours({
             return;
         }
 
+        notifySaving();
         setMoneyRequestAmount(transactionID, computeTimeAmount(rate, count), currency);
-        setMoneyRequestMerchant(transactionID, formatTimeMerchant(count, rate, currency, translate), isTransactionDraft);
+        setMoneyRequestMerchant(transactionID, formatTimeMerchant(count, rate, currency, translate, convertToDisplayString), isTransactionDraft);
         setMoneyRequestTimeCount(transactionID, count, isTransactionDraft);
 
         if (isEditingConfirmation) {
@@ -119,14 +144,12 @@ function IOURequestStepHours({
                 setTransactionReport(transactionID, {reportID: policyExpenseChat.reportID}, isTransactionDraft);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
 
-                return Navigation.setNavigationActionToMicrotaskQueue(() =>
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, policyExpenseChat.reportID)),
-                );
+                return Navigation.setNavigationActionToMicrotaskQueue(() => navigateToConfirmationPage(iouType, transactionID, policyExpenseChat.reportID, backToReport));
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
         }
 
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+        navigateToConfirmationPage(iouType, transactionID, reportID, backToReport);
     };
 
     return (
@@ -140,6 +163,7 @@ function IOURequestStepHours({
         >
             <NumberWithSymbolForm
                 symbol={translate('iou.timeTracking.hrs')}
+                shouldUseDynamicFontSize
                 symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
                 isSymbolPressable={false}
                 decimals={CONST.HOURS_DECIMAL_PLACES}
@@ -165,8 +189,9 @@ function IOURequestStepHours({
                         large={!isExtraSmallScreenHeight}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
                         onPress={() => {
-                            if (policyID && shouldRestrictUserBillableActions(policyID)) {
-                                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+                            if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                                notifySaving();
+                                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                                 return;
                             }
                             saveTime();

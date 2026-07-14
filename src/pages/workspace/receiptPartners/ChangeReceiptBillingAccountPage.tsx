@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import Text from '@components/Text';
+
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {changePolicyUberBillingAccount} from '@libs/actions/Policy/Policy';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
@@ -21,11 +22,16 @@ import type {MemberForList} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useState} from 'react';
 
 type ChangeReceiptBillingAccountPagePageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT>;
 
@@ -34,15 +40,16 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOption, setSelectedOption] = useState<string>('');
+    const [selectedOptionState, setSelectedOption] = useState<string | undefined>(undefined);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const policyID = route.params?.policyID;
     const integration = route.params?.integration;
     const policy = usePolicy(policyID);
     const integrations = policy?.receiptPartners;
     const centralBillingAccountEmail = integration ? integrations?.[integration]?.centralBillingAccountEmail : undefined;
+    const selectedOption = selectedOptionState ?? centralBillingAccountEmail ?? '';
 
     const shouldShowTextInput = policy?.employeeList && Object.keys(policy.employeeList).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
@@ -87,13 +94,6 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     } else if (workspaceMembers.length === 0) {
         data = [];
     }
-
-    useEffect(() => {
-        if (!centralBillingAccountEmail) {
-            return;
-        }
-        setSelectedOption(centralBillingAccountEmail);
-    }, [centralBillingAccountEmail]);
 
     const toggleOption = (option: MemberForList) => {
         if (!centralBillingAccountEmail) {

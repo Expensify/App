@@ -1,19 +1,23 @@
-import type {StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
-import type {ListRenderItem} from 'react-native';
-import {View} from 'react-native';
 import MoneyRequestReportPreviewContent from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent';
 import type {MoneyRequestReportPreviewContentProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import TransactionPreviewContent from '@components/ReportActionItem/TransactionPreview/TransactionPreviewContent';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
-// eslint-disable-next-line no-restricted-imports
-import getMoneyRequestReportPreviewStyle from '@styles/utils/getMoneyRequestReportPreviewStyle';
-// eslint-disable-next-line no-restricted-imports
-import sizing from '@styles/utils/sizing';
+
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
+
+import type {ListRenderItem} from '@shopify/flash-list';
+import type {LayoutChangeEvent} from 'react-native';
+import type {StoryFn} from 'storybook-react-rsbuild';
+
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import {actionR14932} from '../../__mocks__/reportData/actions';
 import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
@@ -33,30 +37,6 @@ const mockTransactionsMedium = Array.from({length: 2}).map((item, index) => {
 const mockTransactionsBig = Array.from({length: 12}).map((item, index) => {
     return {...transactionR14932, transactionID: `${transactionR14932.transactionID}${index}`};
 });
-
-const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
-    <TransactionPreviewContent
-        action={actionR14932}
-        isWhisper={false}
-        isHovered={false}
-        chatReport={chatReportR14932}
-        personalDetails={personalDetails}
-        report={iouReportR14932}
-        transaction={item}
-        transactionRawAmount={item.amount}
-        violations={item.errors ? violationsR14932 : []}
-        offlineWithFeedbackOnClose={() => undefined}
-        navigateToReviewFields={() => undefined}
-        isBillSplit={false}
-        areThereDuplicates={false}
-        sessionAccountID={11111111}
-        walletTermsErrors={undefined}
-        routeName={SCREENS.TRANSACTION_DUPLICATE.REVIEW}
-        shouldHideOnDelete={false}
-        transactionPreviewWidth={303}
-        containerStyles={[sizing.h100]}
-    />
-);
 
 type MoneyRequestReportPreviewStory = StoryFn<typeof MoneyRequestReportPreviewContent>;
 
@@ -82,16 +62,6 @@ export default {
         /** Extra styles to pass to View wrapper */
         containerStyles: {
             options: [{marginTop: 8}],
-            control: {type: 'radio'},
-        },
-        /** Popover context menu anchor, used for showing context menu */
-        contextMenuAnchor: {
-            options: [null],
-            control: {type: 'radio'},
-        },
-        /** Callback for updating context menu active state, used for showing context menu */
-        checkIfContextMenuActive: {
-            options: [undefined, () => {}],
             control: {type: 'radio'},
         },
         /** Callback when the payment options popover is shown */
@@ -123,7 +93,6 @@ export default {
         violations: violationsR14932,
         invoiceReceiverPersonalDetail: undefined,
         invoiceReceiverPolicy: undefined,
-        renderTransactionItem: mockRenderItem,
     },
     parameters: {
         useLightTheme: true,
@@ -133,18 +102,76 @@ export default {
 function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {parameters: {useLightTheme?: boolean; transactionsBig?: boolean}}) {
     const theme = parameters.useLightTheme ? CONST.THEME.LIGHT : CONST.THEME.DARK;
     const transactions = parameters.transactionsBig ? mockTransactionsBig : props.transactions;
-    const reportPreviewStyle = getMoneyRequestReportPreviewStyle(false, transactions.length, 400, 400);
+
+    const widthsRef = useRef<{currentWidth: number | null; currentWrapperWidth: number | null}>({currentWidth: null, currentWrapperWidth: null});
+    const [widths, setWidths] = useState({currentWidth: 0, currentWrapperWidth: 0});
+
+    const updateWidths = () => {
+        const {currentWidth, currentWrapperWidth} = widthsRef.current;
+
+        if (currentWidth && currentWrapperWidth) {
+            setWidths({currentWidth, currentWrapperWidth});
+        }
+    };
+
+    const onCarouselLayout = (e: LayoutChangeEvent) => {
+        const newWidth = e.nativeEvent.layout.width;
+        if (widthsRef.current.currentWidth !== newWidth) {
+            widthsRef.current.currentWidth = newWidth;
+            updateWidths();
+        }
+    };
+
+    const onWrapperLayout = (e: LayoutChangeEvent) => {
+        const newWrapperWidth = e.nativeEvent.layout.width;
+        if (widthsRef.current.currentWrapperWidth !== newWrapperWidth) {
+            widthsRef.current.currentWrapperWidth = newWrapperWidth;
+            updateWidths();
+        }
+    };
+
+    const StyleUtils = useStyleUtils();
+    const styles = useThemeStyles();
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(false, transactions.length, widths.currentWidth, widths.currentWrapperWidth);
+    const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
+
+    const renderItem: ListRenderItem<Transaction> = ({item}) => (
+        <TransactionPreviewContent
+            action={actionR14932}
+            isWhisper={false}
+            isHovered={false}
+            chatReport={chatReportR14932}
+            personalDetails={personalDetails}
+            report={iouReportR14932}
+            transaction={item}
+            transactionRawAmount={item.amount}
+            violations={item.errors ? violationsR14932 : []}
+            offlineWithFeedbackOnClose={() => undefined}
+            navigateToReviewFields={() => undefined}
+            isBillSplit={false}
+            areThereDuplicates={false}
+            sessionAccountID={11111111}
+            walletTermsErrors={undefined}
+            routeName={SCREENS.TRANSACTION_DUPLICATE.REVIEW}
+            shouldHideOnDelete={false}
+            transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
+            containerStyles={transactionPreviewContainerStyles}
+        />
+    );
 
     return (
         <ThemeProvider theme={theme}>
             <ThemeStylesProvider>
                 <View style={{maxWidth: '100%'}}>
                     <MoneyRequestReportPreviewContent
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
-                        reportPreviewStyles={reportPreviewStyle}
-                        containerStyles={[reportPreviewStyle.componentStyle, props.containerStyles]}
+                        reportPreviewStyles={reportPreviewStyles}
+                        containerStyles={[reportPreviewStyles.componentStyle, props.containerStyles]}
                         transactions={transactions}
+                        onCarouselLayout={onCarouselLayout}
+                        onWrapperLayout={onWrapperLayout}
+                        currentWidth={widths.currentWidth}
+                        renderTransactionItem={renderItem}
                     />
                 </View>
             </ThemeStylesProvider>

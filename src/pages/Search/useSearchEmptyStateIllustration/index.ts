@@ -1,9 +1,10 @@
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type UseSearchEmptyStateIllustration from './types';
 
 const useSearchEmptyStateIllustration: UseSearchEmptyStateIllustration = () => {
-    const illustrations = useMemoizedLazyIllustrations(['Fireworks', 'FolderWithPapersAndWatch'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Fireworks', 'FolderWithPapersAndWatch']);
     const styles = useThemeStyles();
 
     return {

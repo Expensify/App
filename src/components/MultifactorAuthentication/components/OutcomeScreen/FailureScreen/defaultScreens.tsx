@@ -1,7 +1,10 @@
-import React from 'react';
 import NoEligibleMethodsDescription from '@components/MultifactorAuthentication/components/NoEligibleMethodsDescription';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
+
 import variables from '@styles/variables';
+
+import React from 'react';
+
 import FailureScreenBase from './FailureScreenBase';
 
 const DefaultClientFailureScreen = createScreenWithDefaults(
@@ -50,13 +53,4 @@ const NoEligibleMethodsFailureScreen = createScreenWithDefaults(
     'NoEligibleMethodsFailureScreen',
 );
 
-const UnsupportedDeviceFailureScreen = createScreenWithDefaults(
-    DefaultClientFailureScreen,
-    {
-        title: 'multifactorAuthentication.unsupportedDevice.unsupportedDevice',
-        subtitle: 'multifactorAuthentication.unsupportedDevice.pleaseDownloadMobileApp',
-    },
-    'UnsupportedDeviceFailureScreen',
-);
-
-export {DefaultClientFailureScreen, DefaultServerFailureScreen, OutOfTimeFailureScreen, NoEligibleMethodsFailureScreen, UnsupportedDeviceFailureScreen};
+export {DefaultClientFailureScreen, DefaultServerFailureScreen, OutOfTimeFailureScreen, NoEligibleMethodsFailureScreen};

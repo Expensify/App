@@ -1,21 +1,29 @@
-import type {RefObject} from 'react';
-import React, {useEffect, useState} from 'react';
-import type {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {completePaymentOnboarding} from '@libs/actions/IOU';
+
+import {completePaymentOnboarding} from '@libs/actions/IOU/PayMoneyRequest';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {isExpenseReport, isIOUReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 import type {Report} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {RefObject} from 'react';
+import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useEffect, useState} from 'react';
+
 import type {PaymentMethod} from './KYCWall/types';
 import type BaseModalProps from './Modal/types';
+
 import PopoverMenu from './PopoverMenu';
 
 type AddPaymentMethodMenuProps = {
@@ -62,26 +70,30 @@ function AddPaymentMethodMenu({
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected, introSelectedStatus] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
     // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
     const isIOU = isIOUReport(iouReport);
-    const canUseBusinessBankAccount = isExpenseReport(iouReport) || (isIOU && !hasRequestFromCurrentAccount(iouReport?.reportID, session?.accountID ?? CONST.DEFAULT_NUMBER_ID));
+    const canUseBusinessBankAccount = isExpenseReport(iouReport) || (isIOU && !hasRequestFromCurrentAccount(iouReport, session?.accountID ?? CONST.DEFAULT_NUMBER_ID));
 
     const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOU;
 
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 
+    const isLoadingIntroSelected = isLoadingOnyxValue(introSelectedStatus);
+
     // We temporarily disabled P2P debit cards so we will automatically select the personal bank account option if there is no other option to select.
     useEffect(() => {
-        if (!isVisible || !isPersonalOnlyOption || isLoadingOnyxValue(introSelectedStatus)) {
+        if (!isVisible || !isPersonalOnlyOption || isLoadingIntroSelected) {
             return;
         }
 
-        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, betas);
+        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, betas, currentUserAccountID);
         onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
-    }, [betas, introSelected, introSelectedStatus, introSelectedStatus.status, isPersonalOnlyOption, isVisible, onItemSelected]);
+    }, [betas, currentUserAccountID, introSelected, isLoadingIntroSelected, isPersonalOnlyOption, isVisible, onItemSelected, isSelfTourViewed]);
 
     if (isPersonalOnlyOption) {
         return null;
@@ -108,7 +120,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.personalBankAccount'),
                               icon: icons.Bank,
                               onSelected: () => {
-                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, betas);
+                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, betas, currentUserAccountID);
                                   onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },

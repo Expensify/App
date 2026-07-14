@@ -1,9 +1,3 @@
-import {Str} from 'expensify-common';
-import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
-import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -20,6 +14,7 @@ import {ACTIVE_LABEL_SCALE, ACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE, INAC
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
+
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -27,11 +22,23 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
 import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {RefObject} from 'react';
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 
 function BaseTextInput({
     label = '',
@@ -59,8 +66,10 @@ function BaseTextInput({
     hideFocusedState = false,
     maxLength = undefined,
     hint = '',
+    shouldRenderHintAsHTML = false,
     onInputChange = () => {},
     multiline = false,
+    shouldLabelStayOnSingleLine = false,
     shouldInterceptSwipe = false,
     autoCorrect = true,
     prefixCharacter = '',
@@ -81,10 +90,12 @@ function BaseTextInput({
     placeholderTextColor,
     onClearInput,
     iconContainerStyle,
+    clearButtonStyle,
+    clearButtonIconSize,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
-
+    rightHandSideComponent,
     role,
     ...inputProps
 }: BaseTextInputProps) {
@@ -99,14 +110,13 @@ function BaseTextInput({
     const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled']);
 
     // Disabling this line for safeness as nullish coalescing works only if value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialValue = value || defaultValue || '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter || !!suffixCharacter;
 
-    const [isFocused, setIsFocused] = useState(false);
     const [passwordHidden, setPasswordHidden] = useState(inputProps.secureTextEntry);
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
@@ -134,6 +144,35 @@ function BaseTextInput({
         // We only want this to run on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Derive `isFocused` from the actual DOM focus state instead of mirroring it into local state.
+    // The React `onFocus`/`onBlur` synthetic events can be dropped when the input is focused
+    // programmatically (e.g. via a ref) while the component is mid-remount, which would leave a
+    // mirrored `isFocused` stuck on `false`: the focus border never shows and the label never floats
+    // even though the caret is in the field. Subscribing to the native focus/blur events directly on
+    // the element and reading `document.activeElement` as the snapshot makes the visual state
+    // authoritative regardless of remount timing — including focus that landed before we subscribed.
+    // See https://github.com/Expensify/App/issues/94233
+    const subscribeToInputFocus = useCallback((onStoreChange: () => void) => {
+        const inputElement = input.current;
+        if (!inputElement) {
+            return () => {};
+        }
+
+        inputElement.addEventListener('focus', onStoreChange);
+        inputElement.addEventListener('blur', onStoreChange);
+
+        return () => {
+            inputElement.removeEventListener('focus', onStoreChange);
+            inputElement.removeEventListener('blur', onStoreChange);
+        };
+    }, []);
+
+    const isFocused = useSyncExternalStore(
+        subscribeToInputFocus,
+        () => typeof document !== 'undefined' && document.activeElement === input.current,
+        () => false,
+    );
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
@@ -177,12 +216,10 @@ function BaseTextInput({
 
     const onFocus = (event: FocusEvent) => {
         inputProps.onFocus?.(event);
-        setIsFocused(true);
     };
 
     const onBlur = (event: BlurEvent) => {
         inputProps.onBlur?.(event);
-        setIsFocused(false);
     };
 
     const onPress = (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -295,7 +332,7 @@ function BaseTextInput({
     const hasLabel = !!label?.length;
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const inputHelpText = errorText || hint;
     const newPlaceholder = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     // autoGrow uses autoGrowMeasurementStyles (includes padding), contentWidth doesn't - add padding manually
@@ -326,12 +363,18 @@ function BaseTextInput({
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
-    const accessibilityLabel = [label, hint, errorText ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join(', ');
+    const accessibilityLabel = [label, hint, errorText].filter(Boolean).join(', ');
+    const accessibilityValue = useMemo(() => ({text: value ?? ''}), [value]);
+    const helpMessageTextID = `${helpMessageId}-text`;
+    const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'BaseTextInput.isLoading',
+        isLoading: !!inputProps.isLoading,
+    };
+
     return (
         <>
             <View
                 style={[containerStyles]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
                 <PressableWithoutFeedback
@@ -383,6 +426,7 @@ function BaseTextInput({
                                     labelScale={labelScale}
                                     for={inputProps.nativeID}
                                     isMultiline={isMultiline}
+                                    shouldLabelStayOnSingleLine={shouldLabelStayOnSingleLine}
                                 />
                             </>
                         ) : null}
@@ -441,7 +485,6 @@ function BaseTextInput({
 
                                     input.current = element as HTMLInputElement | null;
                                 }}
-                                // eslint-disable-next-line
                                 {...inputProps}
                                 // Filter out role="presentation" so it doesn't strip the native
                                 // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
@@ -489,8 +532,10 @@ function BaseTextInput({
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                                 accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                accessibilityValue={accessibilityValue}
                                 keyboardType={inputProps.keyboardType}
-                                aria-describedby={inputHelpText ? helpMessageId : undefined}
+                                aria-describedby={inputHelpText ? helpMessageTextID : undefined}
+                                aria-invalid={errorText ? true : undefined}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -518,7 +563,8 @@ function BaseTextInput({
                                             setValue('');
                                             onClearInput?.();
                                         }}
-                                        style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
+                                        iconSize={clearButtonIconSize}
+                                        style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
                                         sentryLabel={sentryLabel ? `${sentryLabel}-ClearButton` : undefined}
                                     />
                                 </View>
@@ -527,7 +573,13 @@ function BaseTextInput({
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
+                                    reasonAttributes={loadingSpinnerReasonAttributes}
                                 />
+                            )}
+                            {/* Render rightHandSideComponent only when clear button is not shown
+                            This prevents UI conflicts between clear button and custom components like flip/currency buttons */}
+                            {!shouldShowClearButton && shouldHideClearButton && !inputProps.isLoading && !!rightHandSideComponent && (
+                                <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}>{rightHandSideComponent}</View>
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
@@ -563,9 +615,10 @@ function BaseTextInput({
                 </PressableWithoutFeedback>
                 {!!inputHelpText && (
                     <FormHelpMessage
-                        nativeID={helpMessageId}
+                        nativeID={helpMessageTextID}
                         isError={!!errorText}
                         message={inputHelpText}
+                        shouldRenderMessageAsHTML={!errorText && shouldRenderHintAsHTML}
                     />
                 )}
             </View>

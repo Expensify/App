@@ -1,24 +1,27 @@
-import React, {useMemo} from 'react';
+import EmojiWithTooltip from '@components/EmojiWithTooltip';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import EmojiWithTooltip from '@components/EmojiWithTooltip';
-import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
 
 function EmojiRenderer({tnode, style: styleProp}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
-    const style = useMemo(() => {
-        if ('islarge' in tnode.attributes) {
-            return [styleProp as TextStyle, styles.onlyEmojisText];
-        }
 
-        if ('ismedium' in tnode.attributes) {
-            return [styleProp as TextStyle, styles.emojisWithTextFontSize, styles.verticalAlignTopText];
-        }
+    let style;
+    if ('islarge' in tnode.attributes) {
+        style = [styleProp as TextStyle, styles.onlyEmojisText];
+    } else if ('ismedium' in tnode.attributes) {
+        style = [styleProp as TextStyle, styles.emojisWithTextFontSize, styles.verticalAlignTopText];
+    } else {
+        style = null;
+    }
 
-        return null;
-    }, [tnode.attributes, styles, styleProp]);
     return (
         <EmojiWithTooltip
+            isOnSeparateLine={'oneline' in tnode.attributes}
             style={[style, styles.cursorDefault, styles.emojiDefaultStyles]}
             emojiCode={'data' in tnode ? tnode.data : ''}
             isMedium={'ismedium' in tnode.attributes}

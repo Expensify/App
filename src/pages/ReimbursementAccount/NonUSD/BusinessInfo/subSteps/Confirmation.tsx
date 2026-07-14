@@ -1,14 +1,19 @@
-import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
-import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useMemo} from 'react';
 
 const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {
@@ -47,7 +52,7 @@ const displayIncorporationLocation = (country: string, state: string) => {
     return country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA ? `${stateFullName}, ${countryFullName}` : `${countryFullName}`;
 };
 
-function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
+function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);

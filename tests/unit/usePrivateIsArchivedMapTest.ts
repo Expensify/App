@@ -1,7 +1,11 @@
 import {act, renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const REPORT_ID_1 = 'report_1';
@@ -27,7 +31,7 @@ describe('usePrivateIsArchivedMap', () => {
         expect(result.current).toEqual({});
     });
 
-    it('maps report keys to their private_isArchived values', async () => {
+    it('maps report keys to boolean values indicating archived status', async () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_1}`, {private_isArchived: ARCHIVED_DATE});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_2}`, {private_isArchived: SECOND_ARCHIVED_DATE});
@@ -35,18 +39,18 @@ describe('usePrivateIsArchivedMap', () => {
 
         const {result} = renderHook(() => usePrivateIsArchivedMap());
 
-        expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_1}`]).toBe(ARCHIVED_DATE);
-        expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_2}`]).toBe(SECOND_ARCHIVED_DATE);
+        expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_1}`]).toBe(true);
+        expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_2}`]).toBe(true);
     });
 
-    it('returns undefined for reports that are not archived', async () => {
+    it('returns false for reports that are not archived', async () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_3}`, {origin: 'email'});
         });
 
         const {result} = renderHook(() => usePrivateIsArchivedMap());
 
-        expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_3}`]).toBeUndefined();
+        expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_3}`]).toBe(false);
     });
 
     it('updates the map when Onyx data changes', async () => {
@@ -56,7 +60,7 @@ describe('usePrivateIsArchivedMap', () => {
 
         const {result} = renderHook(() => usePrivateIsArchivedMap());
 
-        expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_1}`]).toBeUndefined();
+        expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_1}`]).toBe(false);
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_1}`, {private_isArchived: ARCHIVED_DATE});
@@ -64,7 +68,7 @@ describe('usePrivateIsArchivedMap', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_1}`]).toBe(ARCHIVED_DATE);
+        expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_1}`]).toBe(true);
     });
 
     it('handles a mix of archived and non-archived reports', async () => {
@@ -75,7 +79,7 @@ describe('usePrivateIsArchivedMap', () => {
 
         const {result} = renderHook(() => usePrivateIsArchivedMap());
 
-        expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_1}`]).toBe(ARCHIVED_DATE);
-        expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_2}`]).toBeUndefined();
+        expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_1}`]).toBe(true);
+        expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_2}`]).toBe(false);
     });
 });

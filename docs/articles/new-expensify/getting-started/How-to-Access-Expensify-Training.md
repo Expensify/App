@@ -1,7 +1,7 @@
 ---
 title: How to Access Expensify Training
 description: Register for live Expensify training webinars, explore the New Expensify interactive tour, and access helpful resources to get started.
-keywords: Expensify training, live webinar, user training, admin training, interactive tour, Storylane, New Expensify navigation, Concierge AI, getting started
+keywords: [Expensify training, webinar, live webinar, register for webinar, user training, admin training, interactive tour, Storylane, New Expensify navigation, Concierge AI, getting started]
 internalScope: Audience is members and Workspace Admins seeking training. Covers live webinar registration, interactive navigation tour, and general new member resources. Does not cover account setup steps or common actions directly.
 ---
 
@@ -28,19 +28,19 @@ Select the date and time that works best for you. Admins are encouraged to atten
 
 **Mondays – 23:00 UTC**
 
-(3pm Monday PST / 12pm Tuesday NZ / 10am SYD / 7am MNL)
+(4pm Monday PDT / 12pm Tuesday NZ / 10am SYD / 7am MNL)
 
 👉 **[Register here](https://events.zoom.us/ev/AsNhZCGJb8qpCLyZC3uo6s3WuVrcCvxJK25CxoiTwKoKaTJZUuP9~AnwAZJQZuLuVfZvrvX6QRPlgfkVBTBIYRm_MuWWV3HfCDPlrxANJU0sjCw)**
 
 **Tuesdays – 18:00 UTC**
 
-(10am Tuesday PST / 1pm EST / 6pm GMT)
+(11am Tuesday PDT / 2pm EDT / 6pm GMT)
 
 👉 **[Register here](https://events.zoom.us/ev/Ag9wyeaHoM2MdgrEudeM2khDhyVlOVeoJ0em2duEOYrYoGBnu1GR~AjXo_keo4nLLLaBzstxCEOOxskKk4NqV4gurDM4MIZGA1R3dMLZUCgxoFw)**
 
 **Wednesdays – 14:00 UTC**
 
-(9am Wednesday EST / 2pm GMT / 3pm CEST)
+(10am Wednesday EDT / 2pm GMT / 3pm CET)
 
 👉 **[Register here](https://events.zoom.us/ev/AhellaELKyULHHdDH1glXh7-1ELREHiDMq7lG-kvZHmgPU0Anwk0~Arf5hJl8n2CLr8mCBuQZlqWLBq_eJyKa3jXqRLM6E93zjTT7okWqXZA2Gw)**
 
@@ -80,7 +80,7 @@ You’ll learn how to:
 
 Prefer to explore on your own?
 
-The navigation tour provides a guided overview of New Expensify and explains where to find core sections such as Inbox, Reports, and Settings.
+The navigation tour provides a guided overview of New Expensify and explains where to find core sections such as Inbox, Spend, and Settings.
 
 Use this tour if you want a high-level introduction to:
 
@@ -111,10 +111,10 @@ Learn how Concierge supports you in Expensify.
 Step-by-step instructions for creating and submitting expenses.
 👉 [Create an Expense](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense)
 
-**Get started with the Reports page**
+**Get started with the Spend page**
 
 Understand how reports are organized and managed.
-👉 [Getting Started with the Reports Page](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Getting-Started-with-the-Reports-Page)
+👉 [Getting Started with the Spend page](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Getting-Started-with-the-Reports-Page)
 
 **How to avoid common scams**
 

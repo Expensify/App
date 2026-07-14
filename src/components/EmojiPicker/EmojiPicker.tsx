@@ -1,16 +1,18 @@
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {ForwardedRef, RefObject} from 'react';
-import {Dimensions, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import type {AnchorOrigin, EmojiPickerOnModalHide, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, ShowEmojiPickerOptions} from '@libs/actions/EmojiPickerAction';
 import {isMobileChrome} from '@libs/Browser';
@@ -19,9 +21,17 @@ import DomUtils from '@libs/DomUtils';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+
 import {close} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {ForwardedRef, RefObject} from 'react';
+
+import React, {Activity, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {Dimensions, View} from 'react-native';
+
 import EmojiPickerMenu from './EmojiPickerMenu';
 
 const DEFAULT_ANCHOR_ORIGIN = {
@@ -116,7 +126,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
 
         // It's possible that the anchor is inside an active modal (e.g., add emoji reaction in report context menu).
         // So, we need to get the anchor position first before closing the active modal which will also destroy the anchor.
-        KeyboardUtils.dismiss(true).then(() =>
+        KeyboardUtils.dismiss({shouldSkipSafari: true}).then(() =>
             calculateAnchorPosition(emojiPopoverAnchor?.current, anchorOriginValue).then((value) => {
                 close(() => {
                     onWillShow?.();
@@ -235,6 +245,15 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
         };
     }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor, hideEmojiPicker]);
 
+    // Only add the bottom safe-area padding when the keyboard is hidden. When the search keyboard is shown it already
+    // covers the bottom inset, so adding the padding on top of it leaves an unwanted gap above the keyboard.
+    // Use isKeyboardActive (toggles on keyboardWillShow/WillHide) rather than isKeyboardShown (toggles on
+    // keyboardDidShow/DidHide) so the padding changes in sync with the modal's keyboard-avoidance animation. Keying it
+    // on isKeyboardShown removes/re-adds the padding only after the keyboard animation finishes, which abruptly changes
+    // the picker height a beat behind the modal motion and makes the picker bounce.
+    const {isKeyboardActive} = useKeyboardState();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: !isKeyboardActive});
+
     return (
         <PopoverWithMeasuredContent
             shouldHandleNavigationBack={isMobileChrome()}
@@ -262,17 +281,21 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
             shouldEnableNewFocusManagement
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSkipRemeasurement
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <FocusTrapForModal active={isEmojiPickerVisible}>
-                <View>
-                    <EmojiPickerMenu
-                        onEmojiSelected={selectEmoji}
-                        activeEmoji={activeEmoji.current}
-                        ref={(el) => {
-                            emojiSearchInput.current = el;
-                        }}
-                    />
-                </View>
+                <Activity mode={isEmojiPickerVisible ? 'visible' : 'hidden'}>
+                    <View style={bottomSafeAreaPaddingStyle}>
+                        <EmojiPickerMenu
+                            onEmojiSelected={selectEmoji}
+                            activeEmoji={activeEmoji.current}
+                            ref={(el) => {
+                                emojiSearchInput.current = el;
+                            }}
+                        />
+                    </View>
+                </Activity>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );

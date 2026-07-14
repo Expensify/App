@@ -1,18 +1,26 @@
-import React, {useEffect} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
+
 import useOnyx from '@hooks/useOnyx';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
+import {getLastShortAuthToken} from '@libs/Network/NetworkStore';
+import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
+
 import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect} from 'react';
 
 type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
@@ -40,12 +48,22 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         }
 
         if (isSupportalLogin) {
-            signInWithSupportAuthToken(shortLivedAuthToken);
+            // The public transition page may already have started this exact sign-in before the Public/Auth
+            // navigator swap re-mounted us here. Firing it again trips the support-token rate limit, so skip
+            // the duplicate but still finish navigating home.
+            if (shortLivedAuthToken !== getLastShortAuthToken()) {
+                signInWithSupportAuthToken(shortLivedAuthToken);
+            }
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
                 Navigation.navigate(ROUTES.HOME);
             });
+            return;
+        }
+        const isLoggingInAsDelegate = isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined);
+
+        if (isLoggingInAsDelegate) {
             return;
         }
 
@@ -68,7 +86,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         if (!CONFIG.IS_HYBRID_APP && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingInAsNewUser) {
             Navigation.isNavigationReady().then(() => {
                 // remove this screen and navigate to exit route
-                Navigation.goBack();
+                Navigation.goBack(ROUTES.HOME);
                 if (exitTo) {
                     Navigation.navigate(exitTo as Route);
                 }
@@ -77,7 +95,10 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading]);
 
-    return <FullScreenLoadingIndicator />;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'LogOutPreviousUserPage',
+    };
+    return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
 }
 
 export default LogOutPreviousUserPage;

@@ -1,18 +1,22 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type {CardFeedForDisplay} from '@libs/CardFeedUtils';
 import {getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
 import {isCustomFeed} from '@libs/CardUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 const eligiblePoliciesSelector = (policies: OnyxCollection<Policy>): string[] => {
     return Object.values(policies ?? {}).reduce((policiesIDs, policy) => {
-        if (isPaidGroupPolicy(policy) && policy?.areCompanyCardsEnabled) {
+        if (isPaidGroupPolicy(policy) && policy?.areCompanyCardsEnabled && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             policiesIDs.push(policy.id);
         }
         return policiesIDs;
@@ -54,13 +58,12 @@ function getDefaultCardFeed(
 const useCardFeedsForDisplay = () => {
     const {localeCompare, translate} = useLocalize();
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [eligiblePoliciesIDsArray] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: eligiblePoliciesSelector,
-    });
+    const eligiblePoliciesIDsArray = eligiblePoliciesSelector(allPolicies);
 
-    const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards);
+    const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards, allPolicies);
 
     const defaultCardFeed = getDefaultCardFeed(eligiblePoliciesIDsArray, activePolicyID, cardFeedsByPolicy, localeCompare);
 
@@ -68,4 +71,4 @@ const useCardFeedsForDisplay = () => {
 };
 
 export default useCardFeedsForDisplay;
-export {getDefaultCardFeed, eligiblePoliciesSelector};
+export {getDefaultCardFeed};

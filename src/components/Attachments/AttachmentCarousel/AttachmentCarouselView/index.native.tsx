@@ -1,15 +1,20 @@
-import React, {useCallback, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
 import CarouselButtons from '@components/Attachments/AttachmentCarousel/CarouselButtons';
 import AttachmentCarouselPager from '@components/Attachments/AttachmentCarousel/Pager';
 import type {AttachmentCarouselPagerHandle} from '@components/Attachments/AttachmentCarousel/Pager';
 import type {AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
+
 import variables from '@styles/variables';
+
+import React, {useCallback, useRef, useState} from 'react';
+import {Keyboard, View} from 'react-native';
+
 import type AttachmentCarouselViewProps from './types';
 
 function AttachmentCarouselView({
@@ -49,7 +54,6 @@ function AttachmentCarouselView({
                 if (onNavigate) {
                     onNavigate(item);
                 }
-                onNavigate?.(item);
             }
         },
         [setShouldShowArrows, attachments, setPage, onNavigate],

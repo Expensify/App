@@ -1,45 +1,56 @@
-import {differenceInDays} from 'date-fns';
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportOnyxState from '@components/ImportOnyxState';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import {useOptionsList} from '@components/OptionListContextProvider';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchQueryActions} from '@components/Search/SearchContext';
 import Section from '@components/Section';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import SentryDebugToolMenu from '@components/SentryDebugToolMenu';
 import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
 import TestToolRow from '@components/TestToolRow';
+
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {resetExitSurveyForm, switchToOldDot} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import {openTroubleshootSettingsPage} from '@libs/actions/User';
 import ExportOnyxState from '@libs/ExportOnyxState';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+
 import colors from '@styles/theme/colors';
+
 import {clearOnyxAndResetApp} from '@userActions/App';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import {differenceInDays} from 'date-fns';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import useTroubleshootSectionIllustration from './useTroubleshootSectionIllustration';
 
 type BaseMenuItem = WithSentryLabel & {
@@ -56,14 +67,15 @@ function TroubleshootPage() {
     const styles = useThemeStyles();
     const {isProduction, isDevelopment} = useEnvironment();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(translate('initialSettingsPage.aboutPage.troubleshoot'));
     const [isLoading, setIsLoading] = useState(false);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
-    const {resetOptions} = useOptionsList({shouldInitialize: false});
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const {showConfirmModal} = useConfirmModal();
+    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
-    const {setShouldResetSearchQuery} = useSearchActionsContext();
+    const {setShouldResetSearchQuery} = useSearchQueryActions();
     const showResetAndRefreshModal = async () => {
         const result = await showConfirmModal({
             title: translate('common.areYouSure'),
@@ -75,7 +87,6 @@ function TroubleshootPage() {
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
-        resetOptions();
         setShouldResetSearchQuery(true);
         clearOnyxAndResetApp();
     };
@@ -113,7 +124,7 @@ function TroubleshootPage() {
     const surveyCompletedWithinLastMonth = getSurveyCompletedWithinLastMonth();
 
     const getClassicRedirectMenuItem = (): BaseMenuItem | null => {
-        if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
+        if (shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP, isDevelopment)) {
             return null;
         }
 
@@ -135,10 +146,10 @@ function TroubleshootPage() {
 
                           resetExitSurveyForm(() => {
                               if (shouldOpenSurveyReasonPage) {
-                                  Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
+                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_REASON.path));
                                   return;
                               }
-                              Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
+                              Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path));
                           });
                       },
                   }),
@@ -196,7 +207,7 @@ function TroubleshootPage() {
                 icon={illustrations.Lightbulb}
                 shouldUseHeadlineHeader
             />
-            {isLoading && <FullScreenLoadingIndicator />}
+            {isLoading && <FullScreenLoadingIndicator reasonAttributes={{context: 'TroubleshootPage', isLoading} satisfies SkeletonSpanReasonAttributes} />}
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
@@ -207,12 +218,7 @@ function TroubleshootPage() {
                         illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                         illustrationBackgroundColor={colors.blue700}
                         titleStyles={styles.accountSettingsSectionTitle}
-                        renderSubtitle={() => (
-                            <View style={[styles.renderHTML, styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
-                                <RenderHTML html={translate('initialSettingsPage.troubleshoot.description')} />
-                            </View>
-                        )}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        renderSubtitle={() => <SectionSubtitleHTML html={translate('initialSettingsPage.troubleshoot.description')} />}
                         {...troubleshootIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>

@@ -1,19 +1,24 @@
-import React, {useEffect, useRef} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {inviteMemberToWorkspace} from '@libs/actions/Policy/Member';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isPendingDeletePolicy} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect, useRef} from 'react';
 
 type WorkspaceJoinUserPageRoute = {route: PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_JOIN_USER>['route']};
 type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute;
@@ -56,7 +61,10 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
 
     return (
         <ScreenWrapper testID="WorkspaceJoinUserPage">
-            <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            <FullScreenLoadingIndicator
+                style={[styles.flex1, styles.pRelative]}
+                reasonAttributes={{context: 'WorkspaceJoinUserPage'}}
+            />
         </ScreenWrapper>
     );
 }

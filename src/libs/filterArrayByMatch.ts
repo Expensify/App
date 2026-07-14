@@ -3,6 +3,7 @@
    Use `threshold` option with one of the rankings defined below to control the strictness of the match.
 */
 import type {ValueOf} from 'type-fest';
+
 import StringUtils from './StringUtils';
 
 const MATCH_RANK = {
@@ -110,4 +111,3 @@ function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string
 }
 
 export default filterArrayByMatch;
-export {MATCH_RANK};

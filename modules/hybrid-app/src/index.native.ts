@@ -1,5 +1,6 @@
-import ReactNativeHybridApp from './NativeReactNativeHybridApp';
 import type HybridAppModuleType from './types';
+
+import ReactNativeHybridApp from './NativeReactNativeHybridApp';
 
 const HybridAppModule: HybridAppModuleType = {
     isHybridApp() {
@@ -34,6 +35,12 @@ const HybridAppModule: HybridAppModuleType = {
     },
     signOutFromOldDot() {
         ReactNativeHybridApp.signOutFromOldDot();
+    },
+    startSignOut() {
+        ReactNativeHybridApp.startSignOut();
+    },
+    cancelSignOut() {
+        ReactNativeHybridApp.cancelSignOut();
     },
     clearOldDotAfterSignOut() {
         ReactNativeHybridApp.clearOldDotAfterSignOut();

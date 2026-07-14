@@ -1,4 +1,5 @@
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
 import type Form from './Form';
 
 const INPUT_IDS = {
@@ -53,7 +54,10 @@ type PlaidAccountProps = {
 type OnfidoStepProps = {
     isOnfidoSetupComplete: boolean;
 };
-type PersonalBankAccountForm = Form<InputID, BankAccountStepProps & PlaidAccountProps> & OnfidoStepProps;
+type ConfirmedOwnershipDetailsProps = {
+    confirmedOwnershipDetails?: boolean;
+};
+type PersonalBankAccountForm = Form<InputID, BankAccountStepProps & PlaidAccountProps> & OnfidoStepProps & ConfirmedOwnershipDetailsProps;
 
 export type {PersonalBankAccountForm};
 

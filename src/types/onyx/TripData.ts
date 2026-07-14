@@ -887,6 +887,18 @@ type AirPnr = {
             /** Vendor cancellation ID for the ticket. */
             vendorCancellationId: string;
         }>;
+        /** Last confirmed tickets before cancellation/voiding. */
+        lastConfirmedTickets?: Array<{
+            /** Flight coupons associated with the ticket. */
+            flightCoupons: Array<{
+                /** Index of the flight. */
+                flightIdx: number;
+                /** Index of the leg. */
+                legIdx: number;
+                /** Status of the flight coupon. */
+                status: string;
+            }>;
+        }>;
         /** Index of the traveler. */
         travelerIdx: number;
         /** User ID associated with the traveler. */
@@ -1223,6 +1235,12 @@ type HotelPnr = {
             };
             /** Policy details for the cancellation. */
             policy: string;
+
+            /** Deadline in duration before the check-in date time. */
+            durationBeforeArrivalDeadline?: {
+                /** ISO 8601 format. */
+                iso8601: string;
+            };
         };
         /** Guarantee type for the room. */
         guaranteeType: string;
@@ -1712,8 +1730,8 @@ type CarPnr = {
 
 /** Represents the structure of RailPnr. */
 type RailPnr = {
-    /** Details of the inward journey. */
-    inwardJourney: {
+    /** Details of the inward journey (undefined for one-way trips). */
+    inwardJourney?: {
         /** Status of the inward journey. */
         journeyStatus: string;
 
@@ -2311,4 +2329,4 @@ type MiscPnr = {
     sourceStatus: string;
 };
 
-export type {TripData, Pnr, PnrTraveler, PnrData, AirPnr, HotelPnr, CarPnr, RailPnr, LimoPnr, MiscPnr};
+export type {TripData, Pnr, PnrTraveler, PnrData, AirPnr, HotelPnr, CarPnr, RailPnr};

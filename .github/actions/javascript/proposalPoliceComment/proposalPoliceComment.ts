@@ -1,15 +1,19 @@
-import {getInput, setFailed} from '@actions/core';
-import * as core from '@actions/core';
-import {context} from '@actions/github';
-import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, IssueCommentEvent} from '@octokit/webhooks-types';
-import {format} from 'date-fns';
-import {toZonedTime} from 'date-fns-tz';
-import type {TupleToUnion} from 'type-fest';
 import {convertToNumber} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
+
 import PROPOSAL_POLICE_TEMPLATES from '@prompts/proposalPolice';
+
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
+
+import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, IssueCommentEvent} from '@octokit/webhooks-types';
+import type {TupleToUnion} from 'type-fest';
+
+import {getInput, setFailed} from '@actions/core';
+import * as core from '@actions/core';
+import {context} from '@actions/github';
+import {format} from 'date-fns';
+import {toZonedTime} from 'date-fns-tz';
 
 type AssistantResponse = {
     action: typeof CONST.NO_ACTION | typeof CONST.ACTION_REQUIRED | typeof CONST.ACTION_EDIT;
@@ -100,7 +104,6 @@ async function run() {
     const assistantID = getInput('PROPOSAL_POLICE_ASSISTANT_ID', {required: true});
     const openAI = new OpenAIUtils(apiKey);
 
-    /* eslint-disable rulesdir/no-default-id-values */
     const issueNumber = payload.issue?.number ?? -1;
     /* eslint-disable rulesdir/no-default-id-values */
     const commentID = payload.comment?.id ?? -1;
@@ -148,7 +151,6 @@ async function run() {
             const duplicateCheckPrompt = PROPOSAL_POLICE_TEMPLATES.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
             const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
             let similarityPercentage = 0;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
             const parsedDuplicateCheckResponse = openAI.parseAssistantResponse<DuplicateProposalResponse>(duplicateCheckResponse);
             core.startGroup('Parsed Duplicate Check Response');
             console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
@@ -189,7 +191,6 @@ async function run() {
         : PROPOSAL_POLICE_TEMPLATES.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
 
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
     const parsedAssistantResponse = openAI.parseAssistantResponse<AssistantResponse>(assistantResponse);
     core.startGroup('Parsed Assistant Response');
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);

@@ -1,7 +1,3 @@
-import React, {useEffect, useImperativeHandle, useRef} from 'react';
-import type {ForwardedRef} from 'react';
-import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -10,6 +6,7 @@ import FixedFooter from '@components/FixedFooter';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -19,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
@@ -26,16 +24,20 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import {
-    clearSubrates,
     getIOURequestPolicyID,
     setCustomUnitID,
     setCustomUnitRateID,
     setMoneyRequestCategory,
     setMoneyRequestCurrency,
     setMoneyRequestParticipantsFromReport,
-} from '@userActions/IOU';
+} from '@userActions/IOU/MoneyRequest';
+import {clearSubrates} from '@userActions/IOU/PerDiem';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,10 +45,18 @@ import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import StepScreenWrapper from './StepScreenWrapper';
+
+import type {ForwardedRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
+import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepDestinationRef = {
@@ -63,7 +73,7 @@ type IOURequestStepDestinationProps = WithWritableReportOrNotFoundProps<typeof S
 function IOURequestStepDestination({
     report,
     route: {
-        params: {transactionID, backTo, action, iouType, reportID},
+        params: {transactionID, backTo, action, iouType, reportID, backToReport},
     },
     transaction,
     openedFromStartPage = false,
@@ -71,6 +81,9 @@ function IOURequestStepDestination({
     ref,
 }: IOURequestStepDestinationProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const reportPolicyID = getIOURequestPolicyID(transaction, report);
     const policyID = reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`);
@@ -93,20 +106,25 @@ function IOURequestStepDestination({
         focus: destinationSelectionListRef.current?.focusTextInput,
     }));
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEmptyObject(policy);
 
     const {isOffline} = useNetwork();
     const isLoading = !isOffline && (!customUnit?.rates || isLoadingOnyxValue(policyMetadata));
     const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline && !isLoading;
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'IOURequestStepDestination',
+        isLoading,
+        isOffline,
+        hasCustomUnitRates: !isEmptyObject(customUnit?.rates),
+    };
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
     const updateDestination = (destination: ListItem & {currency: string}) => {
-        if (openedFromStartPage && policy?.id && shouldRestrictUserBillableActions(policy.id)) {
+        if (openedFromStartPage && policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return;
         }
@@ -132,7 +150,7 @@ function IOURequestStepDestination({
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
-            setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy);
+            setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy, false, personalPolicy?.outputCurrency);
             setMoneyRequestCurrency(transactionID, destination.currency);
             clearSubrates(transactionID);
         }
@@ -140,7 +158,7 @@ function IOURequestStepDestination({
         if (backTo) {
             navigateBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport));
         }
     };
 
@@ -168,13 +186,24 @@ function IOURequestStepDestination({
         // When the rates are not available for the policy, the transaction does not have valid customUnitID and moneyRequestCategory
         // So, we set these in the transaction when the rates are fetched in fetchPerDiemRates
         const perDiemUnit = getPerDiemCustomUnit(policy);
-        if (!perDiemUnit || transaction?.comment?.customUnit?.customUnitID === perDiemUnit.customUnitID || !!transaction?.category) {
+        // Wait until the draft transaction has actually become a per diem request before writing per diem defaults.
+        // On the start page, switching tabs to per diem re-initializes the draft transaction via initMoneyRequest's
+        // Onyx.set. If this effect merges customUnitID/category while the draft is still the previous (e.g. manual)
+        // transaction, those merges are queued against the stale value and clobber the per diem Onyx.set, wiping
+        // comment.customUnit.attributes.dates (the start/end date-time). Gating on the per diem request type lets the
+        // effect re-run after the transaction settles so the merges land on top of the per diem draft instead.
+        if (
+            transaction?.iouRequestType !== CONST.IOU.REQUEST_TYPE.PER_DIEM ||
+            !perDiemUnit ||
+            transaction?.comment?.customUnit?.customUnitID === perDiemUnit.customUnitID ||
+            !!transaction?.category
+        ) {
             return;
         }
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
         setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactionID, policy?.customUnits]);
+    }, [transactionID, policy?.customUnits, transaction?.iouRequestType]);
 
     const keyboardVerticalOffset = openedFromStartPage ? variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
 
@@ -196,6 +225,7 @@ function IOURequestStepDestination({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
+                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
@@ -215,10 +245,7 @@ function IOURequestStepDestination({
                                     success
                                     style={[styles.w100]}
                                     onPress={() => {
-                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                                        InteractionManager.runAfterInteractions(() => {
-                                            Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
-                                        });
+                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
                                     }}
                                     text={translate('workspace.perDiem.editPerDiemRates')}
                                     pressOnEnter
@@ -241,8 +268,7 @@ function IOURequestStepDestination({
     );
 }
 
-/* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepDestinationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDestination);
-/* eslint-disable rulesdir/no-negated-variables */
+
 const IOURequestStepDestinationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDestinationWithFullTransactionOrNotFound);
 export default IOURequestStepDestinationWithWritableReportOrNotFound;

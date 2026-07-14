@@ -1,5 +1,3 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -7,22 +5,30 @@ import getBankIcon from '@components/Icon/BankIcons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {saveWalletTransferAccountTypeAndID} from '@userActions/PaymentMethods';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData, BankAccount} from '@src/types/onyx';
 import type {BankName} from '@src/types/onyx/Bank';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type BankAccountListItem = ListItem & {
     value?: number;
@@ -57,7 +63,7 @@ function ChooseTransferAccountPage() {
     };
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const selectedAccountID = walletTransfer?.selectedAccountID;
     const bankAccountOptions = useMemo(() => {
         const options = Object.values(bankAccountsList ?? {}).map((bankAccount, index): BankAccountListItem => {
@@ -96,7 +102,8 @@ function ChooseTransferAccountPage() {
     }, [bankAccountOptions, selectedAccountID]);
 
     if (isLoadingOnyxValue(walletTransferResult)) {
-        return <FullscreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'ChooseTransferAccountPage', walletTransferLoaded: false};
+        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
@@ -108,7 +115,7 @@ function ChooseTransferAccountPage() {
 
             <SelectionList
                 data={bankAccountOptions}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={(value) => {
                     const accountType = value?.bankAccount?.accountType;
                     const accountData = value?.bankAccount?.accountData;

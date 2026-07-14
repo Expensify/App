@@ -1,24 +1,32 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OnboardingMergingAccountBlockedView from '@components/OnboardingMergingAccountBlockedView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import AccountUtils from '@libs/AccountUtils';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
 import {resendValidateCode} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import type {BaseOnboardingWorkEmailValidationProps} from './types';
 
 function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardingWorkEmailValidationProps) {
@@ -37,6 +45,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
     const isFocused = useIsFocused();
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION);
 
     useEffect(() => {
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
@@ -49,12 +58,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         }
         // Once we verify that shouldValidate is false, we need to force replace the screen
         // so that we don't navigate back on back button press
-        if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
-            return;
-        }
-
-        if (isSmb) {
+        if (isVsb || isSmb) {
             Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
             return;
         }
@@ -87,7 +91,8 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         >
             <HeaderWithBackButton
                 shouldShowBackButton={!onboardingValues?.isMergingAccountBlocked}
-                progressBarPercentage={15}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => {
                     updateOnboardingValuesAndNavigation(onboardingValues);
                 }}
@@ -108,7 +113,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                     >
                         {translate('onboarding.workEmailValidation.title')}
                     </Text>
-                    <Text style={[styles.textNormal, styles.colorMuted, styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.magicCodeSent', {workEmail})}</Text>
+                    <Text style={[styles.textNormal, styles.colorMuted, styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.magicCodeSent', workEmail)}</Text>
                     <ValidateCodeForm
                         handleSubmitForm={validateAccountAndMerge}
                         sendValidateCode={sendValidateCode}

@@ -1,30 +1,32 @@
-import type {RouteProp} from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
-import type {ComponentType} from 'react';
+
 import Text from '@components/Text';
+
 import useSubPage from '@hooks/useSubPage';
 import type {PageConfig, SubPageProps} from '@hooks/useSubPage/types';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {Route} from '@src/ROUTES';
+
+import type {RouteProp} from '@react-navigation/native';
+import type {ComponentType} from 'react';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
 }));
 
-jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
-    callback(0);
-    return 0;
-});
-
 type AnyRoute = RouteProp<Record<string, Record<string, unknown> | undefined>, string>;
 const mockUseRoute = jest.fn<AnyRoute, []>();
+const mockSetParams = jest.fn();
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const actualNav = jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native');
     return {
         ...actualNav,
         useRoute: () => mockUseRoute(),
+        useNavigation: () => ({setParams: mockSetParams}),
     };
 });
 
@@ -135,7 +137,7 @@ describe('useSubPage hook', () => {
             expect(result.current.CurrentPage).toBe(mockSubPageTwo);
         });
 
-        it('navigates to startFrom page on mount when no subPage param is present', () => {
+        it('sets params to startFrom page on mount when no subPage param is present', () => {
             const pages = createMockPages();
             const buildRoute = createBuildRoute();
 
@@ -148,7 +150,7 @@ describe('useSubPage hook', () => {
                 }),
             );
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('page3'), {forceReplace: true});
+            expect(mockSetParams).toHaveBeenCalledWith({subPage: 'page3'});
         });
 
         it('returns isRedirecting true when no subPage param is present in URL', () => {

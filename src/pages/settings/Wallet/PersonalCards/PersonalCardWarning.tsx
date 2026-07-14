@@ -1,17 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function PersonalCardWarning() {
     const styles = useThemeStyles();
@@ -63,7 +68,7 @@ function PersonalCardWarning() {
                         testID="confirmation-secondary-button"
                         style={styles.mt3}
                         onPress={() => {
-                            // TODO - navigate to personal card page
+                            Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW);
                         }}
                     />
                     <Button

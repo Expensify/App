@@ -1,18 +1,22 @@
-import type {EventMapCore, NavigationProp, NavigationState, ParamListBase} from '@react-navigation/native';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import getBackgroundColor from '@components/TabSelector/getBackground';
 import getOpacity from '@components/TabSelector/getOpacity';
 import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {EventMapCore, NavigationProp, NavigationState, ParamListBase} from '@react-navigation/native';
+
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type IconAndTitle = {
     icon: IconAsset;
@@ -51,7 +55,7 @@ type DebugTabNavigatorProps = {
 };
 
 function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Exclamation', 'Eye', 'Info'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Exclamation', 'Eye', 'Info']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const navigation = useNavigation<NavigationProp<Record<string, unknown>>>();
@@ -106,6 +110,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
 
                     return (
                         <TabSelectorItem
+                            tabKey={route.name}
                             key={route.name}
                             icon={icon}
                             title={title}

@@ -1,6 +1,7 @@
+import type {ValueOf} from 'type-fest';
+
 import fs from 'fs';
 import yaml from 'js-yaml';
-import type {ValueOf} from 'type-fest';
 
 type Article = {
     href: string;
@@ -11,7 +12,9 @@ type Article = {
 type Section = {
     href: string;
     title: string;
+    order?: number;
     articles?: Article[];
+    sections?: Section[];
 };
 
 type Hub = {
@@ -21,6 +24,7 @@ type Hub = {
     icon: string;
     articles?: Article[];
     sections?: Section[];
+    flatSections?: Section[];
 };
 
 type Platform = {
@@ -34,6 +38,18 @@ type DocsRoutes = {
 
 type HubEntriesKey = 'sections' | 'articles';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function getOptionalString(value: unknown): string | undefined {
+    return typeof value === 'string' ? value : undefined;
+}
+
+function getOptionalNumber(value: unknown): number | undefined {
+    return typeof value === 'number' ? value : undefined;
+}
+
 const warnMessage = (platform: string): string => `Number of hubs in _routes.yml does not match number of hubs in docs/${platform}/articles. Please update _routes.yml with hub info.`;
 const disclaimer = '# This file is auto-generated. Do not edit it directly. Use npm run createDocsRoutes instead.\n';
 const docsDir = `${process.cwd()}/docs`;
@@ -44,6 +60,9 @@ const platformNames = {
     travel: 'travel',
 } as const;
 
+// Words that should be fully uppercased in auto-generated titles (e.g. "ai" -> "AI")
+const ACRONYMS = new Set(['ai']);
+
 /**
  * @param str - The string to convert to title case
  */
@@ -51,8 +70,12 @@ function toTitleCase(str: string): string {
     return str
         .split(' ')
         .map((word, index) => {
-            if (index !== 0 && (word.toLowerCase() === 'a' || word.toLowerCase() === 'the' || word.toLowerCase() === 'and')) {
-                return word.toLowerCase();
+            const lowerWord = word.toLowerCase();
+            if (ACRONYMS.has(lowerWord)) {
+                return word.toUpperCase();
+            }
+            if (index !== 0 && (lowerWord === 'a' || lowerWord === 'the' || lowerWord === 'and')) {
+                return lowerWord;
             }
             return word.charAt(0).toUpperCase() + word.substring(1);
         })
@@ -60,16 +83,14 @@ function toTitleCase(str: string): string {
 }
 
 /**
- * @param filename - The name of the file (path used for href)
+ * @param filename - The name of the file
  * @param order - Optional order from front matter
- * @param titleOverride - Optional display title (e.g. subfolder name: "Export-Errors" -> "Export Errors")
  */
-function getArticleObj(filename: string, order?: number, titleOverride?: string): Article {
+function getArticleObj(filename: string, order?: number): Article {
     const href = filename.replace('.md', '');
-    const title = titleOverride ? toTitleCase(titleOverride.replaceAll('-', ' ')) : toTitleCase(href.replaceAll('-', ' '));
     return {
         href,
-        title,
+        title: toTitleCase(href.replaceAll('-', ' ')),
         order,
     };
 }
@@ -97,76 +118,128 @@ function pushOrCreateEntry<TKey extends HubEntriesKey>(hubs: Hub[], hub: string,
 }
 
 function getOrderFromArticleFrontMatter(path: string): number | undefined {
-    const frontmatter = fs.readFileSync(path, 'utf8').split('---').at(1);
-    if (!frontmatter) {
-        return;
+    try {
+        const frontmatter = fs.readFileSync(path, 'utf8').split('---').at(1);
+        if (!frontmatter) {
+            return undefined;
+        }
+        const frontmatterObject = yaml.load(frontmatter);
+        if (!isRecord(frontmatterObject)) {
+            return undefined;
+        }
+        return getOptionalNumber(frontmatterObject.order);
+    } catch {
+        return undefined;
     }
-    const frontmatterObject = yaml.load(frontmatter) as Record<string, unknown>;
-    return frontmatterObject.order as number | undefined;
+}
+
+function getSectionMeta(sectionPath: string): {title?: string; order?: number} {
+    try {
+        const metaPath = `${sectionPath}/_meta.yml`;
+        if (!fs.existsSync(metaPath)) {
+            return {};
+        }
+        const meta = yaml.load(fs.readFileSync(metaPath, 'utf8'));
+        if (!isRecord(meta)) {
+            return {};
+        }
+        return {
+            title: getOptionalString(meta.title),
+            order: getOptionalNumber(meta.order),
+        };
+    } catch {
+        return {};
+    }
+}
+
+function sortSectionsByOrder(sections: Section[]) {
+    sections.sort((a, b) => (a.order ?? Number.POSITIVE_INFINITY) - (b.order ?? Number.POSITIVE_INFINITY));
+}
+
+/**
+ * Build a section from a directory path, with optional parent path for nested href
+ */
+function buildSection(platformName: string, hub: string, sectionPath: string, parentHref: string): Section {
+    const sectionName = sectionPath.split('/').pop() ?? sectionPath;
+    const fullPath = `${docsDir}/articles/${platformName}/${hub}/${sectionPath}`;
+    const meta = getSectionMeta(fullPath);
+    const articles: Article[] = [];
+    const childSections: Section[] = [];
+    const href = parentHref ? `${parentHref}/${sectionName}` : sectionName;
+
+    for (const entry of fs.readdirSync(fullPath)) {
+        if (entry === '_meta.yml') {
+            continue;
+        }
+
+        const entryPath = `${fullPath}/${entry}`;
+        if (entry.endsWith('.md')) {
+            const order = getOrderFromArticleFrontMatter(entryPath);
+            articles.push(getArticleObj(entry, order));
+        } else if (fs.statSync(entryPath).isDirectory()) {
+            childSections.push(buildSection(platformName, hub, `${sectionPath}/${entry}`, href));
+        }
+    }
+
+    // Articles are displayed in the order stored here, so sort by the optional `order` front matter.
+    // The sort is stable, so articles without an `order` keep their relative position and fall after ordered ones.
+    articles.sort((a, b) => (a.order ?? Number.POSITIVE_INFINITY) - (b.order ?? Number.POSITIVE_INFINITY));
+
+    sortSectionsByOrder(childSections);
+
+    const section: Section = {
+        href,
+        title: meta.title ?? toTitleCase(sectionName.replaceAll('-', ' ')),
+        ...(meta.order !== undefined && {order: meta.order}),
+        ...(articles.length > 0 && {articles}),
+        ...(childSections.length > 0 && {sections: childSections}),
+    };
+    return section;
+}
+
+/**
+ * Flatten sections for lookup by full path (e.g. netsuite/troubleshooting/connection-errors)
+ */
+function flattenSections(sections: Section[]): Section[] {
+    const result: Section[] = [];
+    for (const s of sections) {
+        result.push(s);
+        if (s.sections?.length) {
+            result.push(...flattenSections(s.sections));
+        }
+    }
+    return result;
 }
 
 /**
  * Add articles and sections to hubs
  * @param hubs - The hubs inside docs/articles/ for a platform
  * @param platformName - Expensify Classic or New Expensify
- * @param routeHubs - The hubs insude docs/data/_routes.yml for a platform
+ * @param routeHubs - The hubs inside docs/data/_routes.yml for a platform
  */
 function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof platformNames>, routeHubs: Hub[]) {
     for (const hub of hubs) {
-        // Iterate through each directory in articles
-        for (const fileOrFolder of fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}`)) {
-            // If the directory content is a markdown file, then it is an article
+        const basePath = `${docsDir}/articles/${platformName}/${hub}`;
+
+        for (const fileOrFolder of fs.readdirSync(basePath)) {
             if (fileOrFolder.endsWith('.md')) {
-                const articleObj = getArticleObj(fileOrFolder);
+                const entryPath = `${basePath}/${fileOrFolder}`;
+                const order = getOrderFromArticleFrontMatter(entryPath);
+                const articleObj = getArticleObj(fileOrFolder, order);
                 pushOrCreateEntry(routeHubs, hub, 'articles', articleObj);
                 continue;
             }
 
-            // For readability, we will use the term section to refer to subfolders
-            const section = fileOrFolder;
-            const articles: Article[] = [];
+            const sectionPath = fileOrFolder;
+            const section = buildSection(platformName, hub, sectionPath, '');
+            pushOrCreateEntry(routeHubs, hub, 'sections', section);
+        }
 
-            // Section can contain .md files directly and/or subfolders (and nested subfolders) that contain .md files
-            const sectionPath = `${docsDir}/articles/${platformName}/${hub}/${section}`;
-            for (const entry of fs.readdirSync(sectionPath)) {
-                const entryPath = `${sectionPath}/${entry}`;
-                if (entry.endsWith('.md') && fs.statSync(entryPath).isFile()) {
-                    const order = getOrderFromArticleFrontMatter(entryPath);
-                    articles.push(getArticleObj(entry, order));
-                    continue;
-                }
-                if (fs.statSync(entryPath).isDirectory()) {
-                    // One level: section/SubFolder/file.md -> href "SubFolder/file", display title = "Troubleshoot SubFolder"
-                    for (const file of fs.readdirSync(entryPath)) {
-                        const filePath = `${entryPath}/${file}`;
-                        if (file.endsWith('.md') && fs.statSync(filePath).isFile()) {
-                            const order = getOrderFromArticleFrontMatter(filePath);
-                            articles.push(getArticleObj(`${entry}/${file}`, order, `Troubleshoot ${entry}`));
-                            continue;
-                        }
-                        if (fs.statSync(filePath).isDirectory()) {
-                            // Two levels: section/SubFolder/NestedFolder/file.md -> href "SubFolder/NestedFolder/file", display title = "Troubleshoot NestedFolder" (e.g. "Troubleshoot Export Errors")
-                            for (const nestedFile of fs.readdirSync(filePath)) {
-                                if (!nestedFile.endsWith('.md')) {
-                                    continue;
-                                }
-                                const nestedPath = `${filePath}/${nestedFile}`;
-                                if (!fs.statSync(nestedPath).isFile()) {
-                                    continue;
-                                }
-                                const order = getOrderFromArticleFrontMatter(nestedPath);
-                                articles.push(getArticleObj(`${entry}/${file}/${nestedFile}`, order, `Troubleshoot ${file}`));
-                            }
-                        }
-                    }
-                }
-            }
-
-            pushOrCreateEntry(routeHubs, hub, 'sections', {
-                href: section,
-                title: toTitleCase(section.replaceAll('-', ' ')),
-                articles,
-            });
+        // Add flat section list for nested section page lookup
+        const hubObj = routeHubs.find((obj) => obj.href === hub);
+        if (hubObj?.sections?.length) {
+            sortSectionsByOrder(hubObj.sections);
+            hubObj.flatSections = flattenSections(hubObj.sections);
         }
     }
 }

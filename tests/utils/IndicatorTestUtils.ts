@@ -1,10 +1,10 @@
-import type {IndicatorStatus} from '@hooks/useNavigationTabBarIndicatorChecks';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 
 type IndicatorTestCase = {
     name: string;
     indicatorColor: string;
     status: IndicatorStatus | undefined;
-    policyIDWithErrors?: string;
+    indicatorPolicyID?: string;
 };
 
 // eslint-disable-next-line import/prefer-default-export

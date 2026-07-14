@@ -1,11 +1,16 @@
+import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
+
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ReportMetadata} from '@src/types/onyx';
 
-const isActionLoadingSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.isActionLoading ?? false;
+const isActionLoadingSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isActionLoading ?? false;
 
-const hasOnceLoadedReportActionsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.hasOnceLoadedReportActions;
+const hasOnceLoadedReportActionsSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.hasOnceLoadedReportActions;
+
+const isLoadingInitialReportActionsSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isLoadingInitialReportActions;
 
 const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
     reportMetadata ? {pendingChatMembers: reportMetadata.pendingChatMembers} : undefined;
 
-export {isActionLoadingSelector, hasOnceLoadedReportActionsSelector, pendingChatMembersSelector};
+const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingNewTransactionIDs;
+
+export {isActionLoadingSelector, hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionIDsSelector, pendingChatMembersSelector};

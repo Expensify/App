@@ -1,16 +1,24 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
+
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as App from '@userActions/App';
-import * as IOU from '@userActions/IOU';
+import {generateReportID} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import {startMoneyRequest} from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 /*
  * This is a "utility page", that does this:
@@ -20,16 +28,16 @@ import CONST from '@src/CONST';
 function SubmitExpensePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     useFocusEffect(() => {
         interceptAnonymousUser(() => {
-            App.confirmReadyToOpenApp();
             Navigation.isNavigationReady().then(() => {
                 if (isUnmounted.current) {
                     return;
                 }
                 Navigation.goBack();
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, ReportUtils.generateReportID());
+                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, generateReportID(), draftTransactionIDs);
             });
         });
     });
@@ -41,10 +49,17 @@ function SubmitExpensePage() {
         [],
     );
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'SubmitExpensePage',
+    };
+
     return (
         <ScreenWrapper testID="SubmitExpensePage">
             <View style={[styles.borderBottom]}>
-                <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
+                <ReportHeaderSkeletonView
+                    onBackButtonPress={Navigation.goBack}
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
             <ReportActionsSkeletonView />
         </ScreenWrapper>

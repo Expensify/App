@@ -1,6 +1,9 @@
-import React from 'react';
 import Modal from '@components/Modal';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type PopoverProps from './types';
 
 /*
@@ -12,7 +15,6 @@ function Popover({animationIn, animationOut, popoverAnchorPosition, disableAnima
         <Modal
             type={fromSidebarMediumScreen ? CONST.MODAL.MODAL_TYPE.POPOVER : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             popoverAnchorPosition={fromSidebarMediumScreen ? anchorPosition : undefined}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsWithoutAnimation}
             // Mobile will always has fullscreen menu
             fullscreen

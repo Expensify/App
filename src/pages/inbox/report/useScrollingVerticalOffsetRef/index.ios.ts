@@ -1,4 +1,5 @@
 import {useAnimatedReaction} from 'react-native-reanimated';
+
 import type UseScrollingVerticalOffsetRefParams from './types';
 
 export default function useScrollingVerticalOffsetRef({scrollOffsetRef, keyboardHeight, scrollY}: UseScrollingVerticalOffsetRefParams) {

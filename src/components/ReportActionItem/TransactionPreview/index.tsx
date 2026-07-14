@@ -1,14 +1,13 @@
-import {useRoute} from '@react-navigation/native';
-import React, {memo, useCallback, useMemo} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import ControlSelection from '@libs/ControlSelection';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,46 +15,45 @@ import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportAc
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {getExpenseTypeTranslationKey, getOriginalTransactionWithSplitInfo, getTransactionType, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
+
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
+
 import {clearWalletTermsError} from '@userActions/PaymentMethods';
 import {clearIOUError} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import useTransactionsByID from '@src/hooks/useTransactionsByID';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import TransactionPreviewContent from './TransactionPreviewContent';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import {useRoute} from '@react-navigation/native';
+import React, {memo, useCallback, useMemo} from 'react';
+
 import type {TransactionPreviewProps} from './types';
+
+import TransactionPreviewContent from './TransactionPreviewContent';
 
 function TransactionPreview(props: TransactionPreviewProps) {
     const {translate} = useLocalize();
-    const {
-        action,
-        chatReportID,
-        reportID,
-        contextMenuAnchor,
-        checkIfContextMenuActive = () => {},
-        shouldDisplayContextMenu,
-        iouReportID,
-        transactionID: transactionIDFromProps,
-        onPreviewPressed,
-        shouldHighlight,
-        reportPreviewAction,
-        contextAction,
-    } = props;
+    const {convertToDisplayString} = useCurrencyListActions();
+    const {action, chatReport, reportID, transactionID: transactionIDFromProps, onPreviewPressed, shouldHighlight, reportPreviewAction, contextAction} = props;
+    const chatReportID = chatReport?.reportID;
+    const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
+    const {checkIfContextMenuActive} = useShowContextMenuActions();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const violations = useTransactionViolations(transaction?.transactionID);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const session = useSession();
@@ -71,11 +69,14 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const transactionDetails = getTransactionDetails(transaction);
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails ?? {};
 
+    const contextMenuReportID = contextAction ? chatReportID : reportID;
+    const contextMenuAction = contextAction ?? action;
+
     const showContextMenu = (event: GestureResponderEvent) => {
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchor, contextAction ? chatReportID : reportID, contextAction ?? action, checkIfContextMenuActive);
+        showContextMenuForReport(event, contextMenuAnchorRef, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, originalReportID);
     };
 
     const offlineWithFeedbackOnClose = useCallback(() => {
@@ -84,18 +85,14 @@ function TransactionPreview(props: TransactionPreviewProps) {
     }, [chatReportID]);
 
     const navigateToReviewFields = () =>
-        Navigation.navigate(
-            getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, transactionReport),
-        );
+        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, report));
 
     const transactionPreview = transaction;
 
     const {isBillSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
-    const iouAction = action;
-
     // See description of `transactionRawAmount` prop for more context
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const transactionRawAmount = (Number(transaction?.modifiedAmount) || transaction?.amount) ?? 0;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
@@ -114,9 +111,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
                 sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_PREVIEW.CARD}
             >
                 <TransactionPreviewContent
-                    /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...props}
-                    action={iouAction}
+                    action={action}
                     isBillSplit={isBillSplit && !transaction?.comment?.originalTransactionID}
                     chatReport={chatReport}
                     personalDetails={personalDetails}
@@ -139,9 +135,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     return (
         <TransactionPreviewContent
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
-            action={iouAction}
+            action={action}
             isBillSplit={isBillSplit}
             chatReport={chatReport}
             personalDetails={personalDetails}

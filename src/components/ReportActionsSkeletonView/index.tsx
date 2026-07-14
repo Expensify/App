@@ -1,6 +1,10 @@
+import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent} from 'react-native';
+
 import React from 'react';
 import {Dimensions, View} from 'react-native';
-import CONST from '@src/CONST';
+
 import SkeletonViewLines from './SkeletonViewLines';
 
 type ReportActionsSkeletonViewProps = {
@@ -9,9 +13,12 @@ type ReportActionsSkeletonViewProps = {
 
     /** Number of possible visible content items */
     possibleVisibleContentItems?: number;
+
+    /** Callback executed on layout */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContentItems = 0}: ReportActionsSkeletonViewProps) {
+function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContentItems = 0, onLayout}: ReportActionsSkeletonViewProps) {
     const contentItems = possibleVisibleContentItems || Math.ceil(Dimensions.get('screen').height / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
     const skeletonViewLines: React.ReactNode[] = [];
     for (let index = 0; index < contentItems; index++) {
@@ -45,7 +52,14 @@ function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContent
                 );
         }
     }
-    return <View testID="ReportActionsSkeletonView">{skeletonViewLines}</View>;
+    return (
+        <View
+            onLayout={onLayout}
+            testID="ReportActionsSkeletonView"
+        >
+            {skeletonViewLines}
+        </View>
+    );
 }
 
 export default ReportActionsSkeletonView;

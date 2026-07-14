@@ -1,9 +1,17 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {UseReportFooterStyles} from './types';
 
 const useReportFooterStyles: UseReportFooterStyles = ({isComposerFullSize}) => {
-    return {
-        height: isComposerFullSize ? '100%' : 'auto',
-    };
+    const styles = useThemeStyles();
+
+    return [
+        {
+            height: isComposerFullSize ? '100%' : 'auto',
+        },
+        styles.mb2,
+        styles.pt5,
+    ];
 };
 
 export default useReportFooterStyles;

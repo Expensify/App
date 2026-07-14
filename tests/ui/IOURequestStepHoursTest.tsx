@@ -1,22 +1,34 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import Navigation from '@libs/Navigation/Navigation';
+
 import IOURequestStepHours from '@pages/iou/request/step/IOURequestStepHours';
-import type {IOUAction} from '@src/CONST';
+
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     goBack: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
 }));
@@ -81,10 +93,10 @@ describe('IOURequestStepHours', () => {
         jest.clearAllMocks();
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
 
-        setMoneyRequestAmountSpy = jest.spyOn(require('@libs/actions/IOU'), 'setMoneyRequestAmount');
-        setMoneyRequestMerchantSpy = jest.spyOn(require('@libs/actions/IOU'), 'setMoneyRequestMerchant');
-        setMoneyRequestTimeCountSpy = jest.spyOn(require('@libs/actions/IOU'), 'setMoneyRequestTimeCount');
-        setMoneyRequestTimeRateSpy = jest.spyOn(require('@libs/actions/IOU'), 'setMoneyRequestTimeRate');
+        setMoneyRequestAmountSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestAmount');
+        setMoneyRequestMerchantSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestMerchant');
+        setMoneyRequestTimeCountSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestTimeCount');
+        setMoneyRequestTimeRateSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestTimeRate');
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createPolicyWithTimeTracking());
@@ -101,26 +113,29 @@ describe('IOURequestStepHours', () => {
     function renderComponent(
         routeName: typeof SCREENS.MONEY_REQUEST.STEP_HOURS | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT | typeof SCREENS.MONEY_REQUEST.CREATE = SCREENS.MONEY_REQUEST.STEP_HOURS,
         action: IOUAction = CONST.IOU.ACTION.CREATE,
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND> = CONST.IOU.TYPE.SUBMIT,
     ) {
         return render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
                     <LocaleContextProvider>
-                        <IOURequestStepHours
-                            route={{
-                                key: 'IOURequestStepHours',
-                                params: {
-                                    iouType: CONST.IOU.TYPE.SUBMIT,
-                                    reportID: REPORT_ID,
-                                    transactionID: TRANSACTION_ID,
-                                    action,
-                                    reportActionID: '1',
-                                },
-                                name: routeName,
-                            }}
-                            // @ts-expect-error we don't need navigation param here
-                            navigation={undefined}
-                        />
+                        <CurrencyListContextProvider>
+                            <IOURequestStepHours
+                                route={{
+                                    key: 'IOURequestStepHours',
+                                    params: {
+                                        iouType,
+                                        reportID: REPORT_ID,
+                                        transactionID: TRANSACTION_ID,
+                                        action,
+                                        reportActionID: '1',
+                                    },
+                                    name: routeName,
+                                }}
+                                // @ts-expect-error we don't need navigation param here
+                                navigation={undefined}
+                            />
+                        </CurrencyListContextProvider>
                     </LocaleContextProvider>
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
@@ -363,6 +378,74 @@ describe('IOURequestStepHours', () => {
             // Should not call any setMoneyRequest functions if rate is undefined
             expect(setMoneyRequestAmountSpy).not.toHaveBeenCalled();
             expect(setMoneyRequestTimeCountSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('iouType resolution', () => {
+        it('should resolve CREATE iouType to SUBMIT when navigating to confirmation', async () => {
+            const hours = 2;
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                    reportID: REPORT_ID,
+                    policyID: POLICY_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                    transactionID: TRANSACTION_ID,
+                    reportID: REPORT_ID,
+                    comment: {
+                        units: {
+                            count: hours,
+                            rate: 5000,
+                        },
+                    },
+                });
+            });
+
+            renderComponent(SCREENS.MONEY_REQUEST.STEP_HOURS, CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE);
+
+            await waitForBatchedUpdatesWithAct();
+
+            const nextButton = screen.getByText(/next/i);
+            fireEvent.press(nextButton);
+
+            await waitFor(() => {
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID));
+            });
+        });
+
+        it('should keep SUBMIT iouType unchanged when navigating to confirmation', async () => {
+            const hours = 2;
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                    reportID: REPORT_ID,
+                    policyID: POLICY_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                    transactionID: TRANSACTION_ID,
+                    reportID: REPORT_ID,
+                    comment: {
+                        units: {
+                            count: hours,
+                            rate: 5000,
+                        },
+                    },
+                });
+            });
+
+            renderComponent(SCREENS.MONEY_REQUEST.STEP_HOURS, CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT);
+
+            await waitForBatchedUpdatesWithAct();
+
+            const nextButton = screen.getByText(/next/i);
+            fireEvent.press(nextButton);
+
+            await waitFor(() => {
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID));
+            });
         });
     });
 });

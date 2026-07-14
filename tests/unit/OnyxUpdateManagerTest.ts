@@ -1,21 +1,23 @@
-import Onyx from 'react-native-onyx';
+import Log from '@libs/Log';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
+
 import type {AppActionsMock} from '@userActions/__mocks__/App';
 import type {OnyxUpdatesMock} from '@userActions/__mocks__/OnyxUpdates';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as AppImport from '@userActions/App';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as OnyxUpdateManager from '@userActions/OnyxUpdateManager';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as OnyxUpdateManagerUtilsImport from '@userActions/OnyxUpdateManager/utils';
 import type {OnyxUpdateManagerUtilsMock} from '@userActions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@userActions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ApplyUpdatesImport from '@userActions/OnyxUpdateManager/utils/applyUpdates';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@userActions/OnyxUpdates');
 jest.mock('@userActions/App');
@@ -70,7 +72,12 @@ describe('OnyxUpdateManager', () => {
         OnyxUpdateManagerUtils.mockValues.beforeValidateAndApplyDeferredUpdates = undefined;
         ApplyUpdates.mockValues.beforeApplyUpdates = undefined;
         App.mockValues.missingOnyxUpdatesToBeApplied = undefined;
+        App.mockValues.missingOnyxUpdatesResponse = undefined;
         OnyxUpdateManager.resetDeferralLogicVariables();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('should fetch missing Onyx updates once, defer updates and apply after missing updates', () => {
@@ -403,6 +410,235 @@ describe('OnyxUpdateManager', () => {
             // There are no deferred updates, so this should only be called once for the pending update.
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
         });
+    });
+
+    it('should not re-fetch missing updates when a duplicate arrives while a fetch is already in flight', async () => {
+        // Fire a duplicate mid-cycle, after the deferred queue is drained but while the fetch is still in flight, to simulate a concurrent Pusher update.
+        ApplyUpdates.mockValues.beforeApplyUpdates = async () => {
+            ApplyUpdates.mockValues.beforeApplyUpdates = undefined;
+            OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        };
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+
+        return OnyxUpdateManager.queryPromise.then(() => {
+            // The mid-cycle duplicate must be coalesced, not fire its own GetMissingOnyxMessages.
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
+        });
+    });
+
+    it('should resume the SequentialQueue exactly once when a duplicate arrives while a fetch is already in flight', async () => {
+        const unpauseSpy = jest.spyOn(SequentialQueue, 'unpause');
+
+        // Fire a duplicate mid-cycle, after the deferred queue is drained but while the fetch is still in flight, to simulate a concurrent Pusher update.
+        ApplyUpdates.mockValues.beforeApplyUpdates = async () => {
+            ApplyUpdates.mockValues.beforeApplyUpdates = undefined;
+            OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        };
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+
+        // queryPromise resolves on the first finalize, so drain microtasks first: a leaked second fetch would attach a second finalize and resume the queue again.
+        return OnyxUpdateManager.queryPromise.then(waitForBatchedUpdates).then(() => {
+            expect(unpauseSpy).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    it('should defer and later fetch a brand-new update that arrives while a fetch is already in flight', async () => {
+        // Fire a brand-new (higher) update mid-cycle, after the deferred queue is drained but while the fetch is still in flight, to simulate a concurrent Pusher update.
+        ApplyUpdates.mockValues.beforeApplyUpdates = async () => {
+            ApplyUpdates.mockValues.beforeApplyUpdates = undefined;
+            OnyxUpdateManager.handleMissingOnyxUpdates(update7);
+        };
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+
+        return OnyxUpdateManager.queryPromise.then(() => {
+            // The new update must not fire its own parallel GetMissingOnyxMessages, but must still be fetched in order and applied (client reaches 7).
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(3);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(3, 5, 6);
+            expect(lastUpdateIDAppliedToClient).toBe(7);
+        });
+    });
+
+    it('should apply an update that arrives mid-reconnect instead of dropping it when the queue is finalized', async () => {
+        // First-ever reliable update: the client has never applied one, so the gap-handler takes the full-reconnect branch.
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 0);
+
+        const reconnectSpy = jest.spyOn(App, 'finalReconnectAppAfterActivatingReliableUpdates').mockImplementation(async () => {
+            // The reconnect response advances the client to update 2.
+            await OnyxUpdates.apply(update2);
+            await waitForBatchedUpdates();
+
+            // A concurrent Pusher update lands while the reconnect promise is still in flight (after the client advanced to 2, before finalize).
+            OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        });
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update2);
+
+        return OnyxUpdateManager.queryPromise.then(() => {
+            // The mid-reconnect update must be applied in order, not cleared away by finalizeUpdatesAndResumeQueue (client reaches 3).
+            expect(lastUpdateIDAppliedToClient).toBe(3);
+
+            // It is contiguous with the reconnect response, so it must not trigger a redundant GetMissingOnyxMessages.
+            expect(App.getMissingOnyxUpdates).not.toHaveBeenCalled();
+
+            reconnectSpy.mockRestore();
+        });
+    });
+
+    it('should escalate to a single incremental ReconnectApp when the gap fetch returns no progress', async () => {
+        // Simulate the production stall: the server answers the gap fetch with a 200 that carries no updates
+        // and no lastUpdateID, so the client cannot advance no matter how often the fetch is repeated.
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, onyxData: []};
+        const alertSpy = jest.spyOn(Log, 'alert');
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+
+        // One useless answer is proof the server cannot close this gap: escalate right away to an
+        // incremental ReconnectApp, fired from the stalled client update ID, and raise the alert that
+        // makes stalled clients visible in production monitoring.
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledWith(1);
+        expect(alertSpy).toHaveBeenCalledTimes(1);
+
+        // A further gap push against the same client state must back off: no new fetch, no second reconnect.
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+
+        // When the ReconnectApp response advances the client (simulated directly here), the guard releases
+        // and a fresh gap is fetched again.
+        App.mockValues.missingOnyxUpdatesResponse = undefined;
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 5);
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update7);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+    });
+
+    it('should retry the gap fetch and escalate again after the back-off expires when the client still has not advanced', async () => {
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, onyxData: []};
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+
+        // Within the back-off window a gap push from the same client state is skipped entirely.
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+
+        // One useless answer only proves the server could not serve the range at that moment, and the
+        // escalated reconnect is not guaranteed to survive its retries. Once the back-off expires the
+        // normal flow must fetch again, and a repeat stall must escalate again.
+        const dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => new Date().getTime() + 61000);
+        OnyxUpdateManager.handleMissingOnyxUpdates(update7);
+        await OnyxUpdateManager.queryPromise;
+        dateNowSpy.mockRestore();
+
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(2);
+        expect(App.reconnectApp).toHaveBeenLastCalledWith(1);
+    });
+
+    it('should not escalate to ReconnectApp when the gap fetch advances the client', async () => {
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+
+        expect(lastUpdateIDAppliedToClient).toBe(3);
+        expect(App.reconnectApp).not.toHaveBeenCalled();
+    });
+
+    it('should not escalate or back off when the fetch response reports progress', async () => {
+        // Progress is read from the response itself: its lastUpdateID is past the ID the fetch was fired
+        // from, so this is not a stall even though nothing was applied yet.
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, lastUpdateID: 2, onyxData: []};
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.reconnectApp).not.toHaveBeenCalled();
+        const fetchCalls = App.getMissingOnyxUpdates.mock.calls.length;
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates.mock.calls.length).toBeGreaterThan(fetchCalls);
+        expect(App.reconnectApp).not.toHaveBeenCalled();
+    });
+
+    it('should not escalate when the client advances through another path while the fetch is in flight', async () => {
+        // The response itself reports no progress, but a contiguous update advanced the client mid-fetch,
+        // so the next fetch fires from a new ID and the client can still catch up.
+        App.getMissingOnyxUpdates.mockImplementationOnce(async () => {
+            await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 2);
+            return {jsonCode: 200, onyxData: []};
+        });
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+
+        expect(App.reconnectApp).not.toHaveBeenCalled();
+    });
+
+    it('should not escalate to ReconnectApp when the gap fetch fails', async () => {
+        // A failed fetch proves nothing about the server's ability to serve the range, so it must neither
+        // escalate nor latch the back-off: the next gap push retries the fetch as before.
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 407};
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.reconnectApp).not.toHaveBeenCalled();
+        const fetchCallsAfterFailure = App.getMissingOnyxUpdates.mock.calls.length;
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates.mock.calls.length).toBeGreaterThan(fetchCallsAfterFailure);
+        expect(App.reconnectApp).not.toHaveBeenCalled();
+    });
+
+    it('should back off a pending-updates fetch that returns no progress', async () => {
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, onyxData: []};
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(pendingUpdateUpTo2);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+
+        // The pending-updates branch fires the same fetch as the gap branch, so it must back off the same way.
+        OnyxUpdateManager.handleMissingOnyxUpdates(pendingUpdateUpTo3);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+    });
+
+    it('should resume the SequentialQueue exactly once per backed-off gap push after escalating', async () => {
+        // Escalation itself is asserted in the escalate test; here it is only the setup for the unpause check.
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, onyxData: []};
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+
+        // The backed-off cycle must still finalize and resume the queue, or the app would freeze.
+        const unpauseSpy = jest.spyOn(SequentialQueue, 'unpause');
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+        // queryPromise resolves on the first finalize, so drain microtasks first: a leaked second finalize
+        // would resume the queue a second time and must get the chance to surface before the assertion.
+        await OnyxUpdateManager.queryPromise;
+        await waitForBatchedUpdates();
+        expect(unpauseSpy).toHaveBeenCalledTimes(1);
     });
 
     it('should apply deferred updates after fetching pending updates', () => {

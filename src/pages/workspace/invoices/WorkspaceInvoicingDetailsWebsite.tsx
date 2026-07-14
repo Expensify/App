@@ -1,26 +1,33 @@
-import {Str} from 'expensify-common';
-import React from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {extractUrlDomain} from '@libs/Url';
 import {getFieldRequiredErrors, isPublicDomain, isValidWebsite} from '@libs/ValidationUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {updateInvoiceCompanyWebsite} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceInvoicesCompanyWebsiteForm';
+
+import {Str} from 'expensify-common';
+import React from 'react';
 
 type WorkspaceInvoicingDetailsWebsiteProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE>;
 
@@ -34,7 +41,7 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values[INPUT_IDS.COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        updateInvoiceCompanyWebsite(policyID, companyWebsite);
+        updateInvoiceCompanyWebsite(policyID, companyWebsite, policy?.invoice?.companyWebsite);
         Navigation.goBack();
     };
 

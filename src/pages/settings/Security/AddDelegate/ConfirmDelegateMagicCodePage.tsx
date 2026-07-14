@@ -1,19 +1,25 @@
-import React, {useEffect} from 'react';
-import type {ValueOf} from 'type-fest';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import {addDelegate, clearDelegateErrorsByField} from '@userActions/Delegate';
+
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect} from 'react';
 
 type ConfirmDelegateMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_MAGIC_CODE>;
 
@@ -34,7 +40,7 @@ function ConfirmDelegateMagicCodePage({route}: ConfirmDelegateMagicCodePageProps
         }
 
         // Dismiss modal on successful magic code verification
-        Navigation.goBack(ROUTES.SETTINGS_SECURITY);
+        Navigation.goBack(ROUTES.SETTINGS_COPILOT);
     }, [login, currentDelegate, role, addDelegateErrors]);
 
     const clearError = () => {

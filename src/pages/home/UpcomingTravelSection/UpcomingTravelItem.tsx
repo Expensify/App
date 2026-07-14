@@ -1,21 +1,27 @@
-import {differenceInCalendarDays} from 'date-fns';
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import {getTripReservationIcon} from '@libs/TripReservationUtils';
+import {formatCancelledDescription, getTripReservationIcon} from '@libs/TripReservationUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Reservation} from '@src/types/onyx/Transaction';
+
+import {differenceInCalendarDays} from 'date-fns';
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
 import type {UpcomingReservation} from './useUpcomingTravelReservations';
 
 type UpcomingTravelItemProps = {
@@ -80,10 +86,21 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage', 'ArrowRight']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Plane',
+        'PlaneCircleSlash',
+        'Bed',
+        'BedCircleSlash',
+        'CarWithKey',
+        'CarCircleSlash',
+        'Train',
+        'TrainCircleSlash',
+        'Luggage',
+        'ArrowRight',
+    ]);
 
-    const {reservation, reportID, transactionID, sequenceIndex} = upcomingReservation;
-    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type);
+    const {reservation, reportID, transactionID, sequenceIndex, isCancelled} = upcomingReservation;
+    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type, isCancelled);
     const title = getTitle(translate, reservation);
     const relativeTime = getRelativeTime(translate, reservation.start.date);
     const typeId = getTypeIdentifier(reservation);
@@ -95,9 +112,10 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
 
     return (
         <MenuItemWithTopDescription
-            description={subtitle}
+            description={formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)}
             title={title}
-            titleStyle={styles.textBold}
+            titleStyle={isCancelled ? [styles.textBold, styles.textSupporting] : styles.textBold}
+            accessibilityLabel={isCancelled ? `${formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)} ${title}` : undefined}
             onPress={handlePress}
             shouldShowRightIcon
             leftComponent={

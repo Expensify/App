@@ -1,23 +1,32 @@
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native';
 import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
+
 import Hoverable from '@components/Hoverable';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Licenses from '@pages/signin/Licenses';
 import Socials from '@pages/signin/Socials';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import FooterRow from './FooterRow';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {FooterColumnRow, SignInPageLayoutProps} from './types';
+
+import FooterRow from './FooterRow';
 
 type FooterProps = Pick<SignInPageLayoutProps, 'navigateFocus'>;
 
@@ -174,6 +183,7 @@ function Footer({navigateFocus}: FooterProps) {
                                 <Text
                                     style={[styles.textHeadline, styles.footerTitle]}
                                     accessibilityRole={CONST.ROLE.HEADER}
+                                    aria-level={2}
                                 >
                                     {translate(column.translationPath)}
                                 </Text>

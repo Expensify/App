@@ -1,8 +1,9 @@
 # BugZero Checklist:
 
-- [ ] **[Contributor]** The offending PR has been commented on, pointing out the bug it caused and why, so the author and reviewers can learn from the mistake.
+- [ ] **[Contributor]** The offending PR and associated issue have been commented on, pointing out the bug it caused and why, so the author and reviewers can learn from the mistake.
 
-    Link to comment:
+    Link to the comment on the PR:
+    Link to the comment on the Issue:
 
 - [ ] **[Contributor]** If the regression was CRITICAL (e.g. interrupts a core flow) A discussion in [#expensify-open-source](https://app.slack.com/client/E047TPA624F/C01GTK53T8Q) has been started about whether any other steps should be taken (e.g. updating the PR review checklist) in order to catch this type of bug sooner.
 

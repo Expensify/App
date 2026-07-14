@@ -1,12 +1,16 @@
-import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {togglePinnedState} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+
+import React from 'react';
+
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Tooltip from './Tooltip';
@@ -20,7 +24,7 @@ function PinButton({report}: PinButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Pin'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Pin']);
 
     return (
         <Tooltip text={report.isPinned ? translate('common.unPin') : translate('common.pin')}>

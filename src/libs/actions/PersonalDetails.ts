@@ -1,18 +1,16 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {
     OpenPublicProfilePageParams,
     SetPersonalDetailsAndRevealExpensifyCardParams,
     SetPersonalDetailsAndShipExpensifyCardsParams,
     UpdateAutomaticTimezoneParams,
-    UpdateDateOfBirthParams,
     UpdateDisplayNameParams,
     UpdateHomeAddressParams,
     UpdateLegalNameParams,
-    UpdatePhoneNumberParams,
+    UpdatePrivatePersonalDetailsParams,
     UpdatePronounsParams,
     UpdateSelectedTimezoneParams,
     UpdateUserAvatarParams,
@@ -25,14 +23,50 @@ import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserAvatarUtils from '@libs/UserAvatarUtils';
+
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {DateOfBirthForm} from '@src/types/form';
 import type {PersonalDetails} from '@src/types/onyx';
+import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {CurrentUserPersonalDetails, SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+type PersonalDetailsFormValues = {
+    legalFirstName?: string;
+    legalLastName?: string;
+    phoneNumber?: string;
+    city: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    zipPostCode?: string;
+    country: Country | '';
+    addressState?: string;
+    state: string;
+    dob: string;
+};
+
+function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDetailsFormValues, countryCode: number): Omit<SetPersonalDetailsAndShipExpensifyCardsParams, 'validateCode'> {
+    const stateValue = (values.addressState ?? values.state).trim();
+    return {
+        legalFirstName: values.legalFirstName?.trim() ?? '',
+        legalLastName: values.legalLastName?.trim() ?? '',
+        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
+        addressCity: values.city.trim(),
+        addressStreet: values.addressLine1?.trim() ?? '',
+        addressStreet2: values.addressLine2?.trim() ?? '',
+        addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
+        addressCountry: values.country,
+        addressState: values.country === CONST.COUNTRY.US ? stateValue : '',
+        addressProvince: values.country !== CONST.COUNTRY.US ? stateValue : '',
+        dob: values.dob,
+    };
+}
 
 function updatePronouns(pronouns: string, currentUserAccountID: number) {
     if (!currentUserAccountID) {
@@ -150,62 +184,6 @@ function updateLegalName(
         optimisticData,
     });
     Navigation.goBack();
-}
-
-/**
- * @param dob - date of birth
- */
-function updateDateOfBirth({dob}: DateOfBirthForm) {
-    const parameters: UpdateDateOfBirthParams = {dob};
-
-    API.write(WRITE_COMMANDS.UPDATE_DATE_OF_BIRTH, parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    dob,
-                },
-            },
-        ],
-    });
-
-    Navigation.goBack();
-}
-
-function updatePhoneNumber(phoneNumber: string, currentPhoneNumber: string) {
-    const parameters: UpdatePhoneNumberParams = {phoneNumber};
-    API.write(WRITE_COMMANDS.UPDATE_PHONE_NUMBER, parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    phoneNumber,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    phoneNumber: currentPhoneNumber,
-                    errorFields: {
-                        phoneNumber: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('privatePersonalDetails.error.invalidPhoneNumber'),
-                    },
-                },
-            },
-        ],
-    });
-}
-
-function clearPhoneNumberError() {
-    Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
-        errorFields: {
-            phoneNumber: null,
-        },
-    });
 }
 
 function updateAddress(addresses: Address[], street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
@@ -435,7 +413,6 @@ function updateAvatar(
     API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {optimisticData, successData, failureData});
 }
 
-// TODO remove when no longer needed
 /**
  * Replaces the user's avatar image with a default avatar
  */
@@ -476,46 +453,128 @@ function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetail
 }
 
 /**
- * Clear error and pending fields for the current user's avatar
- */
-function clearAvatarErrors(currentUserAccountID: number) {
-    if (!currentUserAccountID) {
-        return;
-    }
-
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        [currentUserAccountID]: {
-            errorFields: {
-                avatar: null,
-            },
-            pendingFields: {
-                avatar: null,
-            },
-        },
-    });
-}
-
-/**
  * Clear errors for the current user's personal details
  */
 function clearPersonalDetailsErrors() {
     Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
         errors: null,
+        errorFields: {personalDetails: null},
+    });
+}
+
+function updatePrivatePersonalDetails(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
+    const stateValue = (values.state ?? '').trim();
+    const parameters: UpdatePrivatePersonalDetailsParams = {
+        legalFirstName: values.legalFirstName?.trim() ?? '',
+        legalLastName: values.legalLastName?.trim() ?? '',
+        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
+        addressCity: (values.city ?? '').trim(),
+        addressStreet: values.addressLine1?.trim() ?? '',
+        addressStreet2: values.addressLine2?.trim() ?? '',
+        addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
+        addressCountry: values.country ?? '',
+        addressState: stateValue,
+        addressProvince: values.country !== CONST.COUNTRY.US ? stateValue : '',
+        dob: values.dob ?? '',
+        validateCode,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_PRIVATE_PERSONAL_DETAILS, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: true,
+                    errorFields: {personalDetails: null},
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                    errorFields: {personalDetails: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    });
+}
+
+function setPersonalDetailsAndRevealExpensifyCard(
+    personalDetailsParams: Omit<SetPersonalDetailsAndRevealExpensifyCardParams, 'cardID' | 'validateCode'>,
+    cardID: number,
+    validateCode: string,
+): Promise<ExpensifyCardDetails> {
+    return new Promise((resolve, reject) => {
+        const parameters: SetPersonalDetailsAndRevealExpensifyCardParams = {
+            ...personalDetailsParams,
+            cardID,
+            validateCode,
+        };
+
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD, parameters, {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    value: {
+                        isLoading: true,
+                    },
+                },
+            ],
+            finallyData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
+        })
+            .then((response) => {
+                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
+                        // eslint-disable-next-line prefer-promise-reject-errors
+                        reject('validateCodeForm.error.incorrectMagicCode');
+                        return;
+                    }
+                    if (response?.jsonCode === CONST.HTTP_STATUS.INTERNAL_SERVER_ERROR) {
+                        // eslint-disable-next-line prefer-promise-reject-errors
+                        reject('cardPage.unexpectedError');
+                        return;
+                    }
+                    // eslint-disable-next-line prefer-promise-reject-errors
+                    reject('cardPage.cardDetailsLoadingFailure');
+                    return;
+                }
+                resolve({
+                    pan: typeof response.pan === 'string' ? response.pan : '',
+                    expiration: typeof response.expiration === 'string' ? response.expiration : '',
+                    cvv: typeof response.cvv === 'string' ? response.cvv : '',
+                });
+            })
+            // eslint-disable-next-line prefer-promise-reject-errors
+            .catch(() => reject('cardPage.cardDetailsLoadingFailure'));
     });
 }
 
 function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
-        legalFirstName: values.legalFirstName?.trim() ?? '',
-        legalLastName: values.legalLastName?.trim() ?? '',
-        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
-        addressCity: values.city.trim(),
-        addressStreet: values.addressLine1?.trim() ?? '',
-        addressStreet2: values.addressLine2?.trim() ?? '',
-        addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
-        addressCountry: values.country,
-        addressState: values.state.trim(),
-        dob: values.dob,
+        ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
         validateCode,
     };
 
@@ -541,121 +600,20 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
     });
 }
 
-function setPersonalDetailsAndRevealExpensifyCard(
-    values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>,
-    validateCode: string,
-    countryCode: number,
-    cardID: number,
-): Promise<{pan: string; expiration: string; cvv: string}> {
-    return new Promise((resolve, reject) => {
-        const parameters: SetPersonalDetailsAndRevealExpensifyCardParams = {
-            legalFirstName: values.legalFirstName?.trim() ?? '',
-            legalLastName: values.legalLastName?.trim() ?? '',
-            phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
-            addressCity: values.city.trim(),
-            addressStreet: values.addressLine1?.trim() ?? '',
-            addressStreet2: values.addressLine2?.trim() ?? '',
-            addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
-            addressCountry: values.country,
-            addressState: values.state.trim(),
-            dob: values.dob,
-            validateCode,
-            cardID,
-        };
-
-        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.ACCOUNT>> = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    isLoading: true,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {isLoading: true},
-            },
-        ];
-
-        const successData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CARD_LIST>> = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    isLoading: false,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {isLoading: false},
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: {[cardID]: {errors: null}},
-            },
-        ];
-
-        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.ACCOUNT>> = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    isLoading: false,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {isLoading: false},
-            },
-        ];
-
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD, parameters, {
-            optimisticData,
-            successData,
-            failureData,
-        })
-            .then((response) => {
-                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
-                        // eslint-disable-next-line prefer-promise-reject-errors
-                        reject('validateCodeForm.error.incorrectMagicCode');
-                        return;
-                    }
-
-                    // eslint-disable-next-line prefer-promise-reject-errors
-                    reject('cardPage.unexpectedError');
-                    return;
-                }
-                resolve(response as {pan: string; expiration: string; cvv: string});
-            })
-            .catch(() => {
-                // eslint-disable-next-line prefer-promise-reject-errors
-                reject('cardPage.cardDetailsLoadingFailure');
-            });
-    });
-}
-
 export {
-    clearAvatarErrors,
     deleteAvatar,
     openPublicProfilePage,
     updateAddress,
     updateAutomaticTimezone,
     updateAvatar,
-    updateDateOfBirth,
     setDisplayName,
     updateDisplayName,
     updateLegalName,
-    updatePhoneNumber,
-    clearPhoneNumberError,
     updatePronouns,
     updateSelectedTimezone,
+    updatePrivatePersonalDetails,
     updatePersonalDetailsAndShipExpensifyCards,
     setPersonalDetailsAndRevealExpensifyCard,
     clearPersonalDetailsErrors,
+    buildSetPersonalDetailsAndShipExpensifyCardsParams,
 };

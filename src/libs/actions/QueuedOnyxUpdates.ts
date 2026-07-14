@@ -1,8 +1,10 @@
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 // In this file we manage a queue of Onyx updates while the SequentialQueue is processing. There are functions to get the updates and clear the queue after saving the updates in Onyx.
 
@@ -38,17 +40,16 @@ function flushQueue(): Promise<void> {
             ONYXKEYS.NVP_TRY_FOCUS_MODE,
             ONYXKEYS.PREFERRED_THEME,
             ONYXKEYS.NVP_PREFERRED_LOCALE,
-            ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+            ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
             ONYXKEYS.SESSION,
             ONYXKEYS.IS_LOADING_APP,
             ONYXKEYS.HAS_LOADED_APP,
             ONYXKEYS.CREDENTIALS,
-            ONYXKEYS.IS_SIDEBAR_LOADED,
+            ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
             ONYXKEYS.ACCOUNT,
-            ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+            ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
             ONYXKEYS.MODAL,
             ONYXKEYS.NETWORK,
-            ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
             ONYXKEYS.PRESERVED_USER_SESSION,
         ]);
 

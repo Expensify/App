@@ -1,16 +1,18 @@
-/* eslint-disable no-restricted-syntax */
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserAvatarUtils from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import Onyx from 'react-native-onyx';
+
 import * as PersonalDetailsActions from '../../src/libs/actions/PersonalDetails';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

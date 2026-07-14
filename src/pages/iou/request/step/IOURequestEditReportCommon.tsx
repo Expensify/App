@@ -1,11 +1,12 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -15,17 +16,24 @@ import useOutstandingReports from '@hooks/useOutstandingReports';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
+
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useMemo, useState} from 'react';
+
 import StepScreenWrapper from './StepScreenWrapper';
 
 type TransactionGroupListItem = ListItem & {
@@ -47,6 +55,8 @@ type Props = {
     shouldShowNotFoundPage?: boolean;
     createReport?: () => void;
     isPerDiemRequest: boolean;
+    isTimeRequest?: boolean;
+    isUnreportedManagedCardTransaction?: boolean;
 };
 
 function IOURequestEditReportCommon({
@@ -63,12 +73,18 @@ function IOURequestEditReportCommon({
     shouldShowNotFoundPage: shouldShowNotFoundPageFromProps,
     createReport,
     isPerDiemRequest,
+    isTimeRequest = false,
+    isUnreportedManagedCardTransaction = false,
 }: Props) {
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document']);
+    const {inputCallbackRef} = useAutoFocusInput();
     const {translate, localeCompare} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const resolvedReportOwnerAccountID = useMemo(() => {
@@ -83,11 +99,10 @@ function IOURequestEditReportCommon({
         return currentUserPersonalDetails.accountID;
     }, [targetOwnerAccountID, selectedReport?.ownerAccountID, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
-    // Pass the expense's policyID so that the "Create report" button shows the correct workspace
-    // instead of defaulting to the user's active workspace
-    // we need to fall back to transactionPolicyID because for a new workspace there is no report created yet
-    // and if we choose this workspace as participant we want to create a new report in the chosen workspace
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, selectedReport?.policyID ?? transactionPolicyID);
+    // Use the caller-provided transactionPolicyID so that the "Create report" button shows the correct workspace.
+    // Each caller is responsible for passing the appropriate policyID (e.g., selectedReport?.policyID ?? transactionPolicyID).
+    // When no transactionPolicyID is provided (e.g., from IOURequestEditReport), the hook falls back to the user's default workspace.
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, transactionPolicyID, isUnreportedManagedCardTransaction);
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
 
@@ -112,7 +127,11 @@ function IOURequestEditReportCommon({
     }, [transactionIDs, selectedReport, reportTransactions]);
 
     const shouldShowRemoveFromReport =
-        !!(selectedReportID && selectedReportID !== CONST.REPORT.UNREPORTED_REPORT_ID && selectedReport) && isEditing && isOwner && !isReportIOU && !isCardTransaction;
+        !!(selectedReportID && selectedReportID !== CONST.REPORT.UNREPORTED_REPORT_ID && selectedReport && !isSelfDM(selectedReport)) &&
+        isEditing &&
+        isOwner &&
+        !isReportIOU &&
+        !isCardTransaction;
 
     const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing);
 
@@ -127,6 +146,14 @@ function IOURequestEditReportCommon({
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .filter((report) => {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+
+                if (isTimeRequest && !isTimeTrackingEnabled(policy)) {
+                    return false;
+                }
+
+                if (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
+                    return false;
+                }
 
                 if (canAddTransaction(report, undefined, true)) {
                     return true;
@@ -147,10 +174,21 @@ function IOURequestEditReportCommon({
                     isSelected: report.reportID === selectedReportID,
                     policyID: report.policyID,
                     reportID: report.reportID,
-                    icons: getIconsForExpenseReport(report, personalDetails, policy),
+                    icons: getIconsForExpenseReport(report, personalDetails, policy, translate),
                 };
             });
-    }, [debouncedSearchValue, outstandingReports, selectedReportID, personalDetails, localeCompare, allPolicies, currentUserPersonalDetails.accountID]);
+    }, [
+        debouncedSearchValue,
+        outstandingReports,
+        selectedReportID,
+        personalDetails,
+        localeCompare,
+        allPolicies,
+        currentUserPersonalDetails.accountID,
+        isPerDiemRequest,
+        isTimeRequest,
+        translate,
+    ]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -169,7 +207,7 @@ function IOURequestEditReportCommon({
 
             const destinationPolicy = selectedReportPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReportPolicyID}`] : undefined;
 
-            if (!destinationPolicy?.arePerDiemRatesEnabled || !destinationPolicy?.customUnits || isEmptyObject(destinationPolicy.customUnits)) {
+            if (!isPerDiemEnabled(destinationPolicy) || !destinationPolicy?.customUnits || isEmptyObject(destinationPolicy.customUnits)) {
                 return false;
             }
 
@@ -208,8 +246,12 @@ function IOURequestEditReportCommon({
             navigateBack();
             return;
         }
-
-        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID)) {
+        const itemPolicy = item.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
+        if (
+            item?.policyID &&
+            itemPolicy &&
+            shouldRestrictUserBillableActions(itemPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
+        ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
             return;
         }
@@ -245,7 +287,6 @@ function IOURequestEditReportCommon({
         );
     }, [icons.Document, createReport, translate, policyForMovingExpenses?.name, handleCreateReport, isEditing, isOwner, isAdmin]);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
         if (createReportOption) {
             return false;
@@ -286,6 +327,8 @@ function IOURequestEditReportCommon({
                     label: translate('common.search'),
                     headerMessage,
                     onChangeText: setSearchValue,
+                    disableAutoFocus: true,
+                    ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
                 }}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={selectedReportID}

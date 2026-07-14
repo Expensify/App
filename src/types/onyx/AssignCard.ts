@@ -1,8 +1,11 @@
+import type CONST from '@src/CONST';
+
 import type {LinkAccount} from 'react-native-plaid-link-sdk';
 import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+
 import type {CardFeedWithNumber} from './CardFeeds';
+import type {Errors} from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
 /** Assign card flow steps */
@@ -85,6 +88,12 @@ type AssignCard = {
 
     /** Whether the card is assigning */
     isAssigning?: boolean;
+
+    /** Whether the feed connection is currently being refreshed */
+    isRefreshing?: boolean;
+
+    /** Errors while assigning a card */
+    errors: Errors;
 };
 
 export type {AssignCard, AssignCardStep, AssignCardData};

@@ -1,7 +1,12 @@
-import {useCallback} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
+import {getLinkedPolicyIDsFromExpensifyCardSettings, getPreferredPolicyFromExpensifyCardSettings, isPolicyIDInLinkedExpensifyCardPolicyList} from '@libs/CardUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettings} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useCallback} from 'react';
+
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
@@ -11,7 +16,9 @@ function useExpensifyCardFeeds(policyID: string | undefined) {
     const getAllExpensifyCardFeeds = useCallback(
         (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
             const matchingEntries = Object.entries(cardSettings ?? {}).filter(([key, settings]) => {
-                const isDomainFeed = !!(settings?.preferredPolicy && settings.preferredPolicy === policyID);
+                const isDomainFeed =
+                    !!(policyID && isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(settings), policyID)) ||
+                    (!!policyID && getPreferredPolicyFromExpensifyCardSettings(settings)?.toUpperCase() === policyID.toUpperCase());
                 const isWorkspaceFeed = key.includes(workspaceAccountID.toString()) && settings && Object.keys(settings).length > 1;
                 return isDomainFeed || isWorkspaceFeed;
             });

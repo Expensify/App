@@ -5,6 +5,7 @@ type AddCommentOrAttachmentParams = {
     reportActionID?: string;
     commentReportActionID?: string | null;
     reportComment?: string;
+    attachmentID?: string;
     file?: FileObject;
     timezone?: string;
     clientCreatedTime?: string;
@@ -12,7 +13,9 @@ type AddCommentOrAttachmentParams = {
     idempotencyKey?: string;
     pageHTML?: string;
     optimisticConciergeReportActionID?: string;
+    optimisticConciergeCreated?: string;
     pregeneratedResponse?: string;
+    sidePanelContext?: string;
 };
 
 export default AddCommentOrAttachmentParams;

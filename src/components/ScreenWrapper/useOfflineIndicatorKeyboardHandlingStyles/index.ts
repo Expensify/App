@@ -1,7 +1,5 @@
-import type {ViewStyle} from 'react-native';
+import type UseOfflineIndicatorKeyboardHandlingStyles from './types';
 
-function useOfflineIndicatorKeyboardHandlingStyles(): ViewStyle {
-    return {};
-}
+const useOfflineIndicatorKeyboardHandlingStyles: UseOfflineIndicatorKeyboardHandlingStyles = () => ({});
 
 export default useOfflineIndicatorKeyboardHandlingStyles;

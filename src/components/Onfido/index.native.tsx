@@ -1,14 +1,19 @@
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
+import useLocalize from '@hooks/useLocalize';
+
+import getPlatform from '@libs/getPlatform';
+import goToSettings from '@libs/goToSettings';
+import Log from '@libs/Log';
+
+import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+
 import {OnfidoCaptureType, OnfidoCountryCode, OnfidoDocumentType, OnfidoNFCOptions, Onfido as OnfidoSDK, OnfidoTheme} from '@onfido/react-native-sdk';
 import React, {useEffect} from 'react';
 import {Alert, NativeModules} from 'react-native';
 import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import useLocalize from '@hooks/useLocalize';
-import getPlatform from '@libs/getPlatform';
-import goToSettings from '@libs/goToSettings';
-import Log from '@libs/Log';
-import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+
 import type {OnfidoError, OnfidoProps} from './types';
 
 const {AppStateTracker} = NativeModules;
@@ -20,7 +25,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
         OnfidoSDK.start({
             sdkToken,
             theme: OnfidoTheme.AUTOMATIC,
-            // eslint-disable-next-line
+
             nfcOption: OnfidoNFCOptions.DISABLED,
             flowSteps: {
                 welcome: true,
@@ -103,7 +108,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    return <FullscreenLoadingIndicator />;
+    return <FullscreenLoadingIndicator reasonAttributes={{context: 'Onfido'}} />;
 }
 
 export default Onfido;

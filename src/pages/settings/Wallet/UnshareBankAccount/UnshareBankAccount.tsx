@@ -1,5 +1,3 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import ErrorMessageRow from '@components/ErrorMessageRow';
@@ -7,25 +5,34 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import {clearUnshareBankAccountErrors, unshareBankAccount} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT>;
 
@@ -42,6 +49,8 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const {translate} = useLocalize();
     const admins = bankAccountList?.[bankAccountID]?.accountData?.sharees;
     const totalAdmins = bankAccountList?.[bankAccountID]?.accountData?.sharees?.length;
+    const error = getLatestErrorMessage(bankAccountList?.[bankAccountID] ?? {});
+    const isExpensifyCardError = error?.includes(CONST.EXPENSIFY_CARD.BANK);
     const isExpensifyCardSettlementAccount = bankAccountList?.[bankAccountID]?.isExpensifyCardSettlementAccount ?? false;
     const shouldShowTextInput = Number(totalAdmins) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
@@ -56,6 +65,14 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
             Navigation.goBack();
         }
     }, [totalAdmins, shouldShowSuccess]);
+
+    useEffect(() => {
+        if (!isExpensifyCardError) {
+            return;
+        }
+        setUnshareUser(undefined);
+        setShowExpensifyCardErrorModal(true);
+    }, [isExpensifyCardError]);
 
     const handleUnshare = () => {
         if (!bankAccountID || !unshareUser?.login) {
@@ -101,7 +118,10 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         return adminsToDisplay;
     };
 
-    const hideUnshareErrorModal = () => setShowExpensifyCardErrorModal(false);
+    const hideUnshareErrorModal = () => {
+        clearUnshareBankAccountErrors(Number(bankAccountID));
+        setShowExpensifyCardErrorModal(false);
+    };
 
     const itemRightSideComponent = (item: ListItem) => {
         return (
@@ -148,13 +168,13 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                     rightHandSideComponent={itemRightSideComponent}
                     footerContent={
                         <ErrorMessageRow
-                            errors={unsharedBankAccountData?.errors}
+                            errors={isExpensifyCardError ? null : unsharedBankAccountData?.errors}
                             errorRowStyles={[styles.mv3]}
                             onDismiss={() => clearUnshareBankAccountErrors(Number(bankAccountID))}
                         />
                     }
                     onSelectRow={() => {}}
-                    ListItem={UserListItem}
+                    ListItem={BareUserListItem}
                 />
             </>
             <ConfirmModal

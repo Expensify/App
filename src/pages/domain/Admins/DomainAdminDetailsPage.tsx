@@ -1,22 +1,30 @@
-import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@selectors/Domain';
-import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
+
 import {revokeDomainAdminAccess} from '@userActions/Domain';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@selectors/Domain';
+import React, {useCallback} from 'react';
 
 type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMIN_DETAILS>;
 
@@ -24,7 +32,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
 
     const {translate, formatPhoneNumber} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Info', 'ClosedSign'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Info', 'ClosedSign']);
 
     const [primaryContact] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         selector: domainSettingsPrimaryContactSelector,
@@ -40,7 +48,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     });
 
     const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(adminPersonalDetails));
+    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: adminPersonalDetails, translate}));
     const memberLogin = adminPersonalDetails?.login ?? '';
     const isCurrentUserPrimaryContact = primaryContact === memberLogin;
 

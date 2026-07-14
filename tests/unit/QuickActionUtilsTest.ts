@@ -1,12 +1,14 @@
-// eslint-disable-next-line no-restricted-syntax
-import Onyx from 'react-native-onyx';
-// eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isQuickActionAllowed} from '@libs/QuickActionUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
+
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -17,37 +19,6 @@ const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
 
 describe('QuickActionUtils', () => {
     describe('isQuickActionAllowed', () => {
-        describe('Manager McTest restrictions', () => {
-            const requestScanAction = {
-                action: CONST.QUICK_ACTIONS.REQUEST_SCAN,
-                isFirstQuickAction: false,
-            };
-
-            // Given a report with Manager McTest
-            const reportWithManagerMcTest: Report = {
-                reportID: '1',
-                participants: {
-                    [CONST.ACCOUNT_ID.MANAGER_MCTEST]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                },
-            };
-
-            beforeEach(() => {
-                jest.clearAllMocks();
-            });
-
-            it('should return false when report contains Manager McTest', () => {
-                mockedPolicyUtils.shouldShowPolicy.mockReturnValue(false);
-
-                // When the report contains Manager McTest
-                const result = isQuickActionAllowed(requestScanAction, reportWithManagerMcTest, undefined, undefined, [CONST.BETAS.ALL]);
-
-                // Then it should return false
-                expect(result).toBe(false);
-            });
-        });
-
         describe('Preferred policy restrictions', () => {
             const requestManualAction = {
                 action: CONST.QUICK_ACTIONS.REQUEST_MANUAL,
@@ -166,6 +137,7 @@ describe('QuickActionUtils', () => {
                 jest.clearAllMocks();
             });
             it('should allow per diem action when policy has per diem rates', () => {
+                jest.spyOn(ReportUtils, 'canCreateRequest').mockReturnValue(true);
                 const perDiemCustomUnit = {
                     name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
                     customUnitID: 'ABCDEF',
@@ -185,7 +157,8 @@ describe('QuickActionUtils', () => {
                         ABCDEF: perDiemCustomUnit,
                     },
                 } as unknown as Policy;
-                mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+                mockedPolicyUtils.isControlPolicy.mockReturnValue(true);
+                mockedPolicyUtils.isPerDiemEnabled.mockReturnValue(true);
 
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(true);
             });
@@ -198,10 +171,36 @@ describe('QuickActionUtils', () => {
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
             });
             it("should not allow per diem action when policy doesn't have per diem enabled", () => {
+                mockedPolicyUtils.isControlPolicy.mockReturnValue(true);
+                mockedPolicyUtils.isPerDiemEnabled.mockReturnValue(false);
                 const policy = {
                     id: '1',
                     arePerDiemRatesEnabled: false,
                 } as unknown as Policy;
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
+            });
+            it('should not allow per diem action when policy is not a control workspace', () => {
+                const perDiemCustomUnit = {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    customUnitID: 'ABCDEF',
+                    enabled: true,
+                    rates: {
+                        London: {
+                            customUnitRateID: 'London',
+                            name: 'London',
+                        },
+                    },
+                };
+                mockedPolicyUtils.isControlPolicy.mockReturnValue(false);
+                mockedPolicyUtils.getPerDiemCustomUnit.mockReturnValue(perDiemCustomUnit);
+                const policy = {
+                    id: '1',
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                } as unknown as Policy;
+
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
             });
         });
@@ -209,6 +208,7 @@ describe('QuickActionUtils', () => {
         describe('Policy with time tracking', () => {
             it('should allow requestTime action when policy has time tracking enabled', () => {
                 mockedPolicyUtils.isTimeTrackingEnabled.mockReturnValue(true);
+                jest.spyOn(ReportUtils, 'canCreateRequest').mockReturnValue(true);
                 expect(
                     isQuickActionAllowed(
                         {action: CONST.QUICK_ACTIONS.REQUEST_TIME},

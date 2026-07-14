@@ -1,17 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import SkeletonRect from './SkeletonRect';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 type MoneyReportHeaderStatusBarSkeletonProps = {
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function MoneyReportHeaderStatusBarSkeleton({reasonAttributes}: MoneyReportHeaderStatusBarSkeletonProps = {}) {
+function MoneyReportHeaderStatusBarSkeleton({reasonAttributes}: MoneyReportHeaderStatusBarSkeletonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     useSkeletonSpan('MoneyReportHeaderStatusBarSkeleton', reasonAttributes);

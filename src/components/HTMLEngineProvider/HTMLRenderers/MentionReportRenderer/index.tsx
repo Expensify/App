@@ -1,20 +1,27 @@
-import React, {useContext, useMemo} from 'react';
-import type {TextStyle} from 'react-native';
-import {StyleSheet} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import Text from '@components/Text';
+
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getReportMentionDetails} from '@libs/MentionUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+
 import Navigation from '@navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {TextStyle} from 'react-native';
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+
+import React, {useContext, useMemo} from 'react';
+import {StyleSheet} from 'react-native';
+
 import MentionReportContext from './MentionReportContext';
 
 type MentionReportRendererProps = CustomRendererProps<TText | TPhrasing>;
@@ -23,7 +30,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const htmlAttributeReportID = tnode.attributes.reportid;
-    const {currentReportID: currentReportIDContext, exactlyMatch} = useContext(MentionReportContext);
+    const {currentReportID: currentReportIDContext, exactlyMatch, policyID} = useContext(MentionReportContext);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const {currentReportID} = useCurrentReportIDState();
@@ -32,9 +39,12 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDValue}`);
 
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to see and click on report mentions, so we only check if the policyID in the report is from a workspace
-    const isGroupPolicyReport = useMemo(() => currentReport && !isEmptyObject(currentReport) && !!currentReport.policyID && currentReport.policyID !== CONST.POLICY.ID_FAKE, [currentReport]);
+    const isGroupPolicyReport = useMemo(
+        () => (!!currentReport && !isEmptyObject(currentReport) && !!currentReport.policyID && currentReport.policyID !== CONST.POLICY.ID_FAKE) || !!policyID,
+        [currentReport, policyID],
+    );
 
-    const mentionDetails = getReportMentionDetails(htmlAttributeReportID, currentReport, reports, tnode);
+    const mentionDetails = getReportMentionDetails(htmlAttributeReportID, currentReport, reports, tnode, policyID);
     if (!mentionDetails) {
         return null;
     }
@@ -52,7 +62,6 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
 
     return (
         <Text
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
             style={
                 isGroupPolicyReport && (!exactlyMatch || navigationRoute)

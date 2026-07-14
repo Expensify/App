@@ -1,34 +1,50 @@
-import {requiresTwoFactorAuthSelector} from '@selectors/Account';
-import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, selectSecurityGroupForAccount, vacationDelegateSelector} from '@selectors/Domain';
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
 import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearTwoFactorAuthExemptEmailsErrors, clearValidateDomainTwoFactorCodeError, closeUserAccount, setTwoFactorAuthExemptEmailForDomain} from '@libs/actions/Domain';
+
+import {
+    clearChangeDomainSecurityGroupError,
+    clearTwoFactorAuthExemptEmailsErrors,
+    clearValidateDomainTwoFactorCodeError,
+    closeUserAccount,
+    setTwoFactorAuthExemptEmailForDomain,
+} from '@libs/actions/Domain';
 import {requestUnlockAccount} from '@libs/actions/User';
 import {getLatestError} from '@libs/ErrorUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearVacationDelegateError} from '@userActions/Domain';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Domain, PersonalDetailsList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {requiresTwoFactorAuthSelector} from '@selectors/Account';
+import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, selectSecurityGroupForAccount, vacationDelegateSelector} from '@selectors/Domain';
+import {personalDetailsSelector} from '@selectors/PersonalDetails';
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 
 type DomainMemberDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_DETAILS>;
 
@@ -135,6 +151,19 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 accountID={accountID}
                 avatarButton={avatarButton}
             >
+                <OfflineWithFeedback
+                    errorRowStyles={styles.mh5}
+                    pendingAction={domainPendingActions?.member?.[memberLogin]?.changeDomainSecurityGroup}
+                    errors={getLatestError(domainErrors?.memberErrors?.[memberLogin]?.changeDomainSecurityGroupErrors)}
+                    onClose={() => clearChangeDomainSecurityGroupError(domainAccountID, memberLogin)}
+                >
+                    <MenuItemWithTopDescription
+                        description={translate('domain.members.domainGroup')}
+                        title={userSecurityGroup?.securityGroup?.name ?? ''}
+                        onPress={() => Navigation.navigate(ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID))}
+                        shouldShowRightIcon
+                    />
+                </OfflineWithFeedback>
                 <VacationDelegateMenuItem
                     vacationDelegate={vacationDelegate}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID))}
@@ -142,27 +171,29 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                     errors={getLatestError(domainErrors?.memberErrors?.[memberLogin]?.vacationDelegateErrors)}
                     onCloseError={() => clearVacationDelegateError(domainAccountID, accountID, memberLogin, vacationDelegate?.previousDelegate)}
                 />
-                <ToggleSettingOptionRow
-                    wrapperStyle={[styles.mv3, styles.ph5]}
-                    switchAccessibilityLabel={translate('domain.common.forceTwoFactorAuth')}
-                    isActive={!domainSettings?.twoFactorAuthExemptEmails?.includes(memberLogin)}
-                    onToggle={(value) => {
-                        if (!personalDetails?.login) {
-                            return;
-                        }
+                {!!domainSettings?.twoFactorAuthRequired && (
+                    <ToggleSettingOptionRow
+                        wrapperStyle={[styles.mv3, styles.ph5]}
+                        switchAccessibilityLabel={translate('domain.common.forceTwoFactorAuth')}
+                        isActive={!domainSettings?.twoFactorAuthExemptEmails?.includes(memberLogin)}
+                        onToggle={(value) => {
+                            if (!personalDetails?.login) {
+                                return;
+                            }
 
-                        if (!value && accountRequiresTwoFactorAuth) {
-                            clearValidateDomainTwoFactorCodeError();
-                            Navigation.navigate(ROUTES.DOMAIN_MEMBER_FORCE_TWO_FACTOR_AUTH.getRoute(domainAccountID, accountID));
-                        } else {
-                            setTwoFactorAuthExemptEmailForDomain(domainAccountID, accountID, domainSettings?.twoFactorAuthExemptEmails ?? [], personalDetails.login, value);
-                        }
-                    }}
-                    title={translate('domain.common.forceTwoFactorAuth')}
-                    pendingAction={domainPendingActions?.member?.[accountID]?.twoFactorAuthExemptEmails}
-                    errors={getLatestError(domainErrors?.memberErrors?.[memberLogin]?.twoFactorAuthExemptEmailsError)}
-                    onCloseError={() => clearTwoFactorAuthExemptEmailsErrors(domainAccountID, memberLogin)}
-                />
+                            if (!value && accountRequiresTwoFactorAuth) {
+                                clearValidateDomainTwoFactorCodeError();
+                                Navigation.navigate(ROUTES.DOMAIN_MEMBER_FORCE_TWO_FACTOR_AUTH.getRoute(domainAccountID, accountID));
+                            } else {
+                                setTwoFactorAuthExemptEmailForDomain(domainAccountID, accountID, domainSettings?.twoFactorAuthExemptEmails ?? [], personalDetails.login, value);
+                            }
+                        }}
+                        title={translate('domain.common.forceTwoFactorAuth')}
+                        pendingAction={domainPendingActions?.member?.[accountID]?.twoFactorAuthExemptEmails}
+                        errors={getLatestError(domainErrors?.memberErrors?.[memberLogin]?.twoFactorAuthExemptEmailsError)}
+                        onCloseError={() => clearTwoFactorAuthExemptEmailsErrors(domainAccountID, memberLogin)}
+                    />
+                )}
                 <View style={styles.mt6} />
                 {!!accountRequiresTwoFactorAuth && (
                     <MenuItem

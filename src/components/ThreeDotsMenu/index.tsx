@@ -1,5 +1,3 @@
-import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import type BaseModalProps from '@components/Modal/types';
@@ -8,6 +6,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,11 +14,19 @@ import usePopoverPosition from '@hooks/usePopoverPosition';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {isMobile} from '@libs/Browser';
+
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import KeyboardUtils from '@src/utils/keyboard';
+
+import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type ThreeDotsMenuProps from './types';
 
 function ThreeDotsMenu({
@@ -27,6 +34,11 @@ function ThreeDotsMenu({
     icon,
     iconFill,
     iconStyles,
+    iconHoverStyle,
+    iconWidth,
+    iconHeight,
+    shouldChangeFillOnOpen = true,
+    testID,
     onIconPress = () => {},
     menuItems,
     anchorPosition,
@@ -64,7 +76,7 @@ function ThreeDotsMenu({
     };
 
     const hidePopoverMenu = useCallback((selectedItem?: PopoverMenuItem) => {
-        if (selectedItem && selectedItem.shouldKeepModalOpen) {
+        if (selectedItem?.shouldKeepModalOpen || selectedItem?.shouldCloseModalOnSelect === false) {
             return;
         }
         setPopupMenuVisible(false);
@@ -84,16 +96,31 @@ function ThreeDotsMenu({
         hideProductTrainingTooltip?.();
         buttonRef.current?.blur();
 
-        if (getMenuPosition) {
-            getMenuPosition?.().then((value) => {
-                setPosition(value);
-                showPopoverMenu();
-            });
-        } else {
-            showPopoverMenu();
-        }
-
+        // Dismiss the keyboard before opening the menu so the menu doesn't
+        // render while the keyboard is still animating closed (which creates
+        // a blank-space flash on mobile web).
         onIconPress?.();
+
+        const openMenu = () => {
+            if (getMenuPosition) {
+                getMenuPosition?.().then((value) => {
+                    setPosition(value);
+                    showPopoverMenu();
+                });
+            } else {
+                showPopoverMenu();
+            }
+        };
+
+        // On mobile web, wait for the keyboard to fully close before opening the menu.
+        // KeyboardUtils.dismiss() uses visualViewport to detect keyboard state and resolves
+        // immediately if the keyboard is not open. On desktop, call openMenu() synchronously
+        // to preserve the original behavior (avoids async microtask deferral on desktop Chrome).
+        if (isMobile()) {
+            KeyboardUtils.dismiss().then(openMenu);
+        } else {
+            openMenu();
+        }
     };
 
     useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}> | undefined, () => ({
@@ -118,6 +145,13 @@ function ThreeDotsMenu({
         });
     }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
 
+    const getIconFill = () => {
+        if (!shouldChangeFillOnOpen) {
+            return iconFill ?? theme.icon;
+        }
+        return (iconFill ?? isPopupMenuVisible) ? theme.success : theme.icon;
+    };
+
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
     const tooltipProps = shouldShowProductTrainingTooltip
         ? {
@@ -137,7 +171,6 @@ function ThreeDotsMenu({
     return (
         <>
             <View>
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                 <TooltipToRender {...tooltipProps}>
                     <PressableWithoutFeedback
                         onPress={onThreeDotsPress}
@@ -150,15 +183,19 @@ function ThreeDotsMenu({
                             e.preventDefault();
                         }}
                         ref={buttonRef}
-                        style={[styles.touchableButtonImage, iconStyles]}
+                        style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth, iconStyles]}
+                        hoverStyle={iconHoverStyle}
                         role={getButtonRole(isNested)}
                         isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}
                         sentryLabel={sentryLabel}
+                        testID={testID}
                     >
                         <Icon
                             src={icon ?? expensifyIcons.ThreeDots}
-                            fill={(iconFill ?? isPopupMenuVisible) ? theme.success : theme.icon}
+                            fill={getIconFill()}
+                            width={iconWidth}
+                            height={iconHeight}
                         />
                     </PressableWithoutFeedback>
                 </TooltipToRender>
@@ -179,6 +216,7 @@ function ThreeDotsMenu({
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
                 restoreFocusType={restoreFocusType}
+                enableEdgeToEdgeBottomSafeAreaPadding
             />
         </>
     );

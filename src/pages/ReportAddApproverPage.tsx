@@ -1,16 +1,18 @@
-import React, {useCallback, useMemo, useState} from 'react';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import Badge from '@components/Badge';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addReportApprover} from '@libs/actions/IOU';
+
+import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
@@ -22,11 +24,16 @@ import {
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
 } from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useCallback, useMemo, useState} from 'react';
+
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type ReportAddApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER>;
@@ -120,7 +127,6 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         setSelectedApproverEmail(approvers.at(0)?.login ?? undefined);
     }, []);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
 
     return (
@@ -128,7 +134,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             testID="ReportAddApproverPage"
             headerTitle={translate('iou.changeApprover.actions.addApprover')}
             onBackButtonPress={() => {
-                Navigation.goBack(ROUTES.REPORT_CHANGE_APPROVER.getRoute(report.reportID), {compareParams: false});
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)), {compareParams: false});
             }}
             subtitle={<Text style={[styles.ph5, styles.pb3]}>{translate('iou.changeApprover.addApprover.subtitle')}</Text>}
             isLoadingReportData={isLoadingReportData}

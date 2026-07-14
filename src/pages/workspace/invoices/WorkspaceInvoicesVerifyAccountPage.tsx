@@ -1,9 +1,12 @@
-import React from 'react';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 type WorkspaceInvoicesVerifyAccountPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT>;
 function WorkspaceInvoicesVerifyAccountPage({route}: WorkspaceInvoicesVerifyAccountPageProps) {
@@ -11,7 +14,7 @@ function WorkspaceInvoicesVerifyAccountPage({route}: WorkspaceInvoicesVerifyAcco
     return (
         <VerifyAccountPageBase
             navigateBackTo={workspaceInvoicePath}
-            navigateForwardTo={ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(workspaceInvoicePath)}
+            navigateForwardTo={ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: route.params.policyID, backTo: workspaceInvoicePath})}
         />
     );
 }

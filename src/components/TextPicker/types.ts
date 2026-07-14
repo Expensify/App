@@ -1,7 +1,8 @@
-import type {ForwardedRef} from 'react';
-import type {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
+
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
 
 type TextProps = Exclude<BaseTextInputProps, 'value' | 'onInputChange'>;
 
@@ -38,6 +39,9 @@ type TextSelectorModalProps = {
 
     /** Whether HTML is allowed in form inputs */
     allowHTML?: boolean;
+
+    /** Whether to use strict HTML tag validation regex */
+    shouldUseStrictHtmlTagValidation?: boolean;
 } & Pick<MenuItemBaseProps, 'subtitle' | 'description'> &
     Omit<TextProps, 'ref'>;
 
@@ -80,6 +84,9 @@ type TextPickerProps = {
 
     /** Whether HTML is allowed in form inputs */
     allowHTML?: boolean;
+
+    /** Whether to use strict HTML tag validation regex */
+    shouldUseStrictHtmlTagValidation?: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;

@@ -1,15 +1,19 @@
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenarioConfig} from '@components/MultifactorAuthentication/config/types';
+
 import CONST from '@src/CONST';
+
 import type {Action, MultifactorAuthenticationState} from './types';
 
 const DEFAULT_STATE: MultifactorAuthenticationState = {
+    isModalOpen: false,
     error: undefined,
     continuableError: undefined,
     validateCode: undefined,
     registrationChallenge: undefined,
     authorizationChallenge: undefined,
     softPromptApproved: false,
+    scenarioName: undefined,
     scenario: undefined,
     payload: undefined,
     isRegistrationComplete: false,
@@ -17,6 +21,7 @@ const DEFAULT_STATE: MultifactorAuthenticationState = {
     isFlowComplete: false,
     authenticationMethod: undefined,
     scenarioResponse: undefined,
+    isCancelConfirmVisible: false,
 };
 
 /**
@@ -39,7 +44,7 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             }
             // Invalid validate code is a continuable error - it doesn't fail the entire MFA flow,
             // instead it's displayed on the current screen and the user can retry
-            if (action.payload.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_VALIDATE_CODE) {
+            if (action.payload.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE) {
                 return {...state, continuableError: action.payload, error: undefined};
             }
             return {...state, error: action.payload, continuableError: undefined};
@@ -63,25 +68,45 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
         case 'SET_AUTHORIZATION_COMPLETE':
             return {...state, isAuthorizationComplete: action.payload};
         case 'SET_FLOW_COMPLETE':
-            return {...state, isFlowComplete: action.payload};
+            // Clear cancel-confirm so it doesn't linger over the outcome screen.
+            return {...state, isFlowComplete: action.payload, isCancelConfirmVisible: action.payload ? false : state.isCancelConfirmVisible};
         case 'SET_AUTHENTICATION_METHOD':
             return {...state, authenticationMethod: action.payload};
         case 'SET_SCENARIO_RESPONSE':
             return {...state, scenarioResponse: action.payload};
+        case 'SET_CANCEL_CONFIRM_VISIBLE':
+            return {...state, isCancelConfirmVisible: action.payload};
         case 'INIT': {
+            // Race guard: drop duplicate INIT — reducer sees latest state, catches stale-closure dispatches.
+            if (state.scenario) {
+                return state;
+            }
             // We can safely make this assertion because the params type is already type-guarded in both the executeScenario and the actions themselves.
+            // Each scenario config satisfies MultifactorAuthenticationScenarioConfig at definition; the union prevents direct assertion.
             const scenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[action.payload.scenario] as MultifactorAuthenticationScenarioConfig;
             return {
                 ...DEFAULT_STATE,
+                isModalOpen: true,
+                scenarioName: action.payload.scenario,
                 scenario,
                 payload: action.payload.payload,
             };
         }
+        case 'CLOSE_MODAL':
+            // Also clear isCancelConfirmVisible. CLOSE_MODAL can close the navigator without the
+            // flow ever completing (e.g. cancel() short-circuits to CLOSE_MODAL when offline), so
+            // SET_FLOW_COMPLETE's clear path doesn't run and the cancel-confirm dialog would
+            // otherwise linger over the closing navigator.
+            return {...state, isModalOpen: false, isCancelConfirmVisible: false};
         case 'RESET':
             return DEFAULT_STATE;
         case 'REREGISTER':
+            // Re-registration restarts the flow in-place: keep the modal mounted so the navigator does not
+            // play the close animation (which would unmount mid-flow and strand the user via RESET).
             return {
                 ...DEFAULT_STATE,
+                isModalOpen: true,
+                scenarioName: state.scenarioName,
                 scenario: state.scenario,
                 payload: state.payload,
             };

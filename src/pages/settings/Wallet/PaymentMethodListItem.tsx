@@ -1,7 +1,5 @@
-import React, {useMemo, useRef} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import Badge from '@components/Badge';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -9,23 +7,36 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openExternalLink} from '@libs/actions/Link';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@userActions/PaymentMethods';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React, {useMemo, useRef} from 'react';
+import {View} from 'react-native';
 
 type PaymentMethodItem = PaymentMethod & {
     key?: string;
@@ -42,10 +53,15 @@ type PaymentMethodItem = PaymentMethod & {
     errors?: Errors;
     iconRight?: IconAsset;
     isMethodActive?: boolean;
+    isInactive?: boolean;
     cardID?: number;
     plaidUrl?: string;
     onThreeDotsMenuPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
     isCardFrozen?: boolean;
+    /** Whether the personal bank account is missing required personal info (name, address, phone) */
+    isMissingPersonalInfo?: boolean;
+    /** Whether to show the "Add details" CTA row below a virtual Expensify Card when personal details are missing */
+    shouldShowMissingPersonalDetailsAction?: boolean;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
@@ -98,6 +114,14 @@ function isAccountInSetupState(account: PaymentMethodItem) {
     return !!(account.accountData && 'state' in account.accountData && isBankAccountPartiallySetup(account.accountData.state));
 }
 
+function isBusinessBankAccountLocked(account: PaymentMethodItem) {
+    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED && account.accountData.allowDebit;
+}
+
+function isAccountNeedingAction(account: PaymentMethodItem) {
+    return isAccountInSetupState(account) || !!account.isMissingPersonalInfo;
+}
+
 function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle}: PaymentMethodListItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'FreezeCard', 'QuestionMark']);
     const theme = useTheme();
@@ -106,8 +130,9 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
-    const isInSetupState = isAccountInSetupState(item);
-    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInSetupState;
+    const isInLockedState = isBusinessBankAccountLocked(item);
+    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInLockedState;
+    const isNeedingAction = isAccountNeedingAction(item);
 
     // Check if this is a Chase personal bank account connected via Plaid
     const isChaseAccountConnectedViaPlaid =
@@ -116,32 +141,69 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         !!(item.accountData?.additionalData?.plaidAccountID ?? item.accountData?.plaidAccountID);
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (!showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress)) {
+        if (isInLockedState) {
+            if (item.onThreeDotsMenuPress) {
+                item.onThreeDotsMenuPress(e);
+            } else {
+                item.onPress?.(e);
+            }
+            return;
+        }
+
+        if (isNeedingAction || !showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress)) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {
             threeDotsMenuRef.current.onThreeDotsPress();
         }
     };
 
-    const badgeText = useMemo(() => {
-        if (isInSetupState) {
-            return translate('common.actionRequired');
-        }
-        if (item.isCardFrozen) {
-            return translate('cardPage.frozen');
-        }
-        return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
-    }, [isInSetupState, item.isCardFrozen, shouldShowDefaultBadge, translate]);
+    let badgeText;
+    if (isInLockedState) {
+        badgeText = translate('common.locked');
+    } else if (isNeedingAction) {
+        badgeText = translate('common.review');
+    } else if (shouldShowDefaultBadge) {
+        badgeText = translate('paymentMethodList.defaultPaymentMethod');
+    }
 
-    const badgeIcon = useMemo(() => {
-        if (isInSetupState) {
-            return icons.DotIndicator;
+    let badgeIcon;
+    if (isInLockedState) {
+        badgeIcon = icons.DotIndicator;
+    }
+
+    // Card state pills (below title, next to description)
+    const descriptionAddon = useMemo(() => {
+        if (isNeedingAction && shouldShowDefaultBadge) {
+            return (
+                <Badge
+                    text={translate('paymentMethodList.defaultPaymentMethod')}
+                    isCondensed
+                    badgeStyles={[styles.ml0]}
+                />
+            );
         }
         if (item.isCardFrozen) {
-            return icons.FreezeCard;
+            return (
+                <Badge
+                    text={translate('cardPage.frozen')}
+                    icon={icons.FreezeCard}
+                    isCondensed
+                    badgeStyles={[styles.ml0]}
+                    iconStyles={[styles.mr1]}
+                />
+            );
+        }
+        if (item.isInactive) {
+            return (
+                <Badge
+                    text={translate('walletPage.cardInactive')}
+                    isCondensed
+                    badgeStyles={[styles.ml0]}
+                />
+            );
         }
         return undefined;
-    }, [icons.DotIndicator, icons.FreezeCard, isInSetupState, item.isCardFrozen]);
+    }, [isNeedingAction, shouldShowDefaultBadge, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
 
     return (
         <OfflineWithFeedback
@@ -155,6 +217,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 onPress={handleRowPress}
                 title={item.title}
                 description={item.description}
+                descriptionAddon={descriptionAddon}
                 icon={item.icon}
                 plaidUrl={item.plaidUrl}
                 disabled={item.disabled}
@@ -166,9 +229,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 iconFill={item.iconFill}
                 badgeText={badgeText}
                 badgeIcon={badgeIcon}
-                isBadgeSuccess={isInSetupState ? true : undefined}
+                isBadgeSuccess={isNeedingAction ? true : undefined}
+                isBadgeError={isInLockedState}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                iconRight={isInSetupState ? undefined : item.iconRight}
+                iconRight={isNeedingAction ? undefined : item.iconRight}
                 shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
                 shouldShowRightComponent={showThreeDotsMenu}
                 rightComponent={
@@ -191,6 +255,24 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 brickRoadIndicator={item.brickRoadIndicator}
                 success={item.isMethodActive}
             />
+            {!!item.shouldShowMissingPersonalDetailsAction && !!item.cardID && (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>
+                        <Icon
+                            src={icons.DotIndicator}
+                            fill={theme.success}
+                            additionalStyles={[styles.mr2]}
+                        />
+                        <Text style={[styles.mutedNormalTextLabel, styles.label, styles.flexShrink1]}>{translate('walletPage.addVirtualCardPersonalDetails.subtitle')}</Text>
+                    </View>
+                    <Button
+                        small
+                        success
+                        text={translate('walletPage.addVirtualCardPersonalDetails.cta')}
+                        onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(item.cardID)))}
+                    />
+                </View>
+            )}
             {isChaseAccountConnectedViaPlaid && (
                 <View style={[styles.pb3, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}>
                     <PressableWithFeedback

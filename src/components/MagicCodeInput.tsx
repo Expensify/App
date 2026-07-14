@@ -1,21 +1,28 @@
-import type {ForwardedRef, KeyboardEvent} from 'react';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
 import {isNumeric} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
+
+import type {ForwardedRef, KeyboardEvent} from 'react';
+import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
+
+import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
+
 import FormHelpMessage from './FormHelpMessage';
 import Text from './Text';
 import TextInput from './TextInput';
-import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
@@ -107,6 +114,9 @@ type MagicCodeInputProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<MagicCodeInputHandle>;
+
+    /** Whether to mask the input characters (display as dots) */
+    secureTextEntry?: boolean;
 };
 
 type MagicCodeInputHandle = {
@@ -157,6 +167,7 @@ function MagicCodeInput({
     testID = '',
     accessibilityLabel,
     ref,
+    secureTextEntry = false,
 }: MagicCodeInputProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -208,6 +219,9 @@ function MagicCodeInput({
         setFocusedIndex(index);
         editIndex.current = index;
     };
+
+    const announcement = focusedIndex !== undefined ? translate('common.enterDigitLabel', {digitIndex: focusedIndex + 1, totalDigits: maxLength}) : undefined;
+    useAccessibilityAnnouncement(announcement, !!announcement, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true});
 
     useImperativeHandle(ref, () => ({
         focus() {
@@ -463,7 +477,7 @@ function MagicCodeInput({
                 <GestureDetector gesture={tapGesture}>
                     {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
                     <View
-                        style={[StyleSheet.absoluteFillObject, styles.w100, styles.h100, styles.invisibleOverlay]}
+                        style={[StyleSheet.absoluteFill, styles.w100, styles.h100, styles.invisibleOverlay]}
                         collapsable={false}
                     >
                         <TextInput
@@ -502,11 +516,14 @@ function MagicCodeInput({
                 </GestureDetector>
                 {getInputPlaceholderSlots(maxLength).map((index) => {
                     const char = decomposeString(value, maxLength).at(index)?.trim() ?? '';
+                    const displayChar = secureTextEntry && char ? '•' : char;
                     const cursorMargin = char ? {marginLeft: 2} : {};
                     const isFocused = focusedIndex === index;
 
                     return (
                         <View
+                            accessibilityElementsHidden
+                            importantForAccessibility="no-hide-descendants"
                             key={index}
                             style={maxLength === CONST.MAGIC_CODE_LENGTH ? [styles.w15] : [styles.flex1, index !== 0 && styles.ml3]}
                         >
@@ -521,13 +538,14 @@ function MagicCodeInput({
                                 ]}
                             >
                                 <View style={styles.magicCodeInputValueContainer}>
-                                    <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>
+                                    <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{displayChar}</Text>
                                     {isFocused && !isDisableKeyboard && (
                                         <View
                                             style={[styles.magicCodeInputCursorContainer]}
                                             accessibilityElementsHidden
                                             importantForAccessibility="no-hide-descendants"
                                             accessible={false}
+                                            aria-hidden
                                         >
                                             {!!char && <Text style={[styles.magicCodeInput, styles.textAlignCenter, styles.opacity0]}>{char}</Text>}
                                             <Text style={[styles.magicCodeInput, {width: 1}]}> </Text>

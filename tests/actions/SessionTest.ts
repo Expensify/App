@@ -1,26 +1,36 @@
+// cspell:ignore SOMESECRETKEY
 import {beforeEach, jest, test} from '@jest/globals';
-import {openAuthSessionAsync} from 'expo-web-browser';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
-import {confirmReadyToOpenApp, openApp, reconnectApp} from '@libs/actions/App';
+
+import {openApp, reconnectApp} from '@libs/actions/App';
 import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
-// eslint-disable-next-line no-restricted-syntax
+import {initReconnect} from '@libs/actions/Reconnect';
 import * as SignInRedirect from '@libs/actions/SignInRedirect';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
+import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
+import {setHasRadio} from '@libs/NetworkState';
 import PushNotification from '@libs/Notification/PushNotification';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import '@libs/Notification/PushNotification/subscribeToPushNotifications';
+import reauthenticate from '@libs/Reauthentication';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as SessionUtil from '@src/libs/actions/Session';
+// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
+import '@libs/Notification/PushNotification/subscribeToPushNotifications';
+
 import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {openAuthSessionAsync} from 'expo-web-browser';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -45,14 +55,105 @@ jest.mock('@libs/actions/Link', () => {
     };
 });
 
+jest.mock('@libs/getPlatform', () => jest.fn());
+
+const mockedGetPlatform = jest.mocked(getPlatform);
+
 Onyx.init({
     keys: ONYXKEYS,
 });
 
 OnyxUpdateManager();
-beforeEach(() => Onyx.clear().then(waitForBatchedUpdates));
+initReconnect();
+beforeEach(() => {
+    setHasRadio(true);
+    return Onyx.clear().then(waitForBatchedUpdates);
+});
 
 describe('Session', () => {
+    test('reauthenticate redirects to sign in with "No credentials available" when credentials are missing', async () => {
+        // Given no signed-in user — beforeEach calls Onyx.clear(), so NetworkStore's credentials are null
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        // When reauthenticate is called with no credentials stored
+        const result = await reauthenticate('TestCommand');
+        await waitForBatchedUpdates();
+
+        // Then it should redirect to sign in instead of attempting to call Authenticate with undefined credentials
+        expect(result).toBe(false);
+        expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
+
+        redirectToSignInSpy.mockRestore();
+    });
+
+    test('reauthenticate aborts when RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN is true', async () => {
+        // Given a SignIn with short lived token is currently in flight
+        await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
+        await waitForBatchedUpdates();
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        // When reauthenticate is called
+        const result = await reauthenticate('TestCommand');
+        await waitForBatchedUpdates();
+
+        // Then it aborts cleanly without redirecting to sign in
+        expect(result).toBe(false);
+        expect(redirectToSignInSpy).not.toHaveBeenCalled();
+
+        redirectToSignInSpy.mockRestore();
+    });
+
+    test('setIsAuthenticatingWithShortLivedToken(true) makes reauthenticate abort (blocks the SAML resume race)', async () => {
+        let isAuthenticatingWithShortLivedToken: OnyxEntry<boolean>;
+        Onyx.connect({
+            key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            callback: (val) => (isAuthenticatingWithShortLivedToken = val),
+        });
+
+        // Given the SAML sign-in flow set the guard before opening the in-app browser
+        SessionUtil.setIsAuthenticatingWithShortLivedToken(true);
+        await waitForBatchedUpdates();
+        expect(isAuthenticatingWithShortLivedToken).toBe(true);
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        // When the app resumes and reconnectApp's 407 triggers reauthenticate
+        const result = await reauthenticate('TestCommand');
+        await waitForBatchedUpdates();
+
+        // Then reauthenticate aborts without redirecting to sign in, so the SAML callback can complete
+        expect(result).toBe(false);
+        expect(redirectToSignInSpy).not.toHaveBeenCalled();
+
+        // When the browser is cancelled/fails, the guard is cleared so future reauthentication isn't blocked
+        SessionUtil.setIsAuthenticatingWithShortLivedToken(false);
+        await waitForBatchedUpdates();
+        expect(isAuthenticatingWithShortLivedToken).toBe(false);
+
+        redirectToSignInSpy.mockRestore();
+    });
+
+    test('reauthenticate proceeds even when a legacy session.isAuthenticatingWithShortLivedToken=true is persisted (recovers stuck users)', async () => {
+        // Given a session in Onyx that still carries the legacy stuck flag from before the RAM-only migration.
+        // The Session type no longer declares the field, so cast to write the legacy shape.
+        await Onyx.merge(ONYXKEYS.SESSION, {isAuthenticatingWithShortLivedToken: true} as unknown as Session);
+        await waitForBatchedUpdates();
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        // When reauthenticate is called with no credentials stored
+        const result = await reauthenticate('TestCommand');
+        await waitForBatchedUpdates();
+
+        // Then the legacy persisted flag does NOT block reauth. Reauth proceeds, finds no credentials, and redirects to sign in.
+        expect(result).toBe(false);
+        expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
+
+        redirectToSignInSpy.mockRestore();
+    });
+
     test('Authenticate is called with saved credentials when a session expires', async () => {
         // Given a test user and set of authToken with subscriptions to session and credentials
         const TEST_USER_LOGIN = 'test@testguy.com';
@@ -110,7 +211,6 @@ describe('Session', () => {
             );
 
         // When we attempt to fetch the initial app data via the API
-        confirmReadyToOpenApp();
         openApp();
         await waitForBatchedUpdates();
 
@@ -134,9 +234,9 @@ describe('Session', () => {
     test('ReconnectApp should push request to the queue', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
-        confirmReadyToOpenApp();
         reconnectApp();
 
         await waitForBatchedUpdates();
@@ -144,7 +244,8 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         await waitForBatchedUpdates();
 
@@ -154,9 +255,9 @@ describe('Session', () => {
     test('ReconnectApp should open if app is not loaded', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, false);
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
-        confirmReadyToOpenApp();
         reconnectApp();
 
         await waitForBatchedUpdates();
@@ -164,7 +265,8 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         await waitForBatchedUpdates();
 
@@ -174,9 +276,9 @@ describe('Session', () => {
     test('ReconnectApp should replace same requests from the queue', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
-        confirmReadyToOpenApp();
         reconnectApp();
         reconnectApp();
         reconnectApp();
@@ -187,14 +289,16 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);
     });
 
     test('OpenApp should push request to the queue', async () => {
         await TestHelper.signInWithTestUser();
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         openApp();
 
@@ -203,7 +307,8 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         await waitForBatchedUpdates();
 
@@ -212,7 +317,8 @@ describe('Session', () => {
 
     test('OpenApp should replace same requests from the queue', async () => {
         await TestHelper.signInWithTestUser();
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         openApp();
         openApp();
@@ -224,14 +330,16 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);
     });
 
     test('SignOut should return a promise with response containing hasOldDotAuthCookies', async () => {
         await TestHelper.signInWithTestUser();
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
             // This will make the call to OpenApp below return with an expired session code
@@ -251,7 +359,8 @@ describe('Session', () => {
             hasOldDotAuthCookies: true,
         });
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);
     });
@@ -259,7 +368,8 @@ describe('Session', () => {
     describe('SignOutAndRedirectToSignIn', () => {
         test('SignOutAndRedirectToSignIn should redirect to OldDot when LogOut returns truthy hasOldDotAuthCookies', async () => {
             await TestHelper.signInWithTestUser();
-            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+            setHasRadio(false);
+            await waitForBatchedUpdates();
 
             (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
                 // This will make the call to OpenApp below return with an expired session code
@@ -283,7 +393,8 @@ describe('Session', () => {
 
         test('SignOutAndRedirectToSignIn should not redirect to OldDot when LogOut return falsy hasOldDotAuthCookies', async () => {
             await TestHelper.signInWithTestUser();
-            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+            setHasRadio(false);
+            await waitForBatchedUpdates();
 
             (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
                 // This will make the call to OpenApp below return with an expired session code
@@ -339,6 +450,91 @@ describe('Session', () => {
             expect(buildOldDotURL).toHaveBeenCalledWith(CONST.OLDDOT_URLS.SUPPORTAL_RESTORE_STASHED_LOGIN);
             expect(openExternalLink).toHaveBeenCalledWith('mockOldDotURL', undefined, true);
         });
+
+        test('SignOutAndRedirectToSignIn should preserve SESSION and restore stashed session when shouldForceUseStashedSession is true', async () => {
+            jest.spyOn(SessionUtil, 'isSupportAuthToken').mockReturnValue(false);
+            jest.spyOn(SessionUtil, 'hasStashedSession').mockReturnValue(true);
+            jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
+            jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
+            jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+
+            const testStashedCredentials = {login: 'delegate@expensify.com', autoGeneratedLogin: 'delegateAutoLogin', autoGeneratedPassword: 'delegateAutoPassword'};
+            const testStashedSession = {authToken: 'delegateAuthToken', email: 'delegate@expensify.com', accountID: 456, creationDate: new Date().getTime()};
+
+            await Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, testStashedCredentials);
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, testStashedSession);
+
+            await waitForBatchedUpdates();
+
+            const onyxClearSpy = Onyx.clear as jest.Mock;
+            const onyxMultiSetSpy = Onyx.multiSet as jest.Mock;
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            signOutAndRedirectToSignIn(true, false, true, true);
+
+            await waitForBatchedUpdates();
+
+            expect(SessionUtil.signOut).not.toHaveBeenCalled();
+
+            // Should use Onyx.clear with KEYS_TO_PRESERVE_SUPPORTAL (preserving SESSION) instead of redirectToSignIn
+            expect(onyxClearSpy).toHaveBeenCalledWith(KEYS_TO_PRESERVE_SUPPORTAL);
+            expect(redirectToSignInSpy).not.toHaveBeenCalled();
+
+            expect(onyxMultiSetSpy).toHaveBeenCalledWith({
+                [ONYXKEYS.CREDENTIALS]: testStashedCredentials,
+                [ONYXKEYS.SESSION]: testStashedSession,
+            });
+        });
+    });
+
+    describe('hasStashedSession', () => {
+        // Clear any mocks from previous tests that might have mocked hasStashedSession
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        test('returns true when both stashedSession has authToken and stashedCredentials has valid autoGeneratedLogin', () => {
+            const stashedSession = {authToken: 'testAuthToken', email: 'test@expensify.com', accountID: 123, creationDate: new Date().getTime()};
+            const stashedCredentials = {login: 'test@expensify.com', autoGeneratedLogin: 'autoLogin', autoGeneratedPassword: 'autoPassword'};
+
+            const result = SessionUtil.hasStashedSession(stashedSession, stashedCredentials);
+
+            expect(result).toBe(true);
+        });
+
+        test('returns false when stashedSession authToken is missing', () => {
+            const stashedSession = {email: 'test@expensify.com', accountID: 123, creationDate: new Date().getTime()};
+            const stashedCredentials = {login: 'test@expensify.com', autoGeneratedLogin: 'autoLogin', autoGeneratedPassword: 'autoPassword'};
+
+            const result = SessionUtil.hasStashedSession(stashedSession, stashedCredentials);
+
+            expect(result).toBe(false);
+        });
+
+        test('returns false when autoGeneratedLogin is missing', () => {
+            const stashedSession = {authToken: 'testAuthToken', email: 'test@expensify.com', accountID: 123, creationDate: new Date().getTime()};
+            const stashedCredentials = {login: 'test@expensify.com', autoGeneratedPassword: 'autoPassword'};
+
+            const result = SessionUtil.hasStashedSession(stashedSession, stashedCredentials);
+
+            expect(result).toBe(false);
+        });
+
+        test('returns false when stashedSessionParam is undefined', () => {
+            const stashedCredentials = {login: 'test@expensify.com', autoGeneratedLogin: 'autoLogin', autoGeneratedPassword: 'autoPassword'};
+
+            const result = SessionUtil.hasStashedSession(undefined, stashedCredentials);
+
+            expect(result).toBe(false);
+        });
+
+        test('returns false when stashedCredentialsParam is undefined', () => {
+            const stashedSession = {authToken: 'testAuthToken', email: 'test@expensify.com', accountID: 123, creationDate: new Date().getTime()};
+
+            const result = SessionUtil.hasStashedSession(stashedSession, undefined);
+
+            expect(result).toBe(false);
+        });
     });
 
     describe('SAML sign out', () => {
@@ -350,17 +546,39 @@ describe('Session', () => {
             jest.restoreAllMocks();
         });
 
-        test('SignOut should call openAuthSessionAsync when signedInWithSAML is true', async () => {
+        test('SignOut should call openAuthSessionAsync without appversion when signedInWithSAML is true on web', async () => {
+            await TestHelper.signInWithTestUser();
+            await waitForBatchedUpdates();
+
+            mockedOpenAuthSessionAsync.mockClear();
+
+            mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+
+            await SessionUtil.signOut({signedInWithSAML: true, authToken: 'testAuthToken', autoGeneratedLogin: 'testLogin'});
+            await waitForBatchedUpdates();
+
+            expect(mockedOpenAuthSessionAsync).toHaveBeenCalledWith(expect.stringContaining('referer=ecash&authToken=testAuthToken'), CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
+            expect(mockedOpenAuthSessionAsync).toHaveBeenCalledWith(expect.not.stringContaining('appversion='), CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
+            expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, expect.objectContaining({authToken: 'testAuthToken', partnerUserID: 'testLogin'}), {});
+
+            makeRequestSpy.mockRestore();
+        });
+
+        test('SignOut should call openAuthSessionAsync with appversion when signedInWithSAML is true on mobile', async () => {
             await TestHelper.signInWithTestUser();
             await waitForBatchedUpdates();
 
             mockedOpenAuthSessionAsync.mockClear();
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+            mockedGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
 
             await SessionUtil.signOut({signedInWithSAML: true, authToken: 'testAuthToken', autoGeneratedLogin: 'testLogin'});
             await waitForBatchedUpdates();
 
+            expect(mockedOpenAuthSessionAsync).toHaveBeenCalledWith(expect.stringContaining('appversion='), CONST.SAML_REDIRECT_URL);
             expect(mockedOpenAuthSessionAsync).toHaveBeenCalledWith(expect.stringContaining('authToken=testAuthToken'), CONST.SAML_REDIRECT_URL);
             expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, expect.objectContaining({authToken: 'testAuthToken', partnerUserID: 'testLogin'}), {});
             makeRequestSpy.mockRestore();
@@ -395,6 +613,69 @@ describe('Session', () => {
             expect(mockedOpenAuthSessionAsync).not.toHaveBeenCalled();
             expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, expect.objectContaining({authToken: 'testAuthToken', partnerUserID: 'testLogin'}), {});
             makeRequestSpy.mockRestore();
+        });
+    });
+
+    describe('replaceTwoFactorDevice', () => {
+        test('sets isLoading and clears errors optimistically for both steps', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.replaceTwoFactorDevice('verify_old', '123456');
+
+            const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {optimisticData: Array<{key: string; value: unknown}>};
+            const accountOptimistic = onyxData.optimisticData.find((d) => d.key === ONYXKEYS.ACCOUNT);
+            expect(accountOptimistic?.value).toStrictEqual({isLoading: true, errors: null});
+
+            writeSpy.mockRestore();
+        });
+
+        test('verify_old success data does not clear twoFactorAuthSecretKey', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.replaceTwoFactorDevice('verify_old', '123456');
+
+            const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {successData: Array<{key: string; value: Record<string, unknown>}>};
+            const accountSuccess = onyxData.successData.find((d) => d.key === ONYXKEYS.ACCOUNT);
+            expect(accountSuccess?.value).not.toHaveProperty('twoFactorAuthSecretKey');
+
+            writeSpy.mockRestore();
+        });
+
+        test('verify_new success data clears twoFactorAuthSecretKey to signal step completion', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.replaceTwoFactorDevice('verify_new', '654321');
+
+            const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {successData: Array<{key: string; value: Record<string, unknown>}>};
+            const accountSuccess = onyxData.successData.find((d) => d.key === ONYXKEYS.ACCOUNT);
+            expect(accountSuccess?.value.twoFactorAuthSecretKey).toBeNull();
+
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('clearTwoFactorAuthSecretKey', () => {
+        test('removes twoFactorAuthSecretKey from account state', async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthSecretKey: 'SOMESECRETKEY123'});
+            await waitForBatchedUpdates();
+
+            let account: Record<string, unknown> | null | undefined;
+            Onyx.connect({
+                key: ONYXKEYS.ACCOUNT,
+                callback: (val) => {
+                    account = val as Record<string, unknown> | null | undefined;
+                },
+            });
+            await waitForBatchedUpdates();
+            expect(account?.twoFactorAuthSecretKey).toBe('SOMESECRETKEY123');
+
+            SessionUtil.clearTwoFactorAuthSecretKey();
+            await waitForBatchedUpdates();
+
+            expect(account).not.toHaveProperty('twoFactorAuthSecretKey');
         });
     });
 

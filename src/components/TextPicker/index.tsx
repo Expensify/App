@@ -1,11 +1,16 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
-import TextSelectorModal from './TextSelectorModal';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import type {TextPickerProps} from './types';
+
+import TextSelectorModal from './TextSelectorModal';
 
 function TextPicker({
     value,
@@ -20,6 +25,7 @@ function TextPicker({
     interactive = true,
     required = false,
     customValidate,
+    shouldUseStrictHtmlTagValidation,
     wrapperStyle,
     numberOfLinesTitle,
     titleStyle,
@@ -80,7 +86,7 @@ function TextPicker({
                 disabled={disabled}
                 required={required}
                 customValidate={customValidate}
-                // eslint-disable-next-line react/jsx-props-no-spreading
+                shouldUseStrictHtmlTagValidation={shouldUseStrictHtmlTagValidation}
                 {...rest}
             />
         </View>

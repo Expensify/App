@@ -1,8 +1,12 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {flushQueue, queueOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
+
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const queuedOnyxUpdates: Array<
@@ -13,7 +17,7 @@ const queuedOnyxUpdates: Array<
         | typeof ONYXKEYS.SESSION
         | typeof ONYXKEYS.IS_LOADING_APP
         | typeof ONYXKEYS.CREDENTIALS
-        | typeof ONYXKEYS.IS_SIDEBAR_LOADED
+        | typeof ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED
         | typeof ONYXKEYS.COLLECTION.REPORT
         | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
     >
@@ -42,7 +46,7 @@ const queuedOnyxUpdates: Array<
         },
         onyxMethod: 'merge',
     },
-    {key: ONYXKEYS.IS_SIDEBAR_LOADED, value: true, onyxMethod: 'merge'},
+    {key: ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED, value: true, onyxMethod: 'merge'},
     {key: `${ONYXKEYS.COLLECTION.REPORT}2175919089355165`, value: {reportID: 'reportID'}, onyxMethod: 'merge'},
     {
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2175919089355165`,
@@ -106,7 +110,7 @@ describe('actions/QueuedOnyxUpdates', () => {
             await testOnyxKeyValue(ONYXKEYS.SESSION);
             await testOnyxKeyValue(ONYXKEYS.IS_LOADING_APP);
             await testOnyxKeyValue(ONYXKEYS.CREDENTIALS);
-            await testOnyxKeyValue(ONYXKEYS.IS_SIDEBAR_LOADED);
+            await testOnyxKeyValue(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED);
 
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -151,7 +155,7 @@ describe('actions/QueuedOnyxUpdates', () => {
             await testOnyxKeyValue(ONYXKEYS.SESSION);
             await testOnyxKeyValue(ONYXKEYS.IS_LOADING_APP);
             await testOnyxKeyValue(ONYXKEYS.CREDENTIALS);
-            await testOnyxKeyValue(ONYXKEYS.IS_SIDEBAR_LOADED);
+            await testOnyxKeyValue(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED);
 
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({

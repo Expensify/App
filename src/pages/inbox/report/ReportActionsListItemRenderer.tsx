@@ -1,16 +1,17 @@
-import React, {memo, useMemo} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {memo, useMemo} from 'react';
+
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
 type ReportActionsListItemRendererProps = {
-    /** All the data of the policy collection */
-    policies: OnyxCollection<Policy>;
-
     /** All the data of the action item */
     reportAction: ReportAction;
 
@@ -20,20 +21,17 @@ type ReportActionsListItemRendererProps = {
     /** The transaction thread report's parentReportAction */
     parentReportActionForTransactionThread: OnyxEntry<ReportAction>;
 
-    /** Position index of the report action in the overall report FlatList view */
-    index: number;
-
     /** Report for this action */
     report: OnyxEntry<Report>;
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport: OnyxEntry<Report>;
 
+    /** The chat report associated with the report for this action (report.chatReportID) */
+    chatReport?: OnyxEntry<Report>;
+
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
-
-    /** The ID of the most recent IOU report action connected with the shown report */
-    mostRecentIOUReportActionID?: string | null;
 
     /** If the thread divider line should be hidden */
     shouldHideThreadDividerLine: boolean;
@@ -56,51 +54,20 @@ type ReportActionsListItemRendererProps = {
     /** Animate highlight action in few seconds */
     shouldHighlight?: boolean;
 
-    /** Draft messages for the report */
-    draftMessage?: string;
+    /** Whether the action is the "Created" action of a harvest-created expense report */
+    isHarvestCreatedExpenseReport?: boolean;
 
-    /** Emoji reactions for the report action */
-    emojiReactions?: OnyxEntry<ReportActionReactions>;
-
-    /** User wallet tierName */
-    userWalletTierName: string | undefined;
-
-    /** Whether the user is validated */
-    isUserValidated: boolean | undefined;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
-
-    /** All draft messages collection */
-    allDraftMessages?: OnyxCollection<ReportActionsDrafts>;
-
-    /** All emoji reactions collection */
-    allEmojiReactions?: OnyxCollection<ReportActionReactions>;
-
-    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
-    isTryNewDotNVPDismissed: boolean | undefined;
-    /** Whether the report is archived */
-    isReportArchived: boolean;
-
-    /** Report name value pairs origin */
-    reportNameValuePairsOrigin?: string;
-
-    /** Report name value pairs originalID */
-    reportNameValuePairsOriginalID?: string;
+    /** Whether context menu should be disabled for the active Concierge draft */
+    shouldDisableContextMenuForConciergeDraft?: boolean;
 };
 
 function ReportActionsListItemRenderer({
-    policies,
     reportAction,
     parentReportAction,
-    index,
     report,
     transactionThreadReport,
+    chatReport,
     displayAsGroup,
-    mostRecentIOUReportActionID = '',
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
     linkedReportActionID = '',
@@ -109,18 +76,8 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     shouldHighlight = false,
     parentReportActionForTransactionThread,
-    draftMessage,
-    emojiReactions,
-    userWalletTierName,
-    isUserValidated,
-    userBillingFundID,
-    personalDetails,
-    allDraftMessages,
-    allEmojiReactions,
-    isTryNewDotNVPDismissed = false,
-    isReportArchived = false,
-    reportNameValuePairsOrigin,
-    reportNameValuePairsOriginalID,
+    isHarvestCreatedExpenseReport = false,
+    shouldDisableContextMenuForConciergeDraft = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -200,7 +157,6 @@ function ReportActionsListItemRenderer({
     if (shouldDisplayParentAction && isChatThread(report)) {
         return (
             <ReportActionItemParentAction
-                policies={policies}
                 shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
                 shouldDisplayReplyDivider={shouldDisplayReplyDivider}
                 parentReportAction={parentReportAction}
@@ -208,47 +164,29 @@ function ReportActionsListItemRenderer({
                 report={report}
                 action={action}
                 transactionThreadReport={transactionThreadReport}
-                index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                userWalletTierName={userWalletTierName}
-                isUserValidated={isUserValidated}
-                personalDetails={personalDetails}
-                allDraftMessages={allDraftMessages}
-                allEmojiReactions={allEmojiReactions}
-                userBillingFundID={userBillingFundID}
-                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                isReportArchived={isReportArchived}
             />
         );
     }
 
     return (
         <ReportActionItem
-            policies={policies}
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             parentReportAction={parentReportAction}
             report={report}
             transactionThreadReport={transactionThreadReport}
+            chatReport={chatReport}
             parentReportActionForTransactionThread={parentReportActionForTransactionThread}
             action={action}
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
-            isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
-            index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
-            userWalletTierName={userWalletTierName}
-            isUserValidated={isUserValidated}
-            personalDetails={personalDetails}
-            draftMessage={draftMessage}
-            emojiReactions={emojiReactions}
-            userBillingFundID={userBillingFundID}
-            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-            reportNameValuePairsOrigin={reportNameValuePairsOrigin}
-            reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
+            isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
+            shouldDisplayContextMenu={!shouldDisableContextMenuForConciergeDraft}
         />
     );
 }
