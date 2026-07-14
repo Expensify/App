@@ -16,10 +16,17 @@ function parseRawChartData(attribute: string): RawChartData[] {
                 'y' in parsedData &&
                 (typeof parsedData.y === 'string' || typeof parsedData.y === 'number')
             ) {
-                data.push({
+                const rawChartData: RawChartData = {
                     x: parsedData.x,
                     y: Number(parsedData.y),
-                });
+                };
+                if ('label' in parsedData && typeof parsedData.label === 'string') {
+                    rawChartData.label = parsedData.label;
+                }
+                if ('searchQuery' in parsedData && typeof parsedData.searchQuery === 'string') {
+                    rawChartData.searchQuery = parsedData.searchQuery;
+                }
+                data.push(rawChartData);
             }
         }
     }

@@ -11,6 +11,8 @@ type VictoryChartRendererProps = CustomRendererProps<TBlock>;
 type RawChartData = {
     x: string | number;
     y: number;
+    label?: string;
+    searchQuery?: string;
 };
 
 type RawLegendData = {
@@ -63,6 +65,13 @@ type CartesianChartData = {
     [X_KEY]: string | number;
     [key: `${YKey}`]: number;
 };
+
+type ChartPointMetadata = {
+    label?: string;
+    searchQuery?: string;
+};
+
+type ChartPointMetadataByYKey = Partial<Record<YKey, Record<string, ChartPointMetadata>>>;
 
 type PolarChartData = {
     [LABEL_KEY]: string | number;
@@ -167,6 +176,7 @@ type ProcessNodeResult = {
     categories: string[] | undefined;
     labelItems: LabelItem[];
     legendItems: LegendItem[];
+    pointMetadata: ChartPointMetadataByYKey;
 };
 
 /** Partial slice produced by a single per-tag parser before merging. */
@@ -186,6 +196,8 @@ export type {
     RawShiftedLineSegmentStyle,
     YKey,
     CartesianChartData,
+    ChartPointMetadata,
+    ChartPointMetadataByYKey,
     CartesianChartProps,
     TextAnchor,
     LabelItem,
