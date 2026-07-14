@@ -1,5 +1,5 @@
 import type reportAttributesModuleDefault from '@userActions/OnyxDerived/configs/reportAttributes';
-import {hasPolicyRelevantFieldChanged, policyRelevantSignature} from '@userActions/OnyxDerived/configs/reportAttributes';
+import {policyRelevantSignature} from '@userActions/OnyxDerived/configs/reportAttributes';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,81 +51,45 @@ const basePolicy: Policy = {
     autoReimbursement: {limit: 500},
 } as unknown as Policy;
 
-describe('hasPolicyRelevantFieldChanged', () => {
+describe('policyRelevantSignature', () => {
     describe('null / undefined edge cases', () => {
-        it('returns false when both are null', () => {
-            expect(hasPolicyRelevantFieldChanged(null, null)).toBe(false);
-        });
-
-        it('returns false when both are undefined', () => {
-            expect(hasPolicyRelevantFieldChanged(undefined, undefined)).toBe(false);
-        });
-
-        it('returns false when both are null/undefined mix', () => {
-            expect(hasPolicyRelevantFieldChanged(null, undefined)).toBe(false);
-            expect(hasPolicyRelevantFieldChanged(undefined, null)).toBe(false);
-        });
-
-        it('returns true when prev is null and next has a policy', () => {
-            expect(hasPolicyRelevantFieldChanged(null, basePolicy)).toBe(true);
-        });
-
-        it('returns true when next is null and prev had a policy', () => {
-            expect(hasPolicyRelevantFieldChanged(basePolicy, null)).toBe(true);
+        it('returns null for missing policies', () => {
+            expect(policyRelevantSignature(null)).toBeNull();
+            expect(policyRelevantSignature(undefined)).toBeNull();
         });
     });
 
-    describe('identical policies', () => {
-        it('returns false when all tracked fields are the same', () => {
-            const copy = {...basePolicy};
-            expect(hasPolicyRelevantFieldChanged(basePolicy, copy)).toBe(false);
+    describe('identical content', () => {
+        it('produces the same signature for a shallow copy', () => {
+            expect(policyRelevantSignature({...basePolicy})).toBe(policyRelevantSignature(basePolicy));
         });
 
-        it('returns false when only a non-tracked field changes', () => {
-            const updated = {...basePolicy, name: 'Updated Name'} as unknown as Policy;
-            expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(false);
+        it('produces the same signature regardless of key insertion order', () => {
+            const reordered = Object.fromEntries(Object.entries(basePolicy).reverse()) as unknown as Policy;
+            expect(policyRelevantSignature(reordered)).toBe(policyRelevantSignature(basePolicy));
+        });
+
+        it('ignores Onyx write-bookkeeping keys', () => {
+            const withWriteNoise = {...basePolicy, pendingAction: 'update', pendingFields: {name: 'update'}, errors: {a: 'err'}, errorFields: {name: {a: 'err'}}} as unknown as Policy;
+            expect(policyRelevantSignature(withWriteNoise)).toBe(policyRelevantSignature(basePolicy));
         });
     });
 
-    describe('tracked field changes', () => {
-        it('returns true when type changes', () => {
-            const updated = {...basePolicy, type: CONST.POLICY.TYPE.TEAM} as unknown as Policy;
-            expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(true);
-        });
-
-        it('returns true when approvalMode changes', () => {
-            const updated = {...basePolicy, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL} as unknown as Policy;
-            expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(true);
-        });
-
-        it('returns true when reimbursementChoice changes', () => {
-            const updated = {...basePolicy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO} as unknown as Policy;
-            expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(true);
-        });
-
-        it('returns true when autoReimbursementLimit changes', () => {
-            const updated = {...basePolicy, autoReimbursementLimit: 2000} as unknown as Policy;
-            expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(true);
-        });
-
-        it('returns true when role changes', () => {
-            const updated = {...basePolicy, role: CONST.POLICY.ROLE.USER} as unknown as Policy;
-            expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(true);
-        });
-
-        it('returns true when autoReimbursement.limit changes', () => {
-            const updated = {...basePolicy, autoReimbursement: {limit: 999}} as unknown as Policy;
-            expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(true);
-        });
-
-        it('returns true when autoReimbursement goes from defined to undefined', () => {
-            const updated = {...basePolicy, autoReimbursement: undefined} as unknown as Policy;
-            expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(true);
-        });
-
-        it('returns true when autoReimbursement goes from undefined to defined', () => {
-            const withoutAutoReimburse = {...basePolicy, autoReimbursement: undefined} as unknown as Policy;
-            expect(hasPolicyRelevantFieldChanged(withoutAutoReimburse, basePolicy)).toBe(true);
+    describe('content changes', () => {
+        const changes: Array<[string, Partial<Policy>]> = [
+            ['type', {type: CONST.POLICY.TYPE.TEAM}],
+            ['approvalMode', {approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL}],
+            ['reimbursementChoice', {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO}],
+            ['autoReimbursementLimit', {autoReimbursementLimit: 2000}],
+            ['role', {role: CONST.POLICY.ROLE.USER}],
+            ['autoReimbursement.limit', {autoReimbursement: {limit: 999}}],
+            ['autoReimbursement removed', {autoReimbursement: undefined}],
+            ['name', {name: 'Renamed Workspace'}],
+            ['employeeList', {employeeList: {['a@b.com' as string]: {submitsTo: 'c@d.com'}}}],
+        ];
+        it.each(changes)('changes the signature when %s changes', (_label, change) => {
+            const updated = {...basePolicy, ...change} as unknown as Policy;
+            expect(policyRelevantSignature(updated)).not.toBe(policyRelevantSignature(basePolicy));
         });
     });
 });
@@ -169,7 +133,12 @@ describe('reportAttributes compute — policy change code flow', () => {
         config = (require('@userActions/OnyxDerived/configs/reportAttributes') as {default: ReportAttributesConfig}).default;
     });
 
-    const buildArgs = (overridePolicies?: OnyxCollection<Policy>, overrideReports?: OnyxCollection<Report>, transactionsUpdate?: OnyxCollection<Transaction> | null) =>
+    const buildArgs = (
+        overridePolicies?: OnyxCollection<Policy>,
+        overrideReports?: OnyxCollection<Report>,
+        transactionsUpdate?: OnyxCollection<Transaction> | null,
+        conciergeReportID?: string,
+    ) =>
         [
             overrideReports ?? reports, // reports
             null, // preferredLocale
@@ -181,8 +150,8 @@ describe('reportAttributes compute — policy change code flow', () => {
             null, // session
             overridePolicies ?? policies, // policies
             null, // policyTags
-            null, // reportViolations
-            null, // reportMetadata
+            conciergeReportID ?? null, // conciergeReportID
+            null, // introSelected
         ] as unknown as Parameters<ReportAttributesConfig['compute']>[0];
 
     it('computes every report on a cold start (no currentValue) when policies load', () => {
@@ -195,10 +164,11 @@ describe('reportAttributes compute — policy change code flow', () => {
         expect(result?.reports).toHaveProperty('r2');
     });
 
-    it('seeds policy signatures without recomputing when the stored value has no baseline', () => {
-        // Reproduces the first policy delivery after startup on a value written by an older app version:
-        // the stored attributes already reflect these policies, so nothing recomputes — the pass only
-        // records the signatures so later deliveries can be diffed.
+    it('recomputes reports of delivered policies when the stored value has no signature baseline', () => {
+        // Reproduces the first policy delivery on a value with no baseline (written by an older app
+        // version, or computed in-session before policies loaded): we cannot tell whether the stored
+        // attributes match these policies, so the delivered policies' reports recompute — exactly like
+        // the pre-signature code did on its first in-session delivery — and the full baseline is recorded.
         const report3: Report = {...createRandomReport(12, undefined), reportID: 'r3', policyID: 'policyOther', chatReportID: undefined};
         const reportsWithUnrelated: OnyxCollection<Report> = {
             ...reports,
@@ -219,9 +189,35 @@ describe('reportAttributes compute — policy change code flow', () => {
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
         });
 
-        expect(result?.reports.r1?.reportName).toBe('Old Name 1');
-        expect(result?.reports.r2?.reportName).toBe('Old Name 2');
+        // r1/r2 reference the delivered policies → recomputed (default mock name).
+        expect(result?.reports.r1?.reportName).toBe('Test Report');
+        expect(result?.reports.r2?.reportName).toBe('Test Report');
+        // r3 references a policy that was not delivered → keeps its existing value.
         expect(result?.reports.r3?.reportName).toBe('Old Name 3');
+        expect(result?.policySignatures).toEqual({
+            [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policyRelevantSignature(policy1),
+            [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: policyRelevantSignature(policy2),
+        });
+    });
+
+    it('seeds policy signatures without recomputing on a pass that did not deliver policies', () => {
+        // Disk-hydrated policies and a disk-restored value are consistent, so a non-policy pass just
+        // records the baseline; only the report from this pass's own update recomputes.
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                r1: {reportName: 'Old Name 1', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                r2: {reportName: 'Old Name 2', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+        };
+
+        const result = config.compute(buildArgs(), {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1}},
+        });
+
+        expect(result?.reports.r1?.reportName).toBe('Test Report');
+        expect(result?.reports.r2?.reportName).toBe('Old Name 2');
         expect(result?.policySignatures).toEqual({
             [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policyRelevantSignature(policy1),
             [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: policyRelevantSignature(policy2),
@@ -348,11 +344,11 @@ describe('reportAttributes compute — policy change code flow', () => {
         expect(result?.reports.r2?.reportName).toBe('Old Name 2');
     });
 
-    it('skips recompute when a non-tracked policy field changes', () => {
-        const policy1WithNameChange = {...policy1, name: 'New Policy Name'} as unknown as Policy;
+    it('skips recompute when only Onyx write-bookkeeping keys change on a policy', () => {
+        const policy1WithWriteNoise = {...policy1, pendingFields: {generalSettings: 'update'}, errorFields: {generalSettings: {a: 'err'}}} as unknown as Policy;
         const updatedPolicies: OnyxCollection<Policy> = {
             ...policies,
-            [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1WithNameChange,
+            [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1WithWriteNoise,
         };
 
         const existingValue: ReportAttributesDerivedValue = {
@@ -371,11 +367,129 @@ describe('reportAttributes compute — policy change code flow', () => {
 
         const result = config.compute(buildArgs(updatedPolicies), {
             currentValue: existingValue,
-            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1WithNameChange} as never},
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1WithWriteNoise} as never},
         });
 
-        // No tracked fields changed → return currentValue unchanged
+        // No content change → return currentValue unchanged
         expect(result).toEqual(existingValue);
+    });
+
+    it('recomputes reports of a policy whose name changes', () => {
+        const policy1Renamed = {...policy1, name: 'Renamed Workspace'} as unknown as Policy;
+        const updatedPolicies: OnyxCollection<Policy> = {
+            ...policies,
+            [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Renamed,
+        };
+
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                r1: {reportName: 'Old Name 1', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                r2: {reportName: 'Old Name 2', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+            policySignatures: {
+                [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: signatureOf(policy1),
+                [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: signatureOf(policy2),
+            },
+        };
+
+        const result = config.compute(buildArgs(updatedPolicies), {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Renamed} as never},
+        });
+
+        // Report names embed the workspace name, so a rename recomputes that policy's reports.
+        expect(result?.reports.r1?.reportName).toBe('Test Report');
+        expect(result?.reports.r2?.reportName).toBe('Old Name 2');
+        expect(result?.policySignatures?.[`${ONYXKEYS.COLLECTION.POLICY}policy1`]).toBe(signatureOf(policy1Renamed));
+    });
+
+    it('keeps the concierge baseline on passes that did not recompute everything', () => {
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                r1: {reportName: 'Old Name 1', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                r2: {reportName: 'Old Name 2', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+            policySignatures: {
+                [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: signatureOf(policy1),
+                [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: signatureOf(policy2),
+            },
+            conciergeReportID: 'conciergeOld',
+            isTrackIntentUser: false,
+        };
+
+        // An incremental pass while the current conciergeReportID already drifted (it changed while
+        // computes were deferred): the baseline must NOT advance, or the change would be absorbed.
+        const incrementalResult = config.compute(buildArgs(policies, undefined, null, 'conciergeNew'), {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1}},
+        });
+        expect(incrementalResult?.conciergeReportID).toBe('conciergeOld');
+        expect(incrementalResult?.reports.r2?.reportName).toBe('Old Name 2');
+
+        // The next delivery of the key compares against the preserved baseline → full recompute + advance.
+        const deliveryResult = config.compute(buildArgs(policies, undefined, null, 'conciergeNew'), {
+            currentValue: incrementalResult,
+            sourceValues: {[ONYXKEYS.CONCIERGE_REPORT_ID]: 'conciergeNew' as never},
+        });
+        expect(deliveryResult?.conciergeReportID).toBe('conciergeNew');
+        expect(deliveryResult?.reports.r2?.reportName).toBe('Test Report');
+    });
+
+    it('does not persist advanced policy signatures when the reports collection is unavailable', () => {
+        const policy1Changed = {...policy1, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL} as unknown as Policy;
+        const updatedPolicies: OnyxCollection<Policy> = {
+            ...policies,
+            [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed,
+        };
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                r1: {reportName: 'Old Name 1', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+            policySignatures: {
+                [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: signatureOf(policy1),
+                [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: signatureOf(policy2),
+            },
+        };
+
+        const argsWithoutReports = [
+            undefined, // reports
+            null, // preferredLocale
+            null, // transactionViolations
+            null, // reportActions
+            null, // reportNameValuePairs
+            null, // transactions
+            null, // personalDetails
+            null, // session
+            updatedPolicies, // policies
+            null, // policyTags
+            null, // conciergeReportID
+            null, // introSelected
+        ] as unknown as Parameters<ReportAttributesConfig['compute']>[0];
+
+        const result = config.compute(argsWithoutReports, {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed} as never},
+        });
+
+        // The scoped recompute could not run, so the old baseline must survive — the next delivery
+        // re-diffs against it and retries the recompute.
+        expect(result?.policySignatures?.[`${ONYXKEYS.COLLECTION.POLICY}policy1`]).toBe(signatureOf(policy1));
+    });
+
+    it('snapshots the policy baseline after a full scan even without a policy trigger', () => {
+        const result = config.compute(buildArgs(), {
+            currentValue: undefined,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1}},
+        });
+
+        expect(result?.reports.r1?.reportName).toBe('Test Report');
+        expect(result?.policySignatures).toEqual({
+            [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: signatureOf(policy1),
+            [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: signatureOf(policy2),
+        });
     });
 
     it('recomputes the parent workspace chat when a transaction on its expense report changes', () => {

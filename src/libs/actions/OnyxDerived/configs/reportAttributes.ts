@@ -1,6 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import hashCode from '@libs/hashCode';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
 import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
@@ -49,12 +50,38 @@ const prepareReportKeys = (keys: string[]) => {
     ];
 };
 
-// A short string built from the policy fields the report attributes depend on. Signatures are stored in
-// the derived value (like `locale`), so the change-detection baseline survives app restarts.
-const policyRelevantSignature = (policy: Policy | null | undefined): string | null =>
-    policy ? JSON.stringify([policy.type, policy.approvalMode, policy.reimbursementChoice, policy.autoReimbursementLimit, policy.role, policy.autoReimbursement?.limit]) : null;
+// Onyx write-bookkeeping keys. They flip during optimistic writes without affecting the computed
+// attributes, so they are excluded from policy signatures to avoid recompute churn.
+const POLICY_SIGNATURE_EXCLUDED_KEYS = new Set(['pendingAction', 'pendingFields', 'errors', 'errorFields']);
 
-const hasPolicyRelevantFieldChanged = (prev: Policy | null | undefined, next: Policy | null | undefined): boolean => policyRelevantSignature(prev) !== policyRelevantSignature(next);
+// Deterministic stringify: object keys are sorted at every level so the same policy content always
+// produces the same string regardless of key insertion order after Onyx merges.
+const stableStringify = (value: unknown): string => {
+    if (value === null || typeof value !== 'object') {
+        return JSON.stringify(value) ?? 'undefined';
+    }
+    if (Array.isArray(value)) {
+        return `[${value.map(stableStringify).join(',')}]`;
+    }
+    const entries = Object.entries(value)
+        .filter(([key]) => !POLICY_SIGNATURE_EXCLUDED_KEYS.has(key))
+        .sort(([a], [b]) => (a < b ? -1 : 1));
+    return `{${entries.map(([key, entryValue]) => `${JSON.stringify(key)}:${stableStringify(entryValue)}`).join(',')}}`;
+};
+
+// A signature of the whole policy content (minus write-bookkeeping keys), stored in the derived value
+// (like `locale`) so the change-detection baseline survives app restarts. Hashing the full content
+// instead of an enumerated field list means a policy field the compute reads can never silently fall
+// outside change detection; over-triggering is safe because the recompute is scoped to that policy's
+// reports. The serialized length rides along as a second dimension so a 32-bit hash collision alone
+// cannot mask a change; a full collision would only skip one scoped recompute for one policy change.
+const policyRelevantSignature = (policy: Policy | null | undefined): string | null => {
+    if (!policy) {
+        return null;
+    }
+    const serialized = stableStringify(policy);
+    return `${hashCode(serialized)}.${serialized.length}`;
+};
 
 // A short string built from the fields a report name can come from: displayName and firstName.
 const displayNameSignature = (details: PersonalDetails | null): string => JSON.stringify([details?.displayName ?? '', details?.firstName ?? '']);
@@ -260,13 +287,53 @@ export default createOnyxDerivedValueConfig({
             hasIsTrackIntentUserChanged;
 
         // Policy change detection compares signatures stored in the derived value, so the baseline survives
-        // app restarts. Without a stored baseline (value written by an older app version) the first policy
-        // delivery only seeds the signatures — the stored attributes already reflect these policies.
+        // app restarts. Signatures advance only when the recompute they imply actually runs (or vacuously
+        // has no reports to touch); otherwise the next delivery re-diffs against the old baseline.
         const storedPolicySignatures = currentValue?.policySignatures;
+        const hasComputedReports = !!currentValue?.reports && Object.keys(currentValue.reports).length > 0;
         let nextPolicySignatures = storedPolicySignatures;
+        // True when the signatures may persist through an early return: a pure baseline seed, or a diff
+        // whose changed policies have no reports referencing them (nothing to recompute).
+        let canPersistSignaturesWithoutRecompute = false;
         const policyChangedReportKeys: string[] = [];
-        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues) || (!storedPolicySignatures && policies)) {
-            if (!needsFullRecompute && storedPolicySignatures && hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
+
+        const buildAllPolicySignatures = () => {
+            const signatures: Record<string, string> = {};
+            for (const [key, policy] of Object.entries(policies ?? {})) {
+                const signature = policyRelevantSignature(policy);
+                if (signature !== null) {
+                    signatures[key] = signature;
+                }
+            }
+            return signatures;
+        };
+        const collectReportKeysForPolicies = (changedPolicyIDs: Set<string>) => {
+            for (const [reportKey, report] of Object.entries(reports ?? {})) {
+                if (!report) {
+                    continue;
+                }
+                // The report's own policy — the sender workspace for an invoice.
+                if (report.policyID && changedPolicyIDs.has(report.policyID)) {
+                    policyChangedReportKeys.push(reportKey);
+                    continue;
+                }
+                // An invoice follows its receiver workspace. The invoice room carries the receiver
+                // on itself; a child invoice report doesn't, so we read it from its parent room
+                // (chatReportID) — the same place computeReportName looks for the invoice name.
+                const ownReceiverPolicyID = report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
+                const room = report.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : undefined;
+                const roomReceiverPolicyID = room?.invoiceReceiver && 'policyID' in room.invoiceReceiver ? room.invoiceReceiver.policyID : undefined;
+                if ((ownReceiverPolicyID && changedPolicyIDs.has(ownReceiverPolicyID)) || (roomReceiverPolicyID && changedPolicyIDs.has(roomReceiverPolicyID))) {
+                    policyChangedReportKeys.push(reportKey);
+                }
+            }
+        };
+
+        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
+            if (needsFullRecompute) {
+                // Every report recomputes with the current policies anyway — snapshot the full baseline.
+                nextPolicySignatures = buildAllPolicySignatures();
+            } else if (storedPolicySignatures) {
                 const changedPolicyIDs = new Set<string>();
                 const updatedSignatures = {...storedPolicySignatures};
                 for (const key of Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {})) {
@@ -283,49 +350,41 @@ export default createOnyxDerivedValueConfig({
                 }
                 if (changedPolicyIDs.size > 0) {
                     nextPolicySignatures = updatedSignatures;
-                    for (const [reportKey, report] of Object.entries(reports ?? {})) {
-                        if (!report) {
-                            continue;
-                        }
-                        // The report's own policy — the sender workspace for an invoice.
-                        if (report.policyID && changedPolicyIDs.has(report.policyID)) {
-                            policyChangedReportKeys.push(reportKey);
-                            continue;
-                        }
-                        // An invoice follows its receiver workspace. The invoice room carries the receiver
-                        // on itself; a child invoice report doesn't, so we read it from its parent room
-                        // (chatReportID) — the same place computeReportName looks for the invoice name.
-                        const ownReceiverPolicyID = report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
-                        const room = report.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : undefined;
-                        const roomReceiverPolicyID = room?.invoiceReceiver && 'policyID' in room.invoiceReceiver ? room.invoiceReceiver.policyID : undefined;
-                        if ((ownReceiverPolicyID && changedPolicyIDs.has(ownReceiverPolicyID)) || (roomReceiverPolicyID && changedPolicyIDs.has(roomReceiverPolicyID))) {
-                            policyChangedReportKeys.push(reportKey);
-                        }
-                    }
+                    collectReportKeysForPolicies(changedPolicyIDs);
+                    // Vacuously satisfied only when the reports collection is actually available —
+                    // with it missing, the recompute is skipped rather than unnecessary.
+                    canPersistSignaturesWithoutRecompute = !!reports && policyChangedReportKeys.length === 0;
+                }
+            } else if (hasComputedReports) {
+                // No stored baseline but attributes exist (value written by an older app version, or computed
+                // in-session before policies loaded) — we cannot tell whether these policies match the ones the
+                // attributes were computed with, so recompute the delivered policies' reports like the
+                // pre-signature code did, then snapshot the full baseline.
+                const deliveredPolicyIDs = new Set(Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY, '')));
+                collectReportKeysForPolicies(deliveredPolicyIDs);
+                canPersistSignaturesWithoutRecompute = !!reports && policyChangedReportKeys.length === 0;
+                if (reports) {
+                    nextPolicySignatures = buildAllPolicySignatures();
                 }
             } else {
-                const signatures: Record<string, string> = {};
-                for (const [key, policy] of Object.entries(policies ?? {})) {
-                    const signature = policyRelevantSignature(policy);
-                    if (signature !== null) {
-                        signatures[key] = signature;
-                    }
-                }
-                nextPolicySignatures = signatures;
+                // No attributes computed yet — the pass below runs a full scan, so seeding is safe.
+                nextPolicySignatures = buildAllPolicySignatures();
             }
+        } else if (!storedPolicySignatures && policies && hasComputedReports) {
+            // Baseline seeding on a pass that did not deliver policies: both the attributes and the policies
+            // come from the same disk-hydrated state (an in-session value computed without policies is
+            // impossible here — policies would have arrived as a policy trigger), so they are consistent.
+            nextPolicySignatures = buildAllPolicySignatures();
+            canPersistSignaturesWithoutRecompute = true;
         }
 
-        // One-time baseline writes (policy signatures / concierge / intro seeds) must persist even when this
-        // pass otherwise returns the current value unchanged.
+        // Baseline writes that may ride an early return: only signature snapshots that require no recompute.
+        // conciergeReportID/isTrackIntentUser baselines advance exclusively in the final return, and only on
+        // passes that recomputed everything with the current values — advancing them on other passes would
+        // silently absorb a change and suppress the full recompute its next delivery should cause.
         const metaPatch: Partial<ReportAttributesDerivedValue> = {};
-        if (nextPolicySignatures !== storedPolicySignatures) {
+        if (canPersistSignaturesWithoutRecompute && nextPolicySignatures !== storedPolicySignatures) {
             metaPatch.policySignatures = nextPolicySignatures;
-        }
-        if (storedConciergeReportID !== (conciergeReportID ?? null)) {
-            metaPatch.conciergeReportID = conciergeReportID ?? null;
-        }
-        if (storedIsTrackIntentUser !== nextIsTrackIntentUser) {
-            metaPatch.isTrackIntentUser = nextIsTrackIntentUser;
         }
         const withMetaPatch = (value: ReportAttributesDerivedValue): ReportAttributesDerivedValue => (Object.keys(metaPatch).length > 0 ? {...value, ...metaPatch} : value);
 
@@ -637,14 +696,26 @@ export default createOnyxDerivedValueConfig({
             };
         }
 
+        // A full scan just recomputed every report with the current policies, so the baseline can be
+        // snapshotted even when no policy trigger fired this pass (e.g. policies merged while computes
+        // were deferred during startup, or a locale-driven full recompute).
+        if (!useIncrementalUpdates && policies) {
+            nextPolicySignatures = buildAllPolicySignatures();
+        }
+
+        // The stored conciergeReportID/isTrackIntentUser must always equal the values the full attribute
+        // set was computed with, so they advance only when everything recomputed with the current values
+        // (or on the very first write). Incremental passes keep the stored baseline — if the current value
+        // drifted (e.g. a change landed while computes were deferred), the next delivery of that key still
+        // compares unequal and triggers the healing full recompute.
         return {
             reports: reportAttributes,
             locale: preferredLocale ?? null,
             policySignatures: nextPolicySignatures,
-            conciergeReportID: conciergeReportID ?? null,
-            isTrackIntentUser: nextIsTrackIntentUser,
+            conciergeReportID: storedConciergeReportID === undefined || needsFullRecompute ? (conciergeReportID ?? null) : storedConciergeReportID,
+            isTrackIntentUser: storedIsTrackIntentUser === undefined || needsFullRecompute ? nextIsTrackIntentUser : storedIsTrackIntentUser,
         };
     },
 });
 
-export {hasPolicyRelevantFieldChanged, policyRelevantSignature};
+export {policyRelevantSignature};
