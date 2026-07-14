@@ -2210,18 +2210,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Wyloguj się',
         restoreStashed: 'Przywróć zapisane logowanie',
         signOutConfirmationText: 'Utracisz wszystkie zmiany w trybie offline, jeśli się wylogujesz.',
-        saveReceiptsConfirmation: {
-            title: 'Zapisać paragony?',
-            prompt: ({count}: {count: number}) =>
-                `${count === 1 ? 'Nadal przesyłany jest 1 paragon' : `Nadal przesyłane są paragony (${count})`}. Jeśli wylogujesz się teraz, zapiszemy ${count === 1 ? 'go' : 'je'} w Twoich zdjęciach, abyś ${count === 1 ? 'mógł go dodać' : 'mógł je dodać'} później do nowego wydatku.`,
-            confirm: 'Zapisz i wyloguj',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Zapisać paragony?',
-            prompt: ({count}: {count: number}) =>
-                `${count === 1 ? 'Nadal przesyłany jest 1 paragon' : `Nadal przesyłane są paragony (${count})`}. Jeśli wylogujesz się teraz, zapiszemy ${count === 1 ? 'go' : 'je'} w Twoich zdjęciach, abyś ${count === 1 ? 'mógł go dodać' : 'mógł je dodać'} później do nowego wydatku. Utracisz wszystkie pozostałe zmiany w trybie offline.`,
-            confirm: 'Zapisz i wyloguj',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Przeczytaj <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Warunki korzystania z usługi</a> i <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politykę prywatności</a>.`,
         help: 'Pomoc',
@@ -9999,6 +9987,18 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             chat: 'Czatuj przy każdym wydatku, aby szybko rozwiązać wątpliwości',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Chcesz DARMOWY plan dla pracownika?',
+        description: 'Nie czekaj, aż Twoja firma zacznie korzystać z Expensify. Stworzyliśmy darmowy plan specjalnie dla Ciebie:',
+        confirmText: 'Wybierz darmowy plan',
+        dismissText: 'Nie, dziękuję',
+        features: {
+            getReimbursed: 'Szybciej otrzymuj zwroty kosztów, bezpośrednio w Expensify',
+            buildReports: 'Twórz raporty wydatków w kilka sekund',
+            categorize: 'Kategoryzuj swoje wydatki',
+            inviteBoss: 'Zaproś swojego szefa, gdy będziesz gotowy',
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Rozpocznij <strong>tutaj!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Zmień nazwę zapisanych wyszukiwań</strong> tutaj!</tooltip>',
@@ -10285,6 +10285,17 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         description: 'Daj nam znać, abyśmy mogli pomóc uczynić Twoje rozliczanie wydatków jeszcze lepszym.',
         positiveButton: 'Tak!',
         negativeButton: 'Niekoniecznie',
+    },
+    trialPaymentReminder: {
+        title: 'Wyprzedź termin',
+        subtitle: 'Nie czekaj do ostatniej chwili – dodaj swoją metodę płatności już dziś, aby zapewnić ciągły dostęp do swoich wydatków w Expensify.',
+        trialEndsInDays: () => ({
+            one: 'Okres próbny kończy się za 1 dzień',
+            other: (pluralCount: number) => `Okres próbny kończy się za ${pluralCount} dni`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Okres próbny kończy się za ${hours}godz. : ${minutes}min : ${seconds}s`,
+        closeButton: 'Zamknij',
+        addPaymentCardButton: 'Dodaj kartę płatniczą',
     },
     monthPickerPage: {month: 'Miesiąc', selectMonth: 'Wybierz miesiąc'},
     aiFeaturesPromoModal: {
