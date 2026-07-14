@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SubmitPlanWelcomeModal from '@components/SubmitPlanWelcomeModal';
@@ -77,12 +77,12 @@ describe('SubmitPlanWelcomeModal', () => {
         );
     }
 
-    it('creates a Submit workspace with the current user name when "Get the free plan" is pressed', () => {
+    it('creates a Submit workspace with the current user name when "Get the free plan" is pressed', async () => {
         renderModal();
 
         fireEvent.press(screen.getByText('submitPlanWelcomeModal.confirmText'));
 
-        expect(mockAutoCreateSubmitWorkspace).toHaveBeenCalledWith('John', 'Doe', false);
+        await waitFor(() => expect(mockAutoCreateSubmitWorkspace).toHaveBeenCalledWith('John', 'Doe', false));
     });
 
     it('navigates back (dismissing the modal) when "No thanks" is pressed', () => {
