@@ -1817,10 +1817,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SPLIT_EXPENSE_CREATE_DATE_RANGE.route,
                             exact: true,
                         },
-                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
-                            path: ROUTES.SPLIT_EXPENSE_EDIT.route,
-                            exact: true,
-                        },
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT]: DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.path,
                         [SCREENS.SET_DEFAULT_WORKSPACE]: ROUTES.SET_DEFAULT_WORKSPACE.route,
                     },
                 },
@@ -1996,11 +1993,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: {
                     screens: {
-                        [SCREENS.MISSING_PERSONAL_DETAILS]: {
-                            path: ROUTES.MISSING_PERSONAL_DETAILS.route,
-                            exact: true,
-                        },
-                        [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.route,
+                        [SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS]: DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.path,
+                        [SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE]: {
