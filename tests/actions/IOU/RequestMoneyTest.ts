@@ -1,4 +1,4 @@
-import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
@@ -220,6 +220,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -486,6 +487,7 @@ describe('actions/IOU', () => {
                         betas: [CONST.BETAS.ALL],
                         personalDetails: {},
                         delegateAccountID: undefined,
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -720,6 +722,7 @@ describe('actions/IOU', () => {
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -890,6 +893,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             return (
                 waitForBatchedUpdates()
@@ -1417,6 +1421,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -1450,6 +1455,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -1483,6 +1489,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             // Verify that the iouReport is created successfully when isSelfTourViewed is true
             expect(iouReport).toBeDefined();
@@ -1535,6 +1542,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1580,6 +1588,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1652,6 +1661,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             waitForBatchedUpdates();
 
@@ -1721,6 +1731,7 @@ describe('actions/IOU', () => {
                 personalDetails: testPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(iouReport).toBeDefined();
@@ -1795,6 +1806,7 @@ describe('actions/IOU', () => {
                 personalDetails: testPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(iouReport).toBeDefined();
@@ -1840,6 +1852,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             // Should still create the expense even with empty personalDetails
@@ -2002,6 +2015,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2078,6 +2092,7 @@ describe('actions/IOU', () => {
                         draftTransactionIDs: [],
                         personalDetails: {},
                         delegateAccountID: undefined,
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2166,6 +2181,7 @@ describe('actions/IOU', () => {
                         draftTransactionIDs: [],
                         personalDetails: {},
                         delegateAccountID: undefined,
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2245,6 +2261,7 @@ describe('actions/IOU', () => {
                         draftTransactionIDs: [],
                         personalDetails: {},
                         delegateAccountID: undefined,
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2319,6 +2336,7 @@ describe('actions/IOU', () => {
                         draftTransactionIDs: [],
                         personalDetails: {},
                         delegateAccountID: undefined,
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2394,6 +2412,7 @@ describe('actions/IOU', () => {
                         draftTransactionIDs: [],
                         personalDetails: {},
                         delegateAccountID: undefined,
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2466,6 +2485,7 @@ describe('actions/IOU', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -2547,6 +2567,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2605,6 +2626,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2621,7 +2643,6 @@ describe('actions/IOU', () => {
         it('adds grouped from snapshot optimistic data for grouped search queries', async () => {
             const currentSearchQueryJSON = {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING] as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
@@ -2676,6 +2697,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
