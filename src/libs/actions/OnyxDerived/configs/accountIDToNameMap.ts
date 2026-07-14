@@ -1,4 +1,5 @@
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
