@@ -5,6 +5,7 @@ import SubmitPlanWelcomeModal from '@components/SubmitPlanWelcomeModal';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type * as NativeNavigation from '@react-navigation/native';
 import type {ViewProps} from 'react-native';
 import type ReactNative from 'react-native';
 
@@ -27,9 +28,17 @@ jest.mock('@hooks/useBeforeRemove', () => (callback: () => void) => {
     beforeRemoveCallback = callback;
 });
 
+jest.mock('@react-navigation/native', () => ({
+    ...((): typeof NativeNavigation => jest.requireActual('@react-navigation/native'))(),
+    useFocusEffect: jest.fn(),
+}));
+
 jest.mock('@hooks/useAutoCreateSubmitWorkspace', () => () => mockAutoCreateSubmitWorkspace);
 
-jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({firstName: 'John', lastName: 'Doe'}));
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({
+    firstName: 'John',
+    lastName: 'Doe',
+}));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: (...args: unknown[]) => {
