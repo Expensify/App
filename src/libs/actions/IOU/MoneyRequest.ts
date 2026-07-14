@@ -99,6 +99,7 @@ type CreateTransactionParams = {
     optimisticChatReportID: string | undefined;
     currentUserLocalCurrency: string | undefined;
     isDraftChatReport?: boolean;
+    isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
 };
 
@@ -129,6 +130,7 @@ function createTransaction({
     optimisticChatReportID,
     currentUserLocalCurrency,
     isDraftChatReport,
+    isTrackIntentUser,
     delegateAccountID,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
@@ -233,6 +235,7 @@ function createTransaction({
                 personalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,
+                isTrackIntentUser,
                 delegateAccountID,
             });
         }

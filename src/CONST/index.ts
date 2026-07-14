@@ -6407,6 +6407,11 @@ const CONST = {
     },
     ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
+    TRIAL_REMINDER_VARIANT: {
+        BASIC: 'basic',
+        NEAR_END: 'nearEnd',
+        COUNTDOWN: 'countdown',
+    },
     ONBOARDING_ACCOUNTING_MAPPING,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
@@ -7460,6 +7465,7 @@ const CONST = {
         SCREENS.SAML_SIGN_IN,
         SCREENS.VALIDATE_LOGIN,
         SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT,
+        SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT,
         SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT,
         SCREENS.MONEY_REQUEST.STEP_SCAN,
         SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP,
@@ -7994,6 +8000,10 @@ const CONST = {
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
+
+    // Backend NVP name for the Submit migration modal. The Onyx key is prefixed with `nvp_`
+    // (ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN), but the API expects the unprefixed name.
+    SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME: 'submitMigrationModalShown',
 
     AI_FEATURES_PROMO_MODAL: 'aiFeaturesPromoModal',
 
