@@ -4463,7 +4463,7 @@ ${amount} per ${merchant} - ${date}`,
             deleteConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro?',
             deleteWithCardsConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro? Questa azione rimuoverà tutti i feed delle carte e le carte assegnate.',
             deleteOpenExpensifyCardsError: 'La tua azienda ha ancora delle Carte Expensify. Per favore, <concierge-link>contatta Concierge</concierge-link> per rimuoverle.',
-            deleteTravelInvoicingError: 'La tua azienda ha ancora la Fatturazione viaggio consolidata abilitata.',
+            deleteTravelInvoicingError: 'La tua azienda ha ancora la Fatturazione Viaggi Consolidata attivata.',
             outstandingBalanceWarning:
                 'Hai un saldo in sospeso che deve essere saldato prima di eliminare il tuo ultimo workspace. Vai alle impostazioni dell’abbonamento per risolvere il pagamento.',
             settleBalance: 'Vai all’abbonamento',
