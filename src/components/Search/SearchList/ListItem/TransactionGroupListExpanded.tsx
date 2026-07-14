@@ -28,7 +28,7 @@ import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {getTransactionViolations, isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
@@ -163,7 +163,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const isActionColumnWide = transactions.some((transaction) => !!transaction.isActionColumnWide || isDeletedTransaction(transaction));
 
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
     const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
         const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
@@ -222,7 +222,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 });
                 return;
             }
-            markReportIDAsExpense(reportID);
+            markReportRHPWidth(reportID, 'wide');
             const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
             if (openInternalRouteInNewTab(route, event)) {
                 return;
@@ -353,14 +353,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     policyCategories={getPolicyCategoriesForTransaction(transaction)}
                                     policyTagLists={getPolicyTagListsForTransaction(transaction)}
                                     transactionItem={transaction}
-                                    violations={getTransactionViolations(
-                                        transaction,
-                                        violations,
-                                        currentUserDetails.email ?? '',
-                                        currentUserDetails.accountID,
-                                        transaction.report,
-                                        transaction.policy,
-                                    )}
+                                    violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
                                     isSelected={!!transaction.isSelected}
                                     isDisabled={isTransactionPendingDelete(transaction)}
                                     dateColumnSize={dateColumnSize}

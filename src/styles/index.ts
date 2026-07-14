@@ -261,6 +261,7 @@ const webViewStyles = (theme: ThemeColors) =>
             flex: 1,
             lineHeight: variables.fontSizeNormalHeight,
             ...writingDirection.ltr,
+            overflow: 'visible',
         },
     }) satisfies WebViewStyle;
 
@@ -3955,6 +3956,23 @@ const staticStyles = (theme: ThemeColors) =>
             minWidth: 68,
         },
 
+        gettingStartedRowIconContainer: {
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        gettingStartedRowTextContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            gap: 2,
+        },
+
+        gettingStartedFooterLink: {
+            paddingVertical: 12,
+        },
+
         widgetHeaderMenuButton: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
@@ -5979,6 +5997,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             width: '100%',
             border: 'none',
+        },
+
+        featureTrainingModalNavButtons: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            gap: variables.spacing2,
         },
 
         twoColumnLayoutCol: {
