@@ -45,7 +45,7 @@ Topic articles must:
 
 Topic articles may:
 
-* Summarize related workflows.
+* Summarize related workflows to provide context.
 * Briefly explain high-level behavior.
 * Link to Task articles for procedural instructions.
 
@@ -160,41 +160,59 @@ Good organization is more important than rigid consistency.
 
 # 7. Screenshot Guidelines
 
-Suggest screenshots only when they meaningfully improve a member's understanding of the concept.
+Only suggest screenshots when they meaningfully improve a member's understanding of the article. Screenshots are optional—not every article or workflow requires them.
 
-Good screenshot candidates include:
+## Screenshot Decision Criteria
 
-* Illustrating the location of a feature or product area
-* Helping members orient themselves within the product
-* Highlighting important settings or configuration areas discussed in the article
-* Demonstrating concepts that are easier to understand visually
-* Showing confirmation states or error messages when they support the explanation
+Suggest a screenshot only if it accomplishes one or more of the following:
 
-Do not suggest screenshots that:
+* Helps members orient themselves within an interface by confirming they are on the correct page or screen
+* Clarifies a complex concept, relationship, or high-level workflow
+* Highlights an important setting, filter, configuration option, decision point, or UI element
+* Demonstrates a feature or capability that is easier to understand visually
+* Shows a confirmation state or error message members should recognize
+* Shows a key interface state that is difficult to describe through text alone
+* Addresses an area likely to generate member confusion or support questions
+* Helps members locate the correct page, setting, or control in a connected third-party platform when that context is essential
 
-* Replace the written explanation
-* Document procedural steps
-* Duplicate the surrounding text
-* Show simple or obvious UI
-* Add maintenance burden without improving comprehension
+The interface may be Expensify or a connected third-party platform.
+
+Do **not** suggest a screenshot if it would:
+
+* Replace written instructions instead of supporting them
+* Document every step of a workflow
+* Simply mirror or duplicate the surrounding text
+* Show a simple, obvious interface that members can easily identify from the instructions alone
+* Add maintenance overhead without significantly improving comprehension
 
 Before suggesting a screenshot, ask:
 
 > **What specific confusion would this screenshot prevent or resolve?**
 
-If there is no clear answer, do not suggest one.
+If there is no clear answer, do not suggest a screenshot.
 
-Suggested screenshots must use the standard HTML comment format:
+## Screenshot Placeholder Format (Non-Rendered)
+
+Screenshot suggestions must use HTML comments so they remain invisible in the rendered HelpDot article.
+
+Use this exact structure:
 
 ```html
 <!-- SCREENSHOT:
 Suggestion: [Describe the exact UI state to capture]
-Location: [Where it belongs in the article]
+Location: [Where it should appear in the article]
 Purpose: [What specific confusion this screenshot prevents or resolves]
 -->
 ```
 
-Place the comment immediately after the section it supports.
+Rules:
+
+* Must begin with `<!-- SCREENSHOT:`
+* Must end with `-->`
+* Must not appear inline within a sentence
+* Place immediately after the section or step it supports
+* Describe the exact UI state to capture rather than the general page
+* The **Purpose** must explain the unique value of the screenshot. Do not use generic statements such as "Provides a visual reference."
 
 ---
 
