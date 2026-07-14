@@ -55,7 +55,7 @@ index 10b0f33..0e1d6fd 100644
      case is AVCaptureVideoDataOutput:
        onVideoFrame(sampleBuffer: sampleBuffer, orientation: connection.orientation, isMirrored: connection.isVideoMirrored)
 diff --git a/node_modules/react-native-vision-camera/ios/React/CameraView.swift b/node_modules/react-native-vision-camera/ios/React/CameraView.swift
-index c773975..0be6e47 100644
+index c773975..44514da 100644
 --- a/node_modules/react-native-vision-camera/ios/React/CameraView.swift
 +++ b/node_modules/react-native-vision-camera/ios/React/CameraView.swift
 @@ -101,7 +101,7 @@ public final class CameraView: UIView, CameraSessionDelegate, PreviewViewDelegat
@@ -67,7 +67,7 @@ index c773975..0be6e47 100644
    private let fpsSampleCollector = FpsSampleCollector()
  
    // CameraView+Zoom
-@@ -135,10 +135,18 @@ public final class CameraView: UIView, CameraSessionDelegate, PreviewViewDelegat
+@@ -135,10 +135,16 @@ public final class CameraView: UIView, CameraSessionDelegate, PreviewViewDelegat
          onViewReadyEvent?(nil)
        }
      } else {
@@ -79,14 +79,12 @@ index c773975..0be6e47 100644
 +  deinit {
 +    // Allow phone to sleep
 +    UIApplication.shared.isIdleTimerDisabled = false
-+    // Bail on any in flight configure calls
-+    currentConfigureCall.increment()
 +  }
 +
    override public func layoutSubviews() {
      if let previewView {
        previewView.frame = frame
-@@ -181,17 +189,18 @@ public final class CameraView: UIView, CameraSessionDelegate, PreviewViewDelegat
+@@ -181,17 +187,18 @@ public final class CameraView: UIView, CameraSessionDelegate, PreviewViewDelegat
    // pragma MARK: Props updating
    override public final func didSetProps(_ changedProps: [String]!) {
      VisionLogger.log(level: .info, message: "Updating \(changedProps.count) props: [\(changedProps.joined(separator: ", "))]")
@@ -109,7 +107,7 @@ index c773975..0be6e47 100644
  
        // Input Camera Device
        config.cameraId = cameraId as? String
-@@ -283,6 +292,36 @@ public final class CameraView: UIView, CameraSessionDelegate, PreviewViewDelegat
+@@ -283,6 +290,36 @@ public final class CameraView: UIView, CameraSessionDelegate, PreviewViewDelegat
      UIApplication.shared.isIdleTimerDisabled = isActive
    }
  
