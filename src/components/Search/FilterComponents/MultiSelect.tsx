@@ -70,7 +70,7 @@ function MultiSelect<T extends string>({
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
     // Snapshot the values selected when the filter first opened so they can be floated to the top of a long list on
-    // first render without repinning rows that are toggled afterwards (see https://github.com/Expensify/App/issues/61414).
+    // first render without repinning rows that are toggled afterwards.
     // moveInitialSelectionToTop gates on the *unfiltered* items length so the decision doesn't flip as the user types,
     // and reordering before filtering keeps the pinned items on top among the results that still match.
     const initialSelectedValues = useInitialValue(() => value.map((item) => item.value));
