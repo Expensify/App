@@ -518,6 +518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Éditeur',
         restrictions: 'Restrictions',
+        tryAgain: 'Réessayer',
         tagGLCode: 'Taguer le code GL',
         off: 'Désactivé',
         noResultsFoundSubtitle: 'Aucun résultat. Veuillez essayer de modifier vos filtres ou votre requête de recherche',
@@ -1623,6 +1624,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: 'modifié',
         removed: 'supprimé',
         transactionPending: 'Transaction en attente.',
+        transactionPendingDescription: "Transaction en attente. L'enregistrement peut prendre quelques jours.",
         chooseARate: 'Sélectionnez un taux de remboursement par mile ou kilomètre pour l’espace de travail',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} au ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Valide à partir du ${startDate}`,
@@ -2225,18 +2227,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Se déconnecter',
         restoreStashed: 'Restaurer la connexion mise de côté',
         signOutConfirmationText: 'Vous perdrez toutes les modifications hors ligne si vous vous déconnectez.',
-        saveReceiptsConfirmation: {
-            title: 'Enregistrer vos reçus ?',
-            prompt: ({count}: {count: number}) =>
-                `${count} ${count === 1 ? 'reçu est' : 'reçus sont'} encore en cours de téléchargement. Si vous vous déconnectez maintenant, nous ${count === 1 ? "l'enregistrerons" : 'les enregistrerons'} dans vos photos pour que vous puissiez ${count === 1 ? "l'ajouter" : 'les ajouter'} à une nouvelle dépense plus tard.`,
-            confirm: 'Enregistrer et se déconnecter',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Enregistrer vos reçus ?',
-            prompt: ({count}: {count: number}) =>
-                `${count} ${count === 1 ? 'reçu est' : 'reçus sont'} encore en cours de téléchargement. Si vous vous déconnectez maintenant, nous ${count === 1 ? "l'enregistrerons" : 'les enregistrerons'} dans vos photos pour que vous puissiez ${count === 1 ? "l'ajouter" : 'les ajouter'} à une nouvelle dépense plus tard. Vous perdrez toutes les autres modifications hors ligne.`,
-            confirm: 'Enregistrer et se déconnecter',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Lisez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation</a> et la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politique de confidentialité</a>.`,
         help: 'Aide',
@@ -3804,7 +3794,6 @@ ${amount} pour ${merchant} - ${date}`,
         facialScan: 'Politique et autorisation relatives à la reconnaissance faciale d’Onfido',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Politique et autorisation de numérisation faciale d’Onfido</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Confidentialité</a> et <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Conditions d’utilisation</a>.</muted-text-micro>`,
-        tryAgain: 'Réessayer',
         verifyIdentity: 'Vérifier l’identité',
         letsVerifyIdentity: 'Vérifions votre identité',
         butFirst: `Mais d’abord, les choses ennuyeuses. Lisez le jargon juridique à l’étape suivante et cliquez sur « Accepter » quand vous êtes prêt.`,
@@ -5681,7 +5670,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     'Une erreur s’est produite lors du chargement des flux de cartes de l’espace de travail. Veuillez réessayer ou contacter votre administrateur.',
                 feedCouldNotBeLoadedTitle: 'Impossible de charger ce flux',
                 feedCouldNotBeLoadedMessage: 'Une erreur s’est produite lors du chargement de ce flux. Veuillez réessayer ou contacter votre administrateur.',
-                tryAgain: 'Réessayer',
             },
             addNewCard: {
                 other: 'Autre',
@@ -6490,6 +6478,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 conciergeNotificationTitle: 'Concierge vous en informera',
                 conciergeNotificationDescription: 'Une fois le processus terminé, Concierge vous enverra un message.',
                 copyCompleted: 'Les paramètres de votre espace de travail ont été copiés.',
+                copyFailedTitle: 'Échec de la copie',
             },
             upgrade: {
                 title: 'Certaines fonctionnalités nécessitent un forfait Control',
@@ -10124,6 +10113,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             chat: 'Discutez sur chaque dépense pour résoudre les questions rapidement',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Vous voulez un forfait employé GRATUIT ?',
+        description: "N'attendez pas que votre entreprise adopte Expensify. Nous avons créé un forfait gratuit rien que pour vous :",
+        confirmText: 'Obtenir le forfait gratuit',
+        dismissText: 'Non merci',
+        features: {
+            getReimbursed: 'Soyez remboursé plus vite, directement dans Expensify',
+            buildReports: 'Créez des rapports de dépenses en quelques secondes',
+            categorize: 'Catégorisez vos dépenses',
+            inviteBoss: 'Invitez votre responsable quand vous êtes prêt',
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renommez vos recherches enregistrées</strong> ici !</tooltip>',
@@ -10417,6 +10418,17 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         description: 'Faites-le-nous savoir afin que nous puissions rendre votre expérience de gestion de notes de frais encore meilleure.',
         positiveButton: 'Oui !',
         negativeButton: 'Pas vraiment',
+    },
+    trialPaymentReminder: {
+        title: "Anticipez l'échéance",
+        subtitle: "N'attendez pas la dernière minute, ajoutez votre méthode de paiement dès aujourd'hui pour garantir un accès continu à vos dépenses sur Expensify.",
+        trialEndsInDays: () => ({
+            one: "La période d'essai se termine dans 1 jour",
+            other: (pluralCount: number) => `La période d'essai se termine dans ${pluralCount} jours`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `La période d'essai se termine dans ${hours}h : ${minutes}m : ${seconds}s`,
+        closeButton: 'Fermer',
+        addPaymentCardButton: 'Ajouter une carte de paiement',
     },
     monthPickerPage: {month: 'Mois', selectMonth: 'Veuillez sélectionner un mois'},
     aiFeaturesPromoModal: {

@@ -15,12 +15,20 @@ import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
-import type {OnyxCollection, OnyxCollectionInputValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
 function openAgentsPage() {
-    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null);
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_AGENTS_LOADED>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ARE_AGENTS_LOADED,
+            value: true,
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {finallyData});
 }
 
 function openProfilePage() {
@@ -277,7 +285,7 @@ function updateAgentAvatar(
     write(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, params, {optimisticData, successData, failureData});
 }
 
-function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>) {
+function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>, shouldNavigateBack = true) {
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -336,7 +344,11 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
     }
 
     write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: accountID}, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_AGENTS);
+    // Callers that end the copilot session right after deleting (e.g. deleting the agent you're copiloting into)
+    // don't want the extra navigation, since the delegate transition resets navigation on its own.
+    if (shouldNavigateBack) {
+        Navigation.goBack(ROUTES.SETTINGS_AGENTS);
+    }
 }
 
 export {
