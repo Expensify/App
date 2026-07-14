@@ -3,6 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -13,6 +14,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 
@@ -56,11 +58,12 @@ function DistanceRequestStartPage({
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const {login} = useCurrentUserPersonalDetails();
 
     const [shouldHideManualAndOdometerTabs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (allPolicies) => {
-            const policies = Object.values(allPolicies ?? {}).filter((p) => !!p?.id && p.type !== CONST.POLICY.TYPE.PERSONAL);
-            return policies.length > 0 && policies.every((p) => !!p?.commuterExclusions);
+            const activeGroupPolicies = getActivePolicies(allPolicies ?? null, login).filter(isGroupPolicy);
+            return activeGroupPolicies.length > 0 && activeGroupPolicies.every((activePolicy) => !!activePolicy.commuterExclusions);
         },
     });
 
