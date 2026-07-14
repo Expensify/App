@@ -6056,6 +6056,7 @@ describe('actions/Policy', () => {
                 policyID,
                 invitedEmailsToAccountIDs: {[newMemberEmail]: newMemberAccountID},
                 currentUser: {accountID: ESH_ACCOUNT_ID},
+                reportActionsList: {},
                 doesPersonalDetailExistByAccountID: {[newMemberAccountID]: true},
             });
             expect(getSuccessValue(existsResult)).toHaveProperty(participantPath, {});
@@ -6065,6 +6066,7 @@ describe('actions/Policy', () => {
                 policyID,
                 invitedEmailsToAccountIDs: {[newMemberEmail]: newMemberAccountID},
                 currentUser: {accountID: ESH_ACCOUNT_ID},
+                reportActionsList: {},
                 doesPersonalDetailExistByAccountID: {[newMemberAccountID]: false},
             });
             expect(getSuccessValue(missingResult)).toHaveProperty(participantPath, null);
