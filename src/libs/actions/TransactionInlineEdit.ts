@@ -57,7 +57,6 @@ import type {ValueOf} from 'type-fest';
  */
 import Onyx from 'react-native-onyx';
 
-import {getPolicyTagsData} from './IOU';
 import {
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestCategory,
@@ -187,6 +186,7 @@ type GetIouParamsInput = {
     policyForTrackExpense?: OnyxEntry<Policy>;
     policyCategories: OnyxEntry<PolicyCategories>;
     policyTags: OnyxEntry<PolicyTagLists>;
+    reportPolicyTags: OnyxEntry<PolicyTagLists>;
     policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     parentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
@@ -217,6 +217,7 @@ function getIouParamsForTransaction({
     policyForTrackExpense,
     policyCategories,
     policyTags,
+    reportPolicyTags,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     parentReportNextStep,
@@ -287,6 +288,7 @@ function getIouParamsForTransaction({
         isTrackIntentUser,
         // delegateAccountID: will be threaded in PR 11; updateMoneyRequest* falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
         delegateAccountID: undefined,
+        reportPolicyTags,
         // Field-specific extras
         transaction,
         policyTagList: policyTags,
@@ -308,7 +310,6 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
         transactionViolations: allTransactionViolations,
         isOffline: params.isOffline,
         hash: params.hash,
-        reportPolicyTags: getPolicyTagsData(iouParams.parentReport?.policyID),
         distanceOriginalPolicy: params.distanceOriginalPolicy,
         personalPolicyOutputCurrency,
     });
