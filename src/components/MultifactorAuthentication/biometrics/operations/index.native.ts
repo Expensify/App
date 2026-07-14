@@ -1,5 +1,3 @@
-import VALUES from '@libs/MultifactorAuthentication/VALUES';
-
 import CONST from '@src/CONST';
 
 import {isSensorAvailable} from '@sbaiahmed1/react-native-biometrics';
@@ -15,7 +13,7 @@ import {isSensorAvailable} from '@sbaiahmed1/react-native-biometrics';
 const deviceVerificationType = CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM;
 
 /** The failure reason to report when this platform cannot run the verification method. */
-const deviceCheckFailureReason = VALUES.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED;
+const deviceCheckFailureReason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED;
 
 /** Resolves to whether this device has an enrolled, secured biometric sensor. */
 async function doesDeviceSupportAuthenticationMethod(): Promise<boolean> {

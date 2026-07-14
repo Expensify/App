@@ -1,5 +1,4 @@
 import {isWebAuthnSupported} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
-import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 import CONST from '@src/CONST';
 
@@ -14,7 +13,7 @@ import CONST from '@src/CONST';
 const deviceVerificationType = CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS;
 
 /** The failure reason to report when this platform cannot run the verification method. */
-const deviceCheckFailureReason = VALUES.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED;
+const deviceCheckFailureReason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED;
 
 /** Resolves to whether this browser can perform the passkey ceremony. */
 async function doesDeviceSupportAuthenticationMethod(): Promise<boolean> {
