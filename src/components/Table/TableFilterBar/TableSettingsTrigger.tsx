@@ -27,11 +27,13 @@ export default function TableSettingsTrigger() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Gear']);
-    const {columns, shouldUseNarrowTableLayout} = useTableContext();
+    const {columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn} = useTableContext();
 
     const hasSortableColumns = columns.some((column) => column.sortable);
+    // On narrow layouts, tables with a narrowLayoutSortColumn ignore user sorting entirely, so a sort control would be a no-op.
+    const isSortingLockedByLayout = shouldUseNarrowTableLayout && !!narrowLayoutSortColumn;
 
-    if (!hasSortableColumns) {
+    if (!hasSortableColumns || isSortingLockedByLayout) {
         return null;
     }
 

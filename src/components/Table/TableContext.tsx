@@ -50,6 +50,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** The column the table is initially sorted by, used as the reset target for sort controls. */
     initialSortColumn: ColumnKey | undefined;
 
+    /** The column sorting is locked to on narrow layouts, where user sorting is ignored. */
+    narrowLayoutSortColumn: ColumnKey | undefined;
+
     /** Currently active search string. */
     activeSearchString: string;
 
@@ -83,6 +86,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
         order: 'asc',
     },
     initialSortColumn: undefined,
+    narrowLayoutSortColumn: undefined,
     activeSearchString: '',
     tableMethods: {} as TableMethods<string, string>,
     filterConfig: undefined,

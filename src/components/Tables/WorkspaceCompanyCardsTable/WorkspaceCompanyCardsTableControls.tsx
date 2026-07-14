@@ -3,7 +3,6 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Table from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
-import TableSettingsTrigger from '@components/Table/TableFilterBar/TableSettingsTrigger';
 
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -171,11 +170,7 @@ function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountI
     };
 
     if (selectedCards.length === 0) {
-        return (
-            <Table.FilterBar label={translate('workspace.companyCards.findCompanyCard')}>
-                <TableSettingsTrigger />
-            </Table.FilterBar>
-        );
+        return <Table.FilterBar label={translate('workspace.companyCards.findCompanyCard')} />;
     }
 
     return (

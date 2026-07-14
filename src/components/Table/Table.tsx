@@ -256,6 +256,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         activeFilters: currentFilters,
         activeSorting,
         initialSortColumn,
+        narrowLayoutSortColumn,
         activeSearchString,
         tableMethods,
         hasActiveFilters,

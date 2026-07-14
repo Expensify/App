@@ -24,6 +24,16 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+// FilterPopupButton (rendered by the filter bar triggers) imports useIsFocused from @react-navigation/core,
+// which needs a NavigationContainer unless mocked
+jest.mock('@react-navigation/core', () => {
+    const actualNavCore = jest.requireActual<typeof Navigation>('@react-navigation/core');
+    return {
+        ...actualNavCore,
+        useIsFocused: jest.fn(() => true),
+    };
+});
+
 // Mock useLocalize hook
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
