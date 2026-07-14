@@ -69,6 +69,19 @@ type ReportAttributesDerivedValue = {
      * The locale used to compute the report attributes.
      */
     locale: string | null;
+    /**
+     * Signatures of the policy fields the attributes depend on, keyed by policy Onyx key.
+     * Persisted so a fresh app session can tell real policy changes from the first post-startup merge.
+     */
+    policySignatures?: Record<string, string>;
+    /**
+     * The conciergeReportID used to compute the report attributes.
+     */
+    conciergeReportID?: string | null;
+    /**
+     * Whether the user was a track-intent user when the attributes were computed.
+     */
+    isTrackIntentUser?: boolean;
 };
 
 /**

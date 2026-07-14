@@ -33,7 +33,6 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 // The name-related fields we saw for each account last time, so we can spot which accounts changed.
 let previousDisplayNames: Record<string, string> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
-let previousPolicies: OnyxCollection<Policy>;
 
 const RECOMPUTE_ALL = 'all' as const;
 
@@ -50,22 +49,12 @@ const prepareReportKeys = (keys: string[]) => {
     ];
 };
 
-const hasPolicyRelevantFieldChanged = (prev: Policy | null | undefined, next: Policy | null | undefined): boolean => {
-    if (!prev && !next) {
-        return false;
-    }
-    if (!prev || !next) {
-        return true;
-    }
-    return (
-        prev.type !== next.type ||
-        prev.approvalMode !== next.approvalMode ||
-        prev.reimbursementChoice !== next.reimbursementChoice ||
-        prev.autoReimbursementLimit !== next.autoReimbursementLimit ||
-        prev.role !== next.role ||
-        prev.autoReimbursement?.limit !== next.autoReimbursement?.limit
-    );
-};
+// A short string built from the policy fields the report attributes depend on. Signatures are stored in
+// the derived value (like `locale`), so the change-detection baseline survives app restarts.
+const policyRelevantSignature = (policy: Policy | null | undefined): string | null =>
+    policy ? JSON.stringify([policy.type, policy.approvalMode, policy.reimbursementChoice, policy.autoReimbursementLimit, policy.role, policy.autoReimbursement?.limit]) : null;
+
+const hasPolicyRelevantFieldChanged = (prev: Policy | null | undefined, next: Policy | null | undefined): boolean => policyRelevantSignature(prev) !== policyRelevantSignature(next);
 
 // A short string built from the fields a report name can come from: displayName and firstName.
 const displayNameSignature = (details: PersonalDetails | null): string => JSON.stringify([details?.displayName ?? '', details?.firstName ?? '']);
@@ -250,25 +239,50 @@ export default createOnyxDerivedValueConfig({
             seedDisplayNamesBaseline(personalDetails);
         }
 
+        const nextIsTrackIntentUser = isTrackIntentUserSelector(introSelected);
+        // conciergeReportID and introSelected are re-delivered on every OpenApp/reconnect merge, so a full
+        // recompute happens only when the value differs from the one the attributes were computed with.
+        // A missing stored value (attributes written by an older app version) seeds the baseline instead.
+        const storedConciergeReportID = currentValue && 'conciergeReportID' in currentValue ? (currentValue.conciergeReportID ?? null) : undefined;
+        const storedIsTrackIntentUser = currentValue && 'isTrackIntentUser' in currentValue ? currentValue.isTrackIntentUser : undefined;
+        const hasConciergeReportIDChanged =
+            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues) && storedConciergeReportID !== undefined && storedConciergeReportID !== (conciergeReportID ?? null);
+        const hasIsTrackIntentUserChanged =
+            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, sourceValues) && storedIsTrackIntentUser !== undefined && storedIsTrackIntentUser !== nextIsTrackIntentUser;
+
         // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
         // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
         // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
         const needsFullRecompute =
             (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) ||
             displayNameChanges === RECOMPUTE_ALL ||
-            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues) ||
-            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, sourceValues);
+            hasConciergeReportIDChanged ||
+            hasIsTrackIntentUserChanged;
 
+        // Policy change detection compares signatures stored in the derived value, so the baseline survives
+        // app restarts. Without a stored baseline (value written by an older app version) the first policy
+        // delivery only seeds the signatures — the stored attributes already reflect these policies.
+        const storedPolicySignatures = currentValue?.policySignatures;
+        let nextPolicySignatures = storedPolicySignatures;
         const policyChangedReportKeys: string[] = [];
-        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
-            if (!needsFullRecompute) {
+        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues) || (!storedPolicySignatures && policies)) {
+            if (!needsFullRecompute && storedPolicySignatures && hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
                 const changedPolicyIDs = new Set<string>();
+                const updatedSignatures = {...storedPolicySignatures};
                 for (const key of Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {})) {
-                    if (hasPolicyRelevantFieldChanged(previousPolicies?.[key], policies?.[key])) {
-                        changedPolicyIDs.add(key.replace(ONYXKEYS.COLLECTION.POLICY, ''));
+                    const signature = policyRelevantSignature(policies?.[key]);
+                    if ((storedPolicySignatures[key] ?? null) === signature) {
+                        continue;
+                    }
+                    changedPolicyIDs.add(key.replace(ONYXKEYS.COLLECTION.POLICY, ''));
+                    if (signature === null) {
+                        delete updatedSignatures[key];
+                    } else {
+                        updatedSignatures[key] = signature;
                     }
                 }
                 if (changedPolicyIDs.size > 0) {
+                    nextPolicySignatures = updatedSignatures;
                     for (const [reportKey, report] of Object.entries(reports ?? {})) {
                         if (!report) {
                             continue;
@@ -289,9 +303,31 @@ export default createOnyxDerivedValueConfig({
                         }
                     }
                 }
+            } else {
+                const signatures: Record<string, string> = {};
+                for (const [key, policy] of Object.entries(policies ?? {})) {
+                    const signature = policyRelevantSignature(policy);
+                    if (signature !== null) {
+                        signatures[key] = signature;
+                    }
+                }
+                nextPolicySignatures = signatures;
             }
-            previousPolicies = policies;
         }
+
+        // One-time baseline writes (policy signatures / concierge / intro seeds) must persist even when this
+        // pass otherwise returns the current value unchanged.
+        const metaPatch: Partial<ReportAttributesDerivedValue> = {};
+        if (nextPolicySignatures !== storedPolicySignatures) {
+            metaPatch.policySignatures = nextPolicySignatures;
+        }
+        if (storedConciergeReportID !== (conciergeReportID ?? null)) {
+            metaPatch.conciergeReportID = conciergeReportID ?? null;
+        }
+        if (storedIsTrackIntentUser !== nextIsTrackIntentUser) {
+            metaPatch.isTrackIntentUser = nextIsTrackIntentUser;
+        }
+        const withMetaPatch = (value: ReportAttributesDerivedValue): ReportAttributesDerivedValue => (Object.keys(metaPatch).length > 0 ? {...value, ...metaPatch} : value);
 
         // Use incremental updates when currentValue is already populated and no full recompute is required.
         // If currentValue has no reports (fresh install or cleared storage), fall back to a full scan.
@@ -299,7 +335,7 @@ export default createOnyxDerivedValueConfig({
 
         // if we already computed the report attributes and there is no new reports data, return the current value
         if ((useIncrementalUpdates && !sourceValues) || !reports) {
-            return currentValue ?? {reports: {}, locale: null};
+            return withMetaPatch(currentValue ?? {reports: {}, locale: null});
         }
 
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT] ?? {};
@@ -424,7 +460,7 @@ export default createOnyxDerivedValueConfig({
                 }
             } else {
                 // No updates to process, return current value to prevent unnecessary computation
-                return currentValue ?? {reports: {}, locale: null};
+                return withMetaPatch(currentValue ?? {reports: {}, locale: null});
             }
         }
 
@@ -529,7 +565,7 @@ export default createOnyxDerivedValueConfig({
                               allPolicyTags: policyTags,
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
-                              isTrackIntentUser: isTrackIntentUserSelector(introSelected),
+                              isTrackIntentUser: nextIsTrackIntentUser,
                           })
                         : '',
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
@@ -604,8 +640,11 @@ export default createOnyxDerivedValueConfig({
         return {
             reports: reportAttributes,
             locale: preferredLocale ?? null,
+            policySignatures: nextPolicySignatures,
+            conciergeReportID: conciergeReportID ?? null,
+            isTrackIntentUser: nextIsTrackIntentUser,
         };
     },
 });
 
-export {hasPolicyRelevantFieldChanged};
+export {hasPolicyRelevantFieldChanged, policyRelevantSignature};

@@ -2211,6 +2211,7 @@ const CONST = {
             APP_OPEN: 'NavigationAppOpen',
         },
         // Attribute names
+        ATTRIBUTE_DERIVED_TRIGGER: 'derived_trigger',
         ATTRIBUTE_IOU_TYPE: 'iou_type',
         ATTRIBUTE_IS_ONE_TRANSACTION_REPORT: 'is_one_transaction_report',
         ATTRIBUTE_IS_TRANSACTION_THREAD: 'is_transaction_thread',

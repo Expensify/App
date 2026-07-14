@@ -1,5 +1,5 @@
 import type reportAttributesModuleDefault from '@userActions/OnyxDerived/configs/reportAttributes';
-import {hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/reportAttributes';
+import {hasPolicyRelevantFieldChanged, policyRelevantSignature} from '@userActions/OnyxDerived/configs/reportAttributes';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -160,6 +160,9 @@ describe('reportAttributes compute — policy change code flow', () => {
         [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: policy2,
     };
 
+    // policyRelevantSignature returns null only for a missing policy, so tests can rely on a string.
+    const signatureOf = (policy: Policy): string => policyRelevantSignature(policy) ?? '';
+
     beforeEach(() => {
         jest.resetModules();
 
@@ -192,9 +195,10 @@ describe('reportAttributes compute — policy change code flow', () => {
         expect(result?.reports).toHaveProperty('r2');
     });
 
-    it('scopes the first policy load to reports referencing the loaded policies when currentValue is already populated', () => {
-        // Reproduces the ReconnectApp-after-open case: attributes were already computed, then ~1k policies
-        // land. Only reports whose policy actually arrived should recompute — not every report.
+    it('seeds policy signatures without recomputing when the stored value has no baseline', () => {
+        // Reproduces the first policy delivery after startup on a value written by an older app version:
+        // the stored attributes already reflect these policies, so nothing recomputes — the pass only
+        // records the signatures so later deliveries can be diffed.
         const report3: Report = {...createRandomReport(12, undefined), reportID: 'r3', policyID: 'policyOther', chatReportID: undefined};
         const reportsWithUnrelated: OnyxCollection<Report> = {
             ...reports,
@@ -215,11 +219,52 @@ describe('reportAttributes compute — policy change code flow', () => {
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
         });
 
-        // r1/r2 reference the loaded policies → recomputed (default mock name).
+        expect(result?.reports.r1?.reportName).toBe('Old Name 1');
+        expect(result?.reports.r2?.reportName).toBe('Old Name 2');
+        expect(result?.reports.r3?.reportName).toBe('Old Name 3');
+        expect(result?.policySignatures).toEqual({
+            [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policyRelevantSignature(policy1),
+            [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: policyRelevantSignature(policy2),
+        });
+    });
+
+    it('scopes a policy delivery to reports whose stored signature differs when currentValue is already populated', () => {
+        // Reproduces the ReconnectApp-after-restart case: attributes and signatures were persisted, then
+        // ~1k policies land and some actually changed. Only reports whose policy signature differs should
+        // recompute — not every report.
+        const report3: Report = {...createRandomReport(12, undefined), reportID: 'r3', policyID: 'policyOther', chatReportID: undefined};
+        const reportsWithUnrelated: OnyxCollection<Report> = {
+            ...reports,
+            [`${ONYXKEYS.COLLECTION.REPORT}r3`]: report3,
+        };
+
+        const stalePolicy1: Policy = {...policy1, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL};
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                r1: {reportName: 'Old Name 1', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                r2: {reportName: 'Old Name 2', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                r3: {reportName: 'Old Name 3', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+            policySignatures: {
+                [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: signatureOf(stalePolicy1),
+                [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: signatureOf(policy2),
+            },
+        };
+
+        const result = config.compute(buildArgs(policies, reportsWithUnrelated), {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
+        });
+
+        // r1's policy signature differs from the stored one → recomputed (default mock name).
         expect(result?.reports.r1?.reportName).toBe('Test Report');
-        expect(result?.reports.r2?.reportName).toBe('Test Report');
+        // r2's policy matches its stored signature → keeps its existing value.
+        expect(result?.reports.r2?.reportName).toBe('Old Name 2');
         // r3 references a policy that did not load → keeps its existing value (not recomputed).
         expect(result?.reports.r3?.reportName).toBe('Old Name 3');
+        // The changed policy's signature is refreshed in the stored baseline.
+        expect(result?.policySignatures?.[`${ONYXKEYS.COLLECTION.POLICY}policy1`]).toBe(policyRelevantSignature(policy1));
     });
 
     it('recomputes a child invoice report when only its receiver workspace policy loads', () => {
@@ -243,18 +288,16 @@ describe('reportAttributes compute — policy change code flow', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}invoiceChild`]: invoiceChild,
         };
 
-        // Seed previousPolicies with just the sender policy, as if it arrived in an earlier batch.
-        config.compute(buildArgs({[`${ONYXKEYS.COLLECTION.POLICY}senderPolicy`]: senderPolicy}, invoiceReports), {
-            currentValue: undefined,
-            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}senderPolicy`]: senderPolicy}},
-        });
-
+        // The stored baseline knows only the sender policy, as if it arrived in an earlier batch.
         const existingValue: ReportAttributesDerivedValue = {
             reports: {
                 invoiceRoom: {reportName: 'Old Room', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
                 invoiceChild: {reportName: 'Old Child', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
             },
             locale: null,
+            policySignatures: {
+                [`${ONYXKEYS.COLLECTION.POLICY}senderPolicy`]: signatureOf(senderPolicy),
+            },
         };
 
         // The receiver policy now arrives in its own batch.
@@ -273,12 +316,6 @@ describe('reportAttributes compute — policy change code flow', () => {
     });
 
     it('only recomputes reports for the changed policy when a tracked field changes', () => {
-        // Seed previousPolicies by doing an initial compute
-        config.compute(buildArgs(), {
-            currentValue: undefined,
-            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies as never},
-        });
-
         const policy1Changed = {...policy1, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL} as unknown as Policy;
         const updatedPolicies: OnyxCollection<Policy> = {
             ...policies,
@@ -291,6 +328,10 @@ describe('reportAttributes compute — policy change code flow', () => {
                 r2: {reportName: 'Old Name 2', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
             },
             locale: null,
+            policySignatures: {
+                [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: signatureOf(policy1),
+                [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: signatureOf(policy2),
+            },
         };
 
         const computeReportNameMock = (jest.requireMock('@libs/ReportNameUtils') as unknown as {computeReportName: jest.Mock}).computeReportName;
@@ -308,12 +349,6 @@ describe('reportAttributes compute — policy change code flow', () => {
     });
 
     it('skips recompute when a non-tracked policy field changes', () => {
-        // Seed previousPolicies
-        config.compute(buildArgs(), {
-            currentValue: undefined,
-            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies as never},
-        });
-
         const policy1WithNameChange = {...policy1, name: 'New Policy Name'} as unknown as Policy;
         const updatedPolicies: OnyxCollection<Policy> = {
             ...policies,
@@ -326,6 +361,12 @@ describe('reportAttributes compute — policy change code flow', () => {
                 r2: {reportName: 'Existing r2', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
             },
             locale: null,
+            policySignatures: {
+                [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: signatureOf(policy1),
+                [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: signatureOf(policy2),
+            },
+            conciergeReportID: null,
+            isTrackIntentUser: false,
         };
 
         const result = config.compute(buildArgs(updatedPolicies), {
