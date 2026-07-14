@@ -1,3 +1,11 @@
+import useTodoSearchResults from '@hooks/useTodoSearchResults';
+
+import {isTodoSearch} from '@libs/SearchUIUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
+
 import React, {useState} from 'react';
 // This provider is the source of the snapshot data that `@hooks/useOnyx` later routes consumers onto,
 // so going through that wrapper here would be self-referential. The wrapper also short-circuits its own
@@ -5,14 +13,11 @@ import React, {useState} from 'react';
 // so it would add nothing for this read. Use the raw react-native-onyx hook directly.
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
-import useTodoSearchResults from '@hooks/useTodoSearchResults';
-import {isTodoSearch} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
+
+import type {SearchResultsActionsValue, SearchResultsContextValue} from './types';
+
 import {useSearchQueryContext} from './SearchContext';
 import {SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
-import type {SearchResultsActionsValue, SearchResultsContextValue} from './types';
 
 type SearchResultsProviderProps = {
     children: React.ReactNode;
@@ -22,8 +27,8 @@ type SearchResultsProviderProps = {
 // Used for to-do searches where we build SearchResults from live Onyx data instead of API snapshots
 const defaultSearchInfo: SearchResultsInfo = {
     offset: 0,
+    hash: 0,
     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     hasMoreResults: false,
     hasResults: true,
     isLoading: false,

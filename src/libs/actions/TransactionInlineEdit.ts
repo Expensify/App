@@ -1,12 +1,3 @@
-/**
- * Actions for inline editing of transactions from the Search results table and the Expense Report page.
- *
- * Each function delegates to the corresponding IOU action which owns the canonical Onyx record,
- * the API write, failure rollback, and snapshot updates (when a hash is provided).
- */
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
@@ -36,6 +27,7 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -55,6 +47,18 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+/**
+ * Actions for inline editing of transactions from the Search results table and the Expense Report page.
+ *
+ * Each function delegates to the corresponding IOU action which owns the canonical Onyx record,
+ * the API write, failure rollback, and snapshot updates (when a hash is provided).
+ */
+import Onyx from 'react-native-onyx';
+
 import {
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestCategory,
@@ -163,6 +167,8 @@ type TransactionEditPermissionsParams = {
     transactionThreadNVP?: OnyxEntry<ReportNameValuePairs>;
 
     chatReportNVP?: OnyxEntry<ReportNameValuePairs>;
+
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
 
     originalTransaction?: OnyxEntry<Transaction>;
 
@@ -291,7 +297,7 @@ function getIouParamsForTransaction({
 }
 
 /** Updates the date of an expense from the Search results table or the Expense Report page. */
-function editTransactionDateInline(params: TransactionInlineEditParams, newDate: string) {
+function editTransactionDateInline(params: TransactionInlineEditParams, newDate: string, personalPolicyOutputCurrency: string | undefined) {
     const iouParams = getIouParamsForTransaction(params);
     updateMoneyRequestDate({
         ...iouParams,
@@ -303,6 +309,7 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
         isOffline: params.isOffline,
         hash: params.hash,
         distanceOriginalPolicy: params.distanceOriginalPolicy,
+        personalPolicyOutputCurrency,
     });
 }
 
@@ -406,6 +413,7 @@ function getTransactionEditPermissions({
     policyTags,
     transactionThreadNVP,
     chatReportNVP,
+    reportNameValuePairs,
     originalTransaction,
     disabled,
     shouldSelectPolicyForUnreported,
@@ -500,6 +508,7 @@ function getTransactionEditPermissions({
                 reportAction: parentReportAction,
                 fieldToEdit: field,
                 isChatReportArchived,
+                reportNameValuePairs,
                 transaction,
                 report: parentReport,
                 policy,

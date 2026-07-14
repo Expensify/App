@@ -1,10 +1,10 @@
+import ONYXKEYS from '@src/ONYXKEYS';
+
 // eslint-disable-next-line no-restricted-imports
 import {ExpensiMark} from 'expensify-common';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import Log from './Log';
 
-const accountIDToNameMap: Record<string, string> = {};
+import Log from './Log';
 
 let reportIDToNameMap: Record<string, string> = {};
 Onyx.connect({
@@ -27,9 +27,12 @@ Onyx.connect({
     },
 });
 
+let accountIDToNameMap: Record<string, string> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (personalDetailsList) => {
+        // Clear the map so removed personal detail don’t linger
+        accountIDToNameMap = {};
         for (const personalDetails of Object.values(personalDetailsList ?? {})) {
             if (!personalDetails) {
                 continue;

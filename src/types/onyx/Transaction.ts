@@ -1,13 +1,16 @@
-import type {KeysOfUnion, ValueOf} from 'type-fest';
 import type {RequestMoneyInformation} from '@libs/actions/IOU/MoneyRequestBuilder';
 import type {ReplaceReceipt} from '@libs/actions/IOU/Receipt';
 import type {StartSplitBilActionParams} from '@libs/actions/IOU/Split';
 import type {CreateTrackExpenseParams} from '@libs/actions/IOU/TrackExpense';
+
 import type {IOURequestType} from '@src/CONST';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {KeysOfUnion, ValueOf} from 'type-fest';
+
 import type {Accountant, Attendee, Participant, Split, SplitExpense} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type {Unit} from './Policy';
@@ -260,6 +263,9 @@ type Receipt = {
 
     /** Local thumbnail URI for fast preview on confirmation page */
     thumbnail?: string;
+
+    /** Correlation id created at capture, used to follow this receipt from capture to upload in the logs. */
+    receiptTraceId?: string;
 };
 
 /** Model of route */
@@ -667,6 +673,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The display name of the purchaser card, if any */
         cardName?: string;
+
+        /** The Expensify Card program the card belongs to (e.g. `TRAVEL_US`), used to derive the travel icon without needing the card in the viewer's own list */
+        feedCountry?: string;
 
         /** The masked PAN of the purchaser card, if any */
         cardNumber?: string;

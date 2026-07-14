@@ -1,6 +1,3 @@
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
@@ -37,11 +34,18 @@ import {
     isSplitChildTransaction,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
+
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import {getUpdatedMoneyRequestReportData} from './MoneyRequestBuilder';
 
 function removeUnchangedBulkEditFields(
@@ -89,10 +93,12 @@ type UpdateMultipleMoneyRequestsParams = {
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     hash?: number;
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
     delegateAccountID: number | undefined;
+    personalPolicyOutputCurrency?: string;
     personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
@@ -106,14 +112,25 @@ function updateMultipleMoneyRequests({
     policyCategories,
     policyTags,
     violations,
+    reportNameValuePairs,
     hash,
     allPolicies,
     currentUserAccountID,
     delegateAccountID,
+    personalPolicyOutputCurrency,
     personalDetailsList,
 }: UpdateMultipleMoneyRequestsParams) {
-    // Track running totals per report so multiple edits in the same report compound correctly.
+    // Per-report running state so iterations in the same report see earlier edits (totals, transactions, snapshot).
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
+    const optimisticTransactionsByReportID: Record<string, Record<string, OnyxTypes.Transaction>> = {};
+    const callerTransactionsByReportID: Record<string, Record<string, OnyxTypes.Transaction>> = {};
+    for (const txn of Object.values(transactions ?? {})) {
+        if (!txn?.reportID || !txn.transactionID) {
+            continue;
+        }
+        (callerTransactionsByReportID[txn.reportID] ??= {})[txn.transactionID] = txn;
+    }
+
     for (const transactionID of transactionIDs) {
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
@@ -179,7 +196,7 @@ function updateMultipleMoneyRequests({
                 return true;
             }
 
-            return canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report: iouReport, policy: transactionPolicy});
+            return canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report: iouReport, policy: transactionPolicy, reportNameValuePairs});
         };
 
         let transactionChanges: TransactionChanges = {};
@@ -346,6 +363,7 @@ function updateMultipleMoneyRequests({
             transactionChanges,
             isFromExpenseReport,
             policy: transactionPolicy,
+            personalPolicyOutputCurrency,
         });
         const isTransactionOnHold = isOnHold(transaction);
 
@@ -463,6 +481,12 @@ function updateMultipleMoneyRequests({
             updatedTransaction,
         );
 
+        const reportIDForTracking = iouReport?.reportID;
+        const priorOptimisticTransactions = reportIDForTracking ? (optimisticTransactionsByReportID[reportIDForTracking] ?? {}) : {};
+        const callerTransactionsForReport = reportIDForTracking ? (callerTransactionsByReportID[reportIDForTracking] ?? {}) : {};
+        // Caller (snapshot) base + prior-iteration overrides on ID collision.
+        const additionalTransactionsForFormula = {...callerTransactionsForReport, ...priorOptimisticTransactions};
+
         const {updatedMoneyRequestReport, isTotalIndeterminate} = getUpdatedMoneyRequestReportData(
             baseIouReport,
             updatedTransaction,
@@ -471,11 +495,25 @@ function updateMultipleMoneyRequests({
             transactionPolicy,
             optimisticReportAction?.actorAccountID,
             transactionChanges,
+            additionalTransactionsForFormula,
         );
+
+        if (reportIDForTracking && updatedTransaction?.transactionID) {
+            optimisticTransactionsByReportID[reportIDForTracking] = {
+                ...priorOptimisticTransactions,
+                [updatedTransaction.transactionID]: updatedTransaction,
+            };
+        }
 
         if (updatedMoneyRequestReport) {
             if (updatedMoneyRequestReport.reportID) {
-                optimisticReportsByID[updatedMoneyRequestReport.reportID] = updatedMoneyRequestReport;
+                // Stamp the pending-total marker so later iterations on this report see the sticky-indeterminate state.
+                optimisticReportsByID[updatedMoneyRequestReport.reportID] = isTotalIndeterminate
+                    ? {
+                          ...updatedMoneyRequestReport,
+                          pendingFields: {...updatedMoneyRequestReport.pendingFields, total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                      }
+                    : updatedMoneyRequestReport;
             }
             optimisticData.push(
                 {
@@ -492,12 +530,12 @@ function updateMultipleMoneyRequests({
             successData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                value: {pendingAction: null, ...(isTotalIndeterminate && {pendingFields: {total: null}})},
+                value: {pendingAction: null, ...(isTotalIndeterminate && {pendingFields: {total: iouReport?.pendingFields?.total ?? null}})},
             });
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                value: {...iouReport, ...(isTotalIndeterminate && {pendingFields: {total: null}})},
+                value: {...iouReport, ...(isTotalIndeterminate && {pendingFields: {total: iouReport?.pendingFields?.total ?? null}})},
             });
         }
 

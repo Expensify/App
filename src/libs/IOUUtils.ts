@@ -1,12 +1,15 @@
-import {SafeString} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {SafeString} from 'expensify-common';
+
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isGroupPolicy} from './PolicyUtils';
@@ -227,16 +230,23 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     // Let us ensure a valid value before updating the total amount.
     iouReportUpdate.total = iouReportUpdate.total ?? 0;
     iouReportUpdate.unheldTotal = iouReportUpdate.unheldTotal ?? 0;
+    // IOU reports have no non-reimbursable transactions, so reimbursableTotal mirrors total optimistically.
+    iouReportUpdate.reimbursableTotal = iouReportUpdate.reimbursableTotal ?? iouReportUpdate.total;
+    iouReportUpdate.unheldReimbursableTotal = iouReportUpdate.unheldReimbursableTotal ?? iouReportUpdate.unheldTotal;
 
     if (actorAccountID === iouReport.ownerAccountID) {
         iouReportUpdate.total += isDeleting ? -amount : amount;
+        iouReportUpdate.reimbursableTotal += isDeleting ? -amount : amount;
         if (!isOnHold) {
             iouReportUpdate.unheldTotal += isDeleting ? -unHeldAmount : unHeldAmount;
+            iouReportUpdate.unheldReimbursableTotal += isDeleting ? -unHeldAmount : unHeldAmount;
         }
     } else {
         iouReportUpdate.total += isDeleting ? amount : -amount;
+        iouReportUpdate.reimbursableTotal += isDeleting ? amount : -amount;
         if (!isOnHold) {
             iouReportUpdate.unheldTotal += isDeleting ? unHeldAmount : -unHeldAmount;
+            iouReportUpdate.unheldReimbursableTotal += isDeleting ? unHeldAmount : -unHeldAmount;
         }
     }
 
@@ -246,6 +256,8 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
         iouReportUpdate.managerID = iouReport.ownerAccountID;
         iouReportUpdate.total = -iouReportUpdate.total;
         iouReportUpdate.unheldTotal = -iouReportUpdate.unheldTotal;
+        iouReportUpdate.reimbursableTotal = -iouReportUpdate.reimbursableTotal;
+        iouReportUpdate.unheldReimbursableTotal = -iouReportUpdate.unheldReimbursableTotal;
     }
 
     return iouReportUpdate;
@@ -529,6 +541,33 @@ function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?
 }
 
 /**
+ * A participant points at the current user's self-DM when it carries the self-DM flag, or — for flows that seed the
+ * raw account before the flag is set (e.g. the new manual expense flow, which skips the iouType -> TRACK conversion) —
+ * when it resolves to the current user. Workspace (policy expense chat) and sender (invoice) participants are excluded.
+ */
+function isSelfDMParticipant(participant: Participant | undefined, currentUserAccountID: number | undefined): boolean {
+    if (!participant || participant.isSender || participant.isPolicyExpenseChat) {
+        return false;
+    }
+    return participant.isSelfDM === true || (!!currentUserAccountID && participant.accountID === currentUserAccountID);
+}
+
+/**
+ * An expense targets the current user's self-DM (and therefore must be tracked rather than requested) when it has a
+ * single selected participant that resolves to the current user's self-DM. SPLIT/INVOICE/PAY are never self-DM
+ * destinations. This is the single source of truth shared by the confirmation step (to resolve the destination report)
+ * and the submission hook (to route through trackExpense), so both stay in sync.
+ */
+function isSelfDMSoleDestination(participants: Participant[], iouType: IOUType, currentUserAccountID: number | undefined): boolean {
+    if (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.INVOICE || iouType === CONST.IOU.TYPE.PAY) {
+        return false;
+    }
+    const selectedParticipants = participants.filter((participant) => participant.selected);
+    const soleSelectedParticipant = selectedParticipants.length === 1 ? selectedParticipants.at(0) : undefined;
+    return isSelfDMParticipant(soleSelectedParticipant, currentUserAccountID);
+}
+
+/**
  * Resolves the reportID that should be set on the transaction draft for
  * global-create flows with default participants. Returns undefined when
  * no early set is needed (non-global-create or empty participants).
@@ -563,6 +602,7 @@ export {
     getInitialPerDiemTargetReport,
     getIsWorkspacesOnlyForTransaction,
     isParticipantP2P,
+    isSelfDMSoleDestination,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
     resolveEarlyReportID,

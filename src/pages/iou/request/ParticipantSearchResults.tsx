@@ -1,8 +1,3 @@
-import lodashPick from 'lodash/pick';
-import React, {useContext, useEffect} from 'react';
-import type {Ref} from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import {RESULTS} from 'react-native-permissions';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -10,6 +5,7 @@ import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperS
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
+
 import useContactImport from '@hooks/useContactImport';
 import useContactPermissionModal from '@hooks/useContactPermissionModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -24,6 +20,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useUserToInviteReports from '@hooks/useUserToInviteReports';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
@@ -37,14 +34,24 @@ import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import {getInvoicePrimaryWorkspace} from '@userActions/Policy/Policy';
 import {searchUserInServer} from '@userActions/Report';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {Ref} from 'react';
+import type {GestureResponderEvent} from 'react-native';
+
+import lodashPick from 'lodash/pick';
+import React, {useContext, useEffect} from 'react';
+import {RESULTS} from 'react-native-permissions';
+
 import ImportContactButton from './ImportContactButton';
 import ParticipantSelectorFooter from './ParticipantSelectorFooter';
 
@@ -292,6 +299,7 @@ function ParticipantSearchResults({
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            translate,
             personalDetails,
             true,
             undefined,
@@ -299,15 +307,17 @@ function ParticipantSearchResults({
         );
         sections.push({...formatResults.section, sectionIndex: 0});
 
-        if ((availableOptions.workspaceChats ?? []).length > 0) {
+        const workspaceChats = (availableOptions.workspaceChats ?? []).filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option)));
+        if (workspaceChats.length > 0) {
             sections.push({
                 title: translate('workspace.common.workspace'),
-                data: (availableOptions.workspaceChats ?? []).filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option))),
+                data: workspaceChats,
                 sectionIndex: 1,
             });
         }
 
-        if (availableOptions.selfDMChat) {
+        // The self-DM is never a valid destination for the workspaces-only picker (e.g. "Submit to my employer"), so keep it out.
+        if (!isWorkspacesOnly && availableOptions.selfDMChat) {
             sections.push({
                 title: translate('workspace.invoices.paymentMethods.personal'),
                 data: availableOptions.selfDMChat ? [availableOptions.selfDMChat] : [],
@@ -357,7 +367,7 @@ function ParticipantSearchResults({
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
                         ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
-                        : getParticipantsOption(participant, personalDetails);
+                        : getParticipantsOption(participant, personalDetails, translate);
                 }),
                 sectionIndex: 5,
             });

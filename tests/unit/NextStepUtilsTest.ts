@@ -1,6 +1,7 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {
+    buildNextStepMessage,
     buildNextStepNew,
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
@@ -8,11 +9,18 @@ import {
     getReportNextStep,
 } from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
@@ -1131,7 +1139,7 @@ describe('libs/NextStepUtils', () => {
                 message: [{text: 'Current next step'}],
             };
 
-            const result = getReportNextStep(currentNextStep, report, [], undefined, {}, currentUserEmail, currentUserAccountID);
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID);
             expect(result).toBe(currentNextStep);
         });
 
@@ -1168,7 +1176,16 @@ describe('libs/NextStepUtils', () => {
                 ],
             };
 
-            const result = getReportNextStep(undefined, report, [transaction] as Array<OnyxEntry<Transaction>>, undefined, transactionViolations, currentUserEmail, currentUserAccountID);
+            const result = getReportNextStep(
+                undefined,
+                report,
+                currentUserEmail,
+                [transaction] as Array<OnyxEntry<Transaction>>,
+                undefined,
+                transactionViolations,
+                currentUserEmail,
+                currentUserAccountID,
+            );
 
             expect(result).toEqual({
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -1218,7 +1235,7 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(undefined, report, [], policy, {}, currentUserEmail, currentUserAccountID);
+            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID);
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
 
@@ -1279,7 +1296,16 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(undefined, report, [transaction] as Array<OnyxEntry<Transaction>>, policy, transactionViolations, currentUserEmail, currentUserAccountID);
+            const result = getReportNextStep(
+                undefined,
+                report,
+                currentUserEmail,
+                [transaction] as Array<OnyxEntry<Transaction>>,
+                policy,
+                transactionViolations,
+                currentUserEmail,
+                currentUserAccountID,
+            );
 
             expect(result).toEqual({
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
@@ -1316,7 +1342,7 @@ describe('libs/NextStepUtils', () => {
                 actorAccountID: currentUserAccountID,
             };
 
-            const result = getReportNextStep(currentNextStep, report, [], undefined, {}, currentUserEmail, currentUserAccountID, reportNextStep);
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, reportNextStep);
             expect(result).toBe(reportNextStep);
         });
 
@@ -1348,7 +1374,7 @@ describe('libs/NextStepUtils', () => {
                 actorAccountID: currentUserAccountID,
             };
 
-            const result = getReportNextStep(currentNextStep, report, [], undefined, {}, currentUserEmail, currentUserAccountID, reportNextStep);
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, reportNextStep);
             expect(result).toBe(currentNextStep);
         });
 
@@ -1401,8 +1427,36 @@ describe('libs/NextStepUtils', () => {
             await waitForBatchedUpdates();
 
             // Even though a translatable next step is supplied, the prevent-self-approval override must still win.
-            const result = getReportNextStep(undefined, report, [], policy, {}, currentUserEmail, currentUserAccountID, reportNextStep);
+            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, reportNextStep);
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
+        });
+    });
+
+    describe('buildNextStepMessage', () => {
+        it('resolves the actor name through the provided translate function', async () => {
+            const hiddenActorAccountID = 780070;
+            // The actor has no displayName/login, so its name resolves to the hidden label provided by translate.
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[hiddenActorAccountID]: {accountID: hiddenActorAccountID, login: '', displayName: ''}});
+            await waitForBatchedUpdates();
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: hiddenActorAccountID,
+            };
+            // The provided translate resolves the hidden actor label and renders the message body around the actor name.
+            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'common.hidden') {
+                    return 'HiddenMarker';
+                }
+                if (path === 'nextStep.message.waitingToSubmit') {
+                    return `Waiting for ${String(parameters.at(0))} to submit expenses.`;
+                }
+                return translateLocal(path, ...parameters);
+            };
+
+            // A currentUserAccountID different from the actor renders the actor as an OTHER_USER, so its name appears in the message.
+            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, 999999);
+            expect(message).toBe('<next-step>Waiting for HiddenMarker to submit expenses.</next-step>');
         });
     });
 });

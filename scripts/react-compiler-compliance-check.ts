@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env bun
 /**
  * React Compiler Compliance Check
  *
@@ -13,6 +13,7 @@ import {transformSync} from '@babel/core';
 import CLI from 'expensify-common/CLI';
 import fs from 'fs';
 import path from 'path';
+
 import FileUtils from './utils/FileUtils';
 import Git from './utils/Git';
 import {error as logError, errorDetail as logErrorDetail, info as logInfo, success as logSuccess, warn as logWarn} from './utils/Logger';

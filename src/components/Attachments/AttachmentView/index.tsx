@@ -1,10 +1,5 @@
-import {SafeString, Str} from 'expensify-common';
-import React, {memo, useEffect, useState} from 'react';
-import type {RotationDegrees} from 'react-fast-pdf';
-import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useAttachmentCarouselPagerActions} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import MultiGestureIcon from '@components/Attachments/MultiGestureIcon';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
@@ -15,6 +10,8 @@ import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
+
+import useCachedAttachmentSource from '@hooks/useCachedAttachmentSource';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -25,16 +22,29 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {add as addCachedPDFPaths} from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasEReceipt, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {RotationDegrees} from 'react-fast-pdf';
+import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {SafeString, Str} from 'expensify-common';
+import React, {memo, useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
@@ -160,7 +170,11 @@ function AttachmentView({
     const isInFocusedModal = firstRenderRoute.isFocused && isFocused === undefined;
 
     useEffect(() => {
-        if (!isFocused && !isInFocusedModal && !(file && isUsedInAttachmentModal)) {
+        // When isFocused is provided (carousel items), it alone decides whether this attachment owns
+        // the current URL, so unfocused pages never clobber it. The modal escape hatch only applies
+        // to usages that don't track focus (e.g. the single-attachment modal).
+        const shouldUpdateCurrentURL = isFocused ?? (isInFocusedModal || !!(file && isUsedInAttachmentModal));
+        if (!shouldUpdateCurrentURL) {
             return;
         }
         const videoSource = isVideo && typeof source === 'string' ? source : undefined;
@@ -168,6 +182,14 @@ function AttachmentView({
     }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID, report]);
 
     const [imageError, setImageError] = useState(false);
+
+    const cachedSource = useCachedAttachmentSource(attachmentID, typeof source === 'string' ? source : undefined);
+
+    const [prevCachedSource, setPrevCachedSource] = useState(cachedSource);
+    if (cachedSource !== prevCachedSource) {
+        setPrevCachedSource(cachedSource);
+        setImageError(false);
+    }
 
     const {isOffline} = useNetwork({onReconnect: () => setImageError(false)});
 
@@ -194,6 +216,17 @@ function AttachmentView({
             additionalStyles = [defaultWorkspaceAvatarColor];
         }
 
+        if (canUseTouchScreen()) {
+            return (
+                <MultiGestureIcon
+                    src={source}
+                    contentSize={{width: variables.defaultAvatarPreviewSize, height: variables.defaultAvatarPreviewSize}}
+                    fill={iconFillColor}
+                    additionalStyles={additionalStyles}
+                />
+            );
+        }
+
         return (
             <Icon
                 src={source}
@@ -201,7 +234,6 @@ function AttachmentView({
                 width={variables.defaultAvatarPreviewSize}
                 fill={iconFillColor}
                 additionalStyles={additionalStyles}
-                enableMultiGestureCanvas
             />
         );
     }
@@ -258,6 +290,7 @@ function AttachmentView({
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={onPDFLoadComplete}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
+                    isUsedInAttachmentModal={isUsedInAttachmentModal}
                     isUsedAsChatAttachment={isUsedAsChatAttachment}
                     onLoadError={onPDFLoadError}
                     rotation={rotation}
@@ -312,7 +345,7 @@ function AttachmentView({
             );
         }
 
-        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string);
+        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (cachedSource ?? (source as string));
 
         if (isHighResolution) {
             if (!isUploaded) {

@@ -1,7 +1,3 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -10,9 +6,12 @@ import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearDraftRule, saveExpenseRule, updateDraftRule} from '@libs/actions/User';
 import {getAvailableNonPersonalPolicyCategories, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
@@ -22,7 +21,9 @@ import Parser from '@libs/Parser';
 import {getAllTaxRatesNamesAndValues, getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,6 +31,12 @@ import type {ExpenseRuleForm, ExpenseRuleFormFieldID} from '@src/types/form/Expe
 import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
 import type {ExpenseRule, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 type RulePageBaseProps = {
     titleKey: TranslationPaths;
@@ -94,6 +101,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     // Cannot use useRef because react compiler fails
     const [isSaving, setIsSaving] = useState(false);
     const [shouldShowError, setShouldShowError] = useState(false);
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: isSaving});
     const styles = useThemeStyles();
 
     useEffect(() => () => clearDraftRule(), []);
@@ -137,12 +145,14 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
             return;
         }
 
-        setIsSaving(true);
+        startWithLoading(() => {
+            setIsSaving(true);
 
-        const newRule = extractRuleFromForm(form, selectedTaxRate);
-        saveExpenseRule(expenseRules, newRule, hash, getKeyForRule);
+            const newRule = extractRuleFromForm(form, selectedTaxRate);
+            saveExpenseRule(expenseRules, newRule, hash, getKeyForRule);
 
-        Navigation.goBack();
+            Navigation.goBack();
+        });
     };
 
     const sections: SectionType[] = [
@@ -277,6 +287,8 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     isAlertVisible={shouldShowError && !!errorMessage}
                     message={errorMessage}
                     onSubmit={handleSubmit}
+                    isLoading={isLoading}
+                    shouldShowLoadingImmediatelyOnPress={false}
                     enabledWhenOffline
                 />
             </ScreenWrapper>

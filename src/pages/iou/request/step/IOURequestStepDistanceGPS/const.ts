@@ -1,5 +1,6 @@
-import {Accuracy} from 'expo-location';
 import type {LocationTaskOptions} from 'expo-location';
+
+import {Accuracy} from 'expo-location';
 
 const GPS_DISTANCE_INTERVAL_METERS = 100;
 

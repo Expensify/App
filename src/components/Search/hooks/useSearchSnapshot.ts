@@ -1,7 +1,7 @@
-import {useMemo} from 'react';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Search/types';
+
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -11,15 +11,20 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
+
 import {selectFilteredReportActions} from '@libs/ReportUtils';
 import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getSections, getSortedSections, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import {useMemo} from 'react';
+
 import useOptimisticSearchTracking from './useOptimisticSearchTracking';
 import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
@@ -90,7 +95,7 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  * list-level meta and the optimistic-tracking carriers that `<Search>` consumes.
  */
 function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions}: UseSearchSnapshotParams): SearchSnapshotResult {
-    const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
+    const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -268,6 +273,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
                 cardFeeds,
                 conciergeReportID,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             });
             return {
                 ...item,
@@ -298,8 +304,8 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         if (!shouldComputeSections) {
             return EMPTY_DATA;
         }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
-        return getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
+        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
+        return getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
             policyCategories,
             policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
@@ -332,7 +338,6 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     }, [
         shouldComputeSections,
         type,
-        status,
         filteredData,
         localeCompare,
         translate,

@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
@@ -7,14 +5,20 @@ import type {TableData} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 import Tooltip from '@components/Tooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type SpendRuleTableItem = TableData & {
     ruleID: string;
@@ -78,7 +82,10 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                 disabled={isDeleting}
                 accessibilityLabel={accessibilityLabel}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                offlineWithFeedback={{pendingAction: item.pendingAction, shouldHideOnDelete: false}}
+                offlineWithFeedback={{
+                    pendingAction: item.pendingAction,
+                    shouldHideOnDelete: false,
+                }}
                 onPress={item.action}
                 checkboxReplacementElement={lockIcon}
             >
@@ -96,12 +103,14 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                                         isCondensed
                                     />
                                     <TextWithTooltip
+                                        shouldShowTooltip
                                         text={item.cardSummary}
                                         numberOfLines={1}
                                         style={[styles.optionDisplayName, styles.pre, styles.flexShrink1]}
                                     />
                                 </View>
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     text={item.ruleSummary}
                                     numberOfLines={1}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mt1]}
@@ -123,6 +132,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                                 </View>
                                 <View style={[styles.flex1]}>
                                     <TextWithTooltip
+                                        shouldShowTooltip
                                         numberOfLines={1}
                                         text={item.cardSummary}
                                         style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -130,6 +140,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                                 </View>
                                 <View style={[styles.flex1]}>
                                     <TextWithTooltip
+                                        shouldShowTooltip
                                         numberOfLines={1}
                                         text={item.ruleSummary}
                                         style={[styles.lh16, styles.optionDisplayName, styles.pre]}

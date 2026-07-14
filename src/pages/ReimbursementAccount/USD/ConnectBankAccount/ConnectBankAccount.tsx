@@ -1,26 +1,33 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
 import Navigation from '@navigation/Navigation';
+
 import ConnectedVerifiedBankAccount from '@pages/ReimbursementAccount/ConnectedVerifiedBankAccount';
+
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import BankAccountValidationForm from './components/BankAccountValidationForm';
 import FinishChatCard from './components/FinishChatCard';
 
@@ -47,6 +54,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -56,7 +64,8 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, true);
-    const bankAccountState = reimbursementAccount?.achData?.state ?? '';
+    const bankAccountConnectedToWorkspace = policyID ? Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount?.accountData?.policyIDs?.includes(policyID)) : undefined;
+    const bankAccountState = bankAccountConnectedToWorkspace?.accountData?.state ?? '';
     const pendingAction = reimbursementAccount?.pendingAction;
 
     // After a disconnect, wait for the reset API to finish before navigating to the entry point.
@@ -132,7 +141,8 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
             {!maxAttemptsReached && isBankAccountPending && (
                 <BankAccountValidationForm
                     requiresTwoFactorAuth={requiresTwoFactorAuth}
-                    reimbursementAccount={reimbursementAccount}
+                    policyID={policyID}
+                    bankAccountID={bankAccountConnectedToWorkspace?.accountData?.bankAccountID}
                     policy={policy}
                 />
             )}
