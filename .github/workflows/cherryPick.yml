@@ -212,7 +212,8 @@ jobs:
             git commit --amend -m "$(git log -1 --pretty=%B)" -m "(cherry-picked to ${{ inputs.TARGET }} by ${{ github.actor }})"
           else
             UNMERGED_FILES="$(git diff --name-only --diff-filter=U)"
-            if [[ -z "$UNMERGED_FILES" ]] && git rev-parse --quiet --verify CHERRY_PICK_HEAD > /dev/null; then
+            # A failed -S signing leaves CHERRY_PICK_HEAD with the picked changes still staged, so only a fully clean index and worktree means the pick was truly empty
+            if [[ -z "$UNMERGED_FILES" ]] && git rev-parse --quiet --verify CHERRY_PICK_HEAD > /dev/null && git diff --cached --quiet && git diff --quiet; then
               echo "✅ Cherry-pick resulted in an empty commit, the change is already on ${{ inputs.TARGET }}. Skipping it and continuing with the version bump."
               git cherry-pick --skip
               echo "HAS_CONFLICTS=false" >> "$GITHUB_OUTPUT"
@@ -238,7 +239,11 @@ jobs:
 
               # Update and commit the submodule reference in E/App
               git add Mobile-Expensify
-              git commit -m "Update Mobile-Expensify submodule to include cherry-picked PR #${{ steps.getPRInfo.outputs.PR_NUMBER }}"
+              if git diff --cached --quiet; then
+                echo "Submodule pointer unchanged, nothing to commit"
+              else
+                git commit -m "Update Mobile-Expensify submodule to include cherry-picked PR #${{ steps.getPRInfo.outputs.PR_NUMBER }}"
+              fi
             fi
 
             # Push E/App changes
