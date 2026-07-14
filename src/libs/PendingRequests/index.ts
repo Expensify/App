@@ -65,35 +65,20 @@ type PendingRequestSelectors = {
     ongoing: (request: OnyxEntry<AnyRequest>) => boolean;
 };
 
-/**
- * Caches a stable selector pair per group + scope key. `useOnyx` re-subscribes whenever the selector
- * reference changes, so the references must stay stable across renders. This is a plain module-level cache,
- * not React memoization.
- */
-const selectorCache = new Map<string, PendingRequestSelectors>();
-
-function getSelectors(group: PendingRequestGroup, scopeKey?: string | number): PendingRequestSelectors {
-    const cacheKey = `${group}:${scopeKey ?? ''}`;
-    const cachedSelectors = selectorCache.get(cacheKey);
-    if (cachedSelectors) {
-        return cachedSelectors;
-    }
-
+function buildSelectors(group: PendingRequestGroup, scopeKey?: string | number): PendingRequestSelectors {
     const config: PendingRequestGroupConfig = PENDING_REQUEST_GROUPS[group];
     const {commands, getScopeKey, ignoreOfflineInitiatedPersisted} = config;
     const matchesScope = (request: AnyRequest) => (getScopeKey ? getScopeKey(request) === scopeKey : true);
 
-    const selectors: PendingRequestSelectors = {
+    return {
         persisted: (requests) =>
             !!requests?.some((request) => commands.has(request.command) && matchesScope(request) && (ignoreOfflineInitiatedPersisted ? !request.initiatedOffline : true)),
         ongoing: (request) => !!request && commands.has(request.command) && matchesScope(request),
     };
-    selectorCache.set(cacheKey, selectors);
-    return selectors;
 }
 
 function useIsPendingInternal(group: PendingRequestGroup, scopeKey?: string | number): boolean {
-    const {persisted, ongoing} = getSelectors(group, scopeKey);
+    const {persisted, ongoing} = buildSelectors(group, scopeKey);
     const [hasPendingPersistedRequest] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: persisted});
     const [hasPendingOngoingRequest] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {selector: ongoing});
 
