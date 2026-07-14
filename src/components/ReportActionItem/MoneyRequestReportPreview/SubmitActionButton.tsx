@@ -124,6 +124,7 @@ function SubmitActionButtonContent() {
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
                 submitterLogin,
+                isTrackIntentUser,
             });
         });
     };
