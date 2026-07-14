@@ -6517,6 +6517,13 @@ const CONST = {
             TRIP: 'trip',
             CHAT: 'chat',
         },
+        // Terminal lifecycle state of a search snapshot's most recent request. Written by the search action lifecycle
+        // (loading on request start, loaded/error on resolve) so the snapshot always has an explicit, mutually exclusive state.
+        SNAPSHOT_STATE: {
+            LOADING: 'loading',
+            LOADED: 'loaded',
+            ERROR: 'error',
+        },
         ACTION_FILTERS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',

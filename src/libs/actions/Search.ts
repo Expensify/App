@@ -663,6 +663,13 @@ function getOnyxLoadingData(
     shouldCalculateTotals?: boolean,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> {
     const shouldClearTotals = isSearchAPI && shouldCalculateTotals === false && offset === 0;
+
+    // `search.state` tracks the lifecycle of a real search request (identified by its queryJSON): it starts as
+    // `loading` optimistically and is resolved to `loaded`/`error` by successData/failureData. handlePreventSearchAPI
+    // reuses this helper as a UI-only loading toggle with no query and no success/failure step, so it must stay out of
+    // the state machine — otherwise it would strand `state: loading` with no terminal write to clear it.
+    const isSearchRequest = isSearchAPI && !!queryJSON;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -670,6 +677,7 @@ function getOnyxLoadingData(
             value: {
                 search: {
                     ...(isSearchAPI && {isLoading: true}),
+                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}),
                     ...(offset !== undefined ? {offset} : {}),
                     ...(shouldClearTotals ? {count: null, total: null, currency: null} : {}),
                 },
@@ -684,6 +692,23 @@ function getOnyxLoadingData(
         },
     ];
 
+    // successData writes the terminal `loaded` state on any jsonCode 200 resolve. It also stamps type/status so a
+    // resolve that returns no snapshot data (the "dataless resolve" bug) still leaves the snapshot in a consistent,
+    // terminal state that the anti-stale isSearchDataLoaded check can resolve.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                search: {
+                    ...(isSearchRequest && {isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, status: queryJSON?.status, type: queryJSON?.type}),
+                },
+            },
+        },
+    ];
+
+    // finallyData runs after successData/failureData regardless of jsonCode, so it deliberately does NOT write `state`:
+    // doing so would clobber the `error` terminal set by failureData. The terminal state is owned by success/failure.
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -706,13 +731,14 @@ function getOnyxLoadingData(
                     status: queryJSON?.status,
                     type: queryJSON?.type,
                     ...(isSearchAPI && {isLoading: false}),
+                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.ERROR}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];
 
-    return {optimisticData, finallyData, failureData};
+    return {optimisticData, successData, finallyData, failureData};
 }
 
 function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
@@ -909,7 +935,7 @@ function search({
     }
     inFlightSearchRequests.add(dedupeKey);
 
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
+    const {optimisticData, successData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
     const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
         ? {
@@ -941,7 +967,7 @@ function search({
     }
 
     const startRequest = () =>
-        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
+        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
                 if (shouldUpdateLastSearchParams) {
                     const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;

@@ -51,6 +51,11 @@ type SearchResultsInfo = {
     /** Whether the search results are currently loading */
     isLoading: boolean;
 
+    /** Explicit terminal lifecycle state of the most recent search request for this snapshot.
+     * Optional because snapshots persisted before this field existed (and snapshots written by
+     * non-search actions) may not carry it. */
+    state?: ValueOf<typeof CONST.SEARCH.SNAPSHOT_STATE>;
+
     /** The number of results */
     count?: number;
 
