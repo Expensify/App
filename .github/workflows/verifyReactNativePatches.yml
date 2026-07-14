@@ -3,10 +3,6 @@ name: Verify React Native Patches
 on:
   workflow_call:
     inputs:
-      platform:
-        description: Platform being verified (android or ios)
-        required: true
-        type: string
       ref_before:
         description: Git ref to compare against (typically github.event.before); leave empty for workflow_dispatch
         required: false

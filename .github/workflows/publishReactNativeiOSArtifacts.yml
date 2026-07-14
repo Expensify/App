@@ -1,82 +1,41 @@
 name: Publish React Native iOS Artifacts
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      build_standalone:
-        description: 'Build Standalone artifacts'
-        required: false
-        type: boolean
-      build_hybridapp:
-        description: 'Build HybridApp artifacts'
-        required: false
-        type: boolean
-      app_pull_request_url:
-        description: 'The Expensify/App pull request URL.'
-        required: false
-        default: ''
-      mobile_expensify_pull_request_url:
-        description: 'The Expensify/Mobile-Expensify pull request URL to check out the submodule.'
-        required: false
-        default: ''
-      reviewed_code:
-        description: I reviewed this pull request and verified that it does not contain any malicious code.
-        type: boolean
+      build_targets:
+        description: JSON array of `is_hybrid` values to build (e.g. ["true","false"]).
         required: true
-        default: false
-  push:
-    branches:
-      - main
-    paths:
-      - package.json
-      - patches/react-native+*.patch
-      - patches/@react-native+*.patch
-      - patches/react-native/react-native+*.patch
-      - patches/react-native/@react-native+*.patch
-      - Mobile-Expensify
+        type: string
+      app_ref:
+        description: Expensify/App ref to checkout (empty = triggering ref).
+        required: false
+        type: string
+        default: ''
+      mobile_expensify_ref:
+        description: Mobile-Expensify ref to checkout for hybrid builds (empty = pinned submodule).
+        required: false
+        type: string
+        default: ''
+    secrets:
+      OS_BOTIFY_TOKEN:
+        description: Token used to checkout private submodules.
+        required: true
+      SLACK_WEBHOOK:
+        description: Webhook used to announce failures.
+        required: true
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
 
 jobs:
-  verifyPatches:
-    uses: ./.github/workflows/verifyReactNativePatches.yml
-    with:
-      platform: ios
-      ref_before: ${{ github.event.before || '' }}
-      ref_after: ${{ github.event.after || '' }}
-      build_standalone: ${{ github.event_name == 'workflow_dispatch' && inputs.build_standalone || false }}
-      build_hybridapp: ${{ github.event_name == 'workflow_dispatch' && inputs.build_hybridapp || false }}
-    secrets:
-      OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-  # Validates the actor and that they reviewed the PR before any token is used or untrusted App PR code is checked out.
-  prep:
-    uses: ./.github/workflows/validateBuildRequest.yml
-    with:
-      REVIEWED_CODE: ${{ inputs.reviewed_code || false }}
-    secrets:
-      OS_BOTIFY_COMMIT_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-
-  resolveRefs:
-    name: Resolve build refs
-    needs: [prep]
-    uses: ./.github/workflows/resolveBuildRefs.yml
-    with:
-      APP_PULL_REQUEST_URL: ${{ inputs.app_pull_request_url }}
-      MOBILE_EXPENSIFY_PULL_REQUEST_URL: ${{ inputs.mobile_expensify_pull_request_url }}
-    secrets:
-      OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
   buildSlice:
     name: Build iOS Slice
     runs-on: blacksmith-12vcpu-macos-latest
-    needs: [verifyPatches, prep, resolveRefs]
-    if: needs.verifyPatches.outputs.build_targets != ''
     strategy:
       fail-fast: false
       matrix:
-        is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
+        is_hybrid: ${{ fromJSON(inputs.build_targets) }}
         flavor: ['Debug', 'Release']
         platform: ['ios', 'ios-simulator']
     concurrency:
@@ -86,16 +45,16 @@ jobs:
       - name: Checkout Code
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
-          ref: ${{ needs.resolveRefs.outputs.APP_REF }}
+          ref: ${{ inputs.app_ref }}
           submodules: ${{ matrix.is_hybrid }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Checkout Mobile-Expensify to specified branch or commit
-        if: ${{ matrix.is_hybrid == 'true' && needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF != '' }}
+        if: ${{ matrix.is_hybrid == 'true' && inputs.mobile_expensify_ref != '' }}
         run: |
           cd Mobile-Expensify
-          git fetch origin ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
-          git checkout ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
+          git fetch origin ${{ inputs.mobile_expensify_ref }}
+          git checkout ${{ inputs.mobile_expensify_ref }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -136,11 +95,11 @@ jobs:
   composeXCFramework:
     name: Compose XCFramework
     runs-on: blacksmith-12vcpu-macos-latest
-    needs: [verifyPatches, buildSlice, resolveRefs]
+    needs: [buildSlice]
     strategy:
       fail-fast: false
       matrix:
-        is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
+        is_hybrid: ${{ fromJSON(inputs.build_targets) }}
         flavor: ['Debug', 'Release']
     concurrency:
       group: ${{ github.workflow }}-compose-${{ matrix.is_hybrid }}-${{ matrix.flavor }}
@@ -149,16 +108,16 @@ jobs:
       - name: Checkout Code
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
-          ref: ${{ needs.resolveRefs.outputs.APP_REF }}
+          ref: ${{ inputs.app_ref }}
           submodules: ${{ matrix.is_hybrid }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Checkout Mobile-Expensify to specified branch or commit
-        if: ${{ matrix.is_hybrid == 'true' && needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF != '' }}
+        if: ${{ matrix.is_hybrid == 'true' && inputs.mobile_expensify_ref != '' }}
         run: |
           cd Mobile-Expensify
-          git fetch origin ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
-          git checkout ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
+          git fetch origin ${{ inputs.mobile_expensify_ref }}
+          git checkout ${{ inputs.mobile_expensify_ref }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -213,11 +172,11 @@ jobs:
   publishReactNativeiOSArtifacts:
     name: Publish React Native iOS Artifacts
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    needs: [verifyPatches, composeXCFramework, resolveRefs]
+    needs: [composeXCFramework]
     strategy:
       fail-fast: false
       matrix:
-        is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
+        is_hybrid: ${{ fromJSON(inputs.build_targets) }}
     concurrency:
       # Publish runs sequentially per is_hybrid. Cancelling an in-flight publish
       # can leave Maven metadata out of sync with the uploaded artifact, so we
@@ -228,16 +187,16 @@ jobs:
       - name: Checkout Code
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
-          ref: ${{ needs.resolveRefs.outputs.APP_REF }}
+          ref: ${{ inputs.app_ref }}
           submodules: ${{ matrix.is_hybrid }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Checkout Mobile-Expensify to specified branch or commit
-        if: ${{ matrix.is_hybrid == 'true' && needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF != '' }}
+        if: ${{ matrix.is_hybrid == 'true' && inputs.mobile_expensify_ref != '' }}
         run: |
           cd Mobile-Expensify
-          git fetch origin ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
-          git checkout ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
+          git fetch origin ${{ inputs.mobile_expensify_ref }}
+          git checkout ${{ inputs.mobile_expensify_ref }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
