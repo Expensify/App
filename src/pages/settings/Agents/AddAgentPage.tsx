@@ -39,7 +39,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE from './const';
+import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE, COLLAPSIBLE_HEADER_OFFSET} from './const';
 import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken, setReturnRoute} from './pendingAgentAvatarStore';
 import scrollToMultilineInput from './scrollToMultilineInput';
 
@@ -131,7 +131,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight={shouldUseScrollableLayout}
         >
-            <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+            <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={COLLAPSIBLE_HEADER_OFFSET}>
                 <HeaderWithBackButton
                     title={translate('addAgentPage.title')}
                     onBackButtonPress={() => Navigation.goBack()}

@@ -1,7 +1,10 @@
 import usePrevious from '@hooks/usePrevious';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+
+import variables from '@styles/variables';
 
 import type {LayoutChangeEvent} from 'react-native';
 
@@ -15,7 +18,7 @@ import type {CollapsibleHeaderOnKeyboardProps} from './types';
 const COLLAPSE_DURATION = 100;
 const RESTORE_DURATION = 300;
 // Assumed vertical space for the focused input field — used to reserve space above the keyboard.
-const VERTICAL_SPACE_FOR_FOCUSED_INPUT = 120;
+const VERTICAL_SPACE_FOR_FOCUSED_INPUT = variables.inputHeight + variables.inputPaddingBottom + variables.inputPaddingTop;
 const KEYBOARD_OPENING_PROGRESS_THRESHOLDS = [0.5, 0.7, 0.8, 0.85, 0.9, 0.95, 0.99];
 const MIN_HEADER_HEIGHT_ON_COLLAPSE = 8;
 
@@ -46,15 +49,17 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0, alw
     const {height: keyboardHeightSV, progress: keyboardProgressSV} = useReanimatedKeyboardAnimation();
 
     const {windowWidth, windowHeight} = useWindowDimensions();
+    const {top: topSafeAreaInset} = useSafeAreaInsets();
+    const availableWindowHeight = windowHeight - topSafeAreaInset;
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
     // Keep window dimensions and offset accessible on the UI thread. Stable refs, excluded from deps.
-    const windowHeightSV = useSharedValue(windowHeight);
+    const availableWindowHeightSV = useSharedValue(availableWindowHeight);
     const collapsibleHeaderOffsetSV = useSharedValue(collapsibleHeaderOffset);
     const isFocusedSV = useSharedValue(isFocused);
     const isInLandscapeModeSV = useSharedValue(isInLandscapeMode);
     useEffect(() => {
-        windowHeightSV.set(windowHeight);
-    }, [windowHeight, windowHeightSV]);
+        availableWindowHeightSV.set(availableWindowHeight);
+    }, [availableWindowHeight, availableWindowHeightSV]);
     useEffect(() => {
         collapsibleHeaderOffsetSV.set(collapsibleHeaderOffset);
     }, [collapsibleHeaderOffset, collapsibleHeaderOffsetSV]);
@@ -125,9 +130,9 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0, alw
         () => ({
             keyboardHeight: keyboardHeightSV.get(),
             keyboardProgress: keyboardProgressSV.get(),
-            windowHeightValue: windowHeightSV.get(),
+            availableWindowHeightValue: availableWindowHeightSV.get(),
         }),
-        ({keyboardHeight, keyboardProgress, windowHeightValue}, previous) => {
+        ({keyboardHeight, keyboardProgress, availableWindowHeightValue}, previous) => {
             // If the screen is not focused, bail out
             if (!isFocusedSV.get() || !isInLandscapeModeSV.get()) {
                 return;
@@ -154,10 +159,10 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0, alw
                 return;
             }
 
-            // keyboardHeight is negative when open (e.g. -291), so keyboardTop = windowHeightValue + keyboardHeight.
+            // keyboardHeight is negative when open (e.g. -291), so keyboardTop = availableWindowHeightValue + keyboardHeight.
             // Target header height: give the input exactly the space it needs above the keyboard,
             // the header gets what remains. Clamped to [0, naturalHeight].
-            const keyboardTop = windowHeightValue + keyboardHeight;
+            const keyboardTop = availableWindowHeightValue + keyboardHeight;
             const targetHeight = alwaysCollapseHeaderOnKeyboard
                 ? MIN_HEADER_HEIGHT_ON_COLLAPSE
                 : Math.max(MIN_HEADER_HEIGHT_ON_COLLAPSE, keyboardTop - VERTICAL_SPACE_FOR_FOCUSED_INPUT - collapsibleHeaderOffsetSV.get());
