@@ -4,7 +4,7 @@ import {LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
  * Generates the static letter-avatar PNG set.
  *
  * For every (color scheme x letter) it composites the bundled glyph outline over a colored
- * background and rasterizes it from the vector at full resolution, so the output stays crisp at
+ * background and renders it from the vector at full resolution, so the output stays crisp at
  * any display size. Output mirrors the CDN path: avatars/generated/letter/{schemeKey}/{LETTER}.png
  *
  * Schemes come from src/libs/Avatars/letterAvatarPalette.ts and glyphs from the bundled workspace
@@ -36,7 +36,7 @@ function glyphInner(svg: string): string {
         .trim();
 }
 
-/** Compose a full avatar SVG at an explicit pixel size so sharp rasterizes at that size. */
+/** Compose a full avatar SVG at an explicit pixel size so sharp renders it at that size. */
 function composeSvg(inner: string, backgroundColor: string, fillColor: string, px: number): string {
     return (
         `<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${px}" viewBox="0 0 80 80">` +
