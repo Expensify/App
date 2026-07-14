@@ -1035,6 +1035,21 @@ function removeEmails(existingEmails: string[], emailsToRemove: string[]): strin
     return existingEmails.filter((email) => !removalSet.has(email));
 }
 
+/** True when any of `emails` is in `set` — i.e. a rule's submitters overlap a workflow's members. */
+function containsAnyEmail(emails: string[], set: Set<string>): boolean {
+    return emails.some((email) => set.has(email));
+}
+
+/** Fold `memberEmails` into a rule's `from` list (union), returning the updated rule. */
+function addMembersToRule(rule: ApprovalWorkflowRule, memberEmails: string[]): ApprovalWorkflowRule {
+    return replaceSubmitterEmails(rule, mergeEmails(extractSubmitterEmails(rule), memberEmails));
+}
+
+/** Rewrite a rule's `from` list, or drop the rule entirely (`null`) when no submitters remain. */
+function rewriteOrRemoveRule(rule: ApprovalWorkflowRule, remainingEmails: string[]): ApprovalWorkflowRule | null {
+    return remainingEmails.length === 0 ? null : replaceSubmitterEmails(rule, remainingEmails);
+}
+
 type ReconcileContext = {
     /** The policy's existing approval-workflow rules (`ruleID -> rule body`), defaulting to `{}`. */
     existingRules: Record<string, ApprovalWorkflowRule>;
@@ -1056,8 +1071,7 @@ function reconcileApprovalWorkflowRulesForCreate(newRules: ApprovalWorkflowRule[
 
         if (match) {
             const [existingID, existingRule] = match;
-            const mergedEmails = mergeEmails(extractSubmitterEmails(existingRule), memberEmails);
-            diff[existingID] = replaceSubmitterEmails(existingRule, mergedEmails);
+            diff[existingID] = addMembersToRule(existingRule, memberEmails);
             continue;
         }
 
@@ -1091,8 +1105,7 @@ function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[],
     // Pass 1: walk existing rules that belong (at least partially) to this workflow.
     for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
         const ruleEmails = extractSubmitterEmails(existingRule);
-        const sharedWithThisWorkflow = ruleEmails.some((email) => memberSet.has(email));
-        if (!sharedWithThisWorkflow) {
+        if (!containsAnyEmail(ruleEmails, memberSet)) {
             continue;
         }
 
@@ -1103,14 +1116,8 @@ function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[],
             continue;
         }
 
-        const remaining = removeEmails(ruleEmails, memberEmails);
-        if (remaining.length === 0) {
-            // No other workflow shares this rule — drop it entirely.
-            diff[ruleID] = null;
-        } else {
-            // Keep the rule for the other workflows that still need it, minus our members.
-            diff[ruleID] = replaceSubmitterEmails(existingRule, remaining);
-        }
+        // Keep the rule (minus our members) for any other workflow that still needs it; drop it otherwise.
+        diff[ruleID] = rewriteOrRemoveRule(existingRule, removeEmails(ruleEmails, memberEmails));
     }
 
     // Pass 2: create or extend rules for any new rule that wasn't already covered.
@@ -1132,15 +1139,13 @@ function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[],
             if (structuralFingerprint(existing) !== fingerprint) {
                 return false;
             }
-            const existingEmails = extractSubmitterEmails(existing);
             // "Different workflow" => no overlap with our members.
-            return !existingEmails.some((email) => memberSet.has(email));
+            return !containsAnyEmail(extractSubmitterEmails(existing), memberSet);
         });
 
         if (foreignMatch) {
             const [existingID, existingRule] = foreignMatch;
-            const mergedEmails = mergeEmails(extractSubmitterEmails(existingRule), memberEmails);
-            diff[existingID] = replaceSubmitterEmails(existingRule, mergedEmails);
+            diff[existingID] = addMembersToRule(existingRule, memberEmails);
             continue;
         }
 
@@ -1161,13 +1166,11 @@ function reconcileApprovalWorkflowRulesForRemove(memberEmails: string[], context
 
     for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
         const ruleEmails = extractSubmitterEmails(existingRule);
-        const sharedWithThisWorkflow = ruleEmails.some((email) => memberSet.has(email));
-        if (!sharedWithThisWorkflow) {
+        if (!containsAnyEmail(ruleEmails, memberSet)) {
             continue;
         }
 
-        const remaining = removeEmails(ruleEmails, memberEmails);
-        diff[ruleID] = remaining.length === 0 ? null : replaceSubmitterEmails(existingRule, remaining);
+        diff[ruleID] = rewriteOrRemoveRule(existingRule, removeEmails(ruleEmails, memberEmails));
     }
 
     return diff;
@@ -1186,19 +1189,18 @@ function reconcileApprovalWorkflowRulesForMembersChange(previousMemberEmails: st
 
     for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
         const ruleEmails = extractSubmitterEmails(existingRule);
-        if (!ruleEmails.some((email) => previousSet.has(email))) {
+        if (!containsAnyEmail(ruleEmails, previousSet)) {
             continue;
         }
 
-        const afterRemoval = removeEmails(ruleEmails, removed);
-        const updatedEmails = mergeEmails(afterRemoval, newMemberEmails);
+        const updatedEmails = mergeEmails(removeEmails(ruleEmails, removed), newMemberEmails);
 
         // No effective change to this rule's `from` — skip the round-trip.
         if (updatedEmails.length === ruleEmails.length && updatedEmails.every((email, idx) => email === ruleEmails.at(idx))) {
             continue;
         }
 
-        diff[ruleID] = updatedEmails.length === 0 ? null : replaceSubmitterEmails(existingRule, updatedEmails);
+        diff[ruleID] = rewriteOrRemoveRule(existingRule, updatedEmails);
     }
 
     return diff;
