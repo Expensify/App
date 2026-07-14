@@ -2,17 +2,20 @@
 title: Certinia Integration FAQ and Troubleshooting
 description: Troubleshoot the Certinia (FinancialForce) integration in New Expensify — export failures, manual export rules, company card mapping, project limitations, and disconnecting.
 keywords: [New Expensify, Certinia, FinancialForce, export not working, manual export, company card export, project status, disconnect Certinia, FFA, PSA, SRP]
+internalScope: Audience is Workspace Admins and Domain Admins. Covers common Certinia export and troubleshooting questions, does not cover connecting or configuring Certinia or CER### error codes.
 order: 3
 ---
 
 
 This article covers common issues with the Certinia (formerly FinancialForce) integration in New Expensify. It's intended for Workspace Admins and Domain Admins using FFA or PSA/SRP.
 
-For specific Certinia error codes (the `CER###` errors that appear in a report's comments), see the [Certinia error code articles](https://help.expensify.com/expensify-classic/hubs/connections/certinia/Troubleshooting).
+For specific Certinia error codes (the `CER###` errors that appear in a report's comments), see the [Certinia error code articles](/expensify-classic/hubs/connections/certinia/Troubleshooting).
 
 ---
 
-# Why is my report not automatically exporting to Certinia?
+# FAQ
+
+## Why is my report not automatically exporting to Certinia?
 
 An error is preventing the report from exporting automatically. You can find the error in several ways:
 
@@ -29,7 +32,7 @@ An error is preventing the report from exporting automatically. You can find the
 
 ---
 
-# Why am I unable to manually export a report to Certinia?
+## Why am I unable to manually export a report to Certinia?
 
 Only reports in **Approved**, **Done**, or **Paid** status can be exported. If the report is in **Draft** status, selecting export may show an empty screen.
 
@@ -41,7 +44,7 @@ Only reports in **Approved**, **Done**, or **Paid** status can be exported. If t
 
 ---
 
-# Why are company card expenses exporting to the wrong account?
+## Why are company card expenses exporting to the wrong account?
 
 Company card expenses may export to the wrong account if the card export mapping is incorrect or the exporter doesn't have the right permissions.
 
@@ -55,7 +58,7 @@ If the Preferred Exporter is not a Domain Admin, exports default to the fallback
 
 ---
 
-# Are there export limitations based on projects in Certinia? (PSA/SRP)
+## Are there export limitations based on projects in Certinia? (PSA/SRP)
 
 Yes. Project settings in Certinia can prevent expenses from exporting.
 
@@ -78,16 +81,16 @@ Yes. Project settings in Certinia can prevent expenses from exporting.
 
 ---
 
-# Does assignment status affect expense exports?
+## Does assignment status affect expense exports?
 
 No. Assignment Status in Certinia (Closed, Active, or Completed) does not affect expense entry or export. Only **Project Status** and the **Closed for Expense Entry** setting affect export eligibility.
 
 ---
 
-# How do I disconnect the Certinia connection?
+## How do I disconnect the Certinia connection?
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**.
-2. Select the three-dot menu **(⋮)** next to the Certinia connection.
+1. From the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**.
+2. Select the three dots **(⋮)** next to the Certinia connection.
 3. Click **Disconnect** and confirm.
 
 Disconnecting removes the active integration and clears all imported options from Expensify.

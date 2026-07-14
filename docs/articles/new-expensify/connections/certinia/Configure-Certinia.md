@@ -2,21 +2,22 @@
 title: Configure Certinia
 description: Configure import, export, and advanced sync settings for Expensify's Certinia (FinancialForce) integration in New Expensify.
 keywords: [New Expensify, Certinia settings, FinancialForce, import configuration, export preferences, auto-sync, dimensions, FFA, PSA, SRP]
+internalScope: Audience is Workspace Admins. Covers configuring Certinia import, export, and advanced sync settings, does not cover connecting Certinia or troubleshooting.
 order: 2
 ---
 
 
 After connecting Certinia, set up how data flows between Expensify and Certinia using the **Import**, **Export**, and **Advanced** settings. Some options differ depending on whether you use the **FFA** or **PSA/SRP** module — those differences are noted below.
 
-To open these settings, go to **Workspaces > [Workspace Name] > Accounting** from the navigation tabs (on the left on web, and at the bottom on mobile), then select **Import**, **Export**, or **Advanced** under the Certinia connection.
+To open these settings, go to **Workspaces > [Workspace Name] > Accounting** from the navigation tabs (on the left on web, on the bottom on mobile), then select **Import**, **Export**, or **Advanced** under the Certinia connection.
 
 ---
 
-# Step 1: Configure Import Settings
+## How to configure Certinia import settings
 
 From **Workspaces > [Workspace Name] > Accounting**, click **Import** under the Certinia connection.
 
-## Categories
+## How to import categories from Certinia
 
 How categories are imported depends on your module:
 
@@ -26,7 +27,7 @@ How categories are imported depends on your module:
 
 Disable any unnecessary categories under **Workspaces > [Workspace Name] > Categories**. Every expense must have a category to export successfully.
 
-## Dimensions (FFA)
+## How to import dimensions from Certinia (FFA)
 
 Expensify imports up to four dimension levels. For each dimension, choose how it's imported:
 
@@ -36,7 +37,7 @@ Expensify imports up to four dimension levels. For each dimension, choose how it
 
 Manage these under **Workspaces > [Workspace Name] > Tags** and **Workspaces > [Workspace Name] > Reports**.
 
-## Projects and Assignments (PSA/SRP)
+## How to import projects and assignments from Certinia (PSA/SRP)
 
 Import **Projects**, **Assignments**, or **Projects & Assignments** as tags:
 
@@ -46,25 +47,25 @@ Import **Projects**, **Assignments**, or **Projects & Assignments** as tags:
 
 > **Note:** To use a project without an assignment, enable **Allow Expenses Without Assignment** in Certinia.
 
-## Tax
+## How to import tax rates from Certinia
 
 Toggle on **Tax** to import tax rates from Certinia and apply them to expenses. Set default rates per category under **Workspaces > [Workspace Name] > Categories**.
 
 ---
 
-# Step 2: Configure Export Settings
+## How to configure Certinia export settings
 
 From **Workspaces > [Workspace Name] > Accounting**, click **Export** under the Certinia connection.
 
-## Preferred Exporter
+## How to set the preferred exporter for Certinia
 
 Assign a **Preferred Exporter**. This member is responsible for exporting reports and receives any export error notifications. Any Workspace Admin can export reports, but Concierge auto-exports on behalf of the Preferred Exporter.
 
-## Export Status
+## How to set the Certinia export status
 
 Choose whether reports export as **Complete** or **In Progress**.
 
-## Export Date
+## How to set the Certinia export date
 
 Choose which date Expensify uses when creating records in Certinia:
 
@@ -72,7 +73,7 @@ Choose which date Expensify uses when creating records in Certinia:
 - **Submitted date**
 - **Exported date**
 
-## Reimbursable and non-reimbursable exports
+## How reimbursable and non-reimbursable reports export to Certinia
 
 Both reimbursable and non-reimbursable reports export as:
 
@@ -81,32 +82,32 @@ Both reimbursable and non-reimbursable reports export as:
 
 If a report contains both reimbursable and non-reimbursable expenses, Expensify creates separate payable invoices or expense reports for each type.
 
-## Default Vendor (FFA)
+## How to set a default vendor for Certinia (FFA)
 
 Select a vendor from your Certinia FFA account. This vendor is assigned to non-reimbursable payable invoices.
 
 ---
 
-# Step 3: Configure Advanced Settings
+## How to configure Certinia advanced sync settings
 
 From **Workspaces > [Workspace Name] > Accounting**, click **Advanced** under the Certinia connection.
 
-## Auto-sync
+## How to enable auto-sync for Certinia
 
 We recommend enabling **Auto-sync** to keep your data up to date. Auto-sync performs daily updates to your coding and automatically exports reports upon final approval:
 
 - **Non-reimbursable expenses:** Export immediately after final approval.
 - **Reimbursable expenses:** Export when the report is reimbursed or marked as reimbursed.
 
-## Sync reimbursed reports
+## How to sync reimbursed reports with Certinia
 
 Keep reimbursement status in sync between Expensify and Certinia for reports that have been paid.
 
-## Export tax as non-billable
+## How to export tax as non-billable in Certinia
 
 Decide whether tax amounts are billed to clients when exporting billable expenses.
 
-## Foreign currency (multi-currency) export — PSA/SRP
+## How foreign currency (multi-currency) export works in Certinia (PSA/SRP)
 
 When employees submit expenses in multiple currencies, Certinia may display up to three currencies per report:
 

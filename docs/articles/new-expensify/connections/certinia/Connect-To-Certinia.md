@@ -2,6 +2,7 @@
 title: Connect to Certinia
 description: Connect Certinia (formerly FinancialForce) to New Expensify to streamline expense reporting, approvals, and accounting export.
 keywords: [New Expensify, Certinia integration, FinancialForce, connect Certinia, Salesforce, FFA, PSA, SRP]
+internalScope: Audience is Workspace Admins. Covers connecting Certinia (FFA and PSA/SRP) to New Expensify, does not cover configuring import/export settings or troubleshooting.
 order: 1
 ---
 
@@ -18,7 +19,7 @@ Connect your Expensify Workspace to Certinia (formerly FinancialForce) to automa
 
 ---
 
-# Step 1: Install the Expensify bundle in Certinia
+## How to install the Expensify bundle in Certinia
 
 Install the package that matches your Certinia module. You only need the bundle for the module you use.
 
@@ -29,7 +30,7 @@ Follow the Salesforce prompts to complete the installation.
 
 ---
 
-# Step 2: Verify contact details in Certinia
+## How to verify contact details in Certinia
 
 1. Confirm there is a Certinia user and contact whose email matches your **primary email** in Expensify.
 2. Create contacts for every employee who will submit expense reports.
@@ -37,7 +38,7 @@ Follow the Salesforce prompts to complete the installation.
 
 ---
 
-# Step 3: Additional setup for PSA/SRP
+## How to complete PSA/SRP setup before connecting
 
 > Skip this step if you use **FFA only**.
 
@@ -63,19 +64,19 @@ If you use Certinia PSA/SRP, complete the following before connecting in Expensi
 
 ---
 
-# Step 4: Connect to Certinia in New Expensify
+## How to connect to Certinia in New Expensify
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**.
+1. From the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**.
 2. Select **Certinia > Connect to Certinia**.
 3. Log in to your Certinia (Salesforce) account when prompted.
 4. Follow the on-screen prompts to authorize the connection.
 5. Select the Certinia **company** to use for importing and exporting data.
 
-Once connected, continue to [Configure Certinia](https://help.expensify.com/articles/new-expensify/connections/certinia/Configure-Certinia) to set up import, export, and advanced settings.
+Once connected, continue to [Configure Certinia](/articles/new-expensify/connections/certinia/Configure-Certinia) to set up import, export, and advanced settings.
 
 ---
 
-# Connect to a Certinia sandbox
+## How to connect to a Certinia sandbox
 
 If you want to test the integration against a Certinia **sandbox** instead of your production account, use the sandbox connection option. The configuration experience is identical to production once connected — only the connection endpoints and bundle differ.
 
@@ -83,7 +84,9 @@ If you want to test the integration against a Certinia **sandbox** instead of yo
 2. From the navigation tabs, go to **Workspaces > [Workspace Name] > Accounting**.
 3. Select **Certinia > Connect to Certinia Sandbox**.
 4. Log in to your Certinia **sandbox** account and follow the on-screen prompts.
-5. Select the company to use, then continue to [Configure Certinia](https://help.expensify.com/articles/new-expensify/connections/certinia/Configure-Certinia).
+5. Select the company to use.
+
+Once connected, continue to [Configure Certinia](/articles/new-expensify/connections/certinia/Configure-Certinia) to set up import, export, and advanced settings.
 
 ---
 
@@ -103,7 +106,7 @@ Employees who only submit expense reports do not need Certinia access — but ea
 ## How do I disconnect Certinia?
 
 1. From the navigation tabs, go to **Workspaces > [Workspace Name] > Accounting**.
-2. Select the three-dot menu **(⋮)** next to the Certinia connection.
+2. Select the three dots **(⋮)** next to the Certinia connection.
 3. Click **Disconnect** and confirm.
 
 Disconnecting clears all imported options from Expensify.
