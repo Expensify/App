@@ -35,7 +35,7 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?:
  * See: https://github.com/Expensify/Expensify/issues/504214
  */
 function canUseTrackFlows(): boolean {
-    return true;
+    return false;
 }
 
 /**
