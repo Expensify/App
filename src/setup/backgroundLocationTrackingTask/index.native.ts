@@ -1,12 +1,16 @@
-import NetInfo from '@react-native-community/netinfo';
-import type {LocationObject} from 'expo-location';
-import {defineTask} from 'expo-task-manager';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {addGpsPoints, setStartWaypointAddress} from '@libs/actions/GPSDraftDetails';
 import {addressFromGpsPoint, coordinatesToString, getGpsPoints, getTotalGpsTripPointsInLastSegment} from '@libs/GPSDraftDetailsUtils';
+
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
+
+import type {LocationObject} from 'expo-location';
+
+import NetInfo from '@react-native-community/netinfo';
+import {defineTask} from 'expo-task-manager';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 type BackgroundLocationTrackingTaskData = {locations: LocationObject[]};
 

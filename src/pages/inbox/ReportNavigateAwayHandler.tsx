@@ -1,6 +1,3 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
@@ -8,19 +5,29 @@ import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDeletedParentAction} from '@libs/ReportActionsUtils';
 import {isAdminRoom, isAnnounceRoom, isGroupChat, isMoneyRequest, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isPolicyExpenseChat} from '@libs/ReportUtils';
+
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
+
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useEffect, useEffectEvent, useRef} from 'react';
+
 import useReportWasDeleted from './hooks/useReportWasDeleted';
 
 type ReportScreenRoute =
@@ -212,19 +219,24 @@ function ReportNavigateAwayHandler() {
             return;
         }
 
-        // Try to navigate to parent report if available
-        if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
-            Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
-            });
-            return;
-        }
-
-        // Fallback to Concierge
         Navigation.isNavigationReady().then(() => {
+            // Drop the deleted report from the split navigator stack before navigating away. Otherwise, it stays
+            // mounted underneath the destination, and tapping back refocuses it and re-triggers this effect,
+            // trapping the user in a navigation loop
+            if (Navigation.getTopmostReportId() === reportIDFromRoute) {
+                Navigation.popToSidebar();
+            }
+
+            // Try to navigate to parent report if available
+            if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
+                return;
+            }
+
+            // Fallback to Concierge
             navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, reportIDFromRoute]);
 
     return null;
 }

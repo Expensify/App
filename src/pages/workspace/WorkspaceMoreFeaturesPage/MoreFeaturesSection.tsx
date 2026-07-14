@@ -1,11 +1,14 @@
-import React from 'react';
-import {View} from 'react-native';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type MoreFeaturesSectionProps = {
     /** Section heading rendered above the toggles (e.g. "Spend", "Manage"). */

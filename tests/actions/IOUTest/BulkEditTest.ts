@@ -1,18 +1,43 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
+
 import CONST from '@src/CONST';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportActions} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const RORY_ACCOUNT_ID = 3;
+
+function isPartialReport(value: unknown): value is Partial<Report> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isOnyxData(value: unknown): value is OnyxData<OnyxKey> {
+    return typeof value === 'object' && value !== null && 'optimisticData' in value;
+}
+
+function getOptimisticReportNamesFromWriteSpy(writeSpy: jest.SpyInstance, reportID: string): Array<string | undefined> {
+    const targetKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+    return (writeSpy.mock.calls as ReadonlyArray<readonly unknown[]>).flatMap((call) => {
+        const onyxData = call.at(2);
+        if (!isOnyxData(onyxData)) {
+            return [];
+        }
+        return (onyxData.optimisticData ?? []).filter((update) => update.key === targetKey).map((update) => (isPartialReport(update.value) ? update.value.reportName : undefined));
+    });
+}
 
 describe('actions/IOU/BulkEdit', () => {
     describe('updateMultipleMoneyRequests', () => {
@@ -1647,7 +1672,7 @@ describe('actions/IOU/BulkEdit', () => {
             };
 
             // Report action has childReportID pointing to a different thread
-            const reportActions = {
+            const reportActions = createMock<OnyxCollection<ReportActions>>({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`]: {
                     [reportActionID]: {
                         reportActionID,
@@ -1660,7 +1685,7 @@ describe('actions/IOU/BulkEdit', () => {
                         created: '2026-01-01 00:00:00',
                     },
                 },
-            } as OnyxCollection<ReportActions>;
+            });
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
@@ -1703,6 +1728,501 @@ describe('actions/IOU/BulkEdit', () => {
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
+        });
+
+        it('compounds optimistic dates across iterations so trip auto-reporting title reflects all bulk-edited transactions', async () => {
+            const iouReportID = 'iou-trip-bulk';
+            const policyID = 'policy-trip-bulk';
+            const txn1ID = 'txn-bulk-1';
+            const txn2ID = 'txn-bulk-2';
+
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                        name: 'Title',
+                        type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                        defaultValue: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
+                        deletable: false,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        orderWeight: 1,
+                        isTax: false,
+                    },
+                },
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 0,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const txn1: Transaction = {...createRandomTransaction(1), transactionID: txn1ID, reportID: iouReportID, created: '2025-01-10'};
+            const txn2: Transaction = {...createRandomTransaction(2), transactionID: txn2ID, reportID: iouReportID, created: '2025-01-20'};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn1ID}`, txn1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn2ID}`, txn2);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [txn1ID, txn2ID],
+                changes: {created: '2025-01-15'},
+                policy,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport},
+                transactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${txn1ID}`]: txn1,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${txn2ID}`]: txn2,
+                },
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
+
+            // Without cumulative tracking, iter 2 would see stale Onyx txn1 (Jan 10) → "Trip from Jan 10 to Jan 15".
+            expect(iouReportNames.at(-1)).toBe('Trip from Jan 15 to Jan 15, 2025');
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+            await Onyx.clear();
+        });
+
+        it('skips optimistic title recompute on currency edits so stale totals are not baked into the title', async () => {
+            const iouReportID = 'iou-trip-currency';
+            const policyID = 'policy-trip-currency';
+            const txnID = 'txn-currency-1';
+            const ORIGINAL_REPORT_NAME = 'Original BE-computed title';
+
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                        name: 'Title',
+                        type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                        defaultValue: 'Trip {report:total}',
+                        deletable: false,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        orderWeight: 1,
+                        isTax: false,
+                    },
+                },
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                reportName: ORIGINAL_REPORT_NAME,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -10000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const txn: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: txnID,
+                reportID: iouReportID,
+                amount: -10000,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-01-10',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [txnID],
+                changes: {currency: CONST.CURRENCY.EUR},
+                policy,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport},
+                transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`]: txn},
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
+
+            // Without the gate, the recompute would bake "Trip $100.00" (stale total) into the title.
+            expect(iouReportNames.at(-1)).toBe(ORIGINAL_REPORT_NAME);
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+            await Onyx.clear();
+        });
+
+        it('carries indeterminate total across bulk iterations so a later same-currency edit does not bake in a stale total', async () => {
+            const iouReportID = 'iou-trip-sticky-indeterminate';
+            const policyID = 'policy-trip-sticky-indeterminate';
+            const currencyTxnID = 'txn-currency-first';
+            const amountTxnID = 'txn-amount-second';
+            const ORIGINAL_REPORT_NAME = 'Original BE-computed title';
+
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                        name: 'Title',
+                        type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                        defaultValue: 'Trip {report:total}',
+                        deletable: false,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        orderWeight: 1,
+                        isTax: false,
+                    },
+                },
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                reportName: ORIGINAL_REPORT_NAME,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -10000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const currencyTxn: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: currencyTxnID,
+                reportID: iouReportID,
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-01-10',
+            };
+
+            const amountTxn: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: amountTxnID,
+                reportID: iouReportID,
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-01-11',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${currencyTxnID}`, currencyTxn);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${amountTxnID}`, amountTxn);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // Iter 1 (currency) → indeterminate. Iter 2 (same-currency amount) must inherit the sticky flag.
+            updateMultipleMoneyRequests({
+                transactionIDs: [currencyTxnID, amountTxnID],
+                changes: {amount: 3000},
+                policy,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport},
+                transactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${currencyTxnID}`]: {...currencyTxn, currency: CONST.CURRENCY.EUR},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${amountTxnID}`]: amountTxn,
+                },
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
+
+            // Every optimistic write must preserve the BE-stored title.
+            for (const name of iouReportNames) {
+                expect(name ?? ORIGINAL_REPORT_NAME).toBe(ORIGINAL_REPORT_NAME);
+            }
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+            await Onyx.clear();
+        });
+
+        it('includes caller-supplied (search snapshot) transactions in the formula recompute even when not in Onyx', async () => {
+            const iouReportID = 'iou-trip-snapshot';
+            const policyID = 'policy-trip-snapshot';
+            const onyxTxnID = 'txn-onyx';
+            const snapshotTxnID = 'txn-snapshot-only';
+
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                        name: 'Title',
+                        type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                        defaultValue: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
+                        deletable: false,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        orderWeight: 1,
+                        isTax: false,
+                    },
+                },
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 0,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const onyxTxn: Transaction = {...createRandomTransaction(1), transactionID: onyxTxnID, reportID: iouReportID, created: '2025-01-10'};
+            const snapshotTxn: Transaction = {...createRandomTransaction(2), transactionID: snapshotTxnID, reportID: iouReportID, created: '2025-01-05'};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${onyxTxnID}`, onyxTxn);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // `transactions` carries both (mirrors mergedTransactions in SearchEditMultiplePage).
+            updateMultipleMoneyRequests({
+                transactionIDs: [onyxTxnID],
+                changes: {created: '2025-01-15'},
+                policy,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport},
+                transactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${onyxTxnID}`]: onyxTxn,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${snapshotTxnID}`]: snapshotTxn,
+                },
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
+
+            // Without snapshot merging, snapshot-only Jan 05 would be invisible → start resolves to Jan 15.
+            expect(iouReportNames.at(-1)).toBe('Trip from Jan 05 to Jan 15, 2025');
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+            await Onyx.clear();
+        });
+
+        it('preserves manually renamed titles when reportNameValuePairs is not loaded', async () => {
+            const iouReportID = 'iou-trip-manual';
+            const policyID = 'policy-trip-manual';
+            const txnID = 'txn-manual-1';
+            const MANUAL_TITLE = 'My Custom Trip Name';
+
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                        name: 'Title',
+                        type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                        defaultValue: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
+                        deletable: false,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        orderWeight: 1,
+                        isTax: false,
+                    },
+                },
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                reportName: MANUAL_TITLE,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 0,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const txn: Transaction = {...createRandomTransaction(1), transactionID: txnID, reportID: iouReportID, created: '2025-01-10'};
+
+            // REPORT_NAME_VALUE_PAIRS intentionally not set — simulates the not-loaded state.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [txnID],
+                changes: {created: '2025-01-15'},
+                policy,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport},
+                transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`]: txn},
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
+
+            // Manual rename with RNVP unloaded must NOT be overwritten.
+            expect(iouReportNames.at(-1)).toBe(MANUAL_TITLE);
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+            await Onyx.clear();
+        });
+
+        it('discards optimistic recomputes that still contain unresolved formula tokens', async () => {
+            const iouReportID = 'iou-unresolved-formula';
+            const policyID = 'policy-unresolved-formula';
+            const txnID = 'txn-unresolved-1';
+            const BE_COMPUTED_TITLE = 'Total: €92.50';
+
+            // Cross-currency formula → engine can't resolve → raw token would surface without the guard.
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                        name: 'Title',
+                        type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                        defaultValue: 'Total: {report:total:EUR}',
+                        deletable: false,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        orderWeight: 1,
+                        isTax: false,
+                    },
+                },
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                reportName: BE_COMPUTED_TITLE,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -10000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const txn: Transaction = {...createRandomTransaction(1), transactionID: txnID, reportID: iouReportID, amount: -10000, currency: CONST.CURRENCY.USD};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // Merchant edit leaves totals untouched, so the gate lets the recompute through.
+            updateMultipleMoneyRequests({
+                transactionIDs: [txnID],
+                changes: {merchant: 'New Merchant'},
+                policy,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport},
+                transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`]: txn},
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
+
+            // BE-computed title must survive — raw "Total: {report:total:EUR}" would be worse than staleness.
+            expect(iouReportNames.at(-1)).toBe(BE_COMPUTED_TITLE);
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+            await Onyx.clear();
         });
     });
 

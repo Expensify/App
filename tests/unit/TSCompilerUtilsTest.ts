@@ -1,6 +1,7 @@
+import {Str} from 'expensify-common';
 import ts from 'typescript';
+
 import TSCompilerUtils from '../../scripts/utils/TSCompilerUtils';
-import dedent from '../../src/libs/StringUtils/dedent';
 
 function createSourceFile(content: string): ts.SourceFile {
     return ts.createSourceFile('test.ts', content, ts.ScriptTarget.Latest, true);
@@ -10,11 +11,65 @@ function printSourceFile(sourceFile: ts.SourceFile): string {
     return ts.createPrinter().printFile(sourceFile);
 }
 
+function expectNode<T extends ts.Node>(node: ts.Node | undefined, guard: (candidate: ts.Node) => candidate is T, expected: string): T {
+    if (!node || !guard(node)) {
+        throw new Error(`Expected ${expected}`);
+    }
+    return node;
+}
+
+function getStatement<T extends ts.Statement>(sourceFile: ts.SourceFile, index: number, guard: (candidate: ts.Node) => candidate is T, expected: string): T {
+    return expectNode(sourceFile.statements.at(index), guard, expected);
+}
+
+function getProperty<T extends ts.ObjectLiteralElementLike>(objectLiteral: ts.ObjectLiteralExpression, index: number, guard: (candidate: ts.Node) => candidate is T, expected: string): T {
+    return expectNode(objectLiteral.properties.at(index), guard, expected);
+}
+
+function getMember<T extends ts.ClassElement>(classDeclaration: ts.ClassDeclaration, index: number, guard: (candidate: ts.Node) => candidate is T, expected: string): T {
+    return expectNode(classDeclaration.members.at(index), guard, expected);
+}
+
+function getBlockStatement<T extends ts.Statement>(block: ts.Block | undefined, index: number, guard: (candidate: ts.Node) => candidate is T, expected: string): T {
+    if (!block) {
+        throw new Error('Expected block');
+    }
+    return expectNode(block.statements.at(index), guard, expected);
+}
+
+function getObjectLiteralInitializer(property: ts.PropertyAssignment): ts.ObjectLiteralExpression {
+    return expectNode(property.initializer, ts.isObjectLiteralExpression, 'object literal initializer');
+}
+
+function getSatisfiesObjectLiteralInitializer(property: ts.PropertyAssignment): ts.ObjectLiteralExpression {
+    const satisfiesExpression = expectNode(property.initializer, ts.isSatisfiesExpression, 'satisfies expression initializer');
+    return expectNode(satisfiesExpression.expression, ts.isObjectLiteralExpression, 'object literal in satisfies expression');
+}
+
+function findPropertyAssignment(objectLiteral: ts.ObjectLiteralExpression, propertyName: string): ts.PropertyAssignment {
+    const property = objectLiteral.properties.find((prop) => ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === propertyName);
+    return expectNode(property, ts.isPropertyAssignment, `property assignment "${propertyName}"`);
+}
+
+function expectIdentifierText(node: ts.PropertyName, expected: string): void {
+    if (!ts.isIdentifier(node)) {
+        throw new Error('Expected identifier');
+    }
+    expect(node.text).toBe(expected);
+}
+
+function expectStringLiteralText(node: ts.Expression, expected: string): void {
+    if (!ts.isStringLiteral(node)) {
+        throw new Error('Expected string literal');
+    }
+    expect(node.text).toBe(expected);
+}
+
 describe('TSCompilerUtils', () => {
     describe('addImport', () => {
         it('adds a default import after an existing import', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     import fs from 'fs';
                     console.log('hello');
                 `),
@@ -22,7 +77,7 @@ describe('TSCompilerUtils', () => {
             const updated = TSCompilerUtils.addImport(source, 'myModule', 'some-path');
             const output = printSourceFile(updated);
             expect(output).toBe(
-                dedent(`
+                Str.dedent(`
                     import fs from 'fs';
                     import myModule from "some-path";
                     console.log('hello');
@@ -32,14 +87,14 @@ describe('TSCompilerUtils', () => {
 
         it('adds a default import at the top when there are no imports', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     console.log('hello');
                 `),
             );
             const updated = TSCompilerUtils.addImport(source, 'myModule', 'some-path');
             const output = printSourceFile(updated);
             expect(output).toBe(
-                dedent(`
+                Str.dedent(`
                     import myModule from "some-path";
                     console.log('hello');
                 `),
@@ -48,7 +103,7 @@ describe('TSCompilerUtils', () => {
 
         it('adds after multiple imports', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     import fs from 'fs';
                     import path from 'path';
 
@@ -60,7 +115,7 @@ describe('TSCompilerUtils', () => {
             const updated = TSCompilerUtils.addImport(source, 'myModule', 'some-path');
             const output = printSourceFile(updated);
             expect(output).toBe(
-                dedent(`
+                Str.dedent(`
                     import fs from 'fs';
                     import path from 'path';
                     import myModule from "some-path";
@@ -77,7 +132,7 @@ describe('TSCompilerUtils', () => {
             const output = printSourceFile(updated);
 
             expect(output).toBe(
-                dedent(`
+                Str.dedent(`
                     import init from "./init";
                 `),
             );
@@ -85,7 +140,7 @@ describe('TSCompilerUtils', () => {
 
         it('supports type-only imports', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     import fs from 'fs';
                     console.log('hello');
                 `),
@@ -93,7 +148,7 @@ describe('TSCompilerUtils', () => {
             const updated = TSCompilerUtils.addImport(source, 'MyType', 'some-path', true);
             const output = printSourceFile(updated);
             expect(output).toBe(
-                dedent(`
+                Str.dedent(`
                     import fs from 'fs';
                     import type MyType from "some-path";
                     console.log('hello');
@@ -104,7 +159,7 @@ describe('TSCompilerUtils', () => {
 
     describe('findDefaultExport', () => {
         it('returns the identifier in `export default` statement', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const strings = { greeting: 'Hello' };
                 export default strings;
             `);
@@ -114,7 +169,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('returns the object literal if directly exported', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 export default { farewell: 'Goodbye' };
             `);
             const ast = createSourceFile(code);
@@ -128,7 +183,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('returns null if no default export is present', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const foo = 'bar';
                 export const greeting = 'Hello';
             `);
@@ -138,7 +193,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('returns identifier for `export { foo as default }`', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const foo = { bar: 'baz' };
                 export { foo as default };
             `);
@@ -150,7 +205,7 @@ describe('TSCompilerUtils', () => {
 
     describe('resolveDeclaration', () => {
         it('resolves a variable declaration', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const foo = { message: 'hi' };
             `);
             const ast = createSourceFile(code);
@@ -165,7 +220,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('resolves a function declaration', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 function greet() {
                     return 'hello';
                 }
@@ -182,7 +237,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('resolves a class declaration', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 class MyClass {
                     method() {}
                 }
@@ -199,7 +254,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('returns null for unknown identifier', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const foo = 123;
             `);
             const ast = createSourceFile(code);
@@ -208,7 +263,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('returns declaration even if variable has no initializer', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 let foo;
             `);
             const ast = createSourceFile(code);
@@ -226,7 +281,7 @@ describe('TSCompilerUtils', () => {
         it('extracts identifier from simple identifier', () => {
             const code = 'translations';
             const ast = createSourceFile(code);
-            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const expression = getStatement(ast, 0, ts.isExpressionStatement, 'expression statement');
             const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
             expect(result).toBe('translations');
         });
@@ -234,7 +289,7 @@ describe('TSCompilerUtils', () => {
         it('extracts identifier from satisfies expression', () => {
             const code = 'translations satisfies TranslationDeepObject<typeof translations>;';
             const ast = createSourceFile(code);
-            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const expression = getStatement(ast, 0, ts.isExpressionStatement, 'expression statement');
             const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
             expect(result).toBe('translations');
         });
@@ -242,7 +297,7 @@ describe('TSCompilerUtils', () => {
         it('extracts identifier from as expression', () => {
             const code = 'translations as SomeType;';
             const ast = createSourceFile(code);
-            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const expression = getStatement(ast, 0, ts.isExpressionStatement, 'expression statement');
             const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
             expect(result).toBe('translations');
         });
@@ -250,7 +305,7 @@ describe('TSCompilerUtils', () => {
         it('extracts identifier from parenthesized expression', () => {
             const code = '(translations);';
             const ast = createSourceFile(code);
-            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const expression = getStatement(ast, 0, ts.isExpressionStatement, 'expression statement');
             const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
             expect(result).toBe('translations');
         });
@@ -258,7 +313,7 @@ describe('TSCompilerUtils', () => {
         it('extracts identifier from nested parenthesized expression', () => {
             const code = '((translations));';
             const ast = createSourceFile(code);
-            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const expression = getStatement(ast, 0, ts.isExpressionStatement, 'expression statement');
             const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
             expect(result).toBe('translations');
         });
@@ -266,7 +321,7 @@ describe('TSCompilerUtils', () => {
         it('extracts identifier from type assertion (angle bracket syntax)', () => {
             const code = '<SomeType>translations;';
             const ast = createSourceFile(code);
-            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const expression = getStatement(ast, 0, ts.isExpressionStatement, 'expression statement');
             const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
             // Note: This might be 'translations' or null depending on how TypeScript parses angle bracket syntax in JSX-enabled contexts
             expect(result).toEqual(expect.any(String));
@@ -275,7 +330,7 @@ describe('TSCompilerUtils', () => {
         it('extracts identifier from complex nested expression', () => {
             const code = '(translations as SomeType);';
             const ast = createSourceFile(code);
-            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const expression = getStatement(ast, 0, ts.isExpressionStatement, 'expression statement');
             const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
             expect(result).toBe('translations');
         });
@@ -283,7 +338,7 @@ describe('TSCompilerUtils', () => {
         it('extracts identifier from satisfies expression with nested parentheses', () => {
             const code = '(translations) satisfies TranslationDeepObject<typeof translations>;';
             const ast = createSourceFile(code);
-            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const expression = getStatement(ast, 0, ts.isExpressionStatement, 'expression statement');
             const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
             expect(result).toBe('translations');
         });
@@ -291,7 +346,7 @@ describe('TSCompilerUtils', () => {
         it('returns null for non-identifier expressions', () => {
             const code = '"hello world";';
             const ast = createSourceFile(code);
-            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const expression = getStatement(ast, 0, ts.isExpressionStatement, 'expression statement');
             const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
             expect(result).toBeNull();
         });
@@ -299,7 +354,7 @@ describe('TSCompilerUtils', () => {
         it('returns null for complex expressions that do not contain identifiers', () => {
             const code = '42 + 24;';
             const ast = createSourceFile(code);
-            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const expression = getStatement(ast, 0, ts.isExpressionStatement, 'expression statement');
             const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
             expect(result).toBeNull();
         });
@@ -307,7 +362,7 @@ describe('TSCompilerUtils', () => {
         it('returns null for call expressions', () => {
             const code = 'someFunction();';
             const ast = createSourceFile(code);
-            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const expression = getStatement(ast, 0, ts.isExpressionStatement, 'expression statement');
             const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
             expect(result).toBeNull();
         });
@@ -315,7 +370,7 @@ describe('TSCompilerUtils', () => {
         it('returns null for member expressions', () => {
             const code = 'obj.property;';
             const ast = createSourceFile(code);
-            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const expression = getStatement(ast, 0, ts.isExpressionStatement, 'expression statement');
             const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
             expect(result).toBeNull();
         });
@@ -323,7 +378,7 @@ describe('TSCompilerUtils', () => {
         it('handles deeply nested expression types', () => {
             const code = '((translations as SomeType) satisfies AnotherType);';
             const ast = createSourceFile(code);
-            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const expression = getStatement(ast, 0, ts.isExpressionStatement, 'expression statement');
             const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
             expect(result).toBe('translations');
         });
@@ -331,37 +386,37 @@ describe('TSCompilerUtils', () => {
 
     describe('extractKeyFromPropertyNode', () => {
         it('extracts key from property assignment with identifier', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const obj = {
                     myKey: 'value'
                 };
             `);
             const ast = createSourceFile(code);
-            const varDecl = ast.statements[0] as ts.VariableStatement;
-            const objLiteral = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
-            const propertyAssignment = objLiteral.properties[0] as ts.PropertyAssignment;
+            const varDecl = getStatement(ast, 0, ts.isVariableStatement, 'variable statement');
+            const objLiteral = expectNode(varDecl.declarationList.declarations.at(0)?.initializer, ts.isObjectLiteralExpression, 'object literal initializer');
+            const propertyAssignment = getProperty(objLiteral, 0, ts.isPropertyAssignment, 'property assignment');
 
             const result = TSCompilerUtils.extractKeyFromPropertyNode(propertyAssignment);
             expect(result).toBe('myKey');
         });
 
         it('extracts key from property assignment with string literal', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const obj = {
                     "myStringKey": 'value'
                 };
             `);
             const ast = createSourceFile(code);
-            const varDecl = ast.statements[0] as ts.VariableStatement;
-            const objLiteral = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
-            const propertyAssignment = objLiteral.properties[0] as ts.PropertyAssignment;
+            const varDecl = getStatement(ast, 0, ts.isVariableStatement, 'variable statement');
+            const objLiteral = expectNode(varDecl.declarationList.declarations.at(0)?.initializer, ts.isObjectLiteralExpression, 'object literal initializer');
+            const propertyAssignment = getProperty(objLiteral, 0, ts.isPropertyAssignment, 'property assignment');
 
             const result = TSCompilerUtils.extractKeyFromPropertyNode(propertyAssignment);
             expect(result).toBe('myStringKey');
         });
 
         it('extracts key from method declaration', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const obj = {
                     myMethod() {
                         return 'hello';
@@ -369,46 +424,46 @@ describe('TSCompilerUtils', () => {
                 };
             `);
             const ast = createSourceFile(code);
-            const varDecl = ast.statements[0] as ts.VariableStatement;
-            const objLiteral = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
-            const methodDeclaration = objLiteral.properties[0] as ts.MethodDeclaration;
+            const varDecl = getStatement(ast, 0, ts.isVariableStatement, 'variable statement');
+            const objLiteral = expectNode(varDecl.declarationList.declarations.at(0)?.initializer, ts.isObjectLiteralExpression, 'object literal initializer');
+            const methodDeclaration = getProperty(objLiteral, 0, ts.isMethodDeclaration, 'method declaration');
 
             const result = TSCompilerUtils.extractKeyFromPropertyNode(methodDeclaration);
             expect(result).toBe('myMethod');
         });
 
         it('handles computed property names by returning undefined', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const obj = {
                     [computedKey]: 'value'
                 };
             `);
             const ast = createSourceFile(code);
-            const varDecl = ast.statements[0] as ts.VariableStatement;
-            const objLiteral = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
-            const propertyAssignment = objLiteral.properties[0] as ts.PropertyAssignment;
+            const varDecl = getStatement(ast, 0, ts.isVariableStatement, 'variable statement');
+            const objLiteral = expectNode(varDecl.declarationList.declarations.at(0)?.initializer, ts.isObjectLiteralExpression, 'object literal initializer');
+            const propertyAssignment = getProperty(objLiteral, 0, ts.isPropertyAssignment, 'property assignment');
 
             const result = TSCompilerUtils.extractKeyFromPropertyNode(propertyAssignment);
             expect(result).toBeUndefined();
         });
 
         it('handles numeric literal property names by returning undefined', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const obj = {
                     123: 'value'
                 };
             `);
             const ast = createSourceFile(code);
-            const varDecl = ast.statements[0] as ts.VariableStatement;
-            const objLiteral = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
-            const propertyAssignment = objLiteral.properties[0] as ts.PropertyAssignment;
+            const varDecl = getStatement(ast, 0, ts.isVariableStatement, 'variable statement');
+            const objLiteral = expectNode(varDecl.declarationList.declarations.at(0)?.initializer, ts.isObjectLiteralExpression, 'object literal initializer');
+            const propertyAssignment = getProperty(objLiteral, 0, ts.isPropertyAssignment, 'property assignment');
 
             const result = TSCompilerUtils.extractKeyFromPropertyNode(propertyAssignment);
             expect(result).toBeUndefined();
         });
 
         it('handles method declaration with complex name by returning undefined', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const obj = {
                     [Symbol.iterator]() {
                         return {};
@@ -416,24 +471,24 @@ describe('TSCompilerUtils', () => {
                 };
             `);
             const ast = createSourceFile(code);
-            const varDecl = ast.statements[0] as ts.VariableStatement;
-            const objLiteral = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
-            const methodDeclaration = objLiteral.properties[0] as ts.MethodDeclaration;
+            const varDecl = getStatement(ast, 0, ts.isVariableStatement, 'variable statement');
+            const objLiteral = expectNode(varDecl.declarationList.declarations.at(0)?.initializer, ts.isObjectLiteralExpression, 'object literal initializer');
+            const methodDeclaration = getProperty(objLiteral, 0, ts.isMethodDeclaration, 'method declaration');
 
             const result = TSCompilerUtils.extractKeyFromPropertyNode(methodDeclaration);
             expect(result).toBeUndefined();
         });
 
         it('handles arrow function property assignment', () => {
-            const code = dedent(`
+            const code = Str.dedent(`
                 const obj = {
                     arrowFunc: () => 'hello'
                 };
             `);
             const ast = createSourceFile(code);
-            const varDecl = ast.statements[0] as ts.VariableStatement;
-            const objLiteral = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
-            const propertyAssignment = objLiteral.properties[0] as ts.PropertyAssignment;
+            const varDecl = getStatement(ast, 0, ts.isVariableStatement, 'variable statement');
+            const objLiteral = expectNode(varDecl.declarationList.declarations.at(0)?.initializer, ts.isObjectLiteralExpression, 'object literal initializer');
+            const propertyAssignment = getProperty(objLiteral, 0, ts.isPropertyAssignment, 'property assignment');
 
             const result = TSCompilerUtils.extractKeyFromPropertyNode(propertyAssignment);
             expect(result).toBe('arrowFunc');
@@ -442,7 +497,7 @@ describe('TSCompilerUtils', () => {
 
     describe('addImport', () => {
         it('adds import when it does not exist', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     greeting: 'Hello'
                 };
@@ -458,7 +513,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('does not add duplicate import when it already exists', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 import type en from './en';
                 const strings = {
                     greeting: 'Hello'
@@ -476,7 +531,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('distinguishes between type and value imports', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 import en from './en';
                 const strings = {
                     greeting: 'Hello'
@@ -494,7 +549,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('handles different module paths', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 import type en from './other';
                 const strings = {
                     greeting: 'Hello'
@@ -514,7 +569,7 @@ describe('TSCompilerUtils', () => {
 
     describe('buildDotNotationPath', () => {
         it('builds path from nested property assignment', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     common: {
                         save: 'Save'
@@ -558,7 +613,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('builds path from top-level property', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     greeting: 'Hello'
                 };
@@ -590,7 +645,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('builds path with custom root node', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     common: {
                         save: 'Save'
@@ -635,7 +690,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('returns null for nodes without property assignments', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const greeting = 'Hello';
             `);
 
@@ -655,7 +710,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('handles deeply nested paths', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     level1: {
                         level2: {
@@ -765,7 +820,7 @@ describe('TSCompilerUtils', () => {
 
     describe('createPathAwareVisitor', () => {
         it('should create visitor that builds correct paths for property assignments', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                     common: {
@@ -803,7 +858,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('should handle nested paths correctly', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     common: {
                         save: 'Save',
@@ -850,7 +905,7 @@ describe('TSCompilerUtils', () => {
         });
 
         it('should work with forEachChild for non-transforming traversal', () => {
-            const sourceCode = dedent(`
+            const sourceCode = Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                     farewell: 'Goodbye'
@@ -888,7 +943,7 @@ describe('TSCompilerUtils', () => {
     describe('objectHas', () => {
         it('returns true for top-level property that exists', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {
                         greeting: 'Hello',
                         farewell: 'Goodbye',
@@ -904,7 +959,7 @@ describe('TSCompilerUtils', () => {
 
         it('returns false for top-level property that does not exist', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {
                         greeting: 'Hello',
                         farewell: 'Goodbye',
@@ -918,7 +973,7 @@ describe('TSCompilerUtils', () => {
 
         it('returns true for nested property that exists', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {
                         common: {
                             save: 'Save',
@@ -939,7 +994,7 @@ describe('TSCompilerUtils', () => {
 
         it('returns false for nested property that does not exist', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {
                         common: {
                             save: 'Save',
@@ -960,7 +1015,7 @@ describe('TSCompilerUtils', () => {
 
         it('returns false when trying to traverse into a non-object property', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {
                         greeting: 'Hello',
                         common: {
@@ -977,7 +1032,7 @@ describe('TSCompilerUtils', () => {
 
         it('returns true for deeply nested properties', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {
                         level1: {
                             level2: {
@@ -996,7 +1051,7 @@ describe('TSCompilerUtils', () => {
 
         it('returns false for partially correct deeply nested paths', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {
                         level1: {
                             level2: {
@@ -1016,7 +1071,7 @@ describe('TSCompilerUtils', () => {
 
         it('handles empty object', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const obj = {};
                 `),
             );
@@ -1058,18 +1113,15 @@ describe('TSCompilerUtils', () => {
 
             // Verify structure was created
             expect(updatedObject.properties).toHaveLength(1);
-            const testProp = updatedObject.properties.at(0) as ts.PropertyAssignment;
-            expect(ts.isPropertyAssignment(testProp)).toBe(true);
-            expect((testProp.name as ts.Identifier).text).toBe('test');
+            const testProp = getProperty(updatedObject, 0, ts.isPropertyAssignment, 'property assignment');
+            expectIdentifierText(testProp.name, 'test');
 
-            const testValue = testProp.initializer as ts.ObjectLiteralExpression;
-            expect(ts.isObjectLiteralExpression(testValue)).toBe(true);
+            const testValue = getObjectLiteralInitializer(testProp);
             expect(testValue.properties).toHaveLength(1);
 
-            const nestedProp = testValue.properties[0] as ts.PropertyAssignment;
-            expect((nestedProp.name as ts.Identifier).text).toBe('nested');
-            expect(ts.isStringLiteral(nestedProp.initializer)).toBe(true);
-            expect((nestedProp.initializer as ts.StringLiteral).text).toBe('test value');
+            const nestedProp = getProperty(testValue, 0, ts.isPropertyAssignment, 'property assignment');
+            expectIdentifierText(nestedProp.name, 'nested');
+            expectStringLiteralText(nestedProp.initializer, 'test value');
         });
 
         it('should throw error when trying to inject into non-object property', () => {
@@ -1098,25 +1150,19 @@ describe('TSCompilerUtils', () => {
 
             // Should preserve existing structure and add new value
             expect(updatedObject.properties).toHaveLength(1);
-            const updatedProperty = updatedObject.properties.at(0) as ts.PropertyAssignment;
-            expect((updatedProperty.name as ts.Identifier).text).toBe('existing');
+            const updatedProperty = getProperty(updatedObject, 0, ts.isPropertyAssignment, 'property assignment');
+            expectIdentifierText(updatedProperty.name, 'existing');
 
-            const updatedNestedObj = updatedProperty.initializer as ts.ObjectLiteralExpression;
+            const updatedNestedObj = getObjectLiteralInitializer(updatedProperty);
             expect(updatedNestedObj.properties).toHaveLength(2);
 
             // Check existing property is preserved
-            const existingNestedProp = updatedNestedObj.properties.find(
-                (prop) => ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === 'existingNested',
-            ) as ts.PropertyAssignment;
-            expect(existingNestedProp).toBeDefined();
-            expect((existingNestedProp.initializer as ts.StringLiteral).text).toBe('existing value');
+            const existingNestedProp = findPropertyAssignment(updatedNestedObj, 'existingNested');
+            expectStringLiteralText(existingNestedProp.initializer, 'existing value');
 
             // Check new property was added
-            const newNestedProp = updatedNestedObj.properties.find(
-                (prop) => ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === 'newNested',
-            ) as ts.PropertyAssignment;
-            expect(newNestedProp).toBeDefined();
-            expect((newNestedProp.initializer as ts.StringLiteral).text).toBe('new value');
+            const newNestedProp = findPropertyAssignment(updatedNestedObj, 'newNested');
+            expectStringLiteralText(newNestedProp.initializer, 'new value');
         });
 
         it('should replace existing value when path points to existing property', () => {
@@ -1131,9 +1177,9 @@ describe('TSCompilerUtils', () => {
 
             // Should replace the existing value
             expect(updatedObject.properties).toHaveLength(1);
-            const updatedProperty = updatedObject.properties.at(0) as ts.PropertyAssignment;
-            expect((updatedProperty.name as ts.Identifier).text).toBe('existing');
-            expect((updatedProperty.initializer as ts.StringLiteral).text).toBe('new value');
+            const updatedProperty = getProperty(updatedObject, 0, ts.isPropertyAssignment, 'property assignment');
+            expectIdentifierText(updatedProperty.name, 'existing');
+            expectStringLiteralText(updatedProperty.initializer, 'new value');
         });
 
         it('should handle single-level paths', () => {
@@ -1143,10 +1189,9 @@ describe('TSCompilerUtils', () => {
             const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'single', finalValue);
 
             expect(updatedObject.properties).toHaveLength(1);
-            const prop = updatedObject.properties.at(0) as ts.PropertyAssignment;
-            expect((prop.name as ts.Identifier).text).toBe('single');
-            expect(ts.isStringLiteral(prop.initializer)).toBe(true);
-            expect((prop.initializer as ts.StringLiteral).text).toBe('single value');
+            const prop = getProperty(updatedObject, 0, ts.isPropertyAssignment, 'property assignment');
+            expectIdentifierText(prop.name, 'single');
+            expectStringLiteralText(prop.initializer, 'single value');
         });
 
         it('should handle deep nested paths', () => {
@@ -1158,23 +1203,22 @@ describe('TSCompilerUtils', () => {
             expect(updatedObject.properties).toHaveLength(1);
 
             // Navigate down the nested structure
-            const aProp = updatedObject.properties.at(0) as ts.PropertyAssignment;
-            expect((aProp.name as ts.Identifier).text).toBe('a');
+            const aProp = getProperty(updatedObject, 0, ts.isPropertyAssignment, 'property assignment');
+            expectIdentifierText(aProp.name, 'a');
 
-            const bObj = aProp.initializer as ts.ObjectLiteralExpression;
-            const bProp = bObj.properties[0] as ts.PropertyAssignment;
-            expect((bProp.name as ts.Identifier).text).toBe('b');
+            const bObj = getObjectLiteralInitializer(aProp);
+            const bProp = getProperty(bObj, 0, ts.isPropertyAssignment, 'property assignment');
+            expectIdentifierText(bProp.name, 'b');
 
-            const cObj = bProp.initializer as ts.ObjectLiteralExpression;
-            const cProp = cObj.properties[0] as ts.PropertyAssignment;
-            expect((cProp.name as ts.Identifier).text).toBe('c');
+            const cObj = getObjectLiteralInitializer(bProp);
+            const cProp = getProperty(cObj, 0, ts.isPropertyAssignment, 'property assignment');
+            expectIdentifierText(cProp.name, 'c');
 
-            const dObj = cProp.initializer as ts.ObjectLiteralExpression;
-            const dProp = dObj.properties[0] as ts.PropertyAssignment;
-            expect((dProp.name as ts.Identifier).text).toBe('d');
+            const dObj = getObjectLiteralInitializer(cProp);
+            const dProp = getProperty(dObj, 0, ts.isPropertyAssignment, 'property assignment');
+            expectIdentifierText(dProp.name, 'd');
 
-            expect(ts.isStringLiteral(dProp.initializer)).toBe(true);
-            expect((dProp.initializer as ts.StringLiteral).text).toBe('deep value');
+            expectStringLiteralText(dProp.initializer, 'deep value');
         });
 
         it('should preserve existing properties when adding new ones', () => {
@@ -1197,13 +1241,13 @@ describe('TSCompilerUtils', () => {
             expect(updatedObject.properties.at(1)).toBe(existingProps.at(1));
 
             // Check the new nested property
-            const newProp = updatedObject.properties.at(2) as ts.PropertyAssignment;
-            expect((newProp.name as ts.Identifier).text).toBe('newSection');
+            const newProp = getProperty(updatedObject, 2, ts.isPropertyAssignment, 'property assignment');
+            expectIdentifierText(newProp.name, 'newSection');
 
-            const nestedObj = newProp.initializer as ts.ObjectLiteralExpression;
-            const nestedProp = nestedObj.properties[0] as ts.PropertyAssignment;
-            expect((nestedProp.name as ts.Identifier).text).toBe('nested');
-            expect((nestedProp.initializer as ts.StringLiteral).text).toBe('new nested value');
+            const nestedObj = getObjectLiteralInitializer(newProp);
+            const nestedProp = getProperty(nestedObj, 0, ts.isPropertyAssignment, 'property assignment');
+            expectIdentifierText(nestedProp.name, 'nested');
+            expectStringLiteralText(nestedProp.initializer, 'new nested value');
         });
 
         it('should handle complex expressions as final values', () => {
@@ -1217,9 +1261,9 @@ describe('TSCompilerUtils', () => {
             const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'test.greeting', finalValue);
 
             expect(updatedObject.properties).toHaveLength(1);
-            const testProp = updatedObject.properties.at(0) as ts.PropertyAssignment;
-            const testObj = testProp.initializer as ts.ObjectLiteralExpression;
-            const greetingProp = testObj.properties[0] as ts.PropertyAssignment;
+            const testProp = getProperty(updatedObject, 0, ts.isPropertyAssignment, 'property assignment');
+            const testObj = getObjectLiteralInitializer(testProp);
+            const greetingProp = getProperty(testObj, 0, ts.isPropertyAssignment, 'property assignment');
 
             expect(ts.isTemplateExpression(greetingProp.initializer)).toBe(true);
         });
@@ -1240,9 +1284,9 @@ describe('TSCompilerUtils', () => {
             const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'test.func', finalValue);
 
             expect(updatedObject.properties).toHaveLength(1);
-            const testProp = updatedObject.properties.at(0) as ts.PropertyAssignment;
-            const testObj = testProp.initializer as ts.ObjectLiteralExpression;
-            const funcProp = testObj.properties[0] as ts.PropertyAssignment;
+            const testProp = getProperty(updatedObject, 0, ts.isPropertyAssignment, 'property assignment');
+            const testObj = getObjectLiteralInitializer(testProp);
+            const funcProp = getProperty(testObj, 0, ts.isPropertyAssignment, 'property assignment');
 
             expect(ts.isArrowFunction(funcProp.initializer)).toBe(true);
         });
@@ -1284,13 +1328,13 @@ describe('TSCompilerUtils', () => {
             const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, '123.456', finalValue);
 
             expect(updatedObject.properties).toHaveLength(1);
-            const numericProp = updatedObject.properties.at(0) as ts.PropertyAssignment;
-            expect((numericProp.name as ts.Identifier).text).toBe('123');
+            const numericProp = getProperty(updatedObject, 0, ts.isPropertyAssignment, 'property assignment');
+            expectIdentifierText(numericProp.name, '123');
 
-            const nestedObj = numericProp.initializer as ts.ObjectLiteralExpression;
-            const nestedProp = nestedObj.properties[0] as ts.PropertyAssignment;
-            expect((nestedProp.name as ts.Identifier).text).toBe('456');
-            expect((nestedProp.initializer as ts.StringLiteral).text).toBe('numeric value');
+            const nestedObj = getObjectLiteralInitializer(numericProp);
+            const nestedProp = getProperty(nestedObj, 0, ts.isPropertyAssignment, 'property assignment');
+            expectIdentifierText(nestedProp.name, '456');
+            expectStringLiteralText(nestedProp.initializer, 'numeric value');
         });
 
         it('should handle satisfies expressions in nested objects', () => {
@@ -1309,11 +1353,11 @@ describe('TSCompilerUtils', () => {
             const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'tasks.newKey', newValue);
 
             // Verify satisfies expression is preserved
-            const tasksProp = updatedObject.properties[0] as ts.PropertyAssignment;
+            const tasksProp = getProperty(updatedObject, 0, ts.isPropertyAssignment, 'property assignment');
             expect(ts.isSatisfiesExpression(tasksProp.initializer)).toBe(true);
 
             // Verify both existing and new properties exist
-            const tasksObj = (tasksProp.initializer as ts.SatisfiesExpression).expression as ts.ObjectLiteralExpression;
+            const tasksObj = getSatisfiesObjectLiteralInitializer(tasksProp);
             expect(tasksObj.properties).toHaveLength(2);
         });
 
@@ -1333,12 +1377,12 @@ describe('TSCompilerUtils', () => {
             const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'nested.existingKey', newValue);
 
             // Verify satisfies expression is preserved and value is replaced
-            const nestedProp = updatedObject.properties[0] as ts.PropertyAssignment;
+            const nestedProp = getProperty(updatedObject, 0, ts.isPropertyAssignment, 'property assignment');
             expect(ts.isSatisfiesExpression(nestedProp.initializer)).toBe(true);
 
-            const nestedObj = (nestedProp.initializer as ts.SatisfiesExpression).expression as ts.ObjectLiteralExpression;
-            const existingKeyProp = nestedObj.properties[0] as ts.PropertyAssignment;
-            expect((existingKeyProp.initializer as ts.StringLiteral).text).toBe('new value');
+            const nestedObj = getSatisfiesObjectLiteralInitializer(nestedProp);
+            const existingKeyProp = getProperty(nestedObj, 0, ts.isPropertyAssignment, 'property assignment');
+            expectStringLiteralText(existingKeyProp.initializer, 'new value');
         });
     });
 
@@ -1439,7 +1483,7 @@ describe('TSCompilerUtils', () => {
     describe('getIndentationOfNode', () => {
         it('should return 0 for a node at column 0', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     const x = 1;
                 `),
             );
@@ -1450,7 +1494,7 @@ describe('TSCompilerUtils', () => {
 
         it('should return correct indentation for a node with leading spaces', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     function example() {
                         const x = 1;
                     }
@@ -1458,19 +1502,15 @@ describe('TSCompilerUtils', () => {
             );
 
             // Find the const declaration inside the function
-            const functionDecl = source.statements[0] as ts.FunctionDeclaration;
-            const functionBody = functionDecl.body;
-            const constStatement = functionBody?.statements[0];
+            const functionDecl = getStatement(source, 0, ts.isFunctionDeclaration, 'function declaration');
+            const constStatement = getBlockStatement(functionDecl.body, 0, ts.isVariableStatement, 'variable statement');
 
-            expect(constStatement).toBeDefined();
-            if (constStatement) {
-                expect(TSCompilerUtils.getIndentationOfNode(constStatement, source)).toBe(4);
-            }
+            expect(TSCompilerUtils.getIndentationOfNode(constStatement, source)).toBe(4);
         });
 
         it('should handle nested indentation', () => {
             const source = createSourceFile(
-                dedent(`
+                Str.dedent(`
                     class MyClass {
                         method() {
                             if (true) {
@@ -1482,10 +1522,11 @@ describe('TSCompilerUtils', () => {
             );
 
             // Navigate to the deeply nested const statement
-            const classDecl = source.statements[0] as ts.ClassDeclaration;
-            const methodDecl = classDecl.members[0] as ts.MethodDeclaration;
-            const ifStatement = methodDecl.body?.statements[0] as ts.IfStatement;
-            const constStatement = (ifStatement.thenStatement as ts.Block).statements[0];
+            const classDecl = getStatement(source, 0, ts.isClassDeclaration, 'class declaration');
+            const methodDecl = getMember(classDecl, 0, ts.isMethodDeclaration, 'method declaration');
+            const ifStatement = getBlockStatement(methodDecl.body, 0, ts.isIfStatement, 'if statement');
+            const thenBlock = expectNode(ifStatement.thenStatement, ts.isBlock, 'then block');
+            const constStatement = getBlockStatement(thenBlock, 0, ts.isVariableStatement, 'variable statement');
 
             expect(TSCompilerUtils.getIndentationOfNode(constStatement, source)).toBe(12);
         });

@@ -1,11 +1,15 @@
-import React from 'react';
 import DisplayNames from '@components/DisplayNames';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {shouldUseBoldText} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isGroupChat, isSystemChat} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 type TitleProps = {
     /** Option data for the row. Source of `text`, `displayNamesWithTooltips`, chat-type flags, parse-mode hints, and unread/bold derivation. */

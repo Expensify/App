@@ -1,10 +1,15 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import {rand64} from '@libs/NumberUtils';
+
 import {clearCachedAttachments, getCachedAttachment} from '@userActions/Attachment';
 import {addAttachmentWithComment, addComment, deleteReportComment} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import type {Attachment, ReportAction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -69,7 +74,15 @@ describe('AttachmentStorage', () => {
         };
 
         // Then upload the attachment
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: fileData, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: fileData,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -109,6 +122,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -165,6 +179,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -229,7 +244,15 @@ describe('AttachmentStorage', () => {
         await waitForBatchedUpdates();
 
         // Then upload the attachment
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: fileData, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: fileData,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -250,7 +273,7 @@ describe('AttachmentStorage', () => {
         }
 
         // Delete attachment
-        deleteReportComment({reportID}, attachmentAction, [], false, false, 'test@user.com');
+        deleteReportComment({reportID}, attachmentAction, undefined, [], false, false, 'test@user.com');
         await waitForBatchedUpdates();
 
         // Then the attachment should be removed
@@ -292,6 +315,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -313,7 +337,7 @@ describe('AttachmentStorage', () => {
         }
 
         // Delete attachment
-        deleteReportComment({reportID}, attachmentAction, [], false, false, 'test@user.com');
+        deleteReportComment({reportID}, attachmentAction, undefined, [], false, false, 'test@user.com');
         await waitForBatchedUpdates();
 
         const removedAttachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
@@ -362,8 +386,17 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: attachmentFiles, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: attachmentFiles,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
