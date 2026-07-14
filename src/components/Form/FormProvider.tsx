@@ -8,6 +8,7 @@ import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 
 import {isSafari} from '@libs/Browser';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -141,7 +142,7 @@ function FormProvider({
     onSubmit,
     shouldTrimValues = true,
     allowHTML = false,
-    isLoading = false,
+    isLoading: isOnyxLoading = false,
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
@@ -283,10 +284,12 @@ function FormProvider({
         [touchedInputs],
     );
 
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: !!formState?.isLoading || isOnyxLoading});
+
     const submit = useDebounceNonReactive(
         useCallback(() => {
             // Return early if the form is already submitting to avoid duplicate submission
-            if (!!formState?.isLoading || isLoading) {
+            if (isLoading) {
                 return;
             }
 
@@ -315,14 +318,16 @@ function FormProvider({
                 return;
             }
 
-            if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
-                KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
-            } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
-                KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
-            } else {
-                onSubmit(trimmedStringValues);
-            }
-        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior, onBeforeSubmit]),
+            startWithLoading(() => {
+                if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
+                    KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
+                } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
+                    KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
+                } else {
+                    onSubmit(trimmedStringValues);
+                }
+            });
+        }, [enabledWhenOffline, isLoading, inputValues, isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior, onBeforeSubmit, startWithLoading]),
         1000,
         {leading: true, trailing: false},
     );

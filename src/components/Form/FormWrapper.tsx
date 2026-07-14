@@ -202,6 +202,8 @@ function FormWrapper({
             isDisabled={isSubmitDisabled}
             isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
             isLoading={!!formState?.isLoading || isLoading}
+            // FormProvider drives the loading state, so opt out here to delay the spinner until after validations run.
+            shouldShowLoadingImmediatelyOnPress={false}
             message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
             onSubmit={onSubmit}
             footerContent={footerContent}
