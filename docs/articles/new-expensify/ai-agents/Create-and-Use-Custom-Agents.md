@@ -115,6 +115,16 @@ Deleting an agent closes its Expensify account.
 4. Click **Delete agent**.
 5. Confirm the deletion.
 
+You can also delete an agent while Copiloting into its account:
+
+1. Copilot into the agent's account.
+2. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
+3. Click **Security**.
+4. Click **Close account**.
+5. In the **Delete agent?** confirmation, click **Delete**.
+
+Deleting the agent from the **Security** page also ends the Copilot session and returns you to your own account. This step requires an internet connection.
+
 Deleting an agent can't be undone.
 
 ---
@@ -175,6 +185,13 @@ On Collect plans, workspaces support a single approver. An agent can be used as 
 ## Is an agent added as a Copilot on my own account?
 
 Yes. When you create an agent, it's automatically added as a full-access Copilot on your own account, giving it delegated access to your personal context so it can manage your expenses and reports on your behalf. You don't need to add it by hand. You can review or remove this access at any time in the **Copilot: Delegated Access** section under **Account > Security**. [Learn how to manage Copilot access](/articles/new-expensify/settings/Manage-Copilot-Access).
+
+## Why does the Security page look different when I Copilot into an agent?
+
+When you Copilot into an agent's account and open **Account > Security**, some options are adjusted because you're managing an agent rather than a real user's account:
+
+- **Device management** and **Merge accounts** are hidden, since they don't apply to an agent.
+- **Close account** deletes the agent and ends the Copilot session instead of opening the standard close-account flow.
 
 ## Can an agent make mistakes?
 
