@@ -37,7 +37,7 @@ type ResolvedPieLabelLayout = {
     relativeX: number;
     relativeY: number;
     textAnchor: TextAnchor;
-    /** The angle actually used for this slice's layout — may differ from `(startAngle + endAngle) / 2` for a single 100%-value slice (see `computeSliceAngles`). The indicator line must anchor to this same angle, not recompute its own from `slice.startAngle`/`slice.endAngle`, or the two would disagree. */
+    /** The angle actually used for this slice's layout. */
     midAngle: number;
 };
 
@@ -49,10 +49,6 @@ type ResolvedPieLabelLayout = {
 function computeSliceAngles(values: PieSliceValue[], startAngle: number): PieSliceAngle[] {
     const onlyValue = values.length === 1 ? values.at(0) : undefined;
     if (onlyValue) {
-        // A single slice fills the whole ring, so its start and end angle are the same point — the
-        // "midpoint" of that 360° sweep is diametrically opposite wherever the ring's seam happens to
-        // sit (the bottom, given this codebase's start angle), not a place a reader would expect a
-        // label. Anchor it to a fixed, always-safe spot instead: 3 o'clock, vertically centered.
         return [{label: onlyValue.label, midAngle: 0}];
     }
 
@@ -72,15 +68,6 @@ function assignColumnSide(midAngle: number): PieLabelSide {
     return Math.cos(midAngle) >= 0 ? 'right' : 'left';
 }
 
-/**
- * Sums each label line's height using the same per-line fallback `VictoryChartLabel` applies:
- * an authored `lineheight` multiplier on that line's own font size, or the font's own metrics
- * when no `lineheight` was authored for that line.
- *
- * `baseLabelItem` is the shared `labelcomponent` template (its own `text` is always empty — the
- * real per-slice text is substituted later), so the number of lines it defines is read from its
- * per-line style maps (one entry per line, e.g. bold name + gray amount) rather than from `.text`.
- */
 function computeLabelBlockHeight(baseLabelItem: Pick<LabelItem, 'fontSize' | 'fontFamily' | 'fontStyle' | 'fontWeight' | 'lineHeight'>, typefaces: ChartDefaultTypeface): number {
     const lineCount = Object.keys(baseLabelItem.fontSize ?? {}).length || 1;
     let totalHeight = 0;
@@ -101,14 +88,6 @@ function computeLabelBlockHeight(baseLabelItem: Pick<LabelItem, 'fontSize' | 'fo
     return totalHeight;
 }
 
-/**
- * Per-column collision resolution: sort by natural Y, greedily push overlapping labels down, then
- * compact back up if the bottom-most label would exceed `plotBounds.bottom` (a forward-only pass can
- * only push down, so a cluster naturally near the bottom of a column would otherwise overflow past
- * it). As a last resort — more labels than the column can fit even at minimum spacing, not reachable
- * at realistic slice counts/font sizes — evenly redistribute across the full bounds instead, trading
- * tighter-than-`rowHeight` spacing for a guarantee of never clipping.
- */
 function resolveColumnRows(naturalYs: number[], rowHeight: number, plotBounds: PlotBounds): number[] {
     const forwardPass: number[] = [];
 
@@ -129,11 +108,6 @@ function resolveColumnRows(naturalYs: number[], rowHeight: number, plotBounds: P
     return compacted;
 }
 
-/**
- * Resolves each label's final position in a two-column layout: labels sit at a fixed X to the left
- * or right of the ring (based on which side their slice's mid-angle falls on), stacked top-to-bottom
- * with enough vertical spacing (per `resolveColumnRows`) to never overlap.
- */
 function computePieLabelLayout({
     slices,
     rowHeight,
