@@ -126,7 +126,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
 
     WithWritableReportOrNotFound.displayName = `withWritableReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return WithWritableReportOrNotFound;
+    return React.memo(WithWritableReportOrNotFound);
 }
 
 export type {WithWritableReportOrNotFoundProps};
