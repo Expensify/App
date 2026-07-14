@@ -60,6 +60,7 @@ function WorkspaceVendorsPage({
             keyForList: vendor.id,
             isSelected: false,
             searchText: vendor.name,
+            shouldHideSelectionButton: true,
         }));
 
     const headerMessage = searchValue && vendorRows.length === 0 ? translate('common.noResultsFound') : '';
