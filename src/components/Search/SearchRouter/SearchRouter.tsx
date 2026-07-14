@@ -48,7 +48,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {TextInputProps} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -86,7 +85,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [guidedSetupAndTourStatus, guidedSetupAndTourStatusResult] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const personalDetails = usePersonalDetails();
@@ -434,7 +433,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             currentUserAccountID,
                             introSelected,
                             guidedSetupAndTourStatus?.isSelfTourViewed,
-                            isLoadingOnyxValue(guidedSetupAndTourStatusResult) ? undefined : guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                             betas,
                             false,
                         );
@@ -452,9 +451,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             textInputValue,
             currentUserAccountID,
             introSelected,
-            guidedSetupAndTourStatus?.isSelfTourViewed,
-            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-            guidedSetupAndTourStatusResult,
+            guidedSetupAndTourStatus,
             betas,
             contextualPoliciesMap,
             contextualReportsMap,
