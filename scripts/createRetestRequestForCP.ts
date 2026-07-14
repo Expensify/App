@@ -29,7 +29,8 @@ type RetestHit = {
     prNumber: number;
     prURL: string;
     prAuthor: string;
-    blockerIssueURL: string;
+    // A single PR can fix more than one deploy blocker, so all of them go in one retest request.
+    blockerIssueURLs: string[];
     prTitle: string;
 };
 
@@ -131,7 +132,7 @@ function buildRetestPayload(hit: RetestHit): Record<string, string> {
         isDb: 'dbTrue',
         whereToRetest: 'Staging',
         notes: `Auto-filed after cherry-pick to staging: "${hit.prTitle}"`,
-        ghIssueLink: hit.blockerIssueURL,
+        ghIssueLink: hit.blockerIssueURLs.join('\n'),
         adhocLink: EMPTY,
         requesterName: hit.prAuthor || EMPTY,
         cpLink: hit.prURL,
@@ -204,9 +205,12 @@ async function run(): Promise<void> {
             pull_number: prNumber,
         });
 
-        // Gate 3: a linked issue in the PR body must be a deploy blocker on the checklist.
-        const blockerIssueNumber = getLinkedIssueNumbers(pull.body).find((issueNumber) => blockerIssueByNumber.has(issueNumber));
-        if (!blockerIssueNumber) {
+        // Gate 3: the PR body must link at least one deploy blocker on the checklist.
+        // A PR can fix several blockers, so collect every match into one request.
+        const blockerIssueURLs = getLinkedIssueNumbers(pull.body)
+            .filter((issueNumber) => blockerIssueByNumber.has(issueNumber))
+            .map((issueNumber) => blockerIssueByNumber.get(issueNumber) ?? '');
+        if (blockerIssueURLs.length === 0) {
             continue;
         }
 
@@ -219,7 +223,7 @@ async function run(): Promise<void> {
             prNumber,
             prURL: pull.html_url,
             prAuthor: pull.user?.login ?? '',
-            blockerIssueURL: blockerIssueByNumber.get(blockerIssueNumber) ?? '',
+            blockerIssueURLs,
             prTitle: pull.title,
         });
     }
@@ -231,12 +235,13 @@ async function run(): Promise<void> {
 
     for (const hit of hits) {
         await fireRetestRequest(hit, webhookURL);
+        const blockerList = hit.blockerIssueURLs.join(', ');
         await GithubUtils.createComment(
             CONST.APP_REPO,
             hit.prNumber,
-            `${getRetestMarker(deployTag)}\n🔁 Filed a Staging retest request for deploy blocker ${hit.blockerIssueURL} after this PR was cherry-picked to staging.`,
+            `${getRetestMarker(deployTag)}\n🔁 Filed a Staging retest request for deploy blockers ${blockerList} after this PR was cherry-picked to staging.`,
         );
-        console.log(`Filed retest request for PR #${hit.prNumber} (blocker ${hit.blockerIssueURL}).`);
+        console.log(`Filed retest request for PR #${hit.prNumber} (blockers ${blockerList}).`);
     }
 }
 

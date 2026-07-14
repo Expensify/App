@@ -46,7 +46,7 @@ describe('createRetestRequestForCP', () => {
             prNumber: 123,
             prURL: `${CONST.APP_REPO_URL}/pull/123`,
             prAuthor: 'octocat',
-            blockerIssueURL: `${CONST.APP_REPO_URL}/issues/42`,
+            blockerIssueURLs: [`${CONST.APP_REPO_URL}/issues/42`],
             prTitle: 'Fix crash on staging',
         };
 
@@ -61,6 +61,11 @@ describe('createRetestRequestForCP', () => {
                 cpLink: `${CONST.APP_REPO_URL}/pull/123`,
                 platforms: 'Android, iOS, Web',
             });
+        });
+
+        it('puts every blocker a PR fixes into one request, one per line', () => {
+            const multi = {...hit, blockerIssueURLs: [`${CONST.APP_REPO_URL}/issues/42`, `${CONST.APP_REPO_URL}/issues/99`]};
+            expect(buildRetestPayload(multi).ghIssueLink).toBe(`${CONST.APP_REPO_URL}/issues/42\n${CONST.APP_REPO_URL}/issues/99`);
         });
 
         it('sends N/A for a missing requester so Slack does not reject an empty value', () => {
