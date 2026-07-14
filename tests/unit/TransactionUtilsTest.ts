@@ -1208,7 +1208,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When current user (admin, not the owner) checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, OTHER_USER_EMAIL, undefined);
 
                 // Then it should return true because admin sees owner's perspective on open reports
                 expect(result).toBe(true);
