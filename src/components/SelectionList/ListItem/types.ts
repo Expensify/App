@@ -63,6 +63,9 @@ type ListItem<K extends string | number = string> = {
     /** Whether this option is disabled for selection */
     isDisabled?: boolean | null;
 
+    /** Whether to hide the selection button (radio/checkbox) entirely, e.g. for structural parent rows that only provide hierarchy context */
+    shouldHideSelectionButton?: boolean;
+
     /** Whether this item should be interactive at all */
     isInteractive?: boolean;
 
