@@ -73,6 +73,7 @@ function checkReactCompilerWithOxc(source, filename) {
         if (fatalReactCompilerErrors.length > 0 || (!result.code && reactCompilerErrors.length > 0)) {
             return {
                 status: 'failed',
+                memoized: false,
                 errors: reactCompilerErrors.map((error) => mapOxcError(error, source)),
             };
         }
@@ -80,6 +81,7 @@ function checkReactCompilerWithOxc(source, filename) {
         if (result.code && REACT_COMPILER_MARKER_PATTERN.test(result.code)) {
             return {
                 status: 'compiled',
+                memoized: true,
                 errors: [],
             };
         }
@@ -90,17 +92,20 @@ function checkReactCompilerWithOxc(source, filename) {
         if (result.code && plainResult.code && result.code !== plainResult.code) {
             return {
                 status: 'compiled',
+                memoized: true,
                 errors: [],
             };
         }
 
         return {
             status: 'no-components',
+            memoized: false,
             errors: [],
         };
     } catch (error) {
         return {
             status: 'failed',
+            memoized: false,
             errors: [
                 {
                     reason: error instanceof Error ? error.message : String(error),
@@ -115,4 +120,8 @@ function didReactCompilerCompileFile(source, filename) {
     return checkReactCompilerWithOxc(source, filename).status === 'compiled';
 }
 
-export {checkReactCompilerWithOxc, didReactCompilerCompileFile};
+function didOxcMemoizeFile(source, filename) {
+    return checkReactCompilerWithOxc(source, filename).memoized;
+}
+
+export {checkReactCompilerWithOxc, didReactCompilerCompileFile, didOxcMemoizeFile};

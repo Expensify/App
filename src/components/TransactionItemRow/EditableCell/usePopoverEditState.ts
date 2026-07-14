@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 type PopoverPosition = {
     horizontal: number;
@@ -86,10 +86,10 @@ function usePopoverEditState<T>({
         });
     };
 
-    const cancelEditing = () => {
+    const cancelEditing = useCallback(() => {
         setIsPopoverVisible(false);
         setIsEditing(false);
-    };
+    }, []);
 
     /**
      * Handles saving a new value.
