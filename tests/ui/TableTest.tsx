@@ -34,6 +34,14 @@ jest.mock('@react-navigation/core', () => {
     };
 });
 
+// The settings popover renders MenuItemWithTopDescription, which reads the ScreenWrapper transition context
+jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    __esModule: true,
+    default: () => ({
+        didScreenTransitionEnd: true,
+    }),
+}));
+
 // Mock useLocalize hook
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
