@@ -65,7 +65,6 @@
         "eslint-config-prettier",
         "eslint-plugin-storybook",
         "@dword-design/eslint-plugin-import-alias",
-        "tsconfig-paths",
         "@vercel/ncc",
         "bun",
         "shellcheck",
