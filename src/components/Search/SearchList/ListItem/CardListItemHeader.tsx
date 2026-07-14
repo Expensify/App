@@ -11,6 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import genericMemo from '@libs/genericMemo';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
@@ -200,4 +201,4 @@ function CardListItemHeader<TItem extends ListItem>({
     );
 }
 
-export default CardListItemHeader;
+export default genericMemo(CardListItemHeader);
