@@ -567,6 +567,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: '附件错误',
         errorWhileSelectingAttachment: '选择附件时发生错误。请重试。',
         errorWhileSelectingCorruptedAttachment: '选择已损坏的附件时发生错误。请尝试另一个文件。',
+        errorWhileConvertingHeic: '我们无法处理此图片。请重试，或重新拍摄照片。',
         takePhoto: '拍照',
         chooseFromGallery: '从相册中选择',
         chooseDocument: '选择文件',

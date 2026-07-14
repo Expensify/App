@@ -568,6 +568,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: 'Erro de anexo',
         errorWhileSelectingAttachment: 'Ocorreu um erro ao selecionar um anexo. Tente novamente.',
         errorWhileSelectingCorruptedAttachment: 'Ocorreu um erro ao selecionar um anexo corrompido. Tente outro arquivo.',
+        errorWhileConvertingHeic: 'Não conseguimos processar esta imagem. Tente novamente ou tire a foto de novo.',
         takePhoto: 'Tirar foto',
         chooseFromGallery: 'Escolher da galeria',
         chooseDocument: 'Escolher arquivo',

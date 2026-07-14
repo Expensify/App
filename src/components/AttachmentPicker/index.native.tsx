@@ -260,9 +260,8 @@ function AttachmentPicker({
                                                 checkAllProcessed();
                                             })
                                             .catch((error: Error) => {
-                                                Log.warn('Failed to convert HEIC image, falling back to original', {error: error.message});
-                                                const fallbackAsset = processAssetWithFallbacks(asset);
-                                                processedAssets.push(fallbackAsset);
+                                                Log.warn('Failed to convert HEIC image, skipping asset', {error: error.message});
+                                                showGeneralAlert(translate('attachmentPicker.errorWhileConvertingHeic'));
                                                 checkAllProcessed();
                                             });
                                     } else {

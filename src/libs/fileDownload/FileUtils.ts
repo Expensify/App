@@ -825,6 +825,11 @@ const getFileValidationErrorText = (
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
             };
+        case CONST.FILE_VALIDATION_ERRORS.HEIC_CONVERSION_FAILED:
+            return {
+                title: translate('attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.errorWhileConvertingHeic'),
+            };
         case CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE:
             return {
                 title: translate('attachmentPicker.attachmentError'),

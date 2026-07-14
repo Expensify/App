@@ -572,6 +572,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: '添付ファイルエラー',
         errorWhileSelectingAttachment: '添付ファイルの選択中にエラーが発生しました。もう一度お試しください。',
         errorWhileSelectingCorruptedAttachment: '破損した添付ファイルを選択した際にエラーが発生しました。別のファイルをお試しください。',
+        errorWhileConvertingHeic: 'この画像を処理できませんでした。もう一度お試しいただくか、写真を撮り直してください。',
         takePhoto: '写真を撮る',
         chooseFromGallery: 'ギャラリーから選択',
         chooseDocument: 'ファイルを選択',
