@@ -1,3 +1,9 @@
+/**
+ * This suite reads `window` at module scope, so it pins the jsdom environment
+ * instead of relying on the project-wide testEnvironment setting.
+ *
+ * @jest-environment jsdom
+ */
 import type * as WebBiometricsOperations from '@components/MultifactorAuthentication/biometrics/operations/index';
 
 import CONST from '@src/CONST';
