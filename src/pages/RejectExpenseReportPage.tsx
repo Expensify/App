@@ -37,6 +37,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -94,6 +95,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const [selectedTargetAccountID, setSelectedTargetAccountID] = useState<string>('');
     const [selectionError, setSelectionError] = useState<string>('');
     const isSubmitAttempt = useRef(false);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const lastForwardedActorDetails = getPersonalDetailByEmail(lastForwardedActorEmail);
     const previousApprover = !lastForwardedActorDetails?.accountID
@@ -164,6 +166,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             currentUserPersonalDetails?.accountID,
             currentUserPersonalDetails?.displayName,
             currentUserPersonalDetails?.avatar,
+            isTrackIntentUser,
         );
         Navigation.goBack();
     };
