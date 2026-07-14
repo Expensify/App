@@ -22,25 +22,22 @@ settings.extensions.configure(PatchedArtifactsConfig) { config ->
         return
     }
 
-    def credentials = ExpensiUtils.getCredentials()
     config.packageName = getProperty('patchedArtifacts.packageName')
 
-    if (credentials != null) {
-        config.githubUsername = credentials.githubUsername
-        config.githubToken = credentials.githubToken
-        config.version = ExpensiUtils.findMatchingArtifactsVersion(
-            config.packageName,
-            config.githubToken,
-            getNewDotRootDir(),
-            hasProperty('newDotRoot')
-        )
-    }
+    // The shared TS resolver owns credential validation + patches-hash matching.
+    def resolution = ExpensiUtils.resolveArtifacts(config.packageName, getNewDotRootDir(), hasProperty('newDotRoot'))
+    config.version = resolution.version
+    config.buildFromSource = resolution.buildFromSource
 
-    if (config.version == null || config.packageName == null || config.githubUsername == null || config.githubToken == null) {
+    if (config.buildFromSource || config.version == null) {
         config.buildFromSource = true
         ExpensiLog.error("No matching artifacts version found for ${config.packageName}. Building react-native from source.")
-    } else {
-        config.buildFromSource = false
-        ExpensiLog.lifecycle("Using patched react-native artifacts: ${config.packageName}:${config.version}")
+        return
     }
+
+    // Credentials for the authenticated Maven download. The resolver already validated
+    // them (it returned a version), so we only need to read them here.
+    config.githubUsername = ExpensiUtils.getGithubUsername()
+    config.githubToken = ExpensiUtils.getGithubToken()
+    ExpensiLog.lifecycle("Using patched react-native artifacts: ${config.packageName}:${config.version}")
 }
