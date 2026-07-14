@@ -116,7 +116,7 @@ function FilterPopup({baseFilterKey, searchAdvancedFiltersForm, closeOverlay, se
             <TextFilterPopup
                 key={baseFilterKey}
                 baseFilterKey={baseFilterKey}
-                value={searchAdvancedFiltersForm[baseFilterKey]}
+                values={searchAdvancedFiltersForm}
                 label={label}
                 closeOverlay={closeOverlay}
                 updateFilterForm={closeModalAndUpdateFilterForm}

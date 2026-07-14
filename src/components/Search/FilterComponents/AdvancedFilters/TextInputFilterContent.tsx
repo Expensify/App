@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
+import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -19,13 +20,7 @@ import {View} from 'react-native';
 import NegatableFilter from '../NegatableFilter';
 
 type TextInputFilterContentProps = {
-    baseFilterKey:
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID;
+    baseFilterKey: Exclude<SearchTextFilterKeys, typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT | ReportFieldTextKey>;
     value: string | undefined;
     isNegated: boolean;
     largeButton?: boolean;
