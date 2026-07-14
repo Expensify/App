@@ -302,7 +302,7 @@ function getLoginByAccountID(accountID: number | undefined, personalDetails: Ony
  * @param personalDetailsList Record of user personal details, indexed by user id
  * @returns Array of logins according to passed accountIDs
  */
-function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string[] {
+function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList>): string[] {
     return (
         accountIDs?.reduce((foundLogins: string[], accountID) => {
             const currentLogin = getLoginByAccountID(accountID, personalDetailsList);
@@ -312,6 +312,13 @@ function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetails
             return foundLogins;
         }, []) ?? []
     );
+}
+
+/**
+ * @deprecated
+ */
+function deprecatedGetLoginsByAccountIDs(accountIDs: number[] | undefined): string[] {
+    return getLoginsByAccountIDs(accountIDs, allPersonalDetails);
 }
 
 /**
@@ -620,6 +627,7 @@ export {
     getPersonalDetailByEmail,
     getKnownAccountIDByLogin,
     getAccountIDsByLogins,
+    deprecatedGetLoginsByAccountIDs,
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
     getCurrentAddress,

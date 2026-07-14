@@ -17,7 +17,7 @@ import Onyx from 'react-native-onyx';
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import isTrackOnboardingChoice from './OnboardingUtils';
-import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
+import {deprecatedGetLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
     getDisplayNameForParticipant,
@@ -530,7 +530,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         ? (getDisplayNameForParticipant({accountID: bypassNextApproverID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(bypassNextApproverID).login)
         : getNextApproverDisplayName(report, isUnapprove);
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
-    const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
+    const approvers = deprecatedGetLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
     const type: ReportNextStepDeprecated['type'] = 'neutral';
