@@ -169,23 +169,30 @@ function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountI
         return options;
     };
 
-    if (selectedCards.length === 0) {
-        return <Table.FilterBar label={translate('workspace.companyCards.findCompanyCard')} />;
-    }
+    const hasSelectedCards = selectedCards.length > 0;
 
     return (
-        <View style={[styles.w100, styles.ph5, styles.pb3, !shouldUseNarrowTableLayout && styles.flexRow]}>
-            <ButtonWithDropdownMenu<WorkspaceCompanyCardBulkActionType>
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                onPress={() => {}}
-                customText={translate('workspace.common.selected', {count: selectedCards.length})}
-                options={getBulkActionOptions()}
-                isSplitButton={false}
-                shouldAlwaysShowDropdownMenu
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_DROPDOWN}
-                wrapperStyle={[shouldUseNarrowTableLayout ? styles.w100 : styles.flexGrow0, styles.tableBulkActionsButton(shouldUseNarrowTableLayout)]}
-            />
-        </View>
+        <>
+            {/* The filter bar must stay mounted while rows are selected: unmounting it resets the search string
+                (TableSearchBar clears it on unmount), which would immediately clear the selection that was just made. */}
+            <View style={hasSelectedCards && styles.dNone}>
+                <Table.FilterBar label={translate('workspace.companyCards.findCompanyCard')} />
+            </View>
+            {hasSelectedCards && (
+                <View style={[styles.w100, styles.ph5, styles.pb3, !shouldUseNarrowTableLayout && styles.flexRow]}>
+                    <ButtonWithDropdownMenu<WorkspaceCompanyCardBulkActionType>
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={() => {}}
+                        customText={translate('workspace.common.selected', {count: selectedCards.length})}
+                        options={getBulkActionOptions()}
+                        isSplitButton={false}
+                        shouldAlwaysShowDropdownMenu
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_DROPDOWN}
+                        wrapperStyle={[shouldUseNarrowTableLayout ? styles.w100 : styles.flexGrow0, styles.tableBulkActionsButton(shouldUseNarrowTableLayout)]}
+                    />
+                </View>
+            )}
+        </>
     );
 }
 

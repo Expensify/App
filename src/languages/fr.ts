@@ -5758,7 +5758,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             assign: 'Assigner',
             assignCard: 'Assigner une carte',
-            findCard: 'Trouver la carte',
             findCompanyCard: 'Trouver une carte d’entreprise',
             cardNumber: 'Numéro de carte',
             commercialFeed: 'Flux commercial',

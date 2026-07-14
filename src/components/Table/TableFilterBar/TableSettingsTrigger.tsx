@@ -4,6 +4,7 @@ import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import {useTableContext} from '@components/Table/TableContext';
+import type {TableColumn} from '@components/Table/types';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,6 +16,19 @@ import CONST from '@src/CONST';
 import React from 'react';
 
 import TableSettingsPopoverComponent from './TableSettingsPopoverComponent';
+
+type ShouldShowTableSettingsTriggerParams = {
+    columns: Array<TableColumn<string>>;
+    shouldUseNarrowTableLayout: boolean;
+    narrowLayoutSortColumn: string | undefined;
+};
+
+// On narrow layouts, tables with a narrowLayoutSortColumn ignore user sorting entirely, so a sort control would be a no-op.
+function shouldShowTableSettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn}: ShouldShowTableSettingsTriggerParams): boolean {
+    const hasSortableColumns = columns.some((column) => column.sortable);
+    const isSortingLockedByLayout = shouldUseNarrowTableLayout && !!narrowLayoutSortColumn;
+    return hasSortableColumns && !isSortingLockedByLayout;
+}
 
 // FilterPopupButton invokes PopoverComponent as a plain function during its own render, so the popover must be
 // wrapped in a JSX element here — otherwise its hooks would run inside FilterPopupButton's hook list and crash React.
@@ -29,11 +43,7 @@ export default function TableSettingsTrigger() {
     const icons = useMemoizedLazyExpensifyIcons(['Gear']);
     const {columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn} = useTableContext();
 
-    const hasSortableColumns = columns.some((column) => column.sortable);
-    // On narrow layouts, tables with a narrowLayoutSortColumn ignore user sorting entirely, so a sort control would be a no-op.
-    const isSortingLockedByLayout = shouldUseNarrowTableLayout && !!narrowLayoutSortColumn;
-
-    if (!hasSortableColumns || isSortingLockedByLayout) {
+    if (!shouldShowTableSettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn})) {
         return null;
     }
 
@@ -71,3 +81,5 @@ export default function TableSettingsTrigger() {
         />
     );
 }
+
+export {shouldShowTableSettingsTrigger};

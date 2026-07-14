@@ -11,7 +11,7 @@ import {View} from 'react-native';
 import TableFilterPopoverComponent from './TableFilterPopoverComponent';
 import TableFilterTrigger from './TableFilterTrigger';
 import TableSearchBar from './TableSearchBar';
-import TableSettingsTrigger from './TableSettingsTrigger';
+import TableSettingsTrigger, {shouldShowTableSettingsTrigger} from './TableSettingsTrigger';
 
 type TableFilterBarProps = PropsWithChildren<{
     /** Label and accessibility label for the search input. */
@@ -23,8 +23,7 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
     const {filterConfig, tableMethods, activeFilters, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
 
     const hasFiltersAvailable = Object.keys(filterConfig ?? {}).length > 0;
-    // Mirrors the render conditions of TableSettingsTrigger so the action column doesn't reserve space for a hidden trigger
-    const showsSettingsTrigger = columns.some((column) => column.sortable) && !(shouldUseNarrowTableLayout && !!narrowLayoutSortColumn);
+    const showsSettingsTrigger = shouldShowTableSettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn});
     const actionColumnVisible = hasFiltersAvailable || showsSettingsTrigger || !!children;
 
     const appliedFilters = Object.entries(activeFilters ?? {})

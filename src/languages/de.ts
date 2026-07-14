@@ -5746,7 +5746,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             },
             assign: 'Zuweisen',
             assignCard: 'Karte zuweisen',
-            findCard: 'Karte finden',
             findCompanyCard: 'Firmenkarte finden',
             cardNumber: 'Kartennummer',
             commercialFeed: 'Kommerzieller Feed',

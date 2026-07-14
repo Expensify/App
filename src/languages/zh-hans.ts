@@ -5553,7 +5553,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             assign: '分配',
             assignCard: '分配卡片',
-            findCard: '查找卡片',
             findCompanyCard: '查找公司卡',
             cardNumber: '卡号',
             commercialFeed: '商业数据馈送',

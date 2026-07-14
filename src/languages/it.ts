@@ -5726,7 +5726,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             },
             assign: 'Assegna',
             assignCard: 'Assegna carta',
-            findCard: 'Trova carta',
             findCompanyCard: 'Trova carta aziendale',
             cardNumber: 'Numero carta',
             commercialFeed: 'Feed commerciale',

@@ -8645,7 +8645,6 @@ const CONST = {
             IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK: 'ImportedMembersConfirmation-PrivacyLink',
             COMPANY_CARDS: {
                 TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
-                MORE_DROPDOWN: 'WorkspaceCompanyCards-MoreDropdown',
                 SETTINGS_BUTTON: 'WorkspaceCompanyCards-SettingsButton',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceCompanyCards-BulkActionsDropdown',
                 CARD_NAME: 'WorkspaceCompanyCards-CardName',

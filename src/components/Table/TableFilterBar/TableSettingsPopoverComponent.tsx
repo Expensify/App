@@ -101,7 +101,7 @@ export default function TableSettingsPopoverComponent({closeOverlay}: TableSetti
         }));
 
     const activeColumn = sortableColumns.find((column) => column.key === activeSorting.columnKey) ?? sortableColumns.at(0);
-    const activeOrder = activeSorting.order ?? defaultSorting.order;
+    const activeOrder = activeSorting.order;
     const sortByTitle = activeColumn ? `${activeColumn.label} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${activeOrder}`)}` : undefined;
 
     const resetSorting = (closeSettingsMenu: () => void) => {
@@ -120,7 +120,7 @@ export default function TableSettingsPopoverComponent({closeOverlay}: TableSetti
     const openSortBy = () => {
         setPendingSorting({
             columnKey: activeSorting.columnKey ?? defaultSorting.columnKey,
-            order: activeSorting.order ?? defaultSorting.order,
+            order: activeSorting.order,
         });
         setSelectedSetting('sortBy');
     };
@@ -162,12 +162,10 @@ export default function TableSettingsPopoverComponent({closeOverlay}: TableSetti
                 onBackButtonPress={() => setSelectedSetting('sortBy')}
                 closeOverlay={closeSettingsOverlay}
                 onChange={(item) => {
-                    const nextSorting = {
-                        ...pendingSorting,
-                        order: item?.value ?? defaultSorting.order,
-                    };
-                    setPendingSorting(nextSorting);
-                    updateSorting(nextSorting);
+                    const order = item?.value ?? defaultSorting.order;
+                    setPendingSorting((previousSorting) => ({...previousSorting, order}));
+                    // Only commit the order — a column picked in the Sort by list but never applied must stay pending
+                    updateSorting({columnKey: activeSorting.columnKey ?? defaultSorting.columnKey, order});
                 }}
             />
         );

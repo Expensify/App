@@ -5826,7 +5826,6 @@ const translations = {
             },
             assign: 'Assign',
             assignCard: 'Assign card',
-            findCard: 'Find card',
             findCompanyCard: 'Find company card',
             cardNumber: 'Card number',
             commercialFeed: 'Commercial feed',

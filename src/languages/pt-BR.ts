@@ -5705,7 +5705,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             },
             assign: 'Atribuir',
             assignCard: 'Atribuir cartão',
-            findCard: 'Encontrar cartão',
             findCompanyCard: 'Encontrar cartão corporativo',
             cardNumber: 'Número do cartão',
             commercialFeed: 'Feed comercial',

@@ -5697,7 +5697,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             },
             assign: 'Przypisz',
             assignCard: 'Przypisz kartę',
-            findCard: 'Znajdź kartę',
             findCompanyCard: 'Znajdź kartę firmową',
             cardNumber: 'Numer karty',
             commercialFeed: 'Kanał komercyjny',

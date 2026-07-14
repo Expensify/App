@@ -42,6 +42,8 @@ The Table uses a **compound component pattern** where the parent `<Table>` manag
 | `<Table.Body>` | Renders data rows using FlashList |
 | `<Table.FilterBar>` | Search input and filter controls that filter data |
 
+`<Table.FilterBar>` renders a `Filters` button when the table has a filter config, and automatically renders a `Display` button (sort by column and order) for any table with at least one `sortable: true` column. The `Display` button is hidden on narrow layouts for tables that lock their sorting via `narrowLayoutSortColumn`, since user sorting is ignored there.
+
 ### Flexible Composition
 
 You only include the components you need:
