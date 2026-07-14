@@ -116,12 +116,12 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(size);
     const isButtonSizeLarge = size === CONST.BUTTON_SIZE.LARGE;
     const isButtonSizeSmall = size === CONST.BUTTON_SIZE.SMALL;
-    // Large → MEDIUM, otherwise SMALL — except in short form (and not large), where the icon dimensions come from the explicit width/height (extra-small), so leave size unset.
-    let dropdownArrowIconSize: ValueOf<typeof CONST.ICON_SIZE> | undefined;
-    if (isButtonSizeLarge) {
+    // Short form → EXTRA_SMALL (compact inline chevron), large → MEDIUM, otherwise SMALL.
+    let dropdownArrowIconSize: ValueOf<typeof CONST.ICON_SIZE> = CONST.ICON_SIZE.SMALL;
+    if (shouldUseShortForm) {
+        dropdownArrowIconSize = CONST.ICON_SIZE.EXTRA_SMALL;
+    } else if (isButtonSizeLarge) {
         dropdownArrowIconSize = CONST.ICON_SIZE.MEDIUM;
-    } else if (!shouldUseShortForm) {
-        dropdownArrowIconSize = CONST.ICON_SIZE.SMALL;
     }
     const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
     const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
@@ -288,7 +288,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                     ]}
                                 >
                                     <IconComponent
-                                        size={CONST.ICON_SIZE.EXTRA_SMALL}
+                                        size={dropdownArrowIconSize}
                                         src={icons.DownArrow}
                                         additionalStyles={[styles.pRelative, styles.t0, isMenuVisible ? styles.flipUpsideDown : undefined]}
                                         fill={variant === CONST.BUTTON_VARIANT.SUCCESS ? theme.buttonSuccessText : theme.buttonIcon}
