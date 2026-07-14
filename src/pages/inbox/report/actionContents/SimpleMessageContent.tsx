@@ -8,7 +8,6 @@ import {
     getMessageOfOldDotReportAction,
     getOriginalMessage,
     getReportActionText,
-    getTravelNudgeMessage,
     isActionOfType,
     isRejectedAction,
     isUnapprovedAction,
@@ -43,7 +42,6 @@ const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
     CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE,
     CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL,
     CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION,
-    CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE,
 ]);
 
 function isSimpleMessageAction(action: OnyxTypes.ReportAction): boolean {
@@ -106,9 +104,6 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION)) {
         return <ReportActionItemBasicMessage message={getMessageOfOldDotReportAction(translate, action)} />;
-    }
-    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE)) {
-        return <ReportActionItemBasicMessage message={getTravelNudgeMessage(translate, action)} />;
     }
 
     return null;
