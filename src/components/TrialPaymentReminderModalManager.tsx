@@ -1,10 +1,9 @@
 import useOnyx from '@hooks/useOnyx';
 import useTrialPaymentReminder from '@hooks/useTrialPaymentReminder';
 
-import Navigation from '@libs/Navigation/Navigation';
+import navigateToSubscriptionPayment from '@pages/home/common/navigateToSubscriptionPayment';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 import React, {useCallback, useState} from 'react';
 
@@ -32,7 +31,7 @@ function TrialPaymentReminderModalManager() {
     const handleAddPaymentCard = useCallback(() => {
         setIsModalOpen(false);
         dismiss();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+        navigateToSubscriptionPayment();
     }, [dismiss]);
 
     if (!currentVariation) {
