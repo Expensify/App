@@ -361,7 +361,7 @@ describe('reportAttributes compute — policy change code flow', () => {
                 [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: signatureOf(policy1),
                 [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: signatureOf(policy2),
             },
-            conciergeReportID: null,
+            conciergeReportID: '',
             isTrackIntentUser: false,
         };
 
@@ -477,6 +477,38 @@ describe('reportAttributes compute — policy change code flow', () => {
         // The scoped recompute could not run, so the old baseline must survive — the next delivery
         // re-diffs against it and retries the recompute.
         expect(result?.policySignatures?.[`${ONYXKEYS.COLLECTION.POLICY}policy1`]).toBe(signatureOf(policy1));
+    });
+
+    it('persists advanced signatures without recompute when the changed policy has no reports', () => {
+        const policyNoReports: Policy = {...basePolicy, id: 'policyNoReports'};
+        const policyNoReportsChanged: Policy = {...policyNoReports, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL};
+        const policiesWithExtra: OnyxCollection<Policy> = {
+            ...policies,
+            [`${ONYXKEYS.COLLECTION.POLICY}policyNoReports`]: policyNoReportsChanged,
+        };
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                r1: {reportName: 'Old Name 1', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                r2: {reportName: 'Old Name 2', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+            policySignatures: {
+                [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: signatureOf(policy1),
+                [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: signatureOf(policy2),
+                [`${ONYXKEYS.COLLECTION.POLICY}policyNoReports`]: signatureOf(policyNoReports),
+            },
+        };
+
+        const result = config.compute(buildArgs(policiesWithExtra), {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policyNoReports`]: policyNoReportsChanged} as never},
+        });
+
+        // No report references the changed policy, so the recompute is vacuous — nothing recomputes,
+        // but the advanced signature persists so the same delivery is not re-diffed forever.
+        expect(result?.reports.r1?.reportName).toBe('Old Name 1');
+        expect(result?.reports.r2?.reportName).toBe('Old Name 2');
+        expect(result?.policySignatures?.[`${ONYXKEYS.COLLECTION.POLICY}policyNoReports`]).toBe(signatureOf(policyNoReportsChanged));
     });
 
     it('snapshots the policy baseline after a full scan even without a policy trigger', () => {

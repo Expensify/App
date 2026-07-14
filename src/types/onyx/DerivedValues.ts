@@ -75,9 +75,10 @@ type ReportAttributesDerivedValue = {
      */
     policySignatures?: Record<string, string>;
     /**
-     * The conciergeReportID used to compute the report attributes.
+     * The conciergeReportID used to compute the report attributes. An empty string means the attributes
+     * were computed without one (null is not stored — Onyx.set strips nested null values on persist).
      */
-    conciergeReportID?: string | null;
+    conciergeReportID?: string;
     /**
      * Whether the user was a track-intent user when the attributes were computed.
      */

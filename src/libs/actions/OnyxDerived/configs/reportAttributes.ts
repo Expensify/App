@@ -50,9 +50,27 @@ const prepareReportKeys = (keys: string[]) => {
     ];
 };
 
-// Onyx write-bookkeeping keys. They flip during optimistic writes without affecting the computed
-// attributes, so they are excluded from policy signatures to avoid recompute churn.
-const POLICY_SIGNATURE_EXCLUDED_KEYS = new Set(['pendingAction', 'pendingFields', 'errors', 'errorFields']);
+// Keys excluded from policy signatures because they change without affecting the computed attributes:
+// Onyx write-bookkeeping keys and loading flags flip during every optimistic write / API call, and
+// `connections` (accounting integration configs, incl. per-sync timestamps) is both volatile and large
+// while the attribute computation never reads it. Excluding them prevents recompute churn.
+const POLICY_SIGNATURE_EXCLUDED_KEYS = new Set([
+    'pendingAction',
+    'pendingFields',
+    'errors',
+    'errorFields',
+    'connections',
+    'isLoading',
+    'isLoadingWorkspaceReimbursement',
+    'isLoadingReceiptPartners',
+    'isChangeOwnerSuccessful',
+    'isChangeOwnerFailed',
+    'lastModified',
+]);
+
+// Bump when the signature format or exclusion set changes: stored signatures from an older format then
+// mismatch, which safely degrades to a scoped recompute of the delivered policies' reports once.
+const POLICY_SIGNATURE_VERSION = '2';
 
 // Deterministic stringify: object keys are sorted at every level so the same policy content always
 // produces the same string regardless of key insertion order after Onyx merges.
@@ -80,7 +98,7 @@ const policyRelevantSignature = (policy: Policy | null | undefined): string | nu
         return null;
     }
     const serialized = stableStringify(policy);
-    return `${hashCode(serialized)}.${serialized.length}`;
+    return `${POLICY_SIGNATURE_VERSION}|${hashCode(serialized)}.${serialized.length}`;
 };
 
 // A short string built from the fields a report name can come from: displayName and firstName.
@@ -270,10 +288,16 @@ export default createOnyxDerivedValueConfig({
         // conciergeReportID and introSelected are re-delivered on every OpenApp/reconnect merge, so a full
         // recompute happens only when the value differs from the one the attributes were computed with.
         // A missing stored value (attributes written by an older app version) seeds the baseline instead.
-        const storedConciergeReportID = currentValue && 'conciergeReportID' in currentValue ? (currentValue.conciergeReportID ?? null) : undefined;
+        // "No concierge report yet" is stored as an empty string, NOT null — Onyx.set strips nested null
+        // values on persist, so a null baseline would read back as missing after a restart and seed
+        // instead of detecting the change.
+        // eslint-disable-next-line rulesdir/no-default-id-values -- '' is a persistable baseline sentinel for "computed without a concierge report ID", never used as a lookup ID
+        const nextConciergeReportID = conciergeReportID ?? '';
+        // eslint-disable-next-line rulesdir/no-default-id-values -- same sentinel when reading values persisted before the field became non-nullable
+        const storedConciergeReportID = currentValue && 'conciergeReportID' in currentValue ? (currentValue.conciergeReportID ?? '') : undefined;
         const storedIsTrackIntentUser = currentValue && 'isTrackIntentUser' in currentValue ? currentValue.isTrackIntentUser : undefined;
         const hasConciergeReportIDChanged =
-            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues) && storedConciergeReportID !== undefined && storedConciergeReportID !== (conciergeReportID ?? null);
+            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues) && storedConciergeReportID !== undefined && storedConciergeReportID !== nextConciergeReportID;
         const hasIsTrackIntentUserChanged =
             hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, sourceValues) && storedIsTrackIntentUser !== undefined && storedIsTrackIntentUser !== nextIsTrackIntentUser;
 
@@ -297,7 +321,13 @@ export default createOnyxDerivedValueConfig({
         let canPersistSignaturesWithoutRecompute = false;
         const policyChangedReportKeys: string[] = [];
 
+        // Lazily built and cached — a full-recompute pass with a policy trigger would otherwise
+        // serialize every policy twice (once here, once in the pre-return snapshot).
+        let allPolicySignaturesCache: Record<string, string> | undefined;
         const buildAllPolicySignatures = () => {
+            if (allPolicySignaturesCache) {
+                return allPolicySignaturesCache;
+            }
             const signatures: Record<string, string> = {};
             for (const [key, policy] of Object.entries(policies ?? {})) {
                 const signature = policyRelevantSignature(policy);
@@ -305,6 +335,7 @@ export default createOnyxDerivedValueConfig({
                     signatures[key] = signature;
                 }
             }
+            allPolicySignaturesCache = signatures;
             return signatures;
         };
         const collectReportKeysForPolicies = (changedPolicyIDs: Set<string>) => {
@@ -374,6 +405,9 @@ export default createOnyxDerivedValueConfig({
             // Baseline seeding on a pass that did not deliver policies: both the attributes and the policies
             // come from the same disk-hydrated state (an in-session value computed without policies is
             // impossible here — policies would have arrived as a policy trigger), so they are consistent.
+            // Known one-time limitation: on the FIRST session after this feature ships, a policy change
+            // merged while startup computes are still deferred is seeded here without a recompute; from the
+            // next value write onward the persisted baseline closes that window.
             nextPolicySignatures = buildAllPolicySignatures();
             canPersistSignaturesWithoutRecompute = true;
         }
@@ -390,7 +424,7 @@ export default createOnyxDerivedValueConfig({
 
         // Use incremental updates when currentValue is already populated and no full recompute is required.
         // If currentValue has no reports (fresh install or cleared storage), fall back to a full scan.
-        const useIncrementalUpdates = !!currentValue?.reports && Object.keys(currentValue.reports).length > 0 && !needsFullRecompute;
+        const useIncrementalUpdates = hasComputedReports && !needsFullRecompute;
 
         // if we already computed the report attributes and there is no new reports data, return the current value
         if ((useIncrementalUpdates && !sourceValues) || !reports) {
@@ -712,7 +746,7 @@ export default createOnyxDerivedValueConfig({
             reports: reportAttributes,
             locale: preferredLocale ?? null,
             policySignatures: nextPolicySignatures,
-            conciergeReportID: storedConciergeReportID === undefined || needsFullRecompute ? (conciergeReportID ?? null) : storedConciergeReportID,
+            conciergeReportID: storedConciergeReportID === undefined || needsFullRecompute ? nextConciergeReportID : storedConciergeReportID,
             isTrackIntentUser: storedIsTrackIntentUser === undefined || needsFullRecompute ? nextIsTrackIntentUser : storedIsTrackIntentUser,
         };
     },
