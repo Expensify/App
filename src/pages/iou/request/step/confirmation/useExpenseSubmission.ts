@@ -26,6 +26,7 @@ import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {
     findSelfDMReportID,
@@ -282,6 +283,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const delegateAccountID = useDelegateAccountID();
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     // Onboarding task data
     const {
         taskReport: viewTourTaskReport,
@@ -499,6 +501,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                isTrackIntentUser,
                 delegateAccountID,
             });
             existingIOUReport = iouReport;
@@ -551,6 +554,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 quickAction,
                 optimisticChatReportID,
+                isTrackIntentUser,
             });
             if (shouldHandleNavigation) {
                 dismissModalAndOpenReportInInboxTabHelper(optimisticChatReportID, false, false);
@@ -607,6 +611,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                isTrackIntentUser,
             });
             const targetReportID = backToReport ?? activeReportID;
             // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
@@ -792,6 +797,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             recentWaypoints,
             betas,
             previousOdometerDraft: odometerDraft,
+            isTrackIntentUser,
             delegateAccountID,
         });
 
@@ -910,6 +916,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     personalDetails,
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
+                    isTrackIntentUser,
                 });
             }
             markSubmitExpenseEnd();
@@ -947,6 +954,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     personalDetails,
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
+                    isTrackIntentUser,
                 });
             }
             markSubmitExpenseEnd();
@@ -971,8 +979,20 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
-                shouldHandleNavigation,
             });
+            if (shouldHandleNavigation) {
+                cleanupAndNavigateAfterExpenseCreate({
+                    report: undefined,
+                    action,
+                    draftTransactionIDs,
+                    transactionID: transaction?.transactionID,
+                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                    optimisticChatReportID: invoiceChatReport?.reportID ?? invoiceChatReportID,
+                    isInvoice: true,
+                });
+            } else {
+                cleanupAfterExpenseCreate({draftTransactionIDs});
+            }
             markSubmitExpenseEnd();
             return;
         }

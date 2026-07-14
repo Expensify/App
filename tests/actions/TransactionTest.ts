@@ -43,6 +43,7 @@ type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransact
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
     personalPolicyOutputCurrency?: string;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
@@ -201,7 +202,7 @@ describe('actions/Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL]);
+            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -303,6 +304,7 @@ describe('actions/Transaction', () => {
                 policyTagList,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
@@ -425,6 +427,7 @@ describe('actions/Transaction', () => {
                 transactionViolations: {},
                 allReports: undefined,
                 personalPolicyOutputCurrency: 'EUR',
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -615,6 +618,7 @@ describe('actions/Transaction', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -725,6 +729,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -795,6 +800,7 @@ describe('actions/Transaction', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -905,6 +911,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -980,6 +987,7 @@ describe('actions/Transaction', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -1099,6 +1107,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -1175,6 +1184,7 @@ describe('actions/Transaction', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -1203,7 +1213,7 @@ describe('actions/Transaction', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, []);
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false);
                 }
                 await waitForBatchedUpdates();
 
@@ -1316,6 +1326,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
 
                 await waitForBatchedUpdates();

@@ -42,6 +42,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getOdometerImageIdentity} from '@libs/OdometerUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -183,6 +184,7 @@ function IOURequestStepDistanceOdometer({
     });
 
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const {
         startReading,
@@ -422,6 +424,7 @@ function IOURequestStepDistanceOdometer({
                     parentReportNextStep,
                     recentWaypoints,
                     delegateAccountID,
+                    isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 });
             }

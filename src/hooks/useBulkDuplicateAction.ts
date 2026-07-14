@@ -1,6 +1,7 @@
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -50,6 +51,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`);
     const [targetPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy?.id}`);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const sourcePolicyIDMap: Record<string, string | undefined> = {};
     for (const transactionID of selectedTransactionsKeys) {
@@ -85,6 +87,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             recentWaypoints,
             currentUser: {accountID, email: currentUserLogin ?? ''},
             currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
+            isTrackIntentUser,
             delegateAccountID,
             policyTagList,
         });

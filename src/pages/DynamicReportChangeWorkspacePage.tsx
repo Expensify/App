@@ -47,6 +47,7 @@ import type {DismissedProductTraining} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -99,6 +100,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         isManualDistanceRequest: hasManualDistanceRequest,
         isOdometerDistanceRequest: hasOdometerDistanceRequest,
     });
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const selectPolicy = (policyID?: string) => {
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -157,6 +159,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 reportNextStep,
                 reportActionsList: filteredReportActions,
                 reportPreviewAction,
+                isTrackIntentUser,
             });
             return;
         }
@@ -175,6 +178,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             reportNextStep,
             isReportLastVisibleArchived,
             reportPreviewAction,
+            isTrackIntentUser,
         });
     };
 
