@@ -1,3 +1,7 @@
+# Topic Articles
+
+Topic articles might introduce a group of related tasks. These articles should focus on the permissions, prerequisites, rules, and concepts that apply across those tasks, while leaving the step-by-step instructions to individual Task articles.
+
 ---
 title: [Natural, searchable topic title]
 description: Briefly summarize the concept and why it matters.
