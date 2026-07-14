@@ -1916,18 +1916,10 @@ function findSelfDMReportID(reports?: OnyxCollection<Report>): string | undefine
  * Checks if the supplied report is from a policy or is an invoice report from a policy
  */
 function isPolicyRelatedReport(report: OnyxEntry<Report>, policyID?: string) {
+    if (!policyID || policyID === CONST.POLICY.ID_FAKE) {
+        return false;
+    }
     return report?.policyID === policyID || !!(report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID);
-}
-
-/**
- * Checks if the supplied report belongs to workspace based on the provided params. If the report's policyID is _FAKE_ or has no value, it means this report is a DM.
- * In this case report and workspace members must be compared to determine whether the report belongs to the workspace.
- */
-function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyMemberAccountIDs: number[], policyID: string | undefined, conciergeReportID: string) {
-    return (
-        isConciergeChatReport(report, conciergeReportID) ||
-        (report?.policyID === CONST.POLICY.ID_FAKE || !report?.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : isPolicyRelatedReport(report, policyID))
-    );
 }
 
 /**
@@ -13365,7 +13357,6 @@ export {
     chatIncludesChronosWithID,
     chatIncludesConcierge,
     createDraftTransactionAndNavigateToParticipantSelector,
-    doesReportBelongToWorkspace,
     shouldEnableNegative,
     findLastAccessedReport,
     findSelfDMReportID,

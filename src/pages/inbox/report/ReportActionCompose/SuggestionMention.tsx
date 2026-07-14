@@ -16,8 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
-import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
+import {canReportBeMentionedWithinPolicy, isConciergeChatReport, isGroupChat, isPolicyRelatedReport, isReportParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getSortedPersonalDetails, trimLeadingSpace} from '@libs/SuggestionUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
@@ -25,6 +24,7 @@ import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SuggestionProps} from './Suggestions';
 
 type SuggestionValues = {
@@ -335,20 +335,26 @@ function SuggestionMention({
 
     const getUserMentionOptions = useCallback(
         (searchValue = ''): Mention[] => {
-            const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, currentUserPersonalDetails.accountID);
-            const shouldWeightDetails = isGroupChat(currentReport) || doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID, conciergeReportID);
+            const shouldWeightDetails = isGroupChat(currentReport) || isConciergeChatReport(currentReport, conciergeReportID) || isPolicyRelatedReport(currentReport, policyID);
 
             let personalDetailsParam: PersonalDetailsList | SuggestionPersonalDetailsList | undefined;
 
             if (!shouldWeightDetails) {
                 personalDetailsParam = personalDetails;
             } else {
+                const isPolicyEmployee = (detail: PersonalDetails): boolean => {
+                    if (!detail.login || detail.accountID === currentUserPersonalDetails.accountID) {
+                        return false;
+                    }
+                    const policyEmployee = policy?.employeeList?.[detail.login];
+                    return !!policyEmployee && isEmptyObject(policyEmployee.errors);
+                };
                 // Smaller weight means higher order in suggestion list
                 const getPersonalDetailsWeight = (detail: PersonalDetails): number => {
                     if (isReportParticipant(detail.accountID, currentReport)) {
                         return 0;
                     }
-                    if (policyEmployeeAccountIDs.includes(detail.accountID)) {
+                    if (isPolicyEmployee(detail)) {
                         return 1;
                     }
                     return 2;

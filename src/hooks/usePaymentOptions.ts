@@ -6,14 +6,14 @@ import type SettlementButtonProps from '@components/SettlementButton/types';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
-import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import {
-    doesReportBelongToWorkspace,
     getBankAccountRoute,
     getInvoiceReceiverPolicyID,
+    isConciergeChatReport,
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
     isInvoiceReport as isInvoiceReportUtil,
+    isPolicyRelatedReport,
 } from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
@@ -22,12 +22,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AccountData, BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
-import usePolicy from './usePolicy';
 import useThemeStyles from './useThemeStyles';
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
@@ -66,9 +64,6 @@ function usePaymentOptions({
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Wallet', 'Cash', 'CheckCircle']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policy = usePolicy(policyID);
-    const {accountID} = useCurrentUserPersonalDetails();
-
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
@@ -77,8 +72,7 @@ function usePaymentOptions({
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
-    const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
-    const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID, conciergeReportID) : false;
+    const reportBelongsToWorkspace = policyID ? isConciergeChatReport(chatReport, conciergeReportID) || isPolicyRelatedReport(chatReport, policyID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
     const lastPaymentMethodSelector = useCallback(
         (paymentMethod: OnyxEntry<LastPaymentMethod>) => {

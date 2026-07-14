@@ -1269,17 +1269,6 @@ function hasAccountingFeatureConnection(policy: OnyxEntry<Policy>) {
     return hasAccountingConnections(policy) || hasUnsupportedIntegration(policy);
 }
 
-function getPolicyEmployeeAccountIDs(policy: OnyxEntry<Pick<Policy, 'employeeList'>>, currentUserAccountID?: number) {
-    if (!policy) {
-        return [];
-    }
-
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-    return Object.values(policyMemberEmailsToAccountIDs)
-        .map((policyMemberAccountID) => Number(policyMemberAccountID))
-        .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID);
-}
-
 function goBackFromInvalidPolicy() {
     Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
 }
@@ -2586,7 +2575,6 @@ export {
     getLengthOfTag,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
-    getPolicyEmployeeAccountIDs,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getTravelStep,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,

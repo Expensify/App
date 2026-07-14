@@ -12,10 +12,10 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import SuggestionMention from '@pages/inbox/report/ReportActionCompose/SuggestionMention';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyEmployeeList, Report} from '@src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
 
 type MentionSuggestionsProps = {
     mentions: Mention[];
@@ -68,9 +68,6 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@hooks/useLocalize', () => jest.fn());
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/usePolicy', () => jest.fn());
-jest.mock('@libs/PolicyUtils', () => ({
-    getPolicyEmployeeAccountIDs: jest.fn(),
-}));
 
 const mockUsePersonalDetails = jest.mocked(usePersonalDetails);
 const mockUseArrowKeyFocusManager = jest.mocked(useArrowKeyFocusManager);
@@ -81,7 +78,6 @@ const mockUseMemoizedLazyExpensifyIcons = jest.mocked(useMemoizedLazyExpensifyIc
 const mockUseLocalize = jest.mocked(useLocalize);
 const mockUseOnyx = jest.mocked(useOnyx);
 const mockUsePolicy = jest.mocked(usePolicy);
-const mockGetPolicyEmployeeAccountIDs = jest.mocked(getPolicyEmployeeAccountIDs);
 
 function renderSuggestionMention(value: string, updateComment = jest.fn(), selection: TextSelection = {start: value.length, end: value.length}) {
     const setSelection = jest.fn();
@@ -144,7 +140,6 @@ describe('SuggestionMention', () => {
             return createOnyxResult<unknown>(undefined);
         }) as typeof useOnyx);
         mockUsePolicy.mockReturnValue(undefined);
-        mockGetPolicyEmployeeAccountIDs.mockReturnValue([]);
     });
 
     it('shows user mention suggestions when prefix has a trailing dot', async () => {
@@ -260,6 +255,9 @@ describe('SuggestionMention', () => {
         const PARTICIPANT_ACCOUNT_ID = 2;
         const POLICY_EMPLOYEE_ACCOUNT_ID = 3;
         const UNRELATED_ACCOUNT_ID = 4;
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const ubEmployeeList: PolicyEmployeeList = {'ub@example.com': {}};
+        const policyWithEmployeeUb = {...createRandomPolicy(1), employeeList: ubEmployeeList};
 
         const setupPersonalDetails = () => {
             mockPersonalDetails = {};
@@ -282,7 +280,7 @@ describe('SuggestionMention', () => {
                 reportID: 'group1',
                 chatType: 'group' as Report['chatType'],
             });
-            mockGetPolicyEmployeeAccountIDs.mockReturnValue([POLICY_EMPLOYEE_ACCOUNT_ID]);
+            mockUsePolicy.mockReturnValue(policyWithEmployeeUb);
 
             renderSuggestionMention('@u');
 
@@ -300,7 +298,7 @@ describe('SuggestionMention', () => {
                 chatType: 'policyExpenseChat' as Report['chatType'],
                 policyID: 'policyID',
             });
-            mockGetPolicyEmployeeAccountIDs.mockReturnValue([POLICY_EMPLOYEE_ACCOUNT_ID]);
+            mockUsePolicy.mockReturnValue(policyWithEmployeeUb);
 
             renderSuggestionMention('@u');
 
@@ -314,7 +312,7 @@ describe('SuggestionMention', () => {
             setupPersonalDetails();
             mockUseCurrentReportIDState.mockReturnValue({currentReportID: 'dm1'});
             mockCurrentReport = buildReportWithParticipant({reportID: 'dm1'});
-            mockGetPolicyEmployeeAccountIDs.mockReturnValue([POLICY_EMPLOYEE_ACCOUNT_ID]);
+            mockUsePolicy.mockReturnValue(policyWithEmployeeUb);
 
             renderSuggestionMention('@u');
 
