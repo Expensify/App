@@ -67,6 +67,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
     /** Whether to use a narrow layout (e.g. on mobile screens). */
     shouldUseNarrowTableLayout: boolean;
+
+    /** Callback when the user changes the search string in the filter bar. */
+    onSearchStringChange?: (searchString: string) => void;
 };
 
 const defaultTableContextValue: TableContextValue<TableData, string> = {
