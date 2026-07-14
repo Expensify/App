@@ -525,6 +525,9 @@ const ONYXKEYS = {
     // Object containing names/timestamps of dismissed product training elements (Modal, Tooltip, etc.)
     NVP_DISMISSED_PRODUCT_TRAINING: 'nvp_dismissedProductTraining',
 
+    // Whether the user has seen the Submit plan migration in-product modal (shown once to existing "Get paid back" users)
+    NVP_SUBMIT_MIGRATION_MODAL_SHOWN: 'nvp_submitMigrationModalShown',
+
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
@@ -1684,6 +1687,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
+    [ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN]: boolean;
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;

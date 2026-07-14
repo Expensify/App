@@ -366,7 +366,7 @@ const SCREENS = {
         SPLIT_EXPENSE: 'Money_Request_Split_Expense',
         SPLIT_EXPENSE_SEARCH: 'Money_Request_Split_Expense_Search',
         SPLIT_EXPENSE_CREATE_DATE_RANGE: 'Money_Request_Split_Expense_Create_Date_Range',
-        SPLIT_EXPENSE_EDIT: 'Money_Request_Split_Expense_Edit',
+        DYNAMIC_SPLIT_EXPENSE_EDIT: 'Dynamic_Money_Request_Split_Expense_Edit',
         DISTANCE_CREATE: 'Money_Request_Distance_Create',
         STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
@@ -965,6 +965,10 @@ const SCREENS = {
 
     MIGRATED_USER_WELCOME_MODAL: {
         DYNAMIC_ROOT: 'Dynamic_MigratedUserWelcomeModal_Root',
+    },
+
+    SUBMIT_PLAN_WELCOME_MODAL: {
+        DYNAMIC_ROOT: 'Dynamic_SubmitPlanWelcomeModal_Root',
     },
 
     AI_FEATURES_PROMO_MODAL: {

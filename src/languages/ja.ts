@@ -9897,6 +9897,18 @@ ${reportName}`,
             chat: 'あらゆる経費でチャットして、疑問をすばやく解決しましょう',
         },
     },
+    submitPlanWelcomeModal: {
+        title: '無料の従業員プランはいかがですか？',
+        description: '会社がExpensifyを導入するのを待つ必要はありません。あなたのために無料プランを用意しました。',
+        confirmText: '無料プランを利用する',
+        dismissText: 'いいえ、結構です',
+        features: {
+            getReimbursed: 'Expensifyで、より早く精算を受けられます',
+            buildReports: '数秒で経費レポートを作成',
+            categorize: '経費を分類する',
+            inviteBoss: '準備ができたら上司を招待しましょう',
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
         saveSearchTooltip: '<tooltip>保存済み検索の<strong>名前を変更</strong>しましょう！</tooltip>',

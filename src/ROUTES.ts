@@ -144,6 +144,10 @@ const DYNAMIC_ROUTES = {
         path: 'migrated-user-welcome',
         entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
     },
+    SUBMIT_PLAN_WELCOME: {
+        path: 'submit-plan-welcome',
+        entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
+    },
     AI_FEATURES_PROMO: {
         path: 'ai-features-promo',
         entryScreens: ['*'],
@@ -208,6 +212,17 @@ const DYNAMIC_ROUTES = {
         path: 'avatar/:accountID',
         entryScreens: ['*'],
         getRoute: (accountID: number) => `avatar/${accountID}` as const,
+    },
+    SPLIT_EXPENSE_EDIT: {
+        path: 'edit/split-expense/:reportID/:transactionID/:splitExpenseTransactionID?',
+        entryScreens: [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH],
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, splitExpenseTransactionID?: string) => {
+            if (!reportID || !transactionID) {
+                Log.warn(`Invalid ${reportID}(reportID) or ${transactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT dynamic route`);
+            }
+
+            return `edit/split-expense/${reportID}/${transactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}` as const;
+        },
     },
     AVATAR_CROP: {
         path: 'avatar-crop',
@@ -1736,16 +1751,6 @@ const ROUTES = {
             }
 
             return getUrlWithBackToParam(`create/split-expense/create-date-range/${reportID}/${transactionID}`, backTo);
-        },
-    },
-    SPLIT_EXPENSE_EDIT: {
-        route: 'edit/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
-        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
-            if (!reportID || !originalTransactionID) {
-                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT route`);
-            }
-
-            return getUrlWithBackToParam(`edit/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_HOLD_REASON: {
