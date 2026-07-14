@@ -6,7 +6,7 @@ import {getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVend
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Card, CardFeed, Policy} from '@src/types/onyx';
+import type {Card, Policy} from '@src/types/onyx';
 import type {Account, PolicyConnectionName} from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
