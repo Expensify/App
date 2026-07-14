@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import genericMemo from '@libs/genericMemo';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
@@ -119,4 +120,4 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
     );
 }
 
-export default WorkspaceCategoryRulesTable;
+export default genericMemo(WorkspaceCategoryRulesTable);
