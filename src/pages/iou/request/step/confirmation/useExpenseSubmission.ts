@@ -26,6 +26,7 @@ import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getNewAccountIDsAndLogins, getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {
     findSelfDMReportID,
@@ -192,7 +193,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     } = params;
 
     // Localization
-    const {translate, toLocaleDigit} = useLocalize();
+    const {formatPhoneNumber, translate, toLocaleDigit} = useLocalize();
 
     // Permissions
     const {isBetaEnabled} = usePermissions();
@@ -646,6 +647,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         let lastOptimisticTransactionID: string | undefined;
         for (const item of transactions) {
+            const {newAccountIDs, newLogins} =
+                item.accountant?.login && item.accountant.accountID ? getNewAccountIDsAndLogins({[item.accountant.login]: item.accountant.accountID}, personalDetails) : {};
             lastOptimisticTransactionID = rand64();
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
@@ -699,6 +702,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 },
                 accountantParams: {
                     accountant: item.accountant,
+                    newLogins,
+                    newAccountIDs,
                 },
                 optimisticChatReportID: optimisticSelfDMReportID,
                 optimisticTransactionID: lastOptimisticTransactionID,
@@ -714,7 +719,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                 previousOdometerDraft: odometerDraft,
                 reportActionsList: policyExpenseChatReportActions,
-                personalDetailsList: personalDetails,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 delegateAccountID,
             });

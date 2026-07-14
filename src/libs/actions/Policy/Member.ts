@@ -822,11 +822,10 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
 
 function buildAddMembersToWorkspaceOnyxData(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>,
     policy: Policy,
     policyMemberAccountIDs: number[],
     role: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions> | undefined,
     approverEmail?: string,
@@ -841,9 +840,6 @@ function buildAddMembersToWorkspaceOnyxData(
     // Submit workspaces enforce the editor role for all invited members regardless of the requested role.
     // Gating is on the policy type — the SUBMIT_2026 beta only controls whether a Submit workspace can be created.
     const effectiveRole = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : role;
-
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs, personalDetailsList);
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
 
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
     const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, hasPolicyAdminsRoomsAccess(effectiveRole) ? accountIDs : []);
@@ -957,12 +953,11 @@ function buildAddMembersToWorkspaceOnyxData(
  */
 function addMembersToWorkspace(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>,
     welcomeNote: string,
     policy: OnyxEntry<Policy>,
     policyMemberAccountIDs: number[],
     role: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions>,
     approverEmail?: string,
@@ -975,11 +970,10 @@ function addMembersToWorkspace(
     // the effective role so the optimistic data and API params stay in sync.
     const {effectiveRole, optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
+        newPersonalDetailsOnyxData,
         policy,
         policyMemberAccountIDs,
         role,
-        formatPhoneNumber,
-        personalDetailsList,
         currentUser,
         reportActionsList,
         approverEmail,

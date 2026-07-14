@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
+import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {
@@ -2255,7 +2256,6 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         accountantParams,
         currentUser,
         reportActionsList,
-        personalDetailsList,
     } = trackedExpenseParams;
     const {accountID: currentUserAccountID} = currentUser;
 
@@ -2264,7 +2264,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     const accountantEmail = addSMSDomainIfPhoneNumber(accountantParams?.accountant?.login);
     const accountantAccountID = accountantParams?.accountant?.accountID;
 
-    if (!policyID || !chatReportID || !accountantEmail || !accountantAccountID) {
+    if (!policyID || !chatReportID || !accountantEmail || !accountantAccountID || !accountantParams.newLogins || !accountantParams.newAccountIDs) {
         return;
     }
 
@@ -2320,11 +2320,10 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             failureData: addAccountantToWorkspaceFailureData,
         } = buildAddMembersToWorkspaceOnyxData(
             {[accountantEmail]: accountantAccountID},
+            getPersonalDetailsOnyxDataForOptimisticUsers(accountantParams.newLogins, accountantParams.newAccountIDs, formatPhoneNumber),
             policyParams.policy,
             policyMemberAccountIDs,
             CONST.POLICY.ROLE.ADMIN,
-            formatPhoneNumber,
-            personalDetailsList,
             {accountID: currentUserAccountID},
             reportActionsList,
         );
@@ -2349,7 +2348,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: inviteAccountantToRoomOptimisticData,
             successData: inviteAccountantToRoomSuccessData,
             failureData: inviteAccountantToRoomFailureData,
-        } = buildInviteToRoomOnyxData(chatReport, {[accountantEmail]: accountantAccountID}, personalDetailsList, formatPhoneNumber);
+        } = buildInviteToRoomOnyxData(chatReport, {[accountantEmail]: accountantAccountID}, accountantParams.newAccountIDs, accountantParams.newLogins, formatPhoneNumber);
         onyxData.optimisticData?.push(...inviteAccountantToRoomOptimisticData);
         onyxData.successData?.push(...inviteAccountantToRoomSuccessData);
         onyxData.failureData?.push(...inviteAccountantToRoomFailureData);
@@ -2719,7 +2718,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 accountantParams,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                 reportActionsList,
-                personalDetailsList,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;

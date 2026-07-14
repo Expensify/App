@@ -72,8 +72,6 @@ type TrackedExpenseParams = {
     isDistanceRequest?: boolean;
     currentUser: CurrentUser;
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
-    // Personal details list is optional here because we only use/pass it for SHARE case
-    personalDetailsList?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 export type {TrackedExpenseParams, TrackedExpensePolicyParams, TrackedExpenseTransactionParams, TrackedExpenseReportInformation, BuildOnyxDataForTrackExpenseKeys};

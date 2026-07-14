@@ -3,6 +3,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {
     getLoginByAccountID,
     getLoginsByAccountIDs,
+    getNewAccountIDsAndLogins,
     getPersonalDetailsByID,
     getPersonalDetailsListByIDs,
     newGetPersonalDetailsByIDs,
@@ -10,7 +11,7 @@ import {
 } from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
-import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -80,6 +81,9 @@ const isOptimisticPersonalDetailSelector =
         return isPersonalDetailOptimistic(personalDetailsList[accountID]);
     };
 
+const newAccountIDsAndLoginsSelector = (invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
+    getNewAccountIDsAndLogins(invitedEmailsToAccountIDs, personalDetailsList);
+
 export {
     personalDetailsSelector,
     multiPersonalDetailsSelector,
@@ -92,4 +96,5 @@ export {
     accountIDToLoginSelector,
     isOptimisticPersonalDetailSelector,
     createDisplayDetailsByAccountIDsSelector,
+    newAccountIDsAndLoginsSelector,
 };

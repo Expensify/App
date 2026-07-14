@@ -78,7 +78,7 @@ function KYCWall({
     const [employeeLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
     const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesPersonalDetailExistSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
 
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -164,7 +164,6 @@ function KYCWall({
                         const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(
                             iouReport,
                             adminPolicy,
-                            formatPhoneNumber,
                             filteredReportActions,
                             reportPreviewAction,
                             currentUserAccountID,
@@ -263,7 +262,6 @@ function KYCWall({
             employeeLogin,
             doesSubmitterPersonalDetailExist,
             introSelected,
-            formatPhoneNumber,
             translate,
             reportTransactions,
             allReports,

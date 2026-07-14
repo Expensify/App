@@ -350,7 +350,7 @@ function getChatReportForBulkPay(
 }
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -1116,7 +1116,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const invite = moveIOUReportToPolicyAndInviteSubmitter(
                         itemReport,
                         adminPolicy,
-                        formatPhoneNumber,
                         policyExpenseChatReportActions,
                         reportPreviewAction,
                         accountID,
@@ -1280,7 +1279,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             lastPaymentMethods,
             allTransactions,
             policyIDsWithVBBA,
-            formatPhoneNumber,
             clearSelectedTransactions,
             accountID,
             email,

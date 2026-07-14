@@ -22,7 +22,7 @@ import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getNewAccountIDsAndLogins, getPersonalDetailByEmail, getPersonalDetailsOnyxDataForOptimisticUsers, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     canMemberAssignElevatedRole,
     canMemberAssignRole,
@@ -182,16 +182,16 @@ function WorkspaceInviteMessageComponent({
         Keyboard.dismiss();
         const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
+        const {newAccountIDs, newLogins} = getNewAccountIDsAndLogins(invitedEmailsToAccountIDsDraft, allPersonalDetails);
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         // See https://github.com/Expensify/App/blob/main/README.md#workspace, we set conditions about who can leave the workspace
         addMembersToWorkspace(
             invitedEmailsToAccountIDsDraft ?? {},
+            getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber),
             `${welcomeNoteSubject}\n\n${welcomeNote}`,
             policy,
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
-            formatPhoneNumber,
-            allPersonalDetails,
             {
                 accountID: currentUserPersonalDetails?.accountID,
                 displayName: currentUserPersonalDetails?.displayName,

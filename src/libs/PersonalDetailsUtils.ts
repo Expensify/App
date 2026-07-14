@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
-import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -317,18 +317,17 @@ function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetails
 /**
  * Provided a set of invited logins and optimistic accountIDs. Returns the ones which are not known to the user i.e. they do not exist in the personalDetailsList.
  */
-function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[], personalDetailsList: OnyxEntry<PersonalDetailsList>) {
-    const newAccountIDs: number[] = [];
-    const newLogins: string[] = [];
-    for (const [index, login] of logins.entries()) {
-        const accountID = accountIDs.at(index) ?? -1;
-        if (isEmptyObject(personalDetailsList?.[accountID])) {
-            newAccountIDs.push(accountID);
-            newLogins.push(login);
-        }
-    }
-
-    return {newAccountIDs, newLogins};
+function getNewAccountIDsAndLogins(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList>) {
+    return Object.entries(invitedEmailsToAccountIDs ?? {}).reduce(
+        (acc, [login, accountID]) => {
+            if (isEmptyObject(personalDetailsList?.[accountID])) {
+                acc.newAccountIDs.push(accountID);
+                acc.newLogins.push(login);
+            }
+            return acc;
+        },
+        {newAccountIDs: <number[]>[], newLogins: <string[]>[]},
+    );
 }
 
 /**

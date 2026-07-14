@@ -106,7 +106,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             const invite = moveIOUReportToPolicyAndInviteSubmitter(
                 report,
                 policy,
-                formatPhoneNumber,
                 filteredReportActions,
                 reportPreviewAction,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -127,7 +126,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 report,
                 parentReport,
                 policy,
-                personalDetails: {[report.ownerAccountID]: {accountID: report.ownerAccountID}},
                 currentUser: {
                     accountID: currentUserPersonalDetails.accountID,
                     displayName: currentUserPersonalDetails.displayName,
@@ -140,7 +138,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 isChangePolicyTrainingModalDismissed,
                 isASAPSubmitBetaEnabled,
                 employeeList,
-                formatPhoneNumber,
                 isReportLastVisibleArchived,
                 reportNextStep,
                 reportActionsList: filteredReportActions,

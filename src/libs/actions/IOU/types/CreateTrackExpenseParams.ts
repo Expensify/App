@@ -12,6 +12,8 @@ import type {TrackExpenseTransactionParams} from './TrackExpenseTransactionParam
 
 type TrackExpenseAccountantParams = {
     accountant?: Accountant;
+    newAccountIDs: number[] | undefined;
+    newLogins: string[] | undefined;
 };
 
 type CreateTrackExpenseParams = {
