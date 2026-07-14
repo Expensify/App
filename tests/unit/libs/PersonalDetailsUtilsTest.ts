@@ -8,7 +8,7 @@ import {
     getPersonalDetailByEmail,
     getPersonalDetailsListByIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
-    newGetPersonalDetailsByIDs,
+    getPersonalDetailsByIDs,
     temporaryGetDisplayNameOrDefault,
 } from '@libs/PersonalDetailsUtils';
 
@@ -796,7 +796,7 @@ describe('PersonalDetailsUtils', () => {
         });
     });
 
-    describe('newGetPersonalDetailsByIDs', () => {
+    describe('getPersonalDetailsByIDs', () => {
         const accountID1 = 1;
         const accountID2 = 2;
         const personalDetails: PersonalDetailsList = {
@@ -813,22 +813,22 @@ describe('PersonalDetailsUtils', () => {
         };
 
         it('should return an empty array if accountIDs is undefined', () => {
-            const result = newGetPersonalDetailsByIDs(undefined, personalDetails);
+            const result = getPersonalDetailsByIDs(undefined, personalDetails);
             expect(result).toEqual([]);
         });
 
         it('should return an empty array if accountIDs is empty', () => {
-            const result = newGetPersonalDetailsByIDs([], personalDetails);
+            const result = getPersonalDetailsByIDs([], personalDetails);
             expect(result).toEqual([]);
         });
 
         it('should return personal details for the given accountIDs', () => {
-            const result = newGetPersonalDetailsByIDs([accountID1, accountID2], personalDetails);
+            const result = getPersonalDetailsByIDs([accountID1, accountID2], personalDetails);
             expect(result).toEqual([personalDetails[accountID1], personalDetails[accountID2]]);
         });
 
         it('should filter out accountIDs that do not have corresponding personal details', () => {
-            const result = newGetPersonalDetailsByIDs([accountID1, 999], personalDetails);
+            const result = getPersonalDetailsByIDs([accountID1, 999], personalDetails);
             expect(result).toEqual([personalDetails[accountID1]]);
         });
     });

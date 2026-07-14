@@ -174,8 +174,9 @@ function getPersonalDetailsByID(accountID: number | undefined, personalDetailsLi
  * @param currentUserAccountID
  * @param shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
  * @returns - Array of personal detail objects
+ * @deprecated
  */
-function getPersonalDetailsByIDs({
+function deprecatedGetPersonalDetailsByIDs({
     accountIDs,
     currentUserAccountID,
     shouldChangeUserDisplayName = false,
@@ -204,7 +205,7 @@ function getPersonalDetailsByIDs({
     return result;
 }
 
-function newGetPersonalDetailsByIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+function getPersonalDetailsByIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
     if (!accountIDs) {
         return [];
     }
@@ -619,8 +620,8 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByID,
+    deprecatedGetPersonalDetailsByIDs,
     getPersonalDetailsByIDs,
-    newGetPersonalDetailsByIDs,
     getParticipantsPersonalDetails,
     getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
