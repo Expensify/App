@@ -695,7 +695,7 @@ function getOnyxLoadingData(
 
     // successData writes the terminal `loaded` state on any jsonCode 200 resolve. It also stamps `type` so
     // responses that do carry data stay consistent with the anti-stale isSearchDataLoaded check (which compares
-    // type/hash). On a dataless success, isSearchDataLoaded still resolves to false via its own data/errors gate;
+    // type/hash). On a success response without data, isSearchDataLoaded still resolves to false via its own data/errors gate;
     // `state` is what marks that case as done once a future PR wires the read side to it.
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
