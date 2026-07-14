@@ -1,13 +1,11 @@
 import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import type {AgentRowData} from '@components/Tables/AgentsTable';
 import AgentsTable from '@components/Tables/AgentsTable';
 
@@ -48,7 +46,7 @@ function AgentsPage() {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['TvScreenRobot', 'AiBot']);
+    const illustrations = useMemoizedLazyIllustrations(['AiBot']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
@@ -190,6 +188,7 @@ function AgentsPage() {
 
     const headerButtons = shouldShowBulkActionsButton ? (
         <ButtonWithDropdownMenu<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             shouldAlwaysShowDropdownMenu
             customText={translate('workspace.common.selected', {count: selectedAgentKeys.length})}
             size={CONST.BUTTON_SIZE.MEDIUM}
@@ -235,33 +234,17 @@ function AgentsPage() {
                 {!shouldUseNarrowLayout && headerButtons}
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
-            {hasAgents ? (
-                <>
-                    <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
-                        <RenderHTML html={translate('agentsPage.subtitle')} />
-                    </View>
-                    <AgentsTable
-                        agents={agents}
-                        canSelectAgents
-                        selectedKeys={selectedAgentKeys}
-                        onRowSelectionChange={setSelectedAgents}
-                    />
-                </>
-            ) : (
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                    <GenericEmptyStateComponent
-                        headerMedia={illustrations.TvScreenRobot}
-                        title={translate('agentsPage.emptyAgents.title')}
-                        subtitleText={
-                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, !shouldUseNarrowLayout && styles.agentsPageEmptyStateSubtitle]}>
-                                <RenderHTML html={translate('agentsPage.emptyAgents.subtitle')} />
-                            </View>
-                        }
-                        headerStyles={styles.emptyStateCardIllustrationContainer}
-                        headerContentStyles={styles.agentsPageEmptyStateIllustration}
-                    />
-                </ScrollView>
+            {hasAgents && (
+                <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
+                    <RenderHTML html={translate('agentsPage.subtitle')} />
+                </View>
             )}
+            <AgentsTable
+                agents={agents}
+                canSelectAgents
+                selectedKeys={selectedAgentKeys}
+                onRowSelectionChange={setSelectedAgents}
+            />
         </ScreenWrapper>
     );
 }
