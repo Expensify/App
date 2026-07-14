@@ -10051,6 +10051,18 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             chat: 'Bei jeder Ausgabe chatten, um Fragen schnell zu klären',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Möchtest du einen KOSTENLOSEN Mitarbeitertarif?',
+        description: 'Warte nicht, bis dein Unternehmen Expensify einführt. Wir haben einen kostenlosen Tarif nur für dich entwickelt:',
+        confirmText: 'Kostenlosen Tarif holen',
+        dismissText: 'Nein, danke',
+        features: {
+            getReimbursed: 'Schneller erstattet werden – direkt in Expensify',
+            buildReports: 'Erstelle Ausgabenberichte in Sekunden',
+            categorize: 'Kategorisiere deine Ausgaben',
+            inviteBoss: 'Lade deinen Chef ein, wenn du bereit bist',
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Benenne deine gespeicherten Suchen um</strong> – hier!</tooltip>',

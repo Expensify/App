@@ -9978,6 +9978,18 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             chat: 'Czatuj przy każdym wydatku, aby szybko rozwiązać wątpliwości',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Chcesz DARMOWY plan dla pracownika?',
+        description: 'Nie czekaj, aż Twoja firma zacznie korzystać z Expensify. Stworzyliśmy darmowy plan specjalnie dla Ciebie:',
+        confirmText: 'Wybierz darmowy plan',
+        dismissText: 'Nie, dziękuję',
+        features: {
+            getReimbursed: 'Szybciej otrzymuj zwroty kosztów, bezpośrednio w Expensify',
+            buildReports: 'Twórz raporty wydatków w kilka sekund',
+            categorize: 'Kategoryzuj swoje wydatki',
+            inviteBoss: 'Zaproś swojego szefa, gdy będziesz gotowy',
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Rozpocznij <strong>tutaj!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Zmień nazwę zapisanych wyszukiwań</strong> tutaj!</tooltip>',
