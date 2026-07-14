@@ -18,7 +18,7 @@ import type {TextInputFilterContentProps} from './AdvancedFilters/TextInputFilte
 
 type NegatableFilterProps = React.PropsWithChildren & {
     isNegated: boolean;
-    baseFilterKey: FilterComponentsProps['baseFilterKey'] & TextInputFilterContentProps['baseFilterKey'];
+    baseFilterKey: FilterComponentsProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey'];
     style?: StyleProp<ViewStyle>;
     onNegationChange: (isNegated: boolean) => void;
 };
