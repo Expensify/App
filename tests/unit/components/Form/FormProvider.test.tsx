@@ -63,6 +63,14 @@ jest.mock('@libs/actions/FormActions', () => {
 });
 
 jest.mock('@hooks/useIsFocusedRef', () => jest.fn(() => ({current: true})));
+jest.mock('@hooks/usePressLoading', () =>
+    jest.fn(({isLoading = false}: {isLoading?: boolean} = {}) => ({
+        isLoading,
+        startWithLoading: async (runAfterPaint: () => void) => {
+            runAfterPaint();
+        },
+    })),
+);
 
 jest.mock('@src/utils/keyboard', () => ({
     dismiss: jest.fn(() => Promise.resolve()),
