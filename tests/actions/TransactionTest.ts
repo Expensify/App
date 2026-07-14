@@ -513,6 +513,7 @@ describe('actions/Transaction', () => {
                     policyTagList: undefined,
                     transactionViolations: {},
                     allReports: undefined,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
