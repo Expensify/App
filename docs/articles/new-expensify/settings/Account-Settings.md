@@ -13,7 +13,7 @@ Expensify allows you to personalize your experience by customizing your profile,
 You can update the following profile settings:
 
 - **Profile Photo** – Upload or change your photo.
-- **Customized Avatar** – Select an avatar or letter instead of a profile photo.
+- **Customized Avatar** – Select an avatar instead of a profile photo.
 - **Status** – Add a custom message and emoji to show your current status.
 - **Pronouns** – Display your preferred pronouns on your profile.
 - **Language** – Update your account to your preferred language.
@@ -53,7 +53,7 @@ To choose an avatar instead of a photo:
 1. In the navigation tabs, click **Account > Profile**.
 2. Click the pencil icon next to your profile image.
 3. Scroll down to **Or choose a custom avatar**.
-4. Select an avatar or letter in your desired colored palette.
+4. Select an avatar in your desired colored palette.
 5. Click **Save**.
 
 ## Timezone
