@@ -3,6 +3,7 @@ import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {FilterComponentsProps} from '@components/Search/FilterComponents';
+import {TextInputFilterContentProps} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import type {
@@ -5482,7 +5483,7 @@ function getDisplayValue(
     return Array.isArray(formValue) ? formValue.join(', ') : formValue;
 }
 
-function getFilterNegatableValue<K extends FilterComponentsProps['baseFilterKey']>(
+function getFilterNegatableValue<K extends FilterComponentsProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey']>(
     baseFilterKey: K,
     values: (Partial<SearchAdvancedFiltersForm> & Partial<Record<`${K}${typeof CONST.SEARCH.NOT_MODIFIER}`, SearchAdvancedFiltersForm[K]>>) | undefined,
 ): {
@@ -5517,13 +5518,13 @@ function isTextFilterKey(key: string): key is SearchTextFilterKeys {
     return (TEXT_FILTER_KEYS as Set<string>).has(key);
 }
 
-const isAmountFilterKey = (key: SearchFilter['key']): key is SearchAmountFilterKeys => {
+function isAmountFilterKey(key: string): key is SearchAmountFilterKeys {
     return AMOUNT_FILTER_KEYS.includes(key as SearchAmountFilterKeys);
-};
+}
 
-const isDateFilterKey = (key: SearchFilter['key']): key is Exclude<SearchDateFilterKeys, ReportFieldTextKey> => {
+function isDateFilterKey(key: string): key is Exclude<SearchDateFilterKeys, ReportFieldTextKey> {
     return DATE_FILTER_KEYS.includes(key as SearchDateFilterKeys);
-};
+}
 
 type SearchFilter = {
     key: keyof typeof FILTER_VIEW_MAP;

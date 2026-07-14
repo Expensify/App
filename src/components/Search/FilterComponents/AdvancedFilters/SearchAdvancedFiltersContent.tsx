@@ -1,3 +1,5 @@
+import type {SearchAmountFilterKeys, SearchDateFilterKeys} from '@components/Search/types';
+
 import {getFilterFormValues} from '@libs/SearchQueryUtils';
 import {getFilterNegatableValue, isAmountFilterKey, isDateFilterKey, isTextFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
@@ -36,7 +38,7 @@ type SearchAdvancedFiltersContentProps = {
 };
 
 type SingleAdvancedFiltersContentProps = Pick<SearchAdvancedFiltersContentProps, 'values' | 'ready' | 'onChange'> & {
-    baseFilterKey: FilterComponentsProps['baseFilterKey'];
+    baseFilterKey: Exclude<SearchAdvancedFiltersContentProps['baseFilterKey'], SearchAmountFilterKeys | SearchDateFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
     components: {
         Text: React.ComponentType<TextInputFilterContentWrapperProps>;
         Common: React.ComponentType<CommonFilterContentWrapperProps>;
@@ -44,14 +46,7 @@ type SingleAdvancedFiltersContentProps = Pick<SearchAdvancedFiltersContentProps,
 };
 
 function SingleAdvancedFiltersContent({baseFilterKey, values, ready, components, onChange}: SingleAdvancedFiltersContentProps) {
-    if (
-        baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
-        baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
-        baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
-        baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
-        baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
-        baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
-    ) {
+    if (isTextFilterKey(baseFilterKey)) {
         const {isNegated, value} = getFilterNegatableValue(baseFilterKey, values);
         const TextFilter = components.Text;
         return (

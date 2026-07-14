@@ -4,6 +4,7 @@ import type {AmountFilterContentWrapperProps} from '@components/Search/FilterCom
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
+
 function AmountFilterContentPopupWrapper({baseFilterKey, value, onChange}: AmountFilterContentWrapperProps) {
     const styles = useThemeStyles();
     return (

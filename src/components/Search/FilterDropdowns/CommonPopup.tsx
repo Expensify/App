@@ -4,6 +4,7 @@ import type {FilterComponentsProps} from '@components/Search/FilterComponents';
 import {getFilterFormValues} from '@libs/SearchQueryUtils';
 import {getFilterNegatableValue} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 
 import React, {useState} from 'react';
@@ -40,7 +41,7 @@ function CommonPopup({baseFilterKey, values, label, updateFilterForm, closeOverl
                 value={value}
                 isNegated={isNegated}
                 type={values?.type}
-                policyIDs={values?.policyID}
+                policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, values)}
                 onChange={setValue}
                 onNegationChange={setIsNegated}
             />

@@ -127,9 +127,7 @@ function FilterPopup({baseFilterKey, searchAdvancedFiltersForm, closeOverlay, se
     return (
         <CommonPopup
             baseFilterKey={baseFilterKey}
-            value={searchAdvancedFiltersForm[baseFilterKey]}
-            type={searchAdvancedFiltersForm.type}
-            policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, searchAdvancedFiltersForm)}
+            values={searchAdvancedFiltersForm}
             label={label}
             closeOverlay={closeOverlay}
             updateFilterForm={closeModalAndUpdateFilterForm}
