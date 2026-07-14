@@ -518,6 +518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Restrizioni',
+        tryAgain: 'Riprova',
         tagGLCode: 'Tag codice GL',
         off: 'Disattivato',
         noResultsFoundSubtitle: 'Nessun risultato. Prova a modificare i filtri o la ricerca',
@@ -991,8 +992,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Portafoglio',
             },
             addVirtualCardPersonalDetails: {
-                title: 'Aggiungi i tuoi dati personali',
-                subtitle: 'Aggiungi i tuoi dati per visualizzare e iniziare a usare la tua Carta Expensify.',
+                title: 'Aggiungi i tuoi dati per visualizzare e iniziare a usare la tua Carta Expensify.',
+                subtitle: 'Carta Expensify',
                 cta: 'Aggiungi dettagli',
             },
             enterSignerInfo: {title: 'Informazioni del firmatario necessarie', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conto bancario ${bankAccountLastFour}`},
@@ -1617,6 +1618,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: 'modificato',
         removed: 'rimosso',
         transactionPending: 'Transazione in sospeso.',
+        transactionPendingDescription: 'Transazione in sospeso. Potrebbe richiedere alcuni giorni per essere contabilizzata.',
         chooseARate: 'Seleziona una tariffa di rimborso per miglio o chilometro per lo spazio di lavoro',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} al ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Valido dal ${startDate}`,
@@ -2217,18 +2219,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Esci',
         restoreStashed: 'Ripristina accesso nascosto',
         signOutConfirmationText: 'Perderai tutte le modifiche offline se esci.',
-        saveReceiptsConfirmation: {
-            title: 'Salvare le tue ricevute?',
-            prompt: ({count}: {count: number}) =>
-                `${count === 1 ? "C'è ancora 1 ricevuta" : `Ci sono ancora ${count} ricevute`} in fase di caricamento. Se esci ora, ${count === 1 ? 'la salveremo' : 'le salveremo'} nelle tue foto così potrai ${count === 1 ? 'aggiungerla' : 'aggiungerle'} a una nuova spesa più tardi.`,
-            confirm: 'Salva ed esci',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Salvare le tue ricevute?',
-            prompt: ({count}: {count: number}) =>
-                `${count === 1 ? "C'è ancora 1 ricevuta" : `Ci sono ancora ${count} ricevute`} in fase di caricamento. Se esci ora, ${count === 1 ? 'la salveremo' : 'le salveremo'} nelle tue foto così potrai ${count === 1 ? 'aggiungerla' : 'aggiungerle'} a una nuova spesa più tardi. Perderai tutte le altre modifiche offline.`,
-            confirm: 'Salva ed esci',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leggi i <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termini di servizio</a> e l’<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Informativa sulla privacy</a>.`,
         help: 'Aiuto',
@@ -3755,7 +3745,6 @@ ${amount} per ${merchant} - ${date}`,
         facialScan: 'Informativa e liberatoria per la scansione facciale di Onfido',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Informativa e consenso per la scansione facciale di Onfido</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Informativa sulla privacy</a> e <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Condizioni di servizio</a>.</muted-text-micro>`,
-        tryAgain: 'Riprova',
         verifyIdentity: 'Verifica identità',
         letsVerifyIdentity: 'Verifichiamo la tua identità',
         butFirst: `Ma prima, le cose noiose. Leggi il gergo legale nel prossimo passaggio e fai clic su "Accetta" quando sei prontə.`,
@@ -5622,7 +5611,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     'Si è verificato un errore durante il caricamento dei feed delle carte dello spazio di lavoro. Riprova o contatta il tuo amministratore.',
                 feedCouldNotBeLoadedTitle: 'Impossibile caricare questo feed',
                 feedCouldNotBeLoadedMessage: 'Si è verificato un errore durante il caricamento di questo feed. Riprova oppure contatta il tuo amministratore.',
-                tryAgain: 'Riprova',
             },
             addNewCard: {
                 other: 'Altro',
@@ -6422,6 +6410,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 conciergeNotificationTitle: 'Concierge ti farà sapere',
                 conciergeNotificationDescription: 'Quando il processo sarà completato, Concierge ti invierà un messaggio.',
                 copyCompleted: 'Le impostazioni dello spazio di lavoro sono state copiate.',
+                copyFailedTitle: 'Copia non riuscita',
             },
             upgrade: {
                 title: 'Alcune funzionalità richiedono un piano Control',
