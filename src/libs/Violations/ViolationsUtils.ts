@@ -610,20 +610,25 @@ const ViolationsUtils = {
                     // workspace has switched back to QBO/Intacct as the active source — otherwise
                     // the render layer would keep showing "Supplier" wording even though the picker
                     // is back to "Vendor".
-                    newTransactionViolations = newTransactionViolations.map((violation) => {
-                        if (violation.name !== CONST.VIOLATIONS.INACTIVE_VENDOR) {
-                            return violation;
-                        }
-                        const currentFlag = violation.data?.isSupplierViolation === true;
-                        if (currentFlag === isSupplierViolation) {
-                            return violation;
-                        }
-                        if (isSupplierViolation) {
-                            return {...violation, data: {...violation.data, isSupplierViolation: true}};
-                        }
-                        const {isSupplierViolation: stripped, ...remainingData} = violation.data ?? {};
-                        return Object.keys(remainingData).length > 0 ? {...violation, data: remainingData} : {...violation, data: undefined};
-                    });
+                    const needsSupplierFlagReconciliation = newTransactionViolations.some(
+                        (violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR && (violation.data?.isSupplierViolation === true) !== isSupplierViolation,
+                    );
+                    if (needsSupplierFlagReconciliation) {
+                        newTransactionViolations = newTransactionViolations.map((violation) => {
+                            if (violation.name !== CONST.VIOLATIONS.INACTIVE_VENDOR) {
+                                return violation;
+                            }
+                            const currentFlag = violation.data?.isSupplierViolation === true;
+                            if (currentFlag === isSupplierViolation) {
+                                return violation;
+                            }
+                            if (isSupplierViolation) {
+                                return {...violation, data: {...violation.data, isSupplierViolation: true}};
+                            }
+                            const {isSupplierViolation: stripped, ...remainingData} = violation.data ?? {};
+                            return Object.keys(remainingData).length > 0 ? {...violation, data: remainingData} : {...violation, data: undefined};
+                        });
+                    }
                 }
             } else if (!transactionVendorID && hasInactiveVendorViolation) {
                 // Vendor was cleared while the feature is still active — drop the now-stale violation.
