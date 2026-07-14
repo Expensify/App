@@ -588,7 +588,6 @@
 "../../src/hooks/useIsPaidPolicyAdmin.ts"	"no-restricted-imports"	1
 "../../src/hooks/useKeyboardShortcut.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useLazyAsset.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
-"../../src/hooks/useLazyAsset.ts"	"react-hooks/refs"	2
 "../../src/hooks/useLazyAsset.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useLifecycleActions.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useListKeyboardNav.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1500,7 +1499,6 @@
 "../../src/pages/signin/SAMLSignInPage/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/signin/SMSDeliveryFailurePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/signin/SMSDeliveryFailurePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/signin/SignInPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/signin/SignInPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/signin/SignInPageLayout/BackgroundImage/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/signin/SignInPageLayout/FooterRow/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
