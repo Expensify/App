@@ -30,6 +30,7 @@ import type {PersonalDetails, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useMemo} from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -84,6 +85,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
@@ -107,6 +109,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 transactions,
                 allTransactionViolation: transactionViolations,
                 allReports,
+                isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             });
             turnOffMobileSelectionMode();
@@ -131,6 +134,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             transactions,
             allTransactionViolation: transactionViolations,
             allReports,
+            isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
         });
         if (shouldTurnOffSelectionMode) {
@@ -145,7 +149,16 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
 
-        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, betas, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(
+            ownerPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policyForMovingExpenses,
+            betas,
+            isTrackIntentUser,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
         selectReport(
             {
                 value: optimisticReport.reportID,

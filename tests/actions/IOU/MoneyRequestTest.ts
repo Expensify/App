@@ -142,6 +142,7 @@ describe('MoneyRequest', () => {
             optimisticChatReportID: undefined,
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         };
 
         beforeEach(async () => {
@@ -675,6 +676,7 @@ describe('MoneyRequest', () => {
             reportDraft: undefined,
             currentUserLocalCurrency: undefined,
             policyTagList: {},
+            isTrackIntentUser: false,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
