@@ -4,11 +4,11 @@
 
 [React Compiler](https://react.dev/learn/react-compiler) is a tool designed to enhance the performance of React applications by automatically memoizing components that lack optimizations.
 
-React Compiler is enabled in both the Rspack (web) and metro (mobile) build pipelines via `babel-plugin-react-compiler`.
+React Compiler is enabled in the web build pipeline via `oxc-transform`, in the Metro (mobile) build pipeline via `babel-plugin-react-compiler`, and in ESLint via `oxc-transform` (see `config/reactCompiler/checkWithOxc.mjs`).
 
 ## React Compiler CI check
 
-A CI check runs on every PR that modifies `.ts` or `.tsx` files. It uses `@babel/core`'s `transformSync` with `babel-plugin-react-compiler` to check whether each changed file's components and hooks compile successfully.
+A CI check runs on every PR that modifies `.ts` or `.tsx` files. It uses `@babel/core`'s `transformSync` with `babel-plugin-react-compiler` to check whether each changed file's components and hooks compile successfully. (ESLint uses OXC for the same analysis; CI still uses Babel until a follow-up migration.)
 
 ### What the CI check enforces
 

@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-07-14T04:50:11Z",
+  "gitSha": "904e3bdc3d8eab21643214e07d1096d9af804f64",
+  "nodeVersion": "v20.20.2",
+  "cpuModel": "Apple M2 Max",
+  "ramBytes": 103079215104,
+  "iterations": 3,
+  "processor": "babel",
+  "runs": [{"iteration":1,"exitCode":2,"real":72.21,"user":210.09,"sys":32.18},{"iteration":2,"exitCode":0,"real":599.09,"user":6.34,"sys":2.20},{"iteration":3,"exitCode":0,"real":565.28,"user":6.47,"sys":1.96}]
+}
