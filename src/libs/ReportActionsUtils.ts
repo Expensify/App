@@ -4871,7 +4871,6 @@ export {
     isReportActionAttachment,
     isReportPreviewAction,
     isReversedTransaction,
-    getMentionedAccountIDsFromAction,
     isSentMoneyReportAction,
     isSplitBillAction,
     isTaskAction,
