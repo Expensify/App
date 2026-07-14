@@ -17,7 +17,7 @@ import Onyx from 'react-native-onyx';
 import {getCountryCode} from './CountryUtils';
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
-import {parsePhoneNumber} from './PhoneNumber';
+import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
 import {generateAccountID} from './UserUtils';
 
@@ -322,7 +322,7 @@ function getNewAccountIDsAndLogins(invitedEmailsToAccountIDs: InvitedEmailsToAcc
         (acc, [login, accountID]) => {
             if (isEmptyObject(personalDetailsList?.[accountID])) {
                 acc.newAccountIDs.push(accountID);
-                acc.newLogins.push(login);
+                acc.newLogins.push(addSMSDomainIfPhoneNumber(login));
             }
             return acc;
         },
