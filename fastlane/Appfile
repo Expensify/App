@@ -1,4 +1,0 @@
-# See https://docs.fastlane.tools/advanced/Appfile/
-apple_id("ios@expensify.com")
-itc_team_id("152696")
-team_id("368M544MTT")

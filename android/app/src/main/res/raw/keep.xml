@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@mipmap/ic_launcher, @drawable/bootsplash*, @drawable/alert_background,
-        @drawable/ic_launcher*, @drawable/ic_notification*, @drawable/picker_background,
-        @drawable/rn_edit_text_material" />

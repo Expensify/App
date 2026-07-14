@@ -1,6 +1,0 @@
-framework module FPAppsCapability {
-  umbrella header "FPAppsCapability.h"
-  export *
-
-  module * { export * }
-}
