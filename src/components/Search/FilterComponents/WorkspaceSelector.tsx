@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import tokenizedSearch from '@libs/tokenizedSearch';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,7 +43,9 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>(), policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFiltersWorkspaces(policies, debouncedSearchTerm);
+    // Fetch the full (unfiltered) workspace list and apply the search filter locally, so pinning is decided from the
+    // full list length rather than the filtered result count (see reordering below).
+    const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFiltersWorkspaces(policies);
     const workspaceOptions: Array<MultiSelectItem<string>> = workspaces
         .flatMap((section) => section.data)
         .filter((workspace): workspace is typeof workspace & {policyID: string; icons: Icon[]} => !!workspace.policyID && !!workspace.icons)
@@ -53,10 +56,12 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
         }));
 
     // Snapshot the workspaces selected when the filter first opened so they can be floated to the top of a long list on
-    // first render without repinning rows that are toggled afterwards. moveInitialSelectionToTop gates on the list
-    // length, so it only pins once the list is long enough to require scrolling.
+    // first render without repinning rows that are toggled afterwards. moveInitialSelectionToTop gates on the *unfiltered*
+    // list length so the decision doesn't flip as the user types, and reordering before filtering keeps the pinned items
+    // on top among the results that still match.
     const initialSelectedValues = useInitialValue(() => value);
     const orderedOptions = moveInitialSelectionToTop(workspaceOptions, initialSelectedValues);
+    const filteredOptions = tokenizedSearch(orderedOptions, debouncedSearchTerm, (option) => [option.text]);
 
     const updateSelectedItems = (item: ListItem) => {
         let newValue;
@@ -68,7 +73,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
         onChange(newValue);
     };
 
-    const listData: ListItem[] = orderedOptions.map((item) => ({
+    const listData: ListItem[] = filteredOptions.map((item) => ({
         text: item.text,
         keyForList: item.value,
         isSelected: value.includes(item.value),
