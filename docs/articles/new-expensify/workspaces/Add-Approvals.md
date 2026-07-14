@@ -135,7 +135,7 @@ No. Each employee can only be assigned one approval workflow per workspace.
 
 Approval routing is built from per-approver relationships, not separate paths for each submitter. When you place someone *after* an approver in a workflow, you're defining who that approver forwards their approvals to — and that applies to **every** report they approve, not just one submitter's.
 
-For example, if Karen is the first approver for several members and you set up a workflow of **Gerry → Karen → Leslie**, you're telling Expensify that "Karen forwards to Leslie." Because Karen also approves for other members, their reports will now route to Leslie after Karen approves them too.
+For example, if Joe is the first approver for several members and you set up a workflow of **John → Joe → Jane**, you're telling Expensify that "Joe forwards to Jane." Because Joe also approves for other members, their reports will now route to Jane after Joe approves them too.
 
 This is why you may see the following warning when editing a workflow:
 
