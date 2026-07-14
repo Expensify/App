@@ -65,13 +65,19 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/AddExpenseActi
         return null;
     },
 }));
-jest.mock('@components/Button', () => ({
-    __esModule: true,
-    default: () => {
+jest.mock('@components/ButtonComposed', () => {
+    function MockButton() {
         mockView();
         return null;
-    },
-}));
+    }
+
+    MockButton.Text = () => null;
+
+    return {
+        __esModule: true,
+        default: MockButton,
+    };
+});
 
 jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => ({flex1: {}})}));
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));

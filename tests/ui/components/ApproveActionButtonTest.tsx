@@ -30,13 +30,19 @@ function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T
 
 // Capture the onPress (confirmApproval) handler the button passes to the underlying Button so approval can be triggered.
 const mockOnPressHolder: {current?: () => void} = {current: undefined};
-jest.mock('@components/Button', () => ({
-    __esModule: true,
-    default: (props: {onPress?: () => void}) => {
+jest.mock('@components/ButtonComposed', () => {
+    function MockButton(props: {onPress?: () => void}) {
         mockOnPressHolder.current = props.onPress;
         return null;
-    },
-}));
+    }
+
+    MockButton.Text = () => null;
+
+    return {
+        __esModule: true,
+        default: MockButton,
+    };
+});
 
 jest.mock('@userActions/IOU/ReportWorkflow', () => ({
     __esModule: true,
