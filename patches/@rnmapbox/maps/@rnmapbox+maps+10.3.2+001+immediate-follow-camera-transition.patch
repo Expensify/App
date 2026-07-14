@@ -105,6 +105,26 @@ index 5ba4843..bf31699 100644
      /** The mode used to track the user location on the map. */
      followUserMode?: UserTrackingMode;
      /** The zoom level used when following the user location. */
+diff --git a/node_modules/@rnmapbox/maps/lib/module/components/Camera.js b/node_modules/@rnmapbox/maps/lib/module/components/Camera.js
+index c8e61a0..d3e50b9 100644
+--- a/node_modules/@rnmapbox/maps/lib/module/components/Camera.js
++++ b/node_modules/@rnmapbox/maps/lib/module/components/Camera.js
+@@ -70,6 +70,7 @@
+     maxZoomLevel,
+     maxBounds,
+     followUserLocation,
++    followUserLocationUseImmediateTransition,
+     followUserMode,
+     followZoomLevel,
+     followPitch,
+@@ -367,6 +368,7 @@
+     animationMode: animationMode,
+     defaultStop: nativeDefaultStop,
+     followUserLocation: followUserLocation,
++    followUserLocationUseImmediateTransition: followUserLocationUseImmediateTransition,
+     followUserMode: followUserMode,
+     followZoomLevel: followZoomLevel,
+     followPitch: followPitch,
 diff --git a/node_modules/@rnmapbox/maps/src/components/Camera.tsx b/node_modules/@rnmapbox/maps/src/components/Camera.tsx
 index c8e61a0..d3e50b9 100644
 --- a/node_modules/@rnmapbox/maps/src/components/Camera.tsx

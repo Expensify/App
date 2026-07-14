@@ -6,6 +6,7 @@
 - Solution: Adds an opt-in `followUserLocationUseImmediateTransition` prop to `Camera`. When `true`, entering follow mode uses `makeImmediateViewportTransition()` so the camera snaps straight to the follow state. When `false` (default), upstream behavior is preserved and the default viewport transition animates. `GPSMapView` passes the prop only on initial map load when follow is active with no route; later re-engagements (center button, follow after clearing a route) pass `false` so the camera animates back to the user.
 - Files changed:
   - `src/specs/RNMBXCameraNativeComponent.ts`, `src/components/Camera.tsx`, and `lib/typescript/src/components/Camera.d.ts` — new prop
+  - `lib/module/components/Camera.js` — same prop pass-through in the compiled bundle. Since 10.3.2 the package has no `react-native` source entry and its exports map falls back to `lib/module`, so Metro bundles the compiled output, not `src`.
   - iOS — `ios/RNMBX/RNMBXCamera.swift`, `ios/RNMBX/RNMBXCameraComponentView.mm`, `ios/RNMBX/RNMBXCameraViewManager.m`
   - Android — `android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCamera.kt` and `RNMBXCameraManager.kt`
 
