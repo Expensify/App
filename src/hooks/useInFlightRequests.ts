@@ -1,5 +1,3 @@
-import useOnyx from '@hooks/useOnyx';
-
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
 
@@ -7,6 +5,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyRequest} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import useOnyx from './useOnyx';
 
 /**
  * Derives loading truth from the request queue.

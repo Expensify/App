@@ -1,5 +1,4 @@
-import {useIsLoadingBarPending} from '@libs/PendingRequests';
-
+import {useIsLoadingBarPending} from './useInFlightRequests';
 import useNetwork from './useNetwork';
 
 /**

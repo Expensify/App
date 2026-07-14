@@ -1,8 +1,9 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import {useIsAppLoadPending, useIsLoadingBarPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
+
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
-import {useIsAppLoadPending, useIsLoadingBarPending, useIsReportLoadPending} from '@libs/PendingRequests';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyRequest} from '@src/types/onyx';
@@ -17,7 +18,7 @@ const setPersistedRequests = (requests: AnyRequest[]) => Onyx.set(ONYXKEYS.PERSI
 
 const setOngoingRequest = (request: AnyRequest | null) => Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, request).then(waitForBatchedUpdates);
 
-describe('PendingRequests', () => {
+describe('useInFlightRequests', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
