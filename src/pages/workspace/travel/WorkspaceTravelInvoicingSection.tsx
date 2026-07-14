@@ -12,6 +12,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -27,12 +28,13 @@ import {
     retryTravelCardsProvisioning,
 } from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import {getCardSettings, getEligibleBankAccountsForTravelInvoicing} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {hasInProgressUSDVBBA} from '@libs/ReimbursementAccountUtils';
 import {
+    getIsTravelBillingPayByInvoice,
     getIsTravelInvoicingEnabled,
     getTravelInvoicingCardSettingsKey,
     getTravelLimit,
@@ -72,6 +74,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
+    const {isBetaEnabled} = usePermissions();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const {showConfirmModal, closeModal} = useConfirmModal();
@@ -114,6 +117,20 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const shouldShowPayButton = travelSpend > 0 && isMonthlySettlementFrequency && !hasPendingSettlement;
     const formattedSpend = convertToDisplayString(travelSpend, CONST.CURRENCY.USD);
 
+    // Pay-by-invoice customers settle by wire against an invoice, so the pay CTA and modal use invoice copy
+    const isPayByInvoice = getIsTravelBillingPayByInvoice(travelSettings);
+    const payBalanceCtaText = translate(
+        isPayByInvoice
+            ? 'workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.sendInvoiceNowCta'
+            : 'workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta',
+    );
+    const payBalanceModalTitle = isPayByInvoice
+        ? translate('workspace.moreFeatures.travel.travelInvoicing.sendInvoiceModal.title', formattedSpend)
+        : translate('workspace.moreFeatures.travel.travelInvoicing.payBalanceModal.title', formattedSpend);
+    const payBalanceModalBody = translate(
+        isPayByInvoice ? 'workspace.moreFeatures.travel.travelInvoicing.sendInvoiceModal.body' : 'workspace.moreFeatures.travel.travelInvoicing.payBalanceModal.body',
+    );
+
     // The pending settlement amount for the "payment queued" subtitle
     const formattedQueuedAmount = convertToDisplayString(pendingSettlementAmount, CONST.CURRENCY.USD);
     const formattedLimit = convertToDisplayString(travelLimit, CONST.CURRENCY.USD);
@@ -147,7 +164,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     // Bank account eligibility for toggle handler
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
-    const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList);
+    const eligibleBankAccounts = getEligibleBankAccountsForTravelInvoicing(bankAccountList, isBetaEnabled(CONST.BETAS.TRAVEL_BILLING_DEPOSIT_ONLY));
 
     // Determine if Travel Invoicing is enabled based on isEnabled field
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
@@ -333,7 +350,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 </View>
                 {shouldShowPayButton && canWriteMoreFeatures && (
                     <Button
-                        text={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}
+                        text={payBalanceCtaText}
                         onPress={handlePayBalance}
                         isDisabled={isOffline}
                         success
@@ -450,12 +467,12 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             />
 
             <ConfirmModal
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.payBalanceModal.title', formattedSpend)}
+                title={payBalanceModalTitle}
                 isVisible={isPayBalanceModalVisible}
                 onConfirm={handleConfirmPayBalance}
                 onCancel={() => setIsPayBalanceModalVisible(false)}
-                prompt={translate('workspace.moreFeatures.travel.travelInvoicing.payBalanceModal.body')}
-                confirmText={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}
+                prompt={payBalanceModalBody}
+                confirmText={payBalanceCtaText}
                 cancelText={translate('common.cancel')}
                 success
             />
