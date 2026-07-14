@@ -4520,6 +4520,17 @@ const translations = {
         positiveButton: 'Yeah!',
         negativeButton: 'Not really',
     },
+    trialPaymentReminder: {
+        title: 'Stay ahead of the deadline',
+        subtitle: "Don't wait until the last minute, add your payment method today to ensure continuous access to your expenses on Expensify.",
+        trialEndsInDays: () => ({
+            one: 'Trial ends in 1 day',
+            other: (pluralCount: number) => `Trial ends in ${pluralCount} days`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Trial ends in ${hours}h : ${minutes}m : ${seconds}s`,
+        closeButton: 'Close',
+        addPaymentCardButton: 'Add payment card',
+    },
     workspace: {
         common: {
             card: 'Cards',
@@ -10160,6 +10171,18 @@ const translations = {
             search: 'More powerful search on mobile, web, and desktop',
             concierge: 'Built-in Concierge AI to help automate your expenses',
             chat: 'Chat on any expense to resolve questions quickly',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: 'Want a FREE employee plan?',
+        description: "Don't wait for your company to get Expensify. We built a free plan just for you:",
+        confirmText: 'Get the free plan',
+        dismissText: 'No thanks',
+        features: {
+            getReimbursed: 'Get reimbursed faster, right in Expensify',
+            buildReports: 'Build expense reports in seconds',
+            categorize: 'Categorize your expenses',
+            inviteBoss: "Invite your boss when you're ready",
         },
     },
     aiFeaturesPromoModal: {
