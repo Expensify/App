@@ -88,4 +88,67 @@ describe('useSearchShouldCalculateTotals', () => {
 
         expect(result.current).toBe(true);
     });
+
+    describe('shouldKeepTotalsUntilQueryChanges', () => {
+        it('stays true after all matching items are deselected, so the search is not re-run with totals off', () => {
+            const {result, rerender} = renderHook(
+                ({areAllMatchingItemsSelected}) => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 123, true, areAllMatchingItemsSelected, true),
+                {
+                    initialProps: {areAllMatchingItemsSelected: true},
+                },
+            );
+
+            expect(result.current).toBe(true);
+
+            rerender({areAllMatchingItemsSelected: false});
+
+            expect(result.current).toBe(true);
+        });
+
+        it('does not latch when the caller has not opted in, so the footer gate still follows the selection', () => {
+            const {result, rerender} = renderHook(
+                ({areAllMatchingItemsSelected}) => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 123, true, areAllMatchingItemsSelected),
+                {
+                    initialProps: {areAllMatchingItemsSelected: true},
+                },
+            );
+
+            expect(result.current).toBe(true);
+
+            rerender({areAllMatchingItemsSelected: false});
+
+            expect(result.current).toBe(false);
+        });
+
+        it('drops the latch when the query changes, so a new ad-hoc search does not inherit it', () => {
+            const {result, rerender} = renderHook(({searchHash}) => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchHash, true, searchHash === 123, true), {
+                initialProps: {searchHash: 123},
+            });
+
+            expect(result.current).toBe(true);
+
+            rerender({searchHash: 456});
+
+            expect(result.current).toBe(false);
+        });
+
+        it('does not keep totals on for paginated loads of an eligible search, so the latch cannot defeat the offset gate', () => {
+            const {result, rerender} = renderHook(({enabled}) => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.SUBMIT, 123, enabled, false, true), {
+                initialProps: {enabled: true},
+            });
+
+            expect(result.current).toBe(true);
+
+            // `enabled` is `offset === 0`, so this is the user loading a second page.
+            rerender({enabled: false});
+
+            expect(result.current).toBe(false);
+        });
+
+        it('does not latch a query that never asked for totals', () => {
+            const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 123, true, false, true));
+
+            expect(result.current).toBe(false);
+        });
+    });
 });

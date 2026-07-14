@@ -134,4 +134,29 @@ describe('search loading totals handling', () => {
         expect(loadingSearchData?.total).toBeUndefined();
         expect(loadingSearchData?.currency).toBeUndefined();
     });
+
+    describe('in-flight request deduping', () => {
+        // Both calls run before any microtask, so the first request is still registered as in flight when the
+        // second one is made.
+        function searchTwiceConcurrently(firstShouldCalculateTotals: boolean, secondShouldCalculateTotals: boolean) {
+            const queryJSON = getQueryJSON();
+            const params = {queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false};
+
+            return Promise.all([search({...params, shouldCalculateTotals: firstShouldCalculateTotals}), search({...params, shouldCalculateTotals: secondShouldCalculateTotals})]);
+        }
+
+        it('drops a request that duplicates an in-flight one for the same page', async () => {
+            await searchTwiceConcurrently(false, false);
+
+            expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not drop a totals request that overlaps an in-flight request which did not ask for totals', async () => {
+            // The overlapping request asks for strictly more data, so deduping it away would leave the totals
+            // unfetched with nothing to trigger a retry.
+            await searchTwiceConcurrently(false, true);
+
+            expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(2);
+        });
+    });
 });

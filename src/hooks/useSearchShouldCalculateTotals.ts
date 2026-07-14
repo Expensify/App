@@ -3,19 +3,43 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useMemo} from 'react';
+import {useMemo, useState} from 'react';
 
 import useOnyx from './useOnyx';
 
-function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, searchHash: number | undefined, enabled: boolean, areAllMatchingItemsSelected = false) {
+/**
+ * @param shouldKeepTotalsUntilQueryChanges Opt-in for callers that drive the search *request* rather than
+ * just rendering totals. See the latch below for why the request side needs it and the display side doesn't.
+ */
+function useSearchShouldCalculateTotals(
+    searchKey: SearchKey | undefined,
+    searchHash: number | undefined,
+    enabled: boolean,
+    areAllMatchingItemsSelected = false,
+    shouldKeepTotalsUntilQueryChanges = false,
+) {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+
+    const [latchedHash, setLatchedHash] = useState<number | undefined>(undefined);
+    let nextLatchedHash: number | undefined;
+    if (areAllMatchingItemsSelected) {
+        nextLatchedHash = searchHash;
+    } else if (latchedHash === searchHash) {
+        nextLatchedHash = latchedHash;
+    }
+    // Leaving `nextLatchedHash` undefined above drops the latch once we move to a different query, so an
+    // unrelated ad-hoc search doesn't inherit it.
+    if (shouldKeepTotalsUntilQueryChanges && nextLatchedHash !== latchedHash) {
+        setLatchedHash(nextLatchedHash);
+    }
+    const wasAllMatchingItemsSelectedForQuery = shouldKeepTotalsUntilQueryChanges && nextLatchedHash !== undefined && nextLatchedHash === searchHash;
 
     const shouldCalculateTotals = useMemo(() => {
         // When the user selects all matching items we always want the server-computed count/total,
         // even for an ad-hoc query that isn't a suggested or saved search. This must bypass the
         // `enabled` (offset === 0) gate so totals are still requested when more results were loaded
         // before select-all was triggered.
-        if (areAllMatchingItemsSelected) {
+        if (areAllMatchingItemsSelected || wasAllMatchingItemsSelectedForQuery) {
             return true;
         }
 
@@ -46,7 +70,7 @@ function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, search
         const isSavedSearch = searchHash !== undefined && savedSearches && !!savedSearches[searchHash];
 
         return isSuggestedSearchWithTotals || isSavedSearch;
-    }, [enabled, savedSearches, searchKey, searchHash, areAllMatchingItemsSelected]);
+    }, [enabled, savedSearches, searchKey, searchHash, areAllMatchingItemsSelected, wasAllMatchingItemsSelectedForQuery]);
 
     return shouldCalculateTotals ?? false;
 }
