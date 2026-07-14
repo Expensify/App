@@ -7,6 +7,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import genericMemo from '@libs/genericMemo';
 
 import CONST from '@src/CONST';
 
@@ -287,4 +288,4 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     );
 }
 
-export default Table;
+export default genericMemo(Table);
