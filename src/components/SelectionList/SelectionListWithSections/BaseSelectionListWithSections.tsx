@@ -20,6 +20,8 @@ import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import genericMemo from '@libs/genericMemo';
+
 import CONST from '@src/CONST';
 
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
@@ -362,4 +364,4 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     );
 }
 
-export default BaseSelectionListWithSections;
+export default genericMemo(BaseSelectionListWithSections);
