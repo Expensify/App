@@ -1956,8 +1956,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-get-random-values (1.11.0):
-    - React-Core
   - react-native-image-picker (7.1.2):
     - hermes-engine
     - RCTRequired
@@ -2047,8 +2045,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-launch-arguments (4.1.1):
-    - React
   - react-native-netinfo (11.4.1):
     - hermes-engine
     - RCTRequired
@@ -3359,11 +3355,9 @@ DEPENDENCIES:
   - "react-native-cameraroll (from `../node_modules/@react-native-camera-roll/camera-roll`)"
   - react-native-config (from `../node_modules/react-native-config`)
   - "react-native-document-picker (from `../node_modules/@react-native-documents/picker`)"
-  - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-key-command (from `../node_modules/react-native-key-command`)
   - react-native-keyboard-controller (from `../node_modules/react-native-keyboard-controller`)
-  - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
@@ -3626,16 +3620,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-config"
   react-native-document-picker:
     :path: "../node_modules/@react-native-documents/picker"
-  react-native-get-random-values:
-    :path: "../node_modules/react-native-get-random-values"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
   react-native-key-command:
     :path: "../node_modules/react-native-key-command"
   react-native-keyboard-controller:
     :path: "../node_modules/react-native-keyboard-controller"
-  react-native-launch-arguments:
-    :path: "../node_modules/react-native-launch-arguments"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pager-view:
@@ -3883,11 +3873,9 @@ SPEC CHECKSUMS:
   react-native-cameraroll: 8fd837cd3e2c96ca378d85eb4340134381797309
   react-native-config: 06c97ec20d877e11bb128d8cdc11329f18494ecb
   react-native-document-picker: ee9a7692303f36eef1798dcf43f38f51b1382ad1
-  react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-image-picker: 08847883972f3fe37e31896ac2f864286737b4d4
   react-native-key-command: 9a1d8369da3fc9668b6f5389c9d7412189591217
   react-native-keyboard-controller: 835794ed4d2eba6c695a5af3f8b1a94cce040a8d
-  react-native-launch-arguments: eab68037b01ea7c78a0b3b55da3a5e967e9aaf92
   react-native-netinfo: 2201a3619279a5e2327244048bf024638c8d4399
   react-native-pager-view: 182f9a09d73bff3559ec582869c2958fe5333ea4
   react-native-pdf: f5336904e04a95103a90fcdf349bbd8e278350b9
