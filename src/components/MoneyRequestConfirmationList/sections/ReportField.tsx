@@ -7,7 +7,6 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import Parser from '@libs/Parser';
 import {getReportName} from '@libs/ReportNameUtils';
 import {generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 
@@ -116,8 +115,6 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         return name;
     })();
 
-    const shouldRenderReportNameAsHTML = Parser.isHTML(reportName);
-
     const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false);
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
@@ -137,7 +134,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, Navigation.getActiveRoute(), reportActionID));
             }}
             interactive={shouldReportBeEditable}
-            shouldRenderAsHTML={shouldRenderReportNameAsHTML}
+            shouldRenderAsHTML
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
         />
     );

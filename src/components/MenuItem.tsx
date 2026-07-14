@@ -748,9 +748,11 @@ function MenuItem({
         return Parser.replace(helperText, {shouldEscapeText});
     }, [helperText, shouldParseHelperText, shouldEscapeText]);
 
+    const shouldRenderTitleAsHTML = shouldRenderAsHTML && !!title && Parser.isHTML(title);
+
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
-        if (shouldRenderAsHTML) {
+        if (shouldRenderTitleAsHTML) {
             titleToWrap = title ?? '';
         }
 
@@ -764,7 +766,7 @@ function MenuItem({
         }
 
         return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
-    }, [title, shouldRenderAsHTML, shouldParseTitle, characterLimit, shouldTruncateTitle, html]);
+    }, [title, shouldRenderTitleAsHTML, shouldParseTitle, characterLimit, shouldTruncateTitle, html]);
 
     const processedHelperText = useMemo(() => {
         let textToWrap = '';
@@ -783,7 +785,7 @@ function MenuItem({
             return (
                 <DisplayNames
                     fullTitle={title}
-                    shouldParseFullTitle={!shouldRenderAsHTML}
+                    shouldParseFullTitle={!shouldRenderTitleAsHTML}
                     displayNamesWithTooltips={titleWithTooltips}
                     tooltipEnabled
                     numberOfLines={1}
@@ -1041,12 +1043,12 @@ function MenuItem({
                                                                 style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}
                                                                 fsClass={forwardedFSClass}
                                                             >
-                                                                {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
+                                                                {!!title && (shouldRenderTitleAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={[styles.renderHTMLTitle, styles.textAlignLeft, shouldApplyIconPaddingToHTMLTitle && iconLeftPadding]}>
                                                                         <RenderHTML html={processedTitle} />
                                                                     </View>
                                                                 )}
-                                                                {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
+                                                                {!shouldRenderTitleAsHTML && !shouldParseTitle && !!title && (
                                                                     <Text
                                                                         style={combinedTitleTextStyle}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
