@@ -22,6 +22,7 @@ import {getDisplayNameForParticipant, hasViolations as hasViolationsReportUtils,
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import lodashIntersection from 'lodash/intersection';
 import lodashPick from 'lodash/pick';
 import React, {useEffect, useState} from 'react';
@@ -38,6 +39,7 @@ function SearchAddApproverPage() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {selectedReports} = useSearchSelectionContext();
     const {isLoading, startWithLoading} = usePressLoading();
@@ -148,6 +150,7 @@ function SearchAddApproverPage() {
                     hasViolations,
                     isASAPSubmitBetaEnabled,
                     reportNextStep,
+                    isTrackIntentUser,
                 );
             }
 
