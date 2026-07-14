@@ -242,6 +242,7 @@ type PerDiemExpenseInformation = {
     optimisticTransactionID?: string;
     // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -265,6 +266,7 @@ type PerDiemExpenseInformationParams = {
     optimisticTransactionID?: string;
     // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -278,6 +280,7 @@ type PerDiemExpenseInformationForSelfDM = {
     optimisticChatReportID: string;
     // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type PerDiemExpenseInformationForSelfDMResult = {
@@ -320,6 +323,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         optimisticChatReportID,
         optimisticTransactionID: uiProvidedOptimisticTransactionID,
         delegateAccountID,
+        isTrackIntentUser,
     } = perDiemExpenseInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -522,6 +526,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         hasViolations,
         isASAPSubmitBetaEnabled,
         policy,
+        isTrackIntentUser,
     });
 
     // STEP 5: Build Onyx Data
@@ -567,6 +572,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         quickAction,
         personalDetails,
         delegateAccountID,
+        isTrackIntentUser,
     });
 
     return {
@@ -925,6 +931,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         optimisticChatReportID,
         optimisticTransactionID,
         delegateAccountID,
+        isTrackIntentUser,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -977,6 +984,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         optimisticChatReportID,
         optimisticTransactionID,
         delegateAccountID,
+        isTrackIntentUser,
     });
 
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
@@ -1046,7 +1054,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
  * Submit a per diem expense from self DM
  */
 function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemExpenseInformationForSelfDM) {
-    const {selfDMReport, policy, transactionParams, currentUserAccountIDParam, currentUserEmailParam, quickAction, optimisticChatReportID, delegateAccountID} =
+    const {selfDMReport, policy, transactionParams, currentUserAccountIDParam, currentUserEmailParam, quickAction, optimisticChatReportID, delegateAccountID, isTrackIntentUser} =
         submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, billable, reimbursable} = transactionParams;
 
@@ -1070,6 +1078,7 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
         quickAction,
         optimisticChatReportID,
         delegateAccountID,
+        isTrackIntentUser,
     });
 
     const customUnitRate = getPerDiemRateCustomUnitRate(policy, customUnit.customUnitRateID);

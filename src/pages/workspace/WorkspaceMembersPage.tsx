@@ -166,8 +166,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
             return translate(
                 'workspace.people.removeMembersWarningPrompt',
-                getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
-                getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
+                getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber, translate}),
+                getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber, translate}),
             );
         }
 
@@ -177,8 +177,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         if (userExporter) {
             const exporterAccountID = policyMemberEmailsToAccountIDs[userExporter];
             return translate('workspace.people.removeMemberPromptExporter', {
-                memberName: getDisplayNameForParticipant({accountID: exporterAccountID, formatPhoneNumber}),
-                workspaceOwner: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
+                memberName: getDisplayNameForParticipant({accountID: exporterAccountID, formatPhoneNumber, translate}),
+                workspaceOwner: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber, translate}),
             });
         }
 
@@ -710,9 +710,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
         return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
             <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
                 customText={translate('workspace.common.selected', {count: selectedEmployees.length})}
-                buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+                size={CONST.BUTTON_SIZE.MEDIUM}
                 onPress={() => null}
                 options={getBulkActionsButtonOptions()}
                 isSplitButton={false}
@@ -733,7 +734,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 />
                 <ButtonWithDropdownMenu
-                    success={false}
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}

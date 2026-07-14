@@ -7,7 +7,7 @@ import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
-import type {Connections, NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
+import type {NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -926,7 +926,7 @@ describe('actions/PolicyMember', () => {
                             successfulDate: '',
                         },
                     } as NetSuiteConnection,
-                } as Connections,
+                },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
