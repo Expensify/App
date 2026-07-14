@@ -8,9 +8,15 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {
+    getBillableExpensesPendingAction,
+    getCashExpenseReimbursableMode,
+    setPolicyAttendeeTrackingEnabled,
+    setPolicyReceiptVisibilityPublic,
+    setWorkspaceEReceiptsEnabled,
+} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+import {isAttendeeTrackingEnabled, isControlPolicy} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -44,12 +50,16 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Eye']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const handleAttendeeTrackingToggle = (newValue: boolean) => {
         setPolicyAttendeeTrackingEnabled(policyID, newValue, policy?.isAttendeeTrackingEnabled);
+    };
+
+    const handlePublicReceiptVisibilityToggle = (newValue: boolean) => {
+        setPolicyReceiptVisibilityPublic(policyID, newValue, policy?.isReceiptVisibilityPublic);
     };
 
     const maxExpenseAgeText =
@@ -83,6 +93,8 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
+    const isReceiptVisibilityPublicEnabled = !!policy?.isReceiptVisibilityPublic;
+    const shouldShowPublicReceiptVisibility = isControlPolicy(policy);
 
     const requiredFieldsList = [policy?.requiresCategory && translate('common.category'), policy?.requiresTag && translate('common.tag')].filter(Boolean).join(', ');
 
@@ -230,6 +242,26 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                     rowIcon={icons.Users}
                 />
+                {shouldShowPublicReceiptVisibility && (
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.rules.individualExpenseRules.publicReceiptVisibility')}
+                        subtitle={translate(
+                            isReceiptVisibilityPublicEnabled
+                                ? 'workspace.rules.individualExpenseRules.publicReceiptVisibilityHintEnabled'
+                                : 'workspace.rules.individualExpenseRules.publicReceiptVisibilityHintDisabled',
+                        )}
+                        switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.publicReceiptVisibility')}
+                        wrapperStyle={[styles.mt3]}
+                        shouldPlaceSubtitleBelowSwitch
+                        shouldUseCompactSubtitleSpacing
+                        isActive={isReceiptVisibilityPublicEnabled}
+                        disabled={!canWriteRules}
+                        showLockIcon={!canWriteRules}
+                        onToggle={() => (canWriteRules ? handlePublicReceiptVisibilityToggle(!isReceiptVisibilityPublicEnabled) : undefined)}
+                        pendingAction={policy?.pendingFields?.isReceiptVisibilityPublic}
+                        rowIcon={icons.Eye}
+                    />
+                )}
             </View>
         </Section>
     );

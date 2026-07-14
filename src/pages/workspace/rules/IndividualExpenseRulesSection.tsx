@@ -10,9 +10,15 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setPolicyRequireCompanyCardsEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {
+    getCashExpenseReimbursableMode,
+    setPolicyAttendeeTrackingEnabled,
+    setPolicyReceiptVisibilityPublic,
+    setPolicyRequireCompanyCardsEnabled,
+    setWorkspaceEReceiptsEnabled,
+} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+import {isAttendeeTrackingEnabled, isControlPolicy} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -81,6 +87,13 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
             setPolicyAttendeeTrackingEnabled(policyID, newValue, policy?.isAttendeeTrackingEnabled);
         },
         [policyID, policy?.isAttendeeTrackingEnabled],
+    );
+
+    const handlePublicReceiptVisibilityToggle = useCallback(
+        (newValue: boolean) => {
+            setPolicyReceiptVisibilityPublic(policyID, newValue, policy?.isReceiptVisibilityPublic);
+        },
+        [policyID, policy?.isReceiptVisibilityPublic],
     );
 
     const maxExpenseAmountNoReceiptText = useMemo(() => {
@@ -209,6 +222,8 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
     const disableRequireCompanyCardToggle = !policy?.areCompanyCardsEnabled && !policy?.areExpensifyCardsEnabled;
 
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
+    const isReceiptVisibilityPublicEnabled = !!policy?.isReceiptVisibilityPublic;
+    const shouldShowPublicReceiptVisibility = isControlPolicy(policy);
 
     return (
         <Section
@@ -288,6 +303,27 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
                     onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                 />
+                {shouldShowPublicReceiptVisibility && (
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.rules.individualExpenseRules.publicReceiptVisibility')}
+                        subtitle={translate(
+                            isReceiptVisibilityPublicEnabled
+                                ? 'workspace.rules.individualExpenseRules.publicReceiptVisibilityHintEnabled'
+                                : 'workspace.rules.individualExpenseRules.publicReceiptVisibilityHintDisabled',
+                        )}
+                        switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.publicReceiptVisibility')}
+                        wrapperStyle={[styles.mt3]}
+                        shouldPlaceSubtitleBelowSwitch
+                        titleStyle={styles.pv2}
+                        subtitleStyle={styles.pt1}
+                        isActive={isReceiptVisibilityPublicEnabled}
+                        disabled={!canWriteRules}
+                        disabledAction={withReadOnlyFallback()}
+                        showLockIcon={!canWriteRules}
+                        onToggle={() => (canWriteRules ? handlePublicReceiptVisibilityToggle(!isReceiptVisibilityPublicEnabled) : undefined)}
+                        pendingAction={policy?.pendingFields?.isReceiptVisibilityPublic}
+                    />
+                )}
             </View>
         </Section>
     );
