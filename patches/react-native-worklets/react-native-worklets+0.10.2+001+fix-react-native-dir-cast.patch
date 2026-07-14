@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-worklets/android/build.gradle.kts b/node_modules/react-native-worklets/android/build.gradle.kts
+index 2e01292..d920d4a 100644
+--- a/node_modules/react-native-worklets/android/build.gradle.kts
++++ b/node_modules/react-native-worklets/android/build.gradle.kts
+@@ -23,7 +23,7 @@ fun safeAppExtGet(prop: String, fallback: Any?): Any? {
+ }
+ 
+ fun resolveReactNativeDirectory(): File {
+-    val reactNativeLocation = safeAppExtGet("REACT_NATIVE_NODE_MODULES_DIR", null) as String?
++    val reactNativeLocation = safeAppExtGet("REACT_NATIVE_NODE_MODULES_DIR", null)
+     if (reactNativeLocation != null) {
+         return file(reactNativeLocation)
+     }
