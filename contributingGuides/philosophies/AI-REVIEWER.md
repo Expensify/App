@@ -68,7 +68,7 @@ When adding or modifying rules, the corresponding documentation should be update
 **deploy-blocker-investigator**
 - Investigates deploy blocker issues to identify the causing PR
 - Posts findings and recommendations on the issue
-- See `.claude/agents/deploy-blocker-investigator.md` for investigation process
+- Runs on the MelvinBot service; it is triggered automatically when the `DeployBlockerCash` label is added to an issue
 
 ### Triggers and When Reviewers Run
 
@@ -78,7 +78,7 @@ AI reviewers are triggered automatically based on contribution type and file cha
 flowchart TD
     subgraph triggers [GitHub Events]
         T1[PR opened/ready_for_review]
-        T2[workflow_dispatch]
+        T2[DeployBlockerCash label added]
     end
 
     subgraph filters [Path Filters]
@@ -90,7 +90,7 @@ flowchart TD
     F1 -->|Yes| C[Holistic Reviewer]
     F2 -->|Yes| D[helpdot-inline-reviewer]
     F2 -->|Yes| E[helpdot-summary-reviewer]
-    T2 -->|Manual trigger| F[deploy-blocker-investigator]
+    T2 -->|MelvinBot service| F[deploy-blocker-investigator]
 
     subgraph code [Code Review Output]
         B --> G[Inline comments for violations]
@@ -142,11 +142,9 @@ Documentation PRs in the HelpDot system use two complementary reviewers:
 #### Deploy Blocker Issues
 
 **Trigger conditions:**
-- Manually triggered via `workflow_dispatch`
-- Issue must have the `DeployBlockerCash` label
-- Actor must have write access to the repository
+- Automatically triggered by the MelvinBot service when the `DeployBlockerCash` label is added to an issue
 
-**How to re-run it?** Navigate to Actions → "Investigate Deploy Blocker" workflow → Run workflow with the issue URL.
+**How to re-run it?** Remove the `DeployBlockerCash` label from the issue and add it again.
 
 When a deploy blocker issue needs investigation:
 
