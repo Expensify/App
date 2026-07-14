@@ -347,7 +347,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             });
         }
 
-        if (hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && isMatchingVendorListLoaded(policy)) {
+        if (isPolicyAdmin(policy) && hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && isMatchingVendorListLoaded(policy)) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.vendors',
                 icon: expensifyIcons.Buildings,
