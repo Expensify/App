@@ -354,6 +354,7 @@ describe('handleActionButtonPress', () => {
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
+            isTrackIntentUser: false,
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
@@ -376,6 +377,7 @@ describe('handleActionButtonPress', () => {
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
+            isTrackIntentUser: false,
         });
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -398,6 +400,7 @@ describe('handleActionButtonPress', () => {
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
+            isTrackIntentUser: false,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });

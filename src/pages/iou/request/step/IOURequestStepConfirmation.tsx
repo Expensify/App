@@ -43,6 +43,7 @@ import {
     getIsWorkspacesOnlyForTransaction,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isParticipantP2P,
+    isSelfDMSoleDestination,
     navigateToStartMoneyRequestStep,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
@@ -188,6 +189,10 @@ function IOURequestStepConfirmation({
         reportPolicyID: realPolicyID ?? draftPolicyID,
         action,
         iouType,
+        // Forward the draft policy so a freshly created draft workspace (e.g. "Submit to my employer" with no existing
+        // workspace) resolves here. Without it `policy` is undefined for drafts, `isDraftPolicy` is false, and the submit
+        // is routed to ConvertTrackedExpenseToRequest (which needs a real payer) instead of AddTrackedExpenseToPolicy.
+        policyDraft,
         isPerDiemRequest,
     });
     const policyID = policy?.id;
@@ -465,10 +470,12 @@ function IOURequestStepConfirmation({
         backToReport,
     });
 
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
+
     // PAY, SPLIT, and TRACK navigate to a specific destination report
-    // (not Search) after submission. Pre-inserting the Search route would leave
-    // a stale entry in the navigation stack.
-    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK;
+    // (not Search) after submission. A self-DM CREATE is effectively a TRACK, so it is
+    // excluded too. Pre-inserting the Search route would leave a stale entry in the navigation stack.
+    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && !isSelfDMDestination;
 
     const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
         transaction,
@@ -509,10 +516,11 @@ function IOURequestStepConfirmation({
 
     const hasPreInsertFired = useRef(false);
     const isTransactionReady = !!transaction;
-    const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK ? findSelfDMReportID() : undefined;
+    const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK || isSelfDMDestination ? findSelfDMReportID() : undefined;
     const isMRReport = isMoneyRequestReport(report);
-    const destinationReportID =
-        backToReport ?? (isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID ? report?.chatReportID : report?.reportID) ?? selfDMReportID;
+    const shouldUsePerDiemChatReport = isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID;
+    const routeDestinationReportID = shouldUsePerDiemChatReport ? report?.chatReportID : report?.reportID;
+    const destinationReportID = (isSelfDMDestination ? selfDMReportID : (backToReport ?? routeDestinationReportID)) ?? selfDMReportID;
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
 
     useEffect(() => {
@@ -536,11 +544,12 @@ function IOURequestStepConfirmation({
         // pre-inserting a report is wrong - the user should stay on Search after submission.
         // Global-create TRACK targets self-DM, PAY and SPLIT target a specific chat report,
         // so they are also eligible for report pre-insert when Search is NOT topmost.
+        // A self-DM CREATE is effectively a TRACK, so it targets the self-DM report too.
         // When on Search/Spend the user should stay there after submission.
         const isReportBoundGlobalCreate = iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SPLIT;
         const canUseReportPreInsert =
             !shouldPreInsertSearch &&
-            (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || isReportBoundGlobalCreate || !isFromGlobalCreate)));
+            (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || isSelfDMDestination || isReportBoundGlobalCreate || !isFromGlobalCreate)));
 
         // RHP has its own dismiss handler; pre-inserting under it would break the stack.
         const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
@@ -921,6 +930,7 @@ function IOURequestStepConfirmation({
                         destinationReportID={destinationReportID}
                         isFromGlobalCreate={isFromGlobalCreate}
                         iouType={iouType}
+                        isSelfDMDestination={isSelfDMDestination}
                         requestType={requestType}
                         canDismissFromSearch={canDismissFromSearch}
                         gpsRequired={!!gpsRequired}

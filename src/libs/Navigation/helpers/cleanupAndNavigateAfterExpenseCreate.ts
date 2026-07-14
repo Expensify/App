@@ -41,10 +41,9 @@ function cleanupAndNavigateAfterExpenseCreate({
     });
 
     const finalActiveReportID = backToReport ?? report?.reportID ?? optimisticChatReportID;
-    const finalActiveReport = finalActiveReportID === report?.reportID ? report : getReportOrDraftReport(finalActiveReportID);
-    const hasMultipleTransactions = isMoneyRequestReport(finalActiveReport);
-    // Only the chat preview card consumes this flag, so gate on "destination is a chat" — not on backToReport, which can be the receiving chat itself ("Add expense" from a preview).
-    const shouldAddPendingNewTransactionIDs = action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE ? true : !!finalActiveReportID && !hasMultipleTransactions;
+    const hasMultipleTransactions = isInvoice ? false : isMoneyRequestReport(finalActiveReportID === report?.reportID ? report : getReportOrDraftReport(finalActiveReportID));
+    const shouldAddPendingNewTransactionIDs =
+        action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE ? true : !isInvoice && !!finalActiveReportID && !hasMultipleTransactions;
 
     navigateAfterExpenseCreate({
         activeReportID: finalActiveReportID,

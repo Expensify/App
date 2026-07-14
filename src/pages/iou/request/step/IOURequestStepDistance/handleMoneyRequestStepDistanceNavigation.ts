@@ -101,6 +101,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     optimisticChatReportID: string | undefined;
     reportDraft: OnyxEntry<Report> | undefined;
     action: IOUAction;
+    isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: PolicyTagLists;
 };
@@ -197,6 +198,7 @@ function handleMoneyRequestStepDistanceNavigation({
     optimisticChatReportID,
     reportDraft,
     action,
+    isTrackIntentUser,
     delegateAccountID,
     policyTagList,
 }: MoneyRequestStepDistanceNavigationParams): void {
@@ -402,6 +404,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         policyParams: {
                             policyTagList,
                         },
+                        isTrackIntentUser,
                         delegateAccountID,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
