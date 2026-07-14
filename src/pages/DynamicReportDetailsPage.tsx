@@ -1,12 +1,3 @@
-import {StackActions, useFocusEffect} from '@react-navigation/native';
-import {delegateEmailSelector} from '@selectors/Account';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -24,6 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
+
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -40,16 +32,18 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import useReportAttributes from '@hooks/useReportAttributes';
+import useReportAttributes, {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getBase62ReportID from '@libs/getBase62ReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
@@ -110,7 +104,8 @@ import {
     shouldDisableRename as shouldDisableRenameUtil,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
+import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
+
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
 import {
@@ -125,6 +120,7 @@ import {
 } from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, canModifyTask, deleteTask, reopenTask} from '@userActions/Task';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -135,7 +131,20 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {StackActions, useFocusEffect} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
+import {createFilteredPoliciesInfoSelector} from '@selectors/Policy';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type DynamicReportDetailsPageMenuItem = {
@@ -215,7 +224,12 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email)}, [
+        currentUserPersonalDetails?.email,
+    ]);
     const {showConfirmModal} = useConfirmModal();
+    const reportAttributes = useReportAttributes();
+    const derivedParentReportName = useDerivedReportNameByReportID(report?.parentReportID);
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtil(report), [report]);
@@ -243,19 +257,19 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, isReportArchived), [report, isReportArchived]);
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report, isReportArchived), [report, isReportArchived]);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, isParentReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     const ancestors = useAncestors(report);
 
     const chatRoomSubtitle = useMemo(() => {
-        const subtitle = getChatRoomSubtitle(report, policy, false, isReportArchived);
+        const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, false, isReportArchived);
 
         if (subtitle) {
             return subtitle;
         }
 
         return '';
-    }, [isReportArchived, report, policy]);
+    }, [isReportArchived, report, policy, conciergeReportID, translate]);
 
     const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
     const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
@@ -300,6 +314,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         return parentReportAction;
     }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
+    const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
 
     const isActionOwner =
@@ -343,7 +358,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     } else if (caseID === CASES.DEFAULT) {
         deleteMenuItemTitle = translate('common.delete');
     }
-    const reportAttributes = useReportAttributes();
     const isWorkspaceChat = useMemo(() => isWorkspaceChatUtil(report?.chatType ?? ''), [report?.chatType]);
 
     useEffect(() => {
@@ -517,6 +531,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         currentUserEmail: currentUserPersonalDetails.email ?? '',
                         currentUserLocalCurrency,
+                        filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                        firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                     });
                 },
             });
@@ -542,6 +558,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
                             currentUserLocalCurrency,
+                            filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                         });
                     },
                 });
@@ -566,6 +584,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
                             currentUserLocalCurrency,
+                            filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                         });
                     },
                 });
@@ -709,14 +729,16 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
+        filteredPoliciesInfo?.filteredPoliciesCount,
+        filteredPoliciesInfo?.firstPolicyID,
         parentReport,
         delegateEmail,
         conciergeReportID,
     ]);
 
     const icons = useMemo(
-        () => getIcons(report, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isReportArchived),
-        [report, formatPhoneNumber, personalDetails, policy, isReportArchived],
+        () => getIcons(report, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isReportArchived),
+        [report, formatPhoneNumber, translate, personalDetails, policy, isReportArchived],
     );
 
     const renderedAvatar = useMemo(() => {
@@ -836,7 +858,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         shouldShowRightIcon={false}
                         interactive={false}
                         description={translate('workspace.common.workspace')}
-                        title={getPolicyName({report})}
+                        title={getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')})}
                         numberOfLinesTitle={2}
                         shouldBreakWord
                     />
@@ -948,6 +970,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 allTransactionViolationsParam: allTransactionViolations,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 currentUserEmail: currentUserPersonalDetails.email ?? '',
+                policy: iouPolicy,
             });
         } else if (iouTransactionID) {
             const deleteResult = deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
@@ -983,6 +1006,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         allTransactionViolations,
         deleteTransactions,
         removeTransaction,
+        iouPolicy,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
@@ -1065,9 +1089,10 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     ]);
 
     const showDeleteModal = useCallback(async () => {
+        const deletePrompt = caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : getDeleteConfirmationPrompt(translate, iouTransaction);
         const {action} = await showConfirmModal({
-            title: caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1}),
-            prompt: caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1}),
+            title: caseID === CASES.DEFAULT ? translate('task.deleteTask') : getDeleteExpenseTitle(translate, iouTransaction),
+            prompt: deletePrompt,
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
@@ -1086,11 +1111,9 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             navigateToTargetUrl();
             // Delay deletion until the RHP close animation finishes to prevent a brief
             // "Not Found" flash inside the animating-out panel on slower devices.
-            InteractionManager.runAfterInteractions(() => {
-                deleteTransaction();
-            });
+            TransitionTracker.runAfterTransitions({callback: deleteTransaction, waitForUpcomingTransition: true});
         });
-    }, [showConfirmModal, translate, caseID, iouTransactionID, shouldOpenSplitExpenseEditFlowOnDelete, navigateToTargetUrl, deleteTransaction]);
+    }, [showConfirmModal, translate, caseID, iouTransaction, iouTransactionID, shouldOpenSplitExpenseEditFlowOnDelete, navigateToTargetUrl, deleteTransaction]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 

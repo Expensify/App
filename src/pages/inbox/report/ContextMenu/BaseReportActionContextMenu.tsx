@@ -1,17 +1,10 @@
-import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {deepEqual} from 'fast-equals';
-import type {RefObject} from 'react';
-import React, {memo, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import CompactMenuContext from '@components/CompactMenuContext';
 import ContextMenuItem from '@components/ContextMenuItem';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
+
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -29,8 +22,10 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {
     getLinkedTransactionID,
     getOneTransactionThreadReportID,
@@ -52,14 +47,28 @@ import {
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
     isTrackExpenseReport as ReportUtilsIsTrackExpenseReport,
 } from '@libs/ReportUtils';
+
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {deepEqual} from 'fast-equals';
+import React, {memo, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuActions';
-import ContextMenuActions from './ContextMenuActions';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
+
+import ContextMenuActions from './ContextMenuActions';
 import {hideContextMenu, showContextMenu} from './ReportActionContextMenu';
 
 type BaseReportActionContextMenuProps = {
@@ -141,6 +150,7 @@ function BaseReportActionContextMenu({
         'Copy',
         'Download',
         'Exit',
+        'Eye',
         'Flag',
         'LinkCopy',
         'Mail',
@@ -157,7 +167,8 @@ function BaseReportActionContextMenu({
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
     const {isOffline} = useNetwork();
-    const {isProduction} = useEnvironment();
+    const {isProduction, isDevelopment, environment} = useEnvironment();
+    const isStaging = environment === CONST.ENVIRONMENT.STAGING;
     const threeDotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
@@ -244,13 +255,13 @@ function BaseReportActionContextMenu({
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const personalDetails = usePersonalDetails();
     const reportAttributes = useReportAttributes();
     const delegateAccountID = useDelegateAccountID();
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const session = useSession();
@@ -291,6 +302,8 @@ function BaseReportActionContextMenu({
                 isOffline: !!isOffline,
                 isMini,
                 isProduction,
+                isDevelopment,
+                isStaging,
                 moneyRequestReport,
                 moneyRequestAction,
                 moneyRequestPolicy,

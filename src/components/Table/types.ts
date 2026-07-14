@@ -1,11 +1,12 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
 import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
 import type {HighlightingMethods} from './middlewares/highlight';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
 import type {SelectionMethods} from './middlewares/selection';
-import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middlewares/sorting';
+import type {CompareItemsCallback, SortingMethods} from './middlewares/sorting';
 
 /**
  * Defines the required minimum shape for each row of data in the table
@@ -66,6 +67,15 @@ type TableRow<DataType extends TableData> = DataType & {
 };
 
 /**
+ * Props passed to table row render callbacks.
+ */
+type TableRenderRowProps<TItem extends TableData> = {
+    item: TItem;
+    rowIndex: number;
+    shouldUseNarrowTableLayout: boolean;
+};
+
+/**
  * Methods exposed by the Table component for programmatic control.
  * Combines sorting, filtering, and searching capabilities.
  *
@@ -104,7 +114,7 @@ type SharedListProps<DataType extends TableData> = Omit<FlashListProps<DataType>
  *
  * The Table uses a compositional pattern where the parent `<Table>` component manages
  * state and provides context, while child components (`<Table.Header>`, `<Table.Body>`,
- * `<Table.SearchBar>`, `<Table.FilterButtons>`) consume that context to render UI.
+ * `<Table.FilterBar>`) consume that context to render UI.
  *
  * @template DataType - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
@@ -120,7 +130,7 @@ type SharedListProps<DataType extends TableData> = Omit<FlashListProps<DataType>
  *   compareItems={compareItems}
  *   isItemInSearch={isItemInSearch}
  * >
- *   <Table.SearchBar />
+ *   <Table.FilterBar />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>
@@ -136,6 +146,14 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 
         /** Whether multi selection is enabled */
         selectionEnabled?: boolean;
+
+        /**
+         * Whether the selection UX (checkboxes / long-press selection mode) should be driven by the real screen size
+         * (isSmallScreenWidth) instead of shouldUseNarrowLayout. Set this for tables rendered inside a narrow pane modal
+         * (RHP), where shouldUseNarrowLayout is always true and would otherwise suppress selection entirely. Defaults to
+         * false so central-pane tables keep their existing behavior.
+         */
+        shouldEnableSelectionInNarrowPaneModal?: boolean;
 
         /** Column configuration defining what columns to display and how. */
         columns: Array<TableColumn<ColumnKey>>;
@@ -182,12 +200,16 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 
         /** Callback when an option is selected */
         onRowSelectionChange?: (selectedRowKeys: string[]) => void;
+
+        /** Optional callback fired when the active search string changes. */
+        onSearchStringChange?: (searchString: string) => void;
     }>;
 
 export type {
     TableData,
     TableRow,
     TableColumn,
+    TableRenderRowProps,
     TableMethods,
     TableHandle,
     TableProps,
@@ -196,5 +218,4 @@ export type {
     IsItemInFilterCallback,
     IsItemInSearchCallback,
     FilterConfig,
-    ActiveSorting,
 };

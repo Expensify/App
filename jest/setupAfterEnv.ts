@@ -1,10 +1,17 @@
 import '@testing-library/react-native';
-import type {KeyboardEventName} from 'react-native';
-import {Keyboard} from 'react-native';
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {KeyboardEventName} from 'react-native';
+
+import {Keyboard} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 jest.useRealTimers();
+
+jest.mock('@hooks/useAIFeaturesPromoModal', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
 
 // Patch Keyboard.addListener to return a subscription object with .remove() so that
 // @react-navigation/bottom-tabs useIsKeyboardShown hook doesn't crash on cleanup.

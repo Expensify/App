@@ -1,11 +1,10 @@
 import {queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
-
-const EXPENSE_STATUS_ALL = CONST.SEARCH.STATUS.EXPENSE.ALL;
 
 jest.mock('@libs/API');
 jest.mock('@libs/Network/enhanceParameters', () => ({
@@ -35,12 +34,12 @@ describe('queueExportSearchItemsToCSV', () => {
 
     it('sets optimistic Onyx data with state preparing and returns exportID', () => {
         const exportID = queueExportSearchItemsToCSV({
-            query: EXPENSE_STATUS_ALL,
             jsonQuery: '{}',
             reportIDList: [],
             transactionIDList: [],
             isBasicExport: true,
             exportColumnLabels: '{}',
+            exportName: 'Basic export',
         });
 
         expect(typeof exportID).toBe('string');
@@ -76,6 +75,7 @@ describe('queueExportSearchWithTemplate', () => {
                 reportIDList: [],
                 transactionIDList: [],
                 policyID: 'policy123',
+                exportName: 'Test Template',
             },
             true,
         );
@@ -108,6 +108,7 @@ describe('queueExportSearchWithTemplate', () => {
             reportIDList: [],
             transactionIDList: [],
             policyID: 'policy123',
+            exportName: 'Test Template',
         });
 
         const finalParameters = mockWrite.mock.calls.at(-1)?.at(1);

@@ -1,5 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -8,6 +6,7 @@ import ScrollView from '@components/ScrollView';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
+
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -19,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
@@ -27,11 +27,15 @@ import {navigateToCreatedReportInReports} from '@libs/Navigation/helpers/getCrea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
 import {getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
+
 import {setCustomUnitRateID, setMoneyRequestParticipants} from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,6 +43,9 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 
 type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE>;
 
@@ -89,6 +96,7 @@ function IOURequestStepUpgrade({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
     const transactions = Object.values(selectedTransactions)
@@ -122,7 +130,7 @@ function IOURequestStepUpgrade({
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.includes(transactionID)) {
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
-            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas);
+            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas, isTrackIntentUser);
 
             const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
@@ -141,6 +149,9 @@ function IOURequestStepUpgrade({
                 transactions,
                 allTransactionViolation: transactionViolations,
                 allReports,
+                isTrackIntentUser,
+                // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.
+                personalPolicyOutputCurrency: undefined,
             });
 
             clearSelectedTransactions();
@@ -181,8 +192,9 @@ function IOURequestStepUpgrade({
                 const shouldKeepOriginalReport = isTrack || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
                 if (!shouldKeepOriginalReport) {
                     setTransactionReport(transactionID, {reportID: expenseReportID}, true);
-                    // Let the confirmation step decide the distance rate because policy data is not fully available at this step
-                    setCustomUnitRateID(transactionID, '-1', undefined, undefined);
+                    // Let the confirmation step decide the distance rate because policy data is not fully available at this step.
+                    // personalPolicyOutputCurrency is intentionally omitted: no transaction is passed, so setCustomUnitRateID never resolves a rate and the currency is never read.
+                    setCustomUnitRateID(transactionID, '-1', undefined, undefined, false, undefined);
                     Navigation.setParams({reportID: expenseReportID});
                 }
 
@@ -239,10 +251,11 @@ function IOURequestStepUpgrade({
         createReportForCurrentUser,
         transactionViolations,
         allReports,
+        isTrackIntentUser,
     ]);
 
     const participant = transaction?.participants?.[0];
-    const adminParticipant = isDistanceRateUpgrade && participant?.accountID ? getParticipantsOption(participant, personalDetails) : undefined;
+    const adminParticipant = isDistanceRateUpgrade && participant?.accountID ? getParticipantsOption(participant, personalDetails, translate) : undefined;
 
     const onUpgrade = () => {
         if (isRestrictedPolicyCreation) {

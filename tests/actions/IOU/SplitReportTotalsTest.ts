@@ -1,15 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxMergeCollectionInput} from 'react-native-onyx';
-import '@libs/actions/IOU/MoneyRequest';
 import {handleNavigateAfterExpenseCreate} from '@libs/actions/IOU/NavigationHelpers';
 import {addPendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
+import '@libs/actions/IOU/MoneyRequest';
 import {createSplitsAndOnyxData} from '@libs/actions/IOU/Split';
 import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -18,6 +16,12 @@ import type {PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/typ
 import type {Participant as IOUParticipant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Participant} from '@src/types/onyx/Report';
 import type {SplitShares} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry, OnyxMergeCollectionInput} from 'react-native-onyx';
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import Onyx from 'react-native-onyx';
+
 import currencyList from '../../unit/currencyList.json';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -501,6 +505,7 @@ describe('actions/IOU', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             participantsPolicyTags: overrides.participantsPolicyTags ?? {},
+            isTrackIntentUser: false,
         });
 
         it('returns valid splitData with chatReportID, transactionID, and reportActionID', () => {
@@ -739,6 +744,7 @@ describe('actions/IOU', () => {
             return {
                 allTransactionsList: {},
                 allReportsList: {},
+                allReportActionsList: {},
                 allReportNameValuePairsList: {},
                 transactionData: {
                     reportID: EXPENSE_REPORT_ID,
@@ -758,11 +764,12 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 iouReportNextStep: undefined,
                 betas: [],
-                policyTags: {},
+                allPolicyTags: {},
                 personalDetails: undefined,
                 transactionReport: {reportID: 'tx-report-1', parentReportID: 'parent-report-1'},
                 expenseReport: {reportID: EXPENSE_REPORT_ID, parentReportID: 'parent-report-1', chatReportID: 'chat-report-1'},
                 isOffline: false,
+                isTrackIntentUser: false,
                 ...overrides,
             };
         }

@@ -1,5 +1,7 @@
-import Config from 'react-native-config';
 import CONST from '@src/CONST';
+
+import Config from 'react-native-config';
+
 import type Environment from './types';
 
 function getEnvironment(): Promise<Environment> {

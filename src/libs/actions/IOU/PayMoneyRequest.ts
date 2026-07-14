@@ -1,7 +1,5 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {PaymentMethod} from '@components/KYCWall/types';
+
 import * as API from '@libs/API';
 import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -16,7 +14,9 @@ import {getAllReportActions, getElsewherePaymentReportActionMessage, getReportAc
 import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
+    getReimbursableTotal,
     getReportTransactions,
+    getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOutstandingChildRequest,
     isExpenseReport,
@@ -26,11 +26,13 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {completeOnboarding, notifyNewAction} from '@userActions/Report';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,6 +41,12 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import {getAllPersonalDetails, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 import {getReportPreviewAction} from './MoneyRequestBuilder';
@@ -63,6 +71,7 @@ type PayInvoiceArgs = {
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type PayMoneyRequestData = {
@@ -112,6 +121,7 @@ type PayMoneyRequestFunctionParams = {
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function mergeAdditionalPayOnyxData<
@@ -156,6 +166,7 @@ function getPayMoneyRequestParams({
     currentUserLocalCurrency,
     delegateAccountID,
     chatReportActions,
+    isTrackIntentUser,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -180,6 +191,7 @@ function getPayMoneyRequestParams({
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    isTrackIntentUser: boolean | undefined;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -252,9 +264,10 @@ function getPayMoneyRequestParams({
     }
 
     const reportTransactions = getReportTransactions(iouReport?.reportID);
-    let total = (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
-    if (hasHeldExpensesReportUtils(reportTransactions) && !full && !!iouReport?.unheldTotal) {
-        total = iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
+    const unheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
+    let total = getReimbursableTotal(iouReport);
+    if (hasHeldExpensesReportUtils(reportTransactions) && !full && !!unheldReimbursableTotal) {
+        total = unheldReimbursableTotal;
     }
 
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
@@ -286,7 +299,7 @@ function getPayMoneyRequestParams({
         currentNextStepDeprecated = iouReportCurrentNextStepDeprecated ?? null;
         // buildOptimisticNextStep is used in parallel
         optimisticNextStepDeprecated = buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
-        optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
+        optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser});
     }
 
     const optimisticChatReport = {
@@ -526,14 +539,16 @@ function cancelPayment(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     hasViolations: boolean,
+    isTrackIntentUser: boolean | undefined,
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
 
+    // Prefer the freshly computed reimbursableTotal over deriving from the (sometimes stale) stored total.
     const optimisticReportAction = buildOptimisticCancelPaymentReportAction(
         expenseReport.reportID,
-        -((expenseReport.total ?? 0) - (expenseReport?.nonReimbursableTotal ?? 0)),
+        -getReimbursableTotal(expenseReport),
         expenseReport.currency ?? '',
         currentUserAccountIDParam,
     );
@@ -566,6 +581,7 @@ function cancelPayment(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
     const iouReportActions = getAllReportActions(chatReport.iouReportID);
     const expenseReportActions = getAllReportActions(expenseReport.reportID);
@@ -658,6 +674,7 @@ function cancelPayment(
                     buildOptimisticNextStep({
                         report: expenseReport,
                         predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                        isTrackIntentUser,
                     }) ?? null,
                 pendingFields: {
                     nextStep: null,
@@ -804,6 +821,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         shouldPlaySuccessSound = true,
         delegateAccountID,
         chatReportActions,
+        isTrackIntentUser,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -838,6 +856,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
         delegateAccountID,
         chatReportActions,
+        isTrackIntentUser,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -860,6 +879,7 @@ function markReportPaymentReceived(
     currentUserAccountID: number,
     currentUserEmail: string,
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
+    isTrackIntentUser: boolean | undefined,
 ) {
     if (!chatReport || !iouReport) {
         return;
@@ -868,7 +888,7 @@ function markReportPaymentReceived(
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const recipient = {accountID: iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
-    const total = (iouReport.total ?? 0) - (iouReport.nonReimbursableTotal ?? 0);
+    const total = getReimbursableTotal(iouReport);
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount: -total,
@@ -896,7 +916,7 @@ function markReportPaymentReceived(
         // buildOptimisticNextStep is used in parallel
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
-    const optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
+    const optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
         {
@@ -1053,6 +1073,7 @@ function payInvoice({
     chatReportActions,
     additionalOnyxData,
     shouldPlaySuccessSound = true,
+    isTrackIntentUser,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -1088,6 +1109,7 @@ function payInvoice({
         isSelfTourViewed,
         defaultWorkspaceName,
         chatReportActions,
+        isTrackIntentUser,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
@@ -1151,5 +1173,5 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, mergeAdditionalPayOnyxData, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
 export type {AdditionalPayOnyxData};

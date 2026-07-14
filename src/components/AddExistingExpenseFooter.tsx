@@ -1,17 +1,27 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
+
 import {isIOUReport} from '@libs/ReportUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {convertBulkTrackedExpensesToIOU} from '@userActions/IOU/TrackExpense';
 import {changeTransactionsReport} from '@userActions/Transaction';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React from 'react';
+
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import {usePersonalDetails, useSession} from './OnyxListItemProvider';
@@ -42,6 +52,8 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
+    const personalPolicy = usePersonalPolicy();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -50,6 +62,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [chatReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${chatReport?.policyID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const [transactions] = useTransactionsByID([...selectedIds]);
 
@@ -75,6 +88,8 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         personalDetails,
                         betas,
                         policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
+                        delegateAccountID,
+                        isTrackIntentUser,
                     });
                 } else {
                     changeTransactionsReport({
@@ -90,6 +105,8 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         transactions,
                         allTransactionViolation: transactionViolations,
                         allReports,
+                        isTrackIntentUser,
+                        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     });
                 }
             },

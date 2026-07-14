@@ -1,10 +1,9 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -17,6 +16,7 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getIOURequestPolicyID, setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTag} from '@libs/actions/IOU/UpdateMoneyRequest';
@@ -27,15 +27,22 @@ import type {OptionData} from '@libs/ReportUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 import {getUpdatedTransactionTag, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTag, getTagArrayFromName, isPerDiemRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import StepScreenWrapper from './StepScreenWrapper';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
+import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepTagProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAG> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAG>;
@@ -101,6 +108,7 @@ function IOURequestStepTag({
     // has no tags configured. Without this the picker would render an empty list with no way to
     // restore the previously selected value.
     const [allTransactionsForSplitParent] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const parentTransactionTag = useMemo(() => {
         if (!isEditingSplit) {
             return '';
@@ -163,6 +171,7 @@ function IOURequestStepTag({
                 parentReportNextStep,
                 isOffline,
                 delegateAccountID,
+                isTrackIntentUser,
             });
             navigateBack();
             return;

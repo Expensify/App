@@ -1,23 +1,33 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import ReceiptCell from '@components/TransactionItemRow/DataCells/ReceiptCell';
 import TypeCell from '@components/TransactionItemRow/DataCells/TypeCell';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 
 /** Width of the date column, shared with the section's column header so labels line up with the values. */
 const DATE_COLUMN_WIDTH = 72;
+
+/** Wider date column used when a row's date includes the year (e.g. "Jun 7, 2025"), so it isn't truncated. */
+const DATE_COLUMN_WIDTH_WIDE = 102;
 
 type RecentlyAddedRowProps = {
     /** The expense to render */
@@ -31,9 +41,12 @@ type RecentlyAddedRowProps = {
 
     /** Whether the hovered receipt preview may be shown. Becomes false once the screen blurs so the preview is dismissed after opening an expense. */
     shouldShowReceiptPreview: boolean;
+
+    /** Width of the date column, widened by the section when any visible expense's date includes the year. */
+    dateColumnWidth: number;
 };
 
-function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowReceiptPreview}: RecentlyAddedRowProps) {
+function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowReceiptPreview, dateColumnWidth}: RecentlyAddedRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -41,7 +54,10 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const formattedDate = DateUtils.formatWithUTCTimeZone(expense.created, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const formattedDate = DateUtils.formatWithUTCTimeZone(
+        expense.created,
+        DateUtils.doesDateBelongToAPastYear(expense.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+    );
 
     const formattedAmount = convertToDisplayString(expense.amount, expense.currency);
 
@@ -107,7 +123,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
                         shouldUseNarrowLayout={false}
                     />
                 </View>
-                <View style={StyleUtils.getWidthStyle(DATE_COLUMN_WIDTH)}>
+                <View style={StyleUtils.getWidthStyle(dateColumnWidth)}>
                     <Text numberOfLines={1}>{formattedDate}</Text>
                 </View>
                 <Text
@@ -121,20 +137,35 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
             </>
         );
 
+    // A pending-delete expense is on its way out, so its row must not navigate anywhere (offline it stays
+    // visible with strikethrough; online OfflineWithFeedback hides it entirely).
+    const isPendingDelete = expense.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
     return (
-        <PressableWithFeedback
-            testID={`recentlyAddedRow-${expense.transactionID}`}
-            accessibilityLabel={expense.merchant}
-            sentryLabel="RecentlyAddedRow"
-            onPress={onPress}
-            wrapperStyle={styles.w100}
-            hoverStyle={styles.hoveredComponentBG}
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, styles.ph3, styles.w100, shouldShowSeparator && styles.borderBottom]}
-        >
-            {({hovered}) => renderRowContent(hovered)}
-        </PressableWithFeedback>
+        <OfflineWithFeedback pendingAction={expense.pendingAction}>
+            <PressableWithFeedback
+                testID={`recentlyAddedRow-${expense.transactionID}`}
+                accessibilityLabel={expense.merchant}
+                sentryLabel="RecentlyAddedRow"
+                onPress={isPendingDelete ? () => {} : onPress}
+                wrapperStyle={styles.w100}
+                hoverStyle={styles.hoveredComponentBG}
+                style={[
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.gap3,
+                    styles.pv3,
+                    styles.ph3,
+                    styles.w100,
+                    shouldShowSeparator && styles.borderBottom,
+                    isPendingDelete && styles.cursorDefault,
+                ]}
+            >
+                {({hovered}) => renderRowContent(hovered)}
+            </PressableWithFeedback>
+        </OfflineWithFeedback>
     );
 }
 
 export default RecentlyAddedRow;
-export {DATE_COLUMN_WIDTH};
+export {DATE_COLUMN_WIDTH, DATE_COLUMN_WIDTH_WIDE};

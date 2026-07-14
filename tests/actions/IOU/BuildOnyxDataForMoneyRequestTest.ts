@@ -1,10 +1,13 @@
-import Onyx from 'react-native-onyx';
 import {buildOnyxDataForMoneyRequest} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import type {OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {createSelfDM} from '../../utils/collections/reports';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -24,6 +27,8 @@ const IOU_ACTION_ID = 'action-222';
 const CREATED_ACTION_ID = 'created-action-333';
 const REPORT_PREVIEW_ACTION_ID = 'preview-action-444';
 const THREAD_REPORT_ID = 'thread-555';
+
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 
 function buildMockIouAction(iouReportID: string): OptimisticIOUReportAction {
     return {
@@ -183,6 +188,8 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     isSelfDMSplit: true,
                     selfDMReportID: selfDMReport.reportID,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 };
             }
 
@@ -323,6 +330,8 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     quickAction: undefined,
                     isSelfDMSplit: false,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 };
             }
 
@@ -362,6 +371,8 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     isSelfDMSplit: true,
                     selfDMReportID: undefined,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 };
             }
 
@@ -378,6 +389,90 @@ describe('buildOnyxDataForMoneyRequest', () => {
 
                 expect(selfDMActionsEntry).toBeUndefined();
             });
+        });
+    });
+
+    describe('chatReport.iouReportID update behavior', () => {
+        const OTHER_OPEN_REPORT_ID = '999';
+
+        function buildParamsWithCreateFlag(shouldCreateNewMoneyRequestReport: boolean, iouReportIDOverride?: string | null): BuildOnyxDataParams {
+            const optimisticParams = buildBaseOptimisticParams(IOU_REPORT_ID);
+
+            return {
+                isNewChatReport: false,
+                shouldCreateNewMoneyRequestReport,
+                shouldGenerateTransactionThreadReport: false,
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmailParam: CURRENT_USER_EMAIL,
+                hasViolations: false,
+                quickAction: undefined,
+                isSelfDMSplit: false,
+                optimisticParams: {
+                    ...optimisticParams,
+                    chat: {
+                        ...optimisticParams.chat,
+                        report: {
+                            ...optimisticParams.chat.report,
+                            ...(iouReportIDOverride !== undefined ? {iouReportID: iouReportIDOverride} : {}),
+                        } as Report,
+                    },
+                },
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+            };
+        }
+
+        function getChatReportOptimisticEntry(optimisticData: ReturnType<typeof buildOnyxDataForMoneyRequest>['optimisticData']) {
+            return optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`);
+        }
+
+        it('sets iouReportID on chat report when shouldCreateNewMoneyRequestReport is true', () => {
+            const {optimisticData} = buildOnyxDataForMoneyRequest(buildParamsWithCreateFlag(true));
+            const chatReportEntry = getChatReportOptimisticEntry(optimisticData);
+
+            expect(chatReportEntry).toBeDefined();
+            expect((chatReportEntry?.value as Partial<Report>)?.iouReportID).toBe(IOU_REPORT_ID);
+        });
+
+        it('does not update iouReportID when shouldCreateNewMoneyRequestReport is false', () => {
+            const {optimisticData} = buildOnyxDataForMoneyRequest(buildParamsWithCreateFlag(false, null));
+            const chatReportEntry = getChatReportOptimisticEntry(optimisticData);
+
+            expect(chatReportEntry).toBeDefined();
+            expect((chatReportEntry?.value as Partial<Report>)?.iouReportID).toBeNull();
+        });
+
+        it('preserves existing iouReportID when adding expense to a different existing report', () => {
+            const {optimisticData} = buildOnyxDataForMoneyRequest(buildParamsWithCreateFlag(false, OTHER_OPEN_REPORT_ID));
+            const chatReportEntry = getChatReportOptimisticEntry(optimisticData);
+
+            expect(chatReportEntry).toBeDefined();
+            expect((chatReportEntry?.value as Partial<Report>)?.iouReportID).toBe(OTHER_OPEN_REPORT_ID);
+        });
+
+        it('does not update iouReportID when isASAPSubmitBetaEnabled and transaction is a scan request', () => {
+            const optimisticParams = buildBaseOptimisticParams(IOU_REPORT_ID);
+            const params: BuildOnyxDataParams = {
+                ...buildParamsWithCreateFlag(true),
+                isASAPSubmitBetaEnabled: true,
+                optimisticParams: {
+                    ...optimisticParams,
+                    transactionParams: {
+                        ...optimisticParams.transactionParams,
+                        transaction: {
+                            ...optimisticParams.transactionParams.transaction,
+                            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        },
+                    },
+                },
+            };
+
+            const {optimisticData} = buildOnyxDataForMoneyRequest(params);
+            const chatReportEntry = getChatReportOptimisticEntry(optimisticData);
+
+            expect(chatReportEntry).toBeDefined();
+            expect((chatReportEntry?.value as Partial<Report>)?.iouReportID).toBeUndefined();
         });
     });
 });

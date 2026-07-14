@@ -1,6 +1,8 @@
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+
 import {connectBankAccountManually, connectBankAccountWithPlaid} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
