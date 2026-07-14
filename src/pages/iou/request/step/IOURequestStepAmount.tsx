@@ -39,6 +39,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
@@ -88,6 +89,7 @@ function IOURequestStepAmount({
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
@@ -227,6 +229,7 @@ function IOURequestStepAmount({
             navigateBack,
             amount,
             paymentMethod,
+            isTrackIntentUser,
             policyTags,
             ...submitData,
         });
