@@ -29,6 +29,7 @@ jest.mock('@react-navigation/native', () => {
     // jest.requireActual returns `any` for the untyped React Navigation module
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actualNav = jest.requireActual('@react-navigation/native');
+
     // Spreading the untyped requireActual result is intentional for this navigation mock
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -56,7 +57,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
 }));
 
-/** A Submit (non-Control) workspace, so the import gate's "requires Control" check fires. */
+// A Submit (non-Control) workspace, so the import gate's "requires Control" check fires.
 function buildSubmitPolicy(): Policy {
     return {
         id: POLICY_ID,
