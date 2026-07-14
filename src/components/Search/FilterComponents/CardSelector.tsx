@@ -7,7 +7,6 @@ import type {TextInputOptions} from '@components/SelectionList/types';
 
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -70,21 +69,15 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
 
     const shouldShowSearchInput = individualCardsSectionData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
-    // Snapshot the cards selected when the filter first opened so they stay floated in the top section on first render
-    // without repinning rows that are toggled afterwards. Section membership keys on this snapshot while each row's
-    // checkbox still reflects the live selection, so selecting/deselecting a card no longer makes it jump between sections.
-    const initialSelectedValues = useInitialValue(() => value);
-    const wasInitiallySelected = (item: CardFilterItem) => !!item.keyForList && initialSelectedValues.includes(item.keyForList);
-
     const searchFunction = (item: CardFilterItem) =>
         !!item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
         !!item.lastFourPAN?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
         !!item.cardName?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
         (item.isVirtual && translate('workspace.expensifyCard.virtual').toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()));
 
-    const selectedData = [...individualCardsSectionData, ...closedCardsSectionData].filter((item) => wasInitiallySelected(item) && searchFunction(item));
-    const unselectedIndividualCardsData = individualCardsSectionData.filter((item) => !wasInitiallySelected(item) && searchFunction(item));
-    const unselectedClosedCardsData = closedCardsSectionData.filter((item) => !wasInitiallySelected(item) && searchFunction(item));
+    const selectedData = [...individualCardsSectionData, ...closedCardsSectionData].filter((item) => item.isSelected && searchFunction(item));
+    const unselectedIndividualCardsData = individualCardsSectionData.filter((item) => !item.isSelected && searchFunction(item));
+    const unselectedClosedCardsData = closedCardsSectionData.filter((item) => !item.isSelected && searchFunction(item));
 
     const itemCount = selectedData.length + unselectedIndividualCardsData.length + unselectedClosedCardsData.length;
     const sectionHeaderCount = unselectedClosedCardsData.length > 0 ? 1 : 0;
