@@ -125,6 +125,18 @@ describe('search snapshot terminal state', () => {
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
-        expect(snapshot?.search?.state).not.toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADING);
+    });
+
+    it('resolves the snapshot to error when the request promise rejects, instead of staying loading', async () => {
+        const queryJSON = getQueryJSON();
+        jest.mocked(makeRequestWithSideEffects).mockRejectedValueOnce(new Error('Network request failed'));
+
+        // The failure class this field exists to eliminate: no HTTP response at all (offline/timeout), so
+        // nothing in the API layer ever applies failureData for it unless search() catches the rejection itself.
+        await expect(search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false})).rejects.toThrow();
+        await waitForBatchedUpdates();
+
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.ERROR);
     });
 });

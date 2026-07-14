@@ -696,18 +696,20 @@ function getOnyxLoadingData(
     // successData writes the terminal `loaded` state on any jsonCode 200 resolve. It also stamps `type` so
     // responses that do carry data stay consistent with the anti-stale isSearchDataLoaded check (which compares
     // type/hash). On a success response without data, isSearchDataLoaded still resolves to false via its own data/errors gate;
-    // `state` is what marks that case as done once a future PR wires the read side to it.
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {
-                search: {
-                    ...(isSearchRequest && {isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type}),
-                },
-            },
-        },
-    ];
+    // `state` is what marks that case as done once a future PR wires the read side to it. `isLoading` isn't set here
+    // because finallyData always runs right after and already clears it for isSearchAPI. Empty for the non-search
+    // callers of this helper so they don't pay for a meaningless `{search: {}}` merge on the SNAPSHOT key.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = isSearchRequest
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                  value: {
+                      search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type},
+                  },
+              },
+          ]
+        : [];
 
     // finallyData runs after successData/failureData regardless of jsonCode, so it deliberately does NOT write `state`:
     // doing so would clobber the `error` terminal set by failureData. The terminal state is owned by success/failure.
@@ -1000,6 +1002,14 @@ function search({
                 }
 
                 return result?.jsonCode;
+            })
+            .catch((error) => {
+                // A network-level rejection (no HTTP response at all, e.g. offline/timeout) never reaches
+                // SaveResponseInOnyx, so nothing else applies failureData for it. Apply it here so the snapshot
+                // still reaches a terminal `error` state instead of being stranded in `loading`, then re-throw so
+                // this still rejects for any caller relying on that.
+                Onyx.update(failureData ?? []);
+                throw error;
             })
             .finally(() => {
                 inFlightSearchRequests.delete(dedupeKey);
