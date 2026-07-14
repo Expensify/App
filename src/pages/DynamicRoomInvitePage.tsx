@@ -15,6 +15,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import usePressLoading from '@hooks/usePressLoading';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -72,6 +73,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const isReportArchived = useReportIsArchived(report.reportID);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {
@@ -150,25 +152,27 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
             invitedEmailsToAccountIDs[login] = accountID;
         }
         if (report?.reportID) {
-            clearUserSearchPhrase();
-            // Defer the invite action until after the navigation transition completes to prevent
-            // a race condition on iOS where optimistic Onyx updates trigger a re-render of the
-            // underlying RoomMembersPage during the native screen transition animation, causing a crash.
-            const afterTransition = () => {
-                if (isPolicyExpenseChat(report)) {
-                    inviteToRoomAction(
-                        report,
-                        ancestors,
-                        invitedEmailsToAccountIDs,
-                        currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
-                        currentUserPersonalDetails.accountID,
-                        delegateAccountID,
-                    );
-                } else {
-                    inviteToRoom(report, invitedEmailsToAccountIDs, personalDetailsList, formatPhoneNumber);
-                }
-            };
-            Navigation.goBack(backRoute, {afterTransition});
+            startWithLoading(() => {
+                clearUserSearchPhrase();
+                // Defer the invite action until after the navigation transition completes to prevent
+                // a race condition on iOS where optimistic Onyx updates trigger a re-render of the
+                // underlying RoomMembersPage during the native screen transition animation, causing a crash.
+                const afterTransition = () => {
+                    if (isPolicyExpenseChat(report)) {
+                        inviteToRoomAction(
+                            report,
+                            ancestors,
+                            invitedEmailsToAccountIDs,
+                            currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                            currentUserPersonalDetails.accountID,
+                            delegateAccountID,
+                        );
+                    } else {
+                        inviteToRoom(report, invitedEmailsToAccountIDs, personalDetailsList, formatPhoneNumber);
+                    }
+                };
+                Navigation.goBack(backRoute, {afterTransition});
+            });
         }
     };
 
@@ -207,6 +211,8 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
         <FormAlertWithSubmitButton
             isDisabled={!validSelectedOptions.length}
             buttonText={translate('common.invite')}
+            shouldShowLoadingImmediatelyOnPress={false}
+            isLoading={isLoading}
             onSubmit={inviteUsers}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline

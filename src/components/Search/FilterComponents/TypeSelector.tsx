@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -16,7 +17,7 @@ import React from 'react';
 
 import SingleSelect from './SingleSelect';
 
-type TypeSelectorProps = SearchFilterCommonProps<string | undefined>;
+type TypeSelectorProps = SearchFilterCommonProps<SearchDataTypes | undefined>;
 
 /**
  * Extracts only the fields needed by getTypeOptions (canSendInvoice check).

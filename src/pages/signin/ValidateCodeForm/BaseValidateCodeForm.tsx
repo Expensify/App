@@ -39,6 +39,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useIsFocused} from '@react-navigation/native';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -158,7 +159,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
-        userActionsResendValidateCode(credentials?.login ?? '');
+        userActionsResendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SIGN_IN}, credentials?.login ?? '');
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
         countdownRef.current?.resetCountdown();
@@ -421,7 +422,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                             <Icon
                                 src={expensifyIcons.Exclamation}
                                 fill={theme.icon}
-                                medium
+                                size={CONST.ICON_SIZE.MEDIUM}
                             />
                         </View>
                         <View style={styles.flex1}>
