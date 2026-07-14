@@ -38,7 +38,7 @@ import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
-import {isObject} from '../../utils/typeGuards';
+import isObject from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
