@@ -129,6 +129,7 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
     __esModule: true,
     useReportPreviewData: () => mockReportPreviewData,
+    useReportPreviewTransactionViolations: () => ({transactionViolations: {}}),
     useReportPreviewAnimationState: () => mockReportPreviewAnimationState,
     useReportPreviewActions: () => mockReportPreviewActions,
     useReportPreviewUIState: () => mockReportPreviewUIState,

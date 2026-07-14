@@ -7,7 +7,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
@@ -22,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
-import {useReportPreviewActions, useReportPreviewAnimationState, useReportPreviewData} from './MoneyRequestReportPreviewContext';
+import {useReportPreviewActions, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewTransactionViolations} from './MoneyRequestReportPreviewContext';
 import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
 import useReportPreviewFilteredTransactions from './useReportPreviewFilteredTransactions';
 
@@ -72,7 +71,7 @@ function SubmitActionButtonContent() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const transactions = useReportPreviewFilteredTransactions(iouReportID);
 
-    const [transactionViolations] = useReportTransactionViolations(transactions);
+    const {transactionViolations} = useReportPreviewTransactionViolations();
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail, undefined, transactions);

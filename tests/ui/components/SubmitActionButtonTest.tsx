@@ -101,6 +101,7 @@ const mockStartSubmittingAnimation = jest.fn();
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
     __esModule: true,
     useReportPreviewData: () => ({iouReportID: TEST_IOU_REPORT_ID}),
+    useReportPreviewTransactionViolations: () => ({transactionViolations: {}}),
     useReportPreviewAnimationState: () => ({isSubmittingAnimationRunning: false}),
     useReportPreviewActions: () => ({stopAnimation: jest.fn(), startSubmittingAnimation: mockStartSubmittingAnimation}),
 }));

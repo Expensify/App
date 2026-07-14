@@ -47,6 +47,7 @@ import {
     ReportPreviewDataContext,
     ReportPreviewHoldMenuContext,
     ReportPreviewMetaContext,
+    ReportPreviewTransactionViolationsContext,
     ReportPreviewUIStateContext,
 } from './MoneyRequestReportPreviewContext';
 import usePreviewMessageAnimation from './usePreviewMessageAnimation';
@@ -282,6 +283,7 @@ function MoneyRequestReportPreviewProvider({
         invoiceReceiverPolicy,
         invoiceReceiverPersonalDetail,
     };
+    const transactionViolationsValue = {transactionViolations};
     const uiStateValue = {
         isTransitionPending,
         shouldShowPreviewLoading,
@@ -321,21 +323,23 @@ function MoneyRequestReportPreviewProvider({
 
     return (
         <ReportPreviewDataContext.Provider value={dataValue}>
-            <ReportPreviewUIStateContext.Provider value={uiStateValue}>
-                <ReportPreviewCarouselStateContext.Provider value={carouselStateValue}>
-                    <ReportPreviewAnimationStateContext.Provider value={animationStateValue}>
-                        <ReportPreviewCarouselListContext.Provider value={carouselList}>
-                            <ReportPreviewActionStateContext.Provider value={actionStateValue}>
-                                <ReportPreviewActionsContext.Provider value={actionsValue}>
-                                    <ReportPreviewHoldMenuContext.Provider value={holdMenu}>
-                                        <ReportPreviewMetaContext.Provider value={metaValue}>{children}</ReportPreviewMetaContext.Provider>
-                                    </ReportPreviewHoldMenuContext.Provider>
-                                </ReportPreviewActionsContext.Provider>
-                            </ReportPreviewActionStateContext.Provider>
-                        </ReportPreviewCarouselListContext.Provider>
-                    </ReportPreviewAnimationStateContext.Provider>
-                </ReportPreviewCarouselStateContext.Provider>
-            </ReportPreviewUIStateContext.Provider>
+            <ReportPreviewTransactionViolationsContext.Provider value={transactionViolationsValue}>
+                <ReportPreviewUIStateContext.Provider value={uiStateValue}>
+                    <ReportPreviewCarouselStateContext.Provider value={carouselStateValue}>
+                        <ReportPreviewAnimationStateContext.Provider value={animationStateValue}>
+                            <ReportPreviewCarouselListContext.Provider value={carouselList}>
+                                <ReportPreviewActionStateContext.Provider value={actionStateValue}>
+                                    <ReportPreviewActionsContext.Provider value={actionsValue}>
+                                        <ReportPreviewHoldMenuContext.Provider value={holdMenu}>
+                                            <ReportPreviewMetaContext.Provider value={metaValue}>{children}</ReportPreviewMetaContext.Provider>
+                                        </ReportPreviewHoldMenuContext.Provider>
+                                    </ReportPreviewActionsContext.Provider>
+                                </ReportPreviewActionStateContext.Provider>
+                            </ReportPreviewCarouselListContext.Provider>
+                        </ReportPreviewAnimationStateContext.Provider>
+                    </ReportPreviewCarouselStateContext.Provider>
+                </ReportPreviewUIStateContext.Provider>
+            </ReportPreviewTransactionViolationsContext.Provider>
         </ReportPreviewDataContext.Provider>
     );
 }
