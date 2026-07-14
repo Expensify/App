@@ -3564,6 +3564,14 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('type:trip');
         });
 
+        it('should escape input that uses the contains operator so it is treated as a keyword', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('merchant*:Uber', currentQueryJSON) : '';
+            expect(result).toContain('"merchant*:Uber"');
+            expect(result).toContain('type:trip');
+        });
+
         it('should escape input that uses a comparison operator with a filter key', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 
