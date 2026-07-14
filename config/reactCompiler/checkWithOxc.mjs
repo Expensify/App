@@ -116,12 +116,4 @@ function checkReactCompilerWithOxc(source, filename) {
     }
 }
 
-function didReactCompilerCompileFile(source, filename) {
-    return checkReactCompilerWithOxc(source, filename).status === 'compiled';
-}
-
-function didOxcMemoizeFile(source, filename) {
-    return checkReactCompilerWithOxc(source, filename).memoized;
-}
-
-export {checkReactCompilerWithOxc, didReactCompilerCompileFile, didOxcMemoizeFile};
+export default checkReactCompilerWithOxc;

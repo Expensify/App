@@ -43,7 +43,7 @@ A **memoization divergence** failure means one compiler auto-memoizes the file a
 - Extract inline `useOnyx` selectors into a stable `useCallback`.
 - If a whole file bails out under OXC (`oxc=failed`), fixing the underlying Rule of React violation usually restores memoization on web.
 
-You can reproduce the exact worklist locally with `bun scripts/react-compiler-divergence-audit.ts`, which runs both compilers over `src` and lists every divergent file grouped by direction.
+You can reproduce the exact list locally with `bun scripts/react-compiler-divergence-audit.ts`, which runs both compilers over `src` and lists every divergent file grouped by direction.
 
 ### Local usage
 

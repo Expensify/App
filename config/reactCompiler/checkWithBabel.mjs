@@ -8,10 +8,13 @@
  * Returns two independent signals:
  * - `status` ('compiled' | 'failed' | 'no-components'): compile health, driven by the
  *   compiler's CompileSuccess/CompileError events. This mirrors "does it obey the Rules of React".
- * - `memoized` (boolean): whether the emitted output actually contains React Compiler
- *   memoization (a `_c(...)` cache from `react/compiler-runtime`). A file can be `compiled`
- *   without being `memoized` (e.g. a trivial hook that just calls useContext), so this is the
- *   signal that matters when comparing against OXC to find cross-platform memoization gaps.
+ * - `memoized` (boolean): whether the compiler actually memoized anything, derived from the
+ *   `memoBlocks` count on the CompileSuccess event. A file can be `compiled` without being
+ *   `memoized` (e.g. a trivial hook that just calls useContext), so this is the signal that
+ *   matters when comparing against OXC to find cross-platform memoization gaps.
+ *
+ * Analysis runs with `noEmit: true` (no code generation) so it stays cheap enough to run on
+ * every file in the repo from the ESLint processor.
  */
 import {transformSync} from '@babel/core';
 import {createRequire} from 'node:module';
@@ -20,9 +23,6 @@ const require = createRequire(import.meta.url);
 
 const ReactCompilerConfig = require('../babel/reactCompilerConfig');
 
-// Matches the memoization output emitted by both babel-plugin-react-compiler and oxc-transform.
-const REACT_COMPILER_MARKER_PATTERN = /_c\(|react\/compiler-runtime/;
-
 /**
  * Check a source string with the Babel React Compiler.
  * @returns {{status: 'compiled' | 'failed' | 'no-components', memoized: boolean, errors: Array<{reason: string, severity: string, loc?: unknown, fnLoc?: unknown}>}}
@@ -30,15 +30,14 @@ const REACT_COMPILER_MARKER_PATTERN = /_c\(|react\/compiler-runtime/;
 function checkReactCompilerWithBabel(source, filename) {
     let hasError = false;
     let hasSuccess = false;
-    let emittedCode;
+    let memoBlocks = 0;
     const errors = [];
 
     try {
-        // Emit code (rather than noEmit) so we can inspect the output for memoization markers.
-        // With panicThreshold 'none', Rules-of-React violations are reported via the logger
-        // instead of thrown, so error reporting is identical to the previous noEmit approach.
-        const result = transformSync(source, {
+        transformSync(source, {
             filename,
+            ast: false,
+            code: false,
             configFile: false,
             babelrc: false,
             parserOpts: {
@@ -50,6 +49,7 @@ function checkReactCompilerWithBabel(source, filename) {
                     {
                         ...ReactCompilerConfig,
                         panicThreshold: 'none',
+                        noEmit: true,
                         logger: {
                             logEvent(_filename, event) {
                                 if (event.kind === 'CompileError') {
@@ -65,6 +65,7 @@ function checkReactCompilerWithBabel(source, filename) {
                                 }
                                 if (event.kind === 'CompileSuccess') {
                                     hasSuccess = true;
+                                    memoBlocks += event.memoBlocks ?? 0;
                                 }
                             },
                         },
@@ -72,7 +73,6 @@ function checkReactCompilerWithBabel(source, filename) {
                 ],
             ],
         });
-        emittedCode = result?.code ?? undefined;
     } catch (error) {
         hasError = true;
         errors.push({
@@ -81,7 +81,7 @@ function checkReactCompilerWithBabel(source, filename) {
         });
     }
 
-    const memoized = !!emittedCode && REACT_COMPILER_MARKER_PATTERN.test(emittedCode);
+    const memoized = memoBlocks > 0;
 
     let status;
     if (hasError) {
@@ -95,12 +95,4 @@ function checkReactCompilerWithBabel(source, filename) {
     return {status, memoized, errors: status === 'failed' ? errors : []};
 }
 
-function didReactCompilerCompileFile(source, filename) {
-    return checkReactCompilerWithBabel(source, filename).status === 'compiled';
-}
-
-function didBabelMemoizeFile(source, filename) {
-    return checkReactCompilerWithBabel(source, filename).memoized;
-}
-
-export {checkReactCompilerWithBabel, didReactCompilerCompileFile, didBabelMemoizeFile};
+export default checkReactCompilerWithBabel;

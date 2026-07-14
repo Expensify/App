@@ -51,6 +51,7 @@ type CompilerLogEvent = {
     kind: string;
     fnLoc?: SourceLocation;
     fnName?: string;
+    memoBlocks?: number;
     detail?: {
         severity?: string;
         reason?: string;
@@ -70,25 +71,24 @@ const FILE_EXTENSIONS = ['.ts', '.tsx'];
 
 const IS_CI = process.env.CI === 'true';
 
-// Matches the memoization output emitted by both babel-plugin-react-compiler and oxc-transform.
-const REACT_COMPILER_MARKER_PATTERN = /_c\(|react\/compiler-runtime/;
-
 /**
  * Check a source string with the Babel React Compiler.
- * Returns the compile-health status, whether memoization was actually emitted, and any errors.
+ * Returns the compile-health status, whether the compiler actually memoized anything, and any errors.
  */
 function checkReactCompilerCompliance(source: string, filename: string): CompilationResult {
     let hasError = false;
     let hasSuccess = false;
-    let emittedCode: string | undefined;
+    let memoBlocks = 0;
     const errors: CompilerError[] = [];
 
     try {
-        // Emit code (rather than noEmit) so the output can be inspected for memoization markers.
-        // With panicThreshold 'none', Rules-of-React violations are reported via the logger rather
-        // than thrown, so error reporting is identical to a noEmit analysis.
-        const result = transformSync(source, {
+        // Analyze with noEmit (no code generation) -- cheap, and the CompileSuccess event's
+        // memoBlocks count tells us whether memoization was actually applied. With panicThreshold
+        // 'none', Rules-of-React violations are reported via the logger rather than thrown.
+        transformSync(source, {
             filename,
+            ast: false,
+            code: false,
             configFile: false,
             babelrc: false,
             parserOpts: {
@@ -100,6 +100,7 @@ function checkReactCompilerCompliance(source: string, filename: string): Compila
                     {
                         ...ReactCompilerConfig,
                         panicThreshold: 'none',
+                        noEmit: true,
                         logger: {
                             logEvent(_filename: string, event: CompilerLogEvent) {
                                 if (event.kind === 'CompileError') {
@@ -115,6 +116,7 @@ function checkReactCompilerCompliance(source: string, filename: string): Compila
                                 }
                                 if (event.kind === 'CompileSuccess') {
                                     hasSuccess = true;
+                                    memoBlocks += event.memoBlocks ?? 0;
                                 }
                             },
                         },
@@ -122,7 +124,6 @@ function checkReactCompilerCompliance(source: string, filename: string): Compila
                 ],
             ],
         });
-        emittedCode = result?.code ?? undefined;
     } catch (e) {
         hasError = true;
         errors.push({
@@ -131,7 +132,7 @@ function checkReactCompilerCompliance(source: string, filename: string): Compila
         });
     }
 
-    const memoized = !!emittedCode && REACT_COMPILER_MARKER_PATTERN.test(emittedCode);
+    const memoized = memoBlocks > 0;
 
     if (hasError) {
         return {status: 'failed', memoized, errors};
@@ -380,7 +381,7 @@ async function main() {
     // is not transformable) never pulls it in -- the CLI paths below are never executed under Jest.
     // The explicit .mjs extension is required for Node/bun ESM resolution of this JS module.
     // eslint-disable-next-line import/extensions
-    const {checkReactCompilerWithOxc} = (await import('../config/reactCompiler/checkWithOxc.mjs')) as {checkReactCompilerWithOxc: OxcChecker};
+    const checkReactCompilerWithOxc = ((await import('../config/reactCompiler/checkWithOxc.mjs')) as {default: OxcChecker}).default;
 
     let passed = false;
 

@@ -8,8 +8,8 @@
  * `memoized` signal (did the compiler actually emit a `_c(...)` cache?) rather than the
  * looser compile-health status, since a file can "compile" without being memoized.
  */
-import {checkReactCompilerWithBabel} from './checkWithBabel.mjs';
-import {checkReactCompilerWithOxc} from './checkWithOxc.mjs';
+import checkReactCompilerWithBabel from './checkWithBabel.mjs';
+import checkReactCompilerWithOxc from './checkWithOxc.mjs';
 
 /**
  * @returns {{babel: {status: string, memoized: boolean, errors: unknown[]}, oxc: {status: string, memoized: boolean, errors: unknown[]}, isDivergent: boolean}}
@@ -25,10 +25,15 @@ function checkBothCompilers(source, filename) {
  * True only when BOTH compilers actually memoize the file. Used to decide when manual-memoization
  * lint rules can be safely suppressed: if either platform's compiler skips memoization, the manual
  * memoization is still needed there, so the rules must stay active.
+ *
+ * OXC is checked first and short-circuits, so the (heavier) Babel analysis is skipped for files OXC
+ * does not memoize. This keeps the ESLint processor, which calls this for every linted file, cheap.
  */
 function didBothCompilersMemoizeFile(source, filename) {
-    const {babel, oxc} = checkBothCompilers(source, filename);
-    return babel.memoized && oxc.memoized;
+    if (!checkReactCompilerWithOxc(source, filename).memoized) {
+        return false;
+    }
+    return checkReactCompilerWithBabel(source, filename).memoized;
 }
 
 export {checkBothCompilers, didBothCompilersMemoizeFile};

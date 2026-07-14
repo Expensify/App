@@ -1,11 +1,13 @@
 import type {CompilationResult as BabelCompilationResult} from './checkWithBabel.d.mts';
 import type {CompilationResult as OxcCompilationResult} from './checkWithOxc.d.mts';
 
-export type DualCompilationResult = {
+type DualCompilationResult = {
     babel: BabelCompilationResult;
     oxc: OxcCompilationResult;
     isDivergent: boolean;
 };
 
-export function checkBothCompilers(source: string, filename: string): DualCompilationResult;
-export function didBothCompilersMemoizeFile(source: string, filename: string): boolean;
+declare function checkBothCompilers(source: string, filename: string): DualCompilationResult;
+declare function didBothCompilersMemoizeFile(source: string, filename: string): boolean;
+
+export {checkBothCompilers, didBothCompilersMemoizeFile};

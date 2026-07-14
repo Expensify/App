@@ -6,7 +6,7 @@
  */
 import fs from 'node:fs';
 
-import {checkReactCompilerWithOxc} from '../config/reactCompiler/checkWithOxc.mjs';
+import checkReactCompilerWithOxc from '../config/reactCompiler/checkWithOxc.mjs';
 
 const [filename, sourcePath] = process.argv.slice(2);
 const source = fs.readFileSync(sourcePath, 'utf8');

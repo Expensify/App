@@ -7,7 +7,7 @@
  *
  * A file is "divergent" when exactly one compiler memoizes it (`compiled` XOR not-`compiled`).
  * Divergent files ship without memoization on one platform (web uses OXC, mobile/Jest use Babel),
- * which is the class of bug this audit exists to surface. The output is a worklist for the
+ * which is the class of bug this audit exists to surface. The output is a work list for the
  * manual-memoization sweep, grouped by direction, and is reusable for verification afterwards.
  *
  * Usage:
@@ -102,7 +102,7 @@ function main(): void {
         }
     }
 
-    // Group by direction for a readable worklist.
+    // Group by direction for a readable work list.
     const groups = new Map<string, FileResult[]>();
     for (const result of divergent) {
         const label = directionLabel(result);
