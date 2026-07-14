@@ -14,12 +14,9 @@ import createActors from './mfaActors';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
-// Absolute targets for the outcome parent and its leaves. The device check runs under `preparing`,
-// so reaching the sibling `outcome` branch needs an id target rather than a relative one. Every
-// completed step enters OUTCOME first; its transient resolver selects the leaf from context.error.
+// Absolute target for the outcome branch. The device check runs under `preparing`, so reaching the
+// sibling `outcome` branch needs an id target rather than a relative one.
 const OUTCOME_TARGET = `#${MFA_STATE.OUTCOME}` as const;
-const SUCCESS_TARGET = `#${MFA_STATE.SUCCESS}` as const;
-const FAILURE_TARGET = `#${MFA_STATE.FAILURE}` as const;
 
 const DEFAULT_CONTEXT: MfaContext = {
     error: undefined,
@@ -147,13 +144,12 @@ const MFAMachine = setup({
                     initial: MFA_STATE.RESOLVING_OUTCOME,
                     states: {
                         [MFA_STATE.RESOLVING_OUTCOME]: {
-                            always: [{guard: 'hasError', target: FAILURE_TARGET}, {target: SUCCESS_TARGET}],
+                            always: [{guard: 'hasError', target: MFA_STATE.FAILURE}, {target: MFA_STATE.SUCCESS}],
                         },
                         [MFA_STATE.SUCCESS]: {
-                            id: MFA_STATE.SUCCESS,
                             entry: ['navigateToSuccessOutcome'],
                         },
-                        [MFA_STATE.FAILURE]: {id: MFA_STATE.FAILURE, entry: ['navigateToFailureOutcome']},
+                        [MFA_STATE.FAILURE]: {entry: ['navigateToFailureOutcome']},
                     },
                 },
             },
