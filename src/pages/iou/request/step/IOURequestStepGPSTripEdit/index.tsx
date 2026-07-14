@@ -160,13 +160,12 @@ function IOURequestStepGPSTripEdit({
                         <Button
                             onPress={saveTrimmedTrip}
                             isLoading={isSaving}
-                            success
-                            allowBubble
-                            pressOnEnter
-                            large
-                            text={translate('gps.save')}
+                            variant="success"
+                            size={CONST.BUTTON_SIZE.LARGE}
                             sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_SAVE_EDIT_BUTTON}
-                        />
+                        >
+                            <Button.Text>{translate('gps.save')}</Button.Text>
+                        </Button>
                     </View>
                 </View>
             </View>
