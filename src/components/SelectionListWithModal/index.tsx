@@ -11,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import genericMemo from '@libs/genericMemo';
 
 import CONST from '@src/CONST';
 
@@ -125,4 +126,4 @@ function SelectionListWithModal<TItem extends ListItem>({
     );
 }
 
-export default SelectionListWithModal;
+export default genericMemo(SelectionListWithModal);
