@@ -225,6 +225,44 @@ describe('OnyxDerived', () => {
             expect(derivedReportAttributesAfterDisplayNameChange).not.toBe(initialDerivedReportAttributes);
         });
 
+        it('should only recompute reports that reference the changed accountID when a display name changes', () => {
+            // Two reports: one owned by account 2, the other owned by account 3.
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}ref_report`]: {...mockReport, reportID: 'ref_report', ownerAccountID: 2},
+                [`${ONYXKEYS.COLLECTION.REPORT}unrelated_report`]: {...mockReport, reportID: 'unrelated_report', policyID: '456', ownerAccountID: 3},
+            };
+            const personalDetails = {
+                '2': {accountID: 2, displayName: 'Alice', login: 'alice@example.com'},
+                '3': {accountID: 3, displayName: 'Bob', login: 'bob@example.com'},
+            };
+            const changedPersonalDetails = {...personalDetails, '2': {accountID: 2, displayName: 'Alice Smith', login: 'alice@example.com'}};
+
+            // PERSONAL_DETAILS_LIST is a valid runtime source key (hasKeyTriggeredCompute reads it), but the
+            // sourceValues type only models collection keys, so there's no representable type for this marker.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- non-collection source keys aren't modeled by DerivedSourceValues
+            const personalDetailsSource = {sourceValues: {[ONYXKEYS.PERSONAL_DETAILS_LIST]: true}} as unknown as Parameters<typeof reportAttributes.compute>[1];
+
+            // Reset the module-level diff baseline (no sourceValues clears it) so the seed below is deterministic.
+            reportAttributes.compute(
+                [reports, undefined, undefined, undefined, undefined, undefined, personalDetails, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                {},
+            );
+            // First personal-details compute computes both reports (no prior currentValue) and seeds the baseline.
+            const initial = reportAttributes.compute(
+                [reports, undefined, undefined, undefined, undefined, undefined, personalDetails, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                personalDetailsSource,
+            );
+            // Changing only account 2's display name should recompute just its report, carrying the other by reference.
+            const afterChange = reportAttributes.compute(
+                [reports, undefined, undefined, undefined, undefined, undefined, changedPersonalDetails, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                {...personalDetailsSource, currentValue: initial},
+            );
+
+            // A recomputed report gets a brand-new object; an untouched report is carried over by reference.
+            expect(afterChange.reports.ref_report).not.toBe(initial.reports.ref_report);
+            expect(afterChange.reports.unrelated_report).toBe(initial.reports.unrelated_report);
+        });
+
         describe('reportErrors', () => {
             it('returns empty errors when no errors exist', async () => {
                 const report = createRandomReport(1, undefined);

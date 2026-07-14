@@ -16,11 +16,11 @@ import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
+    canMemberWrite,
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
     hasDynamicExternalWorkflow,
     isPaidGroupPolicy,
-    isPolicyAdmin,
     isSubmitAndClose,
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
@@ -57,7 +57,6 @@ import {
     isPayer as isPayerReportUtils,
     isProcessingReport,
     isReportApproved,
-    isReportManager,
     isReportPendingDelete,
     isSettled,
 } from '@libs/ReportUtils';
@@ -66,10 +65,10 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
     hasAnyTransactionWithoutRTERViolation,
-    hasDuplicateTransactions,
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
     isDuplicate,
+    isExpensifyCardTransaction,
     isOnHold,
     isPending,
     isScanning,
@@ -111,6 +110,7 @@ type ApproveMoneyRequestFunctionParams = {
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    ownerLogin: string | undefined;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
 };
@@ -181,16 +181,6 @@ function canApproveIOU(
     );
 }
 
-function canUnapproveIOU(iouReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>) {
-    return (
-        isExpenseReport(iouReport) &&
-        (isReportManager(iouReport) || isPolicyAdmin(policy)) &&
-        isReportApproved({report: iouReport}) &&
-        !isSubmitAndClose(policy) &&
-        !iouReport?.isWaitingOnBankAccount
-    );
-}
-
 function canIOUBePaid(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
@@ -231,7 +221,9 @@ function canIOUBePaid(
     }
 
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, bankAccountList, policy, onlyShowPayElsewhere);
-    const canPay = isReportPayer || (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && isPolicyAdmin(policy));
+    const canPay =
+        isReportPayer ||
+        (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
 
     const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
@@ -268,12 +260,9 @@ function canIOUBePaid(
     );
 }
 
-function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxEntry<OnyxTypes.Session>, bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>) {
-    return isPayerReportUtils(session?.accountID, session?.email, iouReport, bankAccountList) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
-}
-
 function canSubmitReport(
     report: OnyxEntry<OnyxTypes.Report>,
+    reportOwnerLogin: string | undefined,
     policy: OnyxEntry<OnyxTypes.Policy>,
     transactions: OnyxTypes.Transaction[],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
@@ -283,11 +272,20 @@ function canSubmitReport(
 ) {
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
-    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
-    const hasNoSubmittableTransaction = transactions.length > 0 && transactions.every((t) => isScanningTransaction(t) || hasSmartScanFailedWithMissingFields([t], report));
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, reportOwnerLogin, policy);
+    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(
+        transactions,
+        allViolations,
+        currentUserEmailParam,
+        currentUserAccountID,
+        report,
+        reportOwnerLogin,
+        policy,
+    );
+    const hasNoSubmittableTransaction =
+        transactions.length > 0 && transactions.every((t) => isScanningTransaction(t) || (isExpensifyCardTransaction(t) && isPending(t)) || hasSmartScanFailedWithMissingFields([t], report));
     const hasAnySubmissionBlockingViolations = transactions.some((transaction) =>
-        hasSubmissionBlockingViolations(transaction, allViolations, currentUserEmailParam, currentUserAccountID, report, policy),
+        hasSubmissionBlockingViolations(transaction, allViolations, currentUserEmailParam, currentUserAccountID, report, reportOwnerLogin, policy),
     );
 
     return (
@@ -446,6 +444,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         onApproved,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        ownerLogin,
         expenseReportPolicy,
         additionalOnyxData,
         shouldPlaySuccessSound = true,
@@ -472,9 +471,6 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const unheldTotal = getUnheldReimbursableTotal(expenseReport) + (expenseReport.unheldNonReimbursableTotal ?? 0);
     let total = getReimbursableTotal(expenseReport) + (expenseReport.nonReimbursableTotal ?? 0);
     const hasHeldExpenses = hasHeldExpensesReportUtils(reportTransactions);
-    // TODO: https://github.com/Expensify/App/issues/66512
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, currentUserAccountIDParam, expenseReport, expenseReportPolicy, getAllTransactionViolations());
     if (hasHeldExpenses && !full && !!unheldTotal) {
         total = unheldTotal;
     }
@@ -765,24 +761,22 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     }
 
     // Remove duplicates violations if we approve the report
-    if (hasDuplicates) {
-        let transactions = getReportTransactions(expenseReport.reportID).filter((transaction) =>
-            isDuplicate(
-                transaction,
-                currentUserEmailParam,
-                currentUserAccountIDParam,
-                expenseReport,
-                expenseReportPolicy,
-                // TODO: https://github.com/Expensify/App/issues/66512
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                getAllTransactionViolations()?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
-            ),
-        );
-        if (!full) {
-            transactions = transactions.filter((transaction) => !isOnHold(transaction));
-        }
-
-        for (const transaction of transactions) {
+    const duplicatedTransactions = getReportTransactions(expenseReport.reportID).filter((transaction) =>
+        isDuplicate(
+            transaction,
+            currentUserEmailParam,
+            currentUserAccountIDParam,
+            expenseReport,
+            ownerLogin,
+            expenseReportPolicy,
+            // TODO: https://github.com/Expensify/App/issues/66512
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            getAllTransactionViolations()?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
+        ),
+    );
+    if (duplicatedTransactions.length) {
+        const filteredTransactions = !full ? duplicatedTransactions.filter((transaction) => !isOnHold(transaction)) : duplicatedTransactions;
+        for (const transaction of filteredTransactions) {
             // TODO: https://github.com/Expensify/App/issues/66512
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const transactionViolations = getAllTransactionViolations()?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
@@ -1902,10 +1896,8 @@ export {
     approveMoneyRequest,
     assignReportToMe,
     canApproveIOU,
-    canCancelPayment,
     canIOUBePaid,
     canSubmitReport,
-    canUnapproveIOU,
     clearPendingExpenseAction,
     getBadgeFromIOUReport,
     getIOUReportActionWithBadge,
