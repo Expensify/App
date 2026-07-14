@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DistanceMapView from '@components/DistanceMapView';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import Text from '@components/Text';
