@@ -30,13 +30,19 @@ const MockView = View;
 type CapturedButtonProps = {onPress?: () => void; isDisabled?: boolean};
 let capturedButtonProps: CapturedButtonProps | null = null;
 
-jest.mock('@components/Button', () => ({
-    __esModule: true,
-    default: (props: CapturedButtonProps) => {
+jest.mock('@components/ButtonComposed', () => {
+    function MockButton(props: CapturedButtonProps) {
         capturedButtonProps = props;
         return <MockView testID="copy-settings-button" />;
-    },
-}));
+    }
+
+    MockButton.Text = ({children}: {children: React.ReactNode}) => children;
+
+    return {
+        __esModule: true,
+        default: MockButton,
+    };
+});
 
 // Keep the real PART_TO_POLICY_FEATURE map (CopyPolicySettingsUtils relies on it) but stub the write action.
 const mockCopyPolicySettings = jest.fn();
