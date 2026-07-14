@@ -2219,18 +2219,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Esci',
         restoreStashed: 'Ripristina accesso nascosto',
         signOutConfirmationText: 'Perderai tutte le modifiche offline se esci.',
-        saveReceiptsConfirmation: {
-            title: 'Salvare le tue ricevute?',
-            prompt: ({count}: {count: number}) =>
-                `${count === 1 ? "C'è ancora 1 ricevuta" : `Ci sono ancora ${count} ricevute`} in fase di caricamento. Se esci ora, ${count === 1 ? 'la salveremo' : 'le salveremo'} nelle tue foto così potrai ${count === 1 ? 'aggiungerla' : 'aggiungerle'} a una nuova spesa più tardi.`,
-            confirm: 'Salva ed esci',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Salvare le tue ricevute?',
-            prompt: ({count}: {count: number}) =>
-                `${count === 1 ? "C'è ancora 1 ricevuta" : `Ci sono ancora ${count} ricevute`} in fase di caricamento. Se esci ora, ${count === 1 ? 'la salveremo' : 'le salveremo'} nelle tue foto così potrai ${count === 1 ? 'aggiungerla' : 'aggiungerle'} a una nuova spesa più tardi. Perderai tutte le altre modifiche offline.`,
-            confirm: 'Salva ed esci',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leggi i <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termini di servizio</a> e l’<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Informativa sulla privacy</a>.`,
         help: 'Aiuto',
@@ -10342,6 +10330,17 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         description: 'Facci sapere così possiamo aiutarti a rendere ancora migliore la tua esperienza di gestione delle spese.',
         positiveButton: 'Sì!',
         negativeButton: 'Non proprio',
+    },
+    trialPaymentReminder: {
+        title: 'Anticipa la scadenza',
+        subtitle: "Non aspettare l'ultimo minuto, aggiungi il tuo metodo di pagamento oggi per garantire l'accesso continuo alle tue spese su Expensify.",
+        trialEndsInDays: () => ({
+            one: 'Il periodo di prova termina tra 1 giorno',
+            other: (pluralCount: number) => `Il periodo di prova termina tra ${pluralCount} giorni`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Il periodo di prova termina tra ${hours}h : ${minutes}m : ${seconds}s`,
+        closeButton: 'Chiudi',
+        addPaymentCardButton: 'Aggiungi carta di pagamento',
     },
     monthPickerPage: {month: 'Mese', selectMonth: 'Seleziona un mese'},
     aiFeaturesPromoModal: {
