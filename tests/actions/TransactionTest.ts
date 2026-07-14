@@ -28,6 +28,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
+import createRandomReportAction from 'tests/utils/collections/reportActions';
 
 import {changeTransactionsReport as changeTransactionsReportAction} from '../../src/libs/actions/Transaction';
 import currencyList from '../unit/currencyList.json';
@@ -42,6 +43,7 @@ type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransact
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
     personalPolicyOutputCurrency?: string;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
@@ -200,7 +202,7 @@ describe('actions/Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL]);
+            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -302,6 +304,7 @@ describe('actions/Transaction', () => {
                 policyTagList,
                 transactionViolations: {},
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
@@ -424,6 +427,7 @@ describe('actions/Transaction', () => {
                 transactionViolations: {},
                 allReports: undefined,
                 personalPolicyOutputCurrency: 'EUR',
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -434,6 +438,123 @@ describe('actions/Transaction', () => {
             expect(updated?.modifiedCurrency).toBe('GBP');
             expect(Math.abs(Number(updated?.modifiedAmount ?? 0))).toBe(2000);
             expect(updated?.modifiedMerchant).toContain('mi');
+        });
+
+        describe('moved system messages', () => {
+            const TRANSACTION_ID = 'txn-moved-message';
+            const TRANSACTION_THREAD_REPORT_ID = 'txn-thread-moved-message';
+            const SOURCE_REPORT_ID = 'source-expense-report';
+            const DESTINATION_REPORT_ID = 'destination-expense-report';
+
+            /**
+             * Seeds an expense sitting in a source report (whose state/status decide whether it is a draft),
+             * along with its IOU action and transaction thread, and moves it to `newReport`.
+             */
+            async function moveExpenseOutOf(sourceReportStatus: Pick<Report, 'stateNum' | 'statusNum'>, newReport: Report | undefined) {
+                const policyID = generatePolicyID();
+                const policy: Policy = {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM, 'Moved Message Workspace'), id: policyID};
+
+                const sourceReport = {
+                    ...createRandomReport(1),
+                    reportID: SOURCE_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    ...sourceReportStatus,
+                } as Report;
+
+                const transaction: Transaction = {
+                    transactionID: TRANSACTION_ID,
+                    reportID: SOURCE_REPORT_ID,
+                    amount: -1000,
+                    currency: CONST.CURRENCY.USD,
+                    merchant: 'Test Merchant',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                };
+
+                // The IOU action links the expense to its transaction thread, which is where moved messages land.
+                const iouAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    reportID: SOURCE_REPORT_ID,
+                    actorAccountID: RORY_ACCOUNT_ID,
+                    childReportID: TRANSACTION_THREAD_REPORT_ID,
+                    originalMessage: {
+                        IOUTransactionID: TRANSACTION_ID,
+                        IOUReportID: SOURCE_REPORT_ID,
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        amount: -1000,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                    message: undefined,
+                    previousMessage: undefined,
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_ID}`, sourceReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${TRANSACTION_THREAD_REPORT_ID}`, {
+                    ...createRandomReport(2),
+                    reportID: TRANSACTION_THREAD_REPORT_ID,
+                    parentReportID: SOURCE_REPORT_ID,
+                    parentReportActionID: iouAction.reportActionID,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_ID}`, {[iouAction.reportActionID]: iouAction});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+                await waitForBatchedUpdates();
+
+                changeTransactionsReport({
+                    transactionIDs: [TRANSACTION_ID],
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: RORY_ACCOUNT_ID,
+                    email: RORY_EMAIL,
+                    newReport,
+                    policy,
+                    allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: transaction},
+                    policyTagList: undefined,
+                    transactionViolations: {},
+                    allReports: undefined,
+                    isTrackIntentUser: false,
+                });
+                await waitForBatchedUpdates();
+
+                const threadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TRANSACTION_THREAD_REPORT_ID}`);
+                return Object.values(threadActions ?? {});
+            }
+
+            const draftReportStatus = {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const submittedReportStatus = {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
+
+            const destinationReport = {
+                reportID: DESTINATION_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            it('should not create a MOVED_TRANSACTION action when the expense is moved out of a draft report', async () => {
+                // Given an expense in a draft (open) report, when it is moved to another report
+                const actions = await moveExpenseOutOf(draftReportStatus, destinationReport);
+
+                // Then no moved system message is created, because moves between drafts aren't part of the audit trail
+                expect(actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)).toHaveLength(0);
+            });
+
+            it('should create a MOVED_TRANSACTION action when the expense is moved out of a submitted report', async () => {
+                // Given an expense in a submitted report, when it is moved to another report
+                const actions = await moveExpenseOutOf(submittedReportStatus, destinationReport);
+
+                // Then the moved system message is still created, since the audit trail starts once a report is submitted
+                expect(actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)).toHaveLength(1);
+            });
+
+            it('should create an UNREPORTED_TRANSACTION action when the expense is moved to personal space from a draft report', async () => {
+                // Given an expense in a draft report, when it is moved to personal space (no destination report)
+                const actions = await moveExpenseOutOf(draftReportStatus, undefined);
+
+                // Then the moved message is still created, because the expense leaves the report entirely
+                expect(actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)).toHaveLength(1);
+            });
         });
 
         describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
@@ -498,6 +619,7 @@ describe('actions/Transaction', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -608,6 +730,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -678,6 +801,7 @@ describe('actions/Transaction', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -788,6 +912,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -863,6 +988,7 @@ describe('actions/Transaction', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -982,6 +1108,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -1058,6 +1185,7 @@ describe('actions/Transaction', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -1086,7 +1214,7 @@ describe('actions/Transaction', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, []);
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false);
                 }
                 await waitForBatchedUpdates();
 
@@ -1199,6 +1327,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
 
                 await waitForBatchedUpdates();
