@@ -10,6 +10,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import genericMemo from '@libs/genericMemo';
 import {doesContainReservedWord, getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
 
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
@@ -178,4 +179,4 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-export default FullNameStep;
+export default genericMemo(FullNameStep);
