@@ -43,6 +43,7 @@ import {
     getDisplayableThirdPartyCards,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
+    getExpensifyCardProgramLabelSuffix,
     getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
@@ -4696,6 +4697,44 @@ describe('multi-program Expensify Card helpers', () => {
 
         it('returns the list unchanged when no program is given', () => {
             expect(filterCardsListByProgram(cardsList, undefined)).toBe(cardsList);
+        });
+    });
+
+    describe('getExpensifyCardProgramLabelSuffix', () => {
+        const usAndGbSettings = createMock<ExpensifyCardSettings>({
+            [CONST.COUNTRY.US]: {paymentBankAccountID: 1, currency: CONST.CURRENCY.USD, country: CONST.COUNTRY.US},
+            [CONST.COUNTRY.GB]: {paymentBankAccountID: 2, currency: CONST.CURRENCY.GBP, country: CONST.COUNTRY.GB},
+        });
+
+        it('shows currency without country for the USD (US) program', () => {
+            expect(getExpensifyCardProgramLabelSuffix(usAndGbSettings, CONST.COUNTRY.US)).toBe('(USD)');
+        });
+
+        it('shows the program country and currency for non-USD programs', () => {
+            expect(getExpensifyCardProgramLabelSuffix(usAndGbSettings, CONST.COUNTRY.GB)).toBe('(GB - GBP)');
+        });
+
+        it('falls back to currency only when the program has no country', () => {
+            const noCountry = createMock<ExpensifyCardSettings>({
+                [CONST.COUNTRY.GB]: {paymentBankAccountID: 2, currency: CONST.CURRENCY.GBP},
+            });
+            expect(getExpensifyCardProgramLabelSuffix(noCountry, CONST.COUNTRY.GB)).toBe('(GBP)');
+        });
+
+        it('shows (USD) for the US program even when settings carry no explicit currency', () => {
+            const noCurrency = createMock<ExpensifyCardSettings>({
+                [CONST.COUNTRY.US]: {paymentBankAccountID: 1},
+                [CONST.COUNTRY.GB]: {paymentBankAccountID: 2},
+            });
+            expect(getExpensifyCardProgramLabelSuffix(noCurrency, CONST.COUNTRY.US)).toBe('(USD)');
+        });
+
+        it('derives GBP for the GB program (country GB) when settings carry no explicit currency', () => {
+            const noCurrency = createMock<ExpensifyCardSettings>({
+                [CONST.COUNTRY.US]: {paymentBankAccountID: 1},
+                [CONST.COUNTRY.GB]: {paymentBankAccountID: 2, country: CONST.COUNTRY.GB},
+            });
+            expect(getExpensifyCardProgramLabelSuffix(noCurrency, CONST.COUNTRY.GB)).toBe('(GB - GBP)');
         });
     });
 });

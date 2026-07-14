@@ -1457,11 +1457,45 @@ function filterCardsListByProgram(cardsList: WorkspaceCardsList | undefined, pro
 }
 
 /**
- * Country suffix appended to a feed's label when a domain has more than one program, so the rows are distinguishable
- * (e.g. `expensify.com` for US and `expensify.com GB` for GB). US programs stay without a suffix so single-feed domains look unchanged.
+ * Resolves the settlement currency for an Expensify Card program. Prefers an explicit `currency` (from the card or the
+ * program's settings NVP), then falls back to the program itself: the US (and deprecated CURRENT) program is always USD,
+ * the GB program is GBP for the UK/Gibraltar/unset country and EUR elsewhere. Defaults to USD when the program is unknown.
  */
-function getExpensifyCardProgramCountrySuffix(programKey: CardProgramKey): string {
-    return programKey === CONST.COUNTRY.GB ? CONST.COUNTRY.GB : '';
+function getExpensifyCardProgramCurrency(programKey: CardProgramKey | undefined, country: string | undefined, explicitCurrency: string | undefined): string {
+    if (explicitCurrency) {
+        return explicitCurrency;
+    }
+
+    if (programKey === CONST.COUNTRY.US || programKey === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) {
+        return CONST.CURRENCY.USD;
+    }
+
+    if (programKey === CONST.COUNTRY.GB) {
+        // Only Gibraltar and UK use GBP. If country is not set at all, also assume GBP.
+        if (!country || country === CONST.COUNTRY.GB || country === CONST.COUNTRY.GI) {
+            return CONST.CURRENCY.GBP;
+        }
+
+        // All other countries on this program use EUR
+        return CONST.CURRENCY.EUR;
+    }
+
+    return CONST.CURRENCY.USD;
+}
+
+/**
+ * Parenthetical qualifier appended to a feed's label so that, when a domain is provisioned with more than one program
+ * (e.g. both US and GB), each program's row is distinguishable by its settlement currency (and country).
+ */
+function getExpensifyCardProgramLabelSuffix(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey): string {
+    const programSettings = getCardSettings(cardSettings, programKey);
+    const country = programSettings?.country;
+    const currency = getExpensifyCardProgramCurrency(programKey, country, programSettings?.currency);
+    if (currency === CONST.CURRENCY.USD) {
+        return `(${currency})`;
+    }
+
+    return country ? `(${country} - ${currency})` : `(${currency})`;
 }
 
 /**
@@ -1976,30 +2010,7 @@ function getCardOrFeedCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<
     // If not, attempt to get currency from the card settings.
     const programKey = card?.nameValuePairs?.feedCountry as CardProgramKey | undefined;
     const settings = getCardSettings(cardSettings, programKey);
-    if (settings?.currency) {
-        return settings.currency;
-    }
-
-    // Fall back to the program and country to try to determine the correct currency.
-    // US programs are always USD
-    if (programKey === CONST.COUNTRY.US || programKey === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) {
-        return CONST.CURRENCY.USD;
-    }
-
-    // For UK/EU cards, determine currency by country
-    const country = card?.nameValuePairs?.country;
-    if (programKey === CONST.COUNTRY.GB) {
-        // Only Gibraltar and UK use GBP. If country is not set at all, also assume GBP.
-        if (!country || country === CONST.COUNTRY.GB || country === CONST.COUNTRY.GI) {
-            return CONST.CURRENCY.GBP;
-        }
-
-        // All other countries on this program use EUR
-        return CONST.CURRENCY.EUR;
-    }
-
-    // Finally if all else fails, default to USD
-    return CONST.CURRENCY.USD;
+    return getExpensifyCardProgramCurrency(programKey, card?.nameValuePairs?.country, settings?.currency);
 }
 
 /**
@@ -2149,7 +2160,7 @@ export {
     getProgramKeyForCard,
     isCardInProgram,
     filterCardsListByProgram,
-    getExpensifyCardProgramCountrySuffix,
+    getExpensifyCardProgramLabelSuffix,
     getSelectableCardProgramKey,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,

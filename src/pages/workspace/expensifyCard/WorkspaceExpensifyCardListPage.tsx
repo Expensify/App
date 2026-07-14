@@ -32,7 +32,7 @@ import {clearIssueNewCardFormData, exportExpensifyCardListToCSV, setIssueNewCard
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {getCardsByCardholderName, getCardSettingsForSelectedProgram, getExpensifyCardProgramCountrySuffix, isCurrencySupportedForECards} from '@libs/CardUtils';
+import {getCardsByCardholderName, getCardSettingsForSelectedProgram, isCurrencySupportedForECards} from '@libs/CardUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -88,9 +88,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID, programKey}: 
     const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const settings = getCardSettingsForSelectedProgram(cardSettings, programKey);
-    const feedDescription = getExpensifyCardFeedDescription(cardSettings, allPolicies, domains, fundID, cardList);
-    const feedCountrySuffix = getExpensifyCardProgramCountrySuffix(programKey);
-    const feedSupportingText = feedCountrySuffix ? `${feedDescription} ${feedCountrySuffix}` : feedDescription;
+    const feedSupportingText = getExpensifyCardFeedDescription(cardSettings, allPolicies, domains, fundID, cardList);
     const {allFeeds: allAdminExpensifyCardFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
     const shouldShowSelector = allAdminExpensifyCardFeeds.length >= 1;
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();

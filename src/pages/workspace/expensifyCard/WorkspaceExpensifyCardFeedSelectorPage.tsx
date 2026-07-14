@@ -24,7 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearIssueNewCardFlow, clearIssueNewCardFormData, setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {getExpensifyCardProgramCountrySuffix} from '@libs/CardUtils';
+import {getConfiguredExpensifyCardProgramKeys, getExpensifyCardProgramLabelSuffix} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
@@ -144,12 +144,13 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const toListItem = (entry: ExpensifyCardFeedEntry, isOtherWorkspaceSection: boolean): ExpensifyFeedListItem => {
         const isFeedPendingDelete = entry.settings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         const description = getExpensifyCardFeedDescription(entry.settings, policies, domains, entry.fundID, cardList);
-        const countrySuffix = getExpensifyCardProgramCountrySuffix(entry.programKey);
+        const hasMultiplePrograms = getConfiguredExpensifyCardProgramKeys(entry.settings).length > 1;
+        const labelSuffix = hasMultiplePrograms ? getExpensifyCardProgramLabelSuffix(entry.settings, entry.programKey) : '';
         const rowKey = getFeedRowKey(entry.fundID, entry.programKey);
         return {
             value: entry.fundID,
             programKey: entry.programKey,
-            text: countrySuffix ? `${description} ${countrySuffix}` : description,
+            text: labelSuffix ? `${description} ${labelSuffix}` : description,
             keyForList: rowKey,
             isSelected: entry.fundID === lastSelectedExpensifyCardFeedID && entry.programKey === selectedProgramKey,
             isDisabled: isFeedPendingDelete || (isOtherWorkspaceSection && isOffline),
