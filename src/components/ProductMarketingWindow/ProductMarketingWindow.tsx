@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 
@@ -60,22 +60,23 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
             <Text style={[styles.textLabel, styles.productMarketingWindowBody, styles.mt1]}>{translate(variant.body)}</Text>
             <View style={[styles.flexRow, styles.gap2, styles.mt4]}>
                 <Button
-                    success
-                    medium
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
                     style={styles.flex1}
-                    text={translate(variant.ctaLabel)}
                     onPress={onCtaPress}
                     sentryLabel={CONST.SENTRY_LABEL.PRODUCT_MARKETING_WINDOW.CTA}
-                />
+                >
+                    <Button.Text>{translate(variant.ctaLabel)}</Button.Text>
+                </Button>
                 <Button
-                    medium
+                    size={CONST.BUTTON_SIZE.MEDIUM}
                     style={styles.flex1}
                     innerStyles={styles.productMarketingWindowDismissButton}
-                    textStyles={styles.productMarketingWindowDismissButtonText}
-                    text={translate('common.dismiss')}
                     onPress={onDismiss}
                     sentryLabel={CONST.SENTRY_LABEL.PRODUCT_MARKETING_WINDOW.DISMISS}
-                />
+                >
+                    <Button.Text style={styles.productMarketingWindowDismissButtonText}>{translate('common.dismiss')}</Button.Text>
+                </Button>
             </View>
         </View>
     );

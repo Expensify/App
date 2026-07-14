@@ -47,8 +47,8 @@ jest.mock('@libs/actions/Welcome', () => {
     return {
         ...actual,
         dismissProductTraining: jest.fn((elementName: string) => {
-            const OnyxModule = (require('react-native-onyx') as {default: {merge: (key: string, value: Record<string, unknown>) => Promise<unknown>}}).default;
-            const KEYS = (require('@src/ONYXKEYS') as {default: typeof ONYXKEYS}).default;
+            const OnyxModule = jest.requireActual<{default: typeof Onyx}>('react-native-onyx').default;
+            const KEYS = jest.requireActual<{default: typeof ONYXKEYS}>('@src/ONYXKEYS').default;
             OnyxModule.merge(KEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 [elementName]: {timestamp: '2026-07-15 00:00:00.000', dismissedMethod: 'click'},
             });

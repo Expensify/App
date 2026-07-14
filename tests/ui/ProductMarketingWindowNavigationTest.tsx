@@ -4,9 +4,9 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import Text from '@components/Text';
 
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
-import navigationRef from '@libs/Navigation/navigationRef';
 import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT} from '@libs/ProductMarketingWindowUtils';
 
 import en from '@src/languages/en';
@@ -14,9 +14,8 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
-import {NavigationContainer} from '@react-navigation/native';
+import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
 import React from 'react';
-import {Text} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import {buildPersonalDetails} from '../utils/TestHelper';
@@ -41,6 +40,7 @@ type TestRootParamList = {
 };
 
 const RootStack = createRootStackNavigator<TestRootParamList>();
+const testNavigationRef = createNavigationContainerRef<TestRootParamList>();
 
 function FirstScreen() {
     return <Text>{FIRST_SCREEN_TEXT}</Text>;
@@ -59,7 +59,7 @@ function ModalScreen() {
 const renderRootNavigator = () =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>
-            <NavigationContainer ref={navigationRef}>
+            <NavigationContainer ref={testNavigationRef}>
                 <RootStack.Navigator initialRouteName={SCREENS.CONCIERGE}>
                     <RootStack.Screen
                         name={SCREENS.CONCIERGE}
@@ -108,7 +108,7 @@ describe('ProductMarketingWindow across navigation', () => {
         expect(screen.getByText(memberHeading)).toBeTruthy();
 
         await act(async () => {
-            navigationRef.current?.navigate(SCREENS.NOT_FOUND as never);
+            testNavigationRef.current?.navigate(SCREENS.NOT_FOUND);
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -117,7 +117,7 @@ describe('ProductMarketingWindow across navigation', () => {
         expect(screen.getByText(memberHeading)).toBeTruthy();
 
         await act(async () => {
-            navigationRef.current?.navigate(NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR as never);
+            testNavigationRef.current?.navigate(NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR);
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -126,7 +126,7 @@ describe('ProductMarketingWindow across navigation', () => {
         expect(screen.queryByText(memberHeading)).toBeNull();
 
         await act(async () => {
-            navigationRef.current?.goBack();
+            testNavigationRef.current?.goBack();
             await waitForBatchedUpdatesWithAct();
         });
 

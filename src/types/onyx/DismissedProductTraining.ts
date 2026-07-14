@@ -98,13 +98,9 @@ type DismissedProductTraining = {
      * When user dismisses the mileage rate auto-updated tooltip, we store the timestamp here.
      */
     [MILEAGE_RATE_AUTO_UPDATED]: DismissedProductTrainingElement;
-} & {
-    /**
-     * When user dismisses a product marketing window announcement (via its Dismiss button or by completing its CTA),
-     * we store the timestamp under a key namespaced by the announcement ID.
-     */
-    [key: ProductMarketingWindowDismissedKey]: DismissedProductTrainingElement | undefined;
-};
+    // Product marketing window dismissals are stored under keys namespaced by the announcement ID (see ProductMarketingWindowDismissedKey),
+    // so each announcement is dismissed independently, via its Dismiss button or by completing its CTA.
+} & Record<ProductMarketingWindowDismissedKey, DismissedProductTrainingElement | undefined>;
 
 export default DismissedProductTraining;
 export type {ProductMarketingWindowDismissedKey};

@@ -31,6 +31,7 @@ function buildDismissedProductTraining(announcementIDs: string[]): DismissedProd
     for (const announcementID of announcementIDs) {
         dismissals[getProductMarketingWindowDismissedKey(announcementID)] = {timestamp: '2026-07-14 00:00:00.000', dismissedMethod: 'x'};
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixture: DismissedProductTraining models every tooltip key as required, but runtime Onyx data (and these tests) only need the marketing keys.
     return dismissals as DismissedProductTraining;
 }
 
