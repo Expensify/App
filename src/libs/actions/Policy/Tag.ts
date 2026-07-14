@@ -139,12 +139,6 @@ function createPolicyTag({
     const policyID = policy?.id;
     const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
-    const shouldUpdateRequiresTag = !!policyTag.required && !policy?.requiresTag;
-    const policyOptimisticData: Partial<Policy> = shouldUpdateRequiresTag
-        ? {
-              requiresTag: true,
-          }
-        : {};
     const tagListsOptimisticData = {
         [policyTag.name]: {
             tags: {
@@ -158,7 +152,7 @@ function createPolicyTag({
         },
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS | typeof ONYXKEYS.COLLECTION.POLICY> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -199,24 +193,7 @@ function createPolicyTag({
         ],
     };
 
-    if (shouldUpdateRequiresTag) {
-        const policyRequiresTagUpdate: OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY> = {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: policyOptimisticData,
-        };
-        onyxData.optimisticData?.push(policyRequiresTagUpdate);
-        onyxData.successData?.push(policyRequiresTagUpdate);
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                requiresTag: policy?.requiresTag ?? false,
-            },
-        });
-    }
-
-    pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, tagListsOptimisticData);
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, tagListsOptimisticData);
     const parameters = {
         policyID,
         tags: JSON.stringify([{name: newTagName}]),
