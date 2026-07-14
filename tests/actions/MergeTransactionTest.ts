@@ -1494,6 +1494,36 @@ describe('setMergeTransactionKey', () => {
             description: 'New Description', // Added
         });
     });
+
+    it('should fully replace receipt and customUnit when nulled in the same synchronous batch', async () => {
+        // Given a merge transaction holding a hybrid receipt and customUnit accumulated from a previous odometer selection
+        const transactionID = 'test-transaction-replace';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {
+            targetTransactionID: transactionID,
+            receipt: {receiptID: 1, source: 'odometer.jpg', filename: 'odometer.jpg'},
+            customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitID: 'old', quantity: 25.5},
+            odometerStart: 1000,
+            odometerEnd: 1042,
+        });
+
+        // When a map expense is selected: null receipt/customUnit/odometer, then write the new values in the same tick
+        setMergeTransactionKey(transactionID, {receipt: null, customUnit: null});
+        setMergeTransactionKey(transactionID, {
+            receipt: {receiptID: 2},
+            customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+            odometerStart: null,
+            odometerEnd: null,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the new receipt/customUnit fully replace the old ones (no stale sub-keys) and odometer readings are gone
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`);
+        expect(mergeTransaction).toEqual({
+            targetTransactionID: transactionID,
+            receipt: {receiptID: 2},
+            customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+        });
+    });
 });
 
 describe('areTransactionsEligibleForMerge', () => {

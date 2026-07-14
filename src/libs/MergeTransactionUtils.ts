@@ -691,6 +691,12 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
             updatedValues.odometerEnd = transaction?.comment?.odometerEnd;
             updatedValues.odometerStartImage = transaction?.comment?.odometerStartImage;
             updatedValues.odometerEndImage = transaction?.comment?.odometerEndImage;
+        } else {
+            // A map/manual selection has no odometer readings, so null them to clear any carried over from a previous odometer selection
+            updatedValues.odometerStart = null;
+            updatedValues.odometerEnd = null;
+            updatedValues.odometerStartImage = null;
+            updatedValues.odometerEndImage = null;
         }
     }
 

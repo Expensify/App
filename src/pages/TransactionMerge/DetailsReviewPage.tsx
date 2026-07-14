@@ -114,6 +114,13 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                 policy: transaction.transactionID === targetTransaction?.transactionID ? targetTransactionPolicy : sourceTransactionPolicy,
             });
 
+            // receipt and customUnit are objects, and setMergeTransactionKey uses Onyx.merge which deep-extends objects.
+            // Without an explicit clear, sub-keys from a previously selected expense survive (e.g. a combined receipt or
+            // a mixed customUnit). Nulling them first in the same synchronous batch forces the new value to fully replace the old.
+            if ('receipt' in updatedValues || 'customUnit' in updatedValues) {
+                setMergeTransactionKey(transactionID, {receipt: null, customUnit: null});
+            }
+
             setMergeTransactionKey(transactionID, {
                 ...updatedValues,
                 selectedTransactionByField: {
