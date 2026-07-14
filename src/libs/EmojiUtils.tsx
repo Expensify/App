@@ -45,36 +45,38 @@ function convertEmojiShortcodesToUnicode(text: string, preferredSkinTone: OnyxEn
         return text;
     }
 
-    const codeRanges = getCodeRanges(text);
+    const initialCodeRanges = getCodeRanges(text);
 
-    return text
-        .replace(CONST.REGEX.SLACK_EMOJI_NAME_WITH_SKIN_TONE, (match, emojiName: string, slackSkinTone: string, position: number) => {
-            if (isPositionInsideCodeRanges(codeRanges, position)) {
-                return match;
-            }
+    const textWithSlackSkinTones = text.replace(CONST.REGEX.SLACK_EMOJI_NAME_WITH_SKIN_TONE, (match, emojiName: string, slackSkinTone: string, position: number) => {
+        if (isPositionInsideCodeRanges(initialCodeRanges, position)) {
+            return match;
+        }
 
-            const emoji = Emojis.emojiNameTable[emojiName];
+        const emoji = Emojis.emojiNameTable[emojiName];
 
-            if (!emoji) {
-                return match;
-            }
+        if (!emoji) {
+            return match;
+        }
 
-            const skinToneIndex = 6 - Number(slackSkinTone);
-            return emoji.types?.at(skinToneIndex) ?? emoji.code;
-        })
-        .replace(CONST.REGEX.EMOJI_NAME, (shortcode, position: number) => {
-            if (isPositionInsideCodeRanges(codeRanges, position)) {
-                return shortcode;
-            }
+        const skinToneIndex = 6 - Number(slackSkinTone);
+        return emoji.types?.at(skinToneIndex) ?? emoji.code;
+    });
 
-            const emoji = Emojis.emojiNameTable[shortcode.slice(1, -1)];
+    const updatedCodeRanges = getCodeRanges(textWithSlackSkinTones);
 
-            if (!emoji) {
-                return shortcode;
-            }
+    return textWithSlackSkinTones.replace(CONST.REGEX.EMOJI_NAME, (shortcode, position: number) => {
+        if (isPositionInsideCodeRanges(updatedCodeRanges, position)) {
+            return shortcode;
+        }
 
-            return getEmojiCodeWithSkinColor(emoji, preferredSkinTone);
-        });
+        const emoji = Emojis.emojiNameTable[shortcode.slice(1, -1)];
+
+        if (!emoji) {
+            return shortcode;
+        }
+
+        return getEmojiCodeWithSkinColor(emoji, preferredSkinTone);
+    });
 }
 
 // 'code' = inline code, 'pre' = code fence content. Excludes 'codeblock' to avoid overlapping ranges.
