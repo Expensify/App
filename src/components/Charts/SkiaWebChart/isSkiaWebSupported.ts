@@ -1,12 +1,13 @@
 /**
- * Probes whether the current web environment can give Skia/CanvasKit a usable WebGL surface.
+ * Probes whether the current web environment can give Skia/CanvasKit a usable WebGL surface, so callers
+ * can show an empty state instead of mounting Skia and hitting one of its async crashes that no try/catch
+ * can stop: CanvasKit asks for a WebGL2 context (never falling back to WebGL1 once the WebGL2 API exists) and
+ * throws `failed to create webgl context` when it can't create one, and it reads `.rangeMin` off
+ * `getShaderPrecisionFormat()` without a null check, throwing on GPUs that return `null` there.
  *
- * The probe reuses a single long-lived WebGL context instead of creating a throwaway one on every
- * chart mount. Creating and discarding a context per mount churns WebGL contexts, and on
- * context-constrained mobile browsers (e.g. Android Chrome) that pressure can crash the shared GPU
- * process; afterwards every `getShaderPrecisionFormat` returns `null` and a perfectly capable device
- * wrongly shows the "unable to display chart" empty state. Reusing one context avoids that while
- * still re-checking on each mount, so an overridden or lost context is still detected.
+ * The probe reuses a single long-lived context instead of creating one per chart mount: that per-mount
+ * churn pressures context-constrained mobile browsers (e.g. Android Chrome) into losing contexts, after
+ * which `getShaderPrecisionFormat` returns `null` and a capable device wrongly shows the empty state.
  */
 let probeContext: WebGL2RenderingContext | WebGLRenderingContext | null | undefined;
 
@@ -15,17 +16,19 @@ function getProbeContext(): WebGL2RenderingContext | WebGLRenderingContext | nul
         return probeContext;
     }
     const canvas = document.createElement('canvas');
-    probeContext = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
+    // Mirror CanvasKit: it asks for WebGL2 whenever the WebGL2 API exists and never falls back to WebGL1,
+    // so probing WebGL1 would green-light a context the renderer can't actually use.
+    probeContext = typeof WebGL2RenderingContext !== 'undefined' ? canvas.getContext('webgl2') : canvas.getContext('webgl');
     return probeContext;
 }
 
 function isSkiaWebSupported(): boolean {
     try {
         const gl = getProbeContext();
-        // No WebGL context available right now is usually transient GPU pressure, not a real capability
-        // verdict — let Skia try and re-check on the next mount instead of blocking a capable device.
+        // The context CanvasKit needs can't be created, so it would throw `failed to create webgl context`.
+        // Skip Skia; SkiaWebChart re-probes on the next mount, so a transient failure still recovers.
         if (!gl) {
-            return true;
+            return false;
         }
         const precisionFormat = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
         // A lost context also returns `null` here, but that's transient, so don't treat it as a verdict.

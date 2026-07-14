@@ -201,6 +201,38 @@ function applySavedColumnMappings(spreadsheetData: string[][], savedLayout: Save
     }
 }
 
+/**
+ * Applies saved company card column mappings to the spreadsheet data.
+ *
+ * @param spreadsheetData - The spreadsheet data in column-major format
+ * @param savedColumnMappings - Saved mappings from uploadLayoutSettings, keyed by field role with a column index value
+ * @param availableColumnRoles - The field roles currently selectable in the mapping UI
+ */
+function applyCompanyCardSavedColumnMappings(spreadsheetData: string[][], savedColumnMappings: Record<string, string>, availableColumnRoles: string[]): void {
+    if (!savedColumnMappings) {
+        return;
+    }
+
+    const validRoles = new Set(availableColumnRoles);
+    const numColumns = spreadsheetData.length;
+    const columnUpdates: Record<number, string> = {};
+
+    for (const [role, indexValue] of Object.entries(savedColumnMappings)) {
+        if (role === CONST.CSV_IMPORT_COLUMNS.IGNORE || !validRoles.has(role)) {
+            continue;
+        }
+        const index = Number(indexValue);
+        if (!Number.isInteger(index) || index < 0 || index >= numColumns) {
+            continue;
+        }
+        columnUpdates[index] = role;
+    }
+
+    if (Object.keys(columnUpdates).length > 0) {
+        Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {columns: columnUpdates});
+    }
+}
+
 export {
     setSpreadsheetData,
     setColumnName,
@@ -210,6 +242,7 @@ export {
     setImportTransactionCurrency,
     setImportTransactionSettings,
     applySavedColumnMappings,
+    applyCompanyCardSavedColumnMappings,
     getImportFailedFinalModal,
     getImportFinalModalID,
     getImportFinalModalOnyxData,
