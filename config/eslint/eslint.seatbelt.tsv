@@ -65,7 +65,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	105
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	104
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -1322,10 +1322,10 @@
 "../../src/pages/inbox/sidebar/FABPopoverContent/useScanActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/sidebar/SidebarLinksData.tsx"	"react-hooks/refs"	1
 "../../src/pages/inbox/sidebar/SignInButton.tsx"	"no-restricted-imports"	1
+"../../src/pages/iou/DynamicSplitExpenseEditPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/iou/DynamicSplitExpenseEditPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/iou/MoneyRequestAmountForm.tsx"	"no-restricted-imports"	1
 "../../src/pages/iou/MoneyRequestAmountForm.tsx"	"react-hooks/set-state-in-effect"	3
-"../../src/pages/iou/SplitExpenseEditPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/iou/SplitExpenseEditPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/iou/SplitExpensePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/SplitExpensePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/iou/SplitExpensePage.tsx"	"react-hooks/set-state-in-effect"	3
