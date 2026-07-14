@@ -99,7 +99,7 @@ function ReportFetchHandler() {
     const prevIsAnonymousUser = useRef(false);
     const hasCreatedLegacyThreadRef = useRef(false);
     const didSubscribeToReportLeavingEvents = useRef(false);
-    const hasJoinedViaSecureLinkRef = useRef(false);
+    const joinedSecureLinkReportIDRef = useRef<string | undefined>(undefined);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [reportDraftOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDFromRoute}`);
@@ -245,12 +245,13 @@ function ReportFetchHandler() {
 
     // When an approver opens a Submit-via-PDF secure access link (/r/:reportID?secureKey=...), validate it once they're
     // signed in. On success the backend shares the report and sets them as manager; on failure the ReportNotFoundGuard
-    // shows the standard 404.
+    // shows the standard 404. The ref is keyed by reportID so it fires once per report and re-navigation is handled
+    // naturally, without a separate reset effect that could clobber the flag on mount before the report loads.
     useEffect(() => {
-        if (!secureKeyFromRoute || !reportIDFromRoute || isAnonymousUser || hasJoinedViaSecureLinkRef.current) {
+        if (!secureKeyFromRoute || !reportIDFromRoute || isAnonymousUser || joinedSecureLinkReportIDRef.current === reportIDFromRoute) {
             return;
         }
-        hasJoinedViaSecureLinkRef.current = true;
+        joinedSecureLinkReportIDRef.current = reportIDFromRoute;
         joinReportViaSecureLink(reportIDFromRoute, secureKeyFromRoute);
     }, [secureKeyFromRoute, reportIDFromRoute, isAnonymousUser]);
 
@@ -258,15 +259,11 @@ function ReportFetchHandler() {
     // the "secure-link visit" signal that suppresses onboarding, so a slow join could bounce a new user into onboarding
     // before they gain access. Once the report is accessible we clear it so it isn't reused or left in history.
     useEffect(() => {
-        if (!secureKeyFromRoute || !hasJoinedViaSecureLinkRef.current || !report?.reportID || !!report?.errorFields?.notFound) {
+        if (!secureKeyFromRoute || joinedSecureLinkReportIDRef.current !== reportIDFromRoute || !report?.reportID || !!report?.errorFields?.notFound) {
             return;
         }
         navigation.setParams({secureKey: undefined});
-    }, [secureKeyFromRoute, report?.reportID, report?.errorFields?.notFound, navigation]);
-
-    useEffect(() => {
-        hasJoinedViaSecureLinkRef.current = false;
-    }, [reportIDFromRoute]);
+    }, [secureKeyFromRoute, reportIDFromRoute, report?.reportID, report?.errorFields?.notFound, navigation]);
 
     useEffect(() => {
         if (!isAnonymousUser) {

@@ -185,7 +185,9 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
         });
     };
 
-    if (canSubmitViaPDF) {
+    // While the submit animation is running, fall through to AnimatedSubmitButton so it can play the animation and call
+    // stopAnimation; the dropdown has no animation lifecycle and would otherwise leave the header stuck on Submit.
+    if (canSubmitViaPDF && !isSubmittingAnimationRunning) {
         const submitOptions: Array<DropdownOption<SubmissionMethod>> = [
             {
                 value: CONST.REPORT.SUBMISSION_METHOD.SUBMIT,
@@ -210,7 +212,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
 
         return (
             <ButtonWithDropdownMenu<SubmissionMethod>
-                success
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
                 pressOnEnter
                 isDisabled={shouldBlockSubmit}
