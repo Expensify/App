@@ -1,5 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
 
@@ -16,7 +17,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 
 type UseOdometerNavigationParams = {
@@ -148,7 +149,10 @@ function useOdometerNavigation({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
+
+    const delegateAccountID = useDelegateAccountID();
 
     return ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
         const optimisticTransactionID = rand64();
@@ -198,6 +202,8 @@ function useOdometerNavigation({
             optimisticTransactionID,
             optimisticChatReportID,
             reportDraft,
+            isTrackIntentUser,
+            delegateAccountID,
             policyTagList,
         });
     };

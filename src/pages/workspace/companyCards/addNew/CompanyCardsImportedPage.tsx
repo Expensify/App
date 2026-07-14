@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
+import {applyCompanyCardSavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
 import {getCSVFeedType} from '@libs/CardUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -30,7 +31,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 type CompanyCardsImportedPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED>;
 
@@ -82,6 +83,35 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
 
         return [...baseRoles, ...advancedRoles];
     })();
+
+    const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
+    const hasAppliedSavedMappings = useRef(false);
+    const lastProcessedDataRef = useRef(spreadsheet?.data);
+    const lastAdvancedFieldsRef = useRef(shouldUseAdvancedFields);
+
+    useEffect(() => {
+        // Reset the flag when new spreadsheet data is loaded, or when the set of selectable roles changes.
+        if (spreadsheet?.data !== lastProcessedDataRef.current || shouldUseAdvancedFields !== lastAdvancedFieldsRef.current) {
+            hasAppliedSavedMappings.current = false;
+            lastProcessedDataRef.current = spreadsheet?.data;
+            lastAdvancedFieldsRef.current = shouldUseAdvancedFields;
+        }
+
+        if (hasAppliedSavedMappings.current) {
+            return;
+        }
+
+        if (!spreadsheet?.data || isEmptyObject(savedColumnMappings)) {
+            return;
+        }
+
+        hasAppliedSavedMappings.current = true;
+        applyCompanyCardSavedColumnMappings(
+            spreadsheet.data,
+            savedColumnMappings,
+            columnRoles.map((role) => role.value),
+        );
+    }, [spreadsheet?.data, savedColumnMappings, columnRoles, shouldUseAdvancedFields]);
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired);
     const {containsHeader = true} = spreadsheet ?? {};

@@ -5,6 +5,7 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useNetwork from '@hooks/useNetwork';
@@ -30,6 +31,7 @@ import {
 import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -40,11 +42,13 @@ import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/clean
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
+import {logReceiptCaptured, logReceiptSubmitted, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
@@ -74,6 +78,7 @@ function SubmitDetailsPage({
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
@@ -130,6 +135,7 @@ function SubmitDetailsPage({
     const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const hasEndedOpenSubmitFlowSpan = useRef(false);
     const endOpenSubmitFlowSpan = () => {
@@ -256,6 +262,15 @@ function SubmitDetailsPage({
         // `transaction.transactionID` is the draft placeholder; mirror the action's `existingTransactionID ?? rand64()` chain so cleanup nav targets the created expense.
         const optimisticTransactionID = existingTransactionID ?? rand64();
 
+        // This path skips createTransaction, so log the submit milestone here to map the draft id to the final one.
+        logReceiptSubmitted({
+            receiptTraceId: receipt.receiptTraceId,
+            draftTransactionID: transaction.transactionID,
+            transactionID: optimisticTransactionID,
+            command: isSelfDM(report) ? WRITE_COMMANDS.TRACK_EXPENSE : WRITE_COMMANDS.REQUEST_MONEY,
+            iouType,
+        });
+
         if (isSelfDM(report)) {
             trackExpense({
                 report: report ?? {reportID: reportOrAccountID},
@@ -296,6 +311,7 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 optimisticTransactionID,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                delegateAccountID,
                 reportActionsList: undefined,
             });
         } else {
@@ -341,6 +357,8 @@ function SubmitDetailsPage({
                 betas,
                 personalDetails,
                 optimisticTransactionID,
+                isTrackIntentUser,
+                delegateAccountID,
             });
         }
         cleanupAndNavigateAfterExpenseCreate({
@@ -357,6 +375,10 @@ function SubmitDetailsPage({
     const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
         const receipt: Receipt = file;
         receipt.state = file && CONST.IOU.RECEIPT_STATE.SCAN_READY;
+        // The share flow builds the receipt here by hand and skips buildReceiptFiles, so this is the only place to stamp
+        // the trace id and log the capture.
+        const receiptTraceId = mintAndStampReceiptTraceId(receipt);
+        logReceiptCaptured({file: receipt, captureSource: 'share', receiptTraceId});
         if (!locationPermissionGranted) {
             finishRequestAndNavigate(receipt);
             return;

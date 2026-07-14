@@ -2,7 +2,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
 import {getLastFullReconnectTimeToRecord} from '@libs/FullReconnectUtils';
 import Log from '@libs/Log';
@@ -10,12 +10,13 @@ import getCurrentUrl from '@libs/Navigation/currentUrl';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import isTrackOnboardingChoice from '@libs/OnboardingUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
 import getPathFromState from '@src/libs/Navigation/helpers/getPathFromState';
@@ -291,12 +292,14 @@ AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
         Log.info('App going to background', false, {previousState: appState, nextState: nextAppState});
         Log.info('Flushing logs as app is going inactive', true, {}, true);
+        logReceiptQueueSnapshot('background');
         saveCurrentPathBeforeBackground();
     }
 
     if (nextAppState === 'active' && appState?.match(/inactive|background/)) {
         Log.info('App coming to foreground', false, {previousState: appState, nextState: nextAppState});
         Log.info('Cancelling telemetry spans as app is coming to foreground', false, {previousState: appState, nextState: nextAppState});
+        logReceiptQueueSnapshot('foreground');
         cancelAllSpans();
     }
     appState = nextAppState;
@@ -464,7 +467,7 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     }
 
     const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
-    return API.writeWithNoDuplicatesConflictAction(
+    const openAppPromise = API.writeWithNoDuplicatesConflictAction(
         WRITE_COMMANDS.OPEN_APP,
         params,
         getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
@@ -474,6 +477,10 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         }
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
     });
+
+    loadPostDataForOpenOrReconnect();
+
+    return openAppPromise;
 }
 
 /**
@@ -516,7 +523,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         }
 
         const isFullReconnect = !updateIDFrom;
-        return API.writeWithNoDuplicatesReconnectConflictAction(
+        const reconnectAppPromise = API.writeWithNoDuplicatesReconnectConflictAction(
             WRITE_COMMANDS.RECONNECT_APP,
             params,
             getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded, undefined, true),
@@ -526,7 +533,18 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             }
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
+
+        loadPostDataForOpenOrReconnect();
+
+        return reconnectAppPromise;
     });
+}
+
+/**
+ * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp
+ */
+function loadPostDataForOpenOrReconnect() {
+    API.read(READ_COMMANDS.SEARCH_FOR_TODOS, null);
 }
 
 /**
