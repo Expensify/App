@@ -7800,6 +7800,9 @@ function changeReportPolicyAndInviteSubmitter({
         membersChats,
     } = buildAddMembersToWorkspaceOnyxData(
         {[submitterLogin]: report.ownerAccountID},
+        // We pass empty new personal details here because we already retrieved the submitter login
+        // from the personal details and returned early above if submitter login is falsy.
+        // Reaching this point means the submitter's personal details already exist.
         {},
         policy,
         policyMemberAccountIDs,
