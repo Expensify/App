@@ -120,7 +120,7 @@ Limit to essential articles.
 
 -->
 
-## Related Articles
+## Related articles
 
 * [Related workflow](/relative-link)
 * [Related workflow](/relative-link)
