@@ -6,6 +6,8 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import type {BuildTransactionThreadParams} from './navigateAfterExpenseCreate';
+
 import cleanupAfterExpenseCreate from './cleanupAfterExpenseCreate';
 import navigateAfterExpenseCreate from './navigateAfterExpenseCreate';
 
@@ -28,6 +30,9 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
 
     /** Show the "Expense added" growl even on the non-global-create path (e.g. the Share flow, whose drafts never set isFromGlobalCreate). */
     shouldAlwaysShowFeedback?: boolean;
+
+    /** Data the "View" action needs to build the transaction thread. */
+    buildTransactionThreadParams?: BuildTransactionThreadParams;
 };
 
 function cleanupAndNavigateAfterExpenseCreate({
@@ -43,6 +48,7 @@ function cleanupAndNavigateAfterExpenseCreate({
     linkedTrackedExpenseReportAction,
     action,
     shouldAlwaysShowFeedback,
+    buildTransactionThreadParams,
 }: CleanupAndNavigateAfterExpenseCreateParams) {
     cleanupAfterExpenseCreate({
         draftTransactionIDs,
@@ -66,6 +72,7 @@ function cleanupAndNavigateAfterExpenseCreate({
         hasMultipleTransactions,
         shouldAddPendingNewTransactionIDs,
         shouldAlwaysShowFeedback,
+        buildTransactionThreadParams,
     });
 }
 

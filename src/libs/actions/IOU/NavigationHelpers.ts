@@ -1,5 +1,6 @@
 import sharedDismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import type {BuildTransactionThreadParams} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 
 import {getAllTransactions} from './index';
 
@@ -29,6 +30,7 @@ function handleNavigateAfterExpenseCreate({
     isFromGlobalCreate,
     isInvoice,
     shouldAddPendingNewTransactionIDs = false,
+    buildTransactionThreadParams,
 }: {
     activeReportID?: string;
     iouReportID?: string;
@@ -37,6 +39,7 @@ function handleNavigateAfterExpenseCreate({
     isFromGlobalCreate?: boolean;
     isInvoice?: boolean;
     shouldAddPendingNewTransactionIDs?: boolean;
+    buildTransactionThreadParams?: BuildTransactionThreadParams;
 }) {
     const hasMultipleTransactions = Object.values(getAllTransactions()).filter((transaction) => transaction?.reportID === activeReportID).length > 0;
     navigateAfterExpenseCreate({
@@ -48,6 +51,7 @@ function handleNavigateAfterExpenseCreate({
         isInvoice,
         hasMultipleTransactions,
         shouldAddPendingNewTransactionIDs,
+        buildTransactionThreadParams,
     });
 }
 

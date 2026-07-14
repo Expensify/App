@@ -1649,6 +1649,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         isSelfTourViewed,
         betas,
         personalDetails,
+        introSelected,
         shouldDeferAutoSubmit,
         delegateAccountID,
     } = requestMoneyInformation;
@@ -1914,6 +1915,13 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     }
 
     if (!requestMoneyInformation.isRetry) {
+        const buildTransactionThreadParams = {
+            currentUserLogin: currentUserEmailParam,
+            currentUserAccountID: currentUserAccountIDParam,
+            betas,
+            introSelected,
+            transaction,
+        };
         if (shouldHandleNavigation) {
             const navigationReportID = backToReport ?? activeReportID;
             handleNavigateAfterExpenseCreate({
@@ -1926,6 +1934,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 // the chat preview card fresh-mounts on a chat destination's first expense, and the report table
                 // fresh-mounts on the in-report 1→2 transition.
                 shouldAddPendingNewTransactionIDs: isMoneyRequestReport || navigationReportID === chatReport.reportID,
+                buildTransactionThreadParams,
             });
         } else if (shouldShowPostCreateFeedback) {
             // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). Surface feedback
@@ -1936,6 +1945,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 transactionID: transaction.transactionID,
                 transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
                 isMoneyRequestReport,
+                buildTransactionThreadParams,
             });
         }
     }
@@ -2875,6 +2885,13 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }
 
     if (!params.isRetry) {
+        const buildTransactionThreadParams = {
+            currentUserLogin: currentUserEmailParam,
+            currentUserAccountID: currentUserAccountIDParam,
+            betas,
+            introSelected,
+            transaction,
+        };
         if (shouldHandleNavigation) {
             handleNavigateAfterExpenseCreate({
                 activeReportID,
@@ -2886,6 +2903,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 // already exists before the view mounts, so diff-based new-transaction detection misses
                 // it - pending IDs are the fallback highlight path (see useNewTransactions).
                 shouldAddPendingNewTransactionIDs: action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE,
+                buildTransactionThreadParams,
             });
         } else if (shouldShowPostCreateFeedback) {
             // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). Surface feedback
@@ -2895,6 +2913,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionID: transaction?.transactionID,
                 transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
                 isMoneyRequestReport,
+                buildTransactionThreadParams,
             });
         }
     }

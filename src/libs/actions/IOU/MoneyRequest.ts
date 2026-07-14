@@ -245,6 +245,7 @@ function createTransaction({
                 existingTransaction: transaction,
                 isSelfTourViewed,
                 personalDetails,
+                introSelected,
                 optimisticChatReportID,
                 optimisticTransactionID,
                 // Navigation/growl must fire once per multi-receipt batch, on its final transaction: silence

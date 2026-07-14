@@ -203,6 +203,8 @@ type RequestMoneyInformation = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    /** Onboarding intro selection. */
+    introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
     shouldDeferAutoSubmit?: boolean;
     delegateAccountID: number | undefined;
 };

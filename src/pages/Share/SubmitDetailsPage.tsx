@@ -368,6 +368,13 @@ function SubmitDetailsPage({
             linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
             // Share drafts never set isFromGlobalCreate, but the user still deserves the "Expense added" growl.
             shouldAlwaysShowFeedback: true,
+            buildTransactionThreadParams: {
+                currentUserLogin: currentUserPersonalDetails.login ?? '',
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                betas,
+                introSelected,
+                transaction,
+            },
         });
     };
 

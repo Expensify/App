@@ -463,6 +463,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                introSelected,
                 delegateAccountID,
             });
             existingIOUReport = iouReport;

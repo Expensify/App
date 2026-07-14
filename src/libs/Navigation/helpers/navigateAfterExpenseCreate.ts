@@ -8,7 +8,7 @@ import Log from '@libs/Log';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getReportTransactions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
@@ -19,8 +19,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Beta, IntroSelected, Transaction} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
 import Onyx from 'react-native-onyx';
 
 import dismissModalAndOpenReportInInboxTab from './dismissModalAndOpenReportInInboxTab';
@@ -29,40 +27,22 @@ import isReportTopmostSplitNavigator from './isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 
-let currentUserEmail = '';
-let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserEmail = value?.email ?? '';
-        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
+type BuildTransactionThreadParams = {
+    /** Current user's email. */
+    currentUserLogin: string;
 
-let introSelected: IntroSelected | undefined;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => {
-        introSelected = value ?? undefined;
-    },
-});
+    /** Current user's account ID. */
+    currentUserAccountID: number;
 
-let betas: Beta[] | undefined;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => {
-        betas = value ?? undefined;
-    },
-});
+    /** Enabled betas. */
+    betas: Beta[] | undefined;
 
-let allTransactions: OnyxCollection<Transaction>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
-    callback: (transactions) => {
-        allTransactions = transactions;
-    },
-});
+    /** The onboarding intro selection. */
+    introSelected: IntroSelected | undefined;
+
+    /** The just-created transaction. */
+    transaction: Transaction | undefined;
+};
 
 type NavigateAfterExpenseCreateParams = {
     /** Report to open when navigation stays on the Inbox tab. */
@@ -91,6 +71,9 @@ type NavigateAfterExpenseCreateParams = {
 
     /** Show the "Expense added" growl even on the non-global-create path (e.g. the Share flow, whose drafts never set isFromGlobalCreate). */
     shouldAlwaysShowFeedback?: boolean;
+
+    /** Data the "View" action needs to build the transaction thread. */
+    buildTransactionThreadParams?: BuildTransactionThreadParams;
 };
 
 type ShowExpenseAddedGrowlParams = {
@@ -105,6 +88,9 @@ type ShowExpenseAddedGrowlParams = {
 
     /** Whether this confirmation is for an invoice (changes the toast copy from "Expense added"). */
     isInvoice?: boolean;
+
+    /** Data the "View" action needs to build the transaction thread. */
+    buildTransactionThreadParams?: BuildTransactionThreadParams;
 };
 
 /**
@@ -121,7 +107,13 @@ type ShowExpenseAddedGrowlParams = {
  * navigation entry point builds the thread at navigation time, and keeping untapped growls free
  * of Onyx/API side effects.
  */
-function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInvoice}: ShowExpenseAddedGrowlParams) {
+function showExpenseAddedGrowl({
+    iouReportID,
+    transactionID,
+    transactionThreadReportID: providedTransactionThreadReportID,
+    isInvoice,
+    buildTransactionThreadParams,
+}: ShowExpenseAddedGrowlParams) {
     if (!transactionID) {
         return;
     }
@@ -129,20 +121,22 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
     // eslint-disable-next-line @typescript-eslint/no-deprecated -- imperative module (not a React component); no useLocalize hook available here
     const growlMessage = isInvoice ? translateLocal('iou.invoiceSent') : translateLocal('iou.expenseAdded');
 
+    const getTransaction = (): Transaction | undefined =>
+        buildTransactionThreadParams?.transaction ?? (iouReportID ? getReportTransactions(iouReportID).find((transaction) => transaction.transactionID === transactionID) : undefined);
+
     const buildThreadFromOnyx = (): string | undefined => {
         const iouReport = iouReportID ? getReportOrDraftReport(iouReportID) : undefined;
         const iouAction = iouReportID ? getIOUActionForReportID(iouReportID, transactionID) : undefined;
         let threadReportID = providedTransactionThreadReportID ?? iouAction?.childReportID;
         if (!threadReportID) {
-            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const optimisticThread = createTransactionThreadReport({
-                introSelected,
-                currentUserLogin: currentUserEmail,
-                currentUserAccountID,
-                betas,
+                introSelected: buildTransactionThreadParams?.introSelected,
+                currentUserLogin: buildTransactionThreadParams?.currentUserLogin ?? '',
+                currentUserAccountID: buildTransactionThreadParams?.currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                betas: buildTransactionThreadParams?.betas,
                 iouReport,
                 iouReportAction: iouAction,
-                transaction,
+                transaction: getTransaction(),
             });
             threadReportID = optimisticThread?.reportID;
         } else {
@@ -153,13 +147,13 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
 
     // Pure mirror of buildThreadFromOnyx's requirements, used at show time to decide whether "View"
     // can be offered without materializing anything: a known thread ID, or an anchor to build one
-    // from (the IOU report, or the cached transaction for tracked/unreported expenses).
+    // from (the IOU report, or the passed-in transaction for tracked/unreported expenses).
     const canResolveThread = (): boolean => {
         const iouAction = iouReportID ? getIOUActionForReportID(iouReportID, transactionID) : undefined;
         if (providedTransactionThreadReportID ?? iouAction?.childReportID) {
             return true;
         }
-        return !!(iouReportID && getReportOrDraftReport(iouReportID)) || !!allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        return !!(iouReportID && getReportOrDraftReport(iouReportID)) || !!getTransaction();
     };
 
     const showGrowl = () => {
@@ -205,9 +199,7 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
             // case navigate straight to the transaction thread instead; the report still shows underneath
             // via the Wide RHP machinery, matching the Spend-context path above.
             const hasMultipleReportTransactions =
-                Object.values(allTransactions ?? {}).filter(
-                    (transaction) => transaction?.reportID === iouReportID && transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                ).length > 1;
+                getReportTransactions(iouReportID).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1;
 
             if (iouReportID && hasMultipleReportTransactions) {
                 Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
@@ -251,6 +243,9 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
 
     // Slow path: wait for Search to render → flushDeferredWrite('search') → API.write applies
     // optimistic data → iouAction lands → we show the growl.
+    // Unlike the params threaded in above, this can't be passed down: it awaits a *future* write, not
+    // current state. Onyx has no promise-based get, so a transient, self-disconnecting subscription is
+    // the only way to wait for it.
     let resolved = false;
     let safetyTimeoutID: ReturnType<typeof setTimeout> | undefined;
     const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}` as const;
@@ -304,6 +299,9 @@ type SurfaceExpenseCreatedFeedbackParams = {
 
     /** Whether the expense is an invoice (changes the growl copy). */
     isInvoice?: boolean;
+
+    /** Data the "View" action needs to build the transaction thread. */
+    buildTransactionThreadParams?: BuildTransactionThreadParams;
 };
 
 /**
@@ -312,12 +310,19 @@ type SurfaceExpenseCreatedFeedbackParams = {
  * - if the user is looking at the expense report's table (in-report add) → highlight the new row;
  * - otherwise → show the "Expense added" growl with a "View" deep link.
  */
-function surfaceExpenseCreatedFeedback({iouReportID, transactionID, transactionThreadReportID, isMoneyRequestReport, isInvoice}: SurfaceExpenseCreatedFeedbackParams) {
+function surfaceExpenseCreatedFeedback({
+    iouReportID,
+    transactionID,
+    transactionThreadReportID,
+    isMoneyRequestReport,
+    isInvoice,
+    buildTransactionThreadParams,
+}: SurfaceExpenseCreatedFeedbackParams) {
     if (isMoneyRequestReport && iouReportID && transactionID) {
         addPendingNewTransactionIDs(iouReportID, transactionID);
         return;
     }
-    showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID, isInvoice});
+    showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID, isInvoice, buildTransactionThreadParams});
 }
 
 /**
@@ -341,6 +346,7 @@ function navigateAfterExpenseCreate({
     hasMultipleTransactions,
     shouldAddPendingNewTransactionIDs = false,
     shouldAlwaysShowFeedback = false,
+    buildTransactionThreadParams,
 }: NavigateAfterExpenseCreateParams) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
     const isUserOnSpend = isSearchTopmostFullScreenRoute();
@@ -355,7 +361,7 @@ function navigateAfterExpenseCreate({
             addPendingNewTransactionIDs(activeReportID, transactionID);
         }
         if (shouldAlwaysShowFeedback && transactionID) {
-            showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInvoice});
+            showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInvoice, buildTransactionThreadParams});
         }
         return;
     }
@@ -368,7 +374,7 @@ function navigateAfterExpenseCreate({
         if (shouldAddPendingNewTransactionIDs) {
             addPendingNewTransactionIDs(activeReportID, transactionID);
         }
-        showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInvoice});
+        showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInvoice, buildTransactionThreadParams});
         return;
     }
 
@@ -427,8 +433,9 @@ function navigateAfterExpenseCreate({
         Navigation.isNavigationReady().then(navigateToSearch);
     }
 
-    showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInvoice});
+    showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInvoice, buildTransactionThreadParams});
 }
 
 export default navigateAfterExpenseCreate;
 export {surfaceExpenseCreatedFeedback};
+export type {BuildTransactionThreadParams};
