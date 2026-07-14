@@ -153,30 +153,43 @@ function BaseGenericTooltip({
         );
     }
 
-    const AnimatedWrapper = isEducationTooltip ? AnimatedPressableWithoutFeedback : Animated.View;
-
     const body = document.querySelector('body');
 
     if (!body) {
         return null;
     }
 
+    const wrapperChildren = (
+        <>
+            {content}
+            <View style={pointerWrapperStyle}>
+                <View style={pointerStyle} />
+            </View>
+        </>
+    );
+
     return ReactDOM.createPortal(
         <>
             {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
-            <AnimatedWrapper
-                ref={viewRef(rootWrapper)}
-                style={[rootWrapperStyle, animationStyle]}
-                onPress={isEducationTooltip ? onTooltipPress : undefined}
-                role={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
-                accessibilityLabel={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
-                interactive={isEducationTooltip ? !!onTooltipPress : undefined}
-            >
-                {content}
-                <View style={pointerWrapperStyle}>
-                    <View style={pointerStyle} />
-                </View>
-            </AnimatedWrapper>
+            {isEducationTooltip ? (
+                <AnimatedPressableWithoutFeedback
+                    ref={viewRef(rootWrapper)}
+                    style={[rootWrapperStyle, animationStyle]}
+                    onPress={onTooltipPress}
+                    role={CONST.ROLE.TOOLTIP}
+                    accessibilityLabel={CONST.ROLE.TOOLTIP}
+                    interactive={!!onTooltipPress}
+                >
+                    {wrapperChildren}
+                </AnimatedPressableWithoutFeedback>
+            ) : (
+                <Animated.View
+                    ref={viewRef(rootWrapper)}
+                    style={[rootWrapperStyle, animationStyle]}
+                >
+                    {wrapperChildren}
+                </Animated.View>
+            )}
         </>,
         body,
     );
