@@ -68,7 +68,7 @@ When adding or modifying rules, the corresponding documentation should be update
 **deploy-blocker-investigator**
 - Investigates deploy blocker issues to identify the causing PR
 - Posts findings and recommendations on the issue
-- Runs on the MelvinBot service (not an App workflow); it is triggered automatically when the `DeployBlockerCash` label is added to an issue
+- Runs on the MelvinBot service; it is triggered automatically when the `DeployBlockerCash` label is added to an issue
 
 ### Triggers and When Reviewers Run
 
