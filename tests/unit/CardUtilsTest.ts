@@ -4621,9 +4621,9 @@ describe('getCompanyCardCustomName', () => {
 });
 
 describe('multi-program Expensify Card helpers', () => {
-    const usCard = {cardID: 1, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.COUNTRY.US}} as unknown as Card;
-    const gbCard = {cardID: 2, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.COUNTRY.GB}} as unknown as Card;
-    const legacyCard = {cardID: 3, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {}} as unknown as Card;
+    const usCard = createMock<Card>({cardID: 1, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.COUNTRY.US}});
+    const gbCard = createMock<Card>({cardID: 2, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.COUNTRY.GB}});
+    const legacyCard = createMock<Card>({cardID: 3, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {}});
 
     describe('getSelectableCardProgramKey', () => {
         it('returns GB when GB is stored', () => {
@@ -4658,34 +4658,32 @@ describe('multi-program Expensify Card helpers', () => {
 
     describe('getConfiguredExpensifyCardProgramKeys', () => {
         it('returns both programs (US before GB) when both have a settlement bank account', () => {
-            const settings = {
+            const settings = createMock<ExpensifyCardSettings>({
                 [CONST.COUNTRY.US]: {paymentBankAccountID: 1},
                 [CONST.COUNTRY.GB]: {paymentBankAccountID: 2},
-            } as unknown as ExpensifyCardSettings;
+            });
             expect(getConfiguredExpensifyCardProgramKeys(settings)).toEqual([CONST.COUNTRY.US, CONST.COUNTRY.GB]);
         });
 
         it('ignores program blocks without a settlement bank account', () => {
-            const settings = {
+            const settings = createMock<ExpensifyCardSettings>({
                 [CONST.COUNTRY.US]: {paymentBankAccountID: 1},
                 [CONST.COUNTRY.GB]: {isEnabled: true},
-            } as unknown as ExpensifyCardSettings;
+            });
             expect(getConfiguredExpensifyCardProgramKeys(settings)).toEqual([CONST.COUNTRY.US]);
         });
 
         it('returns an empty list for flat/legacy settings with no nested program', () => {
-            const settings = {domainName: 'legacy.com', isEnabled: true} as unknown as ExpensifyCardSettings;
+            const settings = createMock<ExpensifyCardSettings>({domainName: 'legacy.com', isEnabled: true});
             expect(getConfiguredExpensifyCardProgramKeys(settings)).toEqual([]);
         });
     });
 
     describe('filterCardsListByProgram', () => {
-        const cardsList = {
-            '1': usCard,
-            '2': gbCard,
-            '3': legacyCard,
-            cardList: {someUnassigned: 'XXXX1234'},
-        } as unknown as WorkspaceCardsList;
+        const cardsList: WorkspaceCardsList = {'1': usCard, '2': gbCard, '3': legacyCard};
+        // Set the `cardList` meta entry separately: WorkspaceCardsList's string index signature is `Card`, so including it in
+        // the object literal would fail typechecking even though the runtime shape is correct.
+        cardsList.cardList = {someUnassigned: 'XXXX1234'};
 
         it('keeps only the selected program cards and preserves the cardList meta entry', () => {
             const gbOnly = filterCardsListByProgram(cardsList, CONST.COUNTRY.GB);
