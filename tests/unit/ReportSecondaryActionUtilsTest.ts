@@ -286,6 +286,147 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
+    it('includes SUBMIT option for workflow approver on OPEN expense report with stale managerID', async () => {
+        const SUBMITTER_ACCOUNT_ID = 5;
+        const SUBMITTER_EMAIL = 'submitter@mail.com';
+        const OWNER_EMAIL = 'owner@mail.com';
+        // beforeEach's Onyx.clear isn't awaited; explicit clear + reset guarantees state.
+        await Onyx.clear();
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: SUBMITTER_ACCOUNT_ID,
+            managerID: 999, // stale — not the workflow approver
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        });
+        const policy = createMock<Policy>({
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.USER,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            approver: OWNER_EMAIL,
+            employeeList: {
+                [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: EMPLOYEE_EMAIL},
+            },
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {enabled: true},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: SUBMITTER_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
+    });
+
+    it('excludes SUBMIT option for workflow approver on Submit & Close policy', async () => {
+        const SUBMITTER_ACCOUNT_ID = 5;
+        const SUBMITTER_EMAIL = 'submitter@mail.com';
+        await Onyx.clear();
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: SUBMITTER_ACCOUNT_ID,
+            managerID: 0,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        });
+        const policy = createMock<Policy>({
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.USER,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, // Submit & Close
+            approver: EMPLOYEE_EMAIL,
+            employeeList: {
+                [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: EMPLOYEE_EMAIL},
+            },
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {enabled: true},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: SUBMITTER_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+    });
+
+    it('excludes SUBMIT option for rule-only approver', async () => {
+        const SUBMITTER_ACCOUNT_ID = 5;
+        const SUBMITTER_EMAIL = 'submitter@mail.com';
+        const OTHER_WORKFLOW_APPROVER_EMAIL = 'other-approver@mail.com';
+        await Onyx.clear();
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: SUBMITTER_ACCOUNT_ID,
+            managerID: 0,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        });
+        const policy = createMock<Policy>({
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.USER,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            approver: OTHER_WORKFLOW_APPROVER_EMAIL,
+            employeeList: {
+                [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: OTHER_WORKFLOW_APPROVER_EMAIL},
+            },
+            rules: {
+                approvalRules: [
+                    {
+                        approver: EMPLOYEE_EMAIL,
+                        applyWhen: [{condition: 'matches', field: 'category', value: 'Travel'}],
+                        id: 'rule-1',
+                    },
+                ],
+            },
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {enabled: true},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: SUBMITTER_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [createMock<Transaction>({reportID: REPORT_ID, category: 'Travel'})],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+    });
+
     it('excludes SUBMIT option when the report only has pending card transactions', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
@@ -3481,6 +3622,7 @@ describe('getSecondaryExportReportActions', () => {
         jest.clearAllMocks();
         Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
@@ -3968,6 +4110,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         jest.clearAllMocks();
         Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 

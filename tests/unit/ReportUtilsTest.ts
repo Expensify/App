@@ -6580,6 +6580,212 @@ describe('ReportUtils', () => {
                 }),
             ).toBe(false);
         });
+
+        it('should NOT allow rule-only approver to edit', async () => {
+            const ruleOnlyPolicyID = 'approverTestPolicyRuleOnly';
+            const otherEmail = 'other-workflow-approver@test.com';
+            const otherAccountID = 1004;
+            const ruleOnlyPolicy: Policy = {
+                ...policyWithWorkflow,
+                id: ruleOnlyPolicyID,
+                approver: otherEmail,
+                employeeList: {
+                    [submitterEmail]: {
+                        email: submitterEmail,
+                        submitsTo: otherEmail,
+                    },
+                },
+                rules: {
+                    approvalRules: [
+                        {
+                            approver: approverEmail,
+                            applyWhen: [{condition: 'matches', field: 'category', value: 'Travel'}],
+                            id: 'rule-1',
+                        },
+                    ],
+                },
+            };
+
+            const openExpenseReport: Report = {
+                reportID: '12354',
+                policyID: ruleOnlyPolicyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: otherAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const transaction: Transaction = {
+                transactionID: 'txn12354',
+                reportID: openExpenseReport.reportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {comment: 'Test expense'},
+                category: 'Travel',
+                created: '2025-01-01',
+                merchant: 'Test Merchant',
+            };
+
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: 'action12354',
+                actorAccountID: submitterAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: openExpenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
+                created: '2025-01-01 12:00:00',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${ruleOnlyPolicyID}`, ruleOnlyPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, false, openExpenseReport, ruleOnlyPolicy)).toBe(false);
+            expect(
+                canEditFieldOfMoneyRequest({
+                    reportAction: moneyRequestAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+                    transaction,
+                    report: openExpenseReport,
+                    policy: ruleOnlyPolicy,
+                }),
+            ).toBe(false);
+        });
+
+        it('should NOT allow unrelated third-party user to edit', async () => {
+            const strangerAccountID = 9999;
+            const strangerEmail = 'stranger@test.com';
+            await Onyx.merge(ONYXKEYS.SESSION, {email: strangerEmail, accountID: strangerAccountID});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[strangerAccountID]: {accountID: strangerAccountID, login: strangerEmail}});
+
+            const openExpenseReport: Report = {
+                reportID: '12355',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const transaction: Transaction = {
+                transactionID: 'txn12355',
+                reportID: openExpenseReport.reportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {comment: 'Test expense'},
+                created: '2025-01-01',
+                merchant: 'Test Merchant',
+            };
+
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: 'action12355',
+                actorAccountID: submitterAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: openExpenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
+                created: '2025-01-01 12:00:00',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, false, openExpenseReport, policyWithWorkflow)).toBe(false);
+            expect(
+                canEditFieldOfMoneyRequest({
+                    reportAction: moneyRequestAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+                    transaction,
+                    report: openExpenseReport,
+                    policy: policyWithWorkflow,
+                }),
+            ).toBe(false);
+        });
+
+        it('should NOT allow edit when the report owner login cannot be resolved', async () => {
+            // Current user is policy.approver here, so an unresolved ownerLogin would fall through to them without the guard.
+            const failClosedPolicyID = 'approverTestPolicyFailClosed';
+            const otherEmail = 'other-workflow-approver@test.com';
+            const missingOwnerAccountID = 424242;
+
+            const failClosedPolicy: Policy = {
+                ...policyWithWorkflow,
+                id: failClosedPolicyID,
+                approver: approverEmail,
+                employeeList: {
+                    'unresolved-owner@test.com': {
+                        email: 'unresolved-owner@test.com',
+                        submitsTo: otherEmail,
+                    },
+                },
+            };
+
+            const openExpenseReport: Report = {
+                reportID: '12356',
+                policyID: failClosedPolicyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: missingOwnerAccountID,
+                managerID: ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const transaction: Transaction = {
+                transactionID: 'txn12356',
+                reportID: openExpenseReport.reportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {comment: 'Test expense'},
+                created: '2025-01-01',
+                merchant: 'Test Merchant',
+            };
+
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: 'action12356',
+                actorAccountID: missingOwnerAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: openExpenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
+                created: '2025-01-01 12:00:00',
+            };
+
+            // No personalDetails for missingOwnerAccountID — that's what triggers the fail-closed path.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${failClosedPolicyID}`, failClosedPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, false, openExpenseReport, failClosedPolicy)).toBe(false);
+            expect(
+                canEditFieldOfMoneyRequest({
+                    reportAction: moneyRequestAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+                    transaction,
+                    report: openExpenseReport,
+                    policy: failClosedPolicy,
+                }),
+            ).toBe(false);
+        });
     });
 
     describe('getChatByParticipants', () => {

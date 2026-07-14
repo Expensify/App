@@ -5003,13 +5003,15 @@ function canEditMoneyRequest(
         return true;
     }
 
-    // Workflow approvers can edit OPEN reports; managerID is unreliable there so resolve from policy. Excludes Submit&Close (no workflow) and out-of-scope rule approvers.
-    if (
+    // Resolve approver from policy (managerID stale on drafts). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
+    const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, allPersonalDetails);
+    const isWorkflowApproverEditing =
+        !!ownerLogin &&
         isExpenseReport(moneyRequestReport) &&
         isOpenReport(moneyRequestReport) &&
         !isSubmitAndClose(reportPolicy) &&
-        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport)
-    ) {
+        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, ownerLogin);
+    if (isWorkflowApproverEditing) {
         return true;
     }
 
@@ -5253,11 +5255,14 @@ function canEditFieldOfMoneyRequest({
     const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
+    // Resolve approver from policy (managerID stale on drafts). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
+    const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, allPersonalDetails);
     const isApprover =
+        !!ownerLogin &&
         isExpenseReport(moneyRequestReport) &&
         isOpenReport(moneyRequestReport) &&
         !isSubmitAndClose(reportPolicy) &&
-        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport);
+        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, ownerLogin);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
         return isAdmin || isManager || isRequestor || isApprover;
