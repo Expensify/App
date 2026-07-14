@@ -1,9 +1,13 @@
 {
-  "timestamp": "2026-07-14T05:11:00Z",
-  "gitSha": "904e3bdc3d8eab21643214e07d1096d9af804f64",
-  "nodeVersion": "v20.20.2",
-  "cpuModel": "Apple M2 Max",
-  "ramBytes": 103079215104,
-  "iterations": 3,
-  "runs": [{"iteration":1,"exitCode":1,"real":405.66,"user":2419.62,"sys":423.29},{"iteration":2,"exitCode":1,"real":476.72,"user":2534.30,"sys":575.73},{"iteration":3,"exitCode":1,"real":412.30,"user":2468.67,"sys":424.17}]
+    "timestamp": "2026-07-14T05:11:00Z",
+    "gitSha": "904e3bdc3d8eab21643214e07d1096d9af804f64",
+    "nodeVersion": "v20.20.2",
+    "cpuModel": "Apple M2 Max",
+    "ramBytes": 103079215104,
+    "iterations": 3,
+    "runs": [
+        {"iteration": 1, "exitCode": 1, "real": 405.66, "user": 2419.62, "sys": 423.29},
+        {"iteration": 2, "exitCode": 1, "real": 476.72, "user": 2534.3, "sys": 575.73},
+        {"iteration": 3, "exitCode": 1, "real": 412.3, "user": 2468.67, "sys": 424.17}
+    ]
 }

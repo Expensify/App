@@ -1,6 +1,7 @@
 #!/bin/bash
 # Run full-repo ESLint with cache disabled N times and write JSON timings.
 # Usage: ./scripts/benchmark-eslint-no-cache.sh <output.json> [iterations]
+# cspell:ignore machdep memsize
 
 set -euo pipefail
 
