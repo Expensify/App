@@ -30,11 +30,11 @@ describe('SingleSelect', () => {
     // Pre-selected rows are only floated to the top once the list reaches STANDARD_LIST_ITEM_LIMIT, so build
     // enough options to exceed that threshold (see moveInitialSelectionToTop in SelectionListOrderUtils).
     const OPTION_COUNT = CONST.STANDARD_LIST_ITEM_LIMIT + 2;
-    const buildItems = (count: number): Array<SingleSelectItem<string>> =>
-        Array.from({length: count}, (_, index) => ({
-            text: `Item ${index}`,
-            value: `item-${index}`,
-        }));
+    const buildItem = (index: number): SingleSelectItem<string> => ({
+        text: `Item ${index}`,
+        value: `item-${index}`,
+    });
+    const buildItems = (count: number): Array<SingleSelectItem<string>> => Array.from({length: count}, (_, index) => buildItem(index));
     const items = buildItems(OPTION_COUNT);
     const keysOf = (data: ListItem[]) => data.map((item) => item.keyForList);
 
@@ -43,7 +43,7 @@ describe('SingleSelect', () => {
     });
 
     it('floats the pre-selected item to the top on first render', () => {
-        const preselected = items[10];
+        const preselected = buildItem(10);
 
         render(
             <SingleSelect
@@ -60,8 +60,8 @@ describe('SingleSelect', () => {
     });
 
     it('does not reorder the list when the selection changes after first render (no jump to the top)', () => {
-        const preselected = items[10];
-        const reselected = items[3];
+        const preselected = buildItem(10);
+        const reselected = buildItem(3);
 
         render(
             <SingleSelect
@@ -90,7 +90,7 @@ describe('SingleSelect', () => {
 
         render(
             <SingleSelect
-                value={shortItems[5]}
+                value={buildItem(5)}
                 items={shortItems}
                 onChange={jest.fn()}
             />,
@@ -103,7 +103,7 @@ describe('SingleSelect', () => {
     it('passes shouldUpdateFocusedIndex so the focused index follows a row that reorders on selection', () => {
         render(
             <SingleSelect
-                value={items[10]}
+                value={buildItem(10)}
                 items={items}
                 onChange={jest.fn()}
             />,

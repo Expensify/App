@@ -44,16 +44,17 @@ describe('WorkspaceSelector', () => {
         Array.from({length: count}, (_, index) => ({
             text: `Workspace ${index}`,
             policyID: `ws-${index}`,
-            icons: [{source: 'icon', name: `Workspace ${index}`}],
+            icons: [{source: 'icon', type: CONST.ICON_TYPE_WORKSPACE, name: `Workspace ${index}`}],
             keyForList: `ws-${index}`,
         }));
     const keysOf = (data: ListItem[]) => data.map((item) => item.keyForList);
 
     const mockWorkspaces = (count: number) => {
-        mockedUseAdvancedSearchFiltersWorkspaces.mockReturnValue({
-            workspaces: [{data: buildWorkspaces(count)}],
+        const mockReturnValue: ReturnType<typeof useAdvancedSearchFiltersWorkspaces> = {
+            workspaces: [{data: buildWorkspaces(count), sectionIndex: 0}],
             shouldShowWorkspaceSearchInput: false,
-        } as ReturnType<typeof useAdvancedSearchFiltersWorkspaces>);
+        };
+        mockedUseAdvancedSearchFiltersWorkspaces.mockReturnValue(mockReturnValue);
     };
 
     beforeEach(() => {

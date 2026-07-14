@@ -32,11 +32,11 @@ describe('MultiSelect', () => {
     // Pre-selected rows are only floated to the top once the list reaches STANDARD_LIST_ITEM_LIMIT, so build
     // enough options to exceed that threshold (see moveInitialSelectionToTop in SelectionListOrderUtils).
     const OPTION_COUNT = CONST.STANDARD_LIST_ITEM_LIMIT + 2;
-    const buildItems = (count: number): Array<MultiSelectItem<string>> =>
-        Array.from({length: count}, (_, index) => ({
-            text: `Item ${index}`,
-            value: `item-${index}`,
-        }));
+    const buildItem = (index: number): MultiSelectItem<string> => ({
+        text: `Item ${index}`,
+        value: `item-${index}`,
+    });
+    const buildItems = (count: number): Array<MultiSelectItem<string>> => Array.from({length: count}, (_, index) => buildItem(index));
     const items = buildItems(OPTION_COUNT);
     const keysOf = (data: ListItem[]) => data.map((item) => item.keyForList);
 
@@ -45,7 +45,7 @@ describe('MultiSelect', () => {
     });
 
     it('floats pre-selected items to the top on first render', () => {
-        const preselected = items[10];
+        const preselected = buildItem(10);
 
         render(
             <MultiSelect
@@ -62,8 +62,8 @@ describe('MultiSelect', () => {
     });
 
     it('does not reorder the list when a row is toggled after first render (no jump to the top)', () => {
-        const preselected = items[10];
-        const toggled = items[3];
+        const preselected = buildItem(10);
+        const toggled = buildItem(3);
 
         render(
             <MultiSelect
@@ -93,7 +93,7 @@ describe('MultiSelect', () => {
 
         render(
             <MultiSelect
-                value={[shortItems[5]]}
+                value={[buildItem(5)]}
                 items={shortItems}
                 onChange={jest.fn()}
             />,
@@ -106,7 +106,7 @@ describe('MultiSelect', () => {
     it('passes shouldUpdateFocusedIndex so the focused index follows a row that reorders on selection', () => {
         render(
             <MultiSelect
-                value={[items[10]]}
+                value={[buildItem(10)]}
                 items={items}
                 onChange={jest.fn()}
             />,
