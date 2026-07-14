@@ -518,6 +518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Beschränkungen',
+        tryAgain: 'Erneut versuchen',
         tagGLCode: 'GL-Code taggen',
         off: 'Aus',
         noResultsFoundSubtitle: 'Keine Ergebnisse. Bitte passen Sie Ihre Filter oder Suchanfrage an',
@@ -990,8 +991,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Geldbörse',
             },
             addVirtualCardPersonalDetails: {
-                title: 'Fügen Sie Ihre persönlichen Daten hinzu',
-                subtitle: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzusehen und zu verwenden.',
+                title: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzuzeigen und zu verwenden.',
+                subtitle: 'Expensify Karte',
                 cta: 'Details hinzufügen',
             },
             enterSignerInfo: {title: 'Unterzeichnerdaten erforderlich', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto ${bankAccountLastFour}`},
@@ -1618,6 +1619,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: 'geändert',
         removed: 'entfernt',
         transactionPending: 'Transaktion ausstehend.',
+        transactionPendingDescription: 'Transaktion ausstehend. Es kann einige Tage dauern, bis sie verbucht wird.',
         chooseARate: 'Wähle einen Rückerstattungssatz pro Meile oder Kilometer für den Workspace aus',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} bis ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Gültig ab ${startDate}`,
@@ -2153,7 +2155,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstall: 'Bitte auf die neueste Version von New Expensify aktualisieren',
         pleaseInstallExpensifyClassic: 'Bitte installiere die neueste Version von Expensify',
         toGetLatestChanges: 'Für Mobilgeräte lade die neueste Version herunter und installiere sie. Für das Web aktualisiere deinen Browser.',
-        newAppNotAvailable: 'Die New-Expensify-App ist nicht mehr verfügbar.',
+        newAppNotAvailable: 'Jetzt aktualisieren, und Sie werden es uns später danken.',
     },
     initialSettingsPage: {
         about: 'Info',
@@ -2220,18 +2222,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Abmelden',
         restoreStashed: 'Gespeicherten Login wiederherstellen',
         signOutConfirmationText: 'Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.',
-        saveReceiptsConfirmation: {
-            title: 'Belege speichern?',
-            prompt: ({count}: {count: number}) =>
-                `Es ${count === 1 ? 'wird noch 1 Beleg' : `werden noch ${count} Belege`} hochgeladen. Wenn du dich jetzt abmeldest, ${count === 1 ? 'speichern wir ihn' : 'speichern wir sie'} in deinen Fotos, damit du ${count === 1 ? 'ihn' : 'sie'} später zu einer neuen Ausgabe hinzufügen kannst.`,
-            confirm: 'Speichern und abmelden',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Belege speichern?',
-            prompt: ({count}: {count: number}) =>
-                `Es ${count === 1 ? 'wird noch 1 Beleg' : `werden noch ${count} Belege`} hochgeladen. Wenn du dich jetzt abmeldest, ${count === 1 ? 'speichern wir ihn' : 'speichern wir sie'} in deinen Fotos, damit du ${count === 1 ? 'ihn' : 'sie'} später zu einer neuen Ausgabe hinzufügen kannst. Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.`,
-            confirm: 'Speichern und abmelden',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Lesen Sie die <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Nutzungsbedingungen</a> und die <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutzerklärung</a>.`,
         help: 'Hilfe',
@@ -3766,7 +3756,6 @@ ${amount} für ${merchant} – ${date}`,
         facialScan: 'Richtlinie und Einverständniserklärung zur Gesichtserfassung von Onfido',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfidos Richtlinie und Einverständniserklärung zur Gesichtserkennung</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Datenschutz</a> und <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Nutzungsbedingungen</a>.</muted-text-micro>`,
-        tryAgain: 'Erneut versuchen',
         verifyIdentity: 'Identität bestätigen',
         letsVerifyIdentity: 'Lass uns deine Identität bestätigen',
         butFirst: `Aber zuerst das Langweilige. Lies dir im nächsten Schritt den Rechtstext durch und klicke auf „Akzeptieren“, wenn du bereit bist.`,
@@ -5598,6 +5587,28 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 description: 'Wählen Sie einen standardmäßigen Rillet-Anbieter für Ausgaben, die nicht automatisch zugeordnet werden.',
             },
             companyCardAccount: {label: 'Firmenkartenkonto', description: 'Wählen Sie aus, wohin die Firmenkartentransaktionen exportiert werden sollen.'},
+            noBankAccountsFound: 'Keine Bankkonten gefunden',
+            noBankAccountsFoundDescription: 'Bitte fügen Sie Bankkonten in Rillet hinzu und synchronisieren Sie die Verbindung erneut',
+            autoSyncDescription: 'Synchronisieren Sie Rillet und Expensify automatisch – jeden Tag. Berichte werden in Echtzeit synchronisiert.',
+            accountingMethods: {
+                label: 'Exportmethode',
+                description: 'Wählen Sie, wann Ausgaben exportiert werden sollen.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Periodenabgrenzung',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Barzahlung',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Auslagen aus eigener Tasche werden nach endgültiger Genehmigung exportiert',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen werden beim Bezahlen exportiert',
+                },
+            },
+            syncReimbursedReports: 'Erstattete Berichte synchronisieren',
+            syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungszahlung erzeugt.',
+            billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie aus, von wo Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in Rillet.'},
+            syncExpensifyCardSettlements: 'Expensify Kartenabrechnungen synchronisieren',
+            settlementAccount: {label: 'Verrechnungskonto für Expensify Karte', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
+            syncTravelInvoicingSettlements: 'Abrechnungen für Reiseabrechnungen synchronisieren',
+            travelInvoicingSettlementAccount: {label: 'Abrechnungskonto für Reiseabrechnungen', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
         },
         type: {
             free: 'Kostenlos',
@@ -5618,7 +5629,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 feedCouldNotBeLoadedTitle: 'Dieser Feed konnte nicht geladen werden',
                 feedCouldNotBeLoadedMessage:
                     'Beim Laden dieses Feeds ist ein Fehler aufgetreten. Bitte versuche es erneut oder wende dich an deine Administratorin bzw. deinen Administrator.',
-                tryAgain: 'Erneut versuchen',
             },
             addNewCard: {
                 other: 'Sonstiges',
@@ -5796,6 +5806,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             newCard: 'Neue Karte',
             name: 'Name',
             lastFour: 'Letzte 4',
+            statusPendingOrder: 'Bestellung ausstehend',
+            statusShipped: 'Versendet',
+            statusActive: 'Aktiv',
+            statusInactive: 'Inaktiv',
             limit: 'Limit',
             currentBalance: 'Aktueller Kontostand',
             currentBalanceDescription: 'Der aktuelle Saldo ist die Summe aller verbuchten Expensify Karte-Transaktionen, die seit dem letzten Abrechnungsdatum erfolgt sind.',
@@ -6409,6 +6423,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 conciergeNotificationTitle: 'Concierge wird Sie benachrichtigen',
                 conciergeNotificationDescription: 'Wenn der Vorgang abgeschlossen ist, sendet Concierge Ihnen eine Nachricht.',
                 copyCompleted: 'Ihre Workspace-Einstellungen wurden kopiert.',
+                copyFailedTitle: 'Kopieren fehlgeschlagen',
             },
             upgrade: {
                 title: 'Einige Funktionen erfordern einen Control-Tarif',
@@ -6933,7 +6948,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 optionFixedDistanceTitle: 'Eine feste Entfernung pro Antrag ausschließen',
                 optionFixedDistanceHelp: 'Ziehen Sie die gleiche Pendelstrecke von jeder Abrechnung ab. Am besten für Mitglieder geeignet, die eine Abrechnung pro Arbeitstag einreichen.',
                 distanceLabel: 'Entfernung',
-                errors: {distanceMustBePositive: 'Die Entfernung muss eine positive ganze Zahl sein.'},
+                errors: {distanceMustBePositive: 'Die Entfernung muss eine positive ganze Zahl sein.', distanceTooLarge: 'Die Entfernung ist zu groß.'},
             },
             distance: 'Entfernung',
             centrallyManage: 'Tarife zentral verwalten, in Meilen oder Kilometern nachverfolgen und eine Standardkategorie festlegen.',
@@ -7919,6 +7934,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Mitarbeitenden.</muted-text-label>`,
                 groups: {title: 'Gruppen', description: 'Wählen Sie die Mitarbeitergruppen aus, die Sie mit diesem Workspace synchronisieren möchten'},
+                syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
             },
             notSync: 'Nicht synchronisiert',
             authenticationError: (providerName: string) => `Verbindung mit ${providerName} aufgrund einer abgelaufenen Verknüpfung nicht möglich.`,
@@ -9202,6 +9218,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     },
     actionableMentionTrackExpense: {
         submit: 'An jemanden senden',
+        submitToFriend: 'An einen Freund senden',
+        submitToEmployer: 'An meinen Arbeitgeber senden',
         categorize: 'Kategorisieren',
         share: 'Mit meinem Steuerberater teilen',
         nothing: 'Im Moment nichts',
@@ -10033,6 +10051,18 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             chat: 'Bei jeder Ausgabe chatten, um Fragen schnell zu klären',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Möchtest du einen KOSTENLOSEN Mitarbeitertarif?',
+        description: 'Warte nicht, bis dein Unternehmen Expensify einführt. Wir haben einen kostenlosen Tarif nur für dich entwickelt:',
+        confirmText: 'Kostenlosen Tarif holen',
+        dismissText: 'Nein, danke',
+        features: {
+            getReimbursed: 'Schneller erstattet werden – direkt in Expensify',
+            buildReports: 'Erstelle Ausgabenberichte in Sekunden',
+            categorize: 'Kategorisiere deine Ausgaben',
+            inviteBoss: 'Lade deinen Chef ein, wenn du bereit bist',
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Benenne deine gespeicherten Suchen um</strong> – hier!</tooltip>',
@@ -10323,6 +10353,33 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         positiveButton: 'Ja!',
         negativeButton: 'Nicht wirklich',
     },
+    trialPaymentReminder: {
+        title: 'Bleib der Frist voraus',
+        subtitle: 'Warte nicht bis zur letzten Minute – füge noch heute deine Zahlungsmethode hinzu, um den kontinuierlichen Zugang zu deinen Ausgaben auf Expensify sicherzustellen.',
+        trialEndsInDays: () => ({
+            one: 'Testphase endet in 1 Tag',
+            other: (pluralCount: number) => `Testphase endet in ${pluralCount} Tagen`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Testphase endet in ${hours}h : ${minutes}m : ${seconds}s`,
+        closeButton: 'Schließen',
+        addPaymentCardButton: 'Zahlungskarte hinzufügen',
+    },
     monthPickerPage: {month: 'Monat', selectMonth: 'Bitte wählen Sie einen Monat aus'},
+    aiFeaturesPromoModal: {
+        subtitle: 'Neu bei Concierge AI',
+        confirmText: 'Los geht’s!',
+        spendAnalysis: {
+            title: 'Interaktive Ausgabenanalyse',
+            description: `<muted-text>Concierge zeigt monatliche Ausgabenanalysen an und ermöglicht es Ihnen, die Details hinter jeder Zahl genauer zu betrachten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Mehr erfahren</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Lernen Sie Ihre neue Spesenassistenz kennen',
+            description: `<muted-text>Chatten Sie mit Concierge, um Ausgaben direkt in der App oder per E-Mail oder SMS zu erstellen und zu aktualisieren. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Mehr erfahren</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Erstellen Sie Ihre eigenen Agenten',
+            description: `<muted-text>Erstellen Sie benutzerdefinierte Agenten, die Ausgaben anhand Ihrer Regeln prüfen, genehmigen und weiterleiten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Mehr erfahren</a>.</muted-text>`,
+        },
+    },
 };
 export default translations;
