@@ -174,7 +174,7 @@ function getPersonalDetailsByID(accountID: number | undefined, personalDetailsLi
  * @param currentUserAccountID
  * @param shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
  * @returns - Array of personal detail objects
- * @deprecated
+ * @deprecated Don't use this. The only usage left is in deprecated NextStepUtils/buildNextStepNew which will be removed later.
  */
 function deprecatedGetPersonalDetailsByIDs({
     accountIDs,
@@ -316,7 +316,7 @@ function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetails
 }
 
 /**
- * @deprecated
+ * @deprecated Don't use this. The only usage left is in deprecated NextStepUtils/buildNextStepNew which will be removed later.
  */
 function deprecatedGetLoginsByAccountIDs(accountIDs: number[] | undefined): string[] {
     return getLoginsByAccountIDs(accountIDs, allPersonalDetails);
