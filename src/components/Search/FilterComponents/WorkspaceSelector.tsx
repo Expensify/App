@@ -104,6 +104,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
             ) : (
                 <SelectionList
                     shouldSingleExecuteRowSelect
+                    shouldUpdateFocusedIndex
                     shouldShowLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !ready}
                     data={listData}
                     ListItem={MultiSelectListItem}

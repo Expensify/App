@@ -136,6 +136,7 @@ function MultiSelect<T extends string>({
             ) : (
                 <SelectionList
                     shouldSingleExecuteRowSelect
+                    shouldUpdateFocusedIndex
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     data={listData}
                     ListItem={MultiSelectListItem}

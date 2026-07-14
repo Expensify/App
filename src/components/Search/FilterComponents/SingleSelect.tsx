@@ -141,7 +141,7 @@ function SingleSelect<T extends string>({
                         ...selectionListStyle,
                         listItemWrapperStyle: [{minHeight: itemHeight ?? variables.optionRowHeightCompact}, selectionListStyle?.listItemWrapperStyle],
                     }}
-                    shouldUpdateFocusedIndex={isSearchable}
+                    shouldUpdateFocusedIndex
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
                     shouldShowLoadingPlaceholder={!noResultsFound}
                     footerContent={footer}
