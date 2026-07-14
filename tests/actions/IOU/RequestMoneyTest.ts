@@ -1,4 +1,4 @@
-import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
@@ -8,10 +8,12 @@ import deleteReport from '@libs/actions/Report/DeleteReport';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import * as IsFileUploadable from '@libs/isFileUploadable';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -28,6 +30,7 @@ import type {Participant} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
+import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -216,6 +219,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -481,6 +485,7 @@ describe('actions/IOU', () => {
                         quickAction: undefined,
                         betas: [CONST.BETAS.ALL],
                         personalDetails: {},
+                        delegateAccountID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -714,6 +719,7 @@ describe('actions/IOU', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            delegateAccountID: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -883,6 +889,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
             return (
                 waitForBatchedUpdates()
@@ -1289,6 +1296,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
 
@@ -1358,6 +1366,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -1407,6 +1416,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -1439,6 +1449,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -1471,6 +1482,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
             // Verify that the iouReport is created successfully when isSelfTourViewed is true
             expect(iouReport).toBeDefined();
@@ -1522,6 +1534,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1566,6 +1579,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1637,6 +1651,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
             waitForBatchedUpdates();
 
@@ -1705,6 +1720,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 personalDetails: testPersonalDetails,
                 betas: [CONST.BETAS.ALL],
+                delegateAccountID: undefined,
             });
 
             expect(iouReport).toBeDefined();
@@ -1778,6 +1794,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 personalDetails: testPersonalDetails,
                 betas: [CONST.BETAS.ALL],
+                delegateAccountID: undefined,
             });
 
             expect(iouReport).toBeDefined();
@@ -1822,6 +1839,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 personalDetails: {},
                 betas: [CONST.BETAS.ALL],
+                delegateAccountID: undefined,
             });
 
             // Should still create the expense even with empty personalDetails
@@ -1884,6 +1902,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
@@ -1982,6 +2001,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 personalDetails: {},
                 betas: [CONST.BETAS.ALL],
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2057,6 +2077,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        delegateAccountID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2144,6 +2165,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        delegateAccountID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2222,6 +2244,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        delegateAccountID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2295,6 +2318,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        delegateAccountID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2369,6 +2393,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        delegateAccountID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2406,6 +2431,66 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(mockFetch?.resume);
+        });
+
+        describe('delegateAccountID forwarding', () => {
+            it('sets delegateAccountID on the IOU action when delegateAccountID is provided', async () => {
+                const DELEGATE_ACCOUNT_ID = 999;
+                mockFetch?.pause?.();
+
+                requestMoney({
+                    report: {reportID: ''},
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                    },
+                    transactionParams: {
+                        amount: 10000,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                        merchant: 'Test',
+                        comment: 'delegate test',
+                    },
+                    shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
+                    transactionViolations: {},
+                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                    currentUserEmailParam: RORY_EMAIL,
+                    policyRecentlyUsedCurrencies: [],
+                    existingTransactionDraft: undefined,
+                    draftTransactionIDs: [],
+                    isSelfTourViewed: false,
+                    quickAction: undefined,
+                    betas: [CONST.BETAS.ALL],
+                    personalDetails: {},
+                    delegateAccountID: DELEGATE_ACCOUNT_ID,
+                });
+                await waitForBatchedUpdates();
+
+                let iouReport: Report | undefined;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (allReports) => {
+                        iouReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
+                    },
+                });
+                const iouReportID = iouReport?.reportID;
+                expect(iouReportID).toBeTruthy();
+                if (!iouReportID) {
+                    throw new Error('Expected IOU report to be created');
+                }
+
+                const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
+                const iouAction = Object.values(reportActions ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                    isMoneyRequestAction(reportAction),
+                );
+                expect(iouAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+
+                await mockFetch?.resume?.();
+            });
         });
     });
 
@@ -2461,6 +2546,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2477,10 +2563,64 @@ describe('actions/IOU', () => {
             }
         });
 
+        it('propagates the capture-time receiptTraceId into the final request params', async () => {
+            // jsdom and the lib module disagree on the `Blob` constructor identity, so a real File is
+            // gated out by isFileUploadable in tests. Force it through to exercise the receipt pass-through.
+            const isFileUploadableSpy = jest.spyOn(IsFileUploadable, 'default').mockReturnValue(true);
+
+            // Given a receipt file stamped with a trace id at capture time
+            const receipt: Receipt = new File(['receipt-bytes'], 'receipt.png', {
+                type: 'image/png',
+            });
+            receipt.source = 'file://receipt.png';
+            const traceId = mintAndStampReceiptTraceId(receipt);
+
+            // When the expense is submitted
+            requestMoney({
+                report: {reportID: ''},
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 10000,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: 'KFC',
+                    comment: '',
+                    receipt,
+                },
+                shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
+                existingTransactionDraft: undefined,
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {},
+                delegateAccountID: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the trace id minted at capture reaches the final request receipt params
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            const [command, params] = writeSpy.mock.calls.at(0);
+            expect(command).toBe(WRITE_COMMANDS.REQUEST_MONEY);
+            expect(JSON.stringify(params)).toContain(traceId);
+
+            isFileUploadableSpy.mockRestore();
+        });
+
         it('adds grouped from snapshot optimistic data for grouped search queries', async () => {
             const currentSearchQueryJSON = {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING] as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
@@ -2534,6 +2674,7 @@ describe('actions/IOU', () => {
                 existingTransactionDraft: undefined,
                 draftTransactionIDs: [],
                 personalDetails: {},
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2608,6 +2749,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
                 reportActionsList: undefined,
             });
 
