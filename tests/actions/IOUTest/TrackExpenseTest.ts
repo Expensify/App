@@ -585,6 +585,8 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 accountantParams: {
                     accountant,
+                    newAccountIDs: [],
+                    newLogins: [],
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
@@ -725,6 +727,8 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 accountantParams: {
                     accountant,
+                    newAccountIDs: [],
+                    newLogins: [],
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
@@ -867,6 +871,8 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 accountantParams: {
                     accountant,
+                    newAccountIDs: [],
+                    newLogins: [],
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
@@ -1009,6 +1015,8 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 accountantParams: {
                     accountant,
+                    newAccountIDs: [],
+                    newLogins: [],
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
@@ -1171,6 +1179,8 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 accountantParams: {
                     accountant,
+                    newAccountIDs: [],
+                    newLogins: [],
                 },
                 reportActionsList: explicitReportActionsList,
                 isASAPSubmitBetaEnabled: false,
