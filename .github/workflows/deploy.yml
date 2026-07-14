@@ -908,13 +908,23 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      - name: Load retest webhook from 1Password
+        id: loadWebhook
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SLACK_RETEST_WEBHOOK: op://${{ vars.OP_VAULT }}/Repository-Secrets/SLACK_RETEST_WEBHOOK
+
       - name: File retest request
         run: npx bun scripts/createRetestRequestForCP.ts
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           DEPLOY_SHA: ${{ needs.prep.outputs.DEPLOY_SHA }}
           DEPLOY_TAG: ${{ needs.prep.outputs.TAG }}
-          SLACK_RETEST_WEBHOOK: ${{ secrets.SLACK_RETEST_WEBHOOK }}
+          SLACK_RETEST_WEBHOOK: ${{ steps.loadWebhook.outputs.SLACK_RETEST_WEBHOOK }}
 
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404
