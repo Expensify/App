@@ -266,6 +266,16 @@ function setClipboardMessage(content: string | undefined) {
     }
 }
 
+/** Sets the HTML string to Clipboard after stripping the SMS domain from any user mentions */
+function setClipboardMessageWithCleanedMentions(value: string) {
+    setClipboardMessage(
+        value.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
+            const modifiedContent = Str.removeSMSDomain(innerContent) || '';
+            return openTag + modifiedContent + closeTag || '';
+        }),
+    );
+}
+
 type ShouldShow = (args: {
     type: string;
     reportAction: OnyxEntry<ReportAction>;
@@ -932,7 +942,11 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isAttachment = isReportActionAttachment(reportAction);
             if (!isAttachment) {
                 const content = selection || messageHtml;
-                if (isReportPreviewAction) {
+                if (selection) {
+                    // When the user has highlighted part of a message, always copy exactly what's selected,
+                    // regardless of the report action type (including system messages like "marked as paid").
+                    setClipboardMessageWithCleanedMentions(selection);
+                } else if (isReportPreviewAction) {
                     const iouReportID = getIOUReportIDFromReportActionPreview(reportAction);
                     const displayMessage = getReportPreviewMessage({
                         reportOrID: iouReportID,
@@ -1341,12 +1355,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         }),
                     );
                 } else if (content) {
-                    setClipboardMessage(
-                        content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
-                            const modifiedContent = Str.removeSMSDomain(innerContent) || '';
-                            return openTag + modifiedContent + closeTag || '';
-                        }),
-                    );
+                    setClipboardMessageWithCleanedMentions(content);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
                     setClipboardMessage(getSettlementAccountLockedMessage(translate, reportAction));
                 } else if (messageText) {

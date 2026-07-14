@@ -136,6 +136,7 @@ import type {
     Attributes,
     AutoReportingOffset,
     CompanyAddress,
+    CreatableWorkspaceType,
     CustomUnit,
     NetSuiteCustomList,
     NetSuiteCustomSegment,
@@ -155,8 +156,8 @@ import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} fr
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
+import {formatInTimeZone} from 'date-fns-tz';
 import {addDays} from 'date-fns/addDays';
-import {formatDate} from 'date-fns/format';
 import {subMinutes} from 'date-fns/subMinutes';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -263,7 +264,7 @@ type BuildPolicyDataOptions = {
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
     shouldCreateControlPolicy?: boolean;
-    type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
+    type?: CreatableWorkspaceType;
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
     hasActiveAdminPolicies: boolean | undefined;
@@ -1074,6 +1075,7 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string, currentRei
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                reimburser: currentReimburser ?? null,
                 achAccount: {reimburser: currentReimburser ?? null},
                 errorFields: {reimburser: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsPayerPage.genericErrorMessage')},
                 pendingFields: {reimburser: null},
@@ -1300,7 +1302,12 @@ function setWorkspaceReimbursement({
         });
     }
 
-    const params: SetWorkspaceReimbursementParams = {policyID, reimbursementChoice, bankAccountID};
+    const shouldClearBankAccountID = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    const params: SetWorkspaceReimbursementParams = {
+        policyID,
+        reimbursementChoice,
+        bankAccountID: shouldClearBankAccountID ? 0 : bankAccountID,
+    };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
 }
@@ -2436,7 +2443,7 @@ type CreateDraftInitialWorkspaceParams = {
     policyID?: string;
     makeMeAdmin?: boolean;
     file?: File;
-    type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
+    type?: CreatableWorkspaceType;
     isAnnualSubscription?: boolean;
 };
 
@@ -3180,6 +3187,7 @@ type CreateDraftWorkspaceParams = {
     makeMeAdmin?: boolean;
     policyID?: string;
     file?: File;
+    type?: CreatableWorkspaceType;
 };
 
 function createDraftWorkspace({
@@ -3192,8 +3200,11 @@ function createDraftWorkspace({
     makeMeAdmin = false,
     policyID = generatePolicyID(),
     file,
+    type = CONST.POLICY.TYPE.TEAM,
 }: CreateDraftWorkspaceParams): CreateWorkspaceParams {
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
+    // Submit (submit2026) workspaces ship with Categories, Tags, Workflows (manual submission), and Distance enabled by default.
+    const isSubmitWorkspace = type === CONST.POLICY.TYPE.SUBMIT;
 
     const {expenseChatData, adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID} = ReportUtils.buildOptimisticWorkspaceChats(
         policyID,
@@ -3205,13 +3216,20 @@ function createDraftWorkspace({
     const shouldEnableWorkflowsByDefault =
         !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
 
+    let draftApprovalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE> = CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (isSubmitWorkspace) {
+        draftApprovalMode = CONST.POLICY.APPROVAL_MODE.ADVANCED;
+    } else if (shouldEnableWorkflowsByDefault) {
+        draftApprovalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+    }
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_DRAFTS | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
             value: {
                 id: policyID,
-                type: CONST.POLICY.TYPE.TEAM,
+                type,
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: currentUserEmail,
@@ -3221,17 +3239,18 @@ function createDraftWorkspace({
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
                 approver: currentUserEmail,
-                autoReportingFrequency: shouldEnableWorkflowsByDefault ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                autoReportingFrequency:
+                    shouldEnableWorkflowsByDefault || isSubmitWorkspace ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 harvesting: {
-                    enabled: !shouldEnableWorkflowsByDefault,
+                    enabled: !shouldEnableWorkflowsByDefault && !isSubmitWorkspace,
                 },
-                approvalMode: shouldEnableWorkflowsByDefault ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approvalMode: draftApprovalMode,
                 customUnits,
                 areCategoriesEnabled: true,
-                areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
+                areWorkflowsEnabled: shouldEnableWorkflowsByDefault || isSubmitWorkspace,
                 areCompanyCardsEnabled: true,
-                areTagsEnabled: false,
-                areDistanceRatesEnabled: false,
+                areTagsEnabled: isSubmitWorkspace,
+                areDistanceRatesEnabled: isSubmitWorkspace,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
@@ -3285,7 +3304,7 @@ function createDraftWorkspace({
         ownerEmail: policyOwnerEmail,
         makeMeAdmin,
         policyName: workspaceName,
-        type: CONST.POLICY.TYPE.TEAM,
+        type,
         adminsCreatedReportActionID,
         expenseCreatedReportActionID,
         customUnitID,
@@ -5809,6 +5828,59 @@ function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
 }
 
 /**
+ * Upgrades several workspaces to Corporate (Control) in a single `UpgradeToCorporate` call by passing
+ * `policyIDList` instead of `policyID`. Used by the copy-settings flow when Control-only settings are
+ * being copied onto Collect (Team) targets.
+ */
+function bulkUpgradeToCorporate(policies: Policy[]) {
+    const policiesToUpgrade = policies.filter((policy): policy is Policy => !!policy);
+    if (policiesToUpgrade.length === 0) {
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+
+    for (const policy of policiesToUpgrade) {
+        const policyID = policy.id;
+        const {optimistic: corporateUpgradeOptimistic, failure: corporateUpgradeFailureRevert} = getCorporateUpgradeOnyxFields(policy);
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isPendingUpgrade: true,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                ...corporateUpgradeOptimistic,
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isPendingUpgrade: false,
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isPendingUpgrade: false,
+                type: policy.type,
+                ...corporateUpgradeFailureRevert,
+            },
+        });
+    }
+
+    const parameters: UpgradeToCorporateParams = {policyIDList: policiesToUpgrade.map((policy) => policy.id).join(',')};
+
+    API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
+}
+
+/**
  * Handle the upgrade from submit to corporate or control based on the target type
  * @param policy - Workspace policy being upgraded
  * @param targetType - the type to upgrade to, either team or corporate
@@ -5834,8 +5906,9 @@ function upgradeSubmit(
     type UpgradeSubmitOnyxKey = typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL | typeof ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL;
 
     const now = new Date();
-    const optimisticFirstDayFreeTrial = formatDate(subMinutes(now, 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
-    const optimisticLastDayFreeTrial = formatDate(addDays(now, 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+    // Match the backend's UTC DB timestamp format for optimistic trial dates.
+    const optimisticFirstDayFreeTrial = formatInTimeZone(subMinutes(now, 1), 'UTC', CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+    const optimisticLastDayFreeTrial = formatInTimeZone(addDays(now, 30), 'UTC', CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
 
     const policyID = policy?.id ?? CONST.POLICY.ID_FAKE;
     const currentUserLogin = currentUserEmail ?? '';
@@ -7684,6 +7757,7 @@ export {
     enableExpensifyCard,
     createPolicyExpenseChats,
     upgradeToCorporate,
+    bulkUpgradeToCorporate,
     openPolicyExpensifyCardsPage,
     updateMemberCustomField,
     openPolicyEditCardLimitTypePage,
