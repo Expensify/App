@@ -15,8 +15,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import mergeRefs from '@libs/mergeRefs';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 
@@ -213,6 +211,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         setIsMenuVisible,
     }));
 
+    const IconComponent = shouldUseShortForm ? InlineIcon : Icon;
+
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
@@ -287,23 +287,13 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                         isButtonSizeSmall && shouldUseShortForm ? styles.dropDownSmallButtonArrowContain : styles.dropDownMediumButtonArrowContain,
                                     ]}
                                 >
-                                    {shouldUseShortForm ? (
-                                        <InlineIcon
-                                            contentSize={{width: variables.iconSizeExtraSmall, height: variables.iconSizeExtraSmall}}
-                                            src={icons.DownArrow}
-                                            additionalStyles={[styles.pRelative, styles.t0, isMenuVisible ? styles.flipUpsideDown : undefined]}
-                                            fill={variant === CONST.BUTTON_VARIANT.SUCCESS ? theme.buttonSuccessText : theme.buttonIcon}
-                                            testID="dropdown-arrow-icon"
-                                        />
-                                    ) : (
-                                        <Icon
-                                            size={dropdownArrowIconSize}
-                                            src={icons.DownArrow}
-                                            additionalStyles={[isMenuVisible ? styles.flipUpsideDown : undefined]}
-                                            fill={variant === CONST.BUTTON_VARIANT.SUCCESS ? theme.buttonSuccessText : theme.buttonIcon}
-                                            testID="dropdown-arrow-icon"
-                                        />
-                                    )}
+                                    <IconComponent
+                                        size={CONST.ICON_SIZE.EXTRA_SMALL}
+                                        src={icons.DownArrow}
+                                        additionalStyles={[styles.pRelative, styles.t0, isMenuVisible ? styles.flipUpsideDown : undefined]}
+                                        fill={variant === CONST.BUTTON_VARIANT.SUCCESS ? theme.buttonSuccessText : theme.buttonIcon}
+                                        testID="dropdown-arrow-icon"
+                                    />
                                 </View>
                             </View>
                         </Button>

@@ -1,9 +1,12 @@
+import type {IconSize} from '@components/Icon/utils/resolveIconSize';
 import ImageSVG from '@components/ImageSVG';
 
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {Dimensions} from '@src/types/utils/Layout';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -12,13 +15,12 @@ import {View} from 'react-native';
 
 import IconWrapperStyles from './IconWrapperStyles';
 
-/** Shared props for primitives that also receive a measured or layout content size. */
 type InlineIconProps = {
     /** Icon asset to render. */
     src: IconAsset;
 
-    /** Size for inline icons. */
-    contentSize: Dimensions;
+    /** Preset size that resolves to square pixel dimensions, matching `Icon`. */
+    size: IconSize;
 
     /** Test identifier for end-to-end tests. */
     testID?: string;
@@ -31,8 +33,10 @@ type InlineIconProps = {
 };
 
 /** Renders an icon positioned inline within surrounding text. */
-function InlineIcon({testID = 'inline-icon', additionalStyles, src, contentSize, fill}: InlineIconProps) {
+function InlineIcon({testID = 'inline-icon', additionalStyles, src, size, fill}: InlineIconProps) {
+    const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
+    const contentSize = StyleUtils.getIconWidthAndHeightStyle(size, variables.iconSizeNormal, variables.iconSizeNormal, false);
     const viewStyles = [contentSize, styles.bgTransparent, styles.overflowVisible];
     const iconStyles = [contentSize, IconWrapperStyles, styles.pAbsolute, additionalStyles];
 

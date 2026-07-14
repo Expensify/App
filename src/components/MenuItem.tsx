@@ -1073,7 +1073,7 @@ function MenuItem({
                                                                 {!!furtherDetailsIcon && (
                                                                     <InlineIcon
                                                                         src={furtherDetailsIcon}
-                                                                        contentSize={{width: variables.iconSizeNormal, height: variables.iconSizeNormal}}
+                                                                        size={CONST.ICON_SIZE.MEDIUM}
                                                                     />
                                                                 )}
                                                                 <Text
@@ -1214,8 +1214,7 @@ function MenuItem({
                                                         <CopyTextToClipboard
                                                             urlToCopy={copyValue}
                                                             shouldHaveActiveBackground
-                                                            iconHeight={variables.iconSizeExtraSmall}
-                                                            iconWidth={variables.iconSizeExtraSmall}
+                                                            iconSize={CONST.ICON_SIZE.EXTRA_SMALL}
                                                             iconStyles={styles.t0}
                                                             styles={styles.reportActionContextMenuMiniButton}
                                                             shouldUseButtonBackground
