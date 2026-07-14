@@ -40,6 +40,15 @@ describe('UserAvatarUtils', () => {
             expect(avatar).toBe(avatars.current.NotificationsAvatar);
         });
 
+        it('should resolve an agent avatar URL to a local SVG component so the Share QR logo renders offline', () => {
+            const agentAvatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/bot-avatar--blue.png';
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const avatar = UserAvatarUtils.getAvatar({avatarSource: agentAvatarURL, accountID: 1, defaultAvatars: avatars.current});
+
+            // A bundled SVG component (not the CDN URL string) means no network request is needed offline.
+            expect(typeof avatar).toBe('function');
+        });
+
         it('should return default avatar SVG for default avatar URL', () => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
             const avatar = UserAvatarUtils.getAvatar({avatarSource: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png', accountID: 2, defaultAvatars: avatars.current});

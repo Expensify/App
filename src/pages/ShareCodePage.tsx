@@ -18,6 +18,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {findLocalAvatarForURL} from '@libs/Avatars/AvatarLookup';
 import Clipboard from '@libs/Clipboard';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -122,16 +123,23 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
         : `${urlWithTrailingSlash}${DYNAMIC_ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID)}`;
 
-    const logo = isReport
-        ? getLogoForWorkspace(report, policy)
-        : (getAvatarURL({avatarSource: currentUserPersonalDetails?.avatar, accountID: currentUserPersonalDetails?.accountID}) as ImageSourcePropType);
+    // Catalog-backed avatars (agent/default user avatars) have a bundled local SVG. Render the profile QR logo from
+    // that SVG rather than the CDN URL so it still shows offline; only user-uploaded avatars fall back to the URL.
+    const localAvatarLogo = isReport ? undefined : findLocalAvatarForURL(currentUserPersonalDetails?.avatar);
+
+    let logo: ImageSourcePropType | undefined;
+    if (isReport) {
+        logo = getLogoForWorkspace(report, policy);
+    } else if (!localAvatarLogo) {
+        logo = getAvatarURL({avatarSource: currentUserPersonalDetails?.avatar, accountID: currentUserPersonalDetails?.accountID}) as ImageSourcePropType;
+    }
 
     // Default logos (avatars) are SVG and they require some special logic to display correctly
-    let svgLogo: React.FC<SvgProps> | undefined;
+    let svgLogo: React.FC<SvgProps> | undefined = localAvatarLogo;
     let logoBackgroundColor: string | undefined;
     let svgLogoFillColor: string | undefined;
 
-    if (!logo && policy && !policy.avatarURL) {
+    if (!logo && !svgLogo && policy && !policy.avatarURL) {
         svgLogo = getDefaultWorkspaceAvatar(policy.name) || icons.FallbackAvatar;
 
         const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id);
