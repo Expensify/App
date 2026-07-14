@@ -8,7 +8,7 @@
                 "src/HybridAppHandler.tsx",
                 "scripts/**/*.{js,ts}",
                 "web/proxy.ts",
-                "config/webpack/**/*.{js,mjs,ts}",
+                "config/rsbuild/**/*.{js,mjs,cjs,ts}",
                 ".github/scripts/**/*.ts",
                 ".github/actions/javascript/**/*.ts",
                 ".storybook/**/*.{js,ts,tsx}",
@@ -32,8 +32,8 @@
             "eslint": {
                 "config": ["config/eslint/eslint.config.mjs", "eslint.changed.config.mjs"]
             },
-            "webpack": {
-                "config": ["config/webpack/webpack.common.ts"]
+            "rsbuild": {
+                "config": ["config/rsbuild/rsbuild.config.ts", ".storybook/rsbuild.config.ts"]
             },
             "babel": {
                 "config": ["babel.config.js"]
@@ -58,18 +58,22 @@
         "lodash",
         "@babel/plugin-proposal-private-methods",
         "@babel/plugin-proposal-private-property-in-object",
+        "@babel/plugin-transform-export-namespace-from",
         "babel-plugin-module-resolver",
+        "babel-plugin-react-compiler",
         "babel-plugin-transform-remove-console",
         "@fullstory/babel-plugin-react-native",
+        "@fullstory/babel-plugin-annotate-react",
         "eslint-config-airbnb-typescript",
         "eslint-config-prettier",
         "eslint-plugin-storybook",
         "@dword-design/eslint-plugin-import-alias",
-        "tsconfig-paths",
         "@vercel/ncc",
+        "bun",
         "shellcheck",
         "patch-package",
-        "diff-so-fancy"
+        "diff-so-fancy",
+        "@babel/plugin-proposal-class-properties"
     ],
     "ignoreBinaries": ["metro-symbolicate", "mkcert"]
 }

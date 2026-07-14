@@ -1,12 +1,16 @@
+import Icon from '@components/Icon';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
 // Static twin of SearchActionsBarNarrow - used for fast perceived performance.
 // Keep hooks and Onyx subscriptions to an absolute minimum; add new ones only
 // when strictly necessary. UI must stay visually identical to the interactive version.
 import React from 'react';
 import {View} from 'react-native';
-import Icon from '@components/Icon';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 function StaticSearchActionsBar() {
     const styles = useThemeStyles();
@@ -19,19 +23,19 @@ function StaticSearchActionsBar() {
                 additionalStyles={[styles.touchableButtonImage]}
                 src={expensifyIcons.Filter}
                 fill={theme.icon}
-                small
+                size={CONST.ICON_SIZE.SMALL}
             />
             <Icon
                 additionalStyles={[styles.touchableButtonImage]}
                 src={expensifyIcons.Bookmark}
                 fill={theme.icon}
-                small
+                size={CONST.ICON_SIZE.SMALL}
             />
             <Icon
                 additionalStyles={[styles.touchableButtonImage]}
                 src={expensifyIcons.Gear}
                 fill={theme.icon}
-                small
+                size={CONST.ICON_SIZE.SMALL}
             />
         </View>
     );

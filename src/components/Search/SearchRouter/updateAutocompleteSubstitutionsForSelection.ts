@@ -1,5 +1,6 @@
-import getAutocompleteSelectionSubstitutionKey from './getAutocompleteSelectionSubstitutionKey';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
+
+import getAutocompleteSelectionSubstitutionKey from './getAutocompleteSelectionSubstitutionKey';
 
 type UpdateAutocompleteSubstitutionsParams = {
     newSearchQuery: string;

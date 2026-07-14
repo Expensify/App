@@ -1,5 +1,3 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -10,26 +8,35 @@ import SearchBar from '@components/SearchBar';
 import SelectionList from '@components/SelectionList';
 import SpendRuleListItem from '@components/SelectionList/ListItem/SpendRuleListItem';
 import type {SpendRuleListItemType} from '@components/SelectionList/ListItem/types';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setIssueNewCardData} from '@libs/actions/Card';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 type SpendRuleSelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION>;
 
@@ -45,6 +52,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
 
     const [shouldShowError, setShouldShowError] = useState(false);
     const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.spendRuleID);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const isLoadingIssueCardForm = isLoadingOnyxValue(issueCardFormMetadata);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION.path);
@@ -95,8 +103,10 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
         }
 
         setShouldShowError(false);
-        setIssueNewCardData(policyID, {spendRuleID: cardRuleID}).then(() => {
-            goBack();
+        startWithLoading(() => {
+            setIssueNewCardData(policyID, {spendRuleID: cardRuleID}).then(() => {
+                goBack();
+            });
         });
     };
 
@@ -170,6 +180,8 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
                             <FormAlertWithSubmitButton
                                 buttonText={translate('common.save')}
                                 onSubmit={onSubmit}
+                                shouldShowLoadingImmediatelyOnPress={false}
+                                isLoading={isLoading}
                                 isAlertVisible={shouldShowError}
                                 containerStyles={[!shouldShowError && styles.mt5]}
                                 message={translate('common.error.pleaseSelectOne')}

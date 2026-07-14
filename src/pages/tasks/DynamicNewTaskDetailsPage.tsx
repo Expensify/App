@@ -1,0 +1,165 @@
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+
+import useAncestors from '@hooks/useAncestors';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {addErrorMessage} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
+import {getCommentLength} from '@libs/ReportUtils';
+
+import variables from '@styles/variables';
+
+import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, setDetailsValue, setShareDestinationValue} from '@userActions/Task';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
+import INPUT_IDS from '@src/types/form/NewTaskForm';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+function DynamicNewTaskDetailsPage() {
+    const [task] = useOnyx(ONYXKEYS.TASK);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.parentReportID}`, undefined, [task?.parentReportID]);
+    const ancestors = useAncestors(parentReport);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsListSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
+    });
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const [accountIDToName] = useOnyx(ONYXKEYS.DERIVED.ACCOUNT_ID_TO_NAME_MAP);
+    const [localTitle, setLocalTitle] = useState<string>();
+    const [localDescription, setLocalDescription] = useState<string>();
+    const taskTitle = localTitle ?? Parser.htmlToMarkdown(Parser.replace(task?.title ?? ''), {accountIDToName});
+    const taskDescription = localDescription ?? Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''), {accountIDToName});
+
+    const titleDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskTitle), {accountIDToName});
+    const descriptionDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskDescription), {accountIDToName});
+    const {inputCallbackRef} = useAutoFocusInput();
+
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK_DETAILS.path);
+    const skipConfirmation = task?.skipConfirmation && task?.assigneeAccountID && task?.parentReportID;
+    const buttonText = skipConfirmation ? translate('newTaskPage.assignTask') : translate('common.next');
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
+        const errors = {};
+
+        if (!values.taskTitle) {
+            // We error if the user doesn't enter a task name
+            addErrorMessage(errors, 'taskTitle', translate('newTaskPage.pleaseEnterTaskName'));
+        } else if (values.taskTitle.length > CONST.TASK_TITLE_CHARACTER_LIMIT) {
+            addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', values.taskTitle.length, CONST.TASK_TITLE_CHARACTER_LIMIT));
+        }
+        const taskDescriptionLength = getCommentLength(values.taskDescription);
+        if (taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
+            addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', taskDescriptionLength, CONST.DESCRIPTION_LIMIT));
+        }
+
+        return errors;
+    };
+
+    // On submit, we want to call the assignTask function and wait to validate
+    // the response
+    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
+        setDetailsValue(values.taskTitle, values.taskDescription);
+
+        if (skipConfirmation) {
+            setShareDestinationValue(task?.parentReportID);
+            createTaskAndNavigate({
+                parentReport,
+                title: values.taskTitle,
+                description: values.taskDescription ?? '',
+                assigneeEmail: task?.assignee ?? '',
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                currentUserEmail: currentUserPersonalDetails.email ?? '',
+                currentUserDisplayName: currentUserPersonalDetails.displayName,
+                currentUserAvatar: currentUserPersonalDetails.avatar,
+                assigneeAccountID: task.assigneeAccountID,
+                assigneeChatReport: task.assigneeChatReport,
+                policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
+                isCreatedUsingMarkdown: false,
+                quickAction,
+                ancestors,
+                taskCreatorAndAssigneeDetails,
+            });
+        } else {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK.path));
+        }
+    };
+
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom
+            shouldEnableMaxHeight
+            testID="DynamicNewTaskDetailsPage"
+        >
+            <HeaderWithBackButton
+                title={translate('newTaskPage.assignTask')}
+                shouldShowBackButton
+                onBackButtonPress={() => dismissModalAndClearOutTaskInfo(backPath)}
+            />
+            <FormProvider
+                formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
+                submitButtonText={buttonText}
+                style={[styles.mh5, styles.flexGrow1]}
+                validate={validate}
+                onSubmit={onSubmit}
+                enabledWhenOffline
+            >
+                <View style={styles.mb5}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        ref={inputCallbackRef}
+                        valueType="string"
+                        role={CONST.ROLE.PRESENTATION}
+                        inputID={INPUT_IDS.TASK_TITLE}
+                        label={translate('task.title')}
+                        accessibilityLabel={translate('task.title')}
+                        defaultValue={titleDefaultValue}
+                        value={taskTitle}
+                        onValueChange={setLocalTitle}
+                        autoCorrect={false}
+                        type="markdown"
+                        autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                    />
+                </View>
+                <View style={styles.mb5}>
+                    <InputWrapper
+                        valueType="string"
+                        InputComponent={TextInput}
+                        role={CONST.ROLE.PRESENTATION}
+                        inputID={INPUT_IDS.TASK_DESCRIPTION}
+                        label={translate('newTaskPage.descriptionOptional')}
+                        accessibilityLabel={translate('newTaskPage.descriptionOptional')}
+                        autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                        shouldSubmitForm
+                        defaultValue={descriptionDefaultValue}
+                        value={taskDescription}
+                        onValueChange={setLocalDescription}
+                        type="markdown"
+                    />
+                </View>
+            </FormProvider>
+        </ScreenWrapper>
+    );
+}
+
+export default DynamicNewTaskDetailsPage;

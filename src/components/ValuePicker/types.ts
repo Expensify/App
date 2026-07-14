@@ -1,7 +1,9 @@
+import type {ListItem} from '@components/SelectionList/types';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
-import type {ListItem} from '@components/SelectionList/types';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 type ValuePickerListItem = ListItem & {
     value?: string;
@@ -77,6 +79,9 @@ type ValuePickerProps = ForwardedFSClassProps & {
 
     /** Callback to call when the input changes */
     onInputChange?: (value: string | undefined) => void;
+
+    /** Callback to call when the picker begins to open */
+    onOpen?: () => void;
 
     /** Text to display under the main menu item */
     furtherDetails?: string;

@@ -1,6 +1,3 @@
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -12,6 +9,7 @@ import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemP
 import ParticipantPicker from '@components/ParticipantPicker';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultParticipants from '@hooks/useDefaultParticipants';
@@ -25,6 +23,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
@@ -32,15 +31,19 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIsWorkspacesOnlyForTransaction,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
+    isParticipantP2P,
+    isSelfDMSoleDestination,
     navigateToStartMoneyRequestStep,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
@@ -54,8 +57,9 @@ import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismiss
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {findSelfDMReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     getRequestType,
@@ -65,9 +69,11 @@ import {
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isScanRequest,
 } from '@libs/TransactionUtils';
-import {getIOURequestPolicyID, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+
+import {getIOURequestPolicyID, setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,6 +85,14 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import CategoryDefaultsSetter from './confirmation/CategoryDefaultsSetter';
 import DraftWorkspaceOpener from './confirmation/DraftWorkspaceOpener';
 import ExpenseDefaultsSetter from './confirmation/ExpenseDefaultsSetter';
@@ -87,9 +101,7 @@ import ReceiptFileValidator from './confirmation/ReceiptFileValidator';
 import SubmitExpenseOrchestrator from './confirmation/SubmitExpenseOrchestrator';
 import TelemetrySpanManager from './confirmation/TelemetrySpanManager';
 import useExpenseSubmission from './confirmation/useExpenseSubmission';
-import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepConfirmationIncomingRouteName = typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION | typeof SCREENS.MONEY_REQUEST.CREATE;
@@ -115,6 +127,7 @@ function IOURequestStepConfirmation({
     const participantsAutoAssignedFromRoute = route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION ? (params as StepConfirmationParams).participantsAutoAssigned : undefined;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
     const personalDetails = usePersonalDetails();
     const allPolicyCategories = usePolicyCategories();
@@ -176,6 +189,10 @@ function IOURequestStepConfirmation({
         reportPolicyID: realPolicyID ?? draftPolicyID,
         action,
         iouType,
+        // Forward the draft policy so a freshly created draft workspace (e.g. "Submit to my employer" with no existing
+        // workspace) resolves here. Without it `policy` is undefined for drafts, `isDraftPolicy` is false, and the submit
+        // is routed to ConvertTrackedExpenseToRequest (which needs a real payer) instead of AddTrackedExpenseToPolicy.
+        policyDraft,
         isPerDiemRequest,
     });
     const policyID = policy?.id;
@@ -218,6 +235,7 @@ function IOURequestStepConfirmation({
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const receiptFilename = transaction?.receipt?.filename;
@@ -259,11 +277,14 @@ function IOURequestStepConfirmation({
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 const participantReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
                 const participantPolicy = participant.policyID ? participantsPolicies[participant.policyID] : policy;
-                return participant.accountID
-                    ? getParticipantsOption(participant, personalDetails)
+                // Phone contacts always have an optimistic accountID but no reportID; getReportOption
+                // is designed for report-backed participants and discards participant.text, so route
+                // any participant without a reportID to getParticipantsOption instead.
+                return participant.accountID || !participant.reportID
+                    ? getParticipantsOption(participant, personalDetails, translate)
                     : getReportOption(participant, privateIsArchived, participantPolicy, personalDetails, conciergeReportID, reportAttributesDerived, participantReportDraft);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, participantsPolicies, policy, conciergeReportID, reportDrafts],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, participantsPolicies, policy, conciergeReportID, reportDrafts, translate],
     );
 
     const sourceReportID = transaction?.reportID ?? reportID;
@@ -309,21 +330,75 @@ function IOURequestStepConfirmation({
             if (!activeTransactionID) {
                 return;
             }
-            if (participantsList.at(0)?.isSelfDM) {
+            const selectedParticipant = participantsList.at(0);
+            // P2P chats don't support negative amounts. When a negative amount was entered before a participant
+            // was selected (e.g. "Submit it to someone" from a self DM), assigning it to a P2P participant would
+            // fail at submit, so keep the expense on the self DM (its default) instead of assigning the P2P
+            // participant, stopping the user at selection rather than at submit. This only applies while the
+            // expense is still on the self DM — a negative expense already bound to a policy expense chat (e.g.
+            // global create auto-assigned the default workspace) must stay on that workspace rather than being
+            // silently converted into a personal track expense.
+            const isTransactionOnPolicyExpenseChat = transaction?.participants?.some((participant) => participant?.isPolicyExpenseChat);
+            const shouldKeepOnSelfDM = !!selectedParticipant?.isSelfDM || ((transaction?.amount ?? 0) < 0 && !isTransactionOnPolicyExpenseChat && isParticipantP2P(selectedParticipant));
+            if (shouldKeepOnSelfDM) {
                 setMoneyRequestParticipantsFromReport(activeTransactionID, selfDMReport, currentUserPersonalDetails.accountID);
                 setTransactionReport(activeTransactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
                 navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
             } else {
-                if (iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.CREATE) {
+                if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) {
                     navigation.setParams({iouType: CONST.IOU.TYPE.CREATE});
                 }
                 setMoneyRequestParticipants(activeTransactionID, participantsList);
+                const firstParticipant = participantsList.at(0);
+                if (iouType !== CONST.IOU.TYPE.SPLIT && firstParticipant) {
+                    const isPolicyExpenseChatParticipant = !!firstParticipant.isPolicyExpenseChat;
+
+                    // A brand-new recipient picked by email has no chat yet (no reportID). Reusing the route's `reportID`
+                    // (which points at the flow's origin report - e.g. the default workspace chat this distance flow was
+                    // seeded with) leaves the expense bound to that workspace, so the backend rejects it with
+                    // "There is a previously existing chat between these users." Generate a fresh optimistic reportID for
+                    // P2P recipients, mirroring the legacy participants-step flow (useParticipantSubmission).
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    const participantReportID = firstParticipant.reportID || (isPolicyExpenseChatParticipant ? reportID : generateReportID());
+                    setTransactionReport(activeTransactionID, {reportID: participantReportID}, true);
+
+                    // When switching from the auto-assigned default workspace to a P2P recipient we must also undo the
+                    // workspace-specific defaults the distance step applied: reset the mileage rate to the P2P rate and
+                    // clear the workspace's default category (and the category-derived tax). Otherwise the confirmation
+                    // keeps the workspace "Default Rate"/category and the expense stays bound to that workspace. This
+                    // mirrors what the legacy addParticipant/goToNextStep path does when a P2P recipient is selected.
+                    if (!isPolicyExpenseChatParticipant) {
+                        if (isDistanceRequest) {
+                            const p2pRateID = DistanceRequestUtils.getCustomUnitRateID({
+                                reportID: firstParticipant.reportID,
+                                isPolicyExpenseChat: false,
+                                policy: undefined,
+                                lastSelectedDistanceRates,
+                                expenseDate: transaction?.created,
+                            });
+                            setCustomUnitRateID(activeTransactionID, p2pRateID, transaction, undefined, false, personalPolicy?.outputCurrency);
+                        }
+                        setMoneyRequestCategory(activeTransactionID, '', undefined);
+                    }
+                }
             }
             if (participantsList.length > 0) {
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType],
+        [
+            activeTransactionID,
+            closeParticipantPicker,
+            currentUserPersonalDetails.accountID,
+            navigation,
+            selfDMReport,
+            iouType,
+            reportID,
+            isDistanceRequest,
+            lastSelectedDistanceRates,
+            transaction,
+            personalPolicy?.outputCurrency,
+        ],
     );
 
     useEffect(() => {
@@ -340,9 +415,12 @@ function IOURequestStepConfirmation({
         }
 
         setMoneyRequestParticipants(transaction.transactionID, defaultParticipants);
-        if (defaultParticipants.at(0)?.isSelfDM) {
+        const firstDefault = defaultParticipants.at(0);
+        if (firstDefault?.isSelfDM) {
             setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
             navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
+        } else if (firstDefault?.reportID) {
+            setTransactionReport(transaction.transactionID, {reportID: firstDefault.reportID}, true);
         }
     }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest, navigation]);
 
@@ -392,11 +470,12 @@ function IOURequestStepConfirmation({
         backToReport,
     });
 
-    // PAY, SPLIT, and per-diem TRACK navigate to a specific destination report
-    // (not Search) after submission. Pre-inserting the Search route would leave
-    // a stale entry in the navigation stack. Non-per-diem TRACK flows can still
-    // benefit from the Search pre-insert optimization.
-    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && !(isPerDiemRequest && iouType === CONST.IOU.TYPE.TRACK);
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
+
+    // PAY, SPLIT, and TRACK navigate to a specific destination report
+    // (not Search) after submission. A self-DM CREATE is effectively a TRACK, so it is
+    // excluded too. Pre-inserting the Search route would leave a stale entry in the navigation stack.
+    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && !isSelfDMDestination;
 
     const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
         transaction,
@@ -437,10 +516,11 @@ function IOURequestStepConfirmation({
 
     const hasPreInsertFired = useRef(false);
     const isTransactionReady = !!transaction;
-    const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK ? findSelfDMReportID() : undefined;
+    const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK || isSelfDMDestination ? findSelfDMReportID() : undefined;
     const isMRReport = isMoneyRequestReport(report);
-    const destinationReportID =
-        backToReport ?? (isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID ? report?.chatReportID : report?.reportID) ?? selfDMReportID;
+    const shouldUsePerDiemChatReport = isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID;
+    const routeDestinationReportID = shouldUsePerDiemChatReport ? report?.chatReportID : report?.reportID;
+    const destinationReportID = (isSelfDMDestination ? selfDMReportID : (backToReport ?? routeDestinationReportID)) ?? selfDMReportID;
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
 
     useEffect(() => {
@@ -462,7 +542,14 @@ function IOURequestStepConfirmation({
         // Only eligible when search pre-insert didn't win, and the flow ends at a report (not Search).
         // When Search is the topmost fullscreen and there's no report context (e.g. QAB from Spend tab),
         // pre-inserting a report is wrong - the user should stay on Search after submission.
-        const canUseReportPreInsert = !shouldPreInsertSearch && (isReportTopmostSplitNavigator() || (!isFromGlobalCreate && !isSearchTopmostFullScreenRoute()));
+        // Global-create TRACK targets self-DM, PAY and SPLIT target a specific chat report,
+        // so they are also eligible for report pre-insert when Search is NOT topmost.
+        // A self-DM CREATE is effectively a TRACK, so it targets the self-DM report too.
+        // When on Search/Spend the user should stay there after submission.
+        const isReportBoundGlobalCreate = iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SPLIT;
+        const canUseReportPreInsert =
+            !shouldPreInsertSearch &&
+            (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || isSelfDMDestination || isReportBoundGlobalCreate || !isFromGlobalCreate)));
 
         // RHP has its own dismiss handler; pre-inserting under it would break the stack.
         const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
@@ -495,21 +582,45 @@ function IOURequestStepConfirmation({
             clearTimeout(timer);
 
             // eslint-disable-next-line react-hooks/exhaustive-deps -- formHasBeenSubmitted is a stable ref from useExpenseSubmission; reading .current in cleanup is intentional
-            if (!Navigation.getIsFullscreenPreInsertedUnderRHP() || formHasBeenSubmitted.current) {
+            if (formHasBeenSubmitted.current) {
                 return;
             }
 
-            Navigation.removePreInsertedFullscreenIfNeeded();
+            if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+                Navigation.removePreInsertedFullscreenIfNeeded();
+            }
+
+            // Allow the pre-insert to re-fire when dependencies change (e.g. destinationReportID
+            // transitions from undefined to a valid ID after setTransactionReport resolves).
+            // Without this reset, the guard would permanently block re-firing after the first
+            // pre-insert was torn down due to a dependency change. This must run even when the
+            // 300ms timer was cleared before the pre-insert could execute, otherwise the flag
+            // stays true and blocks all subsequent attempts.
+            hasPreInsertFired.current = false;
         };
         // isFromGlobalCreate, iouType, and canPreInsertSearch are stable for the lifetime of
         // this screen instance. isTransactionReady and destinationReportID may each flip once
         // (false -> true / undefined -> ID) as data loads asynchronously, re-triggering the effect.
-        // hasPreInsertFired prevents double-firing. Note: if destinationReportID were to change
-        // from one valid ID to another (extremely unlikely with Onyx), the pre-insert would not
-        // re-fire. This is acceptable because the pre-inserted route is already correct for
-        // the original destination, and the submit handler will navigate correctly regardless.
+        // The hasPreInsertFired reset enables at most one additional re-fire when
+        // destinationReportID transitions from undefined to a valid ID. If destinationReportID
+        // were to change from one valid ID to another (extremely unlikely with Onyx), the
+        // pre-insert would re-fire once more, which is acceptable since the cleanup removes the
+        // stale route first. Oscillation is not possible because setTransactionReport only fires
+        // once during resetIOUTypeIfChanged.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isTransactionReady, destinationReportID]);
+
+    // Cancel the telemetry span when confirmation unmounts without a completed submission.
+    // If getPendingSubmitFollowUpAction() is set, the orchestrator (or sendMoney flow) has
+    // already taken ownership of the span lifecycle - do not interfere.
+    useEffect(() => {
+        return () => {
+            if (!isTracking() || getPendingSubmitFollowUpAction()) {
+                return;
+            }
+            cancelTracking();
+        };
+    }, []);
 
     const handleSendMoney = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
@@ -558,6 +669,11 @@ function IOURequestStepConfirmation({
     );
 
     const navigateBack = useCallback(() => {
+        // User is explicitly abandoning the flow - cancel any active telemetry span.
+        // The orchestrator never calls navigateBack (it uses dismissModal), so this
+        // reliably distinguishes user-initiated back from programmatic dismiss.
+        cancelTracking();
+
         if (backTo) {
             Navigation.goBack(backTo);
             return;
@@ -593,12 +709,6 @@ function IOURequestStepConfirmation({
             return;
         }
 
-        // If the user came from Test Drive modal, we need to take him back there
-        if (transaction?.receipt?.isTestDriveReceipt && (transaction.participants?.length ?? 0) > 0) {
-            Navigation.goBack(ROUTES.TEST_DRIVE_MODAL_ROOT.getRoute(transaction.participants?.at(0)?.login));
-            return;
-        }
-
         // This has selected the participants from the beginning and the participant field shouldn't be editable.
         navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action, backToReport);
     }, [
@@ -607,8 +717,6 @@ function IOURequestStepConfirmation({
         isCreatingTrackExpense,
         transaction?.isFromGlobalCreate,
         transaction?.receipt?.isTestReceipt,
-        transaction?.receipt?.isTestDriveReceipt,
-        transaction?.participants,
         transaction?.participantsAutoAssigned,
         transaction?.reportID,
         requestType,
@@ -791,8 +899,8 @@ function IOURequestStepConfirmation({
                                 <PrevNextButtons
                                     isPrevButtonDisabled={currentTransactionIndex === 0}
                                     isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
-                                    onNext={showNextTransaction}
-                                    onPrevious={showPreviousTransaction}
+                                    onNext={() => startTransition(showNextTransaction)}
+                                    onPrevious={() => startTransition(showPreviousTransaction)}
                                 />
                             ) : null}
                         </HeaderWithBackButton>
@@ -822,6 +930,7 @@ function IOURequestStepConfirmation({
                         destinationReportID={destinationReportID}
                         isFromGlobalCreate={isFromGlobalCreate}
                         iouType={iouType}
+                        isSelfDMDestination={isSelfDMDestination}
                         requestType={requestType}
                         canDismissFromSearch={canDismissFromSearch}
                         gpsRequired={!!gpsRequired}
@@ -886,10 +995,14 @@ function IOURequestStepConfirmation({
                             isPerDiemRequest={isPerDiemRequest}
                             isTimeRequest={isTimeRequest}
                             isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
+                            shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
                             onParticipantsAdded={handleParticipantsAdded}
                             onFinish={closeParticipantPicker}
                             isVisible={isParticipantPickerVisible}
                             onClose={closeParticipantPicker}
+                            // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
+                            // matching standard RHP behavior, not just close the stacked participant picker.
+                            onBackdropPress={() => Navigation.dismissModal()}
                         />
                     )}
                 </View>

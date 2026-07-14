@@ -1,18 +1,24 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {startSplitBill} from '@libs/actions/IOU/Split';
+
 import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, TaxRatesWithDefault} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import * as MoneyRequest from '../../../src/libs/actions/IOU/MoneyRequest';
 import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
@@ -69,7 +75,7 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => {
 });
 jest.mock('@libs/actions/IOU/Split', () => {
     return {
-        createDistanceRequest: jest.fn(),
+        createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: undefined})),
         startSplitBill: jest.fn(),
     };
 });
@@ -89,11 +95,15 @@ jest.mock('@libs/getCurrentPosition');
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
-    getCurrentRoute: jest.fn(() => ({
-        name: 'Money_Request_Step_Confirmation',
-        params: {},
-    })),
-    getState: jest.fn(() => ({})),
+    __esModule: true,
+    default: {
+        getCurrentRoute: jest.fn(() => ({
+            name: 'Money_Request_Step_Confirmation',
+            params: {},
+        })),
+        getState: jest.fn(() => ({})),
+        getRootState: jest.fn(() => ({routes: []})),
+    },
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => {
@@ -246,14 +256,9 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
     comment: {
         attendees: [
             {
-                accountID: ACCOUNT_ID,
                 avatarUrl: '',
                 displayName: '',
                 email: ACCOUNT_LOGIN,
-                login: ACCOUNT_LOGIN,
-                reportID: REPORT_ID,
-                selected: true,
-                text: ACCOUNT_LOGIN,
             },
         ],
     },
@@ -1389,6 +1394,76 @@ describe('IOURequestStepConfirmationPageTest', () => {
             const createDistanceRequestMock = Split.createDistanceRequest as jest.MockedFunction<typeof Split.createDistanceRequest>;
             const params = createDistanceRequestMock.mock.calls.at(0)?.at(0);
             expect(params?.personalDetails).toBeDefined();
+        });
+    });
+
+    describe('Transaction navigation (prev/next)', () => {
+        beforeEach(async () => {
+            await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        });
+
+        it('switches the displayed transaction when pressing the Next and Previous buttons', async () => {
+            // Given two scanned draft transactions, so the confirmation renders in its multi-transaction mode
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
+                    ...DEFAULT_SPLIT_TRANSACTION,
+                    transactionID: '1',
+                    iouRequestType: 'scan',
+                    receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}2`, {
+                    ...DEFAULT_SPLIT_TRANSACTION,
+                    transactionID: '2',
+                    iouRequestType: 'scan',
+                    receipt: {filename: 'receipt2.jpg', source: 'path/to/receipt2.jpg', type: ''},
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'split',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error we don't need navigation param here.
+                                    navigation={undefined}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            const of = translateLocal('common.of');
+
+            // The confirmation starts on the first of the two transactions
+            expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
+
+            // When pressing the Next button (the second of the two prev/next nav buttons)
+            const navButtons = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            expect(navButtons).toHaveLength(2);
+            const [, nextButton] = navButtons;
+            fireEvent.press(nextButton);
+
+            // Then the second transaction is displayed (setCurrentTransactionID committed inside startTransition)
+            expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
+
+            // And pressing the Previous button returns to the first transaction
+            const [prevButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            fireEvent.press(prevButton);
+            expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
         });
     });
 });

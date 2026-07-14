@@ -1,5 +1,6 @@
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Receipt} from '@src/types/onyx/Transaction';
+
 import useOnyx from './useOnyx';
 
 type ReceiptWithTransactionID = Receipt & {transactionID: string};

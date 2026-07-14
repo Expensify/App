@@ -799,6 +799,10 @@ export default {
         paddingBottom: 24,
     },
 
+    pb7: {
+        paddingBottom: 28,
+    },
+
     pb8: {
         paddingBottom: 32,
     },
@@ -829,6 +833,10 @@ export default {
 
     gapHalf: {
         gap: 2,
+    },
+
+    gap1Half: {
+        gap: 6,
     },
 
     gap2: {

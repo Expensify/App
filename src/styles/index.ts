@@ -1,26 +1,32 @@
-/* eslint-disable max-lines */
-/* eslint-disable @typescript-eslint/naming-convention */
-import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
-import lodashClamp from 'lodash/clamp';
-import type {LineLayer} from 'react-map-gl';
-// eslint-disable-next-line no-restricted-imports
-import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
-import {Platform, StyleSheet} from 'react-native';
-import type {PickerStyle} from 'react-native-picker-select';
-import type {SharedValue} from 'react-native-reanimated';
-import {interpolate} from 'react-native-reanimated';
-import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
-import type {ValueOf} from 'type-fest';
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
+
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
-import colors from './theme/colors';
+
+/* eslint-disable max-lines */
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
+import type {LineLayerSpecification} from 'react-map-gl/mapbox';
+// eslint-disable-next-line no-restricted-imports
+import type {Animated, DimensionValue, ImageStyle, TextStyle, ViewStyle} from 'react-native';
+import type {PickerStyle} from 'react-native-picker-select';
+import type {SharedValue} from 'react-native-reanimated';
+import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
+import type {ValueOf} from 'type-fest';
+
+import lodashClamp from 'lodash/clamp';
+import {Platform, StyleSheet} from 'react-native';
+import {interpolate} from 'react-native-reanimated';
+
 import type {ThemeColors} from './theme/types';
+
+import colors from './theme/colors';
 import addOutlineWidth from './utils/addOutlineWidth';
 import addToWalletButtonStyles from './utils/addToWalletButtonStyles';
 import borders from './utils/borders';
@@ -104,7 +110,7 @@ type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' |
 
 type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth' | 'lineCap'>;
 
-type MapDirectionLayerStyle = Pick<LineLayer, 'layout' | 'paint'>;
+type MapDirectionLayerStyle = Pick<LineLayerSpecification, 'layout' | 'paint'>;
 
 type StyleObject = ViewStyle | TextStyle | ImageStyle | WebViewStyle | OfflineFeedbackStyle | MapDirectionStyle | MapDirectionLayerStyle | AnchorPosition | CustomPickerStyle;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -255,6 +261,7 @@ const webViewStyles = (theme: ThemeColors) =>
             flex: 1,
             lineHeight: variables.fontSizeNormalHeight,
             ...writingDirection.ltr,
+            overflow: 'visible',
         },
     }) satisfies WebViewStyle;
 
@@ -622,6 +629,14 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightSizeH1,
         },
 
+        exportDownloadTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...whiteSpace.preWrap,
+            color: theme.heading,
+            fontSize: variables.fontSizeLarge,
+            lineHeight: variables.lineHeightXLarge,
+        },
+
         textWhite: {
             color: theme.textLight,
         },
@@ -696,6 +711,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         borderRadiusComponentNormal: {
             borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        borderRadiusCircle: {
+            borderRadius: 999,
         },
 
         bottomTabBarSpacer: {
@@ -807,6 +826,10 @@ const staticStyles = (theme: ThemeColors) =>
             minWidth: variables.componentSizeSmall,
             paddingHorizontal: 12,
             backgroundColor: theme.buttonDefaultBG,
+        },
+
+        minHeightComponentSizeSmall: {
+            minHeight: variables.componentSizeSmall,
         },
 
         buttonExtraSmall: {
@@ -1194,8 +1217,32 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        editableCellHover: {
-            borderColor: theme.buttonHoveredBG,
+        editableCellEditButtonContainer: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            justifyContent: 'center',
+        },
+
+        editableCellEditButtonContainerLeft: {
+            left: 4,
+        },
+
+        editableCellEditButtonContainerRight: {
+            right: 4,
+        },
+
+        editableCellEditButton: {
+            width: 28,
+            height: 28,
+            borderRadius: variables.componentBorderRadiusCircle,
+            backgroundColor: theme.buttonDefaultBG,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        editableCellEditButtonActive: {
+            backgroundColor: theme.buttonHoveredBG,
         },
 
         editableCellFocus: {
@@ -1355,6 +1402,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         componentHeightLarge: {
             height: variables.inputHeight,
+        },
+
+        componentSizeNormal: {
+            height: variables.componentSizeNormal,
+            width: variables.componentSizeNormal,
         },
 
         calendarHeader: {
@@ -2786,6 +2838,11 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: 'transparent',
         },
 
+        confirmModalPromptScrollable: {
+            maxHeight: 300,
+            paddingRight: 8,
+        },
+
         modalBackdrop: {
             position: 'absolute',
             top: 0,
@@ -3329,7 +3386,7 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'flex-start',
             position: 'absolute',
             width: '100%',
-            top: 20,
+            top: variables.growlNotificationInset,
             ...spacing.pl5,
             ...spacing.pr5,
         },
@@ -3340,6 +3397,17 @@ const staticStyles = (theme: ThemeColors) =>
             ...positioning.pFixed,
         },
 
+        growlNotificationContainerBottomRight: {
+            maxWidth: variables.sideBarWidth,
+            width: '100%',
+            right: 0,
+            // Same inset as the top-anchored growlNotificationContainer, flipped to the bottom edge.
+            bottom: variables.growlNotificationInset,
+            ...spacing.pl5,
+            ...spacing.pr5,
+            ...positioning.pFixed,
+        },
+
         growlNotificationBox: {
             backgroundColor: theme.inverse,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -3347,16 +3415,39 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             justifyContent: 'space-between',
             boxShadow: `${theme.shadow}`,
+            ...spacing.gap3,
+        },
+
+        // Compact padding sized around the 40px-tall action button: padding-left 16px,
+        // top/right/bottom 8px (8 + 40 + 8 = 56px growl height from the design).
+        growlNotificationBoxWithAction: {
+            ...spacing.pl4,
+            ...spacing.pt2,
+            ...spacing.pr2,
+            ...spacing.pb2,
+        },
+
+        // Roomier padding preserved for action-less growls (e.g. Onfido errors), matching the original p5.
+        growlNotificationBoxWithoutAction: {
             ...spacing.p5,
         },
 
         growlNotificationText: {
             fontSize: variables.fontSizeNormal,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
-            width: '90%',
             lineHeight: variables.fontSizeNormalHeight,
             color: theme.textReversed,
-            ...spacing.ml4,
+            flex: 1,
+            minWidth: 0,
+        },
+
+        // "View" action rendered as a Medium Link Button on the growl's inverse-colored surface.
+        growlNotificationActionText: {
+            color: theme.linkReversed,
+        },
+
+        growlNotificationActionHovered: {
+            backgroundColor: theme.buttonHoveredBGReversed,
         },
 
         noSelect: {
@@ -3863,6 +3954,44 @@ const staticStyles = (theme: ThemeColors) =>
 
         widgetItemButton: {
             minWidth: 68,
+        },
+
+        gettingStartedRowIconContainer: {
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        gettingStartedRowTextContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            gap: 2,
+        },
+
+        gettingStartedFooterLink: {
+            paddingVertical: 12,
+        },
+
+        widgetHeaderMenuButton: {
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: variables.buttonBorderRadius,
+        },
+
+        widgetHeaderMenuButtonHovered: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        widgetHeaderMenuButtonWrapper: {
+            // The 40px ghost button overflows the header instead of growing it: these negative margins shrink its
+            // vertical footprint to the title line-height so every card header keeps the same height. The matching
+            // negative right margin keeps the icon's spacing to the card's right edge equal to its top spacing.
+            marginTop: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
+            marginBottom: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
+            marginRight: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
         },
 
         widgetItemSubtitle: {
@@ -4511,6 +4640,16 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 8,
         },
 
+        rulesNewMenuItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: 8,
+            paddingHorizontal: 12,
+            paddingVertical: 16,
+            alignItems: 'center',
+            marginBottom: 8,
+            minHeight: variables.rulesNewMenuItemMinHeight,
+        },
+
         willChangeTransform: {
             willChange: 'transform',
         },
@@ -4990,24 +5129,6 @@ const staticStyles = (theme: ThemeColors) =>
             maxHeight: 100,
         },
 
-        listBoundaryLoader: {
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: CONST.CHAT_HEADER_LOADER_HEIGHT,
-        },
-        listBoundaryError: {
-            paddingVertical: 15,
-            paddingHorizontal: 20,
-        },
-        listBoundaryErrorText: {
-            color: theme.textSupporting,
-            fontSize: variables.fontSizeLabel,
-            marginBottom: 10,
-        },
-
         videoContainer: {
             ...flex.flex1,
             ...flex.alignItemsCenter,
@@ -5067,8 +5188,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchActionsBarContainer: {
+            marginTop: 12,
             marginBottom: 16,
             paddingHorizontal: 20,
+            gap: 8,
             flexDirection: 'row',
             alignItems: 'flex-start',
             justifyContent: 'space-between',
@@ -5088,13 +5211,9 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: 28,
         },
 
-        searchPageInputWideTouchableWrapper: {height: 32, width: 200},
-        searchPageInputWidePlaceholder: {
-            // Extra 2 to account for the borders
-            height: 34,
-            width: 202,
-        },
-        searchPageInputNarrowTouchableWrapper: {height: 44},
+        // Extra 2 to account for the borders
+        searchPageInputWideTouchableWrapper: {height: 34, width: 202},
+        searchPageInputNarrowTouchableWrapper: {height: 46},
 
         walletStaticIllustration: {
             width: 262,
@@ -5485,6 +5604,16 @@ const staticStyles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
+        cardRulesEmptyStateIllustration: {
+            width: variables.cardRulesEmptyStateIllustrationWidth,
+            height: variables.cardRulesEmptyStateIllustrationHeight,
+        },
+
+        sortingMachineRulesEmptyStateIllustration: {
+            width: variables.sortingMachineRulesEmptyStateIllustrationWidth,
+            height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
+        },
+
         emptyStateSamlIllustration: {
             width: 183,
             height: 160,
@@ -5496,8 +5625,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         expensifyCardEmptyIllustration: {
-            width: 280,
-            height: 172,
+            width: variables.expensifyCardEmptyIllustrationWidth,
+            height: variables.expensifyCardEmptyIllustrationHeight,
         },
 
         errorStateCardIllustration: {
@@ -5596,8 +5725,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         agentsPageEmptyStateSubtitle: {
-            maxWidth: 335,
             alignSelf: 'center',
+            maxWidth: 335,
         },
 
         emptyStateFolderWithPaperIconSize: {
@@ -5870,11 +5999,10 @@ const staticStyles = (theme: ThemeColors) =>
             border: 'none',
         },
 
-        featureTrainingModalImage: {
-            width: '100%',
-            height: '100%',
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
+        featureTrainingModalNavButtons: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            gap: variables.spacing2,
         },
 
         twoColumnLayoutCol: {
@@ -5905,9 +6033,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         receiptPreview: {
             position: 'absolute',
+            // Fallback corner; ReceiptPreview overrides left/top to sit beside the hovered thumbnail.
             left: 60,
             top: 60,
-            width: 380,
+            width: variables.receiptPreviewWidth,
             maxHeight: 'calc(100vh - 120px)',
             borderRadius: variables.componentBorderRadiusLarge,
             borderWidth: 1,
@@ -6099,12 +6228,28 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.MONOSPACE,
             ...wordBreak.breakWord,
         },
+        copyableTextFieldMinHeight: {
+            minHeight: variables.componentSizeNormal + 32,
+        },
+
         copyableTextFieldButton: {
             width: 28,
             height: 28,
             borderRadius: variables.buttonBorderRadius,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+        // Single-line code blocks keep the copy button tight to the corner.
+        codeBlockCopyButtonWrapper: {
+            position: 'absolute',
+            top: 4,
+            right: 4,
+        },
+        // Multi-line code blocks get extra breathing room around the copy button.
+        codeBlockCopyButtonWrapperMultiline: {
+            position: 'absolute',
+            top: 8,
+            right: 8,
         },
         moneyRequestView: {
             position: 'relative',
@@ -6417,14 +6562,6 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
-        growlNotificationTranslateY: (translateY: SharedValue<number>) => {
-            'worklet';
-
-            return {
-                transform: [{translateY: translateY.get()}],
-            };
-        },
-
         activeDropzoneDashedBorder: (borderColor: string, isActive: boolean) => {
             const browser = getBrowser();
             const isSafariOrChromeBrowser = getPlatform() === CONST.PLATFORM.WEB && (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.CHROME);
@@ -6582,13 +6719,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {maxHeight: Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * heightRatio)};
         },
 
-        testDriveModalContainer: (shouldUseNarrowLayout: boolean) => ({
-            // On small/medium screens, we need to remove the top padding
-            paddingTop: 0,
-            // On larger screens, we need to prevent the modal from becoming too big
-            maxWidth: shouldUseNarrowLayout ? undefined : 500,
-        }),
-
         getMoneyRequestViewImage: (showBorderless: boolean) => ({
             ...spacing.mh5,
             overflow: 'hidden',
@@ -6598,6 +6728,27 @@ const dynamicStyles = (theme: ThemeColors) =>
             height: 180,
             maxWidth: '100%',
         }),
+
+        getCenteredModalOuterView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+            }) as const,
+
+        getCenteredModalInnerView: (shouldUseNarrowLayout: boolean, width?: number, height?: DimensionValue) => {
+            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+
+            return {
+                width: shouldUseNarrowLayout ? '100%' : (width ?? variables.featureTrainingModalWidth),
+                // No default height - the card hugs its content (children must have intrinsic height)
+                height,
+                maxHeight: '100%' as const,
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderBottomRightRadius: borderBottomRadius,
+                borderBottomLeftRadius: borderBottomRadius,
+                overflow: 'hidden' as const,
+                backgroundColor: theme.componentBG,
+            };
+        },
 
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
@@ -6794,7 +6945,7 @@ const plainStyles = (theme: ThemeColors) =>
             ({
                 ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
                 fontSize: 17,
-                lineHeight: 20,
+                lineHeight: variables.widgetHeaderTitleLineHeight,
                 color,
             }) satisfies TextStyle,
 

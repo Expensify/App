@@ -1,26 +1,28 @@
-import React from 'react';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearFinancialForceErrorField, updateFinancialForceExportStatus} from '@libs/actions/connections/FinancialForce';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
-import {getCertiniaExportStatusValue} from '@pages/workspace/accounting/certinia/utils';
+
+import {CERTINIA_FFA_EXPORT_STATUSES, getCertiniaFFAExportStatusValue} from '@pages/workspace/accounting/certinia/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {FinancialForceFFAExportStatus} from '@src/types/onyx/Policy';
 
-type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
+import React from 'react';
 
 type ExportStatusListItem = ListItem & {
     value: FinancialForceFFAExportStatus;
 };
-
-const FFA_EXPORT_STATUSES: FinancialForceFFAExportStatus[] = [CONST.CERTINIA_EXPORT_STATUS.APPROVED, CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS];
 
 function CertiniaExportStatusPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -29,10 +31,10 @@ function CertiniaExportStatusPage({policy}: WithPolicyConnectionsProps) {
     const {config} = policy?.connections?.financialforce ?? {};
     const exportConfig = config?.export;
     const selectedExportStatus = exportConfig?.exportStatus;
-    const normalizedSelectedExportStatus = getCertiniaExportStatusValue(selectedExportStatus);
+    const normalizedSelectedExportStatus = getCertiniaFFAExportStatusValue(selectedExportStatus);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS.path);
 
-    const data: ExportStatusListItem[] = FFA_EXPORT_STATUSES.map((status) => ({
+    const data: ExportStatusListItem[] = CERTINIA_FFA_EXPORT_STATUSES.map((status) => ({
         value: status,
         text: translate(`workspace.certinia.exportStatus.values.${status}`),
         keyForList: status,

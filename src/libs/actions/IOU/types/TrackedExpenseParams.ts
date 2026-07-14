@@ -1,11 +1,15 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {CreateWorkspaceParams} from '@libs/API/parameters';
+
 import type {BuildPolicyDataKeys, CurrentUser} from '@userActions/Policy/Policy';
+
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
 import type BaseTransactionParams from './BaseTransactionParams';
 import type {TrackExpenseAccountantParams} from './CreateTrackExpenseParams';
 
@@ -64,9 +68,12 @@ type TrackedExpenseParams = {
     policyParams: TrackedExpensePolicyParams;
     createdWorkspaceParams?: CreateWorkspaceParams;
     accountantParams?: TrackExpenseAccountantParams;
+    /** Whether the tracked expense is a distance request. Used to decide if a created workspace's distance custom unit should be applied to the transaction. */
+    isDistanceRequest?: boolean;
     currentUser: CurrentUser;
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
-    reportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
+    reportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
+    // Personal details list is optional here because we only use/pass it for SHARE case
+    personalDetailsList?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 export type {TrackedExpenseParams, TrackedExpensePolicyParams, TrackedExpenseTransactionParams, TrackedExpenseReportInformation, BuildOnyxDataForTrackExpenseKeys};

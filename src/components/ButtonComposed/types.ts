@@ -1,9 +1,11 @@
+import type CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
 import type {ForwardedRef} from 'react';
 import type React from 'react';
 import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, StyleProp, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
 import type {ButtonVariant} from './context';
 
 type ButtonEventsProps = {
@@ -34,7 +36,7 @@ type ButtonBehaviorProps = {
     isDisabled?: boolean;
 
     /** Should enable the haptic feedback? */
-    shouldEnableHapticFeedback?: boolean;
+    enableHapticFeedback?: boolean;
 
     /** Should disable the long press? */
     isLongPressDisabled?: boolean;
@@ -43,27 +45,19 @@ type ButtonBehaviorProps = {
      * Whether the button should have a background layer in the color of theme.appBG.
      * This is needed for buttons that allow content to display under them.
      */
-    shouldBlendOpacity?: boolean;
+    blendOpacity?: boolean;
 
     /** Whether is a nested button inside other button, since nesting buttons isn't valid html */
     isNested?: boolean;
 
-    /** Whether we should use the default hover style */
-    shouldUseDefaultHover?: boolean;
-
     /** Should enable the haptic feedback? */
-    shouldStayNormalOnDisable?: boolean;
+    stayNormalOnDisable?: boolean;
 };
 
 /**
- * Props for the ButtonKeyboardShortcut primitive.
- * Groups all Enter-key shortcut configuration in one place so the parent Button
- * does not need to know about keyboard-shortcut internals.
+ * Props for the ButtonKeyboardShortcut primitive — the Enter-key shortcut configuration.
  */
 type ButtonKeyboardShortcutProps = {
-    /** Call the onPress function when Enter key is pressed */
-    pressOnEnter?: boolean;
-
     /** The priority to assign the enter key event listener. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
 
@@ -72,15 +66,6 @@ type ButtonKeyboardShortcutProps = {
 
     /** Should the press event bubble across multiple instances when Enter key triggers it. */
     allowBubble?: boolean;
-
-    /** Whether the button is disabled — used by validateSubmitShortcut to block the callback */
-    isDisabled?: boolean;
-
-    /** Whether the button is loading — used by validateSubmitShortcut to block the callback */
-    isLoading?: boolean;
-
-    /** The callback to fire when Enter is pressed and the shortcut is active */
-    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 
 type ButtonStyleProps = {
@@ -96,8 +81,11 @@ type ButtonStyleProps = {
     /** Additional styles to add to the component when it's disabled */
     disabledStyle?: StyleProp<ViewStyle>;
 
+    /** Additional hover styles applied on top of theme-derived hovers (default/success/danger). */
+    hoverStyles?: StyleProp<ViewStyle>;
+
     /** Should we remove the border radius on a specific side? */
-    shouldRemoveBorderRadius?: 'left' | 'right' | 'all';
+    removeBorderRadius?: ValueOf<typeof CONST.BUTTON_REMOVE_BORDER_RADIUS>;
 
     /** The size of the button */
     size?: ValueOf<typeof CONST.BUTTON_SIZE>;

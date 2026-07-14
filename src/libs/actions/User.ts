@@ -1,11 +1,5 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {isBefore} from 'date-fns';
-import debounce from 'lodash/debounce';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {OnyxKey} from 'react-native-onyx/dist/types';
-import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -15,6 +9,7 @@ import type {
     GetStatementPDFParams,
     PusherPingParams,
     RequestContactMethodValidateCodeParams,
+    ResendValidateCodeParams,
     RevokeDeviceParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
@@ -46,11 +41,12 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getLoginKey} from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExpenseRuleForm, MerchantRuleForm, SpendRuleForm} from '@src/types/form';
+import type {ExpenseRuleForm, FlagForReviewRuleForm, MerchantRuleForm, MerchantTypeRuleForm, RequireFieldsRuleForm, SpendRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -60,6 +56,16 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey} from 'react-native-onyx/dist/types';
+import type {ValueOf} from 'type-fest';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import {isBefore} from 'date-fns';
+import debounce from 'lodash/debounce';
+import Onyx from 'react-native-onyx';
+
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {getDeviceInfoWithID} from './Device';
@@ -199,8 +205,8 @@ function closeAccount(reason: string) {
 /**
  * Resend a validation link to a given login
  */
-function resendValidateCode(login: string) {
-    sessionResendValidateCode(login);
+function resendValidateCode(reasonParams: ResendValidateCodeParams, login: string) {
+    sessionResendValidateCode(reasonParams, login);
 }
 
 /**
@@ -379,15 +385,6 @@ function clearValidateCodeActionError(fieldName: string) {
 }
 
 /**
- * Reset validateCodeSent on validate action code.
- */
-function resetValidateActionCodeSent() {
-    Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
-        validateCodeSent: false,
-    });
-}
-
-/**
  * Clears any possible stored errors for a specific field on a contact method
  */
 function clearContactMethodErrors(contactMethod: string, fieldName: string) {
@@ -483,16 +480,11 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             value: {isLoading: false},
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE | typeof ONYXKEYS.PENDING_CONTACT_ACTION | typeof ONYXKEYS.LOGINS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.PENDING_CONTACT_ACTION | typeof ONYXKEYS.LOGINS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {isLoading: false},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.VALIDATE_ACTION_CODE,
-            value: {validateCodeSent: null},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -523,13 +515,14 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
 /**
  * Requests a magic code to verify current user
  */
-function requestValidateCodeAction() {
+function requestValidateCodeAction(params?: ResendValidateCodeParams) {
+    const requestedAt = Date.now();
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {
-                validateCodeSent: false,
+                lastValidateCodeRequestedAt: requestedAt,
                 isLoading: true,
                 pendingFields: {
                     actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -546,7 +539,6 @@ function requestValidateCodeAction() {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {
-                validateCodeSent: true,
                 isLoading: false,
                 errorFields: {
                     actionVerified: null,
@@ -563,7 +555,7 @@ function requestValidateCodeAction() {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {
-                validateCodeSent: null,
+                lastValidateCodeRequestedAt: null,
                 isLoading: false,
                 errorFields: {
                     actionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
@@ -575,13 +567,13 @@ function requestValidateCodeAction() {
         },
     ];
 
-    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, params ?? null, {optimisticData, successData, failureData});
 }
 
 /**
  * Validates a secondary login / contact method
  */
-function validateSecondaryLogin(contactMethod: string, validateCode: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], shouldResetActionCode?: boolean) {
+function validateSecondaryLogin(contactMethod: string, validateCode: string) {
     const loginKey = getExpensifyLoginKey(contactMethod);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT>> = [
         {
@@ -608,7 +600,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string, for
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGINS,
@@ -634,7 +626,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string, for
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGINS,
@@ -656,19 +648,6 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string, for
             value: {isLoading: false},
         },
     ];
-
-    // Sometimes we will also need to reset the validateCodeSent of ONYXKEYS.VALIDATE_ACTION_CODE in order to receive the magic code next time we open the ValidateCodeActionModal.
-    if (shouldResetActionCode) {
-        const optimisticResetActionCode = {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.VALIDATE_ACTION_CODE,
-            value: {
-                validateCodeSent: null,
-            },
-        };
-        successData.push(optimisticResetActionCode);
-        failureData.push(optimisticResetActionCode);
-    }
 
     getDeviceInfoWithID().then((deviceInfo) => {
         const parameters: ValidateSecondaryLoginParams = {partnerUserID: contactMethod, validateCode, deviceInfo};
@@ -697,6 +676,7 @@ function triggerNotifications<TKey extends OnyxKey>(
     onyxUpdates: Array<OnyxServerUpdate<TKey>>,
     currentUserAccountID: number,
     currentUserEmail: string,
+    topmostOneTransactionThreadReportID: string | undefined,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
     for (const update of onyxUpdates) {
@@ -710,7 +690,7 @@ function triggerNotifications<TKey extends OnyxKey>(
         for (const action of reportActions) {
             if (action) {
                 // They aren't connected to a UI anywhere, it's OK to use currentUserEmail
-                showReportActionNotification(reportID, action, currentUserAccountID, currentUserEmail, reportAttributes);
+                showReportActionNotification(reportID, action, topmostOneTransactionThreadReportID, currentUserAccountID, currentUserEmail, reportAttributes);
             }
         }
     }
@@ -937,7 +917,12 @@ function initializePusherPingPong(currentUserAccountID: number) {
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEvents(currentUserAccountID: number, currentUserEmail: string, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
+function subscribeToUserEvents(
+    currentUserAccountID: number,
+    currentUserEmail: string,
+    getTopmostOneTransactionThreadReportID: () => string | undefined,
+    getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined,
+) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
     if (!currentUserAccountID) {
         return;
@@ -992,7 +977,7 @@ function subscribeToUserEvents(currentUserAccountID: number, currentUserEmail: s
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getReportAttributes?.());
+                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getTopmostOneTransactionThreadReportID(), getReportAttributes?.());
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
@@ -1555,6 +1540,7 @@ function requestUnlockAccount(accountID: number) {
 type RespondToProactiveAppReviewParams = {
     response: 'positive' | 'negative' | 'skip';
     optimisticReportActionID?: string;
+    policyID: string | undefined;
 };
 
 /**
@@ -1566,10 +1552,11 @@ function respondToProactiveAppReview(
     userEmail: string | undefined,
     userAccountID: number,
     delegateAccountID: number | undefined,
+    policyID: string | undefined,
     message?: string,
     conciergeChatReportID?: string,
 ) {
-    const params: RespondToProactiveAppReviewParams = {response};
+    const params: RespondToProactiveAppReviewParams = {response, policyID};
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
@@ -1668,7 +1655,6 @@ function respondToProactiveAppReview(
  * @param validateCode - The validation code entered by the user
  */
 function verifyAddSecondaryLoginCode(validateCode: string) {
-    resetValidateActionCodeSent();
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1784,6 +1770,29 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
         successData,
         failureData,
     });
+}
+
+function clearExpenseRuleErrors(expenseRules: ExpenseRule[], selectedRuleKey: string, getKeyForRule: (rule: ExpenseRule) => string) {
+    const ruleIndex = expenseRules.findIndex((rule, index) => `${getKeyForRule(rule)}-${index}` === selectedRuleKey);
+
+    if (ruleIndex === -1) {
+        return;
+    }
+
+    const updatedExpenseRules = [...expenseRules];
+    const rule = updatedExpenseRules.at(ruleIndex);
+
+    if (!rule) {
+        return;
+    }
+
+    updatedExpenseRules[ruleIndex] = {
+        ...rule,
+        pendingAction: null,
+        errors: undefined,
+    };
+
+    Onyx.set(ONYXKEYS.NVP_EXPENSE_RULES, updatedExpenseRules);
 }
 
 function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, existingRuleKey: string | undefined, getKeyForRule: (rule: ExpenseRule) => string) {
@@ -1920,6 +1929,42 @@ function clearDraftSpendRule() {
     Onyx.set(ONYXKEYS.FORMS.SPEND_RULE_FORM, null);
 }
 
+function setDraftRequireFieldsRule(ruleData: Partial<RequireFieldsRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM, ruleData);
+}
+
+function updateDraftRequireFieldsRule(ruleData: Partial<RequireFieldsRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM, ruleData);
+}
+
+function clearDraftRequireFieldsRule() {
+    Onyx.set(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM, null);
+}
+
+function setDraftFlagForReviewRule(ruleData: Partial<FlagForReviewRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM, ruleData);
+}
+
+function updateDraftFlagForReviewRule(ruleData: Partial<FlagForReviewRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM, ruleData);
+}
+
+function clearDraftFlagForReviewRule() {
+    Onyx.set(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM, null);
+}
+
+function setDraftMerchantTypeRule(ruleData: Partial<MerchantTypeRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM, ruleData);
+}
+
+function updateDraftMerchantTypeRule(ruleData: Partial<MerchantTypeRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM, ruleData);
+}
+
+function clearDraftMerchantTypeRule() {
+    Onyx.set(ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM, null);
+}
+
 export {
     revokeDevice,
     clearRevokeError,
@@ -1962,7 +2007,6 @@ export {
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
     setShouldShowBranchNameInTitle,
-    resetValidateActionCodeSent,
     lockAccount,
     requestUnlockAccount,
     respondToProactiveAppReview,
@@ -1973,12 +2017,22 @@ export {
     clearDraftRule,
     saveExpenseRule,
     deleteExpenseRules,
+    clearExpenseRuleErrors,
     setDraftMerchantRule,
     updateDraftMerchantRule,
     clearDraftMerchantRule,
     setDraftSpendRule,
     updateDraftSpendRule,
     clearDraftSpendRule,
+    setDraftRequireFieldsRule,
+    updateDraftRequireFieldsRule,
+    clearDraftRequireFieldsRule,
+    setDraftFlagForReviewRule,
+    updateDraftFlagForReviewRule,
+    clearDraftFlagForReviewRule,
+    setDraftMerchantTypeRule,
+    updateDraftMerchantTypeRule,
+    clearDraftMerchantTypeRule,
     openTroubleshootSettingsPage,
     openMultifactorAuthenticationRevokePage,
 };

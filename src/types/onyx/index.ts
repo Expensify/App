@@ -1,5 +1,7 @@
 import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
+
 import type {FileObject} from '@src/types/utils/Attachment';
+
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type AgentPrompt from './AgentPrompt';
@@ -7,6 +9,9 @@ import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
 import type Attachment from './Attachment';
+import type AvatarCropDraft from './AvatarCropDraft';
+import type {AvatarCropMaskType} from './AvatarCropDraft';
+import type AvatarCropResult from './AvatarCropResult';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type BankAccountShareDetails from './BankAccountShareDetails';
@@ -37,6 +42,7 @@ import type {
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
+import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
 import type CopyPolicySettings from './CopyPolicySettings';
 import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
@@ -49,16 +55,13 @@ import type CustomStatusDraft from './CustomStatusDraft';
 import type {
     AccountIDToNameMapDerivedValue,
     CardFeedErrorsDerivedValue,
-    FlaggedExpensesDerivedValue,
+    LoginToAccountIDMapDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
-    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
     SortedReportActionsDerivedValue,
-    TodoMetadata,
-    TodosDerivedValue,
     VisibleReportActionsDerivedValue,
 } from './DerivedValues';
 import type DeviceBiometrics from './DeviceBiometrics';
@@ -67,6 +70,7 @@ import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
 import type {DomainSecurityGroup, SamlMetadata, UserSecurityGroupData} from './Domain';
 import type DomainErrors from './DomainErrors';
+import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
@@ -202,6 +206,9 @@ export type {
     FileObject,
     TryNewDot,
     Attachment,
+    AvatarCropDraft,
+    AvatarCropMaskType,
+    AvatarCropResult,
     Account,
     AccountData,
     AssignCard,
@@ -369,6 +376,7 @@ export type {
     CardFeeds,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
+    CompanyCardsLoadingState,
     WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
@@ -396,16 +404,13 @@ export type {
     LastSearchParams,
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
-    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
     AccountIDToNameMapDerivedValue,
     SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
-    TodosDerivedValue,
-    TodoMetadata,
-    FlaggedExpensesDerivedValue,
+    LoginToAccountIDMapDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
@@ -415,6 +420,7 @@ export type {
     AppReview,
     SamlMetadata,
     DomainErrors,
+    DomainHighlightItems,
     DomainPendingActions,
     DomainSecurityGroup,
     CodingRuleMatchingTransaction,
