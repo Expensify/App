@@ -1,3 +1,2 @@
-# expo-modules-core has iOS patch that is being applied, because iOS prebuilt modules are currently disabled
-# as RCT_USE_PREBUILT_RNCORE=0 is set in pod-install.sh
-expo-modules-core/expo-modules-core+56.0.14+001+disableViewRecycling.patch
+# example:
+# expo-modules-core/expo-modules-core+56.0.14+001+disableViewRecycling.patch
