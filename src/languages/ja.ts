@@ -4376,16 +4376,21 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         nudge: {
             airfareManual:
-                'こんにちは！Expensify では、アプリ内で直接フライトの予約や管理ができることをご存じでしたか？次回からは出費を手入力する手間を省いて、Expensify Travel で簡単に予約しましょう ✈️',
+                'こんにちは！Expensify でフライトの予約や管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで大丈夫です ✈️',
             airfareCard:
-                'ご存じでしたか？Expensify から直接、航空券の予約や管理ができるのです。そして、領収書も自動でアップロードされます。次回からは Expensify Travel で簡単に予約しましょう ✈️',
+                'こんにちは！Expensify でフライトの予約と管理ができるのをご存じでしたか？しかも、領収書は自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください ✈️',
             hotelManual:
-                'こんにちは！Expensify でホテルの予約や滞在の管理ができることをご存じでしたか？次回からは経費を手入力する手間を省き、Expensify Travel からかんたんに予約しましょう 🏨',
-            hotelCard: 'ご存じでしたか？Expensify から直接ホテルの予約や管理ができるようになりました。次回からは Expensify Travel でかんたんに予約しましょう 🏨',
-            carManual: 'こんにちは！Expensify でレンタカーの予約と管理ができることをご存じでしたか？次回からは経費を手入力する手間を省き、Expensify Travel から簡単に予約しましょう。',
-            carCard: 'こんにちは！Expensify でレンタカーの予約や管理ができることをご存じでしたか？次回からは Expensify Travel 経由でかんたんに予約しましょう 🚗',
-            railManual: 'こんにちは！Expensify なら電車の予約や管理もできることをご存じでしたか？次回からは経費を手入力する手間を省いて、Expensify Travel でそのまま予約しましょう 🚂',
-            railCard: 'こんにちは！Expensify で電車の予約や管理ができることをご存じでしたか？しかも領収書も自動でアップロードされます。次回からは Expensify Travel で予約しましょう🚂',
+                'こんにちは！Expensify でホテルの予約や宿泊の管理ができることをご存じでしたか？次回からは、経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで済みます。',
+            hotelCard:
+                'こんにちは！Expensify でホテルの予約や宿泊管理ができることをご存じでしたか？次回からは <a href="https://travel.expensify.com">Expensify Travel</a> からかんたんに予約できます。',
+            carManual:
+                'こんにちは！Expensify でレンタカーの予約と管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚗',
+            carCard:
+                'こんにちは！Expensify でレンタカーの予約や管理ができることをご存じでしたか？次回からは <a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約できます。',
+            railManual:
+                'Expensify で電車の予約や管理ができることをご存じでしたか？次回からは手動で経費を作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください。',
+            railCard:
+                'Expensify で電車の予約や管理ができることをご存じでしたか？しかも、領収書は自動でアップロードされます。次回からは <a href="https://travel.expensify.com">Expensify Travel</a> 経由で予約しましょう。',
         },
     },
     workspace: {
