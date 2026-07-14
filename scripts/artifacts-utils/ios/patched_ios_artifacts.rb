@@ -27,7 +27,7 @@ module PatchedIOSArtifacts
 
     def self.resolve(package_name, is_hybrid)
         cmd = [
-            'npx', 'tsx', File.join(NEW_DOT_ROOT, 'scripts/artifacts-utils/resolve-artifacts.ts'),
+            'bun', File.join(NEW_DOT_ROOT, 'scripts/artifacts-utils/resolve-artifacts.ts'),
             '--platform=ios', "--package=#{package_name}", "--hybrid=#{is_hybrid}", "--new-dot-root=#{NEW_DOT_ROOT}"
         ]
         # stdout is pure JSON; the resolver logs to stderr.

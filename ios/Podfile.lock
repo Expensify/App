@@ -343,15 +343,14 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - MapboxCommon (23.11.4)
-  - MapboxCoreMaps (10.19.2):
-    - MapboxCommon (~> 23.11)
-  - MapboxMaps (10.19.4):
-    - MapboxCommon (= 23.11.4)
-    - MapboxCoreMaps (= 10.19.2)
-    - MapboxMobileEvents (= 2.0.0)
-    - Turf (= 2.8.0)
-  - MapboxMobileEvents (2.0.0)
+  - MapboxCommon (24.23.1):
+    - Turf (= 4.0.0)
+  - MapboxCoreMaps (11.23.1):
+    - MapboxCommon (= 24.23.1)
+  - MapboxMaps (11.23.1):
+    - MapboxCommon (= 24.23.1)
+    - MapboxCoreMaps (= 11.23.1)
+    - Turf (= 4.0.0)
   - nanopb (3.30910.0):
     - nanopb/decode (= 3.30910.0)
     - nanopb/encode (= 3.30910.0)
@@ -1861,8 +1860,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-get-random-values (1.11.0):
-    - React-Core
   - react-native-image-picker (7.1.2):
     - hermes-engine
     - RCTRequired
@@ -1948,8 +1945,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-launch-arguments (4.1.1):
-    - React
   - react-native-netinfo (11.4.1):
     - hermes-engine
     - RCTRequired
@@ -2730,15 +2725,15 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - rnmapbox-maps (10.1.44):
-    - MapboxMaps (~> 10.19.0)
+  - rnmapbox-maps (10.3.2):
+    - MapboxMaps (~> 11.23.1)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.1.44)
+    - rnmapbox-maps/DynamicLibrary (= 10.3.2)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.1.44):
+  - rnmapbox-maps/DynamicLibrary (10.3.2):
     - hermes-engine
-    - MapboxMaps (~> 10.19.0)
+    - MapboxMaps (~> 11.23.1)
     - RCTRequired
     - RCTTypeSafety
     - React
@@ -3107,7 +3102,7 @@ PODS:
   - Sentry/Core (9.5.1)
   - SwiftUIIntrospect (1.3.0)
   - TrustKit (3.0.7)
-  - Turf (2.8.0)
+  - Turf (4.0.0)
   - TweetNacl (1.0.2)
   - UMAppLoader (56.0.1)
   - VisionCamera (4.7.2):
@@ -3195,11 +3190,9 @@ DEPENDENCIES:
   - "react-native-cameraroll (from `../node_modules/@react-native-camera-roll/camera-roll`)"
   - react-native-config (from `../node_modules/react-native-config`)
   - "react-native-document-picker (from `../node_modules/@react-native-documents/picker`)"
-  - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-key-command (from `../node_modules/react-native-key-command`)
   - react-native-keyboard-controller (from `../node_modules/react-native-keyboard-controller`)
-  - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
@@ -3296,7 +3289,6 @@ SPEC REPOS:
     - MapboxCommon
     - MapboxCoreMaps
     - MapboxMaps
-    - MapboxMobileEvents
     - nanopb
     - NWWebSocket
     - Onfido
@@ -3461,16 +3453,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-config"
   react-native-document-picker:
     :path: "../node_modules/@react-native-documents/picker"
-  react-native-get-random-values:
-    :path: "../node_modules/react-native-get-random-values"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
   react-native-key-command:
     :path: "../node_modules/react-native-key-command"
   react-native-keyboard-controller:
     :path: "../node_modules/react-native-keyboard-controller"
-  react-native-launch-arguments:
-    :path: "../node_modules/react-native-launch-arguments"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pager-view:
@@ -3662,10 +3650,9 @@ SPEC CHECKSUMS:
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
   lottie-react-native: 5c0c4fc0211179e7b5c0e660089f31c27128a577
-  MapboxCommon: cc47fafe3fe5408ca49240aa80fa64f27f275711
-  MapboxCoreMaps: 35685edba03e44468aed57c3dfd7f8795edafda8
-  MapboxMaps: f87023cf0d72b180b40ea0b6fb4b2d7db6b73b71
-  MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
+  MapboxCommon: d006256c4643860a7b3046af45d1671569b6c5ac
+  MapboxCoreMaps: de1a4461d0ab5d65d907f06e8d82fdbe06bb3213
+  MapboxMaps: 22340ae0e0d47b2e4761019b1d6c569ab04e088d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   NitroModules: 8cb714abfae488c6a56470ef6c64137b5070010d
   NWWebSocket: b4741420f1976e1dff4da3edad00c401e4f1d769
@@ -3718,11 +3705,9 @@ SPEC CHECKSUMS:
   react-native-cameraroll: 04488d0fec08f939049e9c99d280930db55296a5
   react-native-config: b36f099a2c7a7dc201ff148ae5c18ab2f2f129c7
   react-native-document-picker: eb1608dbbd4ed32666fbb9a08b7f733bdaecc6ba
-  react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-image-picker: 91e8eac0c800912ef8f86ff7d489df29ab81f168
   react-native-key-command: 7aa560672ed9697e7bb05b3c6382bb3b4afe2e6c
   react-native-keyboard-controller: 2d60672c8956a1f5517aee8a18abd8da91841503
-  react-native-launch-arguments: eab68037b01ea7c78a0b3b55da3a5e967e9aaf92
   react-native-netinfo: 947c73098a6b7d6f4fd41aa4ff8bdfe9c5a7a6a5
   react-native-pager-view: 3940c389055f6b9b1d2559a73725765f9fdf61bc
   react-native-pdf: 4b46342e2890b1eb006e044abd4916c6edcb8a27
@@ -3779,7 +3764,7 @@ SPEC CHECKSUMS:
   RNGoogleSignin: 89877c73f0fbf6af2038fbdb7b73b5a25b8330cc
   RNLiveMarkdown: 20a8588c3999fcfbf67fb635886c236eaf3029b9
   RNLocalize: 81b376a55d6cb014bfb296d16b3ae0c41dba24d9
-  rnmapbox-maps: 5f8a3e0e1264928d11fc1dc2ed0a69b2228d04a3
+  rnmapbox-maps: e8692f8dc284b6dc8b86355615721cd6671f3103
   RNNitroSQLite: d588ba6bd84db154da58fd74a71cb840708c16b1
   RNPermissions: 9d1096e3344a71a076577ddb46887b012323a2ca
   RNReactNativeHapticFeedback: 71068ee2dd8b54feae784437353342c57c1cffa9
@@ -3796,7 +3781,7 @@ SPEC CHECKSUMS:
   Sentry: 7475eb7bf6a41d7505f46341706015ad2d1766b9
   SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
   TrustKit: 1050f3ce0595f8ed775f1237b7f590e3a4f93e91
-  Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
+  Turf: c9eb11a65d96af58cac523460fd40fec5061b081
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
   UMAppLoader: b7d22886a244871c20b5a8f2fcea13c18534e677
   VisionCamera: 30b358b807324c692064f78385e9a732ce1bebfe

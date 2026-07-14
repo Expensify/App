@@ -6,7 +6,7 @@ import resolveArtifacts from './lib/artifactsResolver';
  * (Gradle and `patched_ios_artifacts.rb`), which cannot import the TS module.
  *
  * Usage:
- *   tsx scripts/artifacts-utils/resolve-artifacts.ts \
+ *   bun scripts/artifacts-utils/resolve-artifacts.ts \
  *       --platform=ios --package=react-hybrid --hybrid=true --new-dot-root=.
  *
  * Prints the result as JSON to stdout (logs go to stderr) and always exits 0.

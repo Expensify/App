@@ -11,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
@@ -21,6 +22,7 @@ import {getDisplayNameForParticipant, hasViolations as hasViolationsReportUtils,
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import lodashIntersection from 'lodash/intersection';
 import lodashPick from 'lodash/pick';
 import React, {useEffect, useState} from 'react';
@@ -37,9 +39,10 @@ function SearchAddApproverPage() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {selectedReports} = useSearchSelectionContext();
-    const [isSaving, setIsSaving] = useState(false);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -126,32 +129,34 @@ function SearchAddApproverPage() {
             return;
         }
 
-        setIsSaving(true);
-        for (const selectedReport of selectedReports) {
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
+        startWithLoading(() => {
+            for (const selectedReport of selectedReports) {
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
 
-            if (!report || !policy || report.managerID === employeeAccountID) {
-                continue;
+                if (!report || !policy || report.managerID === employeeAccountID) {
+                    continue;
+                }
+
+                const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
+                const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${selectedReport.reportID}`];
+                addReportApprover(
+                    report,
+                    selectedApproverEmail,
+                    Number(employeeAccountID),
+                    currentUserDetails.accountID,
+                    currentUserDetails.email ?? '',
+                    policy,
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    reportNextStep,
+                    isTrackIntentUser,
+                );
             }
 
-            const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-            const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${selectedReport.reportID}`];
-            addReportApprover(
-                report,
-                selectedApproverEmail,
-                Number(employeeAccountID),
-                currentUserDetails.accountID,
-                currentUserDetails.email ?? '',
-                policy,
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                reportNextStep,
-            );
-        }
-
-        // Note: This clears both reports and transactions
-        clearSelectedTransactions();
+            // Note: This clears both reports and transactions
+            clearSelectedTransactions();
+        });
     };
 
     const button = (
@@ -159,6 +164,8 @@ function SearchAddApproverPage() {
             isDisabled={!selectedApproverEmail}
             buttonText={translate('common.save')}
             onSubmit={addApprover}
+            isLoading={isLoading}
+            shouldShowLoadingImmediatelyOnPress={false}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
             shouldBlendOpacity
@@ -179,7 +186,7 @@ function SearchAddApproverPage() {
         });
     }, [selectedReports.length]);
 
-    if (isSaving) {
+    if (isLoading) {
         return <FullScreenLoadingIndicator reasonAttributes={{context: 'SearchAddApproverPage'}} />;
     }
 

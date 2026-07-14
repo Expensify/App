@@ -29,7 +29,7 @@ ext.ExpensiUtils = new Object() {
     // Returns [buildFromSource, version, githubUsername, githubToken]; any failure -> build from source.
     Map resolveArtifacts(String packageName, String newDotRootDir, boolean isHybrid) {
         def cmd = [
-            "npx", "tsx", "${newDotRootDir}/scripts/artifacts-utils/resolve-artifacts.ts",
+            "bun", "${newDotRootDir}/scripts/artifacts-utils/resolve-artifacts.ts",
             "--platform=android", "--package=${packageName}", "--hybrid=${isHybrid}", "--new-dot-root=${newDotRootDir}"
         ]
         try {
