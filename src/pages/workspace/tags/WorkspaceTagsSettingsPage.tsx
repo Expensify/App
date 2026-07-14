@@ -106,7 +106,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                                 {translate('workspace.tags.requiresTag')}
                             </Text>
                             <Switch
-                                isOn={policy?.requiresTag ?? false}
+                                isOn={(policy?.requiresTag ?? false) || (!!policyTagLists.at(0)?.required && hasEnabledOptions)}
                                 accessibilityLabel={translate('workspace.tags.requiresTag')}
                                 onToggle={updateWorkspaceRequiresTag}
                                 disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
