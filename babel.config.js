@@ -27,6 +27,8 @@ function traceTransformer() {
     };
 }
 
+const isTestEnv = process.env.BABEL_ENV === 'test' || process.env.NODE_ENV === 'test';
+
 const metro = {
     presets: [require('@react-native/babel-preset')],
     plugins: [
@@ -93,7 +95,7 @@ const metro = {
         ],
         '@babel/plugin-transform-export-namespace-from',
         // The worklets babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
-        'react-native-worklets/plugin',
+        ['react-native-worklets/plugin', {bundleMode: !isTestEnv}],
     ],
     env: {
         production: {
