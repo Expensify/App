@@ -26,13 +26,12 @@ const TEST_USER_ACCOUNT_ID = 12345;
 // jest.mock factories can't reference imported bindings, but `mock`-prefixed locals are allowed.
 const MockView = View;
 
-// Capture the props passed to the primary (copy) button so the test can drive its onPress.
-type CapturedButtonProps = {onPress?: () => void; isDisabled?: boolean};
-let capturedButtonProps: CapturedButtonProps | null = null;
+// Capture the onPress handler the copy button passes to ButtonComposed so the test can drive it.
+const mockOnPressHolder: {current?: () => void} = {current: undefined};
 
 jest.mock('@components/ButtonComposed', () => {
-    function MockButton(props: CapturedButtonProps) {
-        capturedButtonProps = props;
+    function MockButton(props: {onPress?: () => void}) {
+        mockOnPressHolder.current = props.onPress;
         return <MockView testID="copy-settings-button" />;
     }
 
@@ -156,7 +155,7 @@ describe('CopyPolicySettingsConfirmPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        capturedButtonProps = null;
+        mockOnPressHolder.current = undefined;
         await Onyx.clear();
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`, createTestPolicy(SOURCE_POLICY_ID, 'Source Workspace', CONST.POLICY.TYPE.CORPORATE));
         await waitForBatchedUpdates();
@@ -181,7 +180,7 @@ describe('CopyPolicySettingsConfirmPage', () => {
         await waitForBatchedUpdates();
 
         act(() => {
-            capturedButtonProps?.onPress?.();
+            mockOnPressHolder.current?.();
         });
         await waitForBatchedUpdates();
 
@@ -204,7 +203,7 @@ describe('CopyPolicySettingsConfirmPage', () => {
         await waitForBatchedUpdates();
 
         act(() => {
-            capturedButtonProps?.onPress?.();
+            mockOnPressHolder.current?.();
         });
         await waitForBatchedUpdates();
 
