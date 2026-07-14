@@ -152,8 +152,6 @@ describe('search loading totals handling', () => {
         });
 
         it('does not drop a totals request that overlaps an in-flight request which did not ask for totals', async () => {
-            // The overlapping request asks for strictly more data, so deduping it away would leave the totals
-            // unfetched with nothing to trigger a retry.
             await searchTwiceConcurrently(false, true);
 
             expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(2);
