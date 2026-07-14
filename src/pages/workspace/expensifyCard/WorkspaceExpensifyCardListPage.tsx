@@ -90,7 +90,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID, programKey}: 
     const settings = getCardSettingsForSelectedProgram(cardSettings, programKey);
     const feedDescription = getExpensifyCardFeedDescription(cardSettings, allPolicies, domains, fundID, cardList);
     const feedCountrySuffix = getExpensifyCardProgramCountrySuffix(programKey);
-    // Distinguish the two rows of a multi-program feed in the header, matching the selector labels (e.g. `deptagency.com GB`).
     const feedSupportingText = feedCountrySuffix ? `${feedDescription} ${feedCountrySuffix}` : feedDescription;
     const {allFeeds: allAdminExpensifyCardFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
     const shouldShowSelector = allAdminExpensifyCardFeeds.length >= 1;

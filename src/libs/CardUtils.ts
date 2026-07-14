@@ -1458,7 +1458,7 @@ function filterCardsListByProgram(cardsList: WorkspaceCardsList | undefined, pro
 
 /**
  * Country suffix appended to a feed's label when a domain has more than one program, so the rows are distinguishable
- * (e.g. `deptagency.com` for US and `deptagency.com GB` for GB). US programs stay unsuffixed so single-feed domains look unchanged.
+ * (e.g. `expensify.com` for US and `expensify.com GB` for GB). US programs stay unsuffixed so single-feed domains look unchanged.
  */
 function getExpensifyCardProgramCountrySuffix(programKey: CardProgramKey): string {
     return programKey === CONST.COUNTRY.GB ? CONST.COUNTRY.GB : '';
