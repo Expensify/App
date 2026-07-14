@@ -9973,6 +9973,17 @@ ${reportName}`,
         },
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},
+    trialPaymentReminder: {
+        title: '提前做好准备',
+        subtitle: '不要等到最后一刻，立即添加您的付款方式，以确保您可以持续访问 Expensify 上的费用。',
+        trialEndsInDays: () => ({
+            one: '试用期将在1天后结束',
+            other: (pluralCount: number) => `试用期将在${pluralCount}天后结束`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `试用期将在 ${hours}小时 : ${minutes}分 : ${seconds}秒 后结束`,
+        closeButton: '关闭',
+        addPaymentCardButton: '添加付款卡',
+    },
     monthPickerPage: {month: '月份', selectMonth: '请选择月份'},
     aiFeaturesPromoModal: {
         subtitle: 'Concierge AI 新手指南',
