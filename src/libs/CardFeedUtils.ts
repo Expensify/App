@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, Domain, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
-import type {CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
+import type {CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -473,12 +473,14 @@ function getCombinedCardFeedsFromAllFeeds(
 }
 
 function findMatchingCards(cardFeeds: CombinedCardFeeds, cardLists: Record<string, WorkspaceCardsList | undefined>, cardFeed?: CardFeedWithNumber, cardID?: number) {
-    const feedKeys = Object.values(cardFeeds).map((feed) => feed.feed);
+    const feedsWithDomainIDs = Object.keys(cardFeeds) as CardFeedWithDomainID[];
     return Object.values(cardLists)
         .flatMap((cardList) => Object.values(cardList ?? {}))
         .filter((card) => {
             const feedKey = card.bank as CardFeedWithNumber;
-            if (!feedKeys.some((key) => key === feedKey)) {
+            const feedDomainID = card.fundID ?? CONST.DEFAULT_MISSING_ID;
+            const feedWithDomainID = getCardFeedWithDomainID(feedKey, feedDomainID);
+            if (!feedsWithDomainIDs.includes(feedWithDomainID)) {
                 return false;
             }
             if (cardFeed && cardFeed !== feedKey) {
