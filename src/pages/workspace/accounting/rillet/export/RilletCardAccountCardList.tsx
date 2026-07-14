@@ -63,46 +63,49 @@ function RilletCardAccountCardList({
             <View>
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.cardAccount.descriptionLevel2')}</Text>
             </View>
-            {Object.values(cardList ?? {}).map((card) => {
-                const cardID = Number(card.cardID);
-                const isUsingCustomAccount = typeof card.nameValuePairs === 'object' && CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT in card.nameValuePairs;
-                const cardAccountCode =
-                    (typeof card.nameValuePairs === 'object' ? card.nameValuePairs[CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT] : undefined) ?? cardProgramAccountCode;
-                const cardAccount = rilletData?.accounts?.find((account) => account.code === cardAccountCode);
-                const cardAccountDisplayName = cardAccount
-                    ? `${cardAccount.code} ${cardAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}`
-                    : '';
-                return (
-                    <OfflineWithFeedback
-                        key={cardID}
-                        pendingAction={getCardsCustomExportPendingAction(
-                            cardFeeds ?? {},
-                            {feedWithDomainID: cardList},
-                            CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
-                            feedKey,
-                            cardID,
-                        )}
-                    >
-                        <MenuItemWithTopDescription
-                            title={cardAccountDisplayName}
-                            description={isCard(card) ? getCardDescription(card, translate) : undefined}
-                            onPress={() => Navigation.navigate(appendParam(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.path), 'cardID', cardID.toString()))}
-                            shouldShowRightIcon
-                            brickRoadIndicator={
-                                areCardsCustomExportInErrorFields(
-                                    cardFeeds ?? {},
-                                    {feedWithDomainID: cardList},
-                                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
-                                    feedKey,
-                                    cardID,
-                                )
-                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                    : undefined
-                            }
-                        />
-                    </OfflineWithFeedback>
-                );
-            })}
+            {Object.values(cardList ?? {})
+                .filter(isCard)
+                .map((card) => {
+                    const cardID = card.cardID;
+                    const isUsingCustomAccount = typeof card.nameValuePairs === 'object' && CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT in card.nameValuePairs;
+                    const cardAccountCode =
+                        (typeof card.nameValuePairs === 'object' ? card.nameValuePairs[CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT] : undefined) ??
+                        cardProgramAccountCode;
+                    const cardAccount = rilletData?.accounts?.find((account) => account.code === cardAccountCode);
+                    const cardAccountDisplayName = cardAccount
+                        ? `${cardAccount.code} ${cardAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}`
+                        : '';
+                    return (
+                        <OfflineWithFeedback
+                            key={cardID}
+                            pendingAction={getCardsCustomExportPendingAction(
+                                cardFeeds ?? {},
+                                {feedWithDomainID: cardList},
+                                CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
+                                feedKey,
+                                cardID,
+                            )}
+                        >
+                            <MenuItemWithTopDescription
+                                title={cardAccountDisplayName}
+                                description={getCardDescription(card, translate)}
+                                onPress={() => Navigation.navigate(appendParam(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.path), 'cardID', cardID.toString()))}
+                                shouldShowRightIcon
+                                brickRoadIndicator={
+                                    areCardsCustomExportInErrorFields(
+                                        cardFeeds ?? {},
+                                        {feedWithDomainID: cardList},
+                                        CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
+                                        feedKey,
+                                        cardID,
+                                    )
+                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                        : undefined
+                                }
+                            />
+                        </OfflineWithFeedback>
+                    );
+                })}
         </ConnectionLayout>
     );
 }
