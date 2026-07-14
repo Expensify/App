@@ -7514,6 +7514,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 addRuleTitle: 'Ajouter une règle',
                 editRuleTitle: 'Modifier la règle',
                 importRulesTitle: 'Importer des règles de marchand',
+                importRulesSupportingText:
+                    'Faites correspondre chaque colonne de votre feuille de calcul à un champ de règle de marchand. Si tout semble correct, cliquez ci-dessous pour importer vos règles.',
                 importColumnMerchantIs: 'Le marchand est',
                 importColumnMerchantContains: 'Le marchand contient',
                 importColumnUpdatedMerchant: 'Marchand mis à jour',

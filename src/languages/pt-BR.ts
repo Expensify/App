@@ -7440,6 +7440,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 addRuleTitle: 'Adicionar regra',
                 editRuleTitle: 'Editar regra',
                 importRulesTitle: 'Importar regras de comerciante',
+                importRulesSupportingText: 'Mapeie cada coluna da sua planilha para um campo de regra de comerciante. Se tudo estiver certo, clique abaixo para importar suas regras.',
                 importColumnMerchantIs: 'O comerciante é',
                 importColumnMerchantContains: 'O comerciante contém',
                 importColumnUpdatedMerchant: 'Comerciante atualizado',

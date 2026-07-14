@@ -7448,6 +7448,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 addRuleTitle: 'Regel toevoegen',
                 editRuleTitle: 'Regel bewerken',
                 importRulesTitle: 'Handelaarregels importeren',
+                importRulesSupportingText: 'Koppel elke kolom in je spreadsheet aan een veld van een handelaarregel. Als alles er goed uitziet, klik hieronder om je regels te importeren.',
                 importColumnMerchantIs: 'Handelaar is',
                 importColumnMerchantContains: 'Handelaar bevat',
                 importColumnUpdatedMerchant: 'Bijgewerkte handelaar',

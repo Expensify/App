@@ -7712,6 +7712,7 @@ const translations = {
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
                 importRulesTitle: 'Import merchant rules',
+                importRulesSupportingText: 'Map each column in your spreadsheet to a merchant rule field. Once everything looks good, click below to import your rules.',
                 importColumnMerchantIs: 'Merchant is',
                 importColumnMerchantContains: 'Merchant contains',
                 importColumnUpdatedMerchant: 'Updated merchant',

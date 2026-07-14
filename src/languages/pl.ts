@@ -7427,6 +7427,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 addRuleTitle: 'Dodaj regułę',
                 editRuleTitle: 'Edytuj regułę',
                 importRulesTitle: 'Importuj reguły sprzedawcy',
+                importRulesSupportingText:
+                    'Zmapuj każdą kolumnę w arkuszu kalkulacyjnym do pola reguły sprzedawcy. Jeśli wszystko wygląda dobrze, kliknij poniżej, aby zaimportować swoje reguły.',
                 importColumnMerchantIs: 'Sprzedawca to',
                 importColumnMerchantContains: 'Sprzedawca zawiera',
                 importColumnUpdatedMerchant: 'Zaktualizowany sprzedawca',

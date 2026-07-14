@@ -7407,6 +7407,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 addRuleTitle: 'Añadir regla',
                 editRuleTitle: 'Editar regla',
                 importRulesTitle: 'Importar reglas de comerciante',
+                importRulesSupportingText:
+                    'Asigna cada columna de tu hoja de cálculo a un campo de la regla de comerciante. Cuando todo esté correcto, haz clic abajo para importar tus reglas.',
                 importColumnMerchantIs: 'El comerciante es',
                 importColumnMerchantContains: 'El comerciante contiene',
                 importColumnUpdatedMerchant: 'Comerciante actualizado',

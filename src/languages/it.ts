@@ -7467,6 +7467,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 addRuleTitle: 'Aggiungi regola',
                 editRuleTitle: 'Modifica regola',
                 importRulesTitle: 'Importa regole esercente',
+                importRulesSupportingText:
+                    'Mappa ogni colonna del tuo foglio di calcolo a un campo della regola esercente. Se ti sembra tutto corretto, fai clic qui sotto per importare le tue regole.',
                 importColumnMerchantIs: 'L’esercente è',
                 importColumnMerchantContains: 'L’esercente contiene',
                 importColumnUpdatedMerchant: 'Esercente aggiornato',

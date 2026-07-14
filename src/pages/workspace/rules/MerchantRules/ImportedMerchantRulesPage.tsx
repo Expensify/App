@@ -256,6 +256,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
                     errors={isValidationEnabled ? validate() : undefined}
                     columnRoles={columnRoles}
                     isButtonLoading={isImportingRules}
+                    customHeaderText={translate('workspace.rules.merchantRules.importRulesSupportingText')}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
