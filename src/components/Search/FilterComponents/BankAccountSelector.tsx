@@ -101,15 +101,18 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
     // Snapshot the accounts selected when the filter first opened so they stay floated in the top section on first render
     // without repinning rows that are toggled afterwards. Section membership keys on this snapshot while each row's
     // checkbox still reflects the live selection, so selecting/deselecting an account no longer makes it jump between sections.
+    // Only float the initial selection when the list is long enough to warrant it (>= STANDARD_LIST_ITEM_LIMIT), mirroring
+    // the shared moveInitialSelectionToTop gate; for short lists items stay in their natural order so nothing is pinned.
     const initialSelectedValues = useInitialValue(() => value);
     const wasInitiallySelected = (item: BankAccountFilterItem) => initialSelectedValues.includes(item.value);
+    const shouldPinInitialSelection = openItems.length + closedItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const searchFunction = (item: BankAccountFilterItem) =>
         item.text.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) || item.lastFour.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase());
 
-    const selectedData = [...openItems, ...closedItems].filter((item) => wasInitiallySelected(item) && searchFunction(item));
-    const unselectedOpenData = openItems.filter((item) => !wasInitiallySelected(item) && searchFunction(item));
-    const unselectedClosedData = closedItems.filter((item) => !wasInitiallySelected(item) && searchFunction(item));
+    const selectedData = shouldPinInitialSelection ? [...openItems, ...closedItems].filter((item) => wasInitiallySelected(item) && searchFunction(item)) : [];
+    const unselectedOpenData = openItems.filter((item) => (!shouldPinInitialSelection || !wasInitiallySelected(item)) && searchFunction(item));
+    const unselectedClosedData = closedItems.filter((item) => (!shouldPinInitialSelection || !wasInitiallySelected(item)) && searchFunction(item));
 
     const itemCount = selectedData.length + unselectedOpenData.length + unselectedClosedData.length;
     const sectionHeaderCount = unselectedClosedData.length > 0 ? 1 : 0;
