@@ -293,12 +293,11 @@ function ReportFieldsListValuesPage({
 
             return (
                 <ButtonWithDropdownMenu
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
-                    buttonSize={CONST.BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {
-                        count: selectedKeys.length,
-                    })}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    customText={translate('workspace.common.selected', {count: selectedKeys.length})}
                     options={options}
                     isSplitButton={false}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}

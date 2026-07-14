@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
-import {getLoginByAccountID, getPersonalDetailByEmail, getPersonalDetailsByIDs, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID, getPersonalDetailByEmail, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
@@ -54,7 +54,6 @@ import {
     getLastVisibleMessage,
     getMarkedReimbursedMessage,
     getMccGroupCategoryMessage,
-    getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
@@ -66,7 +65,6 @@ import {
     getRenamedCardFeedMessage,
     getReportAction,
     getReportActionActorAccountID,
-    getReportActionHtml,
     getReportActionMessageText,
     getRequireCompanyCardsEnabledMessage,
     getRoomAvatarUpdatedMessage,
@@ -560,10 +558,24 @@ function isSearchStringMatch(searchValue: string, searchText?: string | null, pa
     return matching;
 }
 
-function hasHiddenDisplayNames(accountIDs: number[], translate: LocalizedTranslate) {
-    return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some(
-        (personalDetail) => !temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, shouldFallbackToHidden: false, translate}),
-    );
+function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string, translate: LocalizedTranslate) {
+    let memberDetails = '';
+    if (personalDetail.login) {
+        memberDetails += ` ${personalDetail.login}`;
+    }
+    if (personalDetail.firstName) {
+        memberDetails += ` ${personalDetail.firstName}`;
+    }
+    if (personalDetail.lastName) {
+        memberDetails += ` ${personalDetail.lastName}`;
+    }
+    if (personalDetail.displayName) {
+        memberDetails += ` ${temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, translate})}`;
+    }
+    if (personalDetail.phoneNumber) {
+        memberDetails += ` ${personalDetail.phoneNumber}`;
+    }
+    return isSearchStringMatch(searchValue.trim(), memberDetails.toLowerCase());
 }
 
 function getLatestVisibleMoneyRequestAction(
@@ -727,7 +739,7 @@ function getLastMessageTextForReport({
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
                 lastMessageTextFromReport = translate(`reportArchiveReasons.${archiveReason}`, {
                     displayName: formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate})),
-                    policyName: getPolicyName({report, policy}),
+                    policyName: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
                 });
                 break;
             }
@@ -999,12 +1011,6 @@ function getLastMessageTextForReport({
         return lastMessageTextFromReport || (getReportLastMessage(reportID, isReportArchived, undefined).lastMessageText ?? '');
     }
 
-    // When the last report action has unknown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
-    // so we reconstruct the last message text of the report from the last report action.
-    if (!lastMessageTextFromReport && lastReportAction && hasHiddenDisplayNames(getMentionedAccountIDsFromAction(lastReportAction), translate)) {
-        lastMessageTextFromReport = Parser.htmlToText(getReportActionHtml(lastReportAction));
-    }
-
     // If the last report action is a pending moderation action, get the last message text from the last visible report action
     if (reportID && !lastMessageTextFromReport && isPendingRemove(lastOriginalReportAction)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
@@ -1215,7 +1221,8 @@ function createOption({
         const computedReportName = getReportName(report, reportAttributesDerived);
 
         reportName = showPersonalDetails
-            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
+            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils, translate: translateFn}) ||
+              formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
             : computedReportName;
     } else {
         reportName =
@@ -1223,6 +1230,7 @@ function createOption({
                 accountID: accountIDs.at(0),
                 personalDetailsData: personalDetails ?? undefined,
                 formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                translate: translateFn,
             }) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs.at(0));
 
@@ -2843,16 +2851,12 @@ function getFilteredRecentAttendees(
     currentUserAccountID: number,
     translate: LocalizedTranslate,
 ): Option[] {
-    const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserEmail || attendee.login === currentUserEmail);
+    const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserEmail);
     if (!recentAttendeeHasCurrentUser && currentUserEmail) {
         const details = getPersonalDetailByEmail(currentUserEmail);
         recentAttendees.push({
             email: currentUserEmail,
-            login: currentUserEmail,
             displayName: details?.displayName ?? currentUserEmail,
-            accountID: currentUserAccountID,
-            text: details?.displayName ?? currentUserEmail,
-            searchText: details?.displayName ?? currentUserEmail,
             avatarUrl: details?.avatarThumbnail ?? '',
         });
     }
@@ -3383,6 +3387,7 @@ export {
     isDisablingOrDeletingLastEnabledTag,
     isMakingLastRequiredTagListOptional,
     isPersonalDetailsReady,
+    isSearchStringMatchUserDetails,
     optionsOrderBy,
     orderOptions,
     orderPersonalDetailsOptions,
