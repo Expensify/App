@@ -251,7 +251,10 @@ function IOURequestStepUpgrade({
     ]);
 
     const participant = transaction?.participants?.[0];
-    const adminParticipant = isDistanceRateUpgrade && participant?.accountID ? getParticipantsOption(participant, personalDetails, translate) : undefined;
+    const adminParticipant =
+        isDistanceRateUpgrade && participant?.accountID
+            ? {participant: getParticipantsOption(participant, personalDetails, translate), doesPersonalDetailExist: !!personalDetails?.[participant.accountID]}
+            : undefined;
 
     const onUpgrade = () => {
         if (isRestrictedPolicyCreation) {
