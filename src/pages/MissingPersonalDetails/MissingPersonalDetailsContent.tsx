@@ -14,13 +14,14 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/PersonalDetails';
 import {isUkEuExpensifyCard} from '@libs/CardUtils';
 import {normalizeCountryCode} from '@libs/CountryUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {findPageIndex} from '@libs/SubPageUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {CardList, PrivatePersonalDetails} from '@src/types/onyx';
 
@@ -52,6 +53,9 @@ type MissingPersonalDetailsContentProps = {
 
     /** Card ID for the card that the user is adding personal details to */
     cardID: string;
+
+    /** Base path of the entry screen, used to build dynamic routes that keep the correct screen underneath the RHP */
+    basePath: string;
 };
 
 const baseFormPages = [
@@ -64,7 +68,7 @@ const baseFormPages = [
 const PINPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN, component: PINStep};
 const confirmPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, component: Confirmation};
 
-function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete, cardID}: MissingPersonalDetailsContentProps) {
+function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete, cardID, basePath}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {executeScenario} = useMultifactorAuthentication();
@@ -101,7 +105,9 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             }
 
             if (!PIN) {
-                Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN), basePath), {
+                    forceReplace: true,
+                });
                 return;
             }
 
@@ -130,7 +136,8 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         pages: formPages,
         startFrom,
         onFinished: handleFinishStep,
-        buildRoute: (pageName, action) => ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, pageName, action),
+        buildRoute: (pageName, action) => createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, pageName, action), basePath),
+        shouldReplaceRoute: true,
     });
 
     if (isRedirecting) {
@@ -146,7 +153,9 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         }
 
         if (isEditing) {
-            Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM), basePath), {
+                forceReplace: true,
+            });
             return;
         }
 

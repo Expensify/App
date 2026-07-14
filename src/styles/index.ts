@@ -11,7 +11,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 
 /* eslint-disable max-lines */
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
+import type {LineLayerStyle as LineLayerStyleProps} from '@rnmapbox/maps';
 import type {LineLayerSpecification} from 'react-map-gl/mapbox';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated, DimensionValue, ImageStyle, TextStyle, ViewStyle} from 'react-native';
@@ -2737,7 +2737,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingLeft: 20,
             height: variables.contentHeaderHeight,
             width: '100%',
-            backgroundColor: theme.appBG,
         },
 
         reportSearchHeaderBar: {
@@ -6927,13 +6926,13 @@ const plainStyles = (theme: ThemeColors) =>
             lineColor: colors.green400,
             lineWidth: 6,
             lineCap: 'round',
-        },
+        } satisfies MapDirectionStyle,
 
         mapDirectionBorder: {
             lineColor: colors.green600,
             lineWidth: 8,
             lineCap: 'round',
-        },
+        } satisfies MapDirectionStyle,
 
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},

@@ -1,4 +1,3 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import CardFeedIcon from '@components/CardFeedIcon';
@@ -15,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
@@ -85,7 +83,6 @@ function WorkspaceCompanyCardsTable({
     onReloadPage,
     onReloadFeed,
 }: WorkspaceCompanyCardsTableProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
@@ -117,7 +114,7 @@ function WorkspaceCompanyCardsTable({
     const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
 
     const hasOnceLoadedPage = !!companyCardsLoadingState?.hasOnceLoadedPage;
-    const hasOnceLoadedSelectedFeed = !!(bankName && companyCardsLoadingState?.feeds?.[bankName]?.hasOnceLoaded);
+    const hasOnceLoadedSelectedFeed = !!bankName && !!companyCardsLoadingState?.feeds?.[bankName]?.hasOnceLoaded;
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
     const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading && !hasOnceLoadedPage;
@@ -149,31 +146,26 @@ function WorkspaceCompanyCardsTable({
 
     // If we already have fetched cards, then do not show a loading spinner (let the remaining updates refresh in the background), else show it
     const hasCards = (companyCardEntries ?? []).length > 0;
-    // When the last feed is removed, card data already implies no feed (isNoFeed); lastSelectedFeed Onyx metadata can still report loading after optimistic clear.
-    const isLoadingFeed =
-        !hasCards &&
-        ((!feedName && isInitiallyLoadingFeeds && !hasOnceLoadedPage) ||
-            !isPolicyLoaded ||
-            (!isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata)) ||
-            (!!selectedFeedStatus?.isLoading && !hasOnceLoadedSelectedFeed));
-    const isLoadingCards = !hasCards && isLoadingOnyxValue(cardListMetadata);
-    const isLoadingPage = !isOffline && !hasCards && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
 
-    const isLoading = isLoadingPage || isLoadingFeed;
+    const isLoadingOnyxCardList = !hasCards && isLoadingOnyxValue(cardListMetadata);
+    const isLoadingOnyxPersonalDetails = isLoadingOnyxValue(personalDetailsMetadata);
+    const isLoadingOnyxFeed = !isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata) && !hasOnceLoadedSelectedFeed;
+    const isSelectedFeedLoading = !!selectedFeedStatus?.isLoading && !hasOnceLoadedSelectedFeed;
+
+    const isLoadingPage = !isOffline && !hasCards && (isLoadingOnyxPersonalDetails || areWorkspaceCardFeedsLoading);
+    const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxFeed || isSelectedFeedLoading);
+    const isLoading = isLoadingPage || isLoadingFeed || isLoadingOnyxCardList;
 
     // Unassign requests hide their rows while online (pending-delete filter below), so bulk unassigning every
     // visible card would flash the empty feed state; treat that in-flight window as loading instead.
     const hasPendingUnassignment = (companyCardEntries ?? []).some((entry) => entry.assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoading && !hasFeedErrors;
-    const showTableControls = showCards && !!selectedFeed && !isLoadingCards && !hasFeedErrors;
+    const showTableControls = showCards && !!selectedFeed && !isLoadingOnyxCardList && !hasFeedErrors;
     const showTableHeaderButtons = (showTableControls || isLoadingPage || isFeedPending || feedErrorKey === CONST.COMPANY_CARDS.FEED_LOAD_ERROR) && !!feedName;
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
-
-    // When we reach the medium screen width or the narrow layout is active,
-    // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
@@ -202,7 +194,7 @@ function WorkspaceCompanyCardsTable({
         },
     ];
 
-    const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
+    const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingOnyxCardList
         ? []
         : (companyCardEntries ?? [])
               .map(({cardName, encryptedCardNumber, isAssigned, assignedCard}) => {
@@ -374,22 +366,6 @@ function WorkspaceCompanyCardsTable({
         </View>
     ) : undefined;
 
-    const LoadingComponent = (
-        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
-            <ActivityIndicator
-                color={theme.spinner}
-                style={[styles.pl3]}
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={{
-                    context: 'WorkspaceCompanyCardsTable',
-                    isLoading,
-                    isLoadingCards,
-                    hasPendingUnassignment,
-                }}
-            />
-        </View>
-    );
-
     return (
         <Table
             ref={tableRef}
@@ -409,7 +385,7 @@ function WorkspaceCompanyCardsTable({
         >
             {headerButtonsComponent}
 
-            {isLoading && <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>}
+            {isLoading && <Table.LoadingState context="WorkspaceCompanyCardsTable" />}
 
             {!isLoading && isFeedPending && !feedErrorKey && (
                 <ScrollView addBottomSafeAreaPadding>
@@ -466,8 +442,8 @@ function WorkspaceCompanyCardsTable({
                     />
                     {hasPendingUnassignment && cardsData.length === 0 ? (
                         // While bulk unassign requests are in flight, the pending rows are hidden and the feed can momentarily
-                        // have no cards. Show the loading spinner instead of the empty-feed state until the rows settle.
-                        <View style={[styles.flex1, bottomSafeAreaPaddingStyle]}>{LoadingComponent}</View>
+                        // have no cards. Show the loading state instead of the empty-feed state until the rows settle.
+                        <Table.LoadingState context="WorkspaceCompanyCardsTable" />
                     ) : (
                         <>
                             <Table.EmptyState
