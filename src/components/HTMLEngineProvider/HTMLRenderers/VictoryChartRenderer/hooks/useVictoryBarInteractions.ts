@@ -1,3 +1,7 @@
+/**
+ * Manages hover/tap interactions on Victory bar charts, providing hit-testing
+ * against rendered bars, tooltip state, and click-through navigation to search.
+ */
 import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
 import {TOOLTIP_BAR_GAP} from '@components/Charts/hooks';
 import useChartInteractionState from '@components/Charts/hooks/useChartInteractionState';
@@ -16,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 import type {TNode} from 'react-native-render-html';
 import type {CartesianChartRenderArg} from 'victory-native';
 
-import {useMemo, useState} from 'react';
+import {useState} from 'react';
 import {Platform} from 'react-native';
 import {Gesture} from 'react-native-gesture-handler';
 import {useAnimatedReaction, useDerivedValue, useSharedValue} from 'react-native-reanimated';
@@ -86,9 +90,9 @@ function buildInteractiveBars(rows: CartesianChartData[], yKeys: YKey[], barSeri
 
 function useVictoryBarInteractions() {
     const {tnode, data, yKeys, pointMetadata, isHorizontal} = useVictoryChartContext();
-    const rows = useMemo(() => Object.values(data) as CartesianChartData[], [data]);
-    const barSeriesConfig = useMemo(() => (isHorizontal ? {} : collectVerticalBarSeries(tnode.children)), [isHorizontal, tnode.children]);
-    const interactiveBars = useMemo(() => buildInteractiveBars(rows, yKeys, barSeriesConfig, pointMetadata), [barSeriesConfig, pointMetadata, rows, yKeys]);
+    const rows = Object.values(data) as CartesianChartData[];
+    const barSeriesConfig = isHorizontal ? {} : collectVerticalBarSeries(tnode.children);
+    const interactiveBars = buildInteractiveBars(rows, yKeys, barSeriesConfig, pointMetadata);
     const {state} = useChartInteractionState();
     const pointX = useSharedValue<number[]>([]);
     const pointY = useSharedValue<number[]>([]);
@@ -147,7 +151,7 @@ function useVictoryBarInteractions() {
         state.y.y.position.set(pointY.get().at(index) ?? 0);
     };
 
-    const handlePress = (index: number) => {
+    const navigateToBarSearch = (index: number) => {
         const searchQuery = interactiveBars.at(index)?.searchQuery;
         if (!searchQuery) {
             return;
@@ -186,7 +190,7 @@ function useVictoryBarInteractions() {
         const index = findMatchedBar(event.x, event.y);
         applyMatch(index);
         if (index >= 0 && (hasSearchQuery.get().at(index) ?? 0) === 1) {
-            scheduleOnRN(handlePress, index);
+            scheduleOnRN(navigateToBarSearch, index);
         }
     });
 
@@ -220,7 +224,7 @@ function useVictoryBarInteractions() {
         },
     );
 
-    const handleRender = (renderArgs: CartesianChartRenderArg<CartesianChartData, YKey>) => {
+    const syncBarPositions = (renderArgs: CartesianChartRenderArg<CartesianChartData, YKey>) => {
         const {points, chartBounds} = renderArgs;
         const xs: number[] = [];
         const ys: number[] = [];
@@ -250,7 +254,7 @@ function useVictoryBarInteractions() {
 
     return {
         customGestures,
-        handleRender,
+        syncBarPositions,
         activeLabel: activeBarIndex >= 0 ? interactiveBars.at(activeBarIndex)?.label : undefined,
         hasTooltipLabels: SHOULD_SHOW_TOOLTIPS && interactiveBars.some((bar) => !!bar.label),
         isTooltipActive,

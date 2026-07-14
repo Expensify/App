@@ -22,9 +22,16 @@ import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
 
 type VictoryChartCartesianProps = {
+    /** Explicit width/height when chart is rendered outside auto-layout */
     explicitSize?: {width: number; height: number};
+
+    /** When true, renders without visible chrome (used for snapshots/tests) */
     headless?: boolean;
+
+    /** Custom gesture configuration forwarded to CartesianChart */
     customGestures?: CartesianChartProps['customGestures'];
+
+    /** Callback invoked with render args on each chart render pass */
     onRenderArgs?: (renderArgs: CartesianChartRenderArg<CartesianChartData, YKey>) => void;
 };
 

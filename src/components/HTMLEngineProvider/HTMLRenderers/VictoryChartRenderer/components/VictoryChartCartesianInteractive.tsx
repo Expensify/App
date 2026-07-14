@@ -1,3 +1,7 @@
+/**
+ * Interactive wrapper around VictoryChartCartesian that adds hover tooltips
+ * and tap-to-navigate behaviour for bar chart series.
+ */
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import useVictoryBarInteractions from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryBarInteractions';
@@ -23,9 +27,9 @@ function VictoryChartCartesianInteractive() {
     const {chartContentStyles} = useVictoryChartContext();
     const designWidth = getChartDesignWidth(undefined, chartContentStyles.width);
     const [chartWidth, setChartWidth] = useState(designWidth ?? 0);
-    const {customGestures, handleRender, activeLabel, hasTooltipLabels, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useVictoryBarInteractions();
+    const {customGestures, syncBarPositions, activeLabel, hasTooltipLabels, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useVictoryBarInteractions();
 
-    const handleLayout = (event: LayoutChangeEvent) => {
+    const updateChartWidth = (event: LayoutChangeEvent) => {
         setChartWidth(event.nativeEvent.layout.width);
     };
 
@@ -45,11 +49,11 @@ function VictoryChartCartesianInteractive() {
     return (
         <Animated.View
             style={[styles.container, cursorStyle]}
-            onLayout={handleLayout}
+            onLayout={updateChartWidth}
         >
             <VictoryChartCartesian
                 customGestures={customGestures}
-                onRenderArgs={handleRender}
+                onRenderArgs={syncBarPositions}
             />
             {!!activeLabel && hasTooltipLabels && chartWidth > 0 && (
                 <Animated.View
