@@ -51,7 +51,7 @@
     "lint": "./scripts/lint.sh",
     "lint-changed": "./scripts/lintChanged.sh",
     "lint-watch": "onchange '**/*.{js,jsx,ts,tsx,mjs,cjs}' -- ./scripts/lint.sh {{changed}}",
-    "verify-expo-patches": "ts-node scripts/verifyExpoPatches.ts",
+    "verify-expo-patches": "bun scripts/verifyExpoPatches.ts",
     "eslint-report": "bun scripts/eslint-report.ts",
     "knip": "KNIP=true knip --include dependencies --exclude unlisted --no-exit-code --reporter compact",
     "knip:full": "KNIP=true knip --reporter compact",
