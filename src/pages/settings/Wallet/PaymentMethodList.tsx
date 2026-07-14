@@ -22,6 +22,7 @@ import {
     getCardFeedWithDomainID,
     getPlaidInstitutionIconUrl,
     isActionableVirtualExpensifyCard,
+    isBrokenConnectionPastDismissThreshold,
     isCardConnectionBroken,
     isCardFrozen,
     isCardInactive,
@@ -286,7 +287,7 @@ function PaymentMethodList({
                 if (card.fundID) {
                     const feedNameWithDomainID = getCardFeedWithDomainID(card.bank, card.fundID);
                     shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
-                } else if (!isUserPersonalCard && card.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV) {
+                } else if ((!shouldShowConnectionStatus || !isUserPersonalCard) && card.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV) {
                     // Don't show red dot for CSV imported cards without fundID
                     shouldShowRBR = true;
                 }
@@ -306,7 +307,7 @@ function PaymentMethodList({
                     brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 }
 
-                const isCardBroken = isCardConnectionBroken(card);
+                const isCardBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
                 const isCardInactiveState = isCardInactive(card);
                 const shouldShowCardConnectionMessage = shouldShowConnectionStatus && (isCardBroken || shouldShowRBR || isCardInactiveState);
                 const shouldShowCardErrorMessages = !shouldShowCardConnectionMessage || !!card.pendingAction;
