@@ -989,7 +989,7 @@ function getOptionData({
             : null;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID, translate);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
         lastMessageTextFromReport = getLastMessageTextForReport({
@@ -1046,7 +1046,7 @@ function getOptionData({
                     accountID: lastAction.actorAccountID,
                 };
             }
-            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID) : undefined;
+            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID, translate) : undefined;
             const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
             const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : (report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0);
@@ -1294,6 +1294,7 @@ function getOptionData({
                         currentUserAccountID,
                         personalDetails,
                         !!reportNameValuePairs?.private_isArchived,
+                        translate,
                         visibleReportActionsData,
                         lastAction,
                     )) ||
@@ -1341,7 +1342,7 @@ function getOptionData({
                 }).messageText || translate('report.noActivityYet'),
             );
         }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID) && !isReportArchived) {
+        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translate) && !isReportArchived) {
             const displayName =
                 (lastMessageTextFromReport.length > 0 &&
                     getLastActorDisplayNameFromLastVisibleActions(
@@ -1350,6 +1351,7 @@ function getOptionData({
                         currentUserAccountID,
                         personalDetails,
                         !!reportNameValuePairs?.private_isArchived,
+                        translate,
                         visibleReportActionsData,
                         lastAction,
                     )) ||
@@ -1449,7 +1451,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
             welcomeMessage.messageHtml = translate(
                 'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
                 getPolicyName({report, policy}),
-                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
+                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}),
             );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         }
@@ -1522,7 +1524,7 @@ function getRoomWelcomeMessage(
     } else if (isInvoiceRoom(report)) {
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils})
+                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate})
                 : invoiceReceiverPolicy?.name;
         const receiver = getPolicyName({report});
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
