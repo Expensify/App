@@ -3334,6 +3334,7 @@ describe('actions/Policy', () => {
                 },
                 transactionViolations: {},
                 betas: [],
+                personalDetailsList: {},
             });
             await waitForBatchedUpdates();
 
@@ -3403,6 +3404,7 @@ describe('actions/Policy', () => {
                 },
                 transactionViolations: {},
                 betas: [],
+                personalDetailsList: {},
             });
             await waitForBatchedUpdates();
 

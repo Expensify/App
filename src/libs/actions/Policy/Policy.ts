@@ -310,6 +310,7 @@ type SetWorkspaceApprovalModeAdditionalData = {
     reportNextSteps?: OnyxCollection<ReportNextStepDeprecated>;
     transactionViolations?: OnyxCollection<TransactionViolations>;
     betas?: Beta[];
+    personalDetailsList?: OnyxEntry<PersonalDetailsList>;
 };
 
 let deprecatedAllPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -928,7 +929,8 @@ function setWorkspaceApprovalMode(
 
     const nextStepOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [];
     const nextStepFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [];
-    const shouldUpdateNextSteps = additionalData?.reportNextSteps != null && additionalData?.transactionViolations != null && additionalData?.betas != null;
+    const shouldUpdateNextSteps =
+        additionalData?.reportNextSteps != null && additionalData?.transactionViolations != null && additionalData?.betas != null && additionalData?.personalDetailsList;
 
     // We want to toggle off preventSelfApproval when the user turns off Approvals and has preventSelfApproval enabled.
     const shouldResetPreventSelfApproval = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && !!policy?.preventSelfApproval;
@@ -951,7 +953,17 @@ function setWorkspaceApprovalMode(
 
             const nextStepKey: `${typeof ONYXKEYS.COLLECTION.NEXT_STEP}${string}` = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`;
             const currentNextStep: OnyxEntry<ReportNextStepDeprecated> | null = resolvedReportNextSteps[nextStepKey] ?? null;
-            const hasViolations = ReportUtils.hasViolations(reportID, resolvedTransactionViolations, currentUserAccountID, currentUserEmail, undefined, undefined, report, updatedPolicy);
+            const hasViolations = ReportUtils.hasViolations(
+                reportID,
+                resolvedTransactionViolations,
+                currentUserAccountID,
+                currentUserEmail,
+                undefined,
+                undefined,
+                report,
+                PersonalDetailsUtils.getLoginByAccountID(report.ownerAccountID, additionalData.personalDetailsList),
+                updatedPolicy,
+            );
             const optimisticNextStep = buildNextStepNew({
                 report,
                 policy: updatedPolicy,

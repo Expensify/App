@@ -24,6 +24,7 @@ import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -93,6 +94,7 @@ function TransactionPreviewContent({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getStableReportSelector});
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const ownerLogin = getLoginByAccountID(ownerAccountID, personalDetails);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -102,6 +104,7 @@ function TransactionPreviewContent({
     const transactionPreviewCommonArguments = useMemo(
         () => ({
             iouReport: report,
+            iouReportOwnerLogin: ownerLogin,
             policy,
             transaction,
             action,
@@ -109,7 +112,7 @@ function TransactionPreviewContent({
             violations,
             transactionDetails,
         }),
-        [action, report, policy, isBillSplit, transaction, transactionDetails, violations],
+        [action, report, ownerLogin, policy, isBillSplit, transaction, transactionDetails, violations],
     );
 
     const conditionals = useMemo(
