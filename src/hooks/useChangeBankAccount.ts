@@ -1,5 +1,3 @@
-import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
-
 import Navigation from '@navigation/Navigation';
 
 import {navigateToBankAccountRoute, prepareNewBankAccountSetup} from '@userActions/ReimbursementAccount';
@@ -7,6 +5,8 @@ import {navigateToBankAccountRoute, prepareNewBankAccountSetup} from '@userActio
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import {hasOtherEligibleBusinessBankAccountsSelector} from '@selectors/ReimbursementAccount';
 
 import useOnyx from './useOnyx';
 
@@ -16,9 +16,7 @@ import useOnyx from './useOnyx';
  * Shared by ConnectedVerifiedBankAccount and VerifiedBankAccountFlowEntryPoint.
  */
 function useChangeBankAccount(policyID: string | undefined, currency: string | undefined, bankAccountID: number | undefined) {
-    const [hasOtherEligibleAccountsToConnect = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
-        selector: (bankAccountList) => getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true, bankAccountID).length > 0,
-    });
+    const [hasOtherEligibleAccountsToConnect = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: hasOtherEligibleBusinessBankAccountsSelector(currency, bankAccountID)});
 
     return () => {
         if (!policyID || !currency) {
