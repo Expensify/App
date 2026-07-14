@@ -14,6 +14,7 @@ import {
     getDomainByFundID,
     getDomainNameFromExpensifyCardSettings,
     getFundIdFromSettingsKey,
+    getLinkedPolicyIDsForExpensifyCardProgram,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
     isPolicyIDInLinkedExpensifyCardPolicyList,
@@ -85,9 +86,13 @@ function isExpensifyCardFeedVisibleToAdmin(
     );
 }
 
-/** A feed shows as available for a policy when that policy is in the feed's `linkedPolicyIDs`; otherwise it shows under "From other workspaces". */
+/**
+ * A feed shows as available for a policy when that policy is in the linked list for the entry's own program; otherwise it
+ * shows under "From other workspaces". A domain with more than one program links each program independently, so linking a
+ * policy to the US program must not make the GB program show as available for that policy (and vice versa).
+ */
 function isFeedPrimaryForPolicy(entry: ExpensifyCardFeedEntry, policyID: string): boolean {
-    return isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(entry.settings), policyID);
+    return isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsForExpensifyCardProgram(entry.settings, entry.programKey), policyID);
 }
 
 function getAdminExpensifyCardFeedEntries(

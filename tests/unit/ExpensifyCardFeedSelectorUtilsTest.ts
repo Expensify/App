@@ -1,4 +1,6 @@
-import {getAdminExpensifyCardFeedEntries, getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
+import type {CardProgramKey} from '@libs/CardUtils';
+import {getAdminExpensifyCardFeedEntries, getExpensifyCardFeedDescription, partitionExpensifyCardFeedsForSelector} from '@libs/ExpensifyCardFeedSelectorUtils';
+import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -236,5 +238,44 @@ describe('getAdminExpensifyCardFeedEntries', () => {
         const entries = getAdminExpensifyCardFeedEntries(distinctDomainCardSettings, policies, domains, currentUserAccountID);
 
         expect(entries).toHaveLength(2);
+    });
+});
+
+describe('partitionExpensifyCardFeedsForSelector', () => {
+    const targetPolicyID = 'WS1';
+
+    function createEntry(programKey: CardProgramKey, settings: ExpensifyCardSettings): ExpensifyCardFeedEntry {
+        return {settingsKey: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`, fundID, settings, programKey};
+    }
+
+    it('links each program of a shared feed independently by the program-nested linkedPolicyIDs', () => {
+        // A single domain provisions both US and GB; only the US program is linked to WS1.
+        const settings: ExpensifyCardSettings = {
+            hasOnceLoaded: true,
+            [CONST.COUNTRY.US]: {paymentBankAccountID: 23242, linkedPolicyIDs: [targetPolicyID]},
+            [CONST.COUNTRY.GB]: {paymentBankAccountID: 55667},
+        };
+        const usEntry = createEntry(CONST.COUNTRY.US, settings);
+        const gbEntry = createEntry(CONST.COUNTRY.GB, settings);
+
+        const {primary, other} = partitionExpensifyCardFeedsForSelector([usEntry, gbEntry], targetPolicyID);
+
+        // Only the linked US program is primary; the GB program stays under "From other workspaces".
+        expect(primary).toEqual([usEntry]);
+        expect(other).toEqual([gbEntry]);
+    });
+
+    it('treats a root-level linkedPolicyIDs as applying to the program (legacy/single-program feeds)', () => {
+        const settings: ExpensifyCardSettings = {
+            hasOnceLoaded: true,
+            linkedPolicyIDs: [targetPolicyID],
+            [CONST.COUNTRY.US]: {paymentBankAccountID: 23242},
+        };
+        const usEntry = createEntry(CONST.COUNTRY.US, settings);
+
+        const {primary, other} = partitionExpensifyCardFeedsForSelector([usEntry], targetPolicyID);
+
+        expect(primary).toEqual([usEntry]);
+        expect(other).toEqual([]);
     });
 });

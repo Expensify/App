@@ -1596,6 +1596,26 @@ function getLinkedPolicyIDsFromExpensifyCardSettings(settings: ExpensifyCardSett
     return dedupePolicyIDsCaseInsensitive(ids);
 }
 
+/**
+ * Linked workspace IDs for a single program on the feed. A domain provisioned with more than one program (e.g. US and GB)
+ * keeps a separate `linkedPolicyIDs` on each program's nested block, so a workspace linked to only the US program must not
+ * appear linked to the GB program. Root-level `linkedPolicyIDs` still apply to the program because legacy/single-program
+ * feeds store the links flat on the root rather than nested.
+ */
+function getLinkedPolicyIDsForExpensifyCardProgram(settings: ExpensifyCardSettings | OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey): string[] | undefined {
+    if (!settings) {
+        return undefined;
+    }
+    const ids: string[] = [
+        ...collectLinkedPolicyIDsFromBase(settings as ExpensifyCardSettingsBase),
+        ...collectLinkedPolicyIDsFromBase(getNestedExpensifyCardProgramSettings(settings, programKey)),
+    ];
+    if (ids.length === 0) {
+        return undefined;
+    }
+    return dedupePolicyIDsCaseInsensitive(ids);
+}
+
 /** True if `policyID` is in the linked list (case-insensitive). */
 function isPolicyIDInLinkedExpensifyCardPolicyList(linkedPolicyIDs: string[] | undefined, policyID: string): boolean {
     return !!linkedPolicyIDs?.some((id) => id.toUpperCase() === policyID.toUpperCase());
@@ -2163,6 +2183,7 @@ export {
     getExpensifyCardProgramLabelSuffix,
     getSelectableCardProgramKey,
     getLinkedPolicyIDsFromExpensifyCardSettings,
+    getLinkedPolicyIDsForExpensifyCardProgram,
     getPreferredPolicyFromExpensifyCardSettings,
     getDomainNameFromExpensifyCardSettings,
     getDomainByFundID,
