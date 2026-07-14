@@ -4621,6 +4621,27 @@ function getActionableCard3DSTransactionApprovalMessage(
     return translate('report.actions.type.actionableCard3DSTransactionApproval', formattedAmount, merchant);
 }
 
+// Renders content of TRAVEL_NUDGE reportActions
+function getTravelNudgeMessage(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE>) {
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage) {
+        return '';
+    }
+    const isCardCreated = originalMessage.origination === 'card';
+    switch (originalMessage.travelType) {
+        case 'airfare':
+            return translate(isCardCreated ? 'travel.nudge.airfareCard' : 'travel.nudge.airfareManual');
+        case 'hotel':
+            return translate(isCardCreated ? 'travel.nudge.hotelCard' : 'travel.nudge.hotelManual');
+        case 'carRental':
+            return translate(isCardCreated ? 'travel.nudge.carCard' : 'travel.nudge.carManual');
+        case 'rail':
+            return translate(isCardCreated ? 'travel.nudge.railCard' : 'travel.nudge.railManual');
+        default:
+            return '';
+    }
+}
+
 /**
  * @private
  */
@@ -4979,6 +5000,7 @@ export {
     getWorkspaceCustomUnitUpdatedMessage,
     getRoomChangeLogMessage,
     getActionableCard3DSTransactionApprovalMessage,
+    getTravelNudgeMessage,
     shouldShowActivateCard,
     isRejectedAction,
     isReopenedAction,

@@ -4508,6 +4508,22 @@ const translations = {
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
             defaultUpdate: (type: string) => `Your ${type} reservation was updated.`,
         },
+        nudge: {
+            airfareManual:
+                'Hey there! Did you know you can book and manage flights right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via Expensify Travel ✈️',
+            airfareCard:
+                'Hey there! Did you know you can book and manage flights right in Expensify? And it automatically uploads receipts for you? Next time simply book via Expensify Travel ✈️',
+            hotelManual:
+                'Hey there! Did you know you can book and manage hotel stays right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via Expensify Travel 🏨',
+            hotelCard: 'Hey there! Did you know you can book and manage hotel stays right in Expensify? Next time simply book via Expensify Travel 🏨',
+            carManual:
+                'Hey there! Did you know you can book and manage car rentals right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via Expensify Travel 🚗',
+            carCard: 'Hey there! Did you know you can book and manage car rentals right in Expensify? Next time simply book via Expensify Travel 🚗',
+            railManual:
+                'Hey there! Did you know you can book and manage train rides right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via Expensify Travel 🚂',
+            railCard:
+                'Hey there! Did you know you can book and manage train rides right in Expensify? And it automatically uploads receipts for you? Next time simply book via Expensify Travel 🚂',
+        },
         flightTo: 'Flight to',
         trainTo: 'Train to',
         carRental: ' car rental',
