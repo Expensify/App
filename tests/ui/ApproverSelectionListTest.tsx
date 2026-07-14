@@ -16,11 +16,19 @@ let mockIsFocused = true;
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
+    const ReactMock = jest.requireActual<typeof React>('react');
 
     return {
         ...actualNavigation,
-        useFocusEffect: jest.fn(),
-        useIsFocused: jest.fn(() => mockIsFocused),
+        useFocusEffect: jest.fn((callback: () => void) => {
+            ReactMock.useEffect(() => {
+                if (!mockIsFocused) {
+                    return;
+                }
+
+                return callback();
+            }, [callback, mockIsFocused]);
+        }),
     };
 });
 
@@ -156,7 +164,7 @@ describe('ApproverSelectionList', () => {
     });
 
     it('pins the selected approver when selection data arrives after list data', () => {
-        const {rerender} = renderApproverSelectionList(buildApprovers(null), null);
+        const {rerender} = renderApproverSelectionList([], null);
 
         rerender(
             <ApproverSelectionList
