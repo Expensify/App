@@ -356,6 +356,7 @@
     "rock": "0.12.10",
     "semver": "7.5.2",
     "setimmediate": "^1.0.5",
+    "sharp": "^0.35.3",
     "shellcheck": "^1.1.0",
     "source-map": "^0.7.4",
     "storybook": "10.1.10",
