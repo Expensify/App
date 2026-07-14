@@ -139,12 +139,6 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     // This callback is used to register the focus trap container element of each available tab screen
     const setTabFocusTrapContainerElement = (tabName: string, containerElement: HTMLElement | null) => {
         setFocusTrapContainerElementMapping((prevMapping) => {
-            if (prevMapping[tabName] === containerElement) {
-                return prevMapping;
-            }
-            if (!containerElement && !(tabName in prevMapping)) {
-                return prevMapping;
-            }
             const resultMapping = {...prevMapping};
             if (containerElement) {
                 resultMapping[tabName] = containerElement;
