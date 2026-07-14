@@ -8,7 +8,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {format, parseISO} from 'date-fns';
 
@@ -597,15 +597,15 @@ function getRateByCustomUnitRateID({customUnitRateID, policy}: {customUnitRateID
 }
 
 /**
- * Resolve an enabled mileage rate by its ID across every policy the user belongs to (cached `allPolicies`).
+ * Resolve an enabled mileage rate by its ID across every policy the user belongs to.
  * Useful when the caller doesn't know which policy owns the rate (e.g. a self-DM split on the personal rate).
  * Returns `undefined` for the P2P rate, a missing ID, or a disabled/deleted rate.
  */
-function getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID: string | undefined): MileageRate | undefined {
+function getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID: string | undefined, policies: OnyxCollection<Policy>): MileageRate | undefined {
     if (!customUnitRateID || customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
         return undefined;
     }
-    for (const policy of Object.values(allPolicies ?? {})) {
+    for (const policy of Object.values(policies ?? {})) {
         const rate = getMileageRates(policy)[customUnitRateID];
         if (rate) {
             return rate;

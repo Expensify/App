@@ -263,7 +263,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         // the split's picked rate across all policies too — like the per-split edit screen does.
         const splitSelectedRate =
             (effectivePolicy ? DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID)[currentRateID] : undefined) ??
-            DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(currentRateID);
+            DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(currentRateID, allPolicies);
         if (!splitSelectedRate?.rate) {
             isUnitRateIDOutOfPolicy = true;
         }
@@ -396,10 +396,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
         if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, allPolicies);
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, allPolicies);
         }
     };
 

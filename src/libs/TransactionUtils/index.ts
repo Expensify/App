@@ -608,6 +608,7 @@ function getUpdatedTransaction({
     isFromExpenseReport,
     shouldUpdateReceiptState = true,
     policy = undefined,
+    policies = undefined,
     isSplitTransaction = false,
     personalPolicyOutputCurrency,
 }: {
@@ -616,6 +617,7 @@ function getUpdatedTransaction({
     isFromExpenseReport: boolean;
     shouldUpdateReceiptState?: boolean;
     policy?: OnyxEntry<Policy>;
+    policies?: OnyxCollection<Policy>;
     isSplitTransaction?: boolean;
     personalPolicyOutputCurrency: string | undefined;
 }): Transaction {
@@ -742,7 +744,7 @@ function getUpdatedTransaction({
             // The provided `policy` may not own the new rate, leaving the amount at 0. Fall back to
             // resolving the rate across every policy the user belongs to.
             if (!updatedMileageRate.rate && transactionChanges.customUnitRateID) {
-                const rateFromAnyPolicy = DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(transactionChanges.customUnitRateID);
+                const rateFromAnyPolicy = DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(transactionChanges.customUnitRateID, policies);
                 if (rateFromAnyPolicy?.rate) {
                     updatedMileageRate = rateFromAnyPolicy;
                 }

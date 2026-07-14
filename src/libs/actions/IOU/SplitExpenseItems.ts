@@ -648,6 +648,7 @@ function updateSplitExpenseAmountField(
     policy: OnyxEntry<OnyxTypes.Policy>,
     isSelfDMSplit: boolean,
     personalPolicyOutputCurrency: string | undefined,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ) {
     if (!draftTransaction?.transactionID || !currentItemTransactionID || Number.isNaN(amount)) {
         return;
@@ -677,7 +678,7 @@ function updateSplitExpenseAmountField(
                 // picked rate across all policies, so the selection isn't lost.
                 const splitSelectedRate =
                     DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID: splitRateID}) ??
-                    DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(splitRateID);
+                    DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(splitRateID, policies);
                 const isSplitP2PRate = splitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
                 // Prefer the split's own selected rate when it's a real enabled rate; otherwise fall back to
                 // the original-transaction rate (covers the P2P and deleted-rate cases).

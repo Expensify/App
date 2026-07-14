@@ -2500,7 +2500,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 [split1SnapshotKey]: split1TransactionForSnapshot,
                 [split2SnapshotKey]: split2TransactionForSnapshot,
             },
-            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, isLoading: false},
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
         } as unknown as SearchResults);
         await waitForBatchedUpdates();
 
@@ -2776,7 +2776,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 [workspaceChildSnapshotKey]: workspaceChildTransaction,
                 [selfDMChildSnapshotKey]: selfDMChildTransaction,
             },
-            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, isLoading: false},
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
         } as unknown as SearchResults);
         await waitForBatchedUpdates();
 
@@ -2916,7 +2916,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 [child1SnapshotKey]: childTransaction1,
                 [child2SnapshotKey]: childTransaction2,
             },
-            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, isLoading: false},
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
         } as unknown as SearchResults);
         await waitForBatchedUpdates();
 
