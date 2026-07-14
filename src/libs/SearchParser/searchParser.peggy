@@ -10,7 +10,7 @@
 // freeTextFilter: rule to process the free text search values returned by the identifier rule. It builds filter Object.
 // standardFilter: rule to process the values returned by the key rule. It builds filter Object.
 // key: rule to match pre-defined search syntax fields, e.g. amount, merchant, etc
-// defaultKey: rule to match pre-defined search syntax fields that are used to update default values, e.g. type, status, etc
+// defaultKey: rule to match pre-defined search syntax fields that are used to update default values, e.g. type, sortBy, etc
 // identifier: composite rule to match patterns defined by the quotedString and alphanumeric rules
 
 // filter, logicalAnd, operator, alphanumeric, quotedStrig are defined in baseRules.peggy grammar
@@ -60,7 +60,6 @@
 
   const defaultValues = {
     type: "expense",
-    status: "",
     sortBy: "date",
     sortOrder: "desc",
     view: "table",
@@ -113,11 +112,6 @@
   }
 
   function updateDefaultValues(field, value) {
-    if (field === "status" && value === "all") {
-      defaultValues[field] = "";
-      return;
-    }
-
     // Track if user explicitly provided a custom (non-default) sortBy
     if (field === "sortBy" && !isDefaultSortValue(value)) {
       userProvidedSortBy = true;
@@ -285,6 +279,7 @@ key "key"
       / receiptType
       / withdrawalType
       / withdrawalStatus
+      / paidStatus
       / withdrawalID
       / submitted
       / approved
@@ -304,6 +299,8 @@ key "key"
       / is
       / purchaseCurrency
       / purchaseAmount
+      / policyID
+      / status
       / reportFieldDynamic
     )
 
@@ -313,7 +310,7 @@ filterKey
       return k;
     }
     
-defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy / columns / limit / view)
+defaultKey "default key" = @(type / sortBy / sortOrder / groupBy / columns / limit / view)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {

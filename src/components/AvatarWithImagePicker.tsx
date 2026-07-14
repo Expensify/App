@@ -1,3 +1,4 @@
+import useAvatarCrop from '@hooks/useAvatarCrop';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
@@ -23,7 +24,6 @@ import type {AvatarButtonWithIconProps} from './AvatarButtonWithIcon';
 
 import AttachmentPicker from './AttachmentPicker';
 import AvatarButtonWithIcon from './AvatarButtonWithIcon';
-import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
@@ -114,15 +114,10 @@ function AvatarWithImagePicker({
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
-    const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
-    const [imageData, setImageData] = useState({
-        uri: '',
-        name: '',
-        type: '',
-    });
     const {calculatePopoverPosition} = usePopoverPosition();
     const anchorRef = useRef<View>(null);
     const {translate} = useLocalize();
+    const {openCropper} = useAvatarCrop({maskType: editorMaskImage ? 'square' : undefined, onCropped: onImageSelected});
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -155,22 +150,13 @@ function AvatarWithImagePicker({
                     return;
                 }
 
-                setIsAvatarCropModalOpen(true);
                 setError(null, {});
                 setIsMenuVisible(false);
-                setImageData({
-                    uri: image.uri ?? '',
-                    name: image.name ?? '',
-                    type: image.type ?? '',
-                });
+                openCropper(image);
             })
             .catch(() => {
                 setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
             });
-    };
-
-    const hideAvatarCropModal = () => {
-        setIsAvatarCropModalOpen(false);
     };
 
     /**
@@ -310,15 +296,6 @@ function AvatarWithImagePicker({
                     type="error"
                 />
             )}
-            <AvatarCropModal
-                onClose={hideAvatarCropModal}
-                isVisible={isAvatarCropModalOpen}
-                onSave={onImageSelected}
-                imageUri={imageData.uri}
-                imageName={imageData.name}
-                imageType={imageData.type}
-                maskImage={editorMaskImage}
-            />
         </View>
     );
 }

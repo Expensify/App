@@ -92,7 +92,6 @@ function useSpendOverTimeData() {
         searchResults?.data && queryJSON && groupBy && login
             ? (getSortedSections(
                   queryJSON.type,
-                  queryJSON.status,
                   getSections({
                       type: queryJSON.type,
                       data: searchResults.data,
@@ -105,6 +104,7 @@ function useSpendOverTimeData() {
                       bankAccountList: undefined,
                       conciergeReportID: undefined,
                       convertToDisplayString,
+                      reportAttributesDerivedValue: undefined,
                   })[0],
                   localeCompare,
                   translate,

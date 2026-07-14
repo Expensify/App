@@ -166,6 +166,8 @@ type TransactionEditPermissionsParams = {
 
     chatReportNVP?: OnyxEntry<ReportNameValuePairs>;
 
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+
     originalTransaction?: OnyxEntry<Transaction>;
 
     /** When true, all editing is disabled regardless of permissions. */
@@ -290,7 +292,7 @@ function getIouParamsForTransaction({
 }
 
 /** Updates the date of an expense from the Search results table or the Expense Report page. */
-function editTransactionDateInline(params: TransactionInlineEditParams, newDate: string) {
+function editTransactionDateInline(params: TransactionInlineEditParams, newDate: string, personalPolicyOutputCurrency: string | undefined) {
     const iouParams = getIouParamsForTransaction(params);
     updateMoneyRequestDate({
         ...iouParams,
@@ -302,6 +304,7 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
         isOffline: params.isOffline,
         hash: params.hash,
         distanceOriginalPolicy: params.distanceOriginalPolicy,
+        personalPolicyOutputCurrency,
     });
 }
 
@@ -405,6 +408,7 @@ function getTransactionEditPermissions({
     policyTags,
     transactionThreadNVP,
     chatReportNVP,
+    reportNameValuePairs,
     originalTransaction,
     disabled,
     shouldSelectPolicyForUnreported,
@@ -499,6 +503,7 @@ function getTransactionEditPermissions({
                 reportAction: parentReportAction,
                 fieldToEdit: field,
                 isChatReportArchived,
+                reportNameValuePairs,
                 transaction,
                 report: parentReport,
                 policy,
