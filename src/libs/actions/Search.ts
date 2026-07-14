@@ -669,6 +669,7 @@ function getOnyxLoadingData(
     // reuses this helper as a UI-only loading toggle with no query and no success/failure step, so it must stay out of
     // the state machine — otherwise it would strand `state: loading` with no terminal write to clear it.
     const isSearchRequest = isSearchAPI && !!queryJSON;
+    const type = queryJSON?.type;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
@@ -701,7 +702,7 @@ function getOnyxLoadingData(
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 search: {
-                    ...(isSearchRequest && {isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type: queryJSON?.type}),
+                    ...(isSearchRequest && {isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type}),
                 },
             },
         },
@@ -728,7 +729,7 @@ function getOnyxLoadingData(
             value: {
                 ...(isOffline ? {} : {data: null}),
                 search: {
-                    type: queryJSON?.type,
+                    type,
                     ...(isSearchAPI && {isLoading: false}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.ERROR}),
                 },
