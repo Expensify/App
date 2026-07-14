@@ -12,10 +12,22 @@ describe('parseRawChartData', () => {
     });
 
     it('skips invalid entries and properties', () => {
-        const result = parseRawChartData("[null, 5, 'x', {name: 'A'}, {x: 'test'}, {x: 'abc', y: '10'}, {x: 'water', y: 15}]");
+        const result = parseRawChartData("[null, 5, 'x', {name: 'A'}, {x: 'test'}, {x: 'abc', y: '10'}, {x: 'water', y: 15, label: 5, searchQuery: {}}]");
         expect(result).toEqual([
             {x: 'abc', y: 10},
             {x: 'water', y: 15},
+        ]);
+    });
+
+    it('preserves supported point metadata', () => {
+        const result = parseRawChartData("[{x: 1, y: 20, label: 'Jan 2026: $20', searchQuery: 'type:expense date>=2026-01-01 date<2026-02-01'}]");
+        expect(result).toEqual([
+            {
+                x: 1,
+                y: 20,
+                label: 'Jan 2026: $20',
+                searchQuery: 'type:expense date>=2026-01-01 date<2026-02-01',
+            },
         ]);
     });
 });
