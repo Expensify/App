@@ -276,7 +276,9 @@ function IOURequestStepConfirmation({
                 }
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 const participantReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
-                const participantPolicy = participant.policyID ? participantsPolicies[participant.policyID] : policy;
+                // participantsPolicies only holds persisted policies, so fall back to the transaction policy when it's this
+                // participant's workspace — e.g. a freshly created draft workspace ("Submit to my employer" with no existing one).
+                const participantPolicy = (participant.policyID ? participantsPolicies[participant.policyID] : policy) ?? (participant.policyID === policy?.id ? policy : undefined);
                 // Phone contacts always have an optimistic accountID but no reportID; getReportOption
                 // is designed for report-backed participants and discards participant.text, so route
                 // any participant without a reportID to getParticipantsOption instead.
