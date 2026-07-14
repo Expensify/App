@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import genericMemo from '@libs/genericMemo';
 import {isInvalidMerchantValue, isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
 
 import variables from '@styles/variables';
@@ -110,4 +111,4 @@ function TextBase<TFormID extends OnyxFormKey>({
     );
 }
 
-export default TextBase;
+export default genericMemo(TextBase);
