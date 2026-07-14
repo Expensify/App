@@ -287,6 +287,9 @@ const ONYXKEYS = {
     /** The NVP with the last action taken (for the Quick Action Button) */
     NVP_QUICK_ACTION_GLOBAL_CREATE: 'nvp_quickActionGlobalCreate',
 
+    /** The NVP holding the state of the Chronos timer (the true source of whether a timer is running) */
+    NVP_CHRONOS_TIME_TRACKING: 'nvp_expensify_chronosTimeTracking',
+
     /** The NVP containing all information necessary to connect with Spotnana */
     NVP_TRAVEL_SETTINGS: 'nvp_travelSettings',
 
@@ -1643,6 +1646,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
+    [ONYXKEYS.NVP_CHRONOS_TIME_TRACKING]: OnyxTypes.ChronosTimeTracking;
     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: boolean;
     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: boolean;
     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING]: boolean;
