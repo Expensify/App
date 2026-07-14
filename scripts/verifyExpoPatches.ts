@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env bun
 
 /**
  * Fails the install/lint run when a patch-package patch targets the native code of an Expo module
