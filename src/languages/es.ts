@@ -4293,6 +4293,17 @@ ${amount} para ${merchant} - ${date}`,
         positiveButton: '¡Sí!',
         negativeButton: 'No mucho',
     },
+    trialPaymentReminder: {
+        title: 'Adelántate al plazo',
+        subtitle: 'No esperes hasta el último momento, añade tu método de pago hoy para asegurar el acceso continuo a tus gastos en Expensify.',
+        trialEndsInDays: () => ({
+            one: 'La prueba termina en 1 día',
+            other: (pluralCount: number) => `La prueba termina en ${pluralCount} días`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `La prueba termina en ${hours}h : ${minutes}m : ${seconds}s`,
+        closeButton: 'Cerrar',
+        addPaymentCardButton: 'Añadir tarjeta de pago',
+    },
     workspace: {
         common: {
             card: 'Tarjetas',
@@ -10197,6 +10208,18 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             search: 'Búsqueda más potente en móviles, web y ordenadores',
             concierge: 'Concierge AI integrada para ayudarte a automatizar tus gastos',
             chat: 'Chatea en tus gastos para resolver cualquier duda rápidamente.',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: '¿Quieres un plan de empleado GRATIS?',
+        description: 'No esperes a que tu empresa use Expensify. Creamos un plan gratuito solo para ti:',
+        confirmText: 'Obtener el plan gratuito',
+        dismissText: 'No, gracias',
+        features: {
+            getReimbursed: 'Recibe tus reembolsos más rápido, directamente en Expensify',
+            buildReports: 'Crea informes de gastos en segundos',
+            categorize: 'Clasifica tus gastos',
+            inviteBoss: 'Invita a tu jefe cuando estés listo',
         },
     },
     productTrainingTooltip: {
