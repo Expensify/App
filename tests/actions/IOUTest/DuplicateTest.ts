@@ -1821,6 +1821,8 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 isDraftChatReport: true,
+                delegateAccountID: undefined,
+                policyTagList: targetPolicyTags ?? {},
             });
 
             await waitForBatchedUpdates();
