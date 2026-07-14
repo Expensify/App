@@ -11,7 +11,6 @@ import type {
     ReplaceTwoFactorDeviceParams,
     RequestNewValidateCodeParams,
     RequestUnlinkValidationLinkParams,
-    ResendValidateCodeParams,
     ResetSMSDeliveryFailureStatusParams,
     SignInUserWithLinkParams,
     SignUpUserParams,
@@ -529,7 +528,7 @@ function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => an
 /**
  * Request a new validate / magic code for user to sign in via passwordless flow
  */
-function resendValidateCode(reasonParams: ResendValidateCodeParams, login = credentials.login) {
+function resendValidateCode(login = credentials.login) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -551,7 +550,7 @@ function resendValidateCode(reasonParams: ResendValidateCodeParams, login = cred
     ];
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: RequestNewValidateCodeParams = {email: login, deviceInfo, ...reasonParams};
+        const params: RequestNewValidateCodeParams = {email: login, deviceInfo};
         API.write(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE, params, {optimisticData, finallyData});
     });
 }
