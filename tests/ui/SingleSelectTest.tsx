@@ -99,4 +99,17 @@ describe('SingleSelect', () => {
         const props = mockedSelectionList.mock.lastCall?.[0];
         expect(keysOf(props?.data ?? [])).toEqual(shortItems.map((item) => item.value));
     });
+
+    it('passes shouldUpdateFocusedIndex so the focused index follows a row that reorders on selection', () => {
+        render(
+            <SingleSelect
+                value={items[10]}
+                items={items}
+                onChange={jest.fn()}
+            />,
+        );
+
+        const props = mockedSelectionList.mock.lastCall?.[0];
+        expect(props?.shouldUpdateFocusedIndex).toBe(true);
+    });
 });

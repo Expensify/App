@@ -129,4 +129,18 @@ describe('WorkspaceSelector', () => {
         const props = mockedSelectionList.mock.lastCall?.[0];
         expect(keysOf(props?.data ?? [])).toEqual(buildWorkspaces(CONST.STANDARD_LIST_ITEM_LIMIT - 1).map((workspace) => workspace.policyID));
     });
+
+    it('passes shouldUpdateFocusedIndex so the focused index follows a row that reorders on selection', () => {
+        mockWorkspaces(OPTION_COUNT);
+
+        render(
+            <WorkspaceSelector
+                value={['ws-10']}
+                onChange={jest.fn()}
+            />,
+        );
+
+        const props = mockedSelectionList.mock.lastCall?.[0];
+        expect(props?.shouldUpdateFocusedIndex).toBe(true);
+    });
 });
