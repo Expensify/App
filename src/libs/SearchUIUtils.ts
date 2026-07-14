@@ -3,7 +3,7 @@ import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {FilterComponentsProps} from '@components/Search/FilterComponents';
-import {TextInputFilterContentProps} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+import type {TextInputFilterContentProps} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import type {
@@ -187,7 +187,7 @@ import {
     getFilterFromQuery,
     isFilterNegatable,
     isFilterSupported,
-    isNegated,
+    isFilterNegated,
     isSearchDatePreset,
     removeNegation,
     sortOptionsWithEmptyValue,
@@ -5504,14 +5504,14 @@ function getLabelValue(key: SearchAdvancedFiltersKey, labelKey: TranslationPaths
     }
 
     if (isFilterNegatable(key)) {
-        const prefix = isNegated(key) ? '-' : '';
+        const prefix = isFilterNegated(key) ? '-' : '';
         return `${prefix}${translate(labelKey)}`;
     }
     return translate(labelKey);
 }
 
 function shouldShowFilter(skipFilters: Set<SearchAdvancedFiltersKey> | undefined, key: SearchAdvancedFiltersKey, value: ValueOf<SearchAdvancedFiltersForm>, type: SearchDataTypes) {
-    return !skipFilters?.has(key) && (isFilterNegatable(key) || !isNegated(key)) && isFilterSupported(key, type) && value && (!Array.isArray(value) || value.length > 0);
+    return !skipFilters?.has(key) && (isFilterNegatable(key) || !isFilterNegated(key)) && isFilterSupported(key, type) && value && (!Array.isArray(value) || value.length > 0);
 }
 
 function isTextFilterKey(key: string): key is SearchTextFilterKeys {
@@ -5534,15 +5534,30 @@ type SearchFilter = {
 
 type MappedFilterKey = Exclude<SearchAdvancedFiltersKey, keyof typeof FILTER_TO_SYNTAX_KEY> | SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX;
 
-function mapFiltersFormToLabelValueList<T extends Record<string, unknown>, S extends SearchAdvancedFiltersKey = never>(
+function mapFiltersFormToLabelValueList(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
-    skipFilters: Set<S> | undefined,
+    skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
-    mapper?: (filterKey: Exclude<MappedFilterKey, S>) => T,
-): Array<SearchFilter & T> {
-    const filters: Array<SearchFilter & T> = [];
+): SearchFilter[];
+function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
+    searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
+    skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
+    translate: LocalizedTranslate,
+    localeCompare: LocaleContextProps['localeCompare'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
+    mapper: (filterKey: MappedFilterKey) => T,
+): Array<SearchFilter & T>;
+function mapFiltersFormToLabelValueList(
+    searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
+    skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
+    translate: LocalizedTranslate,
+    localeCompare: LocaleContextProps['localeCompare'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
+    mapper?: (filterKey: MappedFilterKey) => Record<string, unknown>,
+): SearchFilter[] {
+    const filters: SearchFilter[] = [];
     const addedGroups = new Set<SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX>();
     const type = searchAdvancedFiltersForm.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -5566,8 +5581,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>, S ext
 
             if (displayValue && label) {
                 addedGroups.add(syntax);
-                const extra = mapper?.(syntax) ?? ({} as T);
-                filters.push({key: syntax, label: translate(label), value: displayValue, ...extra});
+                filters.push({key: syntax, label: translate(label), value: displayValue, ...mapper?.(syntax)});
             }
             continue;
         }
@@ -5581,7 +5595,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>, S ext
             const value = getReportFieldDisplayValue(searchAdvancedFiltersForm, translate);
             if (value) {
                 addedGroups.add(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
-                const extra = mapper?.(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD as Exclude<MappedFilterKey, S>) ?? ({} as T);
+                const extra = mapper?.(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD);
                 filters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, label: translate('workspace.common.reportField'), value, ...extra});
             }
             continue;
@@ -5589,14 +5603,17 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>, S ext
 
         // Handle regular filters
         const baseKey = removeNegation(key);
-        const labelKey = baseKey in FILTER_VIEW_MAP ? FILTER_VIEW_MAP[baseKey as keyof typeof FILTER_VIEW_MAP].labelKey : undefined;
+        if (!hasKey(FILTER_VIEW_MAP, baseKey)) {
+            continue;
+        }
+
+        const labelKey = FILTER_VIEW_MAP[baseKey].labelKey;
         const value = getDisplayValue(key, searchAdvancedFiltersForm, type, translate, localeCompare);
         const label = getLabelValue(key, labelKey, translate);
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
-            const filterLabelMapKey = baseKey as keyof typeof FILTER_VIEW_MAP;
-            const extra = mapper?.(key as Exclude<MappedFilterKey, S>) ?? ({} as T);
-            filters.push({key: filterLabelMapKey, label, value, ...extra});
+            const filterLabelMapKey = baseKey;
+            filters.push({key: filterLabelMapKey, label, value, ...mapper?.(key)});
         }
     }
 

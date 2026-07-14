@@ -29,7 +29,7 @@ import {
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     getRoutes,
-    isNegated,
+    isFilterNegated,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
     isSearchRootParams,
@@ -3574,18 +3574,18 @@ describe('SearchQueryUtils', () => {
 
     describe('isNegated', () => {
         it('returns true for negated filter keys (ending with the NOT modifier)', () => {
-            expect(isNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
-            expect(isNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
-            expect(isNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
-            expect(isNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
-            expect(isNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
         });
 
         it('returns false for base (non-negated) filter keys', () => {
-            expect(isNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT)).toBe(false);
-            expect(isNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM)).toBe(false);
-            expect(isNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO)).toBe(false);
-            expect(isNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY)).toBe(false);
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT)).toBe(false);
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM)).toBe(false);
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO)).toBe(false);
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY)).toBe(false);
         });
     });
 

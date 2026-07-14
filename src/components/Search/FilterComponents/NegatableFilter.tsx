@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -42,19 +42,19 @@ function NegatableFilter({baseFilterKey, isNegated, children, style, onNegationC
                     <Button
                         style={[styles.flex1]}
                         innerStyles={[isNegated ? styles.bgTransparent : undefined]}
-                        small
-                        text={positive}
-                        textStyles={[isNegated ? styles.textMicroBoldSupporting : undefined]}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={() => onNegationChange(false)}
-                    />
+                    >
+                        <Button.Text style={[isNegated ? styles.textMicroBoldSupporting : undefined]}>{positive}</Button.Text>
+                    </Button>
                     <Button
                         style={[styles.flex1]}
                         innerStyles={[isNegated ? undefined : styles.bgTransparent]}
-                        small
-                        text={negative}
-                        textStyles={[isNegated ? undefined : styles.textMicroBoldSupporting]}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={() => onNegationChange(true)}
-                    />
+                    >
+                        <Button.Text style={[isNegated ? undefined : styles.textMicroBoldSupporting]}>{negative}</Button.Text>
+                    </Button>
                 </View>
             </View>
             {children}

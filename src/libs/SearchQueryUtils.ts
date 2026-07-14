@@ -1,6 +1,6 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {FilterComponentsProps} from '@components/Search/FilterComponents';
-import {TextInputFilterContentProps} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+import type {TextInputFilterContentProps} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
 import type {
     ASTNode,
     Filter,
@@ -2450,7 +2450,7 @@ function isFilterNegatable(key: SearchAdvancedFiltersKey) {
     return NEGATABLE_FILTERS.has(removeNegation(key) as SearchNegatableFilterKeys);
 }
 
-function isNegated(filterKey: SearchAdvancedFiltersKey) {
+function isFilterNegated(filterKey: SearchAdvancedFiltersKey) {
     return filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER);
 }
 
@@ -2516,7 +2516,7 @@ export {
     getParamsState,
     getRoutes,
     isSearchRootParams,
-    isNegated,
+    isFilterNegated,
     isFilterNegatable,
     removeNegation,
     getFilterFormValues,
