@@ -935,9 +935,46 @@ function extractSubmitterEmails(rule: ApprovalWorkflowRule): string[] {
 }
 
 /**
+ * Recursively normalize a value so two logically-equal structures stringify identically:
+ *   - object keys are sorted (order-independent), and
+ *   - index-keyed maps (`{"0":x,"1":y}`) are collapsed to arrays (`[x,y]`).
+ *
+ * The array collapse matters because the API decodes the rules JSON to PHP associative arrays, so a
+ * rule's `triggers`/`actions` come back from the backend as JSON arrays while a freshly-built rule
+ * uses the `{"0":…}` object form. Without this, the two shapes would never match and the create flow
+ * would mint a brand-new rule instead of folding the submitter into the existing one.
+ */
+function canonicalize(value: unknown): unknown {
+    if (Array.isArray(value)) {
+        return value.map(canonicalize);
+    }
+    if (value !== null && typeof value === 'object') {
+        const entries = Object.entries(value);
+        // A `{"0":…,"1":…}` map is the object form of a list — collapse it to an array to match the backend.
+        const isSequentialIndexMap = entries.length > 0 && entries.every(([key], index) => key === String(index));
+        if (isSequentialIndexMap) {
+            return entries.map(([, val]) => canonicalize(val));
+        }
+        // Byte-order sort is intentional: this is a locale-agnostic structural fingerprint, not user-facing text.
+        const sortedEntries = entries.sort(([a], [b]) => {
+            if (a === b) {
+                return 0;
+            }
+            return a < b ? -1 : 1;
+        });
+        return Object.fromEntries(sortedEntries.map(([key, val]) => [key, canonicalize(val)]));
+    }
+    return value;
+}
+
+/**
  * Return a structural fingerprint of a rule with the `right` values of every `from` leaf
  * stripped. Two rules with the same fingerprint differ only in their submitter list, which
  * is what we look for when deciding whether to merge two workflows into a shared rule.
+ *
+ * Keys are canonicalized (recursively sorted) so a rule hydrated from the server folds into
+ * a freshly-built one even when their JSON object-key order differs — otherwise the create
+ * flow would mint a brand-new rule instead of adding the submitter to the existing rule.
  */
 function structuralFingerprint(rule: ApprovalWorkflowRule): string {
     const stripFromValues = (node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): unknown => {
@@ -954,11 +991,13 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
         return {operator: node.operator, left: stripFromValues(node.left), right: stripFromValues(node.right)};
     };
 
-    return JSON.stringify({
-        triggers: rule.triggers,
-        filters: stripFromValues(rule.filters),
-        actions: rule.actions,
-    });
+    return JSON.stringify(
+        canonicalize({
+            triggers: rule.triggers,
+            filters: stripFromValues(rule.filters),
+            actions: rule.actions,
+        }),
+    );
 }
 
 /** Replace the `right` value on every `from` leaf with `newEmails`. */
@@ -1519,11 +1558,14 @@ function convertApprovalWorkflowRulesToWorkflows({
             }
         }
 
-        // Group submitters that share the same rules into one workflow. A submitter's "rules" is the
-        // exact set of ruleIDs whose `from` includes them, so two submitters that belong to the same
-        // rules land in the same workflow
-        const submitterRuleIDs = getSubmitterRuleIDs(email, rules);
-        const fingerprint = submitterRuleIDs.length > 0 ? `r|${submitterRuleIDs.join(',')}` : `l|${approverChainFingerprint(chain)}`;
+        // Group submitters by their resolved approver chain, so everyone routing through the same chain of
+        // approvers renders as a single workflow card. Grouping by the exact set of ruleIDs instead would
+        // split two same-chain workflows whenever their rules happened to be stored as separate pairs (e.g.
+        // one workflow was created before the other's rules were cached). The `r`/`l` source tag keeps
+        // rule-based chains separate from legacy employeeList chains, which are expected to disappear on re-save.
+        const hasRuleBasedChain = getSubmitterRuleIDs(email, rules).length > 0;
+        const chainKey = approverChainFingerprint(chain);
+        const fingerprint = hasRuleBasedChain ? `r|${chainKey}` : `l|${chainKey}`;
         const existingGroup = groupedByFingerprint.get(fingerprint);
 
         if (existingGroup) {

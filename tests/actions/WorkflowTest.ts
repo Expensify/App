@@ -918,6 +918,128 @@ describe('actions/Workflow', () => {
             await mockFetch.resume();
             await waitForBatchedUpdates();
         });
+
+        it('folds a new submitter into the existing same-chain rules instead of creating a new pair', async () => {
+            mockFetch.pause();
+
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                rules: {},
+            };
+
+            // Existing workflow: employee1 (A) and employee2 (B) submit to owner (C).
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule1`, {
+                scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY,
+                scopeID: policyID,
+                triggers: {'0': CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT},
+                filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employee1Email, employee2Email]},
+                actions: {'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO, approver: ownerEmail}},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule2`, {
+                scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY,
+                scopeID: policyID,
+                triggers: {'0': CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE},
+                filters: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employee1Email, employee2Email]},
+                    right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: ownerEmail},
+                },
+                actions: {'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}},
+            });
+
+            // New workflow: employee3 (D) submits to owner (C) — same chain as the existing workflow.
+            const approvalWorkflow = {
+                members: [{email: employee3Email, displayName: employee3Email}],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+                action: 'create',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport: undefined});
+            await waitForBatchedUpdates();
+
+            const rules = await getActivePolicyRules(policyID);
+            // D should be folded into the two existing rules, not create a third/fourth rule.
+            expect(rules).toHaveLength(2);
+            for (const rule of rules) {
+                const fromLeaf = Object.values(rule.actions).some((action) => action.name === CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO)
+                    ? rule.filters
+                    : (rule.filters as {left: unknown}).left;
+                expect((fromLeaf as {right: string[]}).right).toEqual([employee1Email, employee2Email, employee3Email]);
+            }
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('E2E: creating A,B→C then D→C via two successive create calls folds D into the same rules', async () => {
+            mockFetch.pause();
+
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                rules: {},
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // First: A and B submit to C.
+            createApprovalWorkflowRules({
+                approvalWorkflow: {
+                    members: [
+                        {email: employee1Email, displayName: employee1Email},
+                        {email: employee2Email, displayName: employee2Email},
+                    ],
+                    approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                    isDefault: false,
+                },
+                policy,
+                addExpenseApprovalsTaskReport: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const rulesAfterFirst = await getActivePolicyRules(policyID);
+            expect(rulesAfterFirst).toHaveLength(2);
+
+            // Second: D submits to C (same approver chain).
+            createApprovalWorkflowRules({
+                approvalWorkflow: {
+                    members: [{email: employee3Email, displayName: employee3Email}],
+                    approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                    isDefault: false,
+                },
+                policy,
+                addExpenseApprovalsTaskReport: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const rulesAfterSecond = await getActivePolicyRules(policyID);
+            // Still only two rules, each now listing all three submitters.
+            expect(rulesAfterSecond).toHaveLength(2);
+            for (const rule of rulesAfterSecond) {
+                const fromLeaf = Object.values(rule.actions).some((action) => action.name === CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO)
+                    ? rule.filters
+                    : (rule.filters as {left: unknown}).left;
+                expect((fromLeaf as {right: string[]}).right).toEqual([employee1Email, employee2Email, employee3Email]);
+            }
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
     });
 
     describe('updateApprovalWorkflowRules', () => {

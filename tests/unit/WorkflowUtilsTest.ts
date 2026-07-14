@@ -25,7 +25,7 @@ import {
 import type {Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {BankAccountList} from '@src/types/onyx/BankAccount';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
@@ -1687,7 +1687,11 @@ describe('WorkflowUtils', () => {
         const approveActions = {'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}};
         const buildFromFilter = (emails: string[]) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: emails});
         const buildToFilter = (email: string) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: email});
-        const and = (left: object, right: object) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left, right});
+        const and = (left: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison, right: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): ApprovalWorkflowFilter => ({
+            operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+            left,
+            right,
+        });
         const keyRules = (rules: ApprovalWorkflowRule[]): Record<string, ApprovalWorkflowRule> => Object.fromEntries(rules.map((rule, index) => [`rule${index}`, rule]));
 
         describe('buildApprovalWorkflowRules', () => {
@@ -1779,6 +1783,56 @@ describe('WorkflowUtils', () => {
                 // Both rules structurally match, so members are folded into the existing rules (no new IDs).
                 expect(Object.keys(diff)).toEqual(Object.keys(existingRules));
                 expect(Object.values(diff)).toEqual(buildApprovalWorkflowRules(buildWorkflow([20, 10], [1])));
+            });
+
+            it('Should merge into an existing rule whose triggers/actions are arrays (as the PHP backend stores them)', () => {
+                // The API decodes the rules JSON to PHP associative arrays, so index-keyed maps like
+                // {"0":"ReportSubmit"} come back as JSON arrays ["ReportSubmit"]. A freshly-built rule uses the
+                // object form, so the structural match must treat the two shapes as equivalent to fold the submitter in.
+                const existingRules: Record<string, ApprovalWorkflowRule> = {
+                    r1: {
+                        triggers: [CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT] as unknown as ApprovalWorkflowRule['triggers'],
+                        filters: buildFromFilter(['20@example.com']),
+                        actions: [{name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO, approver: '1@example.com'}] as unknown as ApprovalWorkflowRule['actions'],
+                    },
+                    r2: {
+                        triggers: [CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE] as unknown as ApprovalWorkflowRule['triggers'],
+                        filters: and(buildFromFilter(['20@example.com']), buildToFilter('1@example.com')),
+                        actions: [{name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}] as unknown as ApprovalWorkflowRule['actions'],
+                    },
+                };
+                const newRules = buildApprovalWorkflowRules(buildWorkflow([10], [1]));
+                const diff = reconcileApprovalWorkflowRulesForCreate(newRules, ['10@example.com'], {existingRules});
+
+                // Folds into the two existing rules (r1/r2) instead of creating fresh IDs, and appends the submitter.
+                expect(Object.keys(diff).sort()).toEqual(['r1', 'r2']);
+                expect((diff.r1?.filters as {right: string[]}).right).toEqual(['20@example.com', '10@example.com']);
+            });
+
+            it('Should merge into an existing rule whose JSON keys are ordered differently (e.g. hydrated from the server)', () => {
+                // Server-hydrated rules can come back with a different object-key order than a freshly-built rule.
+                // The structural match must be order-independent so the new submitter folds into the existing rule.
+                const existingRules: Record<string, ApprovalWorkflowRule> = {
+                    r1: {
+                        actions: {'0': {approver: '1@example.com', name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO}},
+                        filters: {right: ['20@example.com'], left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO},
+                        triggers: submitTriggers,
+                    },
+                    r2: {
+                        actions: approveActions,
+                        filters: {
+                            right: {right: '1@example.com', left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO},
+                            left: {right: ['20@example.com'], left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO},
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                        },
+                        triggers: approveTriggers,
+                    },
+                };
+                const newRules = buildApprovalWorkflowRules(buildWorkflow([10], [1]));
+                const diff = reconcileApprovalWorkflowRulesForCreate(newRules, ['10@example.com'], {existingRules});
+
+                // Folds into the two existing rules (r1/r2) instead of creating fresh IDs.
+                expect(Object.keys(diff).sort()).toEqual(['r1', 'r2']);
             });
         });
 
@@ -1919,6 +1973,36 @@ describe('WorkflowUtils', () => {
                 if (workflow) {
                     expect(buildApprovalWorkflowRules(workflow)).toEqual(Object.values(rules));
                 }
+            });
+
+            it('Should group submitters with the same approver chain into one workflow even when stored as separate rule pairs', () => {
+                // Two workflows that both route to approver 1, but stored under distinct ruleIDs (e.g. created
+                // before the other one's rules were cached). They must still render as a single workflow card.
+                const rules: Record<string, ApprovalWorkflowRule> = {
+                    subAB: {triggers: submitTriggers, filters: buildFromFilter(['2@example.com', '3@example.com']), actions: forwardActions('1@example.com')},
+                    appAB: {triggers: approveTriggers, filters: and(buildFromFilter(['2@example.com', '3@example.com']), buildToFilter('1@example.com')), actions: approveActions},
+                    subD: {triggers: submitTriggers, filters: buildFromFilter(['4@example.com']), actions: forwardActions('1@example.com')},
+                    appD: {triggers: approveTriggers, filters: and(buildFromFilter(['4@example.com']), buildToFilter('1@example.com')), actions: approveActions},
+                };
+                const employees: PolicyEmployeeList = {
+                    '1@example.com': {email: '1@example.com', submitsTo: '9@example.com'},
+                    '2@example.com': {email: '2@example.com', submitsTo: '1@example.com'},
+                    '3@example.com': {email: '3@example.com', submitsTo: '1@example.com'},
+                    '4@example.com': {email: '4@example.com', submitsTo: '1@example.com'},
+                    '9@example.com': {email: '9@example.com', submitsTo: '9@example.com'},
+                };
+                const policy = createPolicy(employees, '9@example.com');
+
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
+
+                const workflowsToApprover1 = approvalWorkflows.filter((workflow) => workflow.approvers.at(0)?.email === '1@example.com');
+                expect(workflowsToApprover1).toHaveLength(1);
+                expect(
+                    workflowsToApprover1
+                        .at(0)
+                        ?.members.map((member) => member.email)
+                        .sort(),
+                ).toEqual(['2@example.com', '3@example.com', '4@example.com']);
             });
         });
     });
