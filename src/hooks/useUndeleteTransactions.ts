@@ -31,6 +31,7 @@ function useUndeleteTransactions() {
             transactions,
             allTransactionViolation: transactionViolations,
             allReports,
+            personalPolicyOutputCurrency: policy?.outputCurrency,
         });
     };
 }
