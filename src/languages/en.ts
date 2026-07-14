@@ -9013,6 +9013,7 @@ const translations = {
         serverResults: 'Search results',
         searchIn: 'Search in',
         askConcierge: (message: string) => `Ask Concierge “${message}”`,
+        goTo: ({destination}: {destination: string}) => `Go to ${destination}`,
         searchPlaceholder: 'Search for something...',
         suggestions: 'Suggestions',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({

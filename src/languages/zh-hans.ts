@@ -8554,6 +8554,7 @@ ${reportName}`,
         serverResults: '搜索结果',
         searchIn: '搜索范围',
         askConcierge: (message: string) => `询问 Concierge“${message}”`,
+        goTo: ({destination}: {destination: string}) => `前往${destination}`,
         searchPlaceholder: '搜索内容...',
         suggestions: '建议',
         suggestionsAvailable: (

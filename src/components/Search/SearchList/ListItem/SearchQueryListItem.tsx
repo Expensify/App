@@ -25,6 +25,7 @@ type SearchQueryItem = ListItem & {
     autocompleteID?: string;
     roomType?: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
     mapKey?: string;
+    action?: () => void;
 };
 
 type SearchQueryListItemProps = {
@@ -63,6 +64,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             showTooltip={showTooltip}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldHighlightSelectedItem
+            rightHandSideComponent={item.rightElement}
         >
             <>
                 {!!item.singleIcon && (

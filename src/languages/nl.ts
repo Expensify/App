@@ -8821,6 +8821,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         serverResults: 'Zoekresultaten',
         searchIn: 'Zoeken in',
         askConcierge: (message: string) => `Vraag Concierge: “${message}”`,
+        goTo: ({destination}: {destination: string}) => `Ga naar ${destination}`,
         searchPlaceholder: 'Zoek iets...',
         suggestions: 'Suggesties',
         suggestionsAvailable: (

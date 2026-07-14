@@ -8864,6 +8864,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         serverResults: 'Risultati di ricerca',
         searchIn: 'Cerca in',
         askConcierge: (message: string) => `Chiedi a Concierge “${message}”`,
+        goTo: ({destination}: {destination: string}) => `Vai a ${destination}`,
         searchPlaceholder: 'Cerca qualcosa...',
         suggestions: 'Suggerimenti',
         suggestionsAvailable: (

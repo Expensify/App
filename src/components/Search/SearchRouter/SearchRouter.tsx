@@ -66,11 +66,12 @@ import {clearPendingRouterState, peekPendingRouterState} from './SearchRouterCon
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 import updateAutocompleteSubstitutionsForSelection from './updateAutocompleteSubstitutionsForSelection';
 import useAskConcierge from './useAskConcierge';
+import useNavigationSuggestions from './useNavigationSuggestions';
 
 const privateIsArchivedSelector = (nvp: {private_isArchived?: string} | undefined): boolean | undefined => !!nvp?.private_isArchived;
 
 type SearchRouterProps = {
-    onRouterClose: () => void;
+    onRouterClose: (afterClose?: () => void) => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
     isSearchRouterDisplayed?: boolean;
     ref?: React.Ref<View>;
@@ -153,6 +154,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
     const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(initialQuery);
     const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
+    const navigationSuggestions = useNavigationSuggestions(textInputValue);
 
     useEffect(() => {
         clearPendingRouterState();
@@ -186,13 +188,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
         ({recentReports}, sectionIndex) => {
+            const getNavigationSuggestionsSection = () => (navigationSuggestions.length ? [{sectionIndex, data: navigationSuggestions}] : undefined);
+
             if (!contextualReportID) {
-                return undefined;
+                return getNavigationSuggestionsSection();
             }
 
             // We will only show the contextual search suggestion if the user has not typed anything
             if (textInputValue) {
-                return undefined;
+                return getNavigationSuggestionsSection();
             }
 
             if (!isSearchRouterDisplayed && !isSearchRouterScreen) {
@@ -274,6 +278,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         },
         [
             contextualReportID,
+            navigationSuggestions,
             textInputValue,
             isSearchRouterDisplayed,
             isSearchRouterScreen,
@@ -380,6 +385,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             };
 
             if (isSearchQueryItem(item)) {
+                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE && item.action) {
+                    backHistory(() => {
+                        onRouterClose(item.action);
+                    });
+                    return;
+                }
+
                 if (!item.searchQuery) {
                     return;
                 }

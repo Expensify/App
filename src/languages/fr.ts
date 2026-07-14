@@ -8911,6 +8911,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         serverResults: 'Résultats de recherche',
         searchIn: 'Rechercher dans',
         askConcierge: (message: string) => `Demander à Concierge « ${message} »`,
+        goTo: ({destination}: {destination: string}) => `Aller à ${destination}`,
         searchPlaceholder: 'Rechercher quelque chose...',
         suggestions: 'Suggestions',
         suggestionsAvailable: (

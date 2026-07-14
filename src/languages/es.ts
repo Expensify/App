@@ -8680,6 +8680,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         serverResults: 'Resultados de búsqueda',
         searchIn: 'Buscar en',
         askConcierge: (message: string) => `Pregunta a Concierge “${message}”`,
+        goTo: ({destination}: {destination: string}) => `Ir a ${destination}`,
         searchPlaceholder: 'Busca algo...',
         suggestions: 'Sugerencias',
         suggestionsAvailable: (
