@@ -13,7 +13,7 @@ import fs from 'fs';
  * resolves others. Findings are matched per `<file>::<name>`, so a single file
  * with multiple unused items counts as one finding per item.
  *
- * Usage: ts-node scripts/compareKnipReports.ts --mainPath=<main.json> --prPath=<pr.json>
+ * Usage: bun scripts/compareKnipReports.ts --mainPath=<main.json> --prPath=<pr.json>
  */
 
 const CATEGORIES = [
@@ -56,7 +56,7 @@ function parseReport(filepath: string): Report {
 
     // knip writes a single top-level JSON object to stdout, but tooling around it
     // can prepend noise (npm-run script header, babel.config.js debug logs,
-    // webpack-plugin warnings, etc.). The object can also be pretty-printed, so
+    // rspack-plugin warnings, etc.). The object can also be pretty-printed, so
     // we can't rely on a fixed token like `{"issues"`. Locate every `{` and try
     // to parse from there; accept the first slice that parses AND has an
     // `issues` array. Anything else is a hard failure — the CI should not

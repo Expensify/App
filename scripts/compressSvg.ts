@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env bun
 import GithubUtils from '@github/libs/GithubUtils';
 
 import type {PluginConfig} from 'svgo';
