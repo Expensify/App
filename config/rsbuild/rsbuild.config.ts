@@ -34,10 +34,18 @@ switch (process.env.ENV) {
 
 export default defineConfig(async ({command}) => {
     const isDevServer = command === 'dev';
-    const common: RsbuildConfig = getCommonConfiguration({file: envFile, platform: 'web'});
+    const common: RsbuildConfig = getCommonConfiguration({file: envFile, platform: 'web', isDevServer});
 
     if (!isDevServer) {
-        return common;
+        return {
+            ...common,
+            performance: {
+                ...common.performance,
+                // Invalidate the persistent cache (enabled in rsbuild.common.ts) if this config file
+                // itself changes, same as the dev-server branch below.
+                buildCache: {buildDependencies: [filename]},
+            },
+        };
     }
 
     const port = await portfinder.getPortPromise({port: BASE_PORT});
@@ -91,16 +99,6 @@ export default defineConfig(async ({command}) => {
                 // See the equivalent cast in rsbuild.common.ts for why the Promise branch is discarded here.
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const afterCommon = (typeof commonRspackTool === 'function' ? (commonRspackTool(config, utils) ?? config) : config) as typeof config;
-
-                // A list of paths rspack trusts would not be modified while rspack is running.
-                // Onyx and react-native-live-markdown can be modified on the fly, changes to other
-                // node_modules would not be reflected live.
-                afterCommon.cache ??= {type: 'persistent'};
-                if (typeof afterCommon.cache === 'object' && afterCommon.cache.type === 'persistent') {
-                    afterCommon.cache.snapshot = {
-                        managedPaths: [/([\\/]node_modules[\\/](?!react-native-onyx|@expensify\/react-native-live-markdown))/],
-                    };
-                }
 
                 afterCommon.plugins ??= [];
                 afterCommon.plugins.push(new ReactRefreshRspackPlugin());
