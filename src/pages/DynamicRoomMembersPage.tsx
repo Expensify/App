@@ -98,7 +98,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
 
     const [searchValue, setSearchValue, searchFilteredAccountIDs] = useSearchResults(participants, (accountID, search) => {
         const details = personalDetails?.[accountID];
-        return !!details && isSearchStringMatchUserDetails(details, search);
+        return !!details && isSearchStringMatchUserDetails(details, search, translate);
     });
 
     const shouldIncludeMember = useCallback(
@@ -371,10 +371,11 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             <View style={styles.w100}>
                 {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
                     <ButtonWithDropdownMenu<RoomMemberBulkActionType>
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
                         customText={translate('workspace.common.selected', {count: selectedMembers.length})}
-                        buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+                        size={CONST.BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
                         isSplitButton={false}
