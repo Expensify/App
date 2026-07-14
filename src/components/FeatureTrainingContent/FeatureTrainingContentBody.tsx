@@ -112,6 +112,7 @@ function FeatureTrainingContentBody({
                     onSubmit={() => onConfirm?.(willShowAgain)}
                     buttonText={confirmText}
                     enabledWhenOffline
+                    shouldShowLoadingImmediatelyOnPress={false}
                     sentryLabel={confirmSentryLabel}
                     containerStyles={styles.flex1}
                 />
