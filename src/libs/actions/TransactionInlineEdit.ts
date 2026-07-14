@@ -57,7 +57,6 @@ import type {ValueOf} from 'type-fest';
  */
 import Onyx from 'react-native-onyx';
 
-import {getPolicyTagsData} from './IOU';
 import {
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestCategory,
@@ -337,14 +336,10 @@ function editTransactionMerchantInline(params: TransactionInlineEditParams, newM
 /** Updates the description of an expense from the Search results table or the Expense Report page. */
 function editTransactionDescriptionInline(params: TransactionInlineEditParams, newDescription: string) {
     const iouParams = getIouParamsForTransaction(params);
-    // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportPolicyTags = getPolicyTagsData(iouParams.parentReport?.policyID);
     updateMoneyRequestDescription({
         ...iouParams,
         comment: newDescription,
         hash: params.hash,
-        reportPolicyTags,
     });
 }
 
