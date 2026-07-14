@@ -2,6 +2,8 @@ import type {Account} from '../../src/types/onyx';
 
 import AccountUtils from '../../src/libs/AccountUtils';
 
+// Unit tests for AccountUtils helpers.
+
 describe('AccountUtils', () => {
     describe('hasValidateCodeExtendedAccess', () => {
         it('should return true when timestamp is valid and not expired', () => {
