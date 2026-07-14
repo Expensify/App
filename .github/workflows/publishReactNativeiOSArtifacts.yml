@@ -250,9 +250,9 @@ jobs:
         id: computePatchesHash
         run: |
           if [[ '${{ matrix.is_hybrid }}' == 'true' ]]; then
-            echo "PATCHES_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+            echo "PATCHES_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
           else
-            echo "PATCHES_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
+            echo "PATCHES_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Determine new patched RN version

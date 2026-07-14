@@ -1,29 +1,23 @@
+import {getOctokit} from '@actions/github';
 import {execFileSync} from 'child_process';
 import fs from 'fs';
-import https from 'https';
 import path from 'path';
 
 /**
  * Shared resolver for Expensify's patched React Native prebuilt artifacts.
- *
- * This is the platform-agnostic "brain" ported from the Android-only
- * `ExpensiUtils.gradle`. It ONLY resolves which artifact version to use
- * (by matching the local patches hash against the `patchesHash` recorded in
- * each candidate's Maven POM). It never downloads the artifact itself — that
- * stays native to each build system (Gradle Maven for Android, curl for iOS).
- *
- * All runtime-specific inputs (the Hermes V1 flag, isHybrid, package name) are
- * passed IN by the caller — the caller's build system already knows them, so we
- * never parse `gradle.properties`/`Podfile` here.
- *
- * Consumed by:
- *  - Android: `scripts/artifacts-utils/android/ExpensiUtils.gradle` (via exec)
- *  - iOS:     `scripts/artifacts-utils/ios/patched_ios_artifacts.rb` (via exec)
+ * Resolves which artifact version to use by matching the local patches hash
+ * against the `patchesHash` recorded in each candidate's Maven POM. Consumed via
+ * `resolve-artifacts.ts` by Gradle (Android) and `patched_ios_artifacts.rb` (iOS).
  */
 
 type Platform = 'ios' | 'android';
 
-type Credentials = {githubUsername: string; githubToken: string};
+/** Base credentials — a token authenticates every download. */
+type Credentials = {githubToken: string};
+/** iOS's curl Bearer download needs only the token. */
+type IosCredentials = Credentials;
+/** Android's Gradle Maven `credentials {}` block additionally requires the username. */
+type AndroidCredentials = Credentials & {githubUsername: string};
 
 type ResolveOptions = {
     platform: Platform;
@@ -32,33 +26,60 @@ type ResolveOptions = {
     isHybrid: boolean;
 };
 
-type ResolveResult = {
-    buildFromSource: boolean;
-    version: string | null;
+/** No prebuilt match (or no credentials): the caller builds react-native from source. Carries no secrets. */
+type SourceBuild = {
+    buildFromSource: true;
+    version: null;
     packageName: string;
     artifactId: string;
 };
 
+/** A matching prebuilt artifact was found; carries the credentials the native download needs. */
+type Prebuilt<Creds> = {
+    buildFromSource: false;
+    version: string;
+    packageName: string;
+    artifactId: string;
+} & Creds;
+
+type IosResult = SourceBuild | Prebuilt<IosCredentials>;
+type AndroidResult = SourceBuild | Prebuilt<AndroidCredentials>;
+type ResolveResult = IosResult | AndroidResult;
+
 const GITHUB_REPO = 'Expensify/App';
 const GITHUB_OWNER = 'Expensify';
 
-/** The only Maven coordinate that differs per platform. */
 const ARTIFACT_IDS: Record<Platform, string> = {
     android: 'react-android',
     ios: 'react-native-artifacts',
 };
 
-/** All human-facing logs MUST go to stderr — stdout is reserved for the JSON result. */
+/** Logs go to stderr; stdout is reserved for the JSON result. */
 function logError(message: string) {
     process.stderr.write(`[PatchedArtifacts] ${message}\n`);
 }
 
-function runGh(args: string[]): string {
-    return execFileSync('gh', args, {encoding: 'utf8'}).trim();
-}
+/** Credentials as read from the source; fields are validated per platform by the callers. */
+type RawCredentials = {githubToken: string | null; githubUsername: string | null};
 
 function isCI(): boolean {
     return process.env.CI != null;
+}
+
+/** Reads a non-empty environment variable, or null. */
+function getEnvVar(name: string): string | null {
+    const value: unknown = process.env[name];
+    return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+/** Runs a `gh` command and returns its trimmed output, or null on failure/empty. */
+function getGh(args: string[]): string | null {
+    try {
+        const output = execFileSync('gh', args, {encoding: 'utf8'}).trim();
+        return output.length > 0 ? output : null;
+    } catch {
+        return null;
+    }
 }
 
 function hasGithubCLI(): boolean {
@@ -71,95 +92,84 @@ function hasGithubCLI(): boolean {
 }
 
 function hasRequiredScopes(): boolean {
-    const status = execFileSync('gh', ['auth', 'status'], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']}).toString();
-    return status.includes('read:packages');
+    try {
+        const status = execFileSync('gh', ['auth', 'status'], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']}).toString();
+        return status.includes('read:packages');
+    } catch {
+        return false;
+    }
 }
 
-function getCredentials(): Credentials | null {
-    try {
-        if (!hasGithubCLI()) {
-            logError('No GitHub CLI found.');
-            return null;
-        }
-        if (isCI()) {
-            // typeof narrows the (loosely-typed) process.env members to string without assigning an any value.
-            if (typeof process.env.GITHUB_ACTOR === 'string' && typeof process.env.GITHUB_TOKEN === 'string') {
-                return {githubUsername: process.env.GITHUB_ACTOR, githubToken: process.env.GITHUB_TOKEN};
-            }
-            logError('Missing required CI environment variables GITHUB_ACTOR and/or GITHUB_TOKEN.');
-            return null;
-        }
-        if (!hasRequiredScopes()) {
-            logError('GitHub token does not have required scope read:packages.');
-            return null;
-        }
-        // `--jq .login` returns the login string directly, so there is no untyped JSON to assert on.
-        return {
-            githubUsername: runGh(['api', 'user', '--jq', '.login']),
-            githubToken: runGh(['auth', 'token']),
-        };
-    } catch {
-        logError('Failed to get GitHub credentials. This might be due to an expired token or not being logged in.');
+/**
+ * In CI credentials come from the environment (no gh CLI). Locally they come from
+ * the gh CLI, which must be installed and scoped for read:packages.
+ */
+function readCredentials(): RawCredentials | null {
+    if (isCI()) {
+        return {githubToken: getEnvVar('GITHUB_TOKEN'), githubUsername: getEnvVar('GITHUB_ACTOR')};
+    }
+    if (!hasGithubCLI()) {
+        logError('No GitHub CLI found.');
         return null;
     }
+    if (!hasRequiredScopes()) {
+        logError('GitHub token does not have required scope read:packages.');
+        return null;
+    }
+    return {githubToken: getGh(['auth', 'token']), githubUsername: getGh(['api', 'user', '--jq', '.login'])};
+}
+
+function getIosCredentials(): IosCredentials | null {
+    const credentials = readCredentials();
+    if (credentials == null || credentials.githubToken == null) {
+        logError('Missing GitHub token.');
+        return null;
+    }
+    return {githubToken: credentials.githubToken};
+}
+
+function getAndroidCredentials(): AndroidCredentials | null {
+    const credentials = readCredentials();
+    if (credentials == null || credentials.githubToken == null || credentials.githubUsername == null) {
+        logError('Missing GitHub credentials (username and/or token).');
+        return null;
+    }
+    return {githubToken: credentials.githubToken, githubUsername: credentials.githubUsername};
 }
 
 function mavenPomUrl(packageName: string, artifactId: string, version: string): string {
     return `https://maven.pkg.github.com/${GITHUB_REPO}/com/expensify/${packageName}/${artifactId}/${version}/${artifactId}-${version}.pom`;
 }
 
-function mavenVersionsApiUrl(packageName: string, artifactId: string): string {
-    return `/orgs/${GITHUB_OWNER}/packages/maven/com.expensify.${packageName}.${artifactId}/versions`;
+function buildAuthHeaders(githubToken: string | null): Record<string, string> {
+    return githubToken ? {Authorization: `Bearer ${githubToken}`} : {};
 }
 
 /**
- * GitHub Packages returns a 302 to a signed object-store URL. We send the token
- * ONLY to maven.pkg.github.com and never follow the redirect with it attached,
- * so the token is never leaked to the redirect host.
+ * GitHub Packages 302-redirects to a signed object-store URL on a different host.
+ * `fetch` follows the redirect and drops the Authorization header on the
+ * cross-origin hop, so the token reaches only the initial host, never the object store.
  */
-function fetchTokenSafe(url: string, githubToken: string | null, maxRedirects = 5): Promise<string> {
-    return new Promise((resolve, reject) => {
-        if (maxRedirects < 0) {
-            reject(new Error(`Too many redirects fetching ${url}`));
-            return;
-        }
-        const headers = githubToken ? {Authorization: `Bearer ${githubToken}`} : {};
-        https
-            .get(url, {headers}, (res) => {
-                const {statusCode = 0, headers: resHeaders} = res;
-                if (statusCode >= 300 && statusCode < 400 && resHeaders.location) {
-                    res.resume(); // drain
-                    // Follow the redirect WITHOUT the token.
-                    const nextUrl = new URL(resHeaders.location, url).toString();
-                    fetchTokenSafe(nextUrl, null, maxRedirects - 1).then(resolve, reject);
-                    return;
-                }
-                if (statusCode < 200 || statusCode >= 300) {
-                    res.resume();
-                    reject(new Error(`Request to ${url} failed with status ${statusCode}`));
-                    return;
-                }
-                let body = '';
-                res.setEncoding('utf8');
-                res.on('data', (chunk: string) => (body += chunk));
-                res.on('end', () => resolve(body));
-            })
-            .on('error', reject);
-    });
+async function fetchTokenSafe(url: string, githubToken: string | null): Promise<string> {
+    const response = await fetch(url, {headers: buildAuthHeaders(githubToken)});
+    if (!response.ok) {
+        throw new Error(`Request to ${url} failed with status ${response.status}`);
+    }
+    return response.text();
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
 }
 
 function getReactNativeVersion(newDotRoot: string): string {
     const parsed: unknown = JSON.parse(fs.readFileSync(path.join(newDotRoot, 'package.json'), 'utf8'));
-    if (typeof parsed === 'object' && parsed !== null && 'dependencies' in parsed) {
-        const deps: unknown = parsed.dependencies;
-        if (typeof deps === 'object' && deps !== null && 'react-native' in deps) {
-            const version: unknown = deps['react-native'];
-            if (typeof version === 'string') {
-                return version;
-            }
-        }
+    const dependencies = isRecord(parsed) ? parsed.dependencies : undefined;
+    const version = isRecord(dependencies) ? dependencies['react-native'] : undefined;
+    if (typeof version !== 'string') {
+        throw new Error('Could not read react-native version from package.json');
     }
-    throw new Error('Could not read react-native version from package.json');
+    return version;
 }
 
 function computePatchesHash(newDotRoot: string, isHybrid: boolean): string {
@@ -173,17 +183,20 @@ function computePatchesHash(newDotRoot: string, isHybrid: boolean): string {
     return execFileSync('bash', args, {encoding: 'utf8'}).trim();
 }
 
-function getArtifactsCandidates(packageName: string, artifactId: string, rnVersion: string): string[] {
-    const output = runGh(['api', '--paginate', mavenVersionsApiUrl(packageName, artifactId), '--jq', '.[].name']);
-    return output
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((name) => name.startsWith(rnVersion));
+async function getArtifactsCandidates(packageName: string, artifactId: string, rnVersion: string, githubToken: string): Promise<string[]> {
+    const octokit = getOctokit(githubToken);
+    /* eslint-disable @typescript-eslint/naming-convention -- GitHub REST API params are snake_case */
+    const versions = await octokit.paginate(octokit.rest.packages.getAllPackageVersionsForPackageOwnedByOrg, {
+        package_type: 'maven',
+        org: GITHUB_OWNER,
+        package_name: `com.expensify.${packageName}.${artifactId}`,
+        per_page: 100,
+    }); /* eslint-enable @typescript-eslint/naming-convention */
+    return versions.map((version) => version.name).filter((name) => name.startsWith(rnVersion));
 }
 
 async function getRemotePatchesHash(packageName: string, artifactId: string, version: string, githubToken: string): Promise<string | null> {
     const pom = await fetchTokenSafe(mavenPomUrl(packageName, artifactId, version), githubToken);
-    // The publish step writes <patchesHash> into the POM <properties> block.
     return pom.match(/<patchesHash>([^<]+)<\/patchesHash>/)?.[1]?.trim() ?? null;
 }
 
@@ -192,7 +205,7 @@ async function findMatchingArtifactsVersion(options: ResolveOptions, artifactId:
     try {
         const localPatchesHash = computePatchesHash(newDotRoot, isHybrid);
         const rnVersion = getReactNativeVersion(newDotRoot);
-        const candidates = getArtifactsCandidates(packageName, artifactId, rnVersion);
+        const candidates = await getArtifactsCandidates(packageName, artifactId, rnVersion, githubToken);
         for (const candidate of candidates) {
             const remoteHash = await getRemotePatchesHash(packageName, artifactId, candidate, githubToken);
             if (remoteHash != null && remoteHash === localPatchesHash) {
@@ -206,30 +219,42 @@ async function findMatchingArtifactsVersion(options: ResolveOptions, artifactId:
     }
 }
 
+async function resolveWithCredentials<Creds extends Credentials>(
+    options: ResolveOptions,
+    artifactId: string,
+    credentials: Creds | null,
+    sourceBuild: SourceBuild,
+): Promise<SourceBuild | Prebuilt<Creds>> {
+    if (!credentials) {
+        return sourceBuild;
+    }
+    const version = await findMatchingArtifactsVersion(options, artifactId, credentials.githubToken);
+    if (version == null) {
+        logError(`No matching artifacts version found for ${options.packageName}. Building react-native from source.`);
+        return sourceBuild;
+    }
+    logError(`Using patched react-native artifacts: ${options.packageName}:${version}`);
+    return {buildFromSource: false, version, packageName: options.packageName, artifactId, ...credentials};
+}
+
 /**
  * Resolves whether a matching prebuilt artifact exists for the current patches.
- * Returns `buildFromSource: true` (a normal outcome, not an error) whenever no
- * match is found or credentials are unavailable.
+ * Returns a `SourceBuild` (no secrets) when no match is found or credentials are
+ * unavailable, otherwise a `Prebuilt` carrying the credentials the native
+ * download needs — token only for iOS, username + token for Android.
  */
-async function resolveArtifacts(options: ResolveOptions): Promise<ResolveResult> {
+function resolveArtifacts(options: ResolveOptions & {platform: 'ios'}): Promise<IosResult>;
+function resolveArtifacts(options: ResolveOptions & {platform: 'android'}): Promise<AndroidResult>;
+function resolveArtifacts(options: ResolveOptions): Promise<ResolveResult> {
     const artifactId = ARTIFACT_IDS[options.platform];
-    const base: ResolveResult = {buildFromSource: true, version: null, packageName: options.packageName, artifactId};
+    const sourceBuild: SourceBuild = {buildFromSource: true, version: null, packageName: options.packageName, artifactId};
 
-    const credentials = getCredentials();
-    if (!credentials) {
-        return base;
+    if (options.platform === 'ios') {
+        return resolveWithCredentials(options, artifactId, getIosCredentials(), sourceBuild);
     }
-
-    const version = await findMatchingArtifactsVersion(options, artifactId, credentials.githubToken);
-    if (!version) {
-        logError(`No matching artifacts version found for ${options.packageName}. Building react-native from source.`);
-        return base;
-    }
-
-    logError(`Using patched react-native artifacts: ${options.packageName}:${version}`);
-    return {...base, buildFromSource: false, version};
+    return resolveWithCredentials(options, artifactId, getAndroidCredentials(), sourceBuild);
 }
 
 export default resolveArtifacts;
-export {ARTIFACT_IDS, fetchTokenSafe};
-export type {Platform, ResolveOptions, ResolveResult};
+export {ARTIFACT_IDS};
+export type {Platform, ResolveOptions, ResolveResult, IosResult, AndroidResult};

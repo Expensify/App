@@ -1,61 +1,46 @@
-import resolveArtifacts, {ARTIFACT_IDS, fetchTokenSafe} from '@scripts/artifacts-utils/lib/artifactsResolver';
-
-import type {ClientRequest, IncomingMessage} from 'http';
+import resolveArtifacts, {ARTIFACT_IDS} from '@scripts/artifacts-utils/lib/artifactsResolver';
 
 /**
  * @jest-environment node
  */
+import {getOctokit} from '@actions/github';
 import {execFileSync} from 'child_process';
-import {EventEmitter} from 'events';
 import fs from 'fs';
-import https from 'https';
 
 jest.mock('child_process');
-jest.mock('https');
+jest.mock('@actions/github');
 
 const mockExecFileSync = jest.mocked(execFileSync);
-const mockGet = jest.mocked(https.get);
+const mockGetOctokit = jest.mocked(getOctokit);
+const mockPaginate = jest.fn();
 
 const NEW_DOT_ROOT = '/repo';
 const LOCAL_HASH = 'abc123hash';
 
-/** Builds a fake IncomingMessage that emits the given body then ends. */
-function fakeResponse(statusCode: number, headers: Record<string, string>, body = '') {
-    const res = Object.assign(new EventEmitter(), {statusCode, headers, resume: () => undefined, setEncoding: () => undefined});
-    process.nextTick(() => {
-        if (body) {
-            res.emit('data', body);
-        }
-        res.emit('end');
-    });
-    return res;
+/** A minimal fetch Response stub — only the members the resolver reads. */
+function fakeFetchResponse(body: string) {
+    return {ok: true, status: 200, text: () => Promise.resolve(body)};
 }
 
-/**
- * Queue-based https.get mock. Records the `Authorization` header seen on every
- * request so we can assert the token is never forwarded to a redirect host.
- */
-function mockHttpsSequence(responses: Array<{statusCode: number; headers?: Record<string, string>; body?: string}>) {
-    const seenAuthHeaders: Array<string | undefined> = [];
+/** Replaces global fetch with a queue of POM responses (one per candidate lookup). */
+function mockFetchBodies(bodies: string[]) {
     let call = 0;
-    const impl = (_url: string | URL, options: {headers?: Record<string, unknown>}, callback?: (res: IncomingMessage) => void): ClientRequest => {
-        const auth = options.headers?.Authorization;
-        seenAuthHeaders.push(typeof auth === 'string' ? auth : undefined);
-        const spec = responses.at(call++) ?? {statusCode: 500};
-        // Faking Node's IncomingMessage / ClientRequest requires narrowing assertions in a unit test.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        callback?.(fakeResponse(spec.statusCode, spec.headers ?? {}, spec.body) as unknown as IncomingMessage);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        return new EventEmitter() as unknown as ClientRequest;
-    };
-    // https.get is overloaded; cast the single fake impl to its type.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    mockGet.mockImplementation(impl as typeof https.get);
-    return seenAuthHeaders;
+    global.fetch = jest.fn().mockImplementation(() => Promise.resolve(fakeFetchResponse(bodies.at(call++) ?? '')));
 }
 
-/** Mocks the exec calls needed for a full resolve: credentials + hash + candidate list. */
-function mockResolveExec(candidates: string) {
+/** Makes the Octokit package-versions API return the given version names. */
+function mockVersions(names: string[]) {
+    mockPaginate.mockResolvedValue(names.map((name) => ({name})));
+    // Faking a minimal Octokit surface in a unit test.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    mockGetOctokit.mockReturnValue({
+        paginate: mockPaginate,
+        rest: {packages: {getAllPackageVersionsForPackageOwnedByOrg: jest.fn()}},
+    } as unknown as ReturnType<typeof getOctokit>);
+}
+
+/** Mocks the gh CLI calls needed for credentials + the local patches hash. */
+function mockResolveExec() {
     mockExecFileSync.mockImplementation((cmd: string, args?: readonly string[]) => {
         if (cmd === 'bash') {
             return LOCAL_HASH;
@@ -64,13 +49,11 @@ function mockResolveExec(candidates: string) {
             return 'Token scopes: read:packages';
         }
         if (cmd === 'gh' && args?.includes('user')) {
-            return JSON.stringify({login: 'me'});
+            // `gh api user --jq .login` returns the bare login string.
+            return 'me';
         }
         if (cmd === 'gh' && args?.includes('token')) {
             return 'tok';
-        }
-        if (cmd === 'gh' && args?.includes('--paginate')) {
-            return candidates;
         }
         return '';
     });
@@ -78,43 +61,21 @@ function mockResolveExec(candidates: string) {
 }
 
 describe('artifactsResolver', () => {
+    const ORIGINAL_CI = typeof process.env.CI === 'string' ? process.env.CI : undefined;
+
     beforeEach(() => {
         jest.clearAllMocks();
+        // Force the local (gh) credential path deterministically, regardless of the runner.
+        delete process.env.CI;
     });
 
     afterEach(() => {
         jest.restoreAllMocks();
-    });
-
-    describe('fetchTokenSafe (security)', () => {
-        it('does NOT forward the token when following a cross-host 302 redirect', async () => {
-            const seenAuth = mockHttpsSequence([
-                {statusCode: 302, headers: {location: 'https://objectstorage.example.com/signed?sig=xyz'}},
-                {statusCode: 200, body: '<xml/>'},
-            ]);
-
-            const body = await fetchTokenSafe('https://maven.pkg.github.com/pom', 'secret-token');
-
-            expect(body).toBe('<xml/>');
-            // First hop (GitHub Packages) carries the token; the redirect hop (S3) must NOT.
-            expect(seenAuth.at(0)).toBe('Bearer secret-token');
-            expect(seenAuth.at(1)).toBeUndefined();
-        });
-
-        it('returns the body directly on a 200 with no redirect', async () => {
-            mockHttpsSequence([{statusCode: 200, body: 'hello'}]);
-            await expect(fetchTokenSafe('https://maven.pkg.github.com/pom', 'tok')).resolves.toBe('hello');
-        });
-
-        it('rejects on a non-2xx status', async () => {
-            mockHttpsSequence([{statusCode: 404}]);
-            await expect(fetchTokenSafe('https://maven.pkg.github.com/pom', 'tok')).rejects.toThrow('status 404');
-        });
-
-        it('rejects when the redirect chain is too long', async () => {
-            mockHttpsSequence(Array.from({length: 10}, () => ({statusCode: 302, headers: {location: 'https://a.example.com/next'}})));
-            await expect(fetchTokenSafe('https://maven.pkg.github.com/pom', 'tok')).rejects.toThrow('Too many redirects');
-        });
+        if (ORIGINAL_CI === undefined) {
+            delete process.env.CI;
+        } else {
+            process.env.CI = ORIGINAL_CI;
+        }
     });
 
     describe('ARTIFACT_IDS', () => {
@@ -139,21 +100,39 @@ describe('artifactsResolver', () => {
         });
 
         it('resolves a matching version and does not build from source', async () => {
-            mockResolveExec('0.85.3-nomatch\n0.85.3-match');
-            mockHttpsSequence([
-                {statusCode: 200, body: '<properties><patchesHash>differenthash</patchesHash></properties>'},
-                {statusCode: 200, body: `<properties><patchesHash>${LOCAL_HASH}</patchesHash></properties>`},
-            ]);
+            mockResolveExec();
+            mockVersions(['0.85.3-nomatch', '0.85.3-match']);
+            mockFetchBodies(['<properties><patchesHash>differenthash</patchesHash></properties>', `<properties><patchesHash>${LOCAL_HASH}</patchesHash></properties>`]);
 
             const result = await resolveArtifacts({platform: 'ios', packageName: 'react-hybrid', newDotRoot: NEW_DOT_ROOT, isHybrid: true});
 
             expect(result.buildFromSource).toBe(false);
             expect(result.version).toBe('0.85.3-match');
+            if (!result.buildFromSource) {
+                expect(result.githubToken).toBe('tok');
+                // iOS carries no username — its result type doesn't even include the field.
+                expect('githubUsername' in result).toBe(false);
+            }
+        });
+
+        it('returns the username alongside the token for a matching Android artifact', async () => {
+            mockResolveExec();
+            mockVersions(['0.85.3-match']);
+            mockFetchBodies([`<properties><patchesHash>${LOCAL_HASH}</patchesHash></properties>`]);
+
+            const result = await resolveArtifacts({platform: 'android', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false});
+
+            expect(result.buildFromSource).toBe(false);
+            if (!result.buildFromSource) {
+                expect(result.githubToken).toBe('tok');
+                expect(result.githubUsername).toBe('me');
+            }
         });
 
         it('falls back to source build when no candidate matches the local patches hash', async () => {
-            mockResolveExec('0.85.3-other');
-            mockHttpsSequence([{statusCode: 200, body: '<properties><patchesHash>nomatch</patchesHash></properties>'}]);
+            mockResolveExec();
+            mockVersions(['0.85.3-other']);
+            mockFetchBodies(['<properties><patchesHash>nomatch</patchesHash></properties>']);
 
             const result = await resolveArtifacts({platform: 'android', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false});
 

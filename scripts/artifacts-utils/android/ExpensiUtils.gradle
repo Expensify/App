@@ -26,33 +26,13 @@ ext.ExpensiUtils = new Object() {
         return [output: process.in.text?.trim(), exitCode: process.exitValue()]
     }
 
-    boolean isCIEnvironment() {
-        return System.getenv("CI") != null
-    }
-
-    // Credential read for the authenticated Maven download. Validation lives in the shared
-    // TS resolver, so these are only called once it has resolved a version.
-    String getGithubUsername() {
-        if (isCIEnvironment()) return System.getenv("GITHUB_ACTOR")
-        return runCommand(["gh", "api", "user", "--jq", ".login"]).output
-    }
-
-    String getGithubToken() {
-        if (isCIEnvironment()) return System.getenv("GITHUB_TOKEN")
-        return runCommand(["gh", "auth", "token"]).output
-    }
-
-    // Resolve the prebuilt artifact version matching the local patches via the shared
-    // TS resolver (credentials + patches-hash match live there). Returns a map:
-    // [buildFromSource: Boolean, version: String|null]. Any failure -> build from source.
+    // Returns [buildFromSource, version, githubUsername, githubToken]; any failure -> build from source.
     Map resolveArtifacts(String packageName, String newDotRootDir, boolean isHybrid) {
         def cmd = [
             "npx", "tsx", "${newDotRootDir}/scripts/artifacts-utils/resolve-artifacts.ts",
             "--platform=android", "--package=${packageName}", "--hybrid=${isHybrid}", "--new-dot-root=${newDotRootDir}"
         ]
         try {
-            // Runs from the repo root so `npx tsx` resolves node_modules. Generous
-            // timeout: npx/tsx startup + network POM lookups.
             def result = runCommand(cmd, 120, new File(newDotRootDir))
             if (result.exitCode != 0) {
                 ExpensiLog.error("Artifacts resolver failed (exit ${result.exitCode}). Building react-native from source.")
