@@ -41,6 +41,7 @@ type ReplaceReceipt = {
     transactionPolicyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     transactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
 };
+type ReplaceReceiptRetryParams = Omit<ReplaceReceipt, 'transaction'> & {transactionID: string};
 
 function detachReceipt(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
@@ -200,7 +201,15 @@ function replaceReceipt({transaction, file, source, state, transactionPolicy, tr
         receiptTraceId,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
-    const retryParams: ReplaceReceipt = {transaction, file: undefined, source, transactionPolicy, transactionPolicyCategories, transactionPolicyTagList, transactionViolations};
+    const retryParams: ReplaceReceiptRetryParams = {
+        transactionID: transaction.transactionID,
+        file: undefined,
+        source,
+        transactionPolicy,
+        transactionPolicyCategories,
+        transactionPolicyTagList,
+        transactionViolations,
+    };
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
@@ -363,4 +372,4 @@ function checkIfLocalFileIsAccessible(
 }
 
 export {checkIfLocalFileIsAccessible, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
-export type {ReplaceReceipt};
+export type {ReplaceReceiptRetryParams};

@@ -70,7 +70,7 @@ import type {ValueOf} from 'type-fest';
 import {fastMerge} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
-import type {ReplaceReceipt} from './Receipt';
+import type {ReplaceReceiptRetryParams} from './Receipt';
 import type {StartSplitBilActionParams} from './Split';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
@@ -200,7 +200,7 @@ type MoneyRequestInformationParams = {
     existingTransactionID?: string;
     optimisticTransactionID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
     newReportTotal?: number;
     newNonReimbursableTotal?: number;
     testDriveCommentReportActionID?: string;
@@ -259,7 +259,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     existingTransactionThreadReportID?: string;
     policyParams?: BasePolicyParams;
     optimisticParams: MoneyRequestOptimisticParams;
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
     participant?: Participant;
     shouldGenerateTransactionThreadReport?: boolean;
     isASAPSubmitBetaEnabled: boolean;
@@ -326,7 +326,7 @@ function getReceiptError(
     isScanRequest = true,
     errorKey?: number,
     action?: IOUActionParams,
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt,
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams,
 ): Errors | ErrorFields {
     const formattedRetryParams = typeof retryParams === 'string' ? retryParams : JSON.stringify(retryParams);
 
