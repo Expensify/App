@@ -5,6 +5,7 @@ import {
     getAccountIDsByLogins,
     getDisplayNameOrYou,
     getEffectiveDisplayName,
+    getNewAccountIDsAndLogins,
     getPersonalDetailByEmail,
     getPersonalDetailsListByIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
@@ -15,7 +16,7 @@ import {
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -872,6 +873,73 @@ describe('PersonalDetailsUtils', () => {
         it('should ignore undefined in accountIDs array', () => {
             const result = getPersonalDetailsListByIDs([accountID1, undefined], personalDetails);
             expect(result).toEqual({[accountID1]: personalDetails[accountID1]});
+        });
+    });
+
+    describe('getNewAccountIDsAndLogins', () => {
+        // Keys are dynamic emails/phone numbers, so build the record programmatically to satisfy the naming-convention lint rule.
+        const buildInvited = (entries: Array<[string, number]>): InvitedEmailsToAccountIDs => Object.fromEntries(entries);
+        const existingAccountID = 1;
+        const existingPersonalDetails: PersonalDetailsList = {
+            [existingAccountID]: {
+                accountID: existingAccountID,
+                login: 'existing@example.com',
+                displayName: 'Existing User',
+            },
+        };
+
+        test('should return empty arrays when invitedEmailsToAccountIDs is undefined', () => {
+            const result = getNewAccountIDsAndLogins(undefined, existingPersonalDetails);
+            expect(result).toEqual({newAccountIDs: [], newLogins: []});
+        });
+
+        test('should return empty arrays when invitedEmailsToAccountIDs is empty', () => {
+            const result = getNewAccountIDsAndLogins({}, existingPersonalDetails);
+            expect(result).toEqual({newAccountIDs: [], newLogins: []});
+        });
+
+        test('should return all users as new when personalDetailsList is undefined', () => {
+            const result = getNewAccountIDsAndLogins(
+                buildInvited([
+                    ['new1@example.com', 2],
+                    ['new2@example.com', 3],
+                ]),
+                undefined,
+            );
+            expect(result).toEqual({newAccountIDs: [2, 3], newLogins: ['new1@example.com', 'new2@example.com']});
+        });
+
+        test('should return all users as new when none exist in personalDetailsList', () => {
+            const result = getNewAccountIDsAndLogins(
+                buildInvited([
+                    ['new1@example.com', 2],
+                    ['new2@example.com', 3],
+                ]),
+                existingPersonalDetails,
+            );
+            expect(result).toEqual({newAccountIDs: [2, 3], newLogins: ['new1@example.com', 'new2@example.com']});
+        });
+
+        test('should filter out users that already exist in personalDetailsList', () => {
+            const result = getNewAccountIDsAndLogins(
+                buildInvited([
+                    ['existing@example.com', 1],
+                    ['new@example.com', 2],
+                ]),
+                existingPersonalDetails,
+            );
+            expect(result).toEqual({newAccountIDs: [2], newLogins: ['new@example.com']});
+        });
+
+        test('should append the SMS domain to new logins that are phone numbers', () => {
+            const result = getNewAccountIDsAndLogins(
+                buildInvited([
+                    ['+14185438090', 2],
+                    ['new@example.com', 3],
+                ]),
+                existingPersonalDetails,
+            );
+            expect(result).toEqual({newAccountIDs: [2, 3], newLogins: ['+14185438090@expensify.sms', 'new@example.com']});
         });
     });
 
