@@ -1,11 +1,13 @@
-import React, {useState} from 'react';
 import Button from '@components/Button';
 import type {FilterComponentsProps} from '@components/Search/FilterComponents';
 import FilterComponents from '@components/Search/FilterComponents';
 import type {CommonFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+
 import useLocalize from '@hooks/useLocalize';
 
-function CommonFilterContentPageWrapper({baseFilterKey, value: initialValue, isNegated: initialIsNegated, type, policyIDs, policyIDQuery, ready, onChange}: CommonFilterContentWrapperProps) {
+import React, {useState} from 'react';
+
+function CommonFilterContentPageWrapper({baseFilterKey, value: initialValue, isNegated: initialIsNegated, type, policyID, ready, onChange}: CommonFilterContentWrapperProps) {
     const {translate} = useLocalize();
     const [value, setValue] = useState<FilterComponentsProps['value']>(initialValue);
     const [isNegated, setIsNegatedValue] = useState(initialIsNegated);
@@ -16,8 +18,7 @@ function CommonFilterContentPageWrapper({baseFilterKey, value: initialValue, isN
             value={value}
             isNegated={isNegated}
             type={type}
-            policyIDs={policyIDs}
-            policyIDQuery={policyIDQuery}
+            policyID={policyID}
             autoFocus
             ready={ready}
             onChange={setValue}

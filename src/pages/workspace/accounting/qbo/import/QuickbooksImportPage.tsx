@@ -1,17 +1,23 @@
-import React, {useEffect} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as PolicyUtils from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {shouldSwitchLocationsToReportFields} from '@pages/workspace/accounting/qbo/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React, {useEffect} from 'react';
 
 type QBOSectionType = {
     description: string;
@@ -25,7 +31,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const {syncClasses, syncCustomers, syncLocations, syncTax, pendingFields, errorFields} = qboConfig ?? {};
+    const {syncClasses, syncCustomers, syncLocations, syncItems, syncTax, pendingFields, errorFields} = qboConfig ?? {};
 
     // If we previously selected tags but now we have the line items restriction for locations, we need to switch to report fields
     useEffect(() => {
@@ -59,6 +65,12 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID)),
             title: translate(`workspace.accounting.importTypes.${syncLocations ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS],
+        },
+        {
+            description: translate('workspace.qbo.items'),
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_ITEMS.getRoute(policyID)),
+            title: translate(syncItems ? 'workspace.accounting.imported' : 'workspace.accounting.notImported'),
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS],
         },
     ];
 

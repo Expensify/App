@@ -1,12 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isFilterNegatable} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {FilterComponentsProps} from '.';
 
 type NegatableFilterProps = React.PropsWithChildren & {

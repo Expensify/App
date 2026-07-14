@@ -1,11 +1,14 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import DateFilterContent from '@components/Search/FilterComponents/AdvancedFilters/DateFilterContent';
 import type {DateFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 function DateFilterContentPageWrapper({baseFilterKey, value: initialValue, hasFeed, onChange}: DateFilterContentWrapperProps) {
     const {translate} = useLocalize();

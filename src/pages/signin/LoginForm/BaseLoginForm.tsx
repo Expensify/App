@@ -1,7 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import AppleSignIn from '@components/SignInButtons/AppleSignIn';
@@ -12,12 +8,14 @@ import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputF
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileWebKit} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -28,15 +26,23 @@ import {isAgentEmail} from '@libs/SessionUtils';
 import StringUtils from '@libs/StringUtils';
 import {isNumericWithSpecialChars, isValidEmailWithTLD} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
+
 import {useLoginActions, useLoginState} from '@pages/signin/SignInLoginContext';
+
 import {setDefaultData} from '@userActions/CloseAccount';
 import {beginSignIn, clearAccountMessages, clearSignInData} from '@userActions/Session';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type LoginFormProps from './types';
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
@@ -225,8 +231,9 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
         // On mobile WebKit browsers, when an input field gains focus, the keyboard appears and the virtual viewport is resized and scrolled to make the input field visible.
         // This occurs even when there is enough space to display both the input field and the submit button in the current view.
         // so this change to correct the scroll position when the input field gains focus.
-        InteractionManager.runAfterInteractions(() => {
-            htmlDivElementRef(submitContainerRef).current?.scrollIntoView?.({behavior: 'smooth', block: 'end'});
+        htmlDivElementRef(submitContainerRef).current?.scrollIntoView?.({
+            behavior: 'smooth',
+            block: 'end',
         });
     }, []);
 
@@ -294,6 +301,8 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                         <FormAlertWithSubmitButton
                             buttonText={translate('common.continue')}
                             isLoading={account?.isLoading && account?.loadingForm === CONST.FORMS.LOGIN_FORM}
+                            // `beginSignIn` sets `isLoading` in Onyx the moment it's dispatched, so this `isLoading` shows the spinner immediately on press on its own
+                            shouldShowLoadingImmediatelyOnPress={false}
                             onSubmit={validateAndSubmitForm}
                             message={serverErrorText}
                             isAlertVisible={shouldShowServerError}

@@ -1,28 +1,35 @@
-import React from 'react';
-import type {ReactNode} from 'react';
 import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import AmountPopup from '@components/Search/FilterDropdowns/AmountPopup';
 import CommonPopup from '@components/Search/FilterDropdowns/CommonPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopup';
+import TextFilterPopup from '@components/Search/FilterDropdowns/TextFilterPopup';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ReportFieldKey, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import {getAdvancedFiltersToReset, removeNegation} from '@libs/SearchQueryUtils';
-import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, getFilterNegatableValue, isAmountFilterKey, isDateFilterKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+
 import DatePickerFilterPopup from './DatePickerFilterPopup';
 
 type FilterItem = WithSentryLabel & {
@@ -40,7 +47,6 @@ type UseSearchFiltersBarResult = {
 type FilterPopupProps = {
     baseFilterKey: SearchFilter['key'];
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>;
-    queryJSON: SearchQueryJSON;
     closeOverlay: () => void;
     setPopoverWidth: PopoverComponentProps['setPopoverWidth'];
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
@@ -50,7 +56,7 @@ function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilter
     return `Search-Filter-${filterKey}`;
 }
 
-function FilterPopup({baseFilterKey, searchAdvancedFiltersForm, queryJSON, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {
+function FilterPopup({baseFilterKey, searchAdvancedFiltersForm, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {
     const {translate} = useLocalize();
     const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
 
@@ -105,12 +111,26 @@ function FilterPopup({baseFilterKey, searchAdvancedFiltersForm, queryJSON, close
         );
     }
 
+    if (isTextFilterKey(baseFilterKey)) {
+        return (
+            <TextFilterPopup
+                key={baseFilterKey}
+                baseFilterKey={baseFilterKey}
+                value={searchAdvancedFiltersForm[baseFilterKey]}
+                label={label}
+                closeOverlay={closeOverlay}
+                updateFilterForm={closeModalAndUpdateFilterForm}
+            />
+        );
+    }
+
     return (
         <CommonPopup
             baseFilterKey={baseFilterKey}
-            values={searchAdvancedFiltersForm}
+            value={searchAdvancedFiltersForm[baseFilterKey]}
+            type={searchAdvancedFiltersForm.type}
+            policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, searchAdvancedFiltersForm)}
             label={label}
-            policyIDQuery={queryJSON.policyID}
             closeOverlay={closeOverlay}
             updateFilterForm={closeModalAndUpdateFilterForm}
         />
@@ -126,7 +146,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const filters = mapFiltersFormToLabelValueList(
         searchAdvancedFiltersForm,
-        queryJSON.policyID,
         SKIPPED_SEARCH_FILTERS,
         translate,
         localeCompare,
@@ -137,7 +156,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                     <FilterPopup
                         baseFilterKey={removeNegation(filterKey) as SearchFilter['key']}
                         searchAdvancedFiltersForm={searchAdvancedFiltersForm}
-                        queryJSON={queryJSON}
                         closeOverlay={closeOverlay}
                         setPopoverWidth={setPopoverWidth}
                         updateFilterForm={updateFilterQueryParams}

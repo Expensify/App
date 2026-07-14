@@ -1,9 +1,12 @@
-import React from 'react';
 import {getFilterFormValues} from '@libs/SearchQueryUtils';
-import {getFilterNegatableValue, isAmountFilterKey, isDateFilterKey} from '@libs/SearchUIUtils';
+import {getFilterNegatableValue, isAmountFilterKey, isDateFilterKey, isTextFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+
+import React from 'react';
+
 import type {FilterComponentsProps} from '..';
 import type {AmountFilterContentProps} from './AmountFilterContent';
 import type {DateFilterContentProps} from './DateFilterContent';
@@ -21,7 +24,6 @@ type CommonFilterContentWrapperProps = Omit<FilterComponentsProps, 'onChange' | 
 type SearchAdvancedFiltersContentProps = {
     baseFilterKey: SearchFilter['key'];
     values: Partial<SearchAdvancedFiltersForm> | undefined;
-    policyIDQuery: string[] | undefined;
     ready?: boolean;
     components: {
         Text: React.ComponentType<TextInputFilterContentWrapperProps>;
@@ -33,7 +35,7 @@ type SearchAdvancedFiltersContentProps = {
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-type SingleAdvancedFiltersContentProps = Pick<SearchAdvancedFiltersContentProps, 'values' | 'policyIDQuery' | 'ready' | 'onChange'> & {
+type SingleAdvancedFiltersContentProps = Pick<SearchAdvancedFiltersContentProps, 'values' | 'ready' | 'onChange'> & {
     baseFilterKey: FilterComponentsProps['baseFilterKey'];
     components: {
         Text: React.ComponentType<TextInputFilterContentWrapperProps>;
@@ -41,7 +43,7 @@ type SingleAdvancedFiltersContentProps = Pick<SearchAdvancedFiltersContentProps,
     };
 };
 
-function SingleAdvancedFiltersContent({baseFilterKey, values, policyIDQuery, ready, components, onChange}: SingleAdvancedFiltersContentProps) {
+function SingleAdvancedFiltersContent({baseFilterKey, values, ready, components, onChange}: SingleAdvancedFiltersContentProps) {
     if (
         baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
         baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
@@ -71,8 +73,7 @@ function SingleAdvancedFiltersContent({baseFilterKey, values, policyIDQuery, rea
             baseFilterKey={baseFilterKey}
             value={value}
             type={values?.type}
-            policyIDs={values?.policyID}
-            policyIDQuery={policyIDQuery}
+            policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, values)}
             ready={ready}
             isNegated={isNegated}
             onChange={(newValue, negated) => onChange(getFilterFormValues(baseFilterKey, newValue, negated))}
@@ -80,7 +81,7 @@ function SingleAdvancedFiltersContent({baseFilterKey, values, policyIDQuery, rea
     );
 }
 
-function SearchAdvancedFiltersContent({baseFilterKey, values, policyIDQuery, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
+function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
     if (isAmountFilterKey(baseFilterKey)) {
         const AmountFilter = components.Amount;
         return (
@@ -139,9 +140,9 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, policyIDQuery, rea
 
     return (
         <SingleAdvancedFiltersContent
+            key={baseFilterKey}
             baseFilterKey={baseFilterKey}
             values={values}
-            policyIDQuery={policyIDQuery}
             ready={ready}
             components={{Text: components.Text, Common: components.Common}}
             onChange={onChange}

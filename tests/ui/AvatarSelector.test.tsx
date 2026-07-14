@@ -1,13 +1,18 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import AvatarSelector from '@components/AvatarSelector';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLetterAvatars', () => ({
@@ -34,6 +39,13 @@ jest.mock('@hooks/useLetterAvatars', () => ({
         return {avatarList, avatarMap: {}};
     },
 }));
+
+const mockIsBetaEnabled = jest.fn<boolean, [string]>();
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: mockIsBetaEnabled}),
+}));
+
 const mockName = 'Alice';
 
 describe('AvatarSelector', () => {
@@ -45,6 +57,7 @@ describe('AvatarSelector', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockIsBetaEnabled.mockReturnValue(false);
     });
 
     const renderAvatarSelector = (props = {}) => {
@@ -125,6 +138,10 @@ describe('AvatarSelector', () => {
     describe('avatarList (letter avatars)', () => {
         const firstChar = getFirstAlphaNumericCharacter(mockName).toLowerCase();
 
+        beforeEach(() => {
+            mockIsBetaEnabled.mockReturnValue(true);
+        });
+
         it('letter avatars have correct ID format when they are rendered', async () => {
             renderAvatarSelector({name: mockName});
             await waitForBatchedUpdates();
@@ -200,6 +217,17 @@ describe('AvatarSelector', () => {
             const letterAvatars = allAvatars.filter((node) => (node.props.testID as string)?.includes('letter-avatar'));
 
             expect(letterAvatars.at(0)?.props.testID).toMatch(/^AvatarSelector_letter-avatar-/);
+        });
+    });
+
+    describe('when LETTER_AVATARS beta is disabled', () => {
+        it('does not render any letter avatars even with a name', async () => {
+            renderAvatarSelector({name: mockName});
+            await waitForBatchedUpdates();
+
+            const letterAvatars = screen.queryAllByTestId(/^AvatarSelector_letter-avatar/);
+
+            expect(letterAvatars).toHaveLength(0);
         });
     });
 });
