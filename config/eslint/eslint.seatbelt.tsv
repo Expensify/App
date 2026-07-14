@@ -1453,7 +1453,6 @@
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
-"../../src/pages/settings/Wallet/ImportTransactionsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/PersonalInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/substeps/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/substeps/AddressStep.tsx"	"react-hooks/set-state-in-effect"	1
