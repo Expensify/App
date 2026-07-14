@@ -41,6 +41,7 @@ import {
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
     getEligibleBankAccountsForCard,
+    getEligibleBankAccountsForTravelInvoicing,
     getEligibleBankAccountsForUkEuCard,
     getFeedNameForDisplay,
     getFeedType,
@@ -4399,6 +4400,48 @@ describe('getEligibleBankAccountsForCard', () => {
         const result = getEligibleBankAccountsForCard(mixedList);
         expect(result).toHaveLength(1);
         expect(result.at(0)?.accountData?.state).toBe(CONST.BANK_ACCOUNT.STATE.OPEN);
+    });
+});
+
+describe('getEligibleBankAccountsForTravelInvoicing', () => {
+    const debitBusinessAccount: BankAccountList = {
+        '1': {
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+            bankCurrency: 'USD',
+            bankCountry: 'US',
+        },
+    };
+
+    const depositOnlyAccount: BankAccountList = {
+        '2': {
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: false, defaultCredit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+            bankCurrency: 'USD',
+            bankCountry: 'US',
+        },
+    };
+
+    const partiallySetupDepositOnlyAccount: BankAccountList = {
+        '3': {
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: false, defaultCredit: true, state: CONST.BANK_ACCOUNT.STATE.SETUP},
+            bankCurrency: 'USD',
+            bankCountry: 'US',
+        },
+    };
+
+    it('excludes deposit-only accounts when deposit-only accounts are not allowed', () => {
+        const result = getEligibleBankAccountsForTravelInvoicing({...debitBusinessAccount, ...depositOnlyAccount}, false);
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.accountData?.allowDebit).toBe(true);
+    });
+
+    it('includes verified deposit-only accounts alongside debit-eligible accounts when allowed', () => {
+        const result = getEligibleBankAccountsForTravelInvoicing({...debitBusinessAccount, ...depositOnlyAccount}, true);
+        expect(result).toHaveLength(2);
+    });
+
+    it('always excludes partially set up deposit-only accounts', () => {
+        expect(getEligibleBankAccountsForTravelInvoicing(partiallySetupDepositOnlyAccount, true)).toHaveLength(0);
+        expect(getEligibleBankAccountsForTravelInvoicing(partiallySetupDepositOnlyAccount, false)).toHaveLength(0);
     });
 });
 

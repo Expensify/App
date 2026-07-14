@@ -83,6 +83,12 @@ type ExpensifyCardSettingsBase = {
 
     /** Amount (in cents) of in-flight settlement that has been billed but not yet settled at the bank */
     pendingSettlementAmount?: number;
+
+    /** Recipient of the travel settlement invoice; non-empty when the workspace pays by invoice instead of an ACH debit */
+    invoiceTo?: string;
+
+    /** Additional recipients who receive a copy of the travel settlement invoice */
+    shareWith?: string[];
 };
 
 /** Spend rule filter condition */

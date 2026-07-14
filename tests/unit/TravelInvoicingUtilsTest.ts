@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
 import {
+    getIsTravelBillingPayByInvoice,
     getIsTravelInvoicingEnabled,
     getTravelInvoicingCard,
     getTravelLimit,
@@ -58,6 +59,31 @@ describe('TravelInvoicingUtils', () => {
         it('Should return true when isEnabled is true with paymentBankAccountID', () => {
             const travelSettings = {isEnabled: true, paymentBankAccountID: 12345} as ExpensifyCardSettingsBase;
             const result = getIsTravelInvoicingEnabled(travelSettings);
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('getIsTravelBillingPayByInvoice', () => {
+        it('Should return false when travelSettings is undefined', () => {
+            const result = getIsTravelBillingPayByInvoice(undefined);
+            expect(result).toBe(false);
+        });
+
+        it('Should return false when invoiceTo is not set', () => {
+            const travelSettings = {isEnabled: true} as ExpensifyCardSettingsBase;
+            const result = getIsTravelBillingPayByInvoice(travelSettings);
+            expect(result).toBe(false);
+        });
+
+        it('Should return false when invoiceTo is an empty string', () => {
+            const travelSettings = {invoiceTo: ''} as ExpensifyCardSettingsBase;
+            const result = getIsTravelBillingPayByInvoice(travelSettings);
+            expect(result).toBe(false);
+        });
+
+        it('Should return true when invoiceTo is a non-empty string', () => {
+            const travelSettings = {invoiceTo: 'billing@example.com'} as ExpensifyCardSettingsBase;
+            const result = getIsTravelBillingPayByInvoice(travelSettings);
             expect(result).toBe(true);
         });
     });

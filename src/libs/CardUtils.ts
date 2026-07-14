@@ -10,6 +10,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {
+    BankAccount,
     BankAccountList,
     Card,
     CardFeeds,
@@ -510,6 +511,26 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
         (bankAccount) =>
             bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit && !isBankAccountPartiallySetup(bankAccount?.accountData?.state),
     );
+}
+
+/**
+ * Checks whether a verified bank account can only receive deposits (not enabled for debits).
+ */
+function isDepositOnlyBankAccount(bankAccount: BankAccount | undefined): boolean {
+    return !!bankAccount?.accountData?.defaultCredit && !bankAccount?.accountData?.allowDebit && !isBankAccountPartiallySetup(bankAccount?.accountData?.state);
+}
+
+/**
+ * Returns the bank accounts that can settle Consolidated Travel Billing. Includes the standard card-eligible
+ * accounts, plus verified deposit-only accounts when the workspace can settle by invoice instead of an ACH debit.
+ */
+function getEligibleBankAccountsForTravelInvoicing(bankAccountsList: OnyxEntry<BankAccountList>, canUseDepositOnlyAccounts: boolean) {
+    const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList);
+    if (!canUseDepositOnlyAccounts || !bankAccountsList) {
+        return eligibleBankAccounts;
+    }
+    const depositOnlyBankAccounts = Object.values(bankAccountsList).filter(isDepositOnlyBankAccount);
+    return [...eligibleBankAccounts, ...depositOnlyBankAccounts];
 }
 
 function getConnectionBankAccountsForReconciliation(connections: OnyxEntry<Partial<Connections>>, connectionName: PolicyConnectionName | undefined): Array<{id: string; name: string}> {
@@ -2019,6 +2040,8 @@ export {
     getTranslationKeyForCardStatus,
     maskPin,
     getEligibleBankAccountsForCard,
+    getEligibleBankAccountsForTravelInvoicing,
+    isDepositOnlyBankAccount,
     sortCardsByCardholderName,
     isCurrencySupportedForECards,
     getCardFeedIcon,

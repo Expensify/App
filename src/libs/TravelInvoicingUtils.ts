@@ -44,6 +44,13 @@ function getIsTravelInvoicingEnabled(cardSettings: ExpensifyCardSettingsBase | u
 }
 
 /**
+ * Checks whether the workspace pays its Travel Invoicing settlement by invoice (wire) instead of an ACH debit.
+ */
+function getIsTravelBillingPayByInvoice(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
+    return typeof cardSettings?.invoiceTo === 'string' && cardSettings.invoiceTo.length > 0;
+}
+
+/**
  * Checks if a settlement account is configured for Travel Invoicing.
  */
 function hasTravelInvoicingSettlementAccount(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
@@ -178,6 +185,7 @@ function isTravelCVVEligible(cardList: OnyxEntry<CardList>): boolean {
 
 export {
     getIsTravelInvoicingEnabled,
+    getIsTravelBillingPayByInvoice,
     hasTravelInvoicingSettlementAccount,
     hasOutstandingTravelBalance,
     getTravelLimit,
