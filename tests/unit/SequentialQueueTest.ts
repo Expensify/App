@@ -12,7 +12,6 @@ import Onyx from 'react-native-onyx';
 
 import type Request from '../../src/types/onyx/Request';
 import type {AnyRequest, ConflictActionData} from '../../src/types/onyx/Request';
-import type Response from '../../src/types/onyx/Response';
 import type {MockFetch} from '../utils/TestHelper';
 
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
@@ -563,6 +562,10 @@ describe('SequentialQueue - QueueFlushedData', () => {
         expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     // Pushes an OpenApp request carrying queueFlushedData, with processWithMiddleware mocked to resolve with the given jsonCode.
     async function pushOpenAppAndWaitForIdle(jsonCode: number) {
         await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: false, shouldForceOffline: false});
@@ -570,30 +573,23 @@ describe('SequentialQueue - QueueFlushedData', () => {
         await waitForBatchedUpdates();
 
         const flushedUpdate: OnyxUpdate<typeof ONYXKEYS.HAS_LOADED_APP> = {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.HAS_LOADED_APP, value: true};
-        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue({jsonCode} as Response<OnyxKey>);
+        jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue({jsonCode});
         SequentialQueue.push({command: 'OpenApp', queueFlushedData: [flushedUpdate]});
         await SequentialQueue.waitForIdle();
         await waitForBatchedUpdates();
-        return processSpy;
     }
 
     it('does not commit queueFlushedData when the resolved response is not a 200', async () => {
-        const processSpy = await pushOpenAppAndWaitForIdle(CONST.JSON_CODE.BAD_REQUEST);
-        try {
-            // A failed-but-resolved OpenApp must not stage HAS_LOADED_APP, or the next boot runs ReconnectApp only and can't self-heal.
-            expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
-            expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBeFalsy();
-        } finally {
-            processSpy.mockRestore();
-        }
+        await pushOpenAppAndWaitForIdle(CONST.JSON_CODE.BAD_REQUEST);
+
+        // A failed-but-resolved OpenApp must not stage HAS_LOADED_APP, or the next boot runs ReconnectApp only and can't self-heal.
+        expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
+        expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBeFalsy();
     });
 
     it('commits queueFlushedData when the resolved response is a 200', async () => {
-        const processSpy = await pushOpenAppAndWaitForIdle(CONST.JSON_CODE.SUCCESS);
-        try {
-            expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBe(true);
-        } finally {
-            processSpy.mockRestore();
-        }
+        await pushOpenAppAndWaitForIdle(CONST.JSON_CODE.SUCCESS);
+
+        expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBe(true);
     });
 });
