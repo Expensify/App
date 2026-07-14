@@ -49,8 +49,10 @@ jest.mock('@libs/actions/Welcome', () => {
         dismissProductTraining: jest.fn((elementName: string) => {
             const OnyxModule = jest.requireActual<{default: typeof Onyx}>('react-native-onyx').default;
             const KEYS = jest.requireActual<{default: typeof ONYXKEYS}>('@src/ONYXKEYS').default;
+            // Narrowed so the computed-key literal isn't widened to `string` (the key type doesn't match the NVP's template-literal index signature).
+            const dismissedMethod: 'click' | 'x' = 'click';
             OnyxModule.merge(KEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                [elementName]: {timestamp: '2026-07-15 00:00:00.000', dismissedMethod: 'click'},
+                [elementName]: {timestamp: '2026-07-15 00:00:00.000', dismissedMethod},
             });
         }),
     };
