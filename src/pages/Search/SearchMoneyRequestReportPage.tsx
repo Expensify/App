@@ -28,7 +28,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
@@ -138,7 +138,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportByIDsSelector(reportID ? [reportID] : [])(attributes), [reportID]);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
-    useDocumentTitle(getReportName(report, reportAttributes));
+    useDocumentTitle(deprecatedGetReportName(report, reportAttributes));
 
     const doesReportIDLookValid = isValidReportIDFromPath(reportID);
     const hasLoadedReportActionsForAccessError = hasLoadedReportActions(reportLoadingState, isOffline);

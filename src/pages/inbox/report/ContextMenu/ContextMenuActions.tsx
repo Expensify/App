@@ -165,7 +165,7 @@ import {
     isWhisperAction as isWhisperActionReportActionsUtils,
     wasActionTakenByCurrentUser,
 } from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName, getReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteReportAction,
     canEditReportAction,
@@ -988,7 +988,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                             reportAction,
                             getPersonalDetailsByID(reportAction.actorAccountID, personalDetails),
                             getPersonalDetailsListByIDs(targetAccountIDs, personalDetails),
-                            getReportName,
+                            deprecatedGetReportName,
                             reportAttributes,
                         ).html ?? '';
                     setClipboardMessage(logMessage);

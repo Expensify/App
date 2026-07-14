@@ -38,7 +38,7 @@ import Parser from '@libs/Parser';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyEmployee as isPolicyEmployeeUtils} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     getReportForHeader,
     getReportPersonalDetailsParticipants,
@@ -451,7 +451,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
                     subtitle={StringUtils.lineBreaksToSpaces(
-                        shouldParserToHTML ? Parser.htmlToText(getReportName(reportForSubtitle, reportAttributes)) : getReportName(reportForSubtitle, reportAttributes),
+                        shouldParserToHTML ? Parser.htmlToText(deprecatedGetReportName(reportForSubtitle, reportAttributes)) : deprecatedGetReportName(reportForSubtitle, reportAttributes),
                     )}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {

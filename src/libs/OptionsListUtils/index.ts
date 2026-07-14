@@ -111,7 +111,7 @@ import {
     wasActionTakenByCurrentUser,
     withDEWRoutedActionsArray,
 } from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
@@ -1218,7 +1218,7 @@ function createOption({
                       },
                   );
 
-        const computedReportName = getReportName(report, reportAttributesDerived);
+        const computedReportName = deprecatedGetReportName(report, reportAttributesDerived);
 
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils, translate: translateFn}) ||
@@ -1301,7 +1301,7 @@ function getReportOption(
     if (option.isSelfDM) {
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report, reportAttributesDerived);
+        option.text = deprecatedGetReportName(report, reportAttributesDerived);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
         option.text = getPolicyName({report, policy});
@@ -1358,7 +1358,7 @@ function getReportDisplayOption(
     if (option.isSelfDM) {
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report, reportAttributesDerived);
+        option.text = deprecatedGetReportName(report, reportAttributesDerived);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;

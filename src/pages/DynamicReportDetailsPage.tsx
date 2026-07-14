@@ -49,7 +49,7 @@ import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
-import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
@@ -407,7 +407,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
     const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
-    const rawReportName = getReportNameFromReportNameUtils(reportForHeader, reportAttributes);
+    const rawReportName = deprecatedGetReportName(reportForHeader, reportAttributes);
     const reportName = shouldParseFullTitle ? Parser.htmlToText(rawReportName) : rawReportName;
     const additionalRoomDetails = isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom ? chatRoomSubtitle : `${translate('threads.in')} ${chatRoomSubtitle}`;
 

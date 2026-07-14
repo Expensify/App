@@ -51,7 +51,7 @@ import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
-import type {getReportName} from './ReportNameUtils';
+import type {deprecatedGetReportName} from './ReportNameUtils';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 
 import {getBankName, isCardPendingActivate} from './CardUtils';
@@ -2015,13 +2015,13 @@ function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>):
     return false;
 }
 
-// We pass getReportName as a param to avoid cyclic dependency.
+// We pass deprecatedGetReportName as a param to avoid cyclic dependency.
 function getMemberChangeMessageElements(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
     actorDetails: OnyxEntry<PersonalDetails>,
     targetAccountDetailsList: OnyxEntry<PersonalDetailsList>,
-    getReportNameCallback: typeof getReportName,
+    getReportNameCallback: typeof deprecatedGetReportName,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
@@ -2366,7 +2366,7 @@ function getMemberChangeMessageFragment(
     reportAction: OnyxEntry<ReportAction>,
     actorDetails: OnyxEntry<PersonalDetails>,
     targetAccountDetailsList: OnyxEntry<PersonalDetailsList>,
-    getReportNameCallback: typeof getReportName,
+    getReportNameCallback: typeof deprecatedGetReportName,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): Message {
     const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(

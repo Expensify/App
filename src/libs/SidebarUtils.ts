@@ -151,7 +151,7 @@ import {
     isTagModificationAction,
     isTaskAction,
 } from './ReportActionsUtils';
-import {getReportName as getReportNameFromDerived} from './ReportNameUtils';
+import {deprecatedGetReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     excludeParticipantsForDisplay,
@@ -567,7 +567,7 @@ function categorizeReportsForLHN(
         }
 
         const reportID = report.reportID;
-        const displayName = getReportNameFromDerived(report, reportAttributes);
+        const displayName = deprecatedGetReportName(report, reportAttributes);
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -1056,7 +1056,7 @@ function getOptionData({
                     : translate('workspace.invite.removed');
             const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            const roomName = getReportNameFromDerived(lastActionReport ?? undefined, reportAttributesDerived) || lastActionOriginalMessage?.roomName;
+            const roomName = deprecatedGetReportName(lastActionReport ?? undefined, reportAttributesDerived) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -1374,7 +1374,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = getReportNameFromDerived(report, reportAttributesDerived);
+    const reportName = deprecatedGetReportName(report, reportAttributesDerived);
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -1505,7 +1505,7 @@ function getRoomWelcomeMessage(
 ): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    const reportName = getReportNameFromDerived(report ?? undefined, reportAttributes);
+    const reportName = deprecatedGetReportName(report ?? undefined, reportAttributes);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);

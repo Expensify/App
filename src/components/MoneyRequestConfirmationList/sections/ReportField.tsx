@@ -7,7 +7,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -108,7 +108,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     })();
 
     const reportName = (() => {
-        const name = getReportName(selectedReport, reportAttributes);
+        const name = deprecatedGetReportName(selectedReport, reportAttributes);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }

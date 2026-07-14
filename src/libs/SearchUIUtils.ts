@@ -140,7 +140,7 @@ import {
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
-import {getReportName} from './ReportNameUtils';
+import {deprecatedGetReportName} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canDeleteMoneyRequestReport,
@@ -2611,7 +2611,7 @@ function getTaskSections(
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
-                const parentReportName = getReportName(parentReport, reportAttributesDerivedValue);
+                const parentReportName = deprecatedGetReportName(parentReport, reportAttributesDerivedValue);
                 const icons = getIcons(parentReport, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
 
@@ -2783,7 +2783,7 @@ function getReportActionsSections(
                     ...reportAction,
                     reportID,
                     from,
-                    reportName: getReportName(report, reportAttributesDerivedValue),
+                    reportName: deprecatedGetReportName(report, reportAttributesDerivedValue),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,

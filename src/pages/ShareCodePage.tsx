@@ -22,7 +22,7 @@ import Clipboard from '@libs/Clipboard';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
@@ -116,7 +116,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
     const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
 
-    const title = isReport ? getReportName(reportForTitle, reportAttributes) : (currentUserPersonalDetails.displayName ?? '');
+    const title = isReport ? deprecatedGetReportName(reportForTitle, reportAttributes) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`

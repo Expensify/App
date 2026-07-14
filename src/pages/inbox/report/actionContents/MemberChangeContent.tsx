@@ -4,7 +4,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getMemberChangeMessageFragment, getOriginalMessage} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 
 import TextCommentFragment from '@pages/inbox/report/comment/TextCommentFragment';
 
@@ -28,7 +28,7 @@ function MemberChangeContent({action}: MemberChangeContentProps) {
     const reportAttributes = useReportAttributes();
     const [actorDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(action.actorAccountID)});
     const [targetAccountDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsListSelector(getOriginalMessage(action)?.targetAccountIDs)});
-    const fragment = getMemberChangeMessageFragment(translate, action, actorDetails, targetAccountDetailsList, getReportName, reportAttributes);
+    const fragment = getMemberChangeMessageFragment(translate, action, actorDetails, targetAccountDetailsList, deprecatedGetReportName, reportAttributes);
 
     return (
         <View style={[styles.chatItemMessage]}>

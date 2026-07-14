@@ -14,7 +14,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
 import {
     canEditReportTitle,
@@ -208,7 +208,7 @@ function AvatarWithDisplayName({
     const reportAttributes = useReportAttributes();
     const derivedParentReportName = useDerivedReportNameByReportID(report?.parentReportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const title = getReportName(report, reportAttributes);
+    const title = deprecatedGetReportName(report, reportAttributes);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, true, isReportArchived);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived);

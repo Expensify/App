@@ -35,7 +35,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     canJoinChat,
     canUserPerformWriteAction,
@@ -161,7 +161,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const reportHeaderDataPolicy = usePolicy(reportHeaderData?.policyID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = getReportName(reportHeaderData, reportAttributes);
+    const title = deprecatedGetReportName(reportHeaderData, reportAttributes);
     const subtitle = getChatRoomSubtitle(reportHeaderData, reportHeaderDataPolicy, conciergeReportID, translate, false, isReportHeaderDataArchived);
     // This is used to get the status badge for invoice report subtitle.
     const statusTextForInvoiceReport = isParentInvoiceAndIsChatThread

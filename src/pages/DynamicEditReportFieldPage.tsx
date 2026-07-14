@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
-import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     getReportFieldKey,
     getTitleFieldWithFallback,
@@ -126,7 +126,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     // Provide a default when the report name and the policy field list are empty
 
     const fieldValue = isReportFieldTitle
-        ? getReportNameFromReportNameUtils(report, reportAttributesByReportID) || (isPolicyFieldListEmpty(policy) ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '')
+        ? deprecatedGetReportName(report, reportAttributesByReportID) || (isPolicyFieldListEmpty(policy) ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '')
         : (reportField.value ?? reportField.defaultValue);
 
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {

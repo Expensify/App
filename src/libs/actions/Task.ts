@@ -14,7 +14,7 @@ import {getDBTimeWithSkew} from '@libs/NetworkState';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -1155,7 +1155,7 @@ function getShareDestination(
     }
     return {
         icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, translate, personalDetails, FallbackAvatar),
-        displayName: getReportName(report, reportAttributes),
+        displayName: deprecatedGetReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),

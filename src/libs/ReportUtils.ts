@@ -233,7 +233,7 @@ import {
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
-import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
+import {deprecatedGetReportName, getGroupChatName, getInvoicePayerName, getInvoiceReportName} from './ReportNameUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {isTaskCompleted} from './TaskUtils';
 import {
@@ -5653,7 +5653,7 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
     const reportActionMessage = getReportActionHtml(iouReportAction);
     if (params.isCopyAction) {
         if (report) {
-            return getReportName(report, params.reportAttributes ?? reportAttributesDerivedValue) || (originalReportAction?.childReportName ?? '');
+            return deprecatedGetReportName(report, params.reportAttributes ?? reportAttributesDerivedValue) || (originalReportAction?.childReportName ?? '');
         }
         return originalReportAction?.childReportName ?? '';
     }
@@ -6914,7 +6914,7 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
 
     const report = fromReport ?? toReport;
 
-    const reportName = Parser.htmlToText(getReportName(report, reportAttributes) ?? report?.reportName ?? '');
+    const reportName = Parser.htmlToText(deprecatedGetReportName(report, reportAttributes) ?? report?.reportName ?? '');
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         return reportName ? translate('iou.movedTransactionTo', reportUrl, reportName) : translate('iou.movedTransactionToAnotherReport');
@@ -6928,7 +6928,7 @@ function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: 
 
     const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
-    const reportName = Parser.htmlToText(getReportName(fromReport, reportAttributes) ?? fromReport?.reportName ?? '');
+    const reportName = Parser.htmlToText(deprecatedGetReportName(fromReport, reportAttributes) ?? fromReport?.reportName ?? '');
 
     let reportUrl = getReportURLForCurrentContext(fromReportID);
 
@@ -12810,10 +12810,10 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
     }
 
     if (report?.reportID) {
-        return getReportName(getReport(report?.reportID, deprecatedAllReports), reportAttributesDerivedValue);
+        return deprecatedGetReportName(getReport(report?.reportID, deprecatedAllReports), reportAttributesDerivedValue);
     }
 
-    return getReportName(report, reportAttributesDerivedValue);
+    return deprecatedGetReportName(report, reportAttributesDerivedValue);
 }
 
 /**

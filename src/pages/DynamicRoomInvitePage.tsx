@@ -36,7 +36,7 @@ import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay, isPolicyExpenseChat} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -133,7 +133,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     const isPolicyEmployee = isPolicyEmployeeUtil(report?.policyID, policy);
     const reportDetailsRoute = reportID ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(reportID)) : undefined;
     const backRoute = reportID && (!isPolicyEmployee || isReportArchived) ? reportDetailsRoute : backPath;
-    const reportName = getReportName(report, reportAttributes);
+    const reportName = deprecatedGetReportName(report, reportAttributes);
 
     const ancestors = useAncestors(report);
 
