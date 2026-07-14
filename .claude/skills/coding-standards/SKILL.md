@@ -35,6 +35,8 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [PERF-14](rules/perf-14-use-sync-external-store.md) — Use useSyncExternalStore
 - [PERF-15](rules/perf-15-cleanup-async-effects.md) — Clean up async Effects
 - [PERF-16](rules/perf-16-guard-double-init.md) — Guard double initialization
+- [PERF-17](rules/perf-17-pass-raw-index-on-demand.md) — Pass raw source, index on demand (no pre-built digest)
+- [PERF-18](rules/perf-18-use-pre-mount-destination.md) — Use usePreMountDestination for RHP pre-mounting
 
 ### Consistency
 - [CONSISTENCY-1](rules/consistency-1-no-platform-checks.md) — No platform-specific checks in components

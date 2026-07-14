@@ -93,6 +93,7 @@ import Onyx from 'react-native-onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport, createRegularChat} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -859,8 +860,13 @@ describe('OptionsListUtils', () => {
         );
     });
 
-    // createFilteredOptionList caches results at module level; clear it so tests stay order-independent.
-    beforeEach(() => {
+    beforeEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+        jest.clearAllMocks();
+
+        // createFilteredOptionList caches results at module level; clear it so tests stay order-independent.
         clearFilteredOptionListCache();
     });
 
@@ -2040,6 +2046,11 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getShareDestinationsOptions()', () => {
+        beforeEach(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}10`, REPORTS['10'] ?? {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
+        });
+
         it('should exclude archived rooms and hidden threads from share destinations', () => {
             // Given a set of filtered current Reports (as we do in the component) before getting share destination options
             const filteredReports = Object.values(OPTIONS.reports).reduce<OptionList['reports']>((filtered, option) => {
@@ -3552,6 +3563,7 @@ describe('OptionsListUtils', () => {
         it('createFilteredOptionList() localization', async () => {
             renderLocaleContextProvider();
             // Given a set of reports and personal details
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
             // When we call createFilteredOptionList and extract the reports
             const reports = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {isSearching: true}).reports;
 
@@ -5523,6 +5535,56 @@ describe('OptionsListUtils', () => {
             });
             expect(result).toBe(expectedVisibleText);
         });
+        it('should return "@Hidden" when last action is an ADD_COMMENT mentioning a user not in personal details', async () => {
+            // Given a chat report whose last action is an ADD_COMMENT that mentions a user who does not exist in personal details
+            const mentionedAccountID = 999999;
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+            const addCommentAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: DateUtils.getDBTime(),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: `<mention-user accountID="${mentionedAccountID}"></mention-user>`,
+                        text: '',
+                        isEdited: false,
+                        isDeletedParentAction: false,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user accountID="${mentionedAccountID}"></mention-user>`,
+                    mentionedAccountIDs: [mentionedAccountID],
+                },
+                shouldShow: true,
+                pendingAction: null,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [addCommentAction.reportActionID]: addCommentAction,
+            });
+            await waitForBatchedUpdates();
+
+            // When we get the last message text while the mentioned user is absent from personal details
+            const lastMessage = getLastMessageTextForReport({
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                lastAction: addCommentAction,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+
+            // Then the mention should fall back to the hidden placeholder
+            expect(lastMessage).toBe(`@${translateLocal('common.hidden')}`);
+        });
         it('should return "No activity yet" for MoneyRequestReport with zero transactions', async () => {
             const report: Report = {
                 ...createRandomReport(0, undefined),
@@ -5622,13 +5684,6 @@ describe('OptionsListUtils', () => {
         });
 
         describe('DEW (Dynamic External Workflow)', () => {
-            beforeEach(async () => {
-                await act(async () => {
-                    await Onyx.clear();
-                });
-                jest.clearAllMocks();
-            });
-
             it('should show queued message for SUBMITTED action with DEW policy when offline and pending submit', async () => {
                 const reportID = 'dewReport1';
                 const report: Report = {
@@ -5826,6 +5881,42 @@ describe('OptionsListUtils', () => {
                         policyName: policy.name,
                     }),
                 );
+            });
+
+            it('resolves the workspace-unavailable fallback through the provided translate function when the archived policy is unavailable', async () => {
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    // No resolvable policy, so the archived preview name falls back to the unavailable label.
+                    policyID: 'missing-archive-policy',
+                    policyName: undefined,
+                    reportName: undefined,
+                };
+                const closedAction = createMock<ReportAction>({
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                    originalMessage: {
+                        reason: CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY,
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [closedAction.reportActionID]: closedAction,
+                });
+                const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                    path === 'workspace.common.unavailable' ? 'UnavailableMarker' : translateLocal(path, ...parameters);
+
+                const lastMessage = getLastMessageTextForReport({
+                    personalDetails: undefined,
+                    translate: translateWithUnavailableMarker,
+                    report,
+                    lastActorDetails: null,
+                    policy: undefined,
+                    isReportArchived: true,
+
+                    currentUserLogin: '',
+                });
+
+                expect(lastMessage).toContain('UnavailableMarker');
             });
         });
         describe('UPDATE_CATEGORY_TAX_RATE action', () => {
@@ -6391,13 +6482,6 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getReportOption', () => {
-        beforeEach(async () => {
-            await act(async () => {
-                await Onyx.clear();
-            });
-            jest.clearAllMocks();
-        });
-
         it('should return option with correct workspace name when policy is provided', async () => {
             const reportID = '101';
             const testPolicyID = 'policy123';
@@ -7612,7 +7696,7 @@ describe('OptionsListUtils', () => {
             },
         };
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             const report1: Report = {
                 reportID: formatReportID1,
                 reportName: 'Archived Format Chat',
