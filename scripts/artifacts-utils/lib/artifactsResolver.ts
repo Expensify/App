@@ -82,18 +82,20 @@ function getCredentials(): Credentials | null {
             return null;
         }
         if (isCI()) {
-            if (!process.env.GITHUB_ACTOR || !process.env.GITHUB_TOKEN) {
-                logError('Missing required CI environment variables GITHUB_ACTOR and/or GITHUB_TOKEN.');
-                return null;
+            // typeof narrows the (loosely-typed) process.env members to string without assigning an any value.
+            if (typeof process.env.GITHUB_ACTOR === 'string' && typeof process.env.GITHUB_TOKEN === 'string') {
+                return {githubUsername: process.env.GITHUB_ACTOR, githubToken: process.env.GITHUB_TOKEN};
             }
-            return {githubUsername: process.env.GITHUB_ACTOR, githubToken: process.env.GITHUB_TOKEN};
+            logError('Missing required CI environment variables GITHUB_ACTOR and/or GITHUB_TOKEN.');
+            return null;
         }
         if (!hasRequiredScopes()) {
             logError('GitHub token does not have required scope read:packages.');
             return null;
         }
+        // `--jq .login` returns the login string directly, so there is no untyped JSON to assert on.
         return {
-            githubUsername: (JSON.parse(runGh(['api', 'user'])) as {login: string}).login,
+            githubUsername: runGh(['api', 'user', '--jq', '.login']),
             githubToken: runGh(['auth', 'token']),
         };
     } catch {
@@ -147,8 +149,17 @@ function fetchTokenSafe(url: string, githubToken: string | null, maxRedirects = 
 }
 
 function getReactNativeVersion(newDotRoot: string): string {
-    const pkg = JSON.parse(fs.readFileSync(path.join(newDotRoot, 'package.json'), 'utf8')) as {dependencies: Record<string, string>};
-    return pkg.dependencies['react-native'];
+    const parsed: unknown = JSON.parse(fs.readFileSync(path.join(newDotRoot, 'package.json'), 'utf8'));
+    if (typeof parsed === 'object' && parsed !== null && 'dependencies' in parsed) {
+        const deps: unknown = parsed.dependencies;
+        if (typeof deps === 'object' && deps !== null && 'react-native' in deps) {
+            const version: unknown = deps['react-native'];
+            if (typeof version === 'string') {
+                return version;
+            }
+        }
+    }
+    throw new Error('Could not read react-native version from package.json');
 }
 
 function computePatchesHash(newDotRoot: string, isHybrid: boolean): string {
@@ -183,7 +194,6 @@ async function findMatchingArtifactsVersion(options: ResolveOptions, artifactId:
         const rnVersion = getReactNativeVersion(newDotRoot);
         const candidates = getArtifactsCandidates(packageName, artifactId, rnVersion);
         for (const candidate of candidates) {
-            // eslint-disable-next-line no-await-in-loop
             const remoteHash = await getRemotePatchesHash(packageName, artifactId, candidate, githubToken);
             if (remoteHash != null && remoteHash === localPatchesHash) {
                 return candidate;

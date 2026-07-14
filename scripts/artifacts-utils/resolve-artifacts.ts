@@ -1,5 +1,5 @@
 import parseCommandLineArguments from '../utils/parseCommandLineArguments';
-import resolveArtifacts, {type Platform} from './lib/artifactsResolver';
+import resolveArtifacts from './lib/artifactsResolver';
 
 /**
  * Thin CLI entry point around the shared artifacts resolver, invoked by the
@@ -11,11 +11,18 @@ import resolveArtifacts, {type Platform} from './lib/artifactsResolver';
  *       --platform=ios --package=react-hybrid --hybrid=true --new-dot-root=.
  *
  * Prints the resolution result as JSON to stdout (logs go to stderr). It always
- * exits 0 with a valid JSON payload — a failure resolves to `buildFromSource`.
+ * exits 0 with a valid JSON payload — any failure resolves to `buildFromSource`.
  */
 const args = parseCommandLineArguments();
-const platform = args.platform as Platform;
+const platform = args.platform;
 const packageName = args.package ?? '';
+
+// Validate rather than assert: an invalid/missing platform falls back to source.
+if (platform !== 'ios' && platform !== 'android') {
+    process.stderr.write(`[PatchedArtifacts] Invalid or missing --platform "${platform ?? ''}" (expected "ios" or "android"); building from source.\n`);
+    process.stdout.write(JSON.stringify({buildFromSource: true, version: null, packageName, artifactId: ''}));
+    process.exit(0);
+}
 
 resolveArtifacts({
     platform,

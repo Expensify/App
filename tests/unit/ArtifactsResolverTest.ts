@@ -1,5 +1,7 @@
 import resolveArtifacts, {ARTIFACT_IDS, fetchTokenSafe} from '@scripts/artifacts-utils/lib/artifactsResolver';
 
+import type {ClientRequest, IncomingMessage} from 'http';
+
 /**
  * @jest-environment node
  */
@@ -11,19 +13,15 @@ import https from 'https';
 jest.mock('child_process');
 jest.mock('https');
 
-const mockExecFileSync = execFileSync as jest.MockedFunction<typeof execFileSync>;
-const mockGet = https.get as jest.MockedFunction<typeof https.get>;
+const mockExecFileSync = jest.mocked(execFileSync);
+const mockGet = jest.mocked(https.get);
 
 const NEW_DOT_ROOT = '/repo';
 const LOCAL_HASH = 'abc123hash';
 
-/** Build a fake IncomingMessage that emits the given body then ends. */
+/** Builds a fake IncomingMessage that emits the given body then ends. */
 function fakeResponse(statusCode: number, headers: Record<string, string>, body = '') {
-    const res = new EventEmitter() as EventEmitter & {statusCode: number; headers: Record<string, string>; resume: () => void; setEncoding: () => void};
-    res.statusCode = statusCode;
-    res.headers = headers;
-    res.resume = () => undefined;
-    res.setEncoding = () => undefined;
+    const res = Object.assign(new EventEmitter(), {statusCode, headers, resume: () => undefined, setEncoding: () => undefined});
     process.nextTick(() => {
         if (body) {
             res.emit('data', body);
@@ -40,14 +38,19 @@ function fakeResponse(statusCode: number, headers: Record<string, string>, body 
 function mockHttpsSequence(responses: Array<{statusCode: number; headers?: Record<string, string>; body?: string}>) {
     const seenAuthHeaders: Array<string | undefined> = [];
     let call = 0;
-    mockGet.mockImplementation((_url: string | URL, options: https.RequestOptions, callback?: (res: unknown) => void) => {
-        const headers = (options?.headers ?? {}) as Record<string, string>;
-        seenAuthHeaders.push(headers.Authorization);
+    const impl = (_url: string | URL, options: {headers?: Record<string, unknown>}, callback?: (res: IncomingMessage) => void): ClientRequest => {
+        const auth = options.headers?.Authorization;
+        seenAuthHeaders.push(typeof auth === 'string' ? auth : undefined);
         const spec = responses.at(call++) ?? {statusCode: 500};
-        callback?.(fakeResponse(spec.statusCode, spec.headers ?? {}, spec.body));
-        const req = new EventEmitter();
-        return req as unknown as ReturnType<typeof https.get>;
-    });
+        // Faking Node's IncomingMessage / ClientRequest requires narrowing assertions in a unit test.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        callback?.(fakeResponse(spec.statusCode, spec.headers ?? {}, spec.body) as unknown as IncomingMessage);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        return new EventEmitter() as unknown as ClientRequest;
+    };
+    // https.get is overloaded; cast the single fake impl to its type.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    mockGet.mockImplementation(impl as typeof https.get);
     return seenAuthHeaders;
 }
 
@@ -71,7 +74,7 @@ function mockResolveExec(candidates: string) {
         }
         return '';
     });
-    jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify({dependencies: {'react-native': '0.85.3'}}));
+    jest.spyOn(fs, 'readFileSync').mockReturnValue('{"dependencies":{"react-native":"0.85.3"}}');
 }
 
 describe('artifactsResolver', () => {
