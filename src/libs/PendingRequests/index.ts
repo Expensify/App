@@ -1,6 +1,7 @@
 import useOnyx from '@hooks/useOnyx';
 
 import {WRITE_COMMANDS} from '@libs/API/types';
+import type {WriteCommand} from '@libs/API/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyRequest} from '@src/types/onyx';
@@ -25,9 +26,10 @@ type PendingRequestGroupConfig = {
 
     /**
      * Extracts the scope key from a request for scoped groups (e.g. `reportID` for report loading).
-     * Omitted for unscoped groups, which match on command alone.
+     * Omitted for unscoped groups, which match on command alone. Returns `undefined` when the request
+     * carries no usable scope key, which never matches a caller's scope key.
      */
-    getScopeKey?: (request: AnyRequest) => unknown;
+    getScopeKey?: (request: AnyRequest) => string | number | undefined;
 
     /**
      * When true, persisted requests that were initiated while offline are ignored. Such requests sit in the
@@ -40,17 +42,22 @@ type PendingRequestGroupConfig = {
 // Only WRITE commands are pushed to the SequentialQueue (see `processRequest` in src/libs/API/index.ts);
 // READ and side-effect commands are processed straight through the middleware and never land in
 // PERSISTED_REQUESTS / PERSISTED_ONGOING_REQUESTS. Groups may therefore only contain WRITE_COMMANDS —
-// a read/side-effect command here would make its hook permanently return false.
+// a read/side-effect command here would make its hook permanently return false. Typing each command list
+// as `WriteCommand[]` makes the type system enforce that invariant rather than relying on the comment.
+const APP_LOAD_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP];
+const REPORT_LOAD_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_REPORT];
+const LOADING_BAR_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT, WRITE_COMMANDS.READ_NEWEST_ACTION];
+
 const PENDING_REQUEST_GROUPS = {
     appLoad: {
-        commands: new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP]),
+        commands: new Set<string>(APP_LOAD_COMMANDS),
     },
     reportLoad: {
-        commands: new Set<string>([WRITE_COMMANDS.OPEN_REPORT]),
-        getScopeKey: (request) => request.data?.reportID,
+        commands: new Set<string>(REPORT_LOAD_COMMANDS),
+        getScopeKey: (request) => (typeof request.data?.reportID === 'string' ? request.data.reportID : undefined),
     },
     loadingBar: {
-        commands: new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT, WRITE_COMMANDS.READ_NEWEST_ACTION]),
+        commands: new Set<string>(LOADING_BAR_COMMANDS),
         ignoreOfflineInitiatedPersisted: true,
     },
 } satisfies Record<string, PendingRequestGroupConfig>;
@@ -78,6 +85,8 @@ function buildSelectors(group: PendingRequestGroup, scopeKey?: string | number):
 }
 
 function useIsPendingInternal(group: PendingRequestGroup, scopeKey?: string | number): boolean {
+    // React Compiler memoizes this call keyed on (group, scopeKey), so the selector references stay stable
+    // across renders and `useOnyx` does not re-subscribe. Do not replace this with a manual selector cache.
     const {persisted, ongoing} = buildSelectors(group, scopeKey);
     const [hasPendingPersistedRequest] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: persisted});
     const [hasPendingOngoingRequest] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {selector: ongoing});
@@ -90,7 +99,12 @@ function useIsAppLoadPending(): boolean {
     return useIsPendingInternal('appLoad');
 }
 
-/** Whether an OpenReport request for the given report is currently in the queue. */
+/**
+ * Whether an OpenReport request for the given report is currently in the queue.
+ *
+ * Do not call this inside list-item render paths (e.g. per row in a list): every call opens two Onyx
+ * subscriptions. Lift it to the screen level and pass the result down instead.
+ */
 function useIsReportLoadPending(reportID: string): boolean {
     return useIsPendingInternal('reportLoad', reportID);
 }

@@ -1,6 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import {WRITE_COMMANDS} from '@libs/API/types';
+import type {WriteCommand} from '@libs/API/types';
 import {useIsAppLoadPending, useIsLoadingBarPending, useIsReportLoadPending} from '@libs/PendingRequests';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,7 +11,7 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const buildRequest = (command: string, data: Record<string, unknown> = {}, extra: Partial<AnyRequest> = {}): AnyRequest => ({command, data, ...extra});
+const buildRequest = (command: WriteCommand, data: Record<string, unknown> = {}, extra: Partial<AnyRequest> = {}): AnyRequest => ({command, data, ...extra});
 
 const setPersistedRequests = (requests: AnyRequest[]) => Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests).then(waitForBatchedUpdates);
 
@@ -22,8 +23,7 @@ describe('PendingRequests', () => {
     });
 
     beforeEach(() => {
-        Onyx.clear();
-        return waitForBatchedUpdates();
+        return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     describe('useIsAppLoadPending', () => {
