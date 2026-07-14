@@ -23,6 +23,7 @@ export default function useSubPage<TProps extends SubPageProps, TPageName extend
     skipPages = [],
     onPageChange = () => {},
     buildRoute,
+    shouldReplaceRoute = false,
 }: UseSubPageProps<TProps, TPageName>) {
     const navigation = useNavigation();
     const route = useRoute();
@@ -48,9 +49,13 @@ export default function useSubPage<TProps extends SubPageProps, TPageName extend
 
     const navigateToPage = useCallback(
         (pageName: TPageName, action?: 'edit') => {
+            if (shouldReplaceRoute) {
+                Navigation.navigate(buildRoute(pageName, action), {forceReplace: true});
+                return;
+            }
             Navigation.navigate(buildRoute(pageName, action));
         },
-        [buildRoute],
+        [buildRoute, shouldReplaceRoute],
     );
 
     const prevPage = useCallback(() => {
@@ -69,9 +74,15 @@ export default function useSubPage<TProps extends SubPageProps, TPageName extend
 
         const targetPage = pages.at(targetIndex);
         if (targetPage) {
+            // When routes are replaced (dynamic routes), the flow keeps a single screen in the stack,
+            // so there is nothing to pop back to - navigate (replacing) to the previous page instead.
+            if (shouldReplaceRoute) {
+                Navigation.navigate(buildRoute(targetPage.pageName), {forceReplace: true});
+                return;
+            }
             Navigation.goBack(buildRoute(targetPage.pageName));
         }
-    }, [pageIndex, pages, skipPages, buildRoute]);
+    }, [pageIndex, pages, skipPages, buildRoute, shouldReplaceRoute]);
 
     const nextPage = useCallback(
         (finishData?: unknown) => {
