@@ -393,11 +393,10 @@ function WorkspaceCompanyCardsTable({
                             subtitleStyle={styles.textSupporting}
                         />
                         <Button
-                            text={translate('common.tryAgain')}
                             isDisabled={isOffline}
                             onPress={feedErrorReloadAction}
                         >
-                            <Button.Text>{translate('workspace.companyCards.error.tryAgain')}</Button.Text>
+                            <Button.Text>{translate('common.tryAgain')}</Button.Text>
                         </Button>
                     </View>
                 </ScrollView>
