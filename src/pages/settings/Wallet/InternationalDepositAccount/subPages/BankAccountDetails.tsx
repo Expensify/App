@@ -1,5 +1,3 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import CurrencyPicker from '@components/CurrencyPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -8,19 +6,27 @@ import Icon from '@components/Icon';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import ValuePicker from '@components/ValuePicker';
+
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
+
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
+
 import {fetchCorpayFields} from '@userActions/BankAccounts';
+
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: CustomSubPageProps) {
     const {translate} = useLocalize();

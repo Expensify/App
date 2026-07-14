@@ -1,27 +1,31 @@
-import React, {useCallback, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+
 import {importPolicyMembers, setImportedSpreadsheetMemberData} from '@libs/actions/Policy/Member';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isControlPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {canMemberAssignElevatedRole, canMemberAssignRole, canMemberManageMemberWithRole, isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useCallback, useState} from 'react';
 
 type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
 
@@ -34,21 +38,28 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
+    const isControlPolicy = isControlPolicyUtil(policy);
 
     const columnRoles: ColumnRole[] = [
         {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
         {text: translate('common.email'), value: CONST.CSV_IMPORT_COLUMNS.EMAIL, isRequired: true},
-        {text: translate('common.role'), value: CONST.CSV_IMPORT_COLUMNS.ROLE},
+    ];
+    if (canAssignElevatedRoles) {
+        columnRoles.push({text: translate('common.role'), value: CONST.CSV_IMPORT_COLUMNS.ROLE});
+    }
+    columnRoles.push(
         {text: translate('common.submitTo'), value: CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO},
         {text: translate('common.forwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO},
         {text: translate('workspace.common.customField1'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1},
         {text: translate('workspace.common.customField2'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2},
         {text: translate('common.approvalLimit'), value: CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD},
         {text: translate('common.overLimitForwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO_ALTERNATE},
-    ];
+    );
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
 
@@ -78,7 +89,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     };
 
     const navigateBackToMembers = () => {
-        InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {waitForTransition: true});
     };
 
     const importMembers = async () => {
@@ -94,14 +105,36 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const columns = Object.values(spreadsheet?.columns ?? {});
 
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
-        const hasAuditorRole =
-            membersRolesColumn !== -1 &&
-            spreadsheet?.data
-                ?.at(membersRolesColumn)
-                ?.some((role, index) => (containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '')) === CONST.POLICY.ROLE.AUDITOR);
 
-        if (hasAuditorRole && !isControlPolicy(policy)) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.auditor.alias, Navigation.getActiveRoute()));
+        const controlPolicyOnlyRoles = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
+        const hasControlPolicyOnlyRole =
+            membersRolesColumn !== -1 &&
+            spreadsheet?.data?.at(membersRolesColumn)?.some((role, index) => {
+                const memberRole = containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '');
+                return controlPolicyOnlyRoles.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === memberRole);
+            });
+        const controlPolicyColumns = [
+            CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO,
+            CONST.CSV_IMPORT_COLUMNS.APPROVE_TO,
+            CONST.CSV_IMPORT_COLUMNS.APPROVE_TO_ALTERNATE,
+            CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD,
+            CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1,
+            CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2,
+        ];
+        const hasControlPolicyColumns = controlPolicyColumns.some((column) => columns.includes(column));
+        const isRequiredControlPolicy = hasControlPolicyColumns || hasControlPolicyOnlyRole;
+
+        if (isRequiredControlPolicy && !isControlPolicy) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(
+                    route.params.policyID,
+                    hasControlPolicyOnlyRole ? CONST.UPGRADE_FEATURE_INTRO_MAPPING.controlPolicyRoles.alias : CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
+                    Navigation.getActiveRoute(),
+                    undefined,
+                    // Both the Control-only roles and the Control-only columns require the Control plan, so a Submit workspace must upgrade to Control here rather than the Collect default
+                    CONST.POLICY.TYPE.CORPORATE,
+                ),
+            );
             return;
         }
 
@@ -123,11 +156,16 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const members = membersEmails?.slice(containsHeader ? 1 : 0).map((email, index) => {
             const isPolicyMember = isPolicyMemberWithoutPendingDelete(email, policy);
             let role = isPolicyMember ? (policy?.employeeList?.[email]?.role ?? '') : '';
-            if (membersRolesColumn !== -1 && membersRoles?.[containsHeader ? index + 1 : index]) {
-                role = membersRoles?.[containsHeader ? index + 1 : index];
+            const importedRole = membersRoles?.[containsHeader ? index + 1 : index];
+            const canManageCurrentRole = !isPolicyMember || canMemberManageMemberWithRole(policy, currentUserLogin, role);
+            if (canAssignElevatedRoles && membersRolesColumn !== -1 && importedRole && canManageCurrentRole && canMemberAssignRole(policy, currentUserLogin, importedRole)) {
+                role = importedRole;
             }
-            if (membersRolesColumn !== -1 && !role) {
+            if (canAssignElevatedRoles && membersRolesColumn !== -1 && !role) {
                 isRoleMissing = true;
+            }
+            if (!canAssignElevatedRoles && !role) {
+                role = CONST.POLICY.ROLE.USER;
             }
             let submitsTo = '';
             if (membersSubmitsToColumn !== -1 && membersSubmitsTo?.[containsHeader ? index + 1 : index]) {

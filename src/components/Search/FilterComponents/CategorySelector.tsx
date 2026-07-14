@@ -1,24 +1,28 @@
-import React from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {filterPolicyIDSelector} from '@src/selectors/Search';
-import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {PolicyCategories} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React from 'react';
+
 import MultiSelect from './MultiSelect';
 
-type CategorySelectorProps = {
-    value: string[] | undefined;
-    onChange: (categories: string[]) => void;
+type CategorySelectorProps = SearchFilterCommonProps<string[] | undefined> & {
+    policyID: Filter | undefined;
 };
 
-function CategorySelector({value = [], onChange}: CategorySelectorProps) {
-    const {translate} = useLocalize();
-    const [policyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
+function CategorySelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
+    const {translate, localeCompare} = useLocalize();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const selectedCategoriesItems = value.map((category) => {
@@ -46,30 +50,21 @@ function CategorySelector({value = [], onChange}: CategorySelectorProps) {
         },
         [availableNonPersonalPolicyCategoriesSelector],
     );
-    const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
-        .filter((key) => policyIDs.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key))
-        .map((key) => Object.values(allPolicyCategories?.[key] ?? {}))
-        .flat();
 
     const categoryItems = [{text: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
-    const uniqueCategoryNames = new Set<string>();
-    if (policyIDs.length === 0) {
-        const categories = Object.values(allPolicyCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
-        for (const category of categories) {
-            uniqueCategoryNames.add(category.name);
-        }
-    } else if (selectedPoliciesCategories.length > 0) {
-        for (const category of selectedPoliciesCategories) {
-            uniqueCategoryNames.add(category.name);
-        }
-    }
+    const uniqueCategoryNames = new Set<string>(
+        getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories).flatMap((policyCategories) =>
+            Object.values(policyCategories ?? {}).map((category) => category.name),
+        ),
+    );
     categoryItems.push(
         ...Array.from(uniqueCategoryNames)
             .filter(Boolean)
             .map((categoryName) => {
                 const decodedCategoryName = getDecodedCategoryName(categoryName);
                 return {text: decodedCategoryName, value: categoryName};
-            }),
+            })
+            .toSorted((a, b) => sortOptionsWithEmptyValue(a.text.toString(), b.text.toString(), localeCompare)),
     );
 
     return (
@@ -77,7 +72,10 @@ function CategorySelector({value = [], onChange}: CategorySelectorProps) {
             value={selectedCategoriesItems}
             items={categoryItems}
             isSearchable={categoryItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
-            searchPlaceholder={translate('common.category')}
+            autoFocus={autoFocus}
+            selectionListTextInputStyle={selectionListTextInputStyle}
+            selectionListStyle={selectionListStyle}
+            footer={footer}
             onChange={(categories) => onChange(categories.map((category) => category.value))}
         />
     );

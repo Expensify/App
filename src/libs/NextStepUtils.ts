@@ -1,15 +1,22 @@
-import {addMonths, format, isPast, setDate} from 'date-fns';
-import {Str} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {IntroSelected, Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {addMonths, format, isPast, setDate} from 'date-fns';
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
+import {isTrackOnboardingChoice} from './OnboardingUtils';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
@@ -22,8 +29,18 @@ import {
     isOpenExpenseReport,
     isPayer,
     shouldBlockSubmitDueToPreventSelfApproval,
+    shouldShowMarkAsDone,
 } from './ReportUtils';
 import {hasSubmissionBlockingViolations} from './TransactionUtils';
+
+let introSelected: OnyxEntry<IntroSelected>;
+// eslint-disable-next-line rulesdir/no-onyx-connect -- NextStepUtils is a pure utility called from action files that cannot use hooks
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => {
+        introSelected = value;
+    },
+});
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
@@ -46,7 +63,7 @@ type BuildNextStepNewParams = {
 
 function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
-    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '');
+    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '');
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
     if (nextStep.actorAccountID === currentUserAccountID) {
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
@@ -74,7 +91,7 @@ function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
     return (report?.transactionCount ?? 0) > 0;
 }
 
-function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
+function buildOptimisticNextStep(params: BuildNextStepNewParams & {isTrackIntentUser: boolean | undefined}): ReportNextStep | null {
     const {
         report,
         policy,
@@ -88,6 +105,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         isReopen,
         isRejectedReport: isRejectedReportParam,
         bypassNextApproverID,
+        isTrackIntentUser,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -139,7 +157,9 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy})
+                        ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
+                        : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                     actorAccountID: ownerAccountID,
                 };
@@ -200,7 +220,13 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             // Manual submission
             if (hasTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
-                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                    messageKey: shouldShowMarkAsDone({
+                        isTrackIntentUser,
+                        report,
+                        policy,
+                    })
+                        ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
+                        : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                     actorAccountID: ownerAccountID,
                 };
@@ -358,11 +384,13 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
 function getReportNextStep(
     currentNextStep: ReportNextStepDeprecated | undefined,
     moneyRequestReport: OnyxEntry<Report>,
+    moneyRequestReportOwnerLogin: string | undefined,
     transactions: Array<OnyxEntry<Transaction>>,
     policy: OnyxEntry<Policy>,
     transactionViolations: OnyxCollection<TransactionViolations>,
     currentUserEmail: string,
     currentUserAccountID: number,
+    reportNextStep?: ReportNextStep,
 ) {
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const shouldShowNoFurtherAction =
@@ -374,7 +402,9 @@ function getReportNextStep(
         isOpenExpenseReport(moneyRequestReport) &&
         transactions.length > 0 &&
         transactions.every(
-            (transaction) => !!transaction && hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, policy),
+            (transaction) =>
+                !!transaction &&
+                hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, moneyRequestReportOwnerLogin, policy),
         )
     ) {
         // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner
@@ -398,6 +428,12 @@ function getReportNextStep(
             isASAPSubmitBetaEnabled: false,
             predictedNextStatus: moneyRequestReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
         });
+    }
+
+    // Prefer the new translatable next step for the empty-report case so the "Waiting for you to add expenses" message
+    // respects the user's locale. The deprecated format is kept as the fallback for every other case.
+    if (reportNextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS) {
+        return reportNextStep;
     }
 
     return currentNextStep;
@@ -468,7 +504,6 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         isRejectedReport,
         bypassNextApproverID,
     } = params;
-
     if (!isExpenseReport(report)) {
         return null;
     }
@@ -537,178 +572,185 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
-            if (isRejectedReport) {
-                optimisticNextStep = {
-                    type,
-                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    message: [
-                        {
-                            text: 'This report was rejected. Waiting on ',
-                        },
-                        {
-                            text: `${ownerDisplayName}`,
-                            type: 'strong',
-                            clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
-                        },
-                        {
-                            text: ' to fix the issues and manually resubmit.',
-                        },
-                    ],
-                };
-                break;
-            }
-            if ((isASAPSubmitBetaEnabled && hasViolations && isInstantSubmitEnabled) || shouldFixViolations) {
-                optimisticNextStep = {
-                    type,
-                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    message: [
-                        {
-                            text: 'Waiting for ',
-                        },
-                        {
-                            text: `${ownerDisplayName}`,
-                            type: 'strong',
-                            clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
-                        },
-                        {
-                            text: ' to ',
-                        },
-                        {
-                            text: 'fix the issues',
-                        },
-                    ],
-                };
-                break;
-            }
-            if (isReopen) {
-                optimisticNextStep = {
-                    type,
-                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    message: [
-                        {
-                            text: 'Waiting for ',
-                        },
-                        {
-                            text: `${ownerDisplayName}`,
-                            type: 'strong',
-                            clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
-                        },
-                        {
-                            text: ' to ',
-                        },
-                        {
-                            text: 'submit',
-                        },
-                        {
-                            text: ' %expenses.',
-                        },
-                    ],
-                };
-                break;
-            }
+            {
+                const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy});
 
-            // Self review
-            optimisticNextStep = {
-                type,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${ownerDisplayName}`,
-                        type: 'strong',
-                        clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: hasTransactions ? 'submit' : 'add',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ],
-            };
-
-            // Scheduled submit enabled
-            if (policy?.harvesting?.enabled && hasTransactions) {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${ownerDisplayName}`,
-                        type: 'strong',
-                        clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
-                    },
-                    {
-                        text: `'s`,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' %expenses to automatically submit',
-                    },
-                ];
-                let harvestingSuffix = '';
-
-                if (autoReportingFrequency) {
-                    const currentDate = new Date();
-                    let autoSubmissionDate = '';
-                    let monthlyText = '';
-
-                    if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
-                        monthlyText = 'on the last day of the month';
-                    } else if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
-                        monthlyText = 'on the last business day of the month';
-                    } else if (policy?.autoReportingOffset !== undefined) {
-                        autoSubmissionDate = format(setDate(currentDate, policy?.autoReportingOffset), CONST.DATE.ORDINAL_DAY_OF_MONTH);
-                    }
-
-                    const harvestingSuffixes: Record<DeepValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, string> = {
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: 'later today',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: 'on Sunday',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: autoSubmissionDate ? `on the ${autoSubmissionDate} of each month` : monthlyText,
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of their trip',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: '',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: '',
+                if (isRejectedReport) {
+                    optimisticNextStep = {
+                        type,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        message: [
+                            {
+                                text: 'This report was rejected. Waiting on ',
+                            },
+                            {
+                                text: `${ownerDisplayName}`,
+                                type: 'strong',
+                                clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
+                            },
+                            {
+                                text: ' to fix the issues and manually resubmit.',
+                            },
+                        ],
                     };
-
-                    if (harvestingSuffixes[autoReportingFrequency]) {
-                        harvestingSuffix = `${harvestingSuffixes[autoReportingFrequency]}`;
-                    }
+                    break;
+                }
+                if ((isASAPSubmitBetaEnabled && hasViolations && isInstantSubmitEnabled) || shouldFixViolations) {
+                    optimisticNextStep = {
+                        type,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        message: [
+                            {
+                                text: 'Waiting for ',
+                            },
+                            {
+                                text: `${ownerDisplayName}`,
+                                type: 'strong',
+                                clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
+                            },
+                            {
+                                text: ' to ',
+                            },
+                            {
+                                text: 'fix the issues',
+                            },
+                        ],
+                    };
+                    break;
+                }
+                if (isReopen) {
+                    optimisticNextStep = {
+                        type,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        message: [
+                            {
+                                text: 'Waiting for ',
+                            },
+                            {
+                                text: `${ownerDisplayName}`,
+                                type: 'strong',
+                                clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
+                            },
+                            {
+                                text: ' to ',
+                            },
+                            {
+                                text: shouldShowMarkAsDoneCopy ? 'mark this as done' : 'submit',
+                            },
+                            {
+                                text: shouldShowMarkAsDoneCopy ? '.' : ' %expenses.',
+                            },
+                        ],
+                    };
+                    break;
                 }
 
-                optimisticNextStep.message.push({
-                    text: ` ${harvestingSuffix}`,
-                });
-            }
+                // Self review
+                let actionText = 'add';
+                if (hasTransactions) {
+                    actionText = shouldShowMarkAsDoneCopy ? 'mark this as done' : 'submit';
+                }
+                optimisticNextStep = {
+                    type,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    message: [
+                        {
+                            text: 'Waiting for ',
+                        },
+                        {
+                            text: `${ownerDisplayName}`,
+                            type: 'strong',
+                            clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
+                        },
+                        {
+                            text: ' to ',
+                        },
+                        {
+                            text: actionText,
+                        },
+                        {
+                            text: hasTransactions && shouldShowMarkAsDoneCopy ? '.' : ' %expenses.',
+                        },
+                    ],
+                };
 
-            // Manual submission
-            if (hasTransactions && !policy?.harvesting?.enabled) {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${ownerDisplayName}`,
-                        type: 'strong',
-                        clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'submit',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-            }
+                // Scheduled submit enabled
+                if (policy?.harvesting?.enabled && hasTransactions) {
+                    optimisticNextStep.message = [
+                        {
+                            text: 'Waiting for ',
+                        },
+                        {
+                            text: `${ownerDisplayName}`,
+                            type: 'strong',
+                            clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
+                        },
+                        {
+                            text: `'s`,
+                            type: 'strong',
+                        },
+                        {
+                            text: ' %expenses to automatically submit',
+                        },
+                    ];
+                    let harvestingSuffix = '';
 
+                    if (autoReportingFrequency) {
+                        const currentDate = new Date();
+                        let autoSubmissionDate = '';
+                        let monthlyText = '';
+
+                        if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
+                            monthlyText = 'on the last day of the month';
+                        } else if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
+                            monthlyText = 'on the last business day of the month';
+                        } else if (policy?.autoReportingOffset !== undefined) {
+                            autoSubmissionDate = format(setDate(currentDate, policy?.autoReportingOffset), CONST.DATE.ORDINAL_DAY_OF_MONTH);
+                        }
+
+                        const harvestingSuffixes: Record<DeepValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, string> = {
+                            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: 'later today',
+                            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: 'on Sunday',
+                            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
+                            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: autoSubmissionDate ? `on the ${autoSubmissionDate} of each month` : monthlyText,
+                            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of their trip',
+                            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: '',
+                            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: '',
+                        };
+
+                        if (harvestingSuffixes[autoReportingFrequency]) {
+                            harvestingSuffix = `${harvestingSuffixes[autoReportingFrequency]}`;
+                        }
+                    }
+
+                    optimisticNextStep.message.push({
+                        text: ` ${harvestingSuffix}`,
+                    });
+                }
+
+                // Manual submission
+                if (hasTransactions && !policy?.harvesting?.enabled) {
+                    optimisticNextStep.message = [
+                        {
+                            text: 'Waiting for ',
+                        },
+                        {
+                            text: `${ownerDisplayName}`,
+                            type: 'strong',
+                            clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
+                        },
+                        {
+                            text: ' to ',
+                        },
+                        {
+                            text: shouldShowMarkAsDoneCopy ? 'mark this as done' : 'submit',
+                        },
+                        {
+                            text: shouldShowMarkAsDoneCopy ? '.' : ' %expenses.',
+                        },
+                    ];
+                }
+            }
             break;
 
         // Generates an optimistic nextStep once a report has been submitted

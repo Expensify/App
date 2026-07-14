@@ -1,10 +1,16 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+
 import useHoldRejectActions from '@hooks/useHoldRejectActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const TEST_REPORT_ID = '1';
@@ -65,7 +71,19 @@ jest.mock('@libs/ReportUtils', () => ({
     changeMoneyRequestHoldStatus: jest.fn(),
 }));
 
-const DelegateProvider = require('@components/DelegateNoAccessModalProvider') as Record<string, jest.Mock>;
+function getMockUseDelegateNoAccessState() {
+    if (!jest.isMockFunction(useDelegateNoAccessState)) {
+        throw new Error('useDelegateNoAccessState must be mocked');
+    }
+    return useDelegateNoAccessState;
+}
+
+function getMockUseDelegateNoAccessActions() {
+    if (!jest.isMockFunction(useDelegateNoAccessActions)) {
+        throw new Error('useDelegateNoAccessActions must be mocked');
+    }
+    return useDelegateNoAccessActions;
+}
 
 const mockReport: Report = {
     reportID: TEST_REPORT_ID,
@@ -96,8 +114,8 @@ describe('useHoldRejectActions - report-level reject', () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
         jest.clearAllMocks();
-        DelegateProvider.useDelegateNoAccessState.mockReturnValue({isDelegateAccessRestricted: false});
-        DelegateProvider.useDelegateNoAccessActions.mockReturnValue({showDelegateNoAccessModal: mockShowDelegateNoAccessModal});
+        getMockUseDelegateNoAccessState().mockReturnValue({isDelegateAccessRestricted: false});
+        getMockUseDelegateNoAccessActions().mockReturnValue({showDelegateNoAccessModal: mockShowDelegateNoAccessModal});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_REPORT_ID}`, mockReport);
     });
 
@@ -124,7 +142,7 @@ describe('useHoldRejectActions - report-level reject', () => {
     });
 
     it('shows the delegate no-access modal and does nothing else when delegate access is restricted', async () => {
-        DelegateProvider.useDelegateNoAccessState.mockReturnValue({isDelegateAccessRestricted: true});
+        getMockUseDelegateNoAccessState().mockReturnValue({isDelegateAccessRestricted: true});
         await Onyx.merge(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, false);
         await waitForBatchedUpdates();
 

@@ -1,22 +1,27 @@
-import type {ReactElement, ReactNode} from 'react';
-import type {BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
-import type {AnimatedStyle} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
 import type {HoldMenuCallback} from '@components/Search';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {SpendRuleSummaryPart} from '@libs/SpendRulesUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
+
 import type CONST from '@src/CONST';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {ReactElement, ReactNode} from 'react';
+import type {BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
+
 import type BareUserListItem from './BareUserListItem';
 import type BaseListItem from './BaseListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
@@ -57,6 +62,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Whether this option is disabled for selection */
     isDisabled?: boolean | null;
+
+    /** Whether to hide the selection button (radio/checkbox) entirely, e.g. for structural parent rows that only provide hierarchy context */
+    shouldHideSelectionButton?: boolean;
 
     /** Whether this item should be interactive at all */
     isInteractive?: boolean;
@@ -213,6 +221,12 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
     accessibilityRole?: Role;
 
+    /** When `false`, a single-select row stays a `button` instead of becoming a listbox `option`. */
+    shouldUseOptionRole?: boolean;
+
+    /** Overrides the row's selected state (aria-selected, highlight). Defaults to `item.isSelected`; pass it when selection isn't stored on the item itself. */
+    isSelected?: boolean;
+
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
 } & TRightHandSideComponent<TItem> &
@@ -319,6 +333,8 @@ type ValidListItem =
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
     ForwardedFSClassProps & {
         item: TItem;
+        /** Overrides the row's screen-reader name. Defaults to the item's derived label when omitted. */
+        accessibilityLabel?: string;
         shouldPreventEnterKeySubmit?: boolean;
         shouldShowBlueBorderOnFocus?: boolean;
         keyForList: string;

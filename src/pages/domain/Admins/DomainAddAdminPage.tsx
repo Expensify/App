@@ -1,16 +1,16 @@
-import {adminAccountIDsSelector, domainEmailSelector} from '@selectors/Domain';
-import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SingleSelectWithAvatarListItem from '@components/SelectionList/ListItem/SingleSelectWithAvatarListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {searchUserInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {appendCountryCode} from '@libs/LoginUtils';
@@ -18,15 +18,24 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+
 import {addAdminToDomain} from '@userActions/Domain';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginsSelector} from '@src/selectors/PersonalDetails';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import {adminAccountIDsSelector, domainEmailSelector} from '@selectors/Domain';
+import {Str} from 'expensify-common';
+import React, {useEffect, useRef, useState} from 'react';
 
 type Sections = Section<OptionData>;
 
@@ -46,9 +55,11 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const [adminIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
     });
+    const [adminLoginsByAccountIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginsSelector(adminIDs)});
 
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const didInvite = useRef<boolean>(false);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const domainName = domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
 
@@ -56,7 +67,6 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const excludedUsers: Record<string, boolean> = {
         ...CONST.EXPENSIFY_EMAILS_OBJECT,
     };
-    const adminLoginsByAccountIDs = getLoginsByAccountIDs(adminIDs ?? []);
     for (const login of adminLoginsByAccountIDs) {
         const smsDomain = addSMSDomainIfPhoneNumber(login);
         excludedUsers[smsDomain] = true;
@@ -81,8 +91,11 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         }
         didInvite.current = true;
 
-        addAdminToDomain(domainAccountID, selectedOption.accountID, selectedOption.login, domainName, !!selectedOption.isOptimisticPersonalDetail);
-        Navigation.dismissModal();
+        const {accountID, login, isOptimisticPersonalDetail} = selectedOption;
+        startWithLoading(() => {
+            addAdminToDomain(domainAccountID, accountID, login, domainName, !!isOptimisticPersonalDetail);
+            Navigation.dismissModal();
+        });
     };
 
     const sections: Sections[] = [];
@@ -117,6 +130,8 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             isDisabled={selectedOptions.length === 0}
             isAlertVisible={false}
             buttonText={translate('common.invite')}
+            shouldShowLoadingImmediatelyOnPress={false}
+            isLoading={isLoading}
             onSubmit={inviteUser}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline

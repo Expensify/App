@@ -1,19 +1,26 @@
-import React from 'react';
-import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobile} from '@libs/Browser';
+import {getSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
+
+import InboxTabSelector from './InboxTabSelector';
 import SidebarLinksData from './SidebarLinksData';
 
 // Once the app finishes loading for the first time, we never show the skeleton again
@@ -38,9 +45,15 @@ function BaseSidebarScreen() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading;
-    // Must be called unconditionally so openApp() can proceed even when
-    // the skeleton is shown and SidebarLinksData has not mounted yet.
-    useConfirmReadyToOpenApp();
+
+    // Tag an in-flight inbox-tab navigation span when the app-loading skeleton is shown instead of the
+    // report list, so durations that include the openApp wait can be queried separately in Sentry.
+    useEffect(() => {
+        if (!shouldShowSkeleton) {
+            return;
+        }
+        getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SKELETON_SHOWN, true);
+    }, [shouldShowSkeleton]);
 
     return (
         <ScreenWrapper
@@ -57,6 +70,7 @@ function BaseSidebarScreen() {
                         shouldDisplaySearch={shouldUseNarrowLayout}
                         shouldDisplayHelpButton={shouldUseNarrowLayout}
                     />
+                    {!shouldShowSkeleton && <InboxTabSelector />}
                     <View style={[styles.flex1]}>
                         {shouldShowSkeleton ? (
                             <OptionsListSkeletonView

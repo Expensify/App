@@ -1,16 +1,21 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {MenuItemProps} from '@components/MenuItem';
 import MoneyRequestConfirmationListFooter from '@components/MoneyRequestConfirmationListFooter';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -69,7 +74,7 @@ const FAKE_ACCOUNT_ID = 1;
 const FAKE_UNREPORTED_REPORT_ID = CONST.REPORT.UNREPORTED_REPORT_ID;
 
 const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction) => {
-    // ConfirmationFieldList reads transaction from Onyx; seed it so child fields receive the same value the test sets up.
+    // The footer's sections + fields self-resolve the transaction from Onyx; seed it so they receive the value the test sets up.
     await act(async () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
     });
@@ -79,7 +84,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
         transactionID: transaction.transactionID,
         reportID: '123',
         reportActionID: '',
-        transaction,
+        isScanRequest: false,
         policyID: FAKE_POLICY_ID,
         policy: createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
         policyTags: {},
@@ -94,7 +99,17 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
         isPolicyExpenseChat: true,
         expenseMode: {isDistance: false, isTime: false, isInvoice: false, isPerDiem: false},
         distanceFlags: {isManualDistanceRequest: false, isOdometerDistanceRequest: false, isGPSDistanceRequest: false},
-        distanceData: {distance: 0, hasRoute: false, unit: undefined, rate: undefined, distanceRateName: undefined, distanceRateCurrency: 'USD'},
+        distanceData: {
+            distance: 0,
+            hasRoute: false,
+            unit: undefined,
+            rate: undefined,
+            distanceRateName: undefined,
+            distanceRateCurrency: 'USD',
+            mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, currency: 'USD'},
+            expenseDate: undefined,
+            customUnitRateID: undefined,
+        },
         amountDisplay: {amount: 10000, formattedAmount: '100', formattedAmountPerAttendee: '50'},
         requiredFlags: {isCategoryRequired: false, isMerchantRequired: false, isDescriptionRequired: false},
         visibilityFlags: {

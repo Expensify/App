@@ -1,16 +1,20 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches} from '@libs/SearchUIUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
+import {getSuggestedSearches, isEligibleForStatus} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {getCurrentUserPersonalDetails} from './index';
 
 type ExpenseReportStatusPredicate = (expenseReport: OnyxEntry<OnyxTypes.Report>, transactionReportID?: string) => boolean;
@@ -25,7 +29,6 @@ const expenseReportStatusFilterMapping: Record<string, ExpenseReportStatusPredic
     [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
     [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport, transactionReportID) => !expenseReport && transactionReportID !== CONST.REPORT.TRASH_REPORT_ID,
     [CONST.SEARCH.STATUS.EXPENSE.DELETED]: (_expenseReport, transactionReportID) => transactionReportID === CONST.REPORT.TRASH_REPORT_ID,
-    [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
 };
 
 type GetSearchOnyxUpdateParams = {
@@ -54,25 +57,19 @@ function shouldOptimisticallyUpdateSearch(
     ) {
         return false;
     }
-    let shouldOptimisticallyUpdateByStatus;
-    const status = currentSearchQueryJSON.status;
-    const transactionReportID = transaction?.reportID;
-    if (Array.isArray(status)) {
-        shouldOptimisticallyUpdateByStatus = status.some((val) => {
-            const expenseStatus = val as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-            return expenseReportStatusFilterMapping[expenseStatus](iouReport, transactionReportID);
-        });
-    } else {
-        const expenseStatus = status as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-        shouldOptimisticallyUpdateByStatus = expenseReportStatusFilterMapping[expenseStatus](iouReport, transactionReportID);
-    }
 
-    if (currentSearchQueryJSON.policyID?.length && iouReport?.policyID) {
-        if (!currentSearchQueryJSON.policyID.includes(iouReport.policyID)) {
+    const currentSearchPolicyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+    if (currentSearchPolicyIDs.value?.length && iouReport?.policyID) {
+        if (!currentSearchPolicyIDs.isNegated && !currentSearchPolicyIDs.value.includes(iouReport.policyID)) {
+            return false;
+        }
+
+        if (currentSearchPolicyIDs.isNegated && currentSearchPolicyIDs.value.includes(iouReport.policyID)) {
             return false;
         }
     }
 
+    const shouldOptimisticallyUpdateByStatus = isEligibleForStatus(currentSearchQueryJSON, iouReport, transaction?.reportID);
     if (!shouldOptimisticallyUpdateByStatus) {
         return false;
     }
@@ -88,7 +85,11 @@ function shouldOptimisticallyUpdateSearch(
         (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE) ||
         (iouReport?.type === CONST.REPORT.TYPE.EXPENSE && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
 
-    const hasNoFlatFilters = currentSearchQueryJSON.flatFilters.length === 0;
+    // `status` and `policyID` are regular filters now, but they used to be root keys. They are already accounted for by the
+    // status/policyID checks above, so they don't count as restrictive flat filters when deciding whether to optimistically update.
+    const hasNoFlatFilters = currentSearchQueryJSON.flatFilters.every(
+        (filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS || filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+    );
 
     const matchesSubmitQuery =
         submitQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport);
@@ -192,7 +193,6 @@ function getSearchOnyxUpdate({
                 value: {
                     search: {
                         type: currentSearchQueryJSON.type,
-                        status: currentSearchQueryJSON.status,
                         hasResults: true,
                         isLoading: false,
                     },
@@ -223,7 +223,6 @@ function getSearchOnyxUpdate({
                     value: {
                         search: {
                             type: groupTransactionsQueryJSON.type,
-                            status: groupTransactionsQueryJSON.status,
                             offset: 0,
                             hasMoreResults: false,
                             hasResults: true,

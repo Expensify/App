@@ -1,8 +1,9 @@
-// Test data for Invoices. The values come from the Onyx store in the app while manually testing.
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
+
+// Test data for Invoices. The values come from the Onyx store in the app while manually testing.
+import type {OnyxEntry} from 'react-native-onyx';
 
 const policy: OnyxEntry<OnyxTypes.Policy> = {
     id: 'CC048FA711B35B1F',
@@ -180,13 +181,8 @@ const transaction: OnyxEntry<OnyxTypes.Transaction> = {
         attendees: [
             {
                 email: 'a1@53019.com',
-                login: 'a1@53019.com',
                 displayName: 'a1',
                 avatarUrl: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
-                accountID: 32,
-                text: 'a1@53019.com',
-                selected: true,
-                reportID: '3634215302663162',
             },
         ],
     },

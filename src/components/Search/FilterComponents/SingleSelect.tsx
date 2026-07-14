@@ -1,11 +1,16 @@
-import React, {Activity, useState} from 'react';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
-import type {ListItem, SelectionListStyle} from '@components/SelectionList/types';
+import type {ListItem, TextInputOptions} from '@components/SelectionList/types';
+
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import React, {Activity, useState} from 'react';
+
 import ListFilterWrapper from './ListFilterViewWrapper';
 
 type SingleSelectItem<T> = {
@@ -14,15 +19,9 @@ type SingleSelectItem<T> = {
     searchableText?: string;
 };
 
-type SingleSelectProps<T> = {
+type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefined> & {
     /** The list of all items to show up in the list */
     items: Array<SingleSelectItem<T>>;
-
-    /** The currently selected item */
-    value: SingleSelectItem<T> | undefined;
-
-    /** Function to call when changes are applied */
-    onChange: (item: SingleSelectItem<T>) => void;
 
     /** Whether the search input should be displayed */
     isSearchable?: boolean;
@@ -30,15 +29,13 @@ type SingleSelectProps<T> = {
     /** Search input place holder */
     searchPlaceholder?: string;
 
-    /** Custom styles for the SelectionList */
-    selectionListStyle?: SelectionListStyle;
-
     /** Whether SelectionList of popup should stay mounted when popup is not visible. */
     shouldShowList?: boolean;
 
     /** Custom height for each item in the list */
     itemHeight?: number;
 
+    allowDeselect?: boolean;
     hasTitle?: boolean;
     hasHeader?: boolean;
 };
@@ -48,12 +45,15 @@ function SingleSelect<T extends string>({
     items,
     isSearchable,
     searchPlaceholder,
+    selectionListTextInputStyle,
     selectionListStyle,
     shouldShowList = true,
     hasTitle,
     hasHeader,
-    onChange,
     itemHeight,
+    footer,
+    allowDeselect,
+    onChange,
 }: SingleSelectProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -99,15 +99,23 @@ function SingleSelect<T extends string>({
             return;
         }
 
+        if (allowDeselect && newItem.value === selectedItem?.value) {
+            setSelectedItem(undefined);
+            onChange(undefined);
+            return;
+        }
         setSelectedItem(newItem);
         onChange(newItem);
     };
 
-    const textInputOptions = {
+    const textInputOptions: TextInputOptions = {
         value: searchTerm,
         label: isSearchable ? (searchPlaceholder ?? translate('common.search')) : undefined,
         onChangeText: setSearchTerm,
         headerMessage: noResultsFound ? translate('common.noResultsFound') : undefined,
+        style: {
+            containerStyle: selectionListTextInputStyle,
+        },
     };
 
     return (
@@ -116,7 +124,7 @@ function SingleSelect<T extends string>({
             hasHeader={hasHeader}
             hasTitle={hasTitle}
             isSearchable={isSearchable}
-            itemHeight={itemHeight ?? variables.optionRowHeight}
+            itemHeight={itemHeight ?? variables.optionRowHeightCompact}
         >
             <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
                 <SelectionList
@@ -128,11 +136,12 @@ function SingleSelect<T extends string>({
                     style={{
                         contentContainerStyle: [styles.pb0],
                         ...selectionListStyle,
-                        listItemWrapperStyle: [itemHeight !== undefined && {minHeight: itemHeight}, selectionListStyle?.listItemWrapperStyle],
+                        listItemWrapperStyle: [{minHeight: itemHeight ?? variables.optionRowHeightCompact}, selectionListStyle?.listItemWrapperStyle],
                     }}
                     shouldUpdateFocusedIndex={isSearchable}
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
                     shouldShowLoadingPlaceholder={!noResultsFound}
+                    footerContent={footer}
                 />
             </Activity>
         </ListFilterWrapper>

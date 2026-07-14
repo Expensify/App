@@ -1,15 +1,17 @@
-import React, {useCallback, useMemo, useState} from 'react';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import Badge from '@components/Badge';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,11 +25,17 @@ import {
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
 } from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useState} from 'react';
+
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type ReportAddApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER>;
@@ -42,12 +50,14 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
+    const {isLoading, startWithLoading} = usePressLoading();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const employeeList = policy?.employeeList;
-    const allApprovers = useMemo(() => {
+    const allApprovers = (() => {
         if (!employeeList) {
             return [];
         }
@@ -83,43 +93,46 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [employeeList, report, policy, personalDetails, formatPhoneNumber, selectedApproverEmail, icons.FallbackAvatar, translate]);
+    })();
 
-    const addApprover = useCallback(() => {
+    const addApprover = () => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;
         if (!selectedApproverEmail || !employeeAccountID) {
             return;
         }
-        addReportApprover(
-            report,
-            selectedApproverEmail,
-            Number(employeeAccountID),
-            currentUserDetails.accountID,
-            currentUserDetails.email ?? '',
-            policy,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            reportNextStep,
-        );
-        Navigation.dismissToPreviousRHP();
-    }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep]);
+        startWithLoading(() => {
+            addReportApprover(
+                report,
+                selectedApproverEmail,
+                Number(employeeAccountID),
+                currentUserDetails.accountID,
+                currentUserDetails.email ?? '',
+                policy,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                reportNextStep,
+                isTrackIntentUser,
+            );
+            Navigation.dismissToPreviousRHP();
+        });
+    };
 
-    const button = useMemo(() => {
-        return (
-            <FormAlertWithSubmitButton
-                isDisabled={!selectedApproverEmail}
-                buttonText={translate('common.save')}
-                onSubmit={addApprover}
-                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                enabledWhenOffline
-                shouldBlendOpacity
-            />
-        );
-    }, [addApprover, selectedApproverEmail, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
+    const button = (
+        <FormAlertWithSubmitButton
+            isDisabled={!selectedApproverEmail}
+            buttonText={translate('common.save')}
+            shouldShowLoadingImmediatelyOnPress={false}
+            isLoading={isLoading}
+            onSubmit={addApprover}
+            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+            enabledWhenOffline
+            shouldBlendOpacity
+        />
+    );
 
-    const toggleApprover = useCallback((approvers: SelectionListApprover[]) => {
+    const toggleApprover = (approvers: SelectionListApprover[]) => {
         setSelectedApproverEmail(approvers.at(0)?.login ?? undefined);
-    }, []);
+    };
 
     const shouldShowNotFoundView = !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
 
