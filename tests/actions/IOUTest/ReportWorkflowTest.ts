@@ -210,6 +210,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -266,6 +267,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             amountOwed: 0,
                             ownerBillingGracePeriodEnd: undefined,
                             delegateEmail: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -361,6 +363,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -442,6 +445,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 betas: [],
                                 personalDetails: {},
                                 delegateAccountID: undefined,
+                                isTrackIntentUser: false,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -490,6 +494,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 betas: [],
                                 personalDetails: {},
                                 delegateAccountID: undefined,
+                                isTrackIntentUser: false,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -572,6 +577,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 amountOwed: 0,
                                 ownerBillingGracePeriodEnd: undefined,
                                 delegateEmail: undefined,
+                                isTrackIntentUser: false,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -719,6 +725,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 betas: [],
                                 personalDetails: {},
                                 delegateAccountID: undefined,
+                                isTrackIntentUser: false,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -767,6 +774,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 betas: [],
                                 personalDetails: {},
                                 delegateAccountID: undefined,
+                                isTrackIntentUser: false,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -847,6 +855,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 amountOwed: 0,
                                 ownerBillingGracePeriodEnd: undefined,
                                 delegateEmail: undefined,
+                                isTrackIntentUser: false,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -965,6 +974,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1020,6 +1030,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             amountOwed: 0,
                             ownerBillingGracePeriodEnd: undefined,
                             delegateEmail: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1093,6 +1104,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 100,
                 ownerBillingGracePeriodEnd: pastDate,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1173,6 +1185,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }
             await waitForBatchedUpdates();
@@ -1207,6 +1220,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     amountOwed: 0,
                     ownerBillingGracePeriodEnd,
                     delegateEmail: undefined,
+                    isTrackIntentUser: false,
                 });
 
                 await waitForBatchedUpdates();
@@ -1268,6 +1282,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
             });
 
             const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
@@ -1331,6 +1346,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
             });
 
             const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
@@ -1501,6 +1517,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
             });
 
             const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
@@ -1590,6 +1607,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
                 submitterLogin: undefined,
+                isTrackIntentUser: false,
             });
 
             const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
@@ -1678,6 +1696,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
             });
 
             const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
@@ -1750,6 +1769,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1819,6 +1839,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
             });
 
             const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
@@ -1886,6 +1907,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
@@ -1948,6 +1970,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
@@ -1990,6 +2013,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
             });
 
             const [, , onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
@@ -2247,6 +2271,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: DELEGATE_EMAIL,
+                isTrackIntentUser: false,
             });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
@@ -2283,6 +2308,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
             });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
@@ -2306,7 +2332,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             };
 
-            unapproveExpenseReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, DELEGATE_EMAIL);
+            unapproveExpenseReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, DELEGATE_EMAIL, false);
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = (API.write as jest.Mock).mock.calls;
@@ -2332,7 +2358,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            retractReport(expenseReport, chatReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, DELEGATE_EMAIL);
+            retractReport(expenseReport, chatReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, DELEGATE_EMAIL, false);
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = (API.write as jest.Mock).mock.calls;
@@ -2372,6 +2398,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: DELEGATE_EMAIL,
+                isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
 
@@ -2413,6 +2440,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
 
@@ -2985,7 +3013,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
 
-            retractReport(expenseReport, undefined, policy, 1, 'test@example.com', false, false, undefined, undefined);
+            retractReport(expenseReport, undefined, policy, 1, 'test@example.com', false, false, undefined, undefined, false);
 
             const [, , onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
             const optimisticReportUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
@@ -3011,7 +3039,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             // When retracting the submitted expense report
-            retractReport(expenseReport, chatReport, policy, 1, 'test@example.com', false, false, undefined, undefined);
+            retractReport(expenseReport, chatReport, policy, 1, 'test@example.com', false, false, undefined, undefined, false);
 
             // Then the chat report iouReportID should be set back to the retracted expense report
             const iouReportID = await new Promise<string | undefined>((resolve) => {
@@ -3057,6 +3085,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             hasViolations: false,
+            isTrackIntentUser: false,
             isASAPSubmitBetaEnabled: false,
             expenseReportCurrentNextStepDeprecated: undefined,
             betas: [CONST.BETAS.ALL],
@@ -3251,6 +3280,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -3303,6 +3333,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -3351,6 +3382,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -3475,6 +3507,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -3506,6 +3539,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -3535,6 +3569,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -3594,6 +3629,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -3644,6 +3680,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         amountOwed: 0,
                         ownerBillingGracePeriodEnd: undefined,
                         delegateEmail: undefined,
+                        isTrackIntentUser: false,
                         ownerLogin: undefined,
                     });
                     return waitForBatchedUpdates();
@@ -3775,6 +3812,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 full: false,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();

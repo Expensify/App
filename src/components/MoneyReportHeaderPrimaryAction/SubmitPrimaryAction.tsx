@@ -171,6 +171,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 submitterLogin,
                 // Submit via PDF submits the report to the submitter (self); the backend keys off this to generate the PDF.
                 managerEmail: shouldExportToPDF ? email : undefined,
+                isTrackIntentUser,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
