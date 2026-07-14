@@ -125,7 +125,9 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                         if (!reportID) {
                             return;
                         }
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.path, ROUTES.REPORT_WITH_ID.getRoute(reportID)));
+
+                        const basePath = Navigation.getReportRHPActiveRoute() || ROUTES.REPORT_WITH_ID.getRoute(reportID);
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.path, basePath));
                     }}
                 />
             );
@@ -142,6 +144,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                         }
                         Navigation.navigate(
                             getReviewNavigationRoute(
+                                Navigation.getReportRHPActiveRoute() || ROUTES.REPORT_WITH_ID.getRoute(reportID),
                                 reportID,
                                 transaction,
                                 removeSettledAndApprovedTransactions(

@@ -1211,11 +1211,11 @@
 "../../src/pages/ShareCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/TeachersUnite/ImTeacherUpdateEmailPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/TeachersUnite/SaveTheWorldPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"no-restricted-imports"	2
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/refs"	12
+"../../src/pages/TransactionDuplicate/DynamicConfirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/TransactionDuplicate/DynamicConfirmation.tsx"	"no-restricted-imports"	2
+"../../src/pages/TransactionDuplicate/DynamicConfirmation.tsx"	"react-hooks/refs"	12
 "../../src/pages/TransactionDuplicate/DuplicateTransactionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/TransactionDuplicate/Review.tsx"	"no-restricted-imports"	1
+"../../src/pages/TransactionDuplicate/DynamicReview.tsx"	"no-restricted-imports"	1
 "../../src/pages/TransactionMerge/ConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/TransactionMerge/ConfirmationPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/TransactionMerge/DetailsReviewPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1

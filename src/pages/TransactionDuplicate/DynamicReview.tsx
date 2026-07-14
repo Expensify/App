@@ -196,6 +196,7 @@ function DynamicReview() {
 
         Navigation.navigate(
             getReviewNavigationRoute(
+                backTo,
                 route.params.reportID,
                 selectedTransaction,
                 transactions.filter((transaction) => transaction.transactionID !== selectedTransaction.transactionID),

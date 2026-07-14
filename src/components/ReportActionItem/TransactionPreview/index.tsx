@@ -3,6 +3,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -25,6 +26,7 @@ import {clearIOUError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import useTransactionsByID from '@src/hooks/useTransactionsByID';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -46,6 +48,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const {checkIfContextMenuActive} = useShowContextMenuActions();
 
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW>>();
+    // Preserve the launching context: on the review page this strips the suffix back to the base, otherwise it is the current active route.
+    const reviewBasePath = useDynamicBackPath(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.path);
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -84,7 +88,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
         clearIOUError(chatReportID);
     }, [chatReportID]);
 
-    const navigateToReviewFields = () => Navigation.navigate(getReviewNavigationRoute(route.params?.reportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, report));
+    const navigateToReviewFields = () =>
+        Navigation.navigate(getReviewNavigationRoute(reviewBasePath, route.params?.reportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, report));
 
     const transactionPreview = transaction;
 

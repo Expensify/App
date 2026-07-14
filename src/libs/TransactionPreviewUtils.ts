@@ -73,6 +73,7 @@ function getIOUPayerAndReceiver(managerID: number, ownerAccountID: number, perso
 }
 
 const getReviewNavigationRoute = (
+    basePath: string,
     threadReportID: string,
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>,
@@ -94,7 +95,9 @@ const getReviewNavigationRoute = (
         true,
     );
 
-    const reportPath = ROUTES.REPORT_WITH_ID.getRoute(threadReportID);
+    // Build the review steps on top of the originating base path (e.g. a search/expense RHP) so the
+    // underlay and back target keep the launching context. Fall back to the transaction thread report path.
+    const reportPath = basePath || ROUTES.REPORT_WITH_ID.getRoute(threadReportID);
 
     if (comparisonResult.change.merchant) {
         return createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_MERCHANT.path, reportPath);
