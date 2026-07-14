@@ -1,14 +1,13 @@
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
+import {convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import {isInvoiceReport, isIOUReport} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {doesMoneyRequestDraftHaveUserInput, haveWaypointAddressesChanged, isExpenseUnreported} from './TransactionUtils';
+import {isExpenseUnreported} from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
 /**
@@ -209,53 +208,6 @@ function isValidMerchant(merchant: string | undefined, transaction?: OnyxEntry<T
     return valueByteLength <= CONST.MERCHANT_NAME_MAX_BYTES;
 }
 
-type AmountHasUnsavedChangesParams = {
-    typedAmount: string;
-    committedAmount: number;
-    isCreateEntry: boolean;
-    selectedCurrency: string;
-    originalCurrency: string;
-};
-
-/**
- * Whether the amount step has unsaved input. Emptiness is judged on the raw string (so a typed "0" counts) and the
- * change in backend units (so "5" vs "5.00" isn't a false positive); a currency change counts on its own.
- */
-function getAmountHasUnsavedChanges({typedAmount, committedAmount, isCreateEntry, selectedCurrency, originalCurrency}: AmountHasUnsavedChangesParams): boolean {
-    const currencyChanged = selectedCurrency !== originalCurrency;
-    if (isCreateEntry) {
-        return typedAmount !== '' || committedAmount !== 0 || currencyChanged;
-    }
-    const typedAmountInBackendUnits = typedAmount ? convertToBackendAmount(Number.parseFloat(typedAmount)) : 0;
-    return typedAmountInBackendUnits !== committedAmount || currencyChanged;
-}
-
-/**
- * Whether a raw-string money-request step (hours, manual distance) has unsaved input.
- */
-function getStringFieldHasUnsavedChanges(typedValue: string, committedValue: string, isCreateEntry: boolean): boolean {
-    return isCreateEntry ? typedValue !== '' || committedValue !== '' : typedValue !== committedValue;
-}
-
-/**
- * Whether the distance (map) step has unsaved waypoints.
- */
-function getWaypointsHasUnsavedChanges(
-    transaction: OnyxEntry<Transaction>,
-    committedWaypoints: WaypointCollection | undefined,
-    currentWaypoints: WaypointCollection | undefined,
-    isCreateEntry: boolean,
-): boolean {
-    if (isCreateEntry) {
-        return doesMoneyRequestDraftHaveUserInput(transaction);
-    }
-    // No committed baseline yet (splits skip the backup; a normal edit's async backup may not have landed) — treat as unchanged.
-    if (!committedWaypoints) {
-        return false;
-    }
-    return haveWaypointAddressesChanged(committedWaypoints, currentWaypoints);
-}
-
 /**
  * Determines whether the date field should be shown on the money request confirmation surface.
  * This is the single source of truth shared by the confirmation footer (where the date field is rendered)
@@ -279,7 +231,4 @@ export {
     isValidMoneyRequestAmount,
     isTaxAmountInvalid,
     isValidMerchant,
-    getAmountHasUnsavedChanges,
-    getStringFieldHasUnsavedChanges,
-    getWaypointsHasUnsavedChanges,
 };

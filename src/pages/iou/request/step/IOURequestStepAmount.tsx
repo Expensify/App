@@ -14,10 +14,10 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
 
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Log from '@libs/Log';
-import {getAmountHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
@@ -123,16 +123,12 @@ function IOURequestStepAmount({
     const [selectedCurrency, setSelectedCurrency] = useState(originalCurrency);
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
-    const isAmountCreateEntry = !backTo && !isEditing;
-    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () =>
-            getAmountHasUnsavedChanges({
-                typedAmount: amountFormRef.current?.getNumber() ?? '',
-                committedAmount: transactionAmount,
-                isCreateEntry: isAmountCreateEntry,
-                selectedCurrency,
-                originalCurrency,
-            }),
+    const {notifySaving} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => {
+            const typedAmount = amountFormRef.current?.getNumber() ?? '';
+            const typedAmountInBackendUnits = typedAmount ? convertToBackendAmount(Number.parseFloat(typedAmount)) : 0;
+            return typedAmountInBackendUnits !== transactionAmount || selectedCurrency !== originalCurrency;
+        },
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
@@ -205,7 +201,7 @@ function IOURequestStepAmount({
             Log.hmmm('[IOURequestStepAmount] Skipping amount submit: submit data not ready');
             return;
         }
-        suppressDiscardPrompt();
+        notifySaving();
         submitAmount({
             translate,
             report,

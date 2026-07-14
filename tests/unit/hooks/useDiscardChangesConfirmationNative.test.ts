@@ -123,14 +123,14 @@ describe('useDiscardChangesConfirmation (native)', () => {
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
-        it('lets the back press through after suppressDiscardPrompt, and prompts again once the save ends', () => {
+        it('lets the back press through after notifySaving, and prompts again once the save ends', () => {
             const {result} = renderDiscardHook(() => true);
 
-            act(() => result.current.suppressDiscardPrompt());
+            act(() => result.current.notifySaving());
             expect(pressHardwareBack()).toBe(false);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
 
-            act(() => result.current.suppressDiscardPrompt(false));
+            act(() => result.current.notifySaving(false));
             expect(pressHardwareBack()).toBe(true);
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
@@ -180,6 +180,7 @@ describe('useDiscardChangesConfirmation (native)', () => {
         });
 
         it('stays put on cancel and prompts again on the next back press', async () => {
+            renderDiscardHook(() => true);
             const onCancel = jest.fn();
             renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges: () => true, onCancel}));
 
