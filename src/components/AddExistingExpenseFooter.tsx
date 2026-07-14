@@ -1,3 +1,4 @@
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -18,6 +19,7 @@ import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated} from '@
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
 import Button from './Button';
@@ -50,6 +52,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -59,6 +62,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [chatReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${chatReport?.policyID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const [transactions] = useTransactionsByID([...selectedIds]);
 
@@ -84,6 +88,8 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         personalDetails,
                         betas,
                         policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
+                        delegateAccountID,
+                        isTrackIntentUser,
                     });
                 } else {
                     changeTransactionsReport({
@@ -99,6 +105,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         transactions,
                         allTransactionViolation: transactionViolations,
                         allReports,
+                        isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     });
                 }

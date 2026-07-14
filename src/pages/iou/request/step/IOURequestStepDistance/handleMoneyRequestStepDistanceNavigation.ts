@@ -101,6 +101,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     optimisticChatReportID: string | undefined;
     reportDraft: OnyxEntry<Report> | undefined;
     action: IOUAction;
+    isTrackIntentUser: boolean | undefined;
+    delegateAccountID: number | undefined;
     policyTagList: PolicyTagLists;
 };
 
@@ -196,6 +198,8 @@ function handleMoneyRequestStepDistanceNavigation({
     optimisticChatReportID,
     reportDraft,
     action,
+    isTrackIntentUser,
+    delegateAccountID,
     policyTagList,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
@@ -324,6 +328,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             optimisticTransactionID,
                             optimisticChatReportID,
                             currentUserLocalCurrency,
+                            delegateAccountID,
                             reportActionsList: undefined,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
@@ -397,6 +402,8 @@ function handleMoneyRequestStepDistanceNavigation({
                         policyParams: {
                             policyTagList,
                         },
+                        isTrackIntentUser,
+                        delegateAccountID,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

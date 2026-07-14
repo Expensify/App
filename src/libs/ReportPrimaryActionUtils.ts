@@ -138,7 +138,7 @@ function isSubmitAction(
     const reportTransactionsList = reportTransactions ?? [];
     if (
         reportTransactionsList.length > 0 &&
-        !reportTransactionsList.some((transaction) => isTransactionSubmittable(transaction, report, violations, currentUserEmail, currentUserAccountID, policy))
+        !reportTransactionsList.some((transaction) => isTransactionSubmittable(transaction, report, violations, currentUserEmail, currentUserAccountID, ownerLogin, policy))
     ) {
         return false;
     }
@@ -373,6 +373,7 @@ function isMarkAsCashAction(
     currentUserEmail: string,
     currentUserAccountID: number,
     report: Report,
+    reportOwnerLogin: string | undefined,
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
@@ -383,7 +384,7 @@ function isMarkAsCashAction(
         return false;
     }
 
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserEmail, currentUserAccountID, report, policy);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
 
     if (hasAllPendingRTERViolations) {
         return true;
@@ -396,6 +397,7 @@ function isMarkAsCashAction(
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
         reportTransactions,
         report,
+        reportOwnerLogin,
         policy,
         violations,
         currentUserEmail,
@@ -422,16 +424,17 @@ function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolati
 function isPrimaryMarkAsResolvedAction(
     currentUserEmail: string,
     currentUserAccountID: number,
-    report?: Report,
-    reportTransactions?: Transaction[],
-    violations?: OnyxCollection<TransactionViolation[]>,
-    policy?: Policy,
+    report: Report,
+    reportOwnerLogin: string | undefined,
+    reportTransactions: Transaction[],
+    violations: OnyxCollection<TransactionViolation[]>,
+    policy: OnyxEntry<Policy>,
 ) {
     if (reportTransactions?.length !== 1) {
         return false;
     }
 
-    const transactionViolations = getTransactionViolations(reportTransactions.at(0), violations, currentUserEmail, currentUserAccountID, report, policy);
+    const transactionViolations = getTransactionViolations(reportTransactions.at(0), violations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
     return isExpenseReportUtils(report) && isMarkAsResolvedAction(report, transactionViolations, policy);
 }
 
@@ -501,7 +504,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         }) && allExpensesHeld;
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID);
 
-    if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {
+    if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, ownerLogin, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 
@@ -517,7 +520,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
-    if (isPrimaryMarkAsResolvedAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {
+    if (isPrimaryMarkAsResolvedAction(currentUserLogin, currentUserAccountID, report, ownerLogin, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
