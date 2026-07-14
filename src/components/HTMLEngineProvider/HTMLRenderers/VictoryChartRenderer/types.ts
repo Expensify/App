@@ -197,7 +197,6 @@ export type {
     YKey,
     CartesianChartData,
     ChartPointMetadata,
-    ChartPointMetadataByYKey,
     CartesianChartProps,
     TextAnchor,
     LabelItem,
