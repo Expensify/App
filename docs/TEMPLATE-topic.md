@@ -1,6 +1,6 @@
 # Topic Articles
 
-Topic articles might introduce a group of related tasks. These articles should focus on the permissions, prerequisites, rules, and concepts that apply across those tasks, while leaving the step-by-step instructions to individual Task articles.
+Topic articles explain a single product concept, feature, or behavior. They provide the context members need to understand related tasks by explaining the permissions, prerequisites, rules, and concepts that apply across those tasks, while leaving step-by-step instructions to individual Task articles.
 
 ---
 title: [Natural, searchable topic title]
@@ -17,7 +17,7 @@ This template is for TOPIC articles.
 
 PURPOSE
 
-Topic articles explain a single concept, feature, state, or behavior.
+Topic articles explain a single product concept, feature, state, or behavior so members understand how that part of Expensify works.
 
 They answer questions such as:
 
@@ -42,12 +42,25 @@ Delete sections that don't improve the article.
 
 Create additional sections if they make the article clearer.
 
-Organize information from foundational concepts to supporting details.
+Organize information from foundational concepts to supporting details. Build understanding before discussing interface elements or linking to related tasks.
 
 TITLE GUIDELINES
 
-Choose a title that naturally describes the topic.
+Choose a natural, searchable title that clearly describes the concept using the product's terminology.
 
+Examples:
+
+- Billing and subscriptions
+- Annual subscriptions
+- Workspace roles
+- Approval workflows
+
+Avoid:
+
+- Overview
+- General information
+- Feature overview
+- Introduction
 Titles may:
 
 - Be a concise noun phrase.
@@ -76,17 +89,16 @@ Answer the customer's question immediately.
 
 In the introduction:
 
+- Answer the member's question immediately.
 - Explain what the topic is.
 - Explain why it matters.
 - Provide any essential context needed to understand the rest of the article.
-
-Keep the introduction concise.
 
 ---
 
 ## [Concept-focused heading]
 
-Use headings that naturally teach the concept.
+Use headings that answer meaningful member questions about the concept.
 
 Good heading styles include:
 
@@ -108,13 +120,15 @@ Each section should explain one important aspect of the topic.
 
 Prioritize:
 
-1. The core concept.
-2. Common situations.
-3. Important exceptions only when they change customer understanding.
+1. Explaining the core concept.
+2. Common situations members are most likely to encounter.
+3. Important exceptions only when they change member understanding.
 
 Build understanding before discussing interface details.
 
 Continue adding sections as needed.
+
+Suggest screenshots only when they prevent or resolve a specific member confusion that text alone cannot. Use the standard HTML screenshot placeholder format.
 
 Not every article needs the same headings.
 
