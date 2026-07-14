@@ -1543,6 +1543,7 @@ function issueExpensifyCard(
         WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD,
         {
             ...parameters,
+            feedCountry,
             policyID,
             validFrom: validFrom ? DateUtils.normalizeDateToStartOfDay(validFrom, timeZone) : undefined,
             validThru: validThru ? DateUtils.normalizeDateToEndOfDay(validThru, timeZone) : undefined,
