@@ -1,4 +1,4 @@
-import ButtonWithIcons from '@components/ButtonComposed/composed/ButtonWithIcons';
+import Button from '@components/ButtonComposed';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -90,24 +90,30 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
     );
 
     const totalButton = (props: ButtonComponentProps) => (
-        <ButtonWithIcons
+        <Button
             ref={props.ref}
             accessibilityLabel={translate('common.totalSpend')}
             innerStyles={[styles.bgTransparent, styles.gap1, styles.mnh0, styles.ph0, styles.pv0]}
             contentContainerStyle={styles.gap1}
-            text={convertToDisplayString(total, currency)}
-            textStyles={valueTextStyle}
-            textHoverStyles={styles.textSupporting}
             isDisabled={isOffline || isTotalLoading}
             size={CONST.BUTTON_SIZE.SMALL}
-            iconRight={icons.DownArrow}
-            iconRightFill={theme.icon}
-            iconRightHoverFill={theme.iconHovered}
             hoverStyles={styles.bgTransparent}
             onPress={props.onPress}
             onFocus={() => setIsTotalButtonFocused(true)}
             onBlur={() => setIsTotalButtonFocused(false)}
-        />
+        >
+            <Button.Text
+                style={valueTextStyle}
+                hoverStyle={styles.textSupporting}
+            >
+                {convertToDisplayString(total, currency)}
+            </Button.Text>
+            <Button.Icon
+                src={icons.DownArrow}
+                fill={theme.icon}
+                hoverFill={theme.iconHovered}
+            />
+        </Button>
     );
 
     return (

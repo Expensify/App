@@ -376,7 +376,9 @@ describe('hasRTERWithoutViolation', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(hasAnyTransactionWithoutRTERViolation([transactionWithoutViolation, transactionWithViolation], violations, '', CONST.DEFAULT_NUMBER_ID, undefined, undefined)).toBe(true);
+        expect(hasAnyTransactionWithoutRTERViolation([transactionWithoutViolation, transactionWithViolation], violations, '', CONST.DEFAULT_NUMBER_ID, undefined, undefined, undefined)).toBe(
+            true,
+        );
     });
 
     test('Return false if there is no rter without violation in all transactionViolations with given transactionIDs.', async () => {
@@ -405,7 +407,7 @@ describe('hasRTERWithoutViolation', () => {
         };
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
-        expect(hasAnyTransactionWithoutRTERViolation([transactionWithViolation], violations, '', CONST.DEFAULT_NUMBER_ID, undefined, undefined)).toBe(false);
+        expect(hasAnyTransactionWithoutRTERViolation([transactionWithViolation], violations, '', CONST.DEFAULT_NUMBER_ID, undefined, undefined, undefined)).toBe(false);
     });
 });
 
@@ -465,7 +467,7 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(true);
+        expect(canSubmitReport(expenseReport, undefined, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(true);
     });
 
     test('Return true if report can be submitted after being reopened', async () => {
@@ -529,7 +531,7 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(true);
+        expect(canSubmitReport(expenseReport, undefined, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(true);
     });
 
     test('Return false if report can not be submitted', async () => {
@@ -548,7 +550,7 @@ describe('canSubmitReport', () => {
             policyID: fakePolicy.id,
         };
 
-        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, false, '', currentUserAccountID)).toBe(false);
+        expect(canSubmitReport(expenseReport, undefined, fakePolicy, [], undefined, false, '', currentUserAccountID)).toBe(false);
     });
 
     it('returns false if the report is archived', async () => {
@@ -573,7 +575,7 @@ describe('canSubmitReport', () => {
 
         // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-        expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current, '', currentUserAccountID)).toBe(false);
+        expect(canSubmitReport(report, undefined, policy, [], undefined, isReportArchived.current, '', currentUserAccountID)).toBe(false);
     });
 
     it('returns false when SmartScan failed with missing fields before violation is written', async () => {
@@ -606,7 +608,7 @@ describe('canSubmitReport', () => {
             amount: 100,
         };
 
-        expect(canSubmitReport(report, policy, [transaction], undefined, false, '', currentUserAccountID)).toBe(false);
+        expect(canSubmitReport(report, undefined, policy, [transaction], undefined, false, '', currentUserAccountID)).toBe(false);
     });
 });
 
@@ -1077,13 +1079,8 @@ describe('formatCurrentUserToAttendee', () => {
         expect(attendees).toEqual([
             {
                 email: 'john.smith@example.com',
-                login: 'john.smith@example.com',
                 displayName: 'John Smith',
                 avatarUrl: '',
-                accountID: 2840332,
-                text: 'John Smith',
-                selected: true,
-                reportID: undefined,
             },
         ]);
     });
@@ -1100,13 +1097,8 @@ describe('formatCurrentUserToAttendee', () => {
         expect(attendees).toEqual([
             {
                 email: 'john.smith@example.com',
-                login: 'john.smith@example.com',
                 displayName: 'john.smith@example.com',
                 avatarUrl: '',
-                accountID: 2840332,
-                text: 'john.smith@example.com',
-                selected: true,
-                reportID: undefined,
             },
         ]);
     });

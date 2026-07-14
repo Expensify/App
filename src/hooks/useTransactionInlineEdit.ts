@@ -35,6 +35,7 @@ import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import usePolicyForTransaction from './usePolicyForTransaction';
 import useSelfDMReport from './useSelfDMReport';
@@ -123,6 +124,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [transactionThreadNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [chatReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(chatReportID)}`);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(effectiveParentReportID)}`);
@@ -146,6 +148,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
 
     const {isOffline} = useNetwork();
+    const personalPolicy = usePersonalPolicy();
 
     const permissions = getTransactionEditPermissions({
         transaction,
@@ -157,6 +160,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         policyTags,
         transactionThreadNVP,
         chatReportNVP,
+        reportNameValuePairs,
         originalTransaction,
         disabled: hasSelectedTransactions,
         shouldSelectPolicyForUnreported: shouldSelectPolicy,
@@ -186,7 +190,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     };
 
     const onEditDate = (newDate: string) => {
-        editTransactionDateInline(getEditParams(), newDate);
+        editTransactionDateInline(getEditParams(), newDate, personalPolicy?.outputCurrency);
     };
 
     const onEditMerchant = (newMerchant: string) => {

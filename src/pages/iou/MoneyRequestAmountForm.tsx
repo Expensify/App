@@ -240,7 +240,7 @@ function MoneyRequestAmountForm({
                         currency={currency ?? CONST.CURRENCY.USD}
                         policyID={policyID}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         kycWallAnchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
