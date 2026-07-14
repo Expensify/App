@@ -291,7 +291,7 @@ function getAccountIDsByLogins(logins: string[]): number[] {
     }, []);
 }
 
-function getLoginByAccountID(accountID: number | undefined, personalDetails: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string | undefined {
+function getLoginByAccountID(accountID: number | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): string | undefined {
     return accountID ? personalDetails?.[accountID]?.login : undefined;
 }
 
