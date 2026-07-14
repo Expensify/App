@@ -83,6 +83,9 @@
 "../../src/components/AnimatedFlatListWithCellRenderer.tsx"	"@typescript-eslint/no-deprecated/Animated.createAnimatedComponent"	1
 "../../src/components/AnimatedFlatListWithCellRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AnimatedFlatListWithCellRenderer.tsx"	"react-hooks/refs"	2
+"../../src/components/AnimatedFlashListWithCellRenderer.tsx"	"@typescript-eslint/no-deprecated/Animated.createAnimatedComponent"	1
+"../../src/components/AnimatedFlashListWithCellRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/components/AnimatedFlashListWithCellRenderer.tsx"	"react-hooks/refs"	2
 "../../src/components/AnimatedSubmitButton/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AnimatedSubmitButton/index.tsx"	"no-restricted-imports"	1
 "../../src/components/AnimatedSubmitButton/index.tsx"	"react-hooks/refs"	6
