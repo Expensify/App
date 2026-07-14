@@ -80,7 +80,7 @@ function RilletCardAccountCardList({
                             key={cardID}
                             pendingAction={getCardsCustomExportPendingAction(
                                 cardFeeds ?? {},
-                                {feedWithDomainID: cardList},
+                                {[feedWithDomainID]: cardList},
                                 CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
                                 feedKey,
                                 cardID,
@@ -94,7 +94,7 @@ function RilletCardAccountCardList({
                                 brickRoadIndicator={
                                     areCardsCustomExportInErrorFields(
                                         cardFeeds ?? {},
-                                        {feedWithDomainID: cardList},
+                                        {[feedWithDomainID]: cardList},
                                         CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
                                         feedKey,
                                         cardID,
