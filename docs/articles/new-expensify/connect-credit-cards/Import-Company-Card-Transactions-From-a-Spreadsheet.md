@@ -95,9 +95,9 @@ Your file should include the following required columns:
 
 You’ll see an error message and won’t be able to proceed until the issue is resolved.
 
-## What happens if a required column has empty values?
+## Why am I seeing an "Oops!" error about empty values? 
 
-If you map a required field (such as Card Number, Date, Amount, or Merchant) to a column that contains one or more empty values, you’ll see an error message and won’t be able to proceed until every row in that column has a value.
+If you map a required field such as **Card Number**, **Date**, **Amount**, or **Merchant** to a column that contains one or more empty cells, you'll see an "Oops!" error and won't be able to continue. Review the column you mapped, fill in any missing values, and then try importing again.
 
 ## Can I change field mappings after importing transactions?
 
