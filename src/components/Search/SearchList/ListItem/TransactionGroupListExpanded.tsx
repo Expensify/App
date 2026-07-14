@@ -19,6 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import genericMemo from '@libs/genericMemo';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -425,4 +426,4 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     );
 }
 
-export default TransactionGroupListExpanded;
+export default genericMemo(TransactionGroupListExpanded);
