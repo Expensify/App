@@ -14,9 +14,10 @@ import createActors from './mfaActors';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
-// Absolute targets for the outcome leaves, whose ids are set on the leaves below. The device
-// check runs under `preparing`, so reaching the sibling `outcome` branch needs an id target rather
-// than a relative one.
+// Absolute targets for the outcome parent and its leaves. The device check runs under `preparing`,
+// so reaching the sibling `outcome` branch needs an id target rather than a relative one. Every
+// completed step enters OUTCOME first; its transient resolver selects the leaf from context.error.
+const OUTCOME_TARGET = `#${MFA_STATE.OUTCOME}` as const;
 const SUCCESS_TARGET = `#${MFA_STATE.SUCCESS}` as const;
 const FAILURE_TARGET = `#${MFA_STATE.FAILURE}` as const;
 
@@ -46,6 +47,9 @@ const MFAMachine = setup({
     },
     /* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
     actors: createActors(),
+    guards: {
+        hasError: ({context}) => context.error !== undefined,
+    },
     actions: {
         // Seeds the flow's context from the INIT event. A named action's event is typed as the full
         // MfaEvent union, so the guard narrows it to INIT to read the scenario fields; INIT is the only
@@ -120,19 +124,18 @@ const MFAMachine = setup({
                                     }
                                     return {allowedAuthenticationMethods: context.scenario.allowedAuthenticationMethods};
                                 },
-                                // The actor settles with an MFAResult, so its done event routes on
-                                // `success`. An eligible device lands on the success outcome until the
-                                // registration and authorization slices insert their steps before it,
-                                // while a refusal carries the blocking MFAError to the failure outcome,
-                                // where the screen is chosen from the error reason.
+                                // Every result enters the outcome resolver. A refusal stores its
+                                // blocking MFAError first; the resolver then selects failure from that
+                                // error, while an eligible device with no error selects success until
+                                // later slices insert registration and authorization before outcome.
                                 onDone: [
-                                    {guard: ({event}) => event.output.success, target: SUCCESS_TARGET},
-                                    {target: FAILURE_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
+                                    {guard: ({event}) => event.output.success, target: OUTCOME_TARGET},
+                                    {target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
                                 ],
                                 // Expected refusals travel as failed results through onDone, so a
                                 // rejection means the platform check itself threw unexpectedly.
                                 onError: {
-                                    target: FAILURE_TARGET,
+                                    target: OUTCOME_TARGET,
                                     actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Device check', event.error)}),
                                 },
                             },
@@ -140,9 +143,16 @@ const MFAMachine = setup({
                     },
                 },
                 [MFA_STATE.OUTCOME]: {
-                    initial: MFA_STATE.SUCCESS,
+                    id: MFA_STATE.OUTCOME,
+                    initial: MFA_STATE.RESOLVING_OUTCOME,
                     states: {
-                        [MFA_STATE.SUCCESS]: {id: MFA_STATE.SUCCESS, entry: ['navigateToSuccessOutcome']},
+                        [MFA_STATE.RESOLVING_OUTCOME]: {
+                            always: [{guard: 'hasError', target: FAILURE_TARGET}, {target: SUCCESS_TARGET}],
+                        },
+                        [MFA_STATE.SUCCESS]: {
+                            id: MFA_STATE.SUCCESS,
+                            entry: ['navigateToSuccessOutcome'],
+                        },
                         [MFA_STATE.FAILURE]: {id: MFA_STATE.FAILURE, entry: ['navigateToFailureOutcome']},
                     },
                 },

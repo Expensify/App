@@ -222,6 +222,7 @@ const MFA_STATE = {
     PREPARING: 'preparing',
     VALIDATING_DEVICE: 'validatingDevice',
     OUTCOME: 'outcome',
+    RESOLVING_OUTCOME: 'resolvingOutcome',
     SUCCESS: 'success',
     FAILURE: 'failure',
 } as const;
