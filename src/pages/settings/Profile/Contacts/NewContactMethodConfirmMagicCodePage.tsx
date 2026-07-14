@@ -14,7 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect} from 'react';
 
 type NewContactMethodConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE>;
@@ -38,7 +37,7 @@ function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMa
     return (
         <ValidateCodeActionContent
             title={translate('delegate.makeSureItIsYou')}
-            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.ADD_CONTACT_METHOD})}
+            sendValidateCode={() => requestValidateCodeAction()}
             descriptionPrimary={translate('contacts.enterMagicCode', contactMethod)}
             validateCodeActionErrorField="addedLogin"
             validateError={validateCodeError}
