@@ -16,6 +16,8 @@ import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native'
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
+import NegatableFilter from '../NegatableFilter';
+
 type TextInputFilterContentProps = {
     baseFilterKey:
         | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
@@ -48,22 +50,28 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
-            <TextInput
-                ref={(ref) => {
-                    if (!autoFocus || !isTextInput(ref)) {
-                        return;
-                    }
-                    inputCallbackRef(ref);
-                }}
-                placeholder={label}
-                value={value}
-                errorText={error}
-                hasError={!!error}
-                onChangeText={setValue}
-                accessibilityLabel={label}
-                role={CONST.ROLE.PRESENTATION}
-                containerStyles={[styles.ph5]}
-            />
+            <NegatableFilter
+                baseFilterKey={baseFilterKey}
+                isNegated={isNegated}
+                onNegationChange={setIsNegated}
+            >
+                <TextInput
+                    ref={(ref) => {
+                        if (!autoFocus || !isTextInput(ref)) {
+                            return;
+                        }
+                        inputCallbackRef(ref);
+                    }}
+                    placeholder={label}
+                    value={value}
+                    errorText={error}
+                    hasError={!!error}
+                    onChangeText={setValue}
+                    accessibilityLabel={label}
+                    role={CONST.ROLE.PRESENTATION}
+                    containerStyles={[styles.ph5]}
+                />
+            </NegatableFilter>
             <Button
                 style={[styles.ph5, styles.pb5]}
                 success

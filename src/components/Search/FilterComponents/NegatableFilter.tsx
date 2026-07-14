@@ -14,10 +14,11 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {FilterComponentsProps} from '.';
+import type {TextInputFilterContentProps} from './AdvancedFilters/TextInputFilterContent';
 
 type NegatableFilterProps = React.PropsWithChildren & {
     isNegated: boolean;
-    baseFilterKey: FilterComponentsProps['baseFilterKey'];
+    baseFilterKey: FilterComponentsProps['baseFilterKey'] & TextInputFilterContentProps['baseFilterKey'];
     style?: StyleProp<ViewStyle>;
     onNegationChange: (isNegated: boolean) => void;
 };
