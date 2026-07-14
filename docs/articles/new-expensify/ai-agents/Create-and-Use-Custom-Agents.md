@@ -115,13 +115,12 @@ Deleting an agent closes its Expensify account.
 4. Click **Delete agent**.
 5. Confirm the deletion.
 
-You can also delete an agent while Copiloting into its account:
+You can also delete an agent while [Copiloting into its account](#how-to-copilot-into-an-agents-account):
 
-1. Copilot into the agent's account.
-2. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
-3. Click **Security**.
-4. Click **Close account**.
-5. In the **Delete agent?** confirmation, click **Delete**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
+2. Click **Security**.
+3. Click **Close account**.
+4. In the **Delete agent?** confirmation, click **Delete**.
 
 Deleting the agent from the **Security** page also ends the Copilot session and returns you to your own account. This step requires an internet connection.
 
