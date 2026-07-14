@@ -1,19 +1,18 @@
 import Button from '@components/Button';
-import type {FilterComponentsProps} from '@components/Search/FilterComponents';
-import FilterComponents from '@components/Search/FilterComponents';
-import type {CommonFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+import type {ListFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+import ListFilterContent from '@components/Search/FilterComponents/ListFilterContent';
 
 import useLocalize from '@hooks/useLocalize';
 
 import React, {useState} from 'react';
 
-function CommonFilterContentPageWrapper({baseFilterKey, value: initialValue, isNegated: initialIsNegated, type, policyID, ready, onChange}: CommonFilterContentWrapperProps) {
+function ListFilterContentPageWrapper({baseFilterKey, value: initialValue, isNegated: initialIsNegated, type, policyID, ready, onChange}: ListFilterContentWrapperProps) {
     const {translate} = useLocalize();
-    const [value, setValue] = useState<FilterComponentsProps['value']>(initialValue);
+    const [value, setValue] = useState(initialValue);
     const [isNegated, setIsNegatedValue] = useState(initialIsNegated);
 
     return (
-        <FilterComponents
+        <ListFilterContent
             baseFilterKey={baseFilterKey}
             value={value}
             isNegated={isNegated}
@@ -35,4 +34,4 @@ function CommonFilterContentPageWrapper({baseFilterKey, value: initialValue, isN
     );
 }
 
-export default CommonFilterContentPageWrapper;
+export default ListFilterContentPageWrapper;

@@ -1,5 +1,5 @@
-import FilterComponents from '@components/Search/FilterComponents';
-import type {CommonFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+import type {ListFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+import ListFilterContent from '@components/Search/FilterComponents/ListFilterContent';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -7,13 +7,13 @@ import {isFilterNegatable} from '@libs/SearchQueryUtils';
 
 import React, {useState} from 'react';
 
-function CommonFilterContentPopupWrapper({baseFilterKey, value, isNegated: initialIsNegated, type, policyID, onChange}: CommonFilterContentWrapperProps) {
+function ListFilterContentPopupWrapper({baseFilterKey, value, isNegated: initialIsNegated, type, policyID, onChange}: ListFilterContentWrapperProps) {
     const styles = useThemeStyles();
     const [isNegated, setIsNegated] = useState(initialIsNegated);
     const isFilterKeyNegatable = isFilterNegatable(baseFilterKey);
 
     return (
-        <FilterComponents
+        <ListFilterContent
             baseFilterKey={baseFilterKey}
             value={value}
             isNegated={isNegated}
@@ -34,4 +34,4 @@ function CommonFilterContentPopupWrapper({baseFilterKey, value, isNegated: initi
     );
 }
 
-export default CommonFilterContentPopupWrapper;
+export default ListFilterContentPopupWrapper;

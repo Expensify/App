@@ -2,8 +2,8 @@ import type {CurrencyListActionsContextType} from '@components/CurrencyListConte
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MenuItemWithLink} from '@components/MenuItemList';
-import type {FilterComponentsProps} from '@components/Search/FilterComponents';
 import type {TextInputFilterContentProps} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+import type {ListFilterContentProps} from '@components/Search/FilterComponents/ListFilterContent';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import type {
@@ -5483,7 +5483,7 @@ function getDisplayValue(
     return Array.isArray(formValue) ? formValue.join(', ') : formValue;
 }
 
-function getFilterNegatableValue<K extends FilterComponentsProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey']>(
+function getFilterNegatableValue<K extends ListFilterContentProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey']>(
     baseFilterKey: K,
     values: (Partial<SearchAdvancedFiltersForm> & Partial<Record<`${K}${typeof CONST.SEARCH.NOT_MODIFIER}`, SearchAdvancedFiltersForm[K]>>) | undefined,
 ): {

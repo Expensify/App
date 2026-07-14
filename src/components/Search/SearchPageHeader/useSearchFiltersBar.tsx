@@ -1,7 +1,7 @@
 import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import AmountPopup from '@components/Search/FilterDropdowns/AmountPopup';
-import CommonPopup from '@components/Search/FilterDropdowns/CommonPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+import ListPopup from '@components/Search/FilterDropdowns/ListPopup';
 import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopup';
 import TextFilterPopup from '@components/Search/FilterDropdowns/TextFilterPopup';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
@@ -125,7 +125,7 @@ function FilterPopup({baseFilterKey, searchAdvancedFiltersForm, closeOverlay, se
     }
 
     return (
-        <CommonPopup
+        <ListPopup
             baseFilterKey={baseFilterKey}
             values={searchAdvancedFiltersForm}
             label={label}

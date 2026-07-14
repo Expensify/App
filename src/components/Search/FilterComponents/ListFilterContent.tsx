@@ -32,7 +32,7 @@ import UserSelector from './UserSelector';
 import WorkspaceSelector from './WorkspaceSelector';
 
 type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmountFilterKeys | SearchTextFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
-type FilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[FilterKeys] | undefined> & {
+type ListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[FilterKeys] | undefined> & {
     baseFilterKey: FilterKeys;
     isNegated: boolean;
     type?: SearchDataTypes;
@@ -42,7 +42,7 @@ type FilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[F
 };
 
 type SingleSelectFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE;
-type SingleSelectFilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined> & {
+type SingleSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined> & {
     baseFilterKey: SingleSelectFilterKeys;
 };
 
@@ -54,12 +54,12 @@ type MultiSelectFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS;
-type MultiSelectFilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined> & {
+type MultiSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined> & {
     baseFilterKey: MultiSelectFilterKeys;
     type: SearchDataTypes | undefined;
 };
 
-function SingleSelectFilterComponents({baseFilterKey, value, selectionListStyle, footer, onChange}: SingleSelectFilterComponentsProps) {
+function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle, footer, onChange}: SingleSelectListFilterContentProps) {
     const {translate} = useLocalize();
     const items = getSingleSelectFilterOptions(baseFilterKey, translate);
 
@@ -75,7 +75,7 @@ function SingleSelectFilterComponents({baseFilterKey, value, selectionListStyle,
     );
 }
 
-function MultiSelectFilterComponents({baseFilterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectFilterComponentsProps) {
+function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
     const items = getMultiSelectFilterOptions(baseFilterKey, type, translate);
     const multiSelectValues = items.filter((item) => (value as string[]).includes(item.value));
@@ -93,7 +93,7 @@ function MultiSelectFilterComponents({baseFilterKey, value = [], type = CONST.SE
     );
 }
 
-function FilterComponents({
+function ListFilterContent({
     baseFilterKey,
     value,
     isNegated,
@@ -107,7 +107,7 @@ function FilterComponents({
     footer,
     onChange,
     onNegationChange,
-}: FilterComponentsProps) {
+}: ListFilterContentProps) {
     const styles = useThemeStyles();
     const isFilterKeyNegatable = isFilterNegatable(baseFilterKey);
     const selectionListTextInputStyle = [selectionListTextInputStyleProp, isFilterKeyNegatable && styles.pt2];
@@ -147,7 +147,7 @@ function FilterComponents({
             break;
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE: {
-            const isTypeFilterValue = (v: FilterComponentsProps['value']): v is SearchDataTypes => {
+            const isTypeFilterValue = (v: ListFilterContentProps['value']): v is SearchDataTypes => {
                 return typeof v === 'string';
             };
             content = (
@@ -178,12 +178,12 @@ function FilterComponents({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {
-            const isSingleSelectFilterValue = (v: FilterComponentsProps['value']): v is SingleSelectFilterComponentsProps['value'] => {
+            const isSingleSelectFilterValue = (v: ListFilterContentProps['value']): v is SingleSelectListFilterContentProps['value'] => {
                 return typeof v === 'string';
             };
 
             content = (
-                <SingleSelectFilterComponents
+                <SingleSelectListFilterContent
                     key={baseFilterKey}
                     baseFilterKey={baseFilterKey}
                     value={isSingleSelectFilterValue(value) ? value : undefined}
@@ -202,7 +202,7 @@ function FilterComponents({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS: {
             content = (
-                <MultiSelectFilterComponents
+                <MultiSelectListFilterContent
                     key={baseFilterKey}
                     baseFilterKey={baseFilterKey}
                     value={typeof value === 'object' ? value : undefined}
@@ -262,5 +262,5 @@ function FilterComponents({
     );
 }
 
-export default FilterComponents;
-export type {FilterComponentsProps};
+export default ListFilterContent;
+export type {ListFilterContentProps};

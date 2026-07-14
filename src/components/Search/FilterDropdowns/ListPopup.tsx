@@ -1,5 +1,5 @@
-import FilterComponents from '@components/Search/FilterComponents';
-import type {FilterComponentsProps} from '@components/Search/FilterComponents';
+import ListFilterContent from '@components/Search/FilterComponents/ListFilterContent';
+import type {ListFilterContentProps} from '@components/Search/FilterComponents/ListFilterContent';
 
 import {getFilterFormValues} from '@libs/SearchQueryUtils';
 import {getFilterNegatableValue} from '@libs/SearchUIUtils';
@@ -13,14 +13,14 @@ import type {PopoverComponentProps} from './FilterPopupButton';
 
 import BasePopup from './BasePopup';
 
-type CommonPopupProps = Pick<FilterComponentsProps, 'baseFilterKey'> & {
+type ListPopupProps = Pick<ListFilterContentProps, 'baseFilterKey'> & {
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     label: string;
     closeOverlay: PopoverComponentProps['closeOverlay'];
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function CommonPopup({baseFilterKey, values, label, updateFilterForm, closeOverlay}: CommonPopupProps) {
+function ListPopup({baseFilterKey, values, label, updateFilterForm, closeOverlay}: ListPopupProps) {
     const {isNegated: initialIsNegated, value: initialValue} = getFilterNegatableValue(baseFilterKey, values);
     const [value, setValue] = useState(initialValue);
     const [isNegated, setIsNegated] = useState(initialIsNegated);
@@ -36,7 +36,7 @@ function CommonPopup({baseFilterKey, values, label, updateFilterForm, closeOverl
             onApply={applyChanges}
             applySentryLabel={`Search-FilterPopupApply-${baseFilterKey}`}
         >
-            <FilterComponents
+            <ListFilterContent
                 baseFilterKey={baseFilterKey}
                 value={value}
                 isNegated={isNegated}
@@ -49,4 +49,4 @@ function CommonPopup({baseFilterKey, values, label, updateFilterForm, closeOverl
     );
 }
 
-export default CommonPopup;
+export default ListPopup;

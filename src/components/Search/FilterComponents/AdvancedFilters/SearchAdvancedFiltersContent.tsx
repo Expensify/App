@@ -9,7 +9,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 import React from 'react';
 
-import type {FilterComponentsProps} from '..';
+import type {ListFilterContentProps} from '../ListFilterContent';
 import type {AmountFilterContentProps} from './AmountFilterContent';
 import type {DateFilterContentProps} from './DateFilterContent';
 import type {ReportFieldFilterContentProps} from './ReportFieldFilterContent';
@@ -19,8 +19,8 @@ type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'bas
 type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'baseFilterKey' | 'value' | 'onChange'>;
 type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'baseFilterKey' | 'value' | 'hasFeed' | 'onChange'>;
 type ReportFieldFilterContentWrapperProps = Pick<ReportFieldFilterContentProps, 'values' | 'onChange'>;
-type CommonFilterContentWrapperProps = Omit<FilterComponentsProps, 'onChange' | 'onNegationChange' | 'selectionListTextInputStyle' | 'selectionListStyle' | 'autoFocus' | 'footer'> & {
-    onChange: (value: FilterComponentsProps['value'], isNegated: boolean) => void;
+type ListFilterContentWrapperProps = Omit<ListFilterContentProps, 'onChange' | 'onNegationChange' | 'selectionListTextInputStyle' | 'selectionListStyle' | 'autoFocus' | 'footer'> & {
+    onChange: (value: ListFilterContentProps['value'], isNegated: boolean) => void;
 };
 
 type SearchAdvancedFiltersContentProps = {
@@ -32,7 +32,7 @@ type SearchAdvancedFiltersContentProps = {
         Amount: React.ComponentType<AmountFilterContentWrapperProps>;
         Date: React.ComponentType<DateFilterContentWrapperProps>;
         ReportField: React.ComponentType<ReportFieldFilterContentWrapperProps>;
-        Common: React.ComponentType<CommonFilterContentWrapperProps>;
+        List: React.ComponentType<ListFilterContentWrapperProps>;
     };
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
@@ -41,7 +41,7 @@ type SingleAdvancedFiltersContentProps = Pick<SearchAdvancedFiltersContentProps,
     baseFilterKey: Exclude<SearchAdvancedFiltersContentProps['baseFilterKey'], SearchAmountFilterKeys | SearchDateFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
     components: {
         Text: React.ComponentType<TextInputFilterContentWrapperProps>;
-        Common: React.ComponentType<CommonFilterContentWrapperProps>;
+        List: React.ComponentType<ListFilterContentWrapperProps>;
     };
 };
 
@@ -61,9 +61,9 @@ function SingleAdvancedFiltersContent({baseFilterKey, values, ready, components,
     }
 
     const {isNegated, value} = getFilterNegatableValue(baseFilterKey, values);
-    const CommonFilter = components.Common;
+    const ListFilter = components.List;
     return (
-        <CommonFilter
+        <ListFilter
             key={baseFilterKey}
             baseFilterKey={baseFilterKey}
             value={value}
@@ -139,11 +139,11 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
             baseFilterKey={baseFilterKey}
             values={values}
             ready={ready}
-            components={{Text: components.Text, Common: components.Common}}
+            components={{Text: components.Text, List: components.List}}
             onChange={onChange}
         />
     );
 }
 
 export default SearchAdvancedFiltersContent;
-export type {TextInputFilterContentWrapperProps, AmountFilterContentWrapperProps, DateFilterContentWrapperProps, ReportFieldFilterContentWrapperProps, CommonFilterContentWrapperProps};
+export type {TextInputFilterContentWrapperProps, AmountFilterContentWrapperProps, DateFilterContentWrapperProps, ReportFieldFilterContentWrapperProps, ListFilterContentWrapperProps};

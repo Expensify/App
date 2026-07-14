@@ -22,8 +22,8 @@ import React, {useContext} from 'react';
 import {View} from 'react-native';
 
 import AmountFilterContentPageWrapper from './AmountFilterContentPageWrapper';
-import CommonFilterContentPageWrapper from './CommonFilterContentPageWrapper';
 import DateFilterContentPageWrapper from './DateFilterContentPageWrapper';
+import ListFilterContentPageWrapper from './ListFilterContentPageWrapper';
 import ReportFieldFilterContentPageWrapper from './ReportFieldFilterContentPageWrapper';
 import TextInputFilterContentPageWrapper from './TextInputFilterContentPageWrapper';
 
@@ -67,7 +67,7 @@ function SearchAdvancedFiltersContentBase() {
                                 baseFilterKey={validFilterKey}
                                 ready={didScreenTransitionEnd}
                                 components={{
-                                    Common: CommonFilterContentPageWrapper,
+                                    List: ListFilterContentPageWrapper,
                                     Text: TextInputFilterContentPageWrapper,
                                     Amount: AmountFilterContentPageWrapper,
                                     Date: DateFilterContentPageWrapper,

@@ -1,6 +1,6 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {FilterComponentsProps} from '@components/Search/FilterComponents';
 import type {TextInputFilterContentProps} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+import type {ListFilterContentProps} from '@components/Search/FilterComponents/ListFilterContent';
 import type {
     ASTNode,
     Filter,
@@ -2454,7 +2454,7 @@ function isFilterNegated(filterKey: SearchAdvancedFiltersKey) {
     return filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER);
 }
 
-function getFilterFormValues<K extends FilterComponentsProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey']>(
+function getFilterFormValues<K extends ListFilterContentProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey']>(
     baseFilterKey: K,
     value: SearchAdvancedFiltersForm[K] | undefined,
     isNegated: boolean,
