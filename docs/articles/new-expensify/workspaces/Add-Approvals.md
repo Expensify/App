@@ -131,6 +131,20 @@ Category and Tag approvers are added to the approval chain — they don't replac
 
 No. Each employee can only be assigned one approval workflow per workspace.
 
+## Why did adding an approver to one workflow change other members' workflows?
+
+Approval routing is built from per-approver relationships, not separate paths for each submitter. When you place someone *after* an approver in a workflow, you're defining who that approver forwards their approvals to — and that applies to **every** report they approve, not just one submitter's.
+
+For example, if Karen is the first approver for several members and you set up a workflow of **Gerry → Karen → Leslie**, you're telling Expensify that "Karen forwards to Leslie." Because Karen also approves for other members, their reports will now route to Leslie after Karen approves them too.
+
+This is why you may see the following warning when editing a workflow:
+
+> This member already belongs to another approval workflow. Any updates here will reflect there too.
+
+Deleting and recreating the workflow won't change this, because the limitation is tied to the shared approver's forwarding rather than to any one submitter's workflow.
+
+To keep a second-level approver limited to a single submitter, that submitter's first approver must be unique to their chain — that is, not shared as an approver for any other member. If your goal is instead to add an extra review step only when a report exceeds a certain amount, use the workflow-specific over-limit **Additional approver** (set in the **Report amount** field), which applies only to that workflow.
+
 ## How can I assign custom approval workflows to specific members?
 
 You’ll need to be on the Control plan, as this feature isn’t available on Collect.
