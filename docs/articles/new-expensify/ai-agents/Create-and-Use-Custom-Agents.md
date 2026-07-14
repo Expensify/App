@@ -188,7 +188,7 @@ Yes. When you create an agent, it's automatically added as a full-access Copilot
 
 ## Why does the Security page look different when I Copilot into an agent?
 
-When you Copilot into an agent's account and open **Account > Security**, some options are adjusted because you're managing an agent rather than a real user's account:
+When you Copilot into an agent's account and open **Account > Security**, some options are adjusted because you're managing an agent rather than a real member's account:
 
 - **Device management** and **Merge accounts** are hidden, since they don't apply to an agent.
 - **Close account** deletes the agent and ends the Copilot session instead of opening the standard close-account flow.
