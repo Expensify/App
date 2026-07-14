@@ -28,8 +28,7 @@ const DEFAULT_CONTEXT: MfaContext = {
 
 /**
  * MFA state machine. The top level models the modal lifecycle (`closed` -> `open` -> `closing`); the
- * child states of `open` map 1:1 to the screen the user currently sees. Later slices add screens as
- * `open` children and per-screen work as child states of its screen.
+ * child states of `open` map 1:1 to the screen the user currently sees.
  *
  * No state is `final`: one long-lived actor serves every MFA flow (a top-level final state would
  * stop it).
@@ -106,8 +105,7 @@ const MFAMachine = setup({
             },
             states: {
                 // This is the transparent initial screen, and its child states run the pre-screen
-                // work the user waits through. This slice adds the device check, and later slices add
-                // the registration and authorization steps as siblings.
+                // work the user waits through.
                 [MFA_STATE.PREPARING]: {
                     initial: MFA_STATE.VALIDATING_DEVICE,
                     states: {
@@ -122,9 +120,8 @@ const MFAMachine = setup({
                                     return {allowedAuthenticationMethods: context.scenario.allowedAuthenticationMethods};
                                 },
                                 // Every result enters the outcome resolver. A refusal stores its
-                                // blocking MFAError first; the resolver then selects failure from that
-                                // error, while an eligible device with no error selects success until
-                                // later slices insert registration and authorization before outcome.
+                                // blocking MFAError first, so the resolver selects failure from that
+                                // error, while an eligible device with no error selects success.
                                 onDone: [
                                     {guard: ({event}) => event.output.success, target: OUTCOME_TARGET},
                                     {target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},

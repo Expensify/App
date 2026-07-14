@@ -55,9 +55,7 @@ type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScena
 };
 
 /**
- * Events accepted by the machine. INIT starts a flow and the lifecycle events drive the modal. Other
- * semantic input events such as validate code and soft prompt are added by the slices that introduce
- * their states.
+ * Events accepted by the machine. INIT starts a flow and the lifecycle events drive the modal.
  *
  * CLOSE_MODAL requests the close so the flow moves to `closing`. MODAL_CLOSED is the navigator's
  * notification that the close animation fully finished, which moves `closing` to `closed` and wipes
