@@ -15,10 +15,16 @@ import {useCallback, useEffect, useRef} from 'react';
 function useDebouncedSaveDraft<SaveDraftArgs extends unknown[]>(saveDraftFn: (...args: SaveDraftArgs) => void, wait = CONST.TIMING.DRAFT_SAVE_DEBOUNCE_TIME) {
     const isSavePending = useRef(false);
 
-    const debouncedSaveDraft = useDebounce((...args: SaveDraftArgs) => {
-        saveDraftFn(...args);
-        isSavePending.current = false;
-    }, wait);
+    const debouncedSaveDraft = useDebounce(
+        useCallback(
+            (...args: SaveDraftArgs) => {
+                saveDraftFn(...args);
+                isSavePending.current = false;
+            },
+            [saveDraftFn],
+        ),
+        wait,
+    );
 
     const saveDraft = useCallback(
         (...args: SaveDraftArgs) => {
