@@ -380,6 +380,45 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
     return optimisticNextStep;
 }
 
+/**
+ * Canonical mapping from a new-format next-step messageKey to the report status(es) that message can legitimately
+ * describe (derived from the branches of buildOptimisticNextStep above). It is used to detect when a stored
+ * report.nextStep has gone stale relative to report.statusNum.
+ *
+ * Only keys with an unambiguous, client-derivable status are listed. Keys that can describe more than one status
+ * (e.g. WAITING_TO_PAY at SUBMITTED under an optional policy vs. at APPROVED, or NO_FURTHER_ACTION) are intentionally
+ * omitted, as are server-only keys used by external/DEW workflows (e.g. WAITING_FOR_PAYMENT, WAITING_TO_EXPORT). For
+ * those keys we never infer staleness, so recompute stays scoped to clean, unambiguous mismatches only.
+ */
+const NEXT_STEP_MESSAGE_KEY_TO_STATUS: Partial<Record<ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>, ValueOf<typeof CONST.REPORT.STATUS_NUM>>> = {
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: CONST.REPORT.STATUS_NUM.OPEN,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: CONST.REPORT.STATUS_NUM.OPEN,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: CONST.REPORT.STATUS_NUM.OPEN,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: CONST.REPORT.STATUS_NUM.OPEN,
+    [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: CONST.REPORT.STATUS_NUM.OPEN,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: CONST.REPORT.STATUS_NUM.SUBMITTED,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: CONST.REPORT.STATUS_NUM.APPROVED,
+};
+
+/**
+ * A report.nextStep coming from the server is stale when its messageKey implies a report status that no longer matches
+ * report.statusNum. This happens for non-actor viewers because the report push refreshes report.statusNum (and stateNum)
+ * for every client, but only refreshes report.nextStep for the actor who performed the action (e.g. a submitter watching
+ * an approver approve keeps seeing "Waiting to approve" even though statusNum has already flipped to APPROVED). We only
+ * report staleness when the messageKey maps to a single, unambiguous status so we never second-guess external/DEW or
+ * multi-status ("Waiting to pay", "No further action") messages the client can't safely reconstruct.
+ */
+function isReportNextStepStale(reportNextStep: ReportNextStep | undefined, statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> | undefined): boolean {
+    if (!reportNextStep || statusNum === undefined) {
+        return false;
+    }
+    const impliedStatus = NEXT_STEP_MESSAGE_KEY_TO_STATUS[reportNextStep.messageKey];
+    if (impliedStatus === undefined) {
+        return false;
+    }
+    return impliedStatus !== statusNum;
+}
+
 function getReportNextStep(
     currentNextStep: ReportNextStepDeprecated | undefined,
     moneyRequestReport: OnyxEntry<Report>,
@@ -432,10 +471,31 @@ function getReportNextStep(
         return reportNextStep;
     }
 
-    // The server keeps report.nextStep (the new ReportNextStep format) in sync with statusNum for every client via the
-    // report push, but the deprecated reportNextStep_* collection is only refreshed for the local actor. Prefer the
-    // report-embedded value so non-actor viewers (e.g. a submitter watching an approver approve) see real-time updates,
-    // and keep the deprecated value only as a fallback while the migration is in progress.
+    // The report push refreshes report.statusNum for every client, but only refreshes report.nextStep (and the
+    // deprecated reportNextStep_* collection) for the actor who performed the action. So a non-actor viewer (e.g. a
+    // submitter watching an approver approve) receives a fresh statusNum while both stored next-step values stay on the
+    // pre-action message. When the report-embedded next step's messageKey implies a status that no longer matches the
+    // pushed statusNum, recompute the step from statusNum so the viewer's "What's next" bar tracks the report in real
+    // time. buildOptimisticNextStep is a pure function of the report/policy/status, so it produces the same value the
+    // server will eventually send. We only recompute on a detected, unambiguous mismatch, leaving external/DEW and
+    // multi-status messages (handled elsewhere or non-derivable on the client) untouched.
+    if (isReportNextStepStale(reportNextStep, moneyRequestReport?.statusNum)) {
+        const recomputedNextStep = buildOptimisticNextStep({
+            report: moneyRequestReport,
+            policy,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserEmail,
+            hasViolations: false,
+            isASAPSubmitBetaEnabled: false,
+            predictedNextStatus: moneyRequestReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        if (recomputedNextStep) {
+            return recomputedNextStep;
+        }
+    }
+
+    // Otherwise prefer the report-embedded value (kept in sync with statusNum for the actor, and consistent for the
+    // viewer once it isn't stale) and keep the deprecated value only as a fallback while the migration is in progress.
     return reportNextStep ?? currentNextStep;
 }
 function buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(iconFill?: string) {

@@ -1,5 +1,6 @@
 import {
     buildNextStepNew,
+    buildOptimisticNextStep,
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
@@ -1356,11 +1357,14 @@ describe('libs/NextStepUtils', () => {
             expect(result).toBe(reportNextStep);
         });
 
-        it('prefers the pushed report next step over a stale deprecated one after a third-party approval (regression for real-time "What\'s next")', () => {
-            // Repro: the submitter is viewing a submitted reimbursable report while an approver approves it on
-            // another device. The report Pusher push refreshes report.statusNum and report.nextStep for the
-            // submitter, but the deprecated reportNextStep_* collection is only refreshed for the approver, so
-            // the submitter's currentNextStep stays on the pre-approval "Waiting to approve" message.
+        it('recomputes the next step for a non-actor viewer whose stored next step is stale after a third-party approval (regression for real-time "What\'s next")', () => {
+            // Repro (measured live with two sessions): the submitter watches a submitted reimbursable report while an
+            // approver approves it on another device. The report push refreshes report.statusNum (SUBMITTED -> APPROVED)
+            // for the submitter, but does NOT refresh report.nextStep for the submitter (only the approver, the actor,
+            // gets a fresh nextStep). The deprecated reportNextStep_* collection is likewise stale until a later
+            // OpenReport refetch. So on the viewer both stored next-step values still say "Waiting to approve"
+            // (messageKey WAITING_TO_APPROVE, which implies a SUBMITTED report) while statusNum is already APPROVED.
+            // Preferring the stale report.nextStep would leave the bar stuck; the fix must recompute from statusNum.
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-8',
@@ -1376,19 +1380,165 @@ describe('libs/NextStepUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             } as Report;
 
+            // The deprecated collection is stale for a non-actor viewer immediately after the push.
             const staleCurrentNextStep: ReportNextStepDeprecated = {
                 type: 'neutral',
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 message: [{text: 'Waiting for '}, {text: 'the approver', type: 'strong'}, {text: ' to '}, {text: 'approve'}, {text: ' %expenses.'}],
             };
 
-            const pushedReportNextStep: ReportNextStep = {
-                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
-                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+            // report.nextStep is ALSO stale on the viewer: it still describes the pre-approval SUBMITTED state.
+            const staleReportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: 99,
             };
 
-            const result = getReportNextStep(staleCurrentNextStep, report, [], undefined, {}, currentUserEmail, currentUserAccountID, pushedReportNextStep);
-            expect(result).toBe(pushedReportNextStep);
+            const result = getReportNextStep(staleCurrentNextStep, report, [], undefined, {}, currentUserEmail, currentUserAccountID, staleReportNextStep);
+
+            // The stale WAITING_TO_APPROVE implies a SUBMITTED report, which mismatches the pushed APPROVED status, so the
+            // step is recomputed from statusNum rather than returning either stale value.
+            expect(result).not.toBe(staleReportNextStep);
+            expect(result).not.toBe(staleCurrentNextStep);
+            expect(result).not.toHaveProperty('messageKey', CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE);
+            // The recomputed value is exactly what buildOptimisticNextStep produces for the pushed APPROVED status.
+            expect(result).toEqual(
+                buildOptimisticNextStep({
+                    report,
+                    policy: undefined,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail,
+                    hasViolations: false,
+                    isASAPSubmitBetaEnabled: false,
+                    predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                }),
+            );
+        });
+
+        it('recomputes "Waiting to pay" for a payer viewing a report whose stored next step is stale after approval', async () => {
+            // Same staleness scenario, but the viewer is the reimburser: the recomputed post-approval step must be the
+            // real next action ("Waiting to pay"), matching what the server sends on the later OpenReport refetch.
+            const payerPolicyID = 'policy-payer';
+            const policy: Policy = {
+                id: payerPolicyID,
+                name: 'Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: currentUserEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                // Manual (indirect) reimbursement means the "bank account required" branch is skipped without needing a
+                // full achAccount fixture, so the recomputed APPROVED step is "Waiting to pay".
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                ownerAccountID: currentUserAccountID,
+                reimburser: currentUserEmail,
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-8b',
+                    policyID: payerPolicyID,
+                    payeeAccountID: 2,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: 2,
+                managerID: currentUserAccountID,
+                policyID: payerPolicyID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            } as Report;
+
+            const staleReportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${payerPolicyID}`, policy);
+            await waitForBatchedUpdates();
+
+            const result = getReportNextStep(undefined, report, [], policy, {}, currentUserEmail, currentUserAccountID, staleReportNextStep);
+
+            expect(result).not.toBe(staleReportNextStep);
+            expect(result).toEqual(
+                buildOptimisticNextStep({
+                    report,
+                    policy,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail,
+                    hasViolations: false,
+                    isASAPSubmitBetaEnabled: false,
+                    predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                }),
+            );
+            expect(result).toHaveProperty('messageKey', CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY);
+        });
+
+        it('keeps the report-embedded next step when its message key is consistent with the current status (actor path, no recompute)', () => {
+            // The actor writes report.statusNum and report.nextStep together (see approveMoneyRequest), so the stored
+            // messageKey always matches statusNum for them. A consistent SUBMITTED report + WAITING_TO_APPROVE must be
+            // returned verbatim, never recomputed.
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-8c',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: 99,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            } as Report;
+
+            const currentNextStep: ReportNextStepDeprecated = {
+                type: 'neutral',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                message: [{text: 'Current next step'}],
+            };
+
+            const consistentReportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: 99,
+            };
+
+            const result = getReportNextStep(currentNextStep, report, [], undefined, {}, currentUserEmail, currentUserAccountID, consistentReportNextStep);
+            expect(result).toBe(consistentReportNextStep);
+        });
+
+        it('does not recompute for an ambiguous message key even when it looks like it could be stale', () => {
+            // WAITING_TO_PAY is emitted for both SUBMITTED (optional/no-approval policy) and APPROVED reports, so it is
+            // NOT in the unambiguous mismatch map. Even if statusNum is SUBMITTED we must not treat it as stale and must
+            // return the report-embedded value unchanged (the server owns multi-status messages the client can't safely
+            // reconstruct, e.g. external/DEW workflows).
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-8d',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: 99,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            } as Report;
+
+            const ambiguousReportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: 99,
+            };
+
+            const result = getReportNextStep(undefined, report, [], undefined, {}, currentUserEmail, currentUserAccountID, ambiguousReportNextStep);
+            expect(result).toBe(ambiguousReportNextStep);
         });
 
         it('falls back to the deprecated next step when the report has no embedded next step', () => {
