@@ -1,3 +1,5 @@
+import {isRecord} from '@libs/ObjectUtils';
+
 import {getOctokit} from '@actions/github';
 import {execFileSync} from 'child_process';
 import fs from 'fs';
@@ -49,10 +51,10 @@ type ResolveResult = IosResult | AndroidResult;
 const GITHUB_REPO = 'Expensify/App';
 const GITHUB_OWNER = 'Expensify';
 
-const ARTIFACT_IDS: Record<Platform, string> = {
+const ARTIFACT_IDS = {
     android: 'react-android',
     ios: 'react-native-artifacts',
-};
+} satisfies Record<Platform, string>;
 
 /** Logs go to stderr; stdout is reserved for the JSON result. */
 function logError(message: string) {
@@ -156,10 +158,6 @@ async function fetchTokenSafe(url: string, githubToken: string | null): Promise<
         throw new Error(`Request to ${url} failed with status ${response.status}`);
     }
     return response.text();
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null;
 }
 
 function getReactNativeVersion(newDotRoot: string): string {
