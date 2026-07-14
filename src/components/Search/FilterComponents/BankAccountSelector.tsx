@@ -7,6 +7,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {TextInputOptions} from '@components/SelectionList/types';
 
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -97,12 +98,18 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
 
     const shouldShowSearchInput = openItems.length + closedItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
+    // Snapshot the accounts selected when the filter first opened so they stay floated in the top section on first render
+    // without repinning rows that are toggled afterwards. Section membership keys on this snapshot while each row's
+    // checkbox still reflects the live selection, so selecting/deselecting an account no longer makes it jump between sections.
+    const initialSelectedValues = useInitialValue(() => value);
+    const wasInitiallySelected = (item: BankAccountFilterItem) => initialSelectedValues.includes(item.value);
+
     const searchFunction = (item: BankAccountFilterItem) =>
         item.text.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) || item.lastFour.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase());
 
-    const selectedData = [...openItems, ...closedItems].filter((item) => item.isSelected && searchFunction(item));
-    const unselectedOpenData = openItems.filter((item) => !item.isSelected && searchFunction(item));
-    const unselectedClosedData = closedItems.filter((item) => !item.isSelected && searchFunction(item));
+    const selectedData = [...openItems, ...closedItems].filter((item) => wasInitiallySelected(item) && searchFunction(item));
+    const unselectedOpenData = openItems.filter((item) => !wasInitiallySelected(item) && searchFunction(item));
+    const unselectedClosedData = closedItems.filter((item) => !wasInitiallySelected(item) && searchFunction(item));
 
     const itemCount = selectedData.length + unselectedOpenData.length + unselectedClosedData.length;
     const sectionHeaderCount = unselectedClosedData.length > 0 ? 1 : 0;
