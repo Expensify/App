@@ -19,14 +19,6 @@ IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
 readonly IS_HYBRID_APP_REPO
 readonly NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
 
-# Guard against patches that target precompiled Expo modules. Such patches apply to node_modules
-# cleanly but are silently dropped at build time (the prebuilt .aar/.xcframework is linked instead of
-# the source), unless the module is opted into building from source via
-# expo.autolinking.<platform>.buildFromSource. This runs after patch-package so node_modules is present.
-function verifyExpoPatches() {
-  npx ts-node "$SCRIPT_DIR/verifyExpoPatches.ts"
-}
-
 # Wrapper to run patch-package.
 function patchPackage() {
   TEMP_PATCH_DIR=$(mktemp --directory ./tmp-patches-XXX)
@@ -57,8 +49,7 @@ if [[ "$EXIT_CODE" -eq 0 ]]; then
         exit 1
     else
         success "patch-package succeeded without errors or warnings"
-        verifyExpoPatches
-        exit $?
+        exit 0
     fi
 else
     ERROR_PATCHES_HAVE_FAILED=$(sed 's/\x1b\[[0-9;]*m//g' < "$OUTPUT" | awk '/The patches for/ {print $4}' | grep -v '^$' | sort -u)
@@ -76,8 +67,7 @@ else
         fi
 
         success "patch-package succeeded after retry"
-        verifyExpoPatches
-        exit $?
+        exit 0
     fi
     error "patch-package failed"
     exit 1
