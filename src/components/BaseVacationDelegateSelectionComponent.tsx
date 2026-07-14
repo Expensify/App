@@ -125,15 +125,19 @@ function BaseVacationDelegateSelectionComponent({
         : undefined;
 
     const shouldShowPinnedVacationDelegate = !!pinnedDelegateOption && (!searchValue || !!filterOption(pinnedDelegateOption, debouncedSearchTerm));
+    // Exclude the pinned delegate by both its raw delegate value and its resolved personal-details login.
+    // Compare with the SMS domain stripped and lower-cased so a phone stored as `<phone>@expensify.sms`
+    // still matches a freshly pasted `<phone>` (userToInvite), which would otherwise render the same
+    // contact in both the pinned section and the recents/contacts/invite lists.
+    const normalizeLoginForMatch = (login: string | undefined) => Str.removeSMSDomain(login ?? '').toLowerCase();
+    const pinnedLogins =
+        shouldShowPinnedVacationDelegate && pinnedVacationDelegate ? new Set([normalizeLoginForMatch(pinnedVacationDelegate), normalizeLoginForMatch(pinnedDelegateLogin)]) : undefined;
+    const isPinnedDelegateLogin = (login: string | undefined) => !!pinnedLogins?.has(normalizeLoginForMatch(login));
     const filterPinnedVacationDelegateFromOptions = (options: typeof availableOptions.recentOptions) => {
-        if (!shouldShowPinnedVacationDelegate || !pinnedVacationDelegate) {
+        if (!pinnedLogins) {
             return options;
         }
-        // Exclude the pinned delegate by both its raw delegate value and its resolved personal-details login.
-        // These can differ (e.g. a phone stored with vs. without the SMS domain), which would otherwise render
-        // the same contact in both the pinned section and the recents/contacts list.
-        const pinnedLogins = new Set([pinnedVacationDelegate.toLowerCase(), pinnedDelegateLogin.toLowerCase()]);
-        return options.filter((option) => !pinnedLogins.has(option.login?.toLowerCase() ?? ''));
+        return options.filter((option) => !isPinnedDelegateLogin(option.login));
     };
 
     const sectionsList = [];
@@ -164,7 +168,10 @@ function BaseVacationDelegateSelectionComponent({
         });
     }
 
-    if (availableOptions.userToInvite) {
+    // Skip the invite row when it resolves to the pinned delegate. Otherwise, right after selecting a
+    // freshly pasted number, it briefly renders in both the pinned section and the invite section
+    // (the search term clears on a debounce, so both can be present for one render).
+    if (availableOptions.userToInvite && !isPinnedDelegateLogin(availableOptions.userToInvite.login)) {
         sectionsList.push({
             title: undefined,
             sectionIndex: 3,
