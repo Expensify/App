@@ -4405,6 +4405,22 @@ ${amount} voor ${merchant} - ${date}`,
             inputLabel: 'Belastingnummer rechtspersoon',
             error: {required: 'Vul het fiscale identificatienummer van je rechtspersoon in.'},
         },
+        nudge: {
+            airfareManual:
+                'Hoi! Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via Expensify Travel ✈️',
+            airfareCard:
+                'Hoi! Wist je dat je direct in Expensify vluchten kunt boeken en beheren? En dat het automatisch bonnetjes voor je uploadt? Boek de volgende keer gewoon via Expensify Travel ✈️',
+            hotelManual:
+                'Hoi! Wist je dat je hotelverblijven rechtstreeks in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van handmatig een uitgave aanmaken en boek gewoon via Expensify Travel 🏨',
+            hotelCard: 'Hoi! Wist je dat je hotelovernachtingen rechtstreeks in Expensify kunt boeken en beheren? Boek de volgende keer gewoon via Expensify Travel 🏨',
+            carManual:
+                'Hoi! Wist je dat je autoverhuur direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van je uitgave handmatig aanmaken en boek gewoon via Expensify Travel 🚗',
+            carCard: 'Hoi! Wist je dat je autoverhuur direct in Expensify kunt boeken en beheren? Boek de volgende keer gewoon via Expensify Travel 🚗',
+            railManual:
+                'Hoi! Wist je dat je treinreizen direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van handmatig een uitgave aanmaken en boek gewoon via Expensify Travel 🚂',
+            railCard:
+                'Hoi! Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat bonnetjes automatisch voor je worden geüpload? Boek de volgende keer gewoon via Expensify Travel 🚂',
+        },
     },
     workspace: {
         common: {

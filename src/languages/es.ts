@@ -4286,6 +4286,22 @@ ${amount} para ${merchant} - ${date}`,
         carRental: ' de alquiler de coche',
         nightIn: 'noche en',
         nightsIn: 'noches en',
+        nudge: {
+            airfareManual:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar vuelos directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de Expensify Travel ✈️',
+            airfareCard:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar vuelos directamente en Expensify? ¿Y que además sube los recibos automáticamente por ti? La próxima vez simplemente reserva a través de Expensify Travel ✈️',
+            hotelManual:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar estancias en hoteles directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de Expensify Travel 🏨',
+            hotelCard: '¡Hola! ¿Sabías que puedes reservar y gestionar estancias en hoteles directamente en Expensify? La próxima vez simplemente reserva a través de Expensify Travel 🏨',
+            carManual:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar coches de alquiler directamente en Expensify? La próxima vez, evita la molestia de crear tu gasto manualmente y simplemente reserva a través de Expensify Travel 🚗',
+            carCard: '¡Hola! ¿Sabías que puedes reservar y gestionar alquileres de coche directamente en Expensify? La próxima vez simplemente reserva a través de Expensify Travel 🚗',
+            railManual:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de Expensify Travel 🚂',
+            railCard:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? ¿Y que además sube los recibos automáticamente por ti? La próxima vez simplemente reserva a través de Expensify Travel 🚂',
+        },
     },
     proactiveAppReview: {
         title: '¿Te gusta New Expensify?',

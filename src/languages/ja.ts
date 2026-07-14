@@ -4374,6 +4374,19 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             inputLabel: '法人納税者番号',
             error: {required: '法的事業体の納税者番号を入力してください。'},
         },
+        nudge: {
+            airfareManual:
+                'こんにちは！Expensify では、アプリ内で直接フライトの予約や管理ができることをご存じでしたか？次回からは出費を手入力する手間を省いて、Expensify Travel で簡単に予約しましょう ✈️',
+            airfareCard:
+                'ご存じでしたか？Expensify から直接、航空券の予約や管理ができるのです。そして、領収書も自動でアップロードされます。次回からは Expensify Travel で簡単に予約しましょう ✈️',
+            hotelManual:
+                'こんにちは！Expensify でホテルの予約や滞在の管理ができることをご存じでしたか？次回からは経費を手入力する手間を省き、Expensify Travel からかんたんに予約しましょう 🏨',
+            hotelCard: 'ご存じでしたか？Expensify から直接ホテルの予約や管理ができるようになりました。次回からは Expensify Travel でかんたんに予約しましょう 🏨',
+            carManual: 'こんにちは！Expensify でレンタカーの予約と管理ができることをご存じでしたか？次回からは経費を手入力する手間を省き、Expensify Travel から簡単に予約しましょう。',
+            carCard: 'こんにちは！Expensify でレンタカーの予約や管理ができることをご存じでしたか？次回からは Expensify Travel 経由でかんたんに予約しましょう 🚗',
+            railManual: 'こんにちは！Expensify なら電車の予約や管理もできることをご存じでしたか？次回からは経費を手入力する手間を省いて、Expensify Travel でそのまま予約しましょう 🚂',
+            railCard: 'こんにちは！Expensify で電車の予約や管理ができることをご存じでしたか？しかも領収書も自動でアップロードされます。次回からは Expensify Travel で予約しましょう🚂',
+        },
     },
     workspace: {
         common: {
