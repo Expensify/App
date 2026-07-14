@@ -168,9 +168,12 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
         // Merge in locally-pending expenses, skipping any already in the snapshot so a row never appears twice.
         // A local optimistic ADD always belongs to the current user, so no ownership check is needed (unlike the snapshot path).
         const snapshotTransactionIDs = new Set(snapshotTransactions.map((transaction) => transaction.transactionID));
-        const pendingAddIDs = Object.values(localTransactions ?? {})
-            .filter((transaction): transaction is Transaction => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
-            .map((transaction) => transaction.transactionID);
+        const pendingAddIDs = Object.values(localTransactions ?? {}).reduce<string[]>((ids, transaction) => {
+            if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                ids.push(transaction.transactionID);
+            }
+            return ids;
+        }, []);
         const nextUnconfirmed = new Set([...unconfirmedTransactionIDs, ...pendingAddIDs].filter((transactionID) => !snapshotTransactionIDs.has(transactionID)));
         const combined = [
             ...filtered,
