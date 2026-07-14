@@ -1,7 +1,7 @@
 import {
-    getCompletedStepsForBankAccount,
     getBankAccountConnectionStatus,
     getBankAccountState,
+    getCompletedStepsForBankAccount,
     getDefaultCompanyWebsite,
     getLastFourDigits,
     getRequiredKYBDocuments,
