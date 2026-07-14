@@ -217,12 +217,16 @@ Only suggest screenshots when they meaningfully improve a member's understanding
 
 Suggest a screenshot only if it accomplishes one or more of the following:
 
-* Helps members orient themselves within the product (for example, confirming they are on the correct page)
+* Helps members orient themselves within an interface by confirming they are on the correct page or screen
 * Clarifies a complex or highly visual workflow
-* Highlights an important setting, filter, configuration option, or decision point
-* Demonstrates a product capability that is easier to understand visually
+* Highlights an important setting, filter, configuration option, decision point, or UI element
+* Demonstrates a feature or capability that is easier to understand visually
 * Shows a confirmation state or error message that members should recognize
+* Shows a critical step that cannot be adequately described through text alone, particularly when members must locate a specific page, setting, or control
 * Addresses an area that is likely to generate member confusion or support questions
+* Guides members through a workflow in a connected third-party platform, where a screenshot can help them locate the correct page, setting, or control. 
+
+The interface may be Expensify or a connected third-party platform.
 
 Do **not** suggest a screenshot if it would:
 
