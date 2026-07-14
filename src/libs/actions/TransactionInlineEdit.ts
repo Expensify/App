@@ -324,6 +324,7 @@ function editTransactionMerchantInline(params: TransactionInlineEditParams, newM
     }
 
     const iouParams = getIouParamsForTransaction(params);
+
     updateMoneyRequestMerchant({
         ...iouParams,
         value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
