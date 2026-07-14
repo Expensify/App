@@ -7,7 +7,6 @@ import type {Policy, Session} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useIsFocused} from '@react-navigation/native';
 import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useCallback, useEffect, useMemo, useState} from 'react';
@@ -60,9 +59,13 @@ type UseSearchTypeMenuSectionsParams = {
 
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
- * currently focused search, based on the hash
+ * currently focused search, based on the hash.
+ *
+ * `isScreenFocused` gates the reports-awaiting-approval watch so an off-screen consumer stops recomputing it. It
+ * defaults to `true` (always watch) for consumers rendered outside a navigator or where focus can't be tracked
+ * reliably, so this hook never depends on a navigation context itself.
  */
-const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams) => {
+const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams, isScreenFocused = true) => {
     const {hash, similarSearchHash, sortBy, sortOrder, type} = queryParams ?? {};
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
@@ -76,10 +79,8 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // A report awaiting the current user's approval makes the "Needs approval" suggested search relevant even when they
-    // are not part of the policy's approval workflow (e.g. an approver chosen manually on a single report). Gate it on
-    // focus so it doesn't recompute off-screen on background Onyx writes.
-    const isFocused = useIsFocused();
-    const hasReportAwaitingApproval = useHasReportAwaitingApproval(isFocused);
+    // are not part of the policy's approval workflow (e.g. an approver chosen manually on a single report).
+    const hasReportAwaitingApproval = useHasReportAwaitingApproval(isScreenFocused);
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );

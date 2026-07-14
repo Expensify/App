@@ -15,9 +15,10 @@ import {useOnyx} from 'react-native-onyx';
  * (reports, transactions, policies, report metadata) and computes just the approve bucket, so it does not
  * recompute on the frequent report-action / NVP writes the full to-do classification listens to.
  *
- * Pass `enabled: false` (e.g. an unfocused screen) to freeze the result and skip recomputation on background writes.
+ * Pass `shouldWatchForApprovals: false` (e.g. an unfocused screen) to freeze the result: while off it skips the
+ * classification and returns the last computed value, so it stops recomputing on background Onyx writes.
  */
-function useHasReportAwaitingApproval(enabled = true): boolean {
+function useHasReportAwaitingApproval(shouldWatchForApprovals = true): boolean {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -27,7 +28,8 @@ function useHasReportAwaitingApproval(enabled = true): boolean {
     // Holds the last computed result so a frozen (inactive) consumer can keep returning it without recomputing.
     const [frozen, setFrozen] = useState<boolean | null>(null);
 
-    if (!enabled && frozen !== null) {
+    // While frozen, reuse the last captured result and skip the classification below.
+    if (!shouldWatchForApprovals && frozen !== null) {
         return frozen;
     }
 
