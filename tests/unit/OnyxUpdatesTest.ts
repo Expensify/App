@@ -162,6 +162,43 @@ describe('OnyxUpdatesTest', () => {
         updateSpy.mockRestore();
     });
 
+    it('does not move the watermark backwards when a slower older update settles after a newer one', async () => {
+        // Given the client is caught up to update 10
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+
+        // And an update for id 20 is applying, but its apply is held mid-flight
+        let releaseApply: () => void = () => {};
+        const updateSpy = jest.spyOn(Onyx, 'update').mockReturnValueOnce(
+            new Promise<void>((resolve) => {
+                releaseApply = resolve;
+            }),
+        );
+
+        const applyPromise = OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 10,
+            lastUpdateID: 20,
+            request: {command: 'OpenReport', data: {apiRequestType: CONST.API_REQUEST_TYPE.READ}},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${NumberUtils.rand64()}`, value: {}}]},
+        });
+
+        // When a newer update (id 30) lands first
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 30);
+        await waitForBatchedUpdates();
+
+        // And only then does the older update finish applying
+        releaseApply();
+        await applyPromise;
+        await waitForBatchedUpdates();
+
+        // Then the watermark stays at 30 — the older update must not move it backwards to 20
+        const lastUpdateID = await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+        expect(lastUpdateID).toBe(30);
+
+        updateSpy.mockRestore();
+    });
+
     it('applies full ReconnectApp Onyx updates even if they appear old', async () => {
         // Given the current lastUpdateIDAppliedToClient is merged
         const currentUpdateID = 100;

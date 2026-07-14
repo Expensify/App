@@ -170,7 +170,12 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
     const advanceLastUpdateIDAfterApply = <T>(promise: Promise<T>): Promise<T> =>
         promise
             .then((result) => {
-                if (shouldAdvanceLastUpdateID) {
+                // Deferred updates apply concurrently (Promise.all) and can settle out of order, so re-check the
+                // live watermark and only ever move it forward. Otherwise a slower, older update could overwrite a
+                // newer one, moving the watermark backwards and making gap detection refetch already-applied updates.
+                // The in-memory value is updated synchronously so concurrent settles in the same batch stay monotonic.
+                if (shouldAdvanceLastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
+                    lastUpdateIDAppliedToClient = Number(lastUpdateID);
                     Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
                 }
                 return result;
