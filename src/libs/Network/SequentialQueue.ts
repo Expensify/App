@@ -561,8 +561,6 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
             transactionID?: string;
             receipt?: {receiptTraceId?: string};
         };
-        // Only log when there is a receipt at data.receipt. SplitBill nests it in the splits JSON, and SendMoney and
-        // friends can run without one. A row without a trace id cannot be joined to the capture log, so it is just noise.
         if (data.receipt) {
             logReceiptEnqueued({
                 receiptTraceId: data.receipt.receiptTraceId,
@@ -573,9 +571,6 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
         }
     }
 
-    // Save the request to the persisted queue. The in-memory update inside save()
-    // happens synchronously, so flush() below will see the new request immediately.
-    // The returned promise resolves when disk persistence completes.
     let persistencePromise: Promise<void>;
 
     if (newRequest.checkAndFixConflictingRequest) {

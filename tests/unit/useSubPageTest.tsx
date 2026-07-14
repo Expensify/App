@@ -631,6 +631,55 @@ describe('useSubPage hook', () => {
         });
     });
 
+    describe('shouldReplaceRoute (dynamic routes)', () => {
+        it('replaces the route when navigating forward', () => {
+            const pages = createMockPages();
+            const buildRoute = createBuildRoute();
+            mockUseRoute.mockReturnValue({
+                name: 'TestRoute',
+                key: 'test-key',
+                params: {subPage: 'page1'},
+            } as AnyRoute);
+
+            const {result} = renderHook(() =>
+                useSubPage({
+                    pages,
+                    onFinished: mockOnFinished,
+                    buildRoute,
+                    shouldReplaceRoute: true,
+                }),
+            );
+
+            result.current.nextPage();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('page2'), {forceReplace: true});
+        });
+
+        it('replaces the route (instead of popping) when navigating back', () => {
+            const pages = createMockPages();
+            const buildRoute = createBuildRoute();
+            mockUseRoute.mockReturnValue({
+                name: 'TestRoute',
+                key: 'test-key',
+                params: {subPage: 'page2'},
+            } as AnyRoute);
+
+            const {result} = renderHook(() =>
+                useSubPage({
+                    pages,
+                    onFinished: mockOnFinished,
+                    buildRoute,
+                    shouldReplaceRoute: true,
+                }),
+            );
+
+            result.current.prevPage();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('page1'), {forceReplace: true});
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+        });
+    });
+
     describe('error handling', () => {
         it('throws an error when all pages are skipped', () => {
             const pages = createMockPages();

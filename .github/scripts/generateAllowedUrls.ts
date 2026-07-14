@@ -5,7 +5,7 @@ import path from 'path';
  * Script to extract all URLs from help articles and generate a whitelist.
  * Run this at build time to update the allowed URLs list.
  *
- * Usage: npx ts-node .github/scripts/generateAllowedUrls.ts
+ * Usage: bun .github/scripts/generateAllowedUrls.ts
  */
 
 const DOCS_DIR = path.join(__dirname, '..', '..', 'docs');
