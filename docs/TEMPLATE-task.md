@@ -1,3 +1,7 @@
+# Task Articles
+
+Task articles should describe things the user intentionally does. Outcomes, consequences, and eligibility rules belong inside those task articles or in related topic articles.
+
 ---
 title: Clear task-based title using the feature name
 description: A concise summary of the article for search results.
