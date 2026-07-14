@@ -13,6 +13,7 @@ import {isDuplicate} from '@libs/TransactionUtils';
 
 import {createTransactionThreadReport} from '@userActions/Report';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
@@ -39,7 +40,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
 
     return (
         <Button
-            variant="success"
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => {
                 let threadID: string | undefined | null = transactionThreadReportID;
                 if (!threadID) {

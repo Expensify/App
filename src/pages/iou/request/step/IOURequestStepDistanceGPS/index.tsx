@@ -39,7 +39,7 @@ function IOURequestStepDistanceGPS(props: IOURequestStepDistanceGPSProps) {
 
             <Button
                 onPress={() => Linking.openURL(CONST.EXPENSIFY_MOBILE_URL)}
-                variant="success"
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_OPEN_MOBILE_BUTTON}
             >
                 <Button.Text>{translate('gps.desktop.button')}</Button.Text>

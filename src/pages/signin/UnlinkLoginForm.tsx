@@ -66,7 +66,7 @@ function UnlinkLoginForm() {
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     isLoading={account?.isLoading && account.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
                     onPress={() => requestUnlinkValidationLink()}
                     isDisabled={!!isOffline || !!account?.message}

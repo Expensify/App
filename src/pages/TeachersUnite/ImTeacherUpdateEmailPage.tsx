@@ -48,7 +48,7 @@ function ImTeacherUpdateEmailPage() {
             />
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     accessibilityLabel={translate('teachersUnitePage.updateEmail')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRouteWithoutParams()))}

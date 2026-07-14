@@ -130,7 +130,7 @@ function DebugTransactionViolationCreatePage({
                         </View>
                         <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                         <Button
-                            variant="success"
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             isDisabled={!draftTransactionViolation || !!error}
                             onPress={createTransactionViolation}
                         >

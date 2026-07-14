@@ -93,7 +93,7 @@ function BaseDomainRequireTwoFactorAuthPage({domainAccountID, onSubmit, onBackBu
                     </ScrollView>
                     <FixedFooter style={[styles.mt2, styles.pt2]}>
                         <Button
-                            variant="success"
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             isLoading={!!pendingAction}
                             onPress={() => baseTwoFactorAuthRef.current?.validateAndSubmitForm()}

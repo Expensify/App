@@ -216,7 +216,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const joinButton = (
         <Button
-            variant="success"
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={join}
         >
             <Button.Text>{translate('common.join')}</Button.Text>

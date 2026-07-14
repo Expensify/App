@@ -42,7 +42,7 @@ Default.args = {
     containerStyle: defaultStyles.iouAmountTextInputContainer,
     footer: (
         <Button
-            variant="success"
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={CONST.BUTTON_SIZE.LARGE}
             onPress={() => {
                 alert('Submitted');

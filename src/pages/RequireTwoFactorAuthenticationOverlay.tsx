@@ -90,7 +90,7 @@ function RequireTwoFactorAuthenticationOverlay() {
                             </View>
                             <Button
                                 size={CONST.BUTTON_SIZE.LARGE}
-                                variant="success"
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 onPress={navigateToTwoFactorAuth}
                             >
                                 <Button.KeyboardShortcut />

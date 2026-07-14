@@ -193,7 +193,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     />
                 )}
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={confirmSelection}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isDisabled={shouldShowErrorMessage}

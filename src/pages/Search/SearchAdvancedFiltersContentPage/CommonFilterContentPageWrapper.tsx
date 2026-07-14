@@ -24,7 +24,7 @@ function CommonFilterContentPageWrapper({filterKey, value: initialValue, type, p
             onChange={setValue}
             footer={
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => onChange(value)}
                 >

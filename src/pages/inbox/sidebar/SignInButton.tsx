@@ -24,7 +24,7 @@ function SignInButton() {
         >
             <View style={[styles.signInButtonAvatar, styles.ph2]}>
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         signOutAndRedirectToSignIn();
                     }}

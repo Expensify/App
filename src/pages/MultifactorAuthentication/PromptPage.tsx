@@ -68,7 +68,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                 <FixedFooter style={[styles.flexColumn, styles.gap3]}>
                     {shouldDisplayConfirmButton ? (
                         <Button
-                            variant="success"
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             onPress={approveSoftPrompt}
                         >

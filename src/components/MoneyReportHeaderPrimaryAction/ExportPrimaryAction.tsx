@@ -11,6 +11,7 @@ import {isExported as isExportedUtils} from '@libs/ReportUtils';
 
 import {exportToIntegration} from '@userActions/Report';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -32,7 +33,7 @@ function ExportPrimaryAction({reportID, onExportModalOpen}: ExportPrimaryActionP
 
     return (
         <Button
-            variant="success"
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => {
                 if (!connectedIntegration || !moneyRequestReport) {
                     return;

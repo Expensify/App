@@ -166,7 +166,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
             {isSomethingElseSelected && (
                 <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
                     <Button
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={submitSomethingElseGoal}
                     >

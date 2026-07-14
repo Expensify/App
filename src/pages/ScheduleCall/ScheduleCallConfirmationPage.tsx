@@ -139,7 +139,7 @@ function ScheduleCallConfirmationPage() {
                 </ScrollView>
                 <FixedFooter>
                     <Button
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={confirm}
                     >

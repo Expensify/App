@@ -424,7 +424,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
 
             <FixedFooter style={[styles.pt3, styles.ph5]}>
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={submitInterestedFeatures}
                     isDisabled={isOffline}

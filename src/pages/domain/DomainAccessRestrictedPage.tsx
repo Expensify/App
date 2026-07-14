@@ -96,7 +96,7 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
             </ScrollView>
             <FixedFooter>
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(domainAccountID))}
                 >

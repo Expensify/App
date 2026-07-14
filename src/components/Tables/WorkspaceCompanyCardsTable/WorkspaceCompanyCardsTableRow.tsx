@@ -191,7 +191,7 @@ function WorkspaceCompanyCardTableRow({
                         {!isAssigned && canWriteCompanyCards && (
                             <Button
                                 size={CONST.BUTTON_SIZE.SMALL}
-                                variant="success"
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 onPress={assignCardOrOpenDetails}
                                 isDisabled={isAssigningCardDisabled}
                             >

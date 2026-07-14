@@ -222,7 +222,7 @@ function Confirmation() {
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
                         <Button
-                            variant="success"
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => {
                                 isDismissingRef.current = true;
                                 if (!isReportOwner) {

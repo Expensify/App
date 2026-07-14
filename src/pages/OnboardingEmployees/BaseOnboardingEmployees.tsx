@@ -135,7 +135,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 />
             )}
             <Button
-                variant="success"
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 onPress={submitCompanySize}
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}

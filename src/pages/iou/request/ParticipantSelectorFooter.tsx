@@ -77,7 +77,7 @@ function ParticipantSelectorFooter({
 
             {!!selectedOptionsLength && !isCategorizeOrShareAction && (
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onConfirmSelection}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isDisabled={shouldShowSplitBillErrorMessage}
@@ -89,7 +89,7 @@ function ParticipantSelectorFooter({
             )}
             {isCategorizeOrShareAction && (
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onNewWorkspace}
                     size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_NEW_WORKSPACE_BUTTON}

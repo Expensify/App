@@ -235,7 +235,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                     )}
                     <Button
                         size={CONST.BUTTON_SIZE.LARGE}
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={validateAndContinue}
                         isDisabled={!isEmptyObject(hasErrors)}
                     >

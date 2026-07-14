@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getNextApproverAccountID, isReportOwner, shouldShowMarkAsDone} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
@@ -41,7 +42,7 @@ function ApprovePrimaryAction({reportID}: ApprovePrimaryActionProps) {
 
     return (
         <Button
-            variant="success"
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={confirmApproval}
             isDisabled={isBlockSubmitDueToPreventSelfApproval}
         >

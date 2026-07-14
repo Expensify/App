@@ -154,7 +154,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                 </ScrollView>
                 <FixedFooter style={styles.ph5}>
                     <Button
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={mergeExpenses}
                         size={CONST.BUTTON_SIZE.LARGE}
                     >

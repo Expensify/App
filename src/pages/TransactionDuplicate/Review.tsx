@@ -275,7 +275,7 @@ function TransactionDuplicateReview() {
                         </Button>
                         {!hasSettledOrApprovedTransaction && (
                             <Button
-                                variant="success"
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 onPress={keepSelected}
                                 isDisabled={!selectedTransaction || !selectedTransactionReport}

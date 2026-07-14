@@ -60,7 +60,7 @@ function WorkspaceOwnerRestrictedAction() {
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.mb5]}>{translate('workspace.restrictedAction.youWillNeedToAddOrUpdatePaymentCard')}</Text>
                     <Button
                         onPress={addPaymentCard}
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                     >
                         <Button.Text>{translate('workspace.restrictedAction.addPaymentCard')}</Button.Text>

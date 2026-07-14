@@ -64,7 +64,7 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
                 </View>
                 <Button
                     onPress={openAdminsReport}
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                 >
                     <Button.Text>{translate('workspace.restrictedAction.chatInAdmins')}</Button.Text>

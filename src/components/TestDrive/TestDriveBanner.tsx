@@ -29,7 +29,7 @@ function TestDriveBanner({onPress}: TestDriveBannerProps) {
                         : `${translate('testDrive.banner.currentlyTestDrivingExpensify')}. ${translate('testDrive.banner.readyForTheRealThing')}`}
                 </Text>
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={onPress}
                 >

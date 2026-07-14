@@ -259,7 +259,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 )}
 
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={submitAccounting}
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
