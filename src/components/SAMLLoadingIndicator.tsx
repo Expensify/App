@@ -18,7 +18,7 @@ function SAMLLoadingIndicator() {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     return (
-        <View style={[StyleSheet.absoluteFill, styles.deeplinkWrapperContainer]}>
+        <View style={[StyleSheet.absoluteFillObject, styles.deeplinkWrapperContainer]}>
             <View style={styles.deeplinkWrapperMessage}>
                 <View style={styles.mb2}>
                     <Icon

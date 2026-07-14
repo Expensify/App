@@ -118,15 +118,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     }
 
     return (
-        <Text
-            style={[
-                containsOnlyEmojis && styles.onlyEmojisText,
-                styles.ltr,
-                style,
-                !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
-                styles.overflowVisible,
-            ]}
-        >
+        <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style, !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone]}>
             <ZeroWidthView
                 text={text}
                 displayAsGroup={displayAsGroup}

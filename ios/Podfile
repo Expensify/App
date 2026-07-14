@@ -111,8 +111,6 @@ target 'NewExpensify' do
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
-        config.build_settings['HEADER_SEARCH_PATHS'] ||= '$(inherited) '
-        config.build_settings['HEADER_SEARCH_PATHS'] << '"${PODS_ROOT}/../../node_modules/react-native/ReactCommon/jsitooling" '
       end
 
       if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"

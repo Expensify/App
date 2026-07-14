@@ -1,6 +1,6 @@
 # `expo-image-manipulator` patches
 
-### [expo-image-manipulator+56.0.16+001+adjust-ios-canvas-size.patch](expo-image-manipulator+56.0.16+001+adjust-ios-canvas-size.patch)
+### [expo-image-manipulator+55.0.2+001+adjust-ios-canvas-size.patch](expo-image-manipulator+55.0.2+001+adjust-ios-canvas-size.patch)
 
 - Reason:
   

@@ -1,8 +1,7 @@
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
-index 4c91353..3b1948b 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
-@@ -1483,9 +1483,16 @@ static NSString *RCTRecursiveAccessibilityLabel(UIView *view)
+@@ -1440,9 +1440,16 @@
          addObject:RCTLocalizedString(
                        "mixed", "a checkbox, radio button, or other widget which is both checked and unchecked")];
    }
@@ -20,5 +19,5 @@ index 4c91353..3b1948b 100644
 +                        "collapsed", "a menu, dialog, accordian panel, or other widget which is collapsed")];
 +    }
    }
- 
+
    if (accessibilityState.busy) {

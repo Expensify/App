@@ -12,10 +12,11 @@ index bfbff89..8287bb1 100644
        contextContainer_(schedulerToolbox.contextContainer) {
    // Creating a container for future `EventDispatcher` instance.
    eventDispatcher_ = std::make_shared<std::optional<const EventDispatcher>>();
-@@ -163,6 +164,11 @@ Scheduler::~Scheduler() {
+@@ -151,6 +152,11 @@ Scheduler::~Scheduler() {
    LOG(WARNING) << "Scheduler::~Scheduler() was called (address: " << this
                 << ").";
-
+-
++
 +  // Invalidate any deferred rendering-update lambdas that captured the current
 +  // raw delegate_ pointer. Scheduler is being destroyed, so those lambdas must
 +  // no-op instead of dereferencing a delegate that may have been torn down.
@@ -24,7 +25,7 @@ index bfbff89..8287bb1 100644
    auto weakRuntimeScheduler =
        contextContainer_->find<std::weak_ptr<RuntimeScheduler>>(
            RuntimeSchedulerKey);
-@@ -254,2 +260,10 @@ void Scheduler::setDelegate(SchedulerDelegate* delegate) {
+@@ -243,2 +249,10 @@ void Scheduler::setDelegate(SchedulerDelegate* delegate) {
  void Scheduler::setDelegate(SchedulerDelegate* delegate) {
 +  if (delegate_ != delegate) {
 +    // Queued lambdas capture this shared token by value. Invalidate the old
@@ -35,10 +36,11 @@ index bfbff89..8287bb1 100644
 +  }
 +
    delegate_ = delegate;
-@@ -280,10 +295,15 @@ void Scheduler::uiManagerDidFinishTransaction(
+@@ -270,10 +285,15 @@ void Scheduler::uiManagerDidFinishTransaction(
      if (!mountSynchronously) {
        auto surfaceId = mountingCoordinator->getSurfaceId();
-
+-
++
        runtimeScheduler_->scheduleRenderingUpdate(
            surfaceId,
            [delegate = delegate_,
@@ -51,7 +53,7 @@ index bfbff89..8287bb1 100644
              delegate->schedulerShouldRenderTransactions(mountingCoordinator);
            });
      } else {
-@@ -309,9 +329,14 @@ void Scheduler::uiManagerDidDispatchCommand(
+@@ -297,9 +317,14 @@ void Scheduler::uiManagerDidDispatchCommand(
      runtimeScheduler_->scheduleRenderingUpdate(
          shadowNode->getSurfaceId(),
          [delegate = delegate_,
@@ -71,16 +73,20 @@ index 26e2943..c317c77 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
 @@ -7,6 +7,7 @@
-
+-
++
  #pragma once
-
+-
++
 +#include <atomic>
  #include <memory>
-
+-
++
  #include <ReactCommon/RuntimeExecutor.h>
-@@ -121,6 +122,11 @@ class Scheduler final : public UIManagerDelegate {
+@@ -120,6 +121,11 @@ class Scheduler final : public UIManagerDelegate {
    friend class SurfaceHandler;
-
+-
++
    SchedulerDelegate *delegate_;
 +  // Captured by deferred RuntimeScheduler rendering-update lambdas. The token
 +  // is invalidated when the delegate changes or Scheduler is destroyed so

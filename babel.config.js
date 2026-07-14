@@ -1,12 +1,6 @@
 require('dotenv').config();
-/**
- * Expo SDK 56 replaces global fetch with expo/fetch unless this is set at transform time.
- * metro.config.js sets it for the Metro process; babel needs it here so release bundles inline the value.
- */
-process.env.EXPO_PUBLIC_USE_RN_FETCH = process.env.EXPO_PUBLIC_USE_RN_FETCH ?? '1';
 
 const BaseReactCompilerConfig = require('./config/babel/reactCompilerConfig');
-const {expoInlineEnvVars} = require('babel-preset-expo/build/plugins/inline-env-vars');
 
 const ReactCompilerConfig = {
     ...BaseReactCompilerConfig,
@@ -35,9 +29,6 @@ const metro = {
         // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
         // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
         '@babel/plugin-transform-flow-strip-types',
-
-        // Inline EXPO_PUBLIC_* env vars into release bundles (e.g. EXPO_PUBLIC_USE_RN_FETCH to keep RN fetch).
-        expoInlineEnvVars,
 
         ['@babel/plugin-proposal-class-properties', {loose: true}],
         ['@babel/plugin-proposal-private-methods', {loose: true}],

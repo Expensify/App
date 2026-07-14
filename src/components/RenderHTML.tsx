@@ -1,5 +1,4 @@
 import useHasTextAncestor from '@hooks/useHasTextAncestor';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import Parser from '@libs/Parser';
@@ -49,7 +48,6 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
         throw new Error('RenderHTML must not be rendered inside a <Text> component, as it will break the layout on iOS. Render it as a sibling instead.');
     }
 
-    const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const html = useMemo(() => {
         return (
@@ -94,7 +92,7 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
 
     return onLinkPress || onConciergeLinkPress ? (
         <RenderHTMLConfigProvider
-            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false, style: styles.overflowVisible}}
+            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false}}
             renderersProps={renderersProps}
             renderers={renderers}
         >

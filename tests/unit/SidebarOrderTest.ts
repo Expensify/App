@@ -79,8 +79,8 @@ describe('Sidebar', () => {
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate
-    afterEach(async () => {
-        await Onyx.clear([ONYXKEYS.SESSION]);
+    afterEach(() => {
+        Onyx.clear();
     });
 
     describe('in default mode', () => {
