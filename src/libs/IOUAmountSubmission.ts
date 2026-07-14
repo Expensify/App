@@ -44,6 +44,7 @@ import Navigation from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
 import {getParticipantsOption, getReportOption} from './OptionsListUtils';
 import Permissions from './Permissions';
+import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isSelfDM, shouldEnableNegative} from './ReportUtils';
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from './TransactionUtils';
@@ -532,6 +533,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         delegateAccountID,
         policyRecentlyUsedCurrencies,
         allReports,
+        allPersonalDetails,
         navigateBack,
     } = args;
     const {currentTransaction, allowNegative, disableOppositeConversion, isSplitBill, currentUserAccountID, currentUserEmail, isASAPSubmitBetaEnabled, newAmount} = ctx;
@@ -567,6 +569,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         transactionID,
         transactionThreadReport: report,
         parentReport,
+        iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, allPersonalDetails),
         parentReportNextStep,
         transactions: duplicateTransactions,
         transactionViolations: duplicateTransactionViolations,
