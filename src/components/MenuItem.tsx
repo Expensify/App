@@ -39,6 +39,7 @@ import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {DisplayNameWithTooltip} from './DisplayNames/types';
+import type HoverableProps from './Hoverable/types';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 
 import ActivityIndicator from './ActivityIndicator';
@@ -82,7 +83,8 @@ type NoIcon = {
 };
 
 type MenuItemBaseProps = ForwardedFSClassProps &
-    WithSentryLabel & {
+    WithSentryLabel &
+    Pick<HoverableProps, 'shouldUseNativeHoverEvents'> & {
         /** Reference to the outer element */
         ref?: PressableRef | Ref<View>;
 
@@ -450,9 +452,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
-
-        /** Track hover with native DOM listeners instead of React synthetic events for rows that open a portalled popover (web only). */
-        shouldUseNativeHoverEvents?: boolean;
 
         /** Additional styles for the root wrapper View */
         rootWrapperStyle?: StyleProp<ViewStyle>;
