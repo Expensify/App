@@ -1,15 +1,19 @@
-import {addMonths, format, isPast, setDate} from 'date-fns';
-import {Str} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {IntroSelected, Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {addMonths, format, isPast, setDate} from 'date-fns';
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import isTrackOnboardingChoice from './OnboardingUtils';
@@ -59,7 +63,7 @@ type BuildNextStepNewParams = {
 
 function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
-    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '');
+    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '');
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
     if (nextStep.actorAccountID === currentUserAccountID) {
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
@@ -379,6 +383,7 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
 function getReportNextStep(
     currentNextStep: ReportNextStepDeprecated | undefined,
     moneyRequestReport: OnyxEntry<Report>,
+    moneyRequestReportOwnerLogin: string | undefined,
     transactions: Array<OnyxEntry<Transaction>>,
     policy: OnyxEntry<Policy>,
     transactionViolations: OnyxCollection<TransactionViolations>,
@@ -396,7 +401,9 @@ function getReportNextStep(
         isOpenExpenseReport(moneyRequestReport) &&
         transactions.length > 0 &&
         transactions.every(
-            (transaction) => !!transaction && hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, policy),
+            (transaction) =>
+                !!transaction &&
+                hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, moneyRequestReportOwnerLogin, policy),
         )
     ) {
         // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner

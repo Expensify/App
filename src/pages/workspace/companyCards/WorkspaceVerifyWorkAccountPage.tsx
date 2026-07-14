@@ -1,27 +1,34 @@
-import React, {useEffect, useState} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
+
 import {getFeedInfo} from '@libs/CardFeedUtils';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {updateSelectedFeed} from '@userActions/Card';
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import React, {useEffect, useState} from 'react';
 
 type WorkspaceVerifyWorkAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_VERIFY_WORK_EMAIL>;
 
@@ -44,7 +51,7 @@ function WorkspaceVerifyWorkAccountPageContent({route}: WorkspaceVerifyWorkAccou
         if (!workEmail) {
             return;
         }
-        resendValidateCode(workEmail);
+        resendValidateCode({reasonCode: null}, workEmail);
     };
 
     const validateAccountAndMerge = (validateCode: string) => {

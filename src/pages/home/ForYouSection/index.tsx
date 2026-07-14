@@ -1,8 +1,6 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -10,16 +8,27 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
+
+import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import {accountIDSelector} from '@src/selectors/Session';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+
 import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
+import shouldHideForYouSection from './shouldHideForYouSection';
 import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
 
 function ForYouSection() {
@@ -36,6 +45,12 @@ function ForYouSection() {
     const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const isFocused = useIsFocused();
     const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
+    // The onboarding NVP defaults to "completed" before it loads, so only trust it once the value is present.
+    const isOnboardingStatusKnown = onboarding !== undefined;
+    const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
@@ -163,8 +178,17 @@ function ForYouSection() {
         </View>
     );
 
+    const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData);
+
+    // Persist a one-time flag the first time a to-do appears so the section stays visible even when later empty.
+    useEffect(() => {
+        if (isInitialLoad || !hasAnyTodos || hasSeenForYouTodo) {
+            return;
+        }
+        setHasSeenForYouTodo();
+    }, [isInitialLoad, hasAnyTodos, hasSeenForYouTodo]);
+
     const renderContent = () => {
-        const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData);
         if (isInitialLoad) {
             const reasonAttributes: SkeletonSpanReasonAttributes = {
                 context: 'ForYouSection.ForYouSkeleton',
@@ -177,6 +201,20 @@ function ForYouSection() {
 
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;
     };
+
+    if (
+        shouldHideForYouSection({
+            isInitialLoad,
+            hasAnyTodos,
+            hasSeenTodo: hasSeenForYouTodo,
+            firstDayFreeTrial,
+            cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE,
+            isOnboardingCompleted,
+            isOnboardingStatusKnown,
+        })
+    ) {
+        return null;
+    }
 
     return <WidgetContainer title={translate('homePage.forYou')}>{renderContent()}</WidgetContainer>;
 }

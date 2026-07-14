@@ -1,8 +1,10 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+
 import React from 'react';
 import {ScrollView, View} from 'react-native';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {TNodeRenderer} from 'react-native-render-html';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 function TableRenderer({tnode}: CustomRendererProps<TBlock>) {
     const styles = useThemeStyles();

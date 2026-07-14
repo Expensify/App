@@ -1,5 +1,6 @@
-import React from 'react';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+
+import React from 'react';
 import {TNodeRenderer} from 'react-native-render-html';
 
 /**

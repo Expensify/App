@@ -1,5 +1,8 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {sortAndSectionPopoverMenuItems} from '@libs/PopoverMenuSections';
+
+import {REPORT_MORE_MENU_SECTIONS, sortAndSectionPopoverMenuItems} from '@libs/PopoverMenuSections';
+
+import CONST from '@src/CONST';
 
 function makeItem(value: string): DropdownOption<string> {
     return {text: value, value};
@@ -48,5 +51,15 @@ describe('sortAndSectionPopoverMenuItems', () => {
         const result = sortAndSectionPopoverMenuItems([makeItem('D')], sections);
 
         expect(result).toEqual([{text: 'D', value: 'D'}]);
+    });
+
+    it('keeps the received payment action in the first section instead of pushing it to the end', () => {
+        expect(REPORT_MORE_MENU_SECTIONS.at(0)).toContain(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT);
+
+        const items = [makeItem(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT), makeItem(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS)];
+        const result = sortAndSectionPopoverMenuItems(items, REPORT_MORE_MENU_SECTIONS);
+
+        expect(result.at(0)?.value).toBe(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT);
+        expect(result.at(0)?.addSeparatorBefore).toBeUndefined();
     });
 });

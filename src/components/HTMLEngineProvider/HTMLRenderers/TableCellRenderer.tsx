@@ -1,10 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
+import Text from '@components/Text';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {FlexStyle, TextStyle} from 'react-native';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+
+import React from 'react';
+import {View} from 'react-native';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
-import Text from '@components/Text';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 type CellAlignment = {
     alignItems: FlexStyle['alignItems'];

@@ -1,8 +1,10 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
+
 import React from 'react';
 import {View} from 'react-native';
-import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
 import {TNodeRenderer} from 'react-native-render-html';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 function getElementChildren(node: TNode | null | undefined): TNode[] {
     return node?.children?.filter((child) => !!child.tagName) ?? [];
