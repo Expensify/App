@@ -23,6 +23,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
@@ -35,12 +36,14 @@ import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/action
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIsWorkspacesOnlyForTransaction,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isParticipantP2P,
+    isSelfDMSoleDestination,
     navigateToStartMoneyRequestStep,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
@@ -54,7 +57,7 @@ import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismiss
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {findSelfDMReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -67,7 +70,7 @@ import {
     isScanRequest,
 } from '@libs/TransactionUtils';
 
-import {getIOURequestPolicyID, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {getIOURequestPolicyID, setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 
@@ -84,7 +87,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -124,6 +127,7 @@ function IOURequestStepConfirmation({
     const participantsAutoAssignedFromRoute = route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION ? (params as StepConfirmationParams).participantsAutoAssigned : undefined;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
     const personalDetails = usePersonalDetails();
     const allPolicyCategories = usePolicyCategories();
@@ -185,6 +189,10 @@ function IOURequestStepConfirmation({
         reportPolicyID: realPolicyID ?? draftPolicyID,
         action,
         iouType,
+        // Forward the draft policy so a freshly created draft workspace (e.g. "Submit to my employer" with no existing
+        // workspace) resolves here. Without it `policy` is undefined for drafts, `isDraftPolicy` is false, and the submit
+        // is routed to ConvertTrackedExpenseToRequest (which needs a real payer) instead of AddTrackedExpenseToPolicy.
+        policyDraft,
         isPerDiemRequest,
     });
     const policyID = policy?.id;
@@ -227,6 +235,7 @@ function IOURequestStepConfirmation({
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const receiptFilename = transaction?.receipt?.filename;
@@ -272,10 +281,10 @@ function IOURequestStepConfirmation({
                 // is designed for report-backed participants and discards participant.text, so route
                 // any participant without a reportID to getParticipantsOption instead.
                 return participant.accountID || !participant.reportID
-                    ? getParticipantsOption(participant, personalDetails)
+                    ? getParticipantsOption(participant, personalDetails, translate)
                     : getReportOption(participant, privateIsArchived, participantPolicy, personalDetails, conciergeReportID, reportAttributesDerived, participantReportDraft);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, participantsPolicies, policy, conciergeReportID, reportDrafts],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, participantsPolicies, policy, conciergeReportID, reportDrafts, translate],
     );
 
     const sourceReportID = transaction?.reportID ?? reportID;
@@ -341,15 +350,55 @@ function IOURequestStepConfirmation({
                 }
                 setMoneyRequestParticipants(activeTransactionID, participantsList);
                 const firstParticipant = participantsList.at(0);
-                if (iouType !== CONST.IOU.TYPE.SPLIT) {
-                    setTransactionReport(activeTransactionID, {reportID: firstParticipant?.reportID ?? reportID}, true);
+                if (iouType !== CONST.IOU.TYPE.SPLIT && firstParticipant) {
+                    const isPolicyExpenseChatParticipant = !!firstParticipant.isPolicyExpenseChat;
+
+                    // A brand-new recipient picked by email has no chat yet (no reportID). Reusing the route's `reportID`
+                    // (which points at the flow's origin report - e.g. the default workspace chat this distance flow was
+                    // seeded with) leaves the expense bound to that workspace, so the backend rejects it with
+                    // "There is a previously existing chat between these users." Generate a fresh optimistic reportID for
+                    // P2P recipients, mirroring the legacy participants-step flow (useParticipantSubmission).
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    const participantReportID = firstParticipant.reportID || (isPolicyExpenseChatParticipant ? reportID : generateReportID());
+                    setTransactionReport(activeTransactionID, {reportID: participantReportID}, true);
+
+                    // When switching from the auto-assigned default workspace to a P2P recipient we must also undo the
+                    // workspace-specific defaults the distance step applied: reset the mileage rate to the P2P rate and
+                    // clear the workspace's default category (and the category-derived tax). Otherwise the confirmation
+                    // keeps the workspace "Default Rate"/category and the expense stays bound to that workspace. This
+                    // mirrors what the legacy addParticipant/goToNextStep path does when a P2P recipient is selected.
+                    if (!isPolicyExpenseChatParticipant) {
+                        if (isDistanceRequest) {
+                            const p2pRateID = DistanceRequestUtils.getCustomUnitRateID({
+                                reportID: firstParticipant.reportID,
+                                isPolicyExpenseChat: false,
+                                policy: undefined,
+                                lastSelectedDistanceRates,
+                                expenseDate: transaction?.created,
+                            });
+                            setCustomUnitRateID(activeTransactionID, p2pRateID, transaction, undefined, false, personalPolicy?.outputCurrency);
+                        }
+                        setMoneyRequestCategory(activeTransactionID, '', undefined);
+                    }
                 }
             }
             if (participantsList.length > 0) {
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType, transaction?.amount, transaction?.participants, reportID],
+        [
+            activeTransactionID,
+            closeParticipantPicker,
+            currentUserPersonalDetails.accountID,
+            navigation,
+            selfDMReport,
+            iouType,
+            reportID,
+            isDistanceRequest,
+            lastSelectedDistanceRates,
+            transaction,
+            personalPolicy?.outputCurrency,
+        ],
     );
 
     useEffect(() => {
@@ -421,10 +470,12 @@ function IOURequestStepConfirmation({
         backToReport,
     });
 
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
+
     // PAY, SPLIT, and TRACK navigate to a specific destination report
-    // (not Search) after submission. Pre-inserting the Search route would leave
-    // a stale entry in the navigation stack.
-    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK;
+    // (not Search) after submission. A self-DM CREATE is effectively a TRACK, so it is
+    // excluded too. Pre-inserting the Search route would leave a stale entry in the navigation stack.
+    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && !isSelfDMDestination;
 
     const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
         transaction,
@@ -465,10 +516,11 @@ function IOURequestStepConfirmation({
 
     const hasPreInsertFired = useRef(false);
     const isTransactionReady = !!transaction;
-    const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK ? findSelfDMReportID() : undefined;
+    const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK || isSelfDMDestination ? findSelfDMReportID() : undefined;
     const isMRReport = isMoneyRequestReport(report);
-    const destinationReportID =
-        backToReport ?? (isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID ? report?.chatReportID : report?.reportID) ?? selfDMReportID;
+    const shouldUsePerDiemChatReport = isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID;
+    const routeDestinationReportID = shouldUsePerDiemChatReport ? report?.chatReportID : report?.reportID;
+    const destinationReportID = (isSelfDMDestination ? selfDMReportID : (backToReport ?? routeDestinationReportID)) ?? selfDMReportID;
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
 
     useEffect(() => {
@@ -492,11 +544,12 @@ function IOURequestStepConfirmation({
         // pre-inserting a report is wrong - the user should stay on Search after submission.
         // Global-create TRACK targets self-DM, PAY and SPLIT target a specific chat report,
         // so they are also eligible for report pre-insert when Search is NOT topmost.
+        // A self-DM CREATE is effectively a TRACK, so it targets the self-DM report too.
         // When on Search/Spend the user should stay there after submission.
         const isReportBoundGlobalCreate = iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SPLIT;
         const canUseReportPreInsert =
             !shouldPreInsertSearch &&
-            (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || isReportBoundGlobalCreate || !isFromGlobalCreate)));
+            (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || isSelfDMDestination || isReportBoundGlobalCreate || !isFromGlobalCreate)));
 
         // RHP has its own dismiss handler; pre-inserting under it would break the stack.
         const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
@@ -846,8 +899,8 @@ function IOURequestStepConfirmation({
                                 <PrevNextButtons
                                     isPrevButtonDisabled={currentTransactionIndex === 0}
                                     isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
-                                    onNext={showNextTransaction}
-                                    onPrevious={showPreviousTransaction}
+                                    onNext={() => startTransition(showNextTransaction)}
+                                    onPrevious={() => startTransition(showPreviousTransaction)}
                                 />
                             ) : null}
                         </HeaderWithBackButton>
@@ -877,6 +930,7 @@ function IOURequestStepConfirmation({
                         destinationReportID={destinationReportID}
                         isFromGlobalCreate={isFromGlobalCreate}
                         iouType={iouType}
+                        isSelfDMDestination={isSelfDMDestination}
                         requestType={requestType}
                         canDismissFromSearch={canDismissFromSearch}
                         gpsRequired={!!gpsRequired}

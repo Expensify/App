@@ -45,6 +45,7 @@ import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
@@ -94,6 +95,7 @@ function ReportSubmitToContent({
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
@@ -103,7 +105,7 @@ function ReportSubmitToContent({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
 
-    const prepopulatedEmail = useMemo(() => getSubmitToEmail(policy, report), [policy, report]);
+    const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin);
 
     const [userSelectedManagerEmail, setUserSelectedManagerEmail] = useState<string | undefined>();
     const [extraSubmitToRecipients, setExtraSubmitToRecipients] = useState<WorkspaceMemberItem[]>([]);
@@ -160,7 +162,7 @@ function ReportSubmitToContent({
         }
 
         const accountID = getKnownAccountIDByLogin(email);
-        const details = accountID ? getPersonalDetailsByID(accountID, personalDetails) : undefined;
+        const details = getPersonalDetailsByID(accountID, personalDetails);
 
         return {
             accountID,
@@ -306,6 +308,7 @@ function ReportSubmitToContent({
             submitterLogin,
             managerEmail: trimmed,
             managerAccountID: resolvedManagerAccountID,
+            isTrackIntentUser,
             onSubmitted: () => {
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -350,6 +353,7 @@ function ReportSubmitToContent({
         onSubmitWithManagerEmail,
         canSubmitRef,
         shouldDismissRHPAfterSubmit,
+        isTrackIntentUser,
     ]);
 
     const onSelectMember = useCallback(

@@ -45,6 +45,7 @@ import type {DismissedProductTraining} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -90,6 +91,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const navigateBackFromChangeWorkspacePath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_WORKSPACE.path);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const selectPolicy = (policyID?: string) => {
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -108,13 +110,14 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 policy,
                 formatPhoneNumber,
                 filteredReportActions,
+                reportPreviewAction,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 submitterLogin,
                 doesSubmitterPersonalDetailExist ?? false,
                 reportTransactions,
             );
             if (!invite?.policyExpenseChatReportID) {
-                moveIOUReportToPolicy(report, policy, false, reportTransactions);
+                moveIOUReportToPolicy(report, policy, reportPreviewAction, false, reportTransactions);
             }
             return;
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -144,6 +147,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 reportNextStep,
                 reportActionsList: filteredReportActions,
                 reportPreviewAction,
+                isTrackIntentUser,
             });
             return;
         }
@@ -162,6 +166,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             reportNextStep,
             isReportLastVisibleArchived,
             reportPreviewAction,
+            isTrackIntentUser,
         });
     };
 

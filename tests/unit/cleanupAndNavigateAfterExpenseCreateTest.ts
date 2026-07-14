@@ -42,6 +42,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith({
             draftTransactionIDs: ['txn-1'],
             linkedTrackedExpenseReportAction,
+            shouldWaitForUpcomingTransition: true,
         });
         expect(navigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
     });
@@ -192,7 +193,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             isFromGlobalCreate: true,
             isInvoice: true,
             hasMultipleTransactions: false,
-            shouldAddPendingNewTransactionIDs: true,
+            shouldAddPendingNewTransactionIDs: false,
         });
     });
 
@@ -222,14 +223,32 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
         });
 
-        it('should be false for CREATE when backToReport diverts navigation away from the receiving chat', () => {
+        it('should be true for CREATE when backToReport is the receiving chat', () => {
+            jest.mocked(isMoneyRequestReport).mockReturnValue(false);
+
             cleanupAndNavigateAfterExpenseCreate({
                 action: CONST.IOU.ACTION.CREATE,
                 report: chatReport,
                 draftTransactionIDs: [],
                 transactionID: 'txn-1',
                 isFromGlobalCreate: false,
-                backToReport: 'somewhere-else',
+                backToReport: 'receiving-chat',
+            });
+
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
+        });
+
+        it('should be false for CREATE when backToReport points to a money-request (expense) report', () => {
+            jest.mocked(getReportOrDraftReport).mockReturnValue(expenseReport);
+            jest.mocked(isMoneyRequestReport).mockReturnValue(true);
+
+            cleanupAndNavigateAfterExpenseCreate({
+                action: CONST.IOU.ACTION.CREATE,
+                report: chatReport,
+                draftTransactionIDs: [],
+                transactionID: 'txn-1',
+                isFromGlobalCreate: false,
+                backToReport: 'back-expense',
             });
 
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false}));
@@ -247,6 +266,22 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             });
 
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false}));
+        });
+
+        it('should be false for an invoice without looking up the report (invoice rooms are never money-request reports)', () => {
+            cleanupAndNavigateAfterExpenseCreate({
+                action: CONST.IOU.ACTION.CREATE,
+                report: undefined,
+                draftTransactionIDs: [],
+                transactionID: 'txn-1',
+                isFromGlobalCreate: true,
+                optimisticChatReportID: 'invoice-room-1',
+                isInvoice: true,
+            });
+
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false, hasMultipleTransactions: false}));
+            expect(getReportOrDraftReport).not.toHaveBeenCalled();
+            expect(isMoneyRequestReport).not.toHaveBeenCalled();
         });
     });
 });

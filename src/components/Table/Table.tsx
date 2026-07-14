@@ -39,8 +39,7 @@ import TableContext from './TableContext';
  * - `<Table>` - The parent component that manages state and provides context
  * - `<Table.Header>` - Renders sortable column headers
  * - `<Table.Body>` - Renders the data rows using FlashList
- * - `<Table.SearchBar>` - Renders a search input that filters data
- * - `<Table.FilterButtons>` - Renders dropdown filter buttons
+ * - `<Table.FilterBar>` - Renders a search input that filters data
  *
  * ## Middleware Architecture
  *
@@ -94,7 +93,7 @@ import TableContext from './TableContext';
  *     return a[columnKey].localeCompare(b[columnKey]) * multiplier;
  *   }}
  * >
- *   <Table.SearchBar />
+ *   <Table.FilterBar />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>
@@ -104,7 +103,7 @@ import TableContext from './TableContext';
  * ```tsx
  * const filterConfig: FilterConfig = {
  *   status: {
- *     filterType: 'single-select',
+ *     filterType: 'singleSelect',
  *     options: [
  *       { label: 'All', value: 'all' },
  *       { label: 'Active', value: 'active' },
@@ -125,7 +124,6 @@ import TableContext from './TableContext';
  *     return filterValues.includes(item.status);
  *   }}
  * >
- *   <Table.FilterButtons />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>
@@ -160,7 +158,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     narrowLayoutSortColumn,
     children,
     selectionEnabled,
+    shouldEnableSelectionInNarrowPaneModal,
     onRowSelectionChange,
+    onSearchStringChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
@@ -197,7 +197,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         methods: selectionMethods,
         mobileSelectionModalRowKey,
         middleware: selectionMiddleware,
-    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, selectedKeys, onRowSelectionChange});
+    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, selectedKeys, onRowSelectionChange, shouldEnableSelectionInNarrowPaneModal});
     const selectionData = selectionMiddleware(sortedData);
 
     const {methods: highlightingMethods, middleware: highlightMiddleware} = useHighlighting<DataType>();
@@ -263,7 +263,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         isEmptyResult,
         shouldUseNarrowTableLayout,
         selectionEnabled,
+        shouldEnableSelectionInNarrowPaneModal,
         isMobileSelectionEnabled,
+        onSearchStringChange,
     };
 
     return (

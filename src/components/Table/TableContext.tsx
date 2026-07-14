@@ -26,6 +26,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Whether or not selection is enabled for the table */
     selectionEnabled?: boolean;
 
+    /** Whether the selection UX should key off the real screen size instead of shouldUseNarrowLayout (for tables inside a narrow pane modal / RHP) */
+    shouldEnableSelectionInNarrowPaneModal?: boolean;
+
     /** The data array after filtering, searching, and sorting have been applied. */
     processedData: Array<TableRow<DataType>>;
 
@@ -39,7 +42,7 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     filterConfig: FilterConfig<FilterKey> | undefined;
 
     /** Currently active filter values. */
-    activeFilters: Record<FilterKey, unknown>;
+    activeFilters: Partial<Record<FilterKey, string[]>>;
 
     /** Currently active sorting configuration. */
     activeSorting: ActiveSorting<ColumnKey>;
@@ -64,6 +67,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
     /** Whether to use a narrow layout (e.g. on mobile screens). */
     shouldUseNarrowTableLayout: boolean;
+
+    /** Callback when the user changes the search string in the filter bar. */
+    onSearchStringChange?: (searchString: string) => void;
 };
 
 const defaultTableContextValue: TableContextValue<TableData, string> = {
