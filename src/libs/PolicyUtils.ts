@@ -2404,7 +2404,9 @@ function hasUnsupportedIntegration(policy: Policy | undefined) {
 }
 
 function hasSupportedOnlyOnOldDotIntegration(policy: Policy | undefined) {
-    return Object.values(CONST.POLICY.CONNECTIONS.SUPPORTED_ONLY_ON_OLDDOT as Record<string, string>).some((integration) => !!(policy?.connections as Record<string, unknown>)?.[integration]);
+    return Object.values(CONST.POLICY.CONNECTIONS.SUPPORTED_ONLY_ON_OLDDOT as Record<string, string>).some(
+        (integration) => !!(policy?.connections as Record<string, unknown>)?.[integration],
+    );
 }
 
 function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
