@@ -34,10 +34,12 @@ type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof 
 
 function IOURequestStepParticipants({
     route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, backTo},
+        params: {iouType, reportID, transactionID: initialTransactionID, action, backTo, isWorkspacesOnly: isWorkspacesOnlyParam},
     },
     transaction: initialTransaction,
 }: IOURequestStepParticipantsProps) {
+    // "Submit to my employer" with multiple submit-enabled workspaces passes isWorkspacesOnly=true to limit the picker to workspaces.
+    const isWorkspacesOnlyFromRoute = isWorkspacesOnlyParam === 'true';
     const participants = initialTransaction?.participants;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -125,8 +127,10 @@ function IOURequestStepParticipants({
     };
 
     // Split expenses can only be submitted to a workspace, so restrict the recipient list to workspaces.
+    // Submit-only implies workspaces-only (we still hide individuals/recents in the Submit-to-employer picker).
     // Otherwise, in the new flow the amount step is skipped, so we need to include the recents for all the cases.
     const isWorkspacesOnly =
+        isWorkspacesOnlyFromRoute ||
         (action === CONST.IOU.ACTION.SUBMIT && isSplitChildTransaction(initialTransaction)) ||
         (isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType));
     const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
