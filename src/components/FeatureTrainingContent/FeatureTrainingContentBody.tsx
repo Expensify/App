@@ -40,6 +40,9 @@ type FeatureTrainingModalContentProps = Pick<
 
         /** Callback when the Back button is pressed */
         onBack?: () => void;
+
+        /** Whether the confirm button should show a spinner immediately on press */
+        shouldShowLoadingImmediatelyOnPress?: boolean;
     };
 
 function FeatureTrainingContentBody({
@@ -57,6 +60,7 @@ function FeatureTrainingContentBody({
     toggleWillShowAgain,
     shouldShowBackButton = false,
     onBack,
+    shouldShowLoadingImmediatelyOnPress,
     titleStyles,
     contentInnerContainerStyles,
     contentOuterContainerStyles,
@@ -112,7 +116,7 @@ function FeatureTrainingContentBody({
                     onSubmit={() => onConfirm?.(willShowAgain)}
                     buttonText={confirmText}
                     enabledWhenOffline
-                    shouldShowLoadingImmediatelyOnPress={false}
+                    shouldShowLoadingImmediatelyOnPress={shouldShowLoadingImmediatelyOnPress}
                     sentryLabel={confirmSentryLabel}
                     containerStyles={styles.flex1}
                 />
