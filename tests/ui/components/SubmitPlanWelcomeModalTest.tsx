@@ -77,11 +77,7 @@ describe('SubmitPlanWelcomeModal', () => {
     });
 
     function renderModal() {
-        return render(
-            <OnyxListItemProvider>
-                {withNavigation(<SubmitPlanWelcomeModal />)}
-            </OnyxListItemProvider>,
-        );
+        return render(<OnyxListItemProvider>{withNavigation(<SubmitPlanWelcomeModal />)}</OnyxListItemProvider>);
     }
 
     it('creates a Submit workspace with the current user name when "Get the free plan" is pressed', () => {
