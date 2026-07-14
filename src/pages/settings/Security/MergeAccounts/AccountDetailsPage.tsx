@@ -226,6 +226,8 @@ function AccountDetailsPage() {
                         buttonText={translate('common.next')}
                         enabledWhenOffline={false}
                         containerStyles={styles.mt3}
+                        // This onSubmit triggers the FormProvider submit (via formRef), which already owns the press-loading mechanism
+                        shouldShowLoadingImmediatelyOnPress={false}
                         isLoading={getValidateCodeForAccountMerge?.isLoading}
                     />
                 </FormProvider>

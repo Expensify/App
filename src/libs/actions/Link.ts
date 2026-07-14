@@ -6,16 +6,17 @@ import * as Environment from '@libs/Environment/Environment';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import Log from '@libs/Log';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
-import {whenTabNavigatorReady} from '@libs/Navigation/helpers/tabNavigatorReadiness';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {getIsOffline} from '@libs/NetworkState';
-import {findLastAccessedReport, getReportIDFromLink, getRouteFromLink} from '@libs/ReportUtils';
+import {findLastAccessedReport, getReportIDFromLink, getReportOrDraftReport, getRouteFromLink, isMoneyRequestReport} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import * as Url from '@libs/Url';
@@ -175,6 +176,215 @@ function getInternalExpensifyPath(href: string) {
     return attrPath;
 }
 
+type ReportLinkRouteParams = {
+    reportID: string;
+    reportActionID?: string;
+    route: Route;
+    isLegacyNewDotReportLink?: boolean;
+};
+
+type NavigationRouteWithState = {
+    key?: string;
+    name?: string;
+    params?: unknown;
+    state?: {
+        key?: string;
+        index?: number;
+        routes?: NavigationRouteWithState[];
+    };
+};
+
+type FocusedSearchReportActionRoute = {
+    routeKey: string;
+    navigatorKey: string;
+};
+
+function isReportRoute(route: string): route is Route {
+    return route.startsWith(addTrailingForwardSlash(ROUTES.REPORT));
+}
+
+function getReportRouteParamValues(params: unknown): {reportID: string; reportActionID?: string} | undefined {
+    if (!params || typeof params !== 'object' || !('reportID' in params) || typeof params.reportID !== 'string') {
+        return;
+    }
+
+    const reportActionID = 'reportActionID' in params && typeof params.reportActionID === 'string' ? params.reportActionID : undefined;
+    return {reportID: params.reportID, reportActionID};
+}
+
+function getLegacyNewDotReportID(href: string, hasExpensifyOrigin: boolean): string | undefined {
+    if (!hasExpensifyOrigin || !href.includes('newdotreport?reportID=')) {
+        return;
+    }
+
+    try {
+        return new URL(href).searchParams.get('reportID') ?? undefined;
+    } catch {
+        return href.split('newdotreport?reportID=').pop()?.split(/[&#]/).at(0);
+    }
+}
+
+function getReportRouteParamsFromRoute(route: string): ReportLinkRouteParams | undefined {
+    const normalizedRoute = route.startsWith('/') ? route.slice(1) : route;
+    if (!isReportRoute(normalizedRoute)) {
+        return;
+    }
+
+    const reportID = getReportIDFromLink(normalizedRoute);
+    if (!reportID) {
+        return;
+    }
+
+    try {
+        const state = getStateFromPath(normalizedRoute);
+        const focusedRoute = findFocusedRoute(state);
+        if (focusedRoute?.name !== SCREENS.REPORT) {
+            return;
+        }
+
+        const params = getReportRouteParamValues(focusedRoute.params);
+        if (!params) {
+            return;
+        }
+
+        return {
+            reportID: params.reportID,
+            reportActionID: params.reportActionID,
+            route: normalizedRoute,
+        };
+    } catch {
+        return undefined;
+    }
+}
+
+function getReportLinkRouteParams(href: string, internalNewExpensifyPath: string, hasSameOrigin: boolean, hasExpensifyOrigin: boolean): ReportLinkRouteParams | undefined {
+    const legacyNewDotReportID = getLegacyNewDotReportID(href, hasExpensifyOrigin);
+    const legacyNewDotReportRouteParams: ReportLinkRouteParams | undefined = legacyNewDotReportID
+        ? {
+              reportID: legacyNewDotReportID,
+              route: ROUTES.REPORT_WITH_ID.getRoute(legacyNewDotReportID),
+              isLegacyNewDotReportLink: true,
+          }
+        : undefined;
+    const internalNewExpensifyReportRouteParams = internalNewExpensifyPath && hasSameOrigin ? getReportRouteParamsFromRoute(internalNewExpensifyPath) : undefined;
+
+    return legacyNewDotReportRouteParams ?? internalNewExpensifyReportRouteParams;
+}
+
+function getFocusedRoute(route: NavigationRouteWithState | undefined): NavigationRouteWithState | undefined {
+    let focusedRoute = route;
+    while (focusedRoute?.state?.routes?.length) {
+        const {routes, index} = focusedRoute.state;
+        focusedRoute = routes.at(index ?? routes.length - 1);
+    }
+
+    return focusedRoute;
+}
+
+function getFocusedCentralReportRoute(currentState: ReturnType<typeof navigationRef.getRootState>): NavigationRouteWithState | undefined {
+    const rootRoutes = currentState?.routes as NavigationRouteWithState[] | undefined;
+    const focusedRootIndex = currentState?.index ?? (rootRoutes?.length ?? 0) - 1;
+    const focusedRootRoute = focusedRootIndex >= 0 ? rootRoutes?.at(focusedRootIndex) : undefined;
+    const focusedRoute = getFocusedRoute(focusedRootRoute);
+    if (focusedRoute?.name === SCREENS.REPORT) {
+        return focusedRoute;
+    }
+
+    if (focusedRootRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        return;
+    }
+
+    const tabNavigatorRoute = rootRoutes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    const tabState = tabNavigatorRoute?.state;
+    const activeTabRoute = tabState?.routes?.at(tabState.index ?? 0);
+    if (activeTabRoute?.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+        return;
+    }
+
+    return getFocusedRoute(activeTabRoute);
+}
+
+function isFocusedCentralReport(reportID: string, currentState: ReturnType<typeof navigationRef.getRootState>): boolean {
+    const focusedRoute = getFocusedCentralReportRoute(currentState);
+    if (focusedRoute?.name !== SCREENS.REPORT) {
+        return false;
+    }
+
+    return getReportRouteParamValues(focusedRoute.params)?.reportID === reportID;
+}
+
+function getFocusedSearchReportActionRoute(
+    reportRouteParams: ReportLinkRouteParams | undefined,
+    currentState: ReturnType<typeof navigationRef.getRootState>,
+): FocusedSearchReportActionRoute | undefined {
+    if (!reportRouteParams?.reportActionID) {
+        return;
+    }
+
+    const focusedRootRoute = currentState?.routes?.at(currentState.index ?? (currentState.routes.length ? currentState.routes.length - 1 : -1)) as NavigationRouteWithState | undefined;
+    if (focusedRootRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        return;
+    }
+
+    const rhpState = focusedRootRoute.state;
+    const focusedRHPRoute = rhpState?.routes?.at(rhpState.index ?? (rhpState.routes.length ? rhpState.routes.length - 1 : -1));
+    if (focusedRHPRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT || !focusedRHPRoute.key || !rhpState?.key) {
+        return;
+    }
+
+    const focusedRHPReportParams = getReportRouteParamValues(focusedRHPRoute.params);
+    if (focusedRHPReportParams?.reportID !== reportRouteParams.reportID) {
+        return;
+    }
+
+    return {
+        routeKey: focusedRHPRoute.key,
+        navigatorKey: rhpState.key,
+    };
+}
+
+function getReportLinkRoute(
+    reportRouteParams: ReportLinkRouteParams | undefined,
+    isNarrowLayout: boolean,
+    currentState: ReturnType<typeof navigationRef.getRootState>,
+    shouldKeepReportRoute = false,
+): Route | undefined {
+    if (!reportRouteParams) {
+        return;
+    }
+
+    // On narrow layouts (e.g. mobile web) the RHP is full-screen, so preserving the background Inbox does not apply
+    // and report links are kept on the standard navigation as a safeguard. Regular internal report links return
+    // undefined so they fall through to the standard internal-link handling, exactly as before this feature. Legacy
+    // Concierge (`newdotreport`) links have no internal path that can be parsed, so they keep the explicit report
+    // route to stay on the pre-existing internal navigation instead of falling back to OldDot link handling.
+    if (isNarrowLayout) {
+        return reportRouteParams.isLegacyNewDotReportLink ? reportRouteParams.route : undefined;
+    }
+
+    if (shouldKeepReportRoute || isFocusedCentralReport(reportRouteParams.reportID, currentState)) {
+        return reportRouteParams.route;
+    }
+
+    const backTo = Navigation.getActiveRoute();
+    const report = getReportOrDraftReport(reportRouteParams.reportID);
+    if (!reportRouteParams.reportActionID && isMoneyRequestReport(report)) {
+        return ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: reportRouteParams.reportID, backTo});
+    }
+
+    const searchReportRoute = ROUTES.SEARCH_REPORT.getRoute({
+        reportID: reportRouteParams.reportID,
+        reportActionID: reportRouteParams.reportActionID,
+        backTo,
+    });
+
+    if (!report && !reportRouteParams.reportActionID) {
+        return Url.appendParam(searchReportRoute, REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP, 'true');
+    }
+
+    return searchReportRoute;
+}
+
 function openLink(href: string, environmentURL: string, isAttachment = false) {
     const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
@@ -183,32 +393,37 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
 
     const isNarrowLayout = getIsNarrowLayout();
     const currentState = navigationRef.getRootState();
+    const reportLinkRouteParams = getReportLinkRouteParams(href, internalNewExpensifyPath, hasSameOrigin, hasExpensifyOrigin);
+    const reportLinkRoute = getReportLinkRoute(reportLinkRouteParams, isNarrowLayout, currentState, isAnonymousUser());
+    const focusedSearchReportActionRoute = getFocusedSearchReportActionRoute(reportLinkRouteParams, currentState);
+    const routeToNavigate = reportLinkRoute ?? internalNewExpensifyPath;
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
     let shouldCloseRHP = false;
-    if (!isNarrowLayout && isRHPOpen) {
-        const targetWillNavigateToRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
+    if (!isNarrowLayout && isRHPOpen && !focusedSearchReportActionRoute) {
+        const targetWillNavigateToRHP = willRouteNavigateToRHP(routeToNavigate as Route);
         if (!targetWillNavigateToRHP) {
             shouldCloseRHP = true;
         } else if (hasSameOrigin) {
             // Cross-tab RHP→RHP: swap the background tab in place so the RHP stays mounted and the
             // user sees only the RHP content update + the underlying tab animate, no close+reopen
             // flicker (issue: https://github.com/Expensify/App/issues/89710).
-            swapBackgroundTabForRHPTarget(currentState, internalNewExpensifyPath as Route);
+            swapBackgroundTabForRHPTarget(currentState, routeToNavigate as Route);
         }
     }
 
-    // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
-    // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
-    // clicking on the link will open the chat in NewDot. However, when a user is in NewDot and clicks on the concierge link, the link needs to be handled differently.
-    // Normally, the link would be sent to Link.openOldDotLink() and opened in a new tab, and that's jarring to the user. Since the intention is to link to a specific NewDot chat,
-    // the reportID is extracted from the URL and then opened as an internal link, taking the user straight to the chat in the same tab.
-    if (hasExpensifyOrigin && href.indexOf('newdotreport?reportID=') > -1) {
-        const reportID = href.split('newdotreport?reportID=').pop();
-        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+    if (reportLinkRoute) {
+        if (internalNewExpensifyPath && hasSameOrigin && isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
+            signOutAndRedirectToSignIn();
+            return;
+        }
+        if (focusedSearchReportActionRoute && reportLinkRouteParams?.reportActionID) {
+            Navigation.setParams({reportActionID: reportLinkRouteParams.reportActionID}, focusedSearchReportActionRoute.routeKey, focusedSearchReportActionRoute.navigatorKey);
+            return;
+        }
         if (shouldCloseRHP) {
             Navigation.closeRHPFlow();
         }
-        Navigation.navigate(reportRoute);
+        Navigation.navigate(reportLinkRoute);
         return;
     }
 
@@ -320,105 +535,93 @@ function openReportFromDeepLink(
                     initialHasCompletedGuidedSetupFlow = val.hasCompletedGuidedSetupFlow;
                 }
 
-                // Wait for TAB_NAVIGATOR's child router to mount before navigating. waitForProtectedRoutes()
-                // resolves once the screen is declared on the root navigator, but the lazily-loaded
-                // TAB_NAVIGATOR may not have mounted yet, so a NAVIGATE targeting a screen inside it would
-                // be unhandled. The user is over the auth wall here, so TAB_NAVIGATOR is guaranteed to mount.
-                Navigation.waitForProtectedRoutes()
-                    .then(() => whenTabNavigatorReady())
-                    .then(() => {
-                        if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
-                            signOutAndRedirectToSignIn(true);
+                Navigation.waitForProtectedRoutes().then(() => {
+                    if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
+                        signOutAndRedirectToSignIn(true);
+                        return;
+                    }
+
+                    // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+                    // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+                    // which is already called when AuthScreens mounts.
+                    if (!CONFIG.IS_HYBRID_APP && url && new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                        return;
+                    }
+
+                    const handleDeeplinkNavigation = () => {
+                        // We want to disconnect the connection so it won't trigger the deeplink again
+                        // every time the data is changed, for example, when re-login.
+                        Onyx.disconnect(connection);
+
+                        const state = navigationRef.getRootState();
+                        const currentFocusedRoute = findFocusedRoute(state);
+
+                        if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                            setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
                             return;
                         }
 
-                        // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
-                        // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
-                        // which is already called when AuthScreens mounts.
-                        if (!CONFIG.IS_HYBRID_APP && url && new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                        if (shouldSkipDeepLinkNavigation(route)) {
                             return;
                         }
 
-                        const handleDeeplinkNavigation = () => {
-                            // We want to disconnect the connection so it won't trigger the deeplink again
-                            // every time the data is changed, for example, when re-login.
-                            Onyx.disconnect(connection);
+                        if (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME) {
+                            return;
+                        }
 
-                            const state = navigationRef.getRootState();
-                            const currentFocusedRoute = findFocusedRoute(state);
+                        // Drop a deep link captured before onboarding finished: navigateAfterOnboarding owns the
+                        // post-onboarding destination and overrides it anyway, so honoring it only risks the flash (#91437).
+                        if (initialHasCompletedGuidedSetupFlow === false) {
+                            return;
+                        }
 
-                            if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                                setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
-                                return;
-                            }
+                        // Navigation for signed users is handled by react-navigation.
+                        if (isAuthenticated) {
+                            return;
+                        }
 
-                            if (shouldSkipDeepLinkNavigation(route)) {
-                                return;
-                            }
-
-                            if (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME) {
-                                return;
-                            }
-
-                            // Drop a deep link captured before onboarding finished: navigateAfterOnboarding owns the
-                            // post-onboarding destination and overrides it anyway, so honoring it only risks the flash (#91437).
-                            if (initialHasCompletedGuidedSetupFlow === false) {
-                                return;
-                            }
-
-                            // Navigation for signed users is handled by react-navigation.
-                            if (isAuthenticated) {
-                                return;
-                            }
-
-                            const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
-                                // Check if the report exists in the collection
-                                const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                                // If the report does not exist, navigate to the last accessed report or Concierge chat
-                                if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
-                                    // TODO: Pass guidesEmailsByReport map once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
-                                    const lastAccessedReportID = findLastAccessedReport(false, undefined, shouldOpenOnAdminRoom(), reportID)?.reportID;
-                                    if (lastAccessedReportID) {
-                                        const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                                        Navigation.navigate(lastAccessedReportRoute, {
-                                            forceReplace: Navigation.getTopmostReportId() === reportID,
-                                            waitForTransition: true,
-                                        });
-                                        return;
-                                    }
-                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true);
+                        const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
+                            // Check if the report exists in the collection
+                            const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                            // If the report does not exist, navigate to the last accessed report or Concierge chat
+                            if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
+                                // TODO: Pass guidesEmailsByReport map once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
+                                const lastAccessedReportID = findLastAccessedReport(false, undefined, shouldOpenOnAdminRoom(), reportID)?.reportID;
+                                if (lastAccessedReportID) {
+                                    const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+                                    Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
                                     return;
                                 }
-
-                                // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
-                                const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-                                Navigation.navigate(route as Route, {
-                                    forceReplace,
-                                    waitForTransition: true,
-                                });
-                            };
-                            // If we log with deeplink with reportID and data for this report is not available yet,
-                            // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
-                            if (reportID && !isAuthenticated && !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
-                                const reportConnection = Onyx.connectWithoutView({
-                                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                                    // eslint-disable-next-line rulesdir/prefer-early-return
-                                    callback: (report) => {
-                                        if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
-                                            Onyx.disconnect(reportConnection);
-                                            navigateHandler(report);
-                                        }
-                                    },
-                                });
-                            } else {
-                                navigateHandler();
+                                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true);
+                                return;
                             }
-                        };
 
-                        if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser()) {
-                            handleDeeplinkNavigation();
+                            // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
+                            const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+                            Navigation.navigate(route as Route, {forceReplace, waitForTransition: true});
+                        };
+                        // If we log with deeplink with reportID and data for this report is not available yet,
+                        // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
+                        if (reportID && !isAuthenticated && !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
+                            const reportConnection = Onyx.connectWithoutView({
+                                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                                // eslint-disable-next-line rulesdir/prefer-early-return
+                                callback: (report) => {
+                                    if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
+                                        Onyx.disconnect(reportConnection);
+                                        navigateHandler(report);
+                                    }
+                                },
+                            });
+                        } else {
+                            navigateHandler();
                         }
-                    });
+                    };
+
+                    if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser()) {
+                        handleDeeplinkNavigation();
+                    }
+                });
             },
         });
     });
