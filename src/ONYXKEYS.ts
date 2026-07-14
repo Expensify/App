@@ -299,6 +299,9 @@ const ONYXKEYS = {
     /** ID associated with the payment card added by the user. */
     NVP_BILLING_FUND_ID: 'nvp_expensify_billingFundID',
 
+    /** ISO timestamp of the last time the trial payment reminder was dismissed */
+    NVP_DISMISSED_TRIAL_PAYMENT_REMINDER: 'nvp_dismissedTrialPaymentReminder',
+
     /** The user's freebie credits balance (in cents). */
     NVP_PRIVATE_FREEBIE_CREDITS: 'nvp_private_freebieCredits',
 
@@ -522,6 +525,9 @@ const ONYXKEYS = {
     // Object containing names/timestamps of dismissed product training elements (Modal, Tooltip, etc.)
     NVP_DISMISSED_PRODUCT_TRAINING: 'nvp_dismissedProductTraining',
 
+    // Whether the user has seen the Submit plan migration in-product modal (shown once to existing "Get paid back" users)
+    NVP_SUBMIT_MIGRATION_MODAL_SHOWN: 'nvp_submitMigrationModalShown',
+
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
@@ -711,6 +717,12 @@ const ONYXKEYS = {
 
     /** Set when we are loading bill when downgrade */
     IS_LOADING_BILL_WHEN_DOWNGRADE: 'isLoadingBillWhenDowngrade',
+
+    /** Set when the agents page has finished loading for the first time */
+    ARE_AGENTS_LOADED: 'areAgentsLoaded',
+
+    /** Set when the rooms page has finished loading for the first time */
+    ARE_POLICY_ROOMS_LOADED: 'arePolicyRoomsLoaded',
 
     /**
      * Determines whether billing is required when the user downgrades their plan.
@@ -1587,6 +1599,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
+    [ONYXKEYS.ARE_AGENTS_LOADED]: boolean;
+    [ONYXKEYS.ARE_POLICY_ROOMS_LOADED]: Record<string, boolean>;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
@@ -1648,6 +1662,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
+    [ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER]: string;
     [ONYXKEYS.NVP_PRIVATE_FREEBIE_CREDITS]: number;
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
@@ -1676,6 +1691,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
+    [ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN]: boolean;
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;

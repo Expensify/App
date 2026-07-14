@@ -759,7 +759,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO]: Parameters.UpdatePersonalBankAccountInfoParams;
     [WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP]: Parameters.RestartBankAccountSetupParams;
     [WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK]: Parameters.InitiateBankAccountUnlockParams;
-    [WRITE_COMMANDS.RESEND_VALIDATE_CODE]: Parameters.ResendValidateCodeParams | null;
+    [WRITE_COMMANDS.RESEND_VALIDATE_CODE]: null;
     [WRITE_COMMANDS.READ_NEWEST_ACTION]: Parameters.ReadNewestActionParams;
     [WRITE_COMMANDS.MARK_ALL_MESSAGES_AS_READ]: Parameters.MarkAllMessagesAsReadParams;
     [WRITE_COMMANDS.MARK_AS_UNREAD]: Parameters.MarkAsUnreadParams;
@@ -1043,7 +1043,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.MARK_AS_CASH]: Parameters.MarkAsCashParams;
     [WRITE_COMMANDS.DUPLICATE_POLICY]: Parameters.DuplicateWorkspaceParams;
     [WRITE_COMMANDS.COPY_POLICY_SETTINGS]: Parameters.CopyPolicySettingsParams;
-    [WRITE_COMMANDS.COPY_POLICY_SETTINGS_NOTIFY]: EmptyObject;
+    [WRITE_COMMANDS.COPY_POLICY_SETTINGS_NOTIFY]: Parameters.CopyPolicySettingsNotifyParams;
     [WRITE_COMMANDS.MERGE_DUPLICATES]: Parameters.MergeDuplicatesParams;
     [WRITE_COMMANDS.RESOLVE_DUPLICATES]: Parameters.ResolveDuplicatesParams;
     [WRITE_COMMANDS.MERGE_TRANSACTION]: Parameters.MergeTransactionParams;
