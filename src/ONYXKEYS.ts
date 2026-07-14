@@ -302,9 +302,6 @@ const ONYXKEYS = {
     /** ID associated with the payment card added by the user. */
     NVP_BILLING_FUND_ID: 'nvp_expensify_billingFundID',
 
-    /** ISO timestamp of the last time the trial payment reminder was dismissed */
-    NVP_DISMISSED_TRIAL_PAYMENT_REMINDER: 'nvp_dismissedTrialPaymentReminder',
-
     /** The user's freebie credits balance (in cents). */
     NVP_PRIVATE_FREEBIE_CREDITS: 'nvp_private_freebieCredits',
 
@@ -1662,7 +1659,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
-    [ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER]: string;
     [ONYXKEYS.NVP_PRIVATE_FREEBIE_CREDITS]: number;
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
