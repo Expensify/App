@@ -251,6 +251,7 @@ type BuildPolicyDataOptions = {
     shouldAddOnboardingTasks?: boolean;
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
+    userReportedIntegrationName?: string;
     isAnnualSubscription?: boolean;
     featuresMap?: Array<Pick<Feature, 'id' | 'enabled' | 'enabledByDefault' | 'requiresUpdate'>>;
     lastUsedPaymentMethod?: LastPaymentMethodType;
@@ -2617,6 +2618,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         shouldAddOnboardingTasks = true,
         companySize,
         userReportedIntegration,
+        userReportedIntegrationName,
         isAnnualSubscription = false,
         featuresMap,
         lastUsedPaymentMethod,
@@ -3085,6 +3087,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         file: clonedFile,
         companySize,
         userReportedIntegration: userReportedIntegration ?? undefined,
+        userReportedIntegrationName,
         features: features ? JSON.stringify(features) : undefined,
         shouldAddGuideWelcomeMessage,
         areDistanceRatesEnabled,

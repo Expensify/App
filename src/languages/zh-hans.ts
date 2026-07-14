@@ -3039,6 +3039,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         accounting: {
             title: '你是否使用任何会计软件？',
             none: '无',
+            otherAccountingSoftware: '你的会计软件',
         },
         interestedFeatures: {
             title: '你对哪些功能感兴趣？',

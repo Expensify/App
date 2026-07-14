@@ -12,6 +12,7 @@ type CompleteGuidedSetupParams = {
     paymentSelected?: string;
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
+    userReportedIntegrationName?: string;
     policyID?: string;
     selfDMReportID?: string;
     selfDMCreatedReportActionID?: string;

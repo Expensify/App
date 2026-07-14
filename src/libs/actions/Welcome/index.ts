@@ -60,6 +60,10 @@ function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null
     Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
 }
 
+function setOnboardingUserReportedIntegrationName(value?: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION_NAME, value ?? null);
+}
+
 function setOnboardingPersonalTrackGoal(value: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL, value);
 }
@@ -222,6 +226,7 @@ export {
     setOnboardingMergeAccountStepValue,
     updateOnboardingValuesAndNavigation,
     setOnboardingUserReportedIntegration,
+    setOnboardingUserReportedIntegrationName,
     setOnboardingPersonalTrackGoal,
     addWorkEmailFormError,
     clearWorkEmailFormErrors,
