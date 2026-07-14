@@ -1025,8 +1025,8 @@ const SCREENS = {
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
-    MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
-    MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'MissingPersonalDetails_ConfirmMagicCode',
+    DYNAMIC_MISSING_PERSONAL_DETAILS: 'Dynamic_MissingPersonalDetails',
+    DYNAMIC_MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'Dynamic_MissingPersonalDetails_ConfirmMagicCode',
     ADD_EXISTING_EXPENSES_ROOT: 'AddExistingExpenses_Root',
     DEBUG: {
         REPORT: 'Debug_Report',
