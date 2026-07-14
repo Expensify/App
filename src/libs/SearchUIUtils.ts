@@ -2892,7 +2892,7 @@ function getReportSections({
 
                 const hasVisibleViolationsForReport = hasVisibleViolations(
                     reportItem,
-                    getLoginByAccountID(reportItem.ownerAccountID, data.personalDetailsList),
+                    getLoginByAccountID(reportItem.ownerAccountID, mergedPersonalDetails),
                     allViolations,
                     currentUserEmail,
                     currentAccountID ?? CONST.DEFAULT_NUMBER_ID,
