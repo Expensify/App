@@ -2147,6 +2147,8 @@ function createGroupChat(
 
 function prepareOnyxDataForCleanUpOptimisticParticipants(
     reportID: string,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    currentUserAccountID: number | undefined,
 ): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined {
     const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!existingReport?.participants) {
@@ -2155,7 +2157,13 @@ function prepareOnyxDataForCleanUpOptimisticParticipants(
     const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
     const redundantParticipants: Record<number, null> = {};
     for (const accountID in existingReport.participants) {
-        if (!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+        // Never clean up the current user's own personal details. Removing them here (even momentarily) drops the
+        // current user's avatar down to the fallback avatar until the real details settle, which is what caused the
+        // avatar to flicker between the user initials and the default avatar. See https://github.com/Expensify/App/issues/95427
+        if (Number(accountID) === currentUserAccountID) {
+            continue;
+        }
+        if (!personalDetails?.[accountID]?.isOptimisticPersonalDetail) {
             continue;
         }
         settledPersonalDetails[accountID] = null;
@@ -4011,18 +4019,7 @@ function navigateToConciergeChat(
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            navigateToAndOpenReport(
-                [CONST.EMAIL.CONCIERGE],
-                personalDetails ?? allPersonalDetails,
-                currentUserAccountID,
-                introSelected,
-                isSelfTourViewed,
-                betas,
-                shouldDismissModal,
-                false,
-                linkToOptions,
-            );
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, shouldDismissModal, false, linkToOptions);
         });
     } else if (shouldDismissModal) {
         const reportParams = {reportID: conciergeReportID, reportActionID};

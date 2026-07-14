@@ -2,7 +2,6 @@ import type {RsbuildConfig} from '@rsbuild/core';
 import type {DefinePluginOptions, RspackPluginInstance, SwcJsMinimizerRspackPluginOptions} from '@rspack/core';
 
 import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
-import {pluginBabel} from '@rsbuild/plugin-babel';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import {rspack} from '@rspack/core';
@@ -40,37 +39,55 @@ function getCurrentBranchName(): string {
 const localBranchName = getCurrentBranchName();
 
 /**
- * These RN packages ship non-transpiled JSX and rely on the "react-native" import (aliased to
- * react-native-web below), so they need to go through the same babel-loader pipeline as our own
- * source rather than being treated as opaque, already-built node_modules.
+ * React Compiler + react-native-worklets loaders.
  */
-const includeModules = new RegExp(
-    `node_modules/(?!(${[
-        'react-native-reanimated',
-        'react-native-worklets',
-        'react-native-picker-select',
-        'react-native-web',
-        'react-native-webview',
-        '@react-native-picker',
-        '@react-navigation/material-top-tabs',
-        '@react-navigation/native',
-        '@react-navigation/native-stack',
-        '@react-navigation/stack',
-        'react-native-gesture-handler',
-        'react-native-google-places-autocomplete',
-        'react-native-qrcode-svg',
-        'react-native-view-shot',
-        '@react-native/assets',
-        'expo',
-        'expo-audio',
-        'expo-video',
-        'expo-image',
-        'expo-image-manipulator',
-        'expo-modules-core',
-        'victory-native',
-        '@shopify/react-native-skia',
-    ].join('|')})/).*|\\.native\\.(js|jsx|ts|tsx)$`,
-);
+function getOxcAndWorkletsLoaders(isDevServer: boolean) {
+    return [
+        {loader: path.resolve(dirname, './loaders/worklets-loader.mjs')},
+        {
+            loader: path.resolve(dirname, './loaders/oxc-react-compiler-loader.mjs'),
+            options: {
+                reactCompiler: {target: '19', panicThreshold: 'none', isDev: isDevServer},
+                target: 'node20',
+                jsx: {runtime: 'automatic', development: isDevServer, refresh: isDevServer},
+            },
+        },
+    ];
+}
+
+/**
+ * These RN packages ship non-transpiled JSX and rely on the "react-native" import (aliased to
+ * react-native-web below), so they need to go through the same OXC transform pipeline as our own
+ * source rather than being treated as opaque.
+ */
+const INCLUDED_NODE_MODULES = [
+    'react-native-reanimated',
+    'react-native-worklets',
+    'react-native-picker-select',
+    'react-native-web',
+    'react-native-webview',
+    '@react-native-picker',
+    '@react-navigation/material-top-tabs',
+    '@react-navigation/native',
+    '@react-navigation/native-stack',
+    '@react-navigation/stack',
+    'react-native-gesture-handler',
+    'react-native-google-places-autocomplete',
+    'react-native-qrcode-svg',
+    'react-native-view-shot',
+    '@react-native/assets',
+    'expo',
+    'expo-audio',
+    'expo-video',
+    'expo-image',
+    'expo-image-manipulator',
+    'expo-modules-core',
+    'victory-native',
+    '@shopify/react-native-skia',
+];
+
+// Matches node_modules paths that are in the allowlist above
+const includedNodeModulesRegex = new RegExp(`node_modules/(${INCLUDED_NODE_MODULES.join('|')})`);
 
 const environmentToLogoSuffixMap: Record<string, string> = {
     production: '-dark',
@@ -114,12 +131,12 @@ function getDefineValues(file: string): DefinePluginOptions {
 
 /**
  * Config shared between the main app build (below) and Storybook (via
- * `.storybook/rsbuild.config.ts`): source defines, module resolution, and the SVG/babel loader
+ * `.storybook/rsbuild.config.ts`): source defines, module resolution, and the SVG/OXC transform
  * pipeline. Deliberately excludes anything that assumes a single-page `web/index.html` app shell
  * (HTML template, service worker, Sentry release upload, static asset copying), since Storybook
  * manages its own HTML/output and isn't a deployable release of the app.
  */
-const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => {
+const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environment): RsbuildConfig => {
     /* eslint-disable @typescript-eslint/naming-convention */
     return {
         source: {
@@ -162,18 +179,17 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                 svgrOptions: {exportType: 'default'},
                 exclude: /node_modules/,
             }),
-            pluginBabel({
-                include: /\.(js|ts)x?$/,
-                exclude: [includeModules],
-                babelLoaderOptions: {
-                    configFile: path.resolve(dirname, '../../babel.config.js'),
-                    babelrc: false,
-                    presets: [],
-                    plugins: [],
-                },
-            }),
         ],
         tools: {
+            // Skip default .js loader that strips JSX/TypeScript and breaks Fullstory/React Compiler transforms we add later via rules
+            bundlerChain: (chain) => {
+                chain.module
+                    .rule('js')
+                    .oneOf('js')
+                    .exclude.add((resourcePath: string) => !resourcePath.includes('node_modules'))
+                    .add(includedNodeModulesRegex)
+                    .end();
+            },
             rspack: (config, {addRules}) => {
                 // canvaskit-wasm and expo's getBundleUrl.web.ts reference __filename/__dirname, which don't
                 // exist in a browser bundle. Rspack's default ('warn-mock') mocks them to a fixed value but
@@ -187,8 +203,21 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                 };
                 // We can ignore the "module not installed" warning from lottie-react-native because we
                 // are not using the library for JSON format of Lottie animations.
+                // We also ignore React Compiler errors - they're deliberately warnings, not errors.
                 // eslint-disable-next-line no-param-reassign
-                config.ignoreWarnings = [...(config.ignoreWarnings ?? []), /lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/];
+                config.ignoreWarnings = [...(config.ignoreWarnings ?? []), /lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/, /oxc-react-compiler-loader:/];
+
+                // Cache rules:
+                // - Onyx and react-native-live-markdown can be modified on the fly, changes to other node_modules are not reflected live
+                // - Applies to `dev`, `build`, and Storybook alike
+                // eslint-disable-next-line no-param-reassign
+                config.cache ??= {type: 'persistent'};
+                if (typeof config.cache === 'object' && config.cache.type === 'persistent') {
+                    // eslint-disable-next-line no-param-reassign
+                    config.cache.snapshot = {
+                        managedPaths: [/([\\/]node_modules[\\/](?!react-native-onyx|@expensify\/react-native-live-markdown))/],
+                    };
+                }
 
                 // eslint-disable-next-line no-param-reassign
                 config.resolve ??= {};
@@ -234,6 +263,27 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                         resolve: {fullySpecified: false},
                         include: [path.resolve(dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js')],
                     },
+                    // App source files (React Compiler enabled).
+                    {
+                        test: /\.(js|ts)x?$/,
+                        // Exclude ALL node_modules (including the included-node_modules allowlist, handled below).
+                        exclude: [/node_modules/, /\.native\.(js|jsx|ts|tsx)$/],
+                        use: [
+                            ...getOxcAndWorkletsLoaders(isDevServer),
+                            // Fullstory annotation.
+                            {
+                                loader: path.resolve(dirname, './loaders/fullstory-annotation-loader.mjs'),
+                            },
+                        ],
+                    },
+                    // Included node_modules: Same OXC + React Compiler pass as app source above,
+                    // minus the Fullstory pass, which only makes sense for our own components.
+                    {
+                        test: /\.(js|ts)x?$/,
+                        include: [includedNodeModulesRegex],
+                        exclude: [/\.native\.(js|jsx|ts|tsx)$/],
+                        use: getOxcAndWorkletsLoaders(isDevServer),
+                    },
                 ]);
 
                 return config;
@@ -246,9 +296,9 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
 /**
  * Get a production grade Rsbuild config for web
  */
-const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment): RsbuildConfig => {
+const getCommonConfiguration = ({file = '.env', platform = 'web', isDevServer = false}: Environment): RsbuildConfig => {
     const isDevelopment = file === '.env' || file === '.env.development';
-    const shared = getSharedConfiguration({file, platform});
+    const shared = getSharedConfiguration({file, platform, isDevServer});
     const sharedRspackTool = shared.tools?.rspack;
 
     if (!isDevelopment) {
@@ -368,6 +418,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             },
         },
         tools: {
+            bundlerChain: shared.tools?.bundlerChain,
             rspack: (config, utils) => {
                 // `sharedRspackTool`'s declared return type includes `Promise<void | RspackOptions>` because
                 // that's a valid shape for `tools.rspack` in general, but `getSharedConfiguration`'s own
@@ -500,4 +551,4 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
 };
 
 export default getCommonConfiguration;
-export {getDefineValues, getSharedConfiguration, includeModules};
+export {getDefineValues, getSharedConfiguration};

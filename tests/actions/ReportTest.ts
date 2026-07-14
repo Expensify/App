@@ -9399,4 +9399,108 @@ describe('actions/Report', () => {
             expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.transactionCount).toBe(0);
         });
     });
+
+    describe('prepareOnyxDataForCleanUpOptimisticParticipants', () => {
+        const REPORT_ID = '1';
+        const OPTIMISTIC_ACCOUNT_ID = 100;
+        const SETTLED_ACCOUNT_ID = 200;
+        const CURRENT_USER_ACCOUNT_ID = 300;
+
+        it('marks only participants with optimistic personal details for clean up', async () => {
+            // Given a report with one optimistic and one settled participant
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
+                [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: {
+                    reportID: REPORT_ID,
+                    participants: {
+                        [OPTIMISTIC_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [SETTLED_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When preparing the clean up data using the provided personal details
+            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(
+                REPORT_ID,
+                {
+                    [OPTIMISTIC_ACCOUNT_ID]: {accountID: OPTIMISTIC_ACCOUNT_ID, isOptimisticPersonalDetail: true},
+                    [SETTLED_ACCOUNT_ID]: {accountID: SETTLED_ACCOUNT_ID},
+                },
+                CURRENT_USER_ACCOUNT_ID,
+            );
+
+            // Then only the optimistic participant is marked for clean up
+            expect(result).toEqual({
+                settledPersonalDetails: {[OPTIMISTIC_ACCOUNT_ID]: null},
+                redundantParticipants: {[OPTIMISTIC_ACCOUNT_ID]: null},
+            });
+        });
+
+        it('returns empty clean up data when no participant has optimistic personal details', async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
+                [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: {
+                    reportID: REPORT_ID,
+                    participants: {[SETTLED_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(REPORT_ID, {[SETTLED_ACCOUNT_ID]: {accountID: SETTLED_ACCOUNT_ID}}, CURRENT_USER_ACCOUNT_ID);
+
+            expect(result).toEqual({settledPersonalDetails: {}, redundantParticipants: {}});
+        });
+
+        it('returns undefined when the report has no participants', async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {[`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: {reportID: REPORT_ID}});
+            await waitForBatchedUpdates();
+
+            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(
+                REPORT_ID,
+                {[OPTIMISTIC_ACCOUNT_ID]: {accountID: OPTIMISTIC_ACCOUNT_ID, isOptimisticPersonalDetail: true}},
+                CURRENT_USER_ACCOUNT_ID,
+            );
+
+            expect(result).toBeUndefined();
+        });
+
+        it('returns undefined when the report does not exist', () => {
+            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(
+                'non-existent-report',
+                {[OPTIMISTIC_ACCOUNT_ID]: {accountID: OPTIMISTIC_ACCOUNT_ID, isOptimisticPersonalDetail: true}},
+                CURRENT_USER_ACCOUNT_ID,
+            );
+
+            expect(result).toBeUndefined();
+        });
+
+        it('never cleans up the current user even if their personal details are optimistic (prevents avatar flicker, see #95427)', async () => {
+            // Given the current user is a participant whose own personal details are still optimistic
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
+                [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: {
+                    reportID: REPORT_ID,
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [OPTIMISTIC_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When preparing the clean up data with the current user's account ID
+            const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(
+                REPORT_ID,
+                {
+                    [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, isOptimisticPersonalDetail: true},
+                    [OPTIMISTIC_ACCOUNT_ID]: {accountID: OPTIMISTIC_ACCOUNT_ID, isOptimisticPersonalDetail: true},
+                },
+                CURRENT_USER_ACCOUNT_ID,
+            );
+
+            // Then the current user's personal details are preserved and only the other optimistic participant is cleaned up
+            expect(result).toEqual({
+                settledPersonalDetails: {[OPTIMISTIC_ACCOUNT_ID]: null},
+                redundantParticipants: {[OPTIMISTIC_ACCOUNT_ID]: null},
+            });
+        });
+    });
 });

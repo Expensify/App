@@ -31,7 +31,6 @@
 "../../__mocks__/react-native-onyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../__mocks__/react-native-safe-area-context.tsx"	"react-hooks/refs"	4
 "../../__mocks__/react-native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../__mocks__/reportData/connections.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../assets/emojis/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../jest/setup.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../jest/setupAfterEnv.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -827,7 +826,7 @@
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	34
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	16
 "../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	71
+"../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	49
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	76
 "../../src/libs/SearchUIUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/SelectionScraper/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -898,7 +897,6 @@
 "../../src/libs/actions/IOU/ReportWorkflow.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/ReportWorkflow.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/IOU/ReportWorkflow.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/IOU/SearchUpdate.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/SendInvoice.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/SendInvoice.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/SendMoney.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1851,7 +1849,7 @@
 "../../tests/actions/OnyxUpdateManagerTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/actions/PersonalDetailsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/actions/PolicyCategoryTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/actions/PolicyMemberTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
+"../../tests/actions/PolicyMemberTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/actions/PolicyProfileTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/actions/PolicyProfileTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/PolicyTagTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1863,7 +1861,7 @@
 "../../tests/actions/ReplaceOptimisticReportWithActualReportTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/actions/ReportFieldTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/actions/ReportFieldTest.ts"	"no-restricted-imports"	1
-"../../tests/actions/ReportPreviewActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	30
+"../../tests/actions/ReportPreviewActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	29
 "../../tests/actions/ReportPreviewActionUtilsTest.ts"	"no-restricted-imports"	2
 "../../tests/actions/ReportTest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
 "../../tests/actions/ReportTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	50
@@ -2042,9 +2040,9 @@
 "../../tests/unit/GitTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/GithubUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/HomePage/YourSpendSection/YourSpendSectionTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../tests/unit/HomePage/YourSpendSection/useYourSpendDataTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
+"../../tests/unit/HomePage/YourSpendSection/useYourSpendDataTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/HomePage/YourSpendSection/useYourSpendDataTest.ts"	"no-restricted-imports"	1
-"../../tests/unit/HrUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
+"../../tests/unit/HrUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/HybridAppActionsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/IOUUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
 "../../tests/unit/IOUUtilsTest.ts"	"no-restricted-imports"	1
@@ -2115,7 +2113,6 @@
 "../../tests/unit/Search/SearchListRenderCountTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/Search/SearchQueryUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/unit/Search/SearchSingleSelectionPickerTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/Search/SearchUIUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	136
 "../../tests/unit/Search/buildCardFilterDataTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../tests/unit/Search/buildSubstitutionsMapTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/Search/handleActionButtonPressTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
@@ -2150,7 +2147,7 @@
 "../../tests/unit/VideoRendererTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ViolationUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../tests/unit/WhisperContentMentionContextTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../tests/unit/WorkflowUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
+"../../tests/unit/WorkflowUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../tests/unit/WorkspaceReportFieldUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/WorkspacesSettingsUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	23
 "../../tests/unit/awaitStagingDeploysTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -2320,5 +2317,6 @@
 "../../tests/utils/getIsUsingFakeTimers.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../rsbuild/CustomVersionFilePlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../rsbuild/ModuleInitTimingPlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../rsbuild/loaders/fullstory-annotation-loader.mjs"	"rulesdir/no-negated-variables"	1
 "../rsbuild/rsbuild.common.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../rspack/RspackPreloadPlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
