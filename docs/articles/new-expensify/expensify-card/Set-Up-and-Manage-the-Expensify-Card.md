@@ -106,9 +106,9 @@ The Expensify Card list includes a **Status** column so you can see each card's 
 
 Each card shows one of the following statuses:
 
-- **Pending order** — A physical card has been ordered but not yet shipped.
+- **Pending order** — A physical card has been issued but not yet ordered by the cardholder.
 - **Shipped** — A physical card has shipped and is on its way to the cardholder.
-- **Active** — The card is issued and ready to use. Virtual cards show as **Active** once issued.
+- **Active** — The card is ready to use. Virtual cards are immediately **Active** once issued.
 - **Inactive** — The card is frozen or otherwise not currently usable.
 
 **Note:** The **Status** column is hidden on narrow and medium screens. Widen your browser window or view the list on a larger screen to see it.
