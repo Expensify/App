@@ -35,7 +35,7 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
     // If the user is typing on OldDot, firstUserTyping will be a string (the user's displayName)
     const firstUserTypingDisplayName = isUserTypingADisplayName
         ? firstUserTyping
-        : getDisplayNameForParticipant({accountID: Number(firstUserTyping), shouldFallbackToHidden: false, formatPhoneNumber});
+        : getDisplayNameForParticipant({accountID: Number(firstUserTyping), shouldFallbackToHidden: false, formatPhoneNumber, translate});
 
     if (usersTyping.length === 1) {
         return (
