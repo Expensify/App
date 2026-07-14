@@ -10054,6 +10054,18 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             chat: 'Bei jeder Ausgabe chatten, um Fragen schnell zu klären',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Möchtest du einen KOSTENLOSEN Mitarbeitertarif?',
+        description: 'Warte nicht, bis dein Unternehmen Expensify einführt. Wir haben einen kostenlosen Tarif nur für dich entwickelt:',
+        confirmText: 'Kostenlosen Tarif holen',
+        dismissText: 'Nein, danke',
+        features: {
+            getReimbursed: 'Schneller erstattet werden – direkt in Expensify',
+            buildReports: 'Erstelle Ausgabenberichte in Sekunden',
+            categorize: 'Kategorisiere deine Ausgaben',
+            inviteBoss: 'Lade deinen Chef ein, wenn du bereit bist',
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Benenne deine gespeicherten Suchen um</strong> – hier!</tooltip>',
@@ -10343,6 +10355,17 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         description: 'Lass es uns wissen, damit wir dir helfen können, deine Abrechnungserfahrung noch besser zu machen.',
         positiveButton: 'Ja!',
         negativeButton: 'Nicht wirklich',
+    },
+    trialPaymentReminder: {
+        title: 'Bleib der Frist voraus',
+        subtitle: 'Warte nicht bis zur letzten Minute – füge noch heute deine Zahlungsmethode hinzu, um den kontinuierlichen Zugang zu deinen Ausgaben auf Expensify sicherzustellen.',
+        trialEndsInDays: () => ({
+            one: 'Testphase endet in 1 Tag',
+            other: (pluralCount: number) => `Testphase endet in ${pluralCount} Tagen`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Testphase endet in ${hours}h : ${minutes}m : ${seconds}s`,
+        closeButton: 'Schließen',
+        addPaymentCardButton: 'Zahlungskarte hinzufügen',
     },
     monthPickerPage: {month: 'Monat', selectMonth: 'Bitte wählen Sie einen Monat aus'},
     aiFeaturesPromoModal: {
