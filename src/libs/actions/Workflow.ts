@@ -9,6 +9,7 @@ import {
     buildApprovalWorkflowRules,
     calculateApprovers,
     convertApprovalWorkflowToPolicyEmployees,
+    getApprovalWorkflowRulesForPolicy,
     getOverLimitForwardsToDisplayName,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
@@ -24,14 +25,25 @@ import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@s
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
+import type Rule from '@src/types/onyx/Rule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import lodashDropRightWhile from 'lodash/dropRightWhile';
 import Onyx from 'react-native-onyx';
 
 import {completeTask} from './Task';
+
+/** Cache of every approval-workflow rule (`ONYXKEYS.COLLECTION.RULE`) so actions can read the current rule set. */
+let allRules: OnyxCollection<Rule> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.RULE,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allRules = value ?? {};
+    },
+});
 
 type CreateApprovalWorkflowParams = {
     approvalWorkflow: ApprovalWorkflow;
@@ -284,66 +296,60 @@ type SetApprovalWorkflowRulesParams = {
     policyID: string;
 
     /**
-     * Diff to apply to `Policy.rules.approvalWorkflows`. A value of `ApprovalWorkflowRule`
-     * sets/replaces the rule under its `ruleID`; a value of `null` removes it
+     * Diff of rule bodies keyed by ruleID. A value of `ApprovalWorkflowRule` sets/replaces the rule
+     * under its `ruleID` in the `ONYXKEYS.COLLECTION.RULE` collection; a value of `null` removes it.
      */
     rulesDiff: ApprovalWorkflowRulesDiff;
 
-    /** Snapshot of the policy's `rules.approvalWorkflows` taken before applying `rulesDiff`. Used to roll back on failure. */
-    previousApprovalWorkflows: Record<string, ApprovalWorkflowRule>;
+    /** Snapshot of the policy's rules (`ruleID -> rule body`) taken before applying `rulesDiff`. Used to roll back on failure. */
+    previousRules: Record<string, ApprovalWorkflowRule>;
 };
 
 /**
- * Apply a set of approval-workflow rule changes to a policy via the SetApprovalWorkflow
- * Auth command.
+ * Apply a set of approval-workflow rule changes to a policy via the SetApprovalWorkflow Auth command.
  *
+ * Each rule lives under its own `ONYXKEYS.COLLECTION.RULE` key (`rules_<ruleID>`). Upserts use SET so
+ * a structurally different replacement doesn't deep-merge stale filters; removals mark the rule as
+ * pending-delete optimistically and clear it on success (or restore the previous rule on failure).
+ * Only the rule bodies (no `scope`/`scopeID`) are sent over the wire — the backend derives those.
  */
-function setApprovalWorkflowRules({policyID, rulesDiff, previousApprovalWorkflows}: SetApprovalWorkflowRulesParams) {
+function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
     if (!policyID || isEmptyObject(rulesDiff)) {
         return;
     }
 
-    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const genericError = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
 
-    // Build the rollback shape
-    const failureApprovalWorkflows: Record<string, ApprovalWorkflowRule | null> = {};
-    for (const ruleID of Object.keys(rulesDiff)) {
-        failureApprovalWorkflows[ruleID] = previousApprovalWorkflows[ruleID] ?? null;
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
+
+    for (const [ruleID, rule] of Object.entries(rulesDiff)) {
+        const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${ruleID}` as const;
+        const previousRule = previousRules[ruleID];
+        const restore: OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE> = previousRule
+            ? {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: ruleKey,
+                  value: {...previousRule, scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY, scopeID: policyID, pendingAction: null, errors: genericError},
+              }
+            : {onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: null};
+
+        if (rule === null) {
+            optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: ruleKey, value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null}});
+            successData.push({onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: null});
+            failureData.push(restore);
+            continue;
+        }
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ruleKey,
+            value: {...rule, scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY, scopeID: policyID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null},
+        });
+        successData.push({onyxMethod: Onyx.METHOD.MERGE, key: ruleKey, value: {pendingAction: null}});
+        failureData.push(restore);
     }
-
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {
-                rules: {approvalWorkflows: rulesDiff},
-                pendingFields: {approvalWorkflows: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-                errorFields: {approvalWorkflows: null},
-            },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {
-                pendingFields: {approvalWorkflows: null},
-            },
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {
-                rules: {approvalWorkflows: failureApprovalWorkflows},
-                pendingFields: {approvalWorkflows: null},
-                errorFields: {approvalWorkflows: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
-            },
-        },
-    ];
 
     const parameters: SetApprovalWorkflowParams = {
         policyID,
@@ -361,7 +367,7 @@ function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprov
         return;
     }
 
-    const existingRules = policy.rules?.approvalWorkflows ?? {};
+    const existingRules = getApprovalWorkflowRulesForPolicy(allRules, policy.id);
     const memberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
 
     // A submitter can only belong to one workflow, so first drop these members from any OTHER
@@ -374,7 +380,7 @@ function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprov
 
     const rulesDiff = {...removeDiff, ...createDiff};
 
-    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousApprovalWorkflows: existingRules});
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: existingRules});
 
     if (
         addExpenseApprovalsTaskReport &&
@@ -398,7 +404,7 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
         return;
     }
 
-    const existingRules = policy.rules?.approvalWorkflows ?? {};
+    const existingRules = getApprovalWorkflowRulesForPolicy(allRules, policy.id);
     const previousMemberEmails = initialApprovalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
     const newMemberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
 
@@ -418,7 +424,7 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
 
     const rulesDiff = {...removeFromOthersDiff, ...memberDiff, ...chainDiff};
 
-    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousApprovalWorkflows: existingRules});
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: existingRules});
 }
 
 /**
@@ -429,11 +435,11 @@ function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy:
         return;
     }
 
-    const existingRules = policy.rules?.approvalWorkflows ?? {};
+    const existingRules = getApprovalWorkflowRulesForPolicy(allRules, policy.id);
     const memberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
     const rulesDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules});
 
-    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousApprovalWorkflows: existingRules});
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: existingRules});
 }
 
 /** Set the members of the approval workflow that is currently edited */

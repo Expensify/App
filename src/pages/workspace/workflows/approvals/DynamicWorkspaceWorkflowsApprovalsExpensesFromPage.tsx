@@ -26,7 +26,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {canMemberWrite, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getRulesSubmitterToFirstApprover} from '@libs/WorkflowUtils';
+import {getApprovalWorkflowRulesForPolicy, getRulesSubmitterToFirstApprover} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -60,6 +60,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const {translate} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path);
     const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
@@ -107,11 +108,12 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
 
     // Build a map of member emails to their existing workflow's first approver. With the beta on this
-    // is derived from `rules.approvalWorkflows`; otherwise it falls back to the legacy employeeList
-    // `submitsTo` (non-default workflows only).
+    // is derived from the `ONYXKEYS.COLLECTION.RULE` rules; otherwise it falls back to the legacy
+    // employeeList `submitsTo` (non-default workflows only).
     const membersInExistingWorkflows = (() => {
         if (isMultipleApproversBetaEnabled) {
-            return new Map(Object.entries(getRulesSubmitterToFirstApprover(policy?.rules?.approvalWorkflows ?? {})));
+            const rules = getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID);
+            return new Map(Object.entries(getRulesSubmitterToFirstApprover(rules, policy?.employeeList ?? {})));
         }
 
         const employees = policy?.employeeList ?? {};

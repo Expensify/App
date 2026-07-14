@@ -3,17 +3,26 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {
+    ApprovalWorkflowAction,
+    ApprovalWorkflowActions,
+    ApprovalWorkflowFilter,
+    ApprovalWorkflowFilterComparison,
+    ApprovalWorkflowRule,
+    ApprovalWorkflowTriggers,
+} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
+import type Rule from '@src/types/onyx/Rule';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
@@ -124,6 +133,12 @@ type PolicyConversionParams = {
 
     /** Current user's login email, used to determine if Expensify team members should be shown */
     currentUserLogin?: string;
+
+    /**
+     * The policy's approval-workflow rules keyed by ruleID, read from the `ONYXKEYS.COLLECTION.RULE`
+     * collection (see `getApprovalWorkflowRulesForPolicy`). Only consumed by the rules-based converter.
+     */
+    rules?: Record<string, ApprovalWorkflowRule>;
 };
 
 type PolicyConversionResult = {
@@ -723,14 +738,13 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
     return [...workflowMembers, ...additionalMembers];
 }
 
-// These helpers translate the in-app `ApprovalWorkflow` model into the rule
-// format the backend stores under `Policy.rules.approvalWorkflows`, and
-// handle any changes
-const APPROVAL_WORKFLOW_FORWARD_ACTION = 'forward' as const;
+// These helpers translate the in-app `ApprovalWorkflow` model into the AST rule
+// format the backend stores in the `rules` table (mirrored in `ONYXKEYS.COLLECTION.RULE`),
+// and handle any changes.
 
 type ApprovalWorkflowRulesDiff = Record<string, ApprovalWorkflowRule | null>;
 
-/** Build a filter: `<left> <operator> <right>`. */
+/** Build a comparison filter: `<left> <operator> <right>`. */
 function buildComparison(
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>,
     left: ApprovalWorkflowFilterComparison['left'],
@@ -739,41 +753,54 @@ function buildComparison(
     return {operator, left, right};
 }
 
-/** Build the `from in [emails]` filter used by every approval-workflow rule. */
+/** Combine two filter nodes with a boolean `AND`. */
+function buildAnd(left: ApprovalWorkflowFilter['left'], right: ApprovalWorkflowFilter['right']): ApprovalWorkflowFilter {
+    return {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left, right};
+}
+
+/** Build the `from = [emails]` filter used by every approval-workflow rule. Kept at the top-level left of the tree. */
 function buildSubmitterFilter(memberEmails: string[]): ApprovalWorkflowFilterComparison {
     return buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, [...memberEmails]);
 }
 
-/** Build the `previousApprover = email` filter used by all non-initial rules. */
-function buildPreviousApproverComparison(email: string): ApprovalWorkflowFilterComparison {
-    return buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.PREVIOUS_APPROVER, email);
+/** Build the `to = email` filter that matches the approver who just approved the report. */
+function buildToComparison(email: string): ApprovalWorkflowFilterComparison {
+    return buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, email);
+}
+
+/** A rule that fires when a report is submitted. */
+function buildSubmitTriggers(): ApprovalWorkflowTriggers {
+    return {'0': CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT};
+}
+
+/** A rule that fires when a report is approved. */
+function buildApproveTriggers(): ApprovalWorkflowTriggers {
+    return {'0': CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE};
+}
+
+/** Forward the report to `approver`. */
+function buildForwardActions(approver: string): ApprovalWorkflowActions {
+    return {'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO, approver}};
+}
+
+/** Approve (finalize) the report. */
+function buildApproveActions(): ApprovalWorkflowActions {
+    return {'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}};
 }
 
 /**
- * Assemble the filter tree for a single rule from its parts. The `from` comparison is always
- * present; the `previousApprover` gate and `amount` comparison are optional.
- */
-function buildLevelFilters(
-    fromComparison: ApprovalWorkflowFilterComparison,
-    previousApproverComparison: ApprovalWorkflowFilterComparison | undefined,
-    amountComparison: ApprovalWorkflowFilterComparison | undefined,
-): ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison {
-    let right: ApprovalWorkflowFilterComparison | ApprovalWorkflowFilter | undefined;
-    if (previousApproverComparison && amountComparison) {
-        right = {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: previousApproverComparison, right: amountComparison};
-    } else {
-        right = previousApproverComparison ?? amountComparison;
-    }
-
-    if (!right) {
-        return fromComparison;
-    }
-
-    return {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: fromComparison, right};
-}
-
-/**
- * Build the `rules.approvalWorkflows` rule chain for a single `ApprovalWorkflow`.
+ * Build the AST rule chain for a single `ApprovalWorkflow` (members + ordered approvers).
+ *
+ * For approvers `[A0, A1, …, A_{n-1}]` and members `M` this produces:
+ *   - a `ReportSubmit` rule: `from ∈ M` → forward to `A0`.
+ *   - for each approver `A_i`, a `ReportApprove` rule gated on `to == A_i` (the approver who just
+ *     approved) describing the next hop:
+ *       - normally forward to `A_{i+1}`, or approve the report if `A_i` is the last approver.
+ *       - if `A_i` has a positive `approvalLimit` and an `overLimitForwardsTo`, the hop splits:
+ *         under the limit → the normal hop above; at/over the limit → forward to `overLimitForwardsTo`,
+ *         who then finalizes the report (a terminal `ApproveReport` rule for `to == overLimitForwardsTo`).
+ *
+ * The `from` filter is always the top-level left of the tree so it can be checked cheaply.
  */
 function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): ApprovalWorkflowRule[] {
     const memberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
@@ -783,56 +810,77 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
         return [];
     }
 
+    const firstApproverEmail = approvers.at(0)?.email;
+    if (!firstApproverEmail) {
+        return [];
+    }
+
     const fromComparison = buildSubmitterFilter(memberEmails);
     const rules: ApprovalWorkflowRule[] = [];
 
-    // The approvers that could have approved at the PREVIOUS level and forwarded here. An empty list
-    // means "no previous approver"
-    let previousApproverEmails: string[] = [];
+    // On submission, route the report to the first approver.
+    rules.push({
+        triggers: buildSubmitTriggers(),
+        filters: fromComparison,
+        actions: buildForwardActions(firstApproverEmail),
+    });
 
+    // For each approver, describe what happens after THEY approve (gated on `to == approver`).
     for (let i = 0; i < approvers.length; i++) {
         const approver = approvers.at(i);
-        if (!approver) {
+        if (!approver?.email) {
             continue;
         }
 
-        // Narrow once: when the approver has a positive limit and an over-limit target, capture both
-        // (already non-null inside this branch) so the level can route under/over amounts separately.
+        const nextApproverEmail = approvers.at(i + 1)?.email;
+        const toComparison = buildToComparison(approver.email);
+
         const limitSplit =
             approver.approvalLimit && approver.approvalLimit > 0 && approver.overLimitForwardsTo
                 ? {limit: approver.approvalLimit, overLimitForwardsTo: approver.overLimitForwardsTo}
                 : undefined;
-        const underAmount = limitSplit ? buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limitSplit.limit) : undefined;
-        const overAmount = limitSplit ? buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limitSplit.limit) : undefined;
 
-        // One per possible previous approver
-        const gates = previousApproverEmails.length === 0 ? [undefined] : previousApproverEmails.map((email) => buildPreviousApproverComparison(email));
+        if (limitSplit) {
+            const underAmount = buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limitSplit.limit);
+            const overAmount = buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limitSplit.limit);
 
-        for (const gate of gates) {
-            if (limitSplit) {
-                rules.push({
-                    filters: buildLevelFilters(fromComparison, gate, underAmount),
-                    action: APPROVAL_WORKFLOW_FORWARD_ACTION,
-                    nextReceiver: approver.email,
-                });
-                rules.push({
-                    filters: buildLevelFilters(fromComparison, gate, overAmount),
-                    action: APPROVAL_WORKFLOW_FORWARD_ACTION,
-                    nextReceiver: limitSplit.overLimitForwardsTo,
-                });
-            } else {
-                rules.push({
-                    filters: buildLevelFilters(fromComparison, gate, undefined),
-                    action: APPROVAL_WORKFLOW_FORWARD_ACTION,
-                    nextReceiver: approver.email,
-                });
-            }
+            // Under the limit: continue the chain, or approve if this is the last approver.
+            rules.push({
+                triggers: buildApproveTriggers(),
+                filters: buildAnd(fromComparison, buildAnd(toComparison, underAmount)),
+                actions: nextApproverEmail ? buildForwardActions(nextApproverEmail) : buildApproveActions(),
+            });
+            // At/over the limit: escalate to the over-limit approver.
+            rules.push({
+                triggers: buildApproveTriggers(),
+                filters: buildAnd(fromComparison, buildAnd(toComparison, overAmount)),
+                actions: buildForwardActions(limitSplit.overLimitForwardsTo),
+            });
+            // The over-limit approver finalizes the report.
+            rules.push({
+                triggers: buildApproveTriggers(),
+                filters: buildAnd(fromComparison, buildToComparison(limitSplit.overLimitForwardsTo)),
+                actions: buildApproveActions(),
+            });
+        } else {
+            rules.push({
+                triggers: buildApproveTriggers(),
+                filters: buildAnd(fromComparison, toComparison),
+                actions: nextApproverEmail ? buildForwardActions(nextApproverEmail) : buildApproveActions(),
+            });
         }
-
-        previousApproverEmails = limitSplit ? [approver.email, limitSplit.overLimitForwardsTo] : [approver.email];
     }
 
-    return rules;
+    // Different approvers may share an `overLimitForwardsTo`, which would emit identical terminal rules.
+    const seen = new Set<string>();
+    return rules.filter((rule) => {
+        const fingerprint = JSON.stringify(rule);
+        if (seen.has(fingerprint)) {
+            return false;
+        }
+        seen.add(fingerprint);
+        return true;
+    });
 }
 
 /**
@@ -907,9 +955,9 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
     };
 
     return JSON.stringify({
+        triggers: rule.triggers,
         filters: stripFromValues(rule.filters),
-        action: rule.action,
-        nextReceiver: rule.nextReceiver,
+        actions: rule.actions,
     });
 }
 
@@ -922,7 +970,7 @@ function replaceSubmitterEmails(rule: ApprovalWorkflowRule, newEmails: string[])
         return {
             ...node,
             left: rewrite(node.left),
-            ...(node.right ? {right: rewrite(node.right)} : {}),
+            right: rewrite(node.right),
         };
     };
     return {...rule, filters: rewrite(rule.filters)};
@@ -949,7 +997,7 @@ function removeEmails(existingEmails: string[], emailsToRemove: string[]): strin
 }
 
 type ReconcileContext = {
-    /** The existing `Policy.rules.approvalWorkflows` snapshot, defaulting to `{}`. */
+    /** The policy's existing approval-workflow rules (`ruleID -> rule body`), defaulting to `{}`. */
     existingRules: Record<string, ApprovalWorkflowRule>;
 };
 
@@ -1152,71 +1200,112 @@ function findComparisonByLeft(node: ApprovalWorkflowFilter | ApprovalWorkflowFil
     return findComparisonByLeft(node.right, leftKey);
 }
 
-/** The approver a level routes the report INTO, plus that approver's own limit split (if any). */
-type ApprovalWorkflowLevelInfo = {
-    /** The approver the level routes to. */
-    email: string;
-    /** This approver's own approval limit, from the level's amount split. */
+/** The triggers of a rule as a flat list. */
+function getRuleTriggers(rule: ApprovalWorkflowRule): Array<ValueOf<typeof CONST.APPROVAL_WORKFLOW_RULE.TRIGGER>> {
+    return Object.values(rule.triggers ?? {});
+}
+
+/** The actions of a rule as a flat list. */
+function getRuleActions(rule: ApprovalWorkflowRule): ApprovalWorkflowAction[] {
+    return Object.values(rule.actions ?? {});
+}
+
+/** True when the rule fires on report submission. */
+function isSubmitRule(rule: ApprovalWorkflowRule): boolean {
+    return getRuleTriggers(rule).includes(CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT);
+}
+
+/** True when the rule approves (finalizes) the report. */
+function isApproveReportRule(rule: ApprovalWorkflowRule): boolean {
+    return getRuleActions(rule).some((action) => action.name === CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT);
+}
+
+/** The approver a `ForwardTo` rule routes to, if any. */
+function getForwardApprover(rule: ApprovalWorkflowRule): string | undefined {
+    return getRuleActions(rule).find((action) => action.name === CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO)?.approver;
+}
+
+/**
+ * Resolve the first approver a submitter's report is routed to on submission — the `ForwardTo`
+ * target of the submitter's `ReportSubmit` rule. Falls back to `employeeList.submitsTo` for
+ * pre-beta chains that haven't been re-saved as rules yet.
+ */
+function resolveFirstApprover(submitter: string, rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList): string | undefined {
+    for (const rule of Object.values(rules)) {
+        if (!isSubmitRule(rule) || !extractSubmitterEmails(rule).includes(submitter)) {
+            continue;
+        }
+        const approver = getForwardApprover(rule);
+        if (approver) {
+            return approver;
+        }
+    }
+    return employees[submitter]?.submitsTo;
+}
+
+/** What happens after `currentApprover` approves a report from `submitter`. */
+type AfterApproveInfo = {
+    /** The next approver in the chain, from the normal / under-limit `ForwardTo`. `undefined` means the report is approved (terminal). */
+    nextEmail?: string;
+    /** `currentApprover`'s own approval limit, present only when there is an over-limit split. */
     approvalLimit?: number;
-    /** This approver's own over-limit target, from the level's amount split. */
+    /** `currentApprover`'s own over-limit target, present only when there is an over-limit split. */
     overLimitForwardsTo?: string;
 };
 
 /**
- * Resolve the level routed into by the rules by `previousApproverEmail`
+ * Resolve what the rules say happens after `currentApprover` approves a report from `submitter`, by
+ * inspecting every rule gated on `to == currentApprover`. Returns `undefined` when no rule covers
+ * this approver (so callers can fall back to `employeeList`).
  */
-function resolveLevelFromRules(submitter: string, previousApproverEmail: string | undefined, rules: Record<string, ApprovalWorkflowRule>): ApprovalWorkflowLevelInfo | undefined {
-    let underLimitRule: ApprovalWorkflowRule | undefined;
-    let overLimitRule: ApprovalWorkflowRule | undefined;
-    let normalRule: ApprovalWorkflowRule | undefined;
+function resolveAfterApprove(submitter: string, currentApprover: string, rules: Record<string, ApprovalWorkflowRule>): AfterApproveInfo | undefined {
+    let hasNormalBranch = false;
+    let normalIsTerminal = false;
+    let normalNextEmail: string | undefined;
+    let overLimitForwardsTo: string | undefined;
     let approvalLimit: number | undefined;
 
     for (const rule of Object.values(rules)) {
         if (!extractSubmitterEmails(rule).includes(submitter)) {
             continue;
         }
-        const previousApproverLeaf = findComparisonByLeft(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.PREVIOUS_APPROVER);
-        if (previousApproverEmail === undefined) {
-            // Initial-submission level: only rules with no previousApprover gate.
-            if (previousApproverLeaf) {
-                continue;
-            }
-        } else if (!previousApproverLeaf || previousApproverLeaf.right !== previousApproverEmail) {
+        const toLeaf = findComparisonByLeft(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO);
+        if (!toLeaf || toLeaf.right !== currentApprover) {
             continue;
         }
 
         const amountLeaf = findComparisonByLeft(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT);
+        const isOverLimit =
+            !!amountLeaf && (amountLeaf.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO || amountLeaf.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
+
         if (amountLeaf && typeof amountLeaf.right === 'number') {
-            if (amountLeaf.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN) {
-                underLimitRule = rule;
-                approvalLimit = amountLeaf.right;
-            } else if (amountLeaf.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO) {
-                overLimitRule = rule;
-                approvalLimit = approvalLimit ?? amountLeaf.right;
-            } else {
-                normalRule = rule;
-            }
+            approvalLimit = approvalLimit ?? amountLeaf.right;
+        }
+
+        if (isOverLimit) {
+            overLimitForwardsTo = getForwardApprover(rule) ?? overLimitForwardsTo;
+            continue;
+        }
+
+        // Normal branch: either a no-amount rule or the under-limit half of a split.
+        hasNormalBranch = true;
+        if (isApproveReportRule(rule)) {
+            normalIsTerminal = true;
         } else {
-            normalRule = rule;
+            normalNextEmail = getForwardApprover(rule) ?? normalNextEmail;
         }
     }
 
-    if (underLimitRule && overLimitRule) {
-        return {
-            email: underLimitRule.nextReceiver,
-            approvalLimit,
-            overLimitForwardsTo: overLimitRule.nextReceiver,
-        };
+    if (!hasNormalBranch && overLimitForwardsTo === undefined) {
+        return undefined;
     }
-    if (normalRule) {
-        return {email: normalRule.nextReceiver};
-    }
-    // Partial split (one half missing): use whichever rule we found. Best-effort recovery.
-    const partial = underLimitRule ?? overLimitRule;
-    if (partial) {
-        return {email: partial.nextReceiver};
-    }
-    return undefined;
+
+    const hasSplit = overLimitForwardsTo !== undefined;
+    return {
+        nextEmail: normalIsTerminal ? undefined : normalNextEmail,
+        approvalLimit: hasSplit ? approvalLimit : undefined,
+        overLimitForwardsTo,
+    };
 }
 
 type BuildApproverChainFromRulesParams = {
@@ -1227,20 +1316,16 @@ type BuildApproverChainFromRulesParams = {
 };
 
 /**
- * Loop through a submitter's approval chain forward from their initial-submission level. At each step we
- * resolve the level the report is routed into to learn the next approver's email AND that
- * approver's own `approvalLimit` / `overLimitForwardsTo`;
+ * Walk a submitter's approval chain forward. The first approver comes from the `ReportSubmit` rule;
+ * for each approver we look at the `to == approver` rules to learn that approver's own
+ * `approvalLimit` / `overLimitForwardsTo` and where the report goes next (or whether it is approved).
+ * Any step the rules don't cover falls back to the legacy `employeeList` fields.
  */
 function buildApproverChainFromRules({submitter, rules, employees, personalDetailsByEmail}: BuildApproverChainFromRulesParams): Approver[] {
-    // The first approver, and its own limit/over, come from the initial (no-previousApprover) level.
-    // Fall back to employeeList.submitsTo for pre-beta workflows that haven't been re-saved yet.
-    const initialLevel = resolveLevelFromRules(submitter, undefined, rules);
-    let currentEmail: string | undefined = initialLevel?.email ?? employees[submitter]?.submitsTo;
+    let currentEmail: string | undefined = resolveFirstApprover(submitter, rules, employees);
     if (!currentEmail) {
         return [];
     }
-    let currentApprovalLimit: number | null = initialLevel?.approvalLimit ?? employees[currentEmail]?.approvalLimit ?? null;
-    let currentOverLimitForwardsTo: string | undefined = initialLevel?.overLimitForwardsTo ?? employees[currentEmail]?.overLimitForwardsTo;
 
     const chain: Approver[] = [];
     const seenEmails = new Set<string>();
@@ -1249,8 +1334,11 @@ function buildApproverChainFromRules({submitter, rules, employees, personalDetai
         const isCircularReference = seenEmails.has(currentEmail);
         const employee: PolicyEmployee | undefined = employees[currentEmail];
 
-        const nextLevel = resolveLevelFromRules(submitter, currentEmail, rules);
-        const forwardsTo: string | undefined = nextLevel?.email ?? employee?.forwardsTo;
+        const after = resolveAfterApprove(submitter, currentEmail, rules);
+        const approvalLimit: number | null = after?.approvalLimit ?? employee?.approvalLimit ?? null;
+        const overLimitForwardsTo: string | undefined = after?.overLimitForwardsTo ?? employee?.overLimitForwardsTo;
+        // When a rule covers this approver, trust its next hop (possibly terminal). Otherwise fall back.
+        const forwardsTo: string | undefined = after ? after.nextEmail : employee?.forwardsTo;
 
         chain.push({
             email: currentEmail,
@@ -1258,9 +1346,9 @@ function buildApproverChainFromRules({submitter, rules, employees, personalDetai
             avatar: personalDetailsByEmail[currentEmail]?.avatar,
             displayName: personalDetailsByEmail[currentEmail]?.displayName ?? currentEmail,
             isCircularReference,
-            approvalLimit: currentApprovalLimit,
-            overLimitForwardsTo: currentOverLimitForwardsTo,
-            overLimitForwardsToDisplayName: getOverLimitForwardsToDisplayName(currentOverLimitForwardsTo, personalDetailsByEmail),
+            approvalLimit,
+            overLimitForwardsTo,
+            overLimitForwardsToDisplayName: getOverLimitForwardsToDisplayName(overLimitForwardsTo, personalDetailsByEmail),
             pendingAction: employee?.pendingAction,
             errors: employee?.errors,
         });
@@ -1270,8 +1358,6 @@ function buildApproverChainFromRules({submitter, rules, employees, personalDetai
         }
         seenEmails.add(currentEmail);
         currentEmail = forwardsTo;
-        currentApprovalLimit = nextLevel?.approvalLimit ?? employees[currentEmail]?.approvalLimit ?? null;
-        currentOverLimitForwardsTo = nextLevel?.overLimitForwardsTo ?? employees[currentEmail]?.overLimitForwardsTo;
     }
 
     return chain;
@@ -1298,9 +1384,33 @@ function getSubmitterRuleIDs(submitter: string, rules: Record<string, ApprovalWo
 }
 
 /**
+ * Convert the `ONYXKEYS.COLLECTION.RULE` collection into the `ruleID -> rule body` map used by the
+ * builder, reconcilers and converters, keeping only non-deleted rules scoped to `policyID`.
+ */
+function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): Record<string, ApprovalWorkflowRule> {
+    const result: Record<string, ApprovalWorkflowRule> = {};
+    if (!rulesCollection || !policyID) {
+        return result;
+    }
+
+    for (const [onyxKey, rule] of Object.entries(rulesCollection)) {
+        if (!rule || rule.scope !== CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY || rule.scopeID !== policyID) {
+            continue;
+        }
+        if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        const ruleID = onyxKey.slice(ONYXKEYS.COLLECTION.RULE.length);
+        result[ruleID] = {triggers: rule.triggers, filters: rule.filters, actions: rule.actions};
+    }
+
+    return result;
+}
+
+/**
  * Map every submitter found in the rules to their workflow's first approver
  */
-function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>): Record<string, string> {
+function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}): Record<string, string> {
     const submitters = new Set<string>();
     for (const rule of Object.values(rules)) {
         for (const email of extractSubmitterEmails(rule)) {
@@ -1310,9 +1420,9 @@ function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflow
 
     const result: Record<string, string> = {};
     for (const submitter of submitters) {
-        const initialLevel = resolveLevelFromRules(submitter, undefined, rules);
-        if (initialLevel?.email) {
-            result[submitter] = initialLevel.email;
+        const firstApprover = resolveFirstApprover(submitter, rules, employees);
+        if (firstApprover) {
+            result[submitter] = firstApprover;
         }
     }
     return result;
@@ -1320,14 +1430,21 @@ function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflow
 
 /**
  * Beta-enabled counterpart to `convertPolicyEmployeesToApprovalWorkflows`: rebuild the same
- * `PolicyConversionResult` shape from `policy.rules.approvalWorkflows`, with per-hop
- * fallback to `employeeList` for any chain step the rules don't cover. Rule-based chains
- * are kept separate from legacy chains even when their shapes match — the legacy ones are
- * expected to disappear as workflows are migrated.
+ * `PolicyConversionResult` shape from the `ONYXKEYS.COLLECTION.RULE` rules (passed in via
+ * `params.rules`), with per-hop fallback to `employeeList` for any chain step the rules don't
+ * cover. Rule-based chains are kept separate from legacy chains even when their shapes match —
+ * the legacy ones are expected to disappear as workflows are migrated.
  */
-function convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, firstApprover, localeCompare, currentUserLogin}: PolicyConversionParams): PolicyConversionResult {
+function convertApprovalWorkflowRulesToWorkflows({
+    policy,
+    personalDetails,
+    firstApprover,
+    localeCompare,
+    currentUserLogin,
+    rules: rulesParam,
+}: PolicyConversionParams): PolicyConversionResult {
     const employees = policy?.employeeList ?? {};
-    const rules = policy?.rules?.approvalWorkflows ?? {};
+    const rules = rulesParam ?? {};
     const defaultApprover = getHRFinalApprover(policy) ?? getDefaultApprover(policy);
     const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
     const hrAdvancedModeFinalApproverEmail = getHRAdvancedModeFinalApprover(policy);
@@ -1364,7 +1481,7 @@ function convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, first
             availableMembers.push(member);
         }
 
-        const hasInitialRule = !!resolveLevelFromRules(email, undefined, rules);
+        const hasInitialRule = !!resolveFirstApprover(email, rules, {});
         if (!hasInitialRule && (!submitsTo || (!employees[submitsTo] && !hrAdvancedModeFinalApproverEmail))) {
             // Mirrors the existing legacy filter: skip submitters whose first approver isn't reachable.
             continue;
@@ -1467,6 +1584,7 @@ export {
     convertPolicyEmployeesToApprovalWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
     getApprovalLimitDescription,
+    getApprovalWorkflowRulesForPolicy,
     getRulesSubmitterToFirstApprover,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,

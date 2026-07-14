@@ -125,6 +125,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    Rule,
     TaxRatesWithDefault,
     Transaction,
     TransactionViolations,
@@ -316,6 +317,13 @@ let deprecatedAllPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (deprecatedAllPersonalDetails = val),
+});
+
+let allRules: OnyxCollection<Rule>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.RULE,
+    waitForCollectionCallback: true,
+    callback: (val) => (allRules = val),
 });
 
 /**
@@ -976,7 +984,7 @@ function setWorkspaceApprovalMode(
         }
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.RULE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -995,7 +1003,7 @@ function setWorkspaceApprovalMode(
         optimisticData.push(...nextStepOptimisticData);
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.RULE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1011,6 +1019,19 @@ function setWorkspaceApprovalMode(
     ];
     if (nextStepFailureData.length > 0) {
         failureData.push(...nextStepFailureData);
+    }
+
+    // Disabling approvals removes every approval workflow, which now lives in the `rules_<ruleID>` Onyx
+    // collection. Auth's DisablePolicyApprovals deletes those rows server-side, but we must also clear them
+    // optimistically so the workflows UI doesn't keep rebuilding stale workflows (e.g. after re-enabling).
+    if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && allRules) {
+        for (const [ruleKey, rule] of Object.entries(allRules)) {
+            if (!rule || rule.scope !== CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY || rule.scopeID !== policyID) {
+                continue;
+            }
+            optimisticData.push({onyxMethod: Onyx.METHOD.SET, key: ruleKey as `${typeof ONYXKEYS.COLLECTION.RULE}${string}`, value: null});
+            failureData.push({onyxMethod: Onyx.METHOD.SET, key: ruleKey as `${typeof ONYXKEYS.COLLECTION.RULE}${string}`, value: rule});
+        }
     }
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [

@@ -7202,7 +7202,6 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'reportField',
             EXPORTED_TO: 'exportedTo',
-            PREVIOUS_APPROVER: 'previousApprover',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field
@@ -7797,6 +7796,24 @@ const CONST = {
             CREATE: 'create',
             UPDATE: 'update',
             REMOVE: 'remove',
+        },
+    },
+
+    /** Vocabulary for the AST-based approval-workflow rules stored in the `rules` table / `ONYXKEYS.COLLECTION.RULE`. */
+    APPROVAL_WORKFLOW_RULE: {
+        /** The kind of entity a rule is scoped to. Currently only workspace policies. */
+        SCOPE: {
+            POLICY: 'policy',
+        },
+        /** The report lifecycle event that fires a rule. */
+        TRIGGER: {
+            REPORT_SUBMIT: 'ReportSubmit',
+            REPORT_APPROVE: 'ReportApprove',
+        },
+        /** The action taken when a rule matches. */
+        ACTION: {
+            FORWARD_TO: 'ForwardTo',
+            APPROVE_REPORT: 'ApproveReport',
         },
     },
 

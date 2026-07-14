@@ -60,7 +60,13 @@ import {
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {convertApprovalWorkflowRulesToWorkflows, convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import {
+    convertApprovalWorkflowRulesToWorkflows,
+    convertPolicyEmployeesToApprovalWorkflows,
+    getApprovalWorkflowRulesForPolicy,
+    getEligibleExistingBusinessBankAccounts,
+    INITIAL_APPROVAL_WORKFLOW,
+} from '@libs/WorkflowUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -183,15 +189,17 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {accountID: currentUserAccountID, email: currentUserEmail = '', login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const isUserReimburser = account?.primaryLogin !== undefined && (policy?.achAccount?.reimburser ?? policy?.owner) === account?.primaryLogin;
     const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(() => {
         const params = {
             policy,
             personalDetails: personalDetails ?? {},
             localeCompare,
             currentUserLogin,
+            rules: getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID),
         };
         return isMultipleApproversBetaEnabled ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
-    }, [policy, personalDetails, localeCompare, currentUserLogin, isMultipleApproversBetaEnabled]);
+    }, [policy, personalDetails, localeCompare, currentUserLogin, rulesCollection, route.params.policyID, isMultipleApproversBetaEnabled]);
 
     const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
