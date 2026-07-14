@@ -3581,6 +3581,7 @@ function toggleSubscribeToChildReport(
             newReportObject: newChat,
             parentReportActionID: parentReportAction.reportActionID,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             betas,
         });
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
