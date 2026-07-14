@@ -32,6 +32,15 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
+jest.mock('@hooks/usePressLoading', () =>
+    jest.fn(({isLoading = false}: {isLoading?: boolean} = {}) => ({
+        isLoading,
+        startWithLoading: async (runAfterPaint: () => void) => {
+            runAfterPaint();
+        },
+    })),
+);
+
 const moveAccessibilityFocusSpy = jest.spyOn(Accessibility, 'moveAccessibilityFocus').mockImplementation(jest.fn());
 
 function renderFormWrapper({errors = {}, serverErrorFields, inputRefs}: {errors?: Record<string, string>; serverErrorFields?: ErrorFields | null; inputRefs: React.RefObject<InputRefs>}) {
