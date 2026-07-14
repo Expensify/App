@@ -97,7 +97,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     <Button
                         size={CONST.BUTTON_SIZE.LARGE}
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={addNewContactMethod}
                     >
                         <Button.KeyboardShortcut />

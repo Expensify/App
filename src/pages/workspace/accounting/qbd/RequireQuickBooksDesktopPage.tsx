@@ -48,7 +48,7 @@ function RequireQuickBooksDesktopModal() {
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={confirm}
                         size={CONST.BUTTON_SIZE.LARGE}
                     >

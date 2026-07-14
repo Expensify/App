@@ -128,7 +128,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                         addBottomSafeAreaPadding
                     >
                         <Button
-                            variant="success"
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={navigateToFirstSync}
                             size={CONST.BUTTON_SIZE.LARGE}
                         >

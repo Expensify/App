@@ -168,7 +168,7 @@ function CopyPolicySettingsConfirmPage() {
                         </>
                     )}
                     <Button
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleCopyPolicySettings}
                         isDisabled={parts.length === 0 || targetPolicyIDs.length === 0 || (requiresTravelTermsConsent && !hasAcceptedTravelTerms)}

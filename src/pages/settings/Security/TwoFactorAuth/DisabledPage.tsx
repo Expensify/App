@@ -36,7 +36,7 @@ function DisabledPage() {
             />
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY)}
                 >

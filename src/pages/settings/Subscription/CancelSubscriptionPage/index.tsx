@@ -99,7 +99,7 @@ function CancelSubscriptionPage() {
                                 </View>
                                 <FixedFooter style={styles.ph0}>
                                     <Button
-                                        variant="success"
+                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         onPress={() => Navigation.goBack()}
                                         size={CONST.BUTTON_SIZE.LARGE}
                                     >
@@ -119,7 +119,7 @@ function CancelSubscriptionPage() {
                                 </View>
                                 <FixedFooter style={styles.ph0}>
                                     <Button
-                                        variant="success"
+                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         onPress={() => Navigation.goBack()}
                                         size={CONST.BUTTON_SIZE.LARGE}
                                     >

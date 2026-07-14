@@ -149,7 +149,7 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
                     >
                         <Button
                             size={CONST.BUTTON_SIZE.LARGE}
-                            variant="success"
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={confirmSaveApprovalMode}
                             isDisabled={isSaveDisabled}
                         >

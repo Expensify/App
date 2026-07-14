@@ -79,7 +79,7 @@ function UpgradeIntro({onUpgrade, buttonDisabled}: Props) {
                 </View>
                 <Button
                     testID="upgrade-button"
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onUpgrade}
                     isDisabled={buttonDisabled}
                     size={CONST.BUTTON_SIZE.LARGE}

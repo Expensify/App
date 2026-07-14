@@ -95,7 +95,7 @@ function DynamicExitSurveyConfirmPage() {
             </View>
             <FixedFooter>
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.GO_TO_CLASSIC}
                     onPress={goToExpensifyClassic}

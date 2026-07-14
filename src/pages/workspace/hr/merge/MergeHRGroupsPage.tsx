@@ -125,7 +125,7 @@ function MergeHRGroupsPage({
                     >
                         <Button
                             size={CONST.BUTTON_SIZE.LARGE}
-                            variant="success"
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={handleSave}
                             isDisabled={selectedIds.size === 0}
                         >

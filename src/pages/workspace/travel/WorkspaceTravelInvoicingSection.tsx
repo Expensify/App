@@ -335,7 +335,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     <Button
                         onPress={handlePayBalance}
                         isDisabled={isOffline}
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                     >
                         <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}</Button.Text>
                     </Button>

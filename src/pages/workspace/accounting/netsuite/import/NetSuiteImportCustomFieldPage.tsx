@@ -148,7 +148,7 @@ function NetSuiteImportCustomFieldPage({
 
             <FixedFooter style={[styles.mtAuto, styles.pt3]}>
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isDisabled={!!config?.pendingFields?.[importCustomField]}
                     onPress={() => {

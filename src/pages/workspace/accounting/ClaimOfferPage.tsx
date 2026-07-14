@@ -134,7 +134,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
             )}
             <Button
                 onPress={handleConnect}
-                variant="success"
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 isDisabled={isOffline}
             >

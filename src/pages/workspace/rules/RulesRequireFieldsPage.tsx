@@ -147,7 +147,7 @@ function RulesRequireFieldsPage({
                     addOfflineIndicatorBottomSafeAreaPadding
                 >
                     <Button
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleSave}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_SAVE}

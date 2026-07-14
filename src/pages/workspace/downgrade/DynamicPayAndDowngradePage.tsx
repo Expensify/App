@@ -123,7 +123,7 @@ function DynamicPayAndDowngradePage() {
                         )}
                         <Button
                             size={CONST.BUTTON_SIZE.LARGE}
-                            variant="danger"
+                            variant={CONST.BUTTON_VARIANT.DANGER}
                             onPress={payAndDowngrade}
                             isLoading={billingDetails?.isLoading}
                         >

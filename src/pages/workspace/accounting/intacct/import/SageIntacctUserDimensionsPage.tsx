@@ -121,7 +121,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                 addBottomSafeAreaPadding
             >
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={addUserDefinedDimension}
                     size={CONST.BUTTON_SIZE.LARGE}
                 >

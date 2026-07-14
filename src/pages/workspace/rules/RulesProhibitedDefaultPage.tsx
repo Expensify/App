@@ -172,7 +172,7 @@ function RulesProhibitedDefaultPage({
                         addOfflineIndicatorBottomSafeAreaPadding
                     >
                         <Button
-                            variant="success"
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             onPress={handleSave}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_RECEIPT_LINE_ITEMS_SAVE}

@@ -132,7 +132,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                 isLoading={isUnshareButtonLoading}
                 size={CONST.BUTTON_SIZE.SMALL}
                 isDisabled={isLoading}
-                variant="danger"
+                variant={CONST.BUTTON_VARIANT.DANGER}
                 onPress={promptUnshare}
             >
                 <Button.KeyboardShortcut />

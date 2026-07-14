@@ -115,7 +115,7 @@ function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequi
                 addBottomSafeAreaPadding
             >
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={navigateToEnterCredentials}
                     size={CONST.BUTTON_SIZE.LARGE}
                 >

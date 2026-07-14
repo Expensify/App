@@ -100,7 +100,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
             {policyID ? (
                 <Button
                     isLoading={loading}
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onUpgrade}
                     isDisabled={buttonDisabled}
                     size={CONST.BUTTON_SIZE.LARGE}
@@ -109,7 +109,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                 </Button>
             ) : (
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
                     size={CONST.BUTTON_SIZE.LARGE}
                 >

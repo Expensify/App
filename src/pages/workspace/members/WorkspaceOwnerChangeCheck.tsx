@@ -83,7 +83,7 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
             <Text style={styles.flex1}>{displayTexts.text}</Text>
             <View style={styles.pb5}>
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={confirm}
                 >

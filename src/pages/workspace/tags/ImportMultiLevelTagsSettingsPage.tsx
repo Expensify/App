@@ -166,7 +166,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                                 spreadsheet?.isImportingIndependentMultiLevelTags ? () => Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.getRoute(policyID)) : importTags
                             }
                             isLoading={isImportingTags}
-                            variant="success"
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                         >
                             <Button.Text>{spreadsheet?.isImportingIndependentMultiLevelTags ? translate('common.next') : translate('common.import')}</Button.Text>
