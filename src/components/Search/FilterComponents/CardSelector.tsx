@@ -68,7 +68,7 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
 
     const closedCardsSectionData = buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, value, illustrations, companyCardFeedIcons, true, customCardNames);
 
-    const shouldShowSearchInput = individualCardsSectionData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowSearchInput = individualCardsSectionData.length + closedCardsSectionData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     // Snapshot the cards selected when the filter first opened so they stay floated in the top section on first render
     // without repinning rows that are toggled afterwards. Section membership keys on this snapshot while each row's
