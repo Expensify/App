@@ -9,7 +9,7 @@ import {useCallback} from 'react';
 
 import useOnyx from './useOnyx';
 
-function useReportTransactionsCollection(reportID?: string): OnyxCollection<Transaction> {
+function useReportTransactionsCollection(reportID?: string, isActive = true): OnyxCollection<Transaction> {
     const transactionsSelector = useCallback(
         (allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined) => {
             return reportID ? allReportsTransactionsAndViolations?.[reportID]?.transactions : undefined;
@@ -19,6 +19,7 @@ function useReportTransactionsCollection(reportID?: string): OnyxCollection<Tran
 
     const [reportTransactions] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {
         selector: transactionsSelector,
+        subscribed: isActive,
     });
 
     return reportTransactions ?? getEmptyObject<OnyxCollection<Transaction>>();

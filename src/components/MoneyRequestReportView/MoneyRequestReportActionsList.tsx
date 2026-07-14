@@ -2,7 +2,6 @@ import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useFrozenWhileBlurred from '@hooks/useFrozenWhileBlurred';
 import useIsReportActionsLoaded from '@hooks/useIsReportActionsLoaded';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
@@ -126,16 +125,13 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const reportID = report?.reportID;
 
-    const {reportActions: unfilteredReportActionsLive, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID);
-
-    const unfilteredReportActions = useFrozenWhileBlurred(unfilteredReportActionsLive, isFocused);
+    const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID, {isActive: isFocused});
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
 
     const {draftReportAction} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
 
-    const allReportTransactionsLive = useReportTransactionsCollection(reportIDFromRoute);
-    const allReportTransactions = useFrozenWhileBlurred(allReportTransactionsLive, isFocused);
+    const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute, isFocused);
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true), [allReportTransactions, reportActions, isOffline]);
 
     const transactions = useMemo(
@@ -157,10 +153,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const linkedReportActionID = route?.params?.reportActionID;
 
-    // Freeze parentReportAction while blurred: it's passed to every chat row via renderItem and churns on send
-    // (child counters mutate), which would re-render every offscreen row. Resyncs on refocus.
-    const parentReportActionLive = useParentReportAction(report);
-    const parentReportAction = useFrozenWhileBlurred(parentReportActionLive, isFocused);
+    const parentReportAction = useParentReportAction(report, isFocused);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -173,10 +166,9 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
-    // Scope to this report: subscribing to the whole collection re-rendered the list on ANY report's visibility
-    // change, but every action here belongs to `reportID` (via usePaginatedReportActions).
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
         selector: reportVisibleActionsSelector(reportID),
+        subscribed: isFocused,
     });
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
@@ -187,7 +179,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
 
-    const visibleReportActionsLive = useMemo(() => {
+    const visibleReportActions = useMemo(() => {
         const filteredActions = reportActions.filter((reportAction) => {
             const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowHarvestCreatedAction);
             if (!isActionVisibleOnMoneyReport) {
@@ -213,8 +205,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
         return filteredActions.slice().reverse();
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID]);
-
-    const visibleReportActions = useFrozenWhileBlurred(visibleReportActionsLive, isFocused);
 
     const shouldShowOpenReportLoadingSkeleton = !isOffline && !!showReportActionsLoadingState && visibleReportActions.length === 0;
     const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {

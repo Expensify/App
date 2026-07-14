@@ -6,9 +6,10 @@ import useOnyx from './useOnyx';
 
 const isArchivedSelector = isArchivedReport;
 
-function useReportIsArchived(reportID?: string): boolean {
+function useReportIsArchived(reportID?: string, isActive = true): boolean {
     const [isArchived] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
         selector: isArchivedSelector,
+        subscribed: isActive,
     });
     return !!isArchived;
 }

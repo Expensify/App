@@ -16,6 +16,6 @@ function FlatListWithScrollKey<T>({ref, ...props}: FlatListWithScrollKeyProps<T>
     );
 }
 
-// memo() so unchanged props skip a re-render; RC memoizes internals but adds no memo() boundary of its own.
-// The cast restores the generic signature memo() erases (callers rely on data/renderItem inference).
-export default memo(FlatListWithScrollKey);
+// memo() so unchanged props skip a re-render. The cast restores the generic <T> that memo() erases.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- memo() drops the generic; the cast re-narrows it back to the original signature.
+export default memo(FlatListWithScrollKey) as typeof FlatListWithScrollKey;
