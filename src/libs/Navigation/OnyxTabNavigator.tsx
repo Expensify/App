@@ -137,7 +137,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     }, [styles.fullScreenLoading, styles.w100]);
 
     // This callback is used to register the focus trap container element of each available tab screen
-    const setTabFocusTrapContainerElement = useCallback((tabName: string, containerElement: HTMLElement | null) => {
+    const setTabFocusTrapContainerElement = (tabName: string, containerElement: HTMLElement | null) => {
         setFocusTrapContainerElementMapping((prevMapping) => {
             if (prevMapping[tabName] === containerElement) {
                 return prevMapping;
@@ -153,7 +153,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
             }
             return resultMapping;
         });
-    }, []);
+    };
 
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -161,7 +161,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     const guardsRef = useRef<Map<string, TabSwitchGuard>>(new Map());
     const isDiscardModalOpenRef = useRef(false);
 
-    const registerTabGuard = useCallback<RegisterTabSwitchGuard>((guard) => {
+    const registerTabGuard: RegisterTabSwitchGuard = (guard) => {
         guardsRef.current.set(guard.tabName, guard);
         return () => {
             // Only clear if this exact guard is still registered, so a re-registration from another mount isn't wiped.
@@ -170,49 +170,46 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
             }
             guardsRef.current.delete(guard.tabName);
         };
-    }, []);
+    };
 
-    const handleTabPress = useCallback(
-        (navigation: NavigationProp<ParamListBase>, event: EventArg<'tabPress', true, undefined>) => {
-            if (isDiscardModalOpenRef.current) {
-                event.preventDefault();
-                return;
-            }
-            const navState = navigation.getState();
-            const currentRouteName = navState.routes.at(navState.index)?.name;
-            const guard = currentRouteName ? guardsRef.current.get(currentRouteName) : undefined;
-            if (!guard || !guard.getHasUnsavedChanges()) {
-                return;
-            }
-            const targetRoute = navState.routes.find((tabRoute) => tabRoute.key === event.target);
-            if (!targetRoute || targetRoute.name === currentRouteName) {
-                return;
-            }
+    const handleTabPress = (navigation: NavigationProp<ParamListBase>, event: EventArg<'tabPress', true, undefined>) => {
+        if (isDiscardModalOpenRef.current) {
             event.preventDefault();
-            isDiscardModalOpenRef.current = true;
-            showConfirmModal({
-                ...getDiscardChangesModalConfig(translate),
-                shouldIgnoreBackHandlerDuringTransition: true,
-            }).then((result) => {
-                isDiscardModalOpenRef.current = false;
-                if (result.action !== ModalActions.CONFIRM) {
-                    guard.onCancel?.();
-                    return;
-                }
-                // User confirmed: always jump to the target tab, even if onDiscard fails, rather than stranding them with no feedback.
-                Promise.resolve()
-                    .then(() => guard.onDiscard())
-                    .catch((error: unknown) => {
-                        Log.warn('[OnyxTabNavigator] Failed to run tab-switch onDiscard callback', {error});
-                        Growl.error(translate('common.genericErrorMessage'));
-                    })
-                    .then(() => {
-                        navigation.dispatch(TabActions.jumpTo(targetRoute.name));
-                    });
-            });
-        },
-        [showConfirmModal, translate],
-    );
+            return;
+        }
+        const navState = navigation.getState();
+        const currentRouteName = navState.routes.at(navState.index)?.name;
+        const guard = currentRouteName ? guardsRef.current.get(currentRouteName) : undefined;
+        if (!guard || !guard.getHasUnsavedChanges()) {
+            return;
+        }
+        const targetRoute = navState.routes.find((tabRoute) => tabRoute.key === event.target);
+        if (!targetRoute || targetRoute.name === currentRouteName) {
+            return;
+        }
+        event.preventDefault();
+        isDiscardModalOpenRef.current = true;
+        showConfirmModal({
+            ...getDiscardChangesModalConfig(translate),
+            shouldIgnoreBackHandlerDuringTransition: true,
+        }).then((result) => {
+            isDiscardModalOpenRef.current = false;
+            if (result.action !== ModalActions.CONFIRM) {
+                guard.onCancel?.();
+                return;
+            }
+            // User confirmed: always jump to the target tab, even if onDiscard fails, rather than stranding them with no feedback.
+            Promise.resolve()
+                .then(() => guard.onDiscard())
+                .catch((error: unknown) => {
+                    Log.warn('[OnyxTabNavigator] Failed to run tab-switch onDiscard callback', {error});
+                    Growl.error(translate('common.genericErrorMessage'));
+                })
+                .then(() => {
+                    navigation.dispatch(TabActions.jumpTo(targetRoute.name));
+                });
+        });
+    };
 
     /**
      * This is a TabBar wrapper component that includes the focus trap container element callback.
@@ -231,6 +228,11 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         },
         [TabBar, onTabBarFocusTrapContainerElementChanged, shouldShowLabelWhenInactive, equalWidth],
     );
+
+    // Keep the generic type casts outside the nested screenListeners callback because OXC cannot hoist
+    // type-parameter references while outlining that callback.
+    const persistSelectedTab = Tab.setSelectedTab as (tabID: string, tabName: string) => void;
+    const notifyTabSelected = onTabSelected as (newTabName: string | undefined) => void;
 
     // If the selected tab changes, we need to update the focus trap container element of the active tab
     useEffect(() => {
@@ -271,9 +273,9 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                                     return;
                                 }
                                 if (newSelectedTab) {
-                                    Tab.setSelectedTab<TTabName>(id, newSelectedTab as TTabName);
+                                    persistSelectedTab(id, newSelectedTab);
                                 }
-                                onTabSelected(newSelectedTab as TTabName);
+                                notifyTabSelected(newSelectedTab);
                             },
                             tabPress: (e) => {
                                 // Let a caller's own tabPress run first; if it blocked the switch, don't also run the guard.
@@ -320,12 +322,9 @@ function TabScreenWithFocusTrapWrapper({children}: {children?: React.ReactNode})
     const route = useRoute();
     const styles = useThemeStyles();
     const setTabContainerElement = useContext(TabFocusTrapContext);
-    const handleContainerElementChanged = useCallback(
-        (element: HTMLElement | null) => {
-            setTabContainerElement(route.name, element);
-        },
-        [setTabContainerElement, route.name],
-    );
+    const handleContainerElementChanged = (element: HTMLElement | null) => {
+        setTabContainerElement(route.name, element);
+    };
 
     return (
         <FocusTrapContainerElement
