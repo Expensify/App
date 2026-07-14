@@ -17,6 +17,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
+/**
+ * Split-share validation errors owned by `SplitBillController`. Like `violations.`-prefixed
+ * errors, these represent real validation state that can only be resolved by fixing the
+ * underlying split shares, so the focus-reset effect must not clear them.
+ */
+const SPLIT_VALIDATION_ERRORS = new Set<TranslationPaths>(['iou.error.invalidSplit', 'iou.error.invalidSplitParticipants', 'iou.error.invalidSplitYourself']);
+
 type UseFormErrorManagementParams = {
     /** Transaction being confirmed */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -216,11 +223,13 @@ function useFormErrorManagement({
             setFormError('');
             return;
         }
-        // Check 1: If formError does NOT start with "violations.", clear it and return
-        // Reset the form error whenever the screen gains or loses focus
-        // but preserve violation-related errors since those represent real validation issues
-        // that can only be resolved by fixing the underlying issue
-        if (currentFormError && !currentFormError.startsWith(CONST.VIOLATIONS_PREFIX)) {
+        // Check 1: If formError does NOT start with "violations." and is not a split-validation
+        // error, clear it and return.
+        // Reset the form error whenever the screen gains or loses focus but preserve
+        // violation-related and split-validation errors since those represent real validation
+        // issues that can only be resolved by fixing the underlying issue. `SplitBillController`
+        // remains the owner of the split errors and clears them itself once the shares are valid.
+        if (currentFormError && !currentFormError.startsWith(CONST.VIOLATIONS_PREFIX) && !SPLIT_VALIDATION_ERRORS.has(currentFormError)) {
             setFormError('');
             return;
         }

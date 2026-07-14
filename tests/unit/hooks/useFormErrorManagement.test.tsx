@@ -147,4 +147,27 @@ describe('useFormErrorManagement', () => {
         act(() => result.current.setFormError('iou.error.invalidMerchant'));
         expect(result.current.errorMessage).toBeDefined();
     });
+
+    it('preserves split-validation errors across focus/validation-state changes (like violations)', () => {
+        const splitErrors = ['iou.error.invalidSplit', 'iou.error.invalidSplitParticipants', 'iou.error.invalidSplitYourself'] as const;
+        for (const splitError of splitErrors) {
+            const {result, rerender} = renderHook((props: Params) => useFormErrorManagement(props), {wrapper: Wrapper, initialProps: baseParams});
+            act(() => result.current.setFormError(splitError));
+            expect(result.current.formError).toBe(splitError);
+
+            // Changing a dependency of the focus-reset effect re-runs it (e.g. returning from the merchant step).
+            // Split-validation errors must survive, since only SplitBillController can clear them once the shares are valid.
+            rerender({...baseParams, didConfirmSplit: true});
+            expect(result.current.formError).toBe(splitError);
+        }
+    });
+
+    it('clears non-violation, non-split errors across focus/validation-state changes', () => {
+        const {result, rerender} = renderHook((props: Params) => useFormErrorManagement(props), {wrapper: Wrapper, initialProps: baseParams});
+        act(() => result.current.setFormError('iou.error.invalidCategoryLength'));
+        expect(result.current.formError).toBe('iou.error.invalidCategoryLength');
+
+        rerender({...baseParams, didConfirmSplit: true});
+        expect(result.current.formError).toBe('');
+    });
 });
