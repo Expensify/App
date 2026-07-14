@@ -167,7 +167,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                             >
                                 <Icon
                                     src={Pencil}
-                                    extraSmall
+                                    size={CONST.ICON_SIZE.EXTRA_SMALL}
                                     fill={theme.icon}
                                 />
                             </PressableWithFeedback>

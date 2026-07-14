@@ -389,9 +389,13 @@ function Button({
                                 <Icon
                                     src={icon}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                     extraSmall={extraSmall}
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                     small={small}
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                     medium={medium}
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                     large={large}
                                     isButtonIcon
                                     accessibilityLabel={iconAccessibilityLabel}
@@ -405,9 +409,13 @@ function Button({
                             <Icon
                                 src={iconRight ?? icons.ArrowRight}
                                 fill={isHovered ? (iconRightHoverFill ?? iconHoverFill ?? defaultFill) : (iconRightFill ?? iconFill ?? defaultFill)}
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                 extraSmall={extraSmall}
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                 small={small}
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                 medium={medium}
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                 large={large}
                                 isButtonIcon
                             />

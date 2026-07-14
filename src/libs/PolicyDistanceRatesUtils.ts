@@ -44,18 +44,6 @@ function validateTaxClaimableValue(values: FormOnyxValues<TaxReclaimableForm>, r
     return errors;
 }
 
-/**
- * Get the optimistic rate name in a way that matches BE logic
- * @param rates
- */
-function getOptimisticRateName(rates: Record<string, Rate>): string {
-    if (Object.keys(rates).length === 0) {
-        return CONST.CUSTOM_UNITS.DEFAULT_RATE;
-    }
-    const newRateCount = Object.values(rates).filter((rate) => rate.name?.startsWith(CONST.CUSTOM_UNITS.NEW_RATE)).length;
-    return newRateCount === 0 ? CONST.CUSTOM_UNITS.NEW_RATE : `${CONST.CUSTOM_UNITS.NEW_RATE} ${newRateCount}`;
-}
-
 function validateCreateDistanceRateForm(
     values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>,
     toLocaleDigit: (arg: string) => string,
@@ -194,4 +182,4 @@ function getRateStatus(rate: Rate): string {
     return CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE;
 }
 
-export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates, getRateStatus};
+export {validateRateValue, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates, getRateStatus};

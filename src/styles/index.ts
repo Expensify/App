@@ -11,7 +11,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 
 /* eslint-disable max-lines */
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
+import type {LineLayerStyle as LineLayerStyleProps} from '@rnmapbox/maps';
 import type {LineLayerSpecification} from 'react-map-gl/mapbox';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated, DimensionValue, ImageStyle, TextStyle, ViewStyle} from 'react-native';
@@ -261,6 +261,7 @@ const webViewStyles = (theme: ThemeColors) =>
             flex: 1,
             lineHeight: variables.fontSizeNormalHeight,
             ...writingDirection.ltr,
+            overflow: 'visible',
         },
     }) satisfies WebViewStyle;
 
@@ -3955,6 +3956,23 @@ const staticStyles = (theme: ThemeColors) =>
             minWidth: 68,
         },
 
+        gettingStartedRowIconContainer: {
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        gettingStartedRowTextContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            gap: 2,
+        },
+
+        gettingStartedFooterLink: {
+            paddingVertical: 12,
+        },
+
         widgetHeaderMenuButton: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
@@ -5981,6 +5999,12 @@ const staticStyles = (theme: ThemeColors) =>
             border: 'none',
         },
 
+        featureTrainingModalNavButtons: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            gap: variables.spacing2,
+        },
+
         twoColumnLayoutCol: {
             flexGrow: 1,
             flexShrink: 1,
@@ -6896,13 +6920,13 @@ const plainStyles = (theme: ThemeColors) =>
             lineColor: colors.green400,
             lineWidth: 6,
             lineCap: 'round',
-        },
+        } satisfies MapDirectionStyle,
 
         mapDirectionBorder: {
             lineColor: colors.green600,
             lineWidth: 8,
             lineCap: 'round',
-        },
+        } satisfies MapDirectionStyle,
 
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},

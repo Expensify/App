@@ -271,6 +271,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.DebugModalStackNavigator}
                             />
                             <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.AVATAR_CROP}
+                                component={ModalStackNavigators.AvatarCropModalStackNavigator}
+                            />
+                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION}
                                 component={ModalStackNavigators.NewReportWorkspaceSelectionModalStackNavigator}
                             />

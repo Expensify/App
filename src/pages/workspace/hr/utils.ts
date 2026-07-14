@@ -16,7 +16,6 @@ import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type Beta from '@src/types/onyx/Beta';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, GustoConnectionConfig, MergeHRConnectionConfig, PolicyConnectionSyncProgress, PolicyConnectionSyncStage, ZenefitsConnectionConfig} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
@@ -254,9 +253,6 @@ type GetHRCardsParams = {
     /** Locale helper that converts an ISO datetime to a localized date string. */
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
 
-    /** Predicate that checks whether a given beta flag is enabled for the current user. */
-    isBetaEnabled: (beta: Beta) => boolean;
-
     /** Translation function for resolving i18n keys into display strings. */
     translate: LocaleContextProps['translate'];
 
@@ -270,8 +266,8 @@ type GetHRCardsParams = {
     trinetIcon: IconAsset;
 };
 
-/** Builds the full list of HR provider card descriptors for the workspace HR page, including static providers (Gusto, Zenefits) and dynamic Merge HR sub-providers gated by betas. */
-function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDateFromDatetime, translate, policyID, ...iconParams}: GetHRCardsParams): HRCardDescriptor[] {
+/** Builds the full list of HR provider card descriptors for the workspace HR page, including static providers (Gusto, Zenefits) and dynamic Merge HR sub-providers. */
+function getHRCards({policy, connectionSyncProgress, getLocalDateFromDatetime, translate, policyID, ...iconParams}: GetHRCardsParams): HRCardDescriptor[] {
     const cards: HRCardDescriptor[] = [];
 
     for (const provider of STATIC_HR_PROVIDERS) {
@@ -310,58 +306,56 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
         });
     }
 
-    if (isBetaEnabled(CONST.BETAS.MERGE_HR)) {
-        const mergeConnectionName = CONST.POLICY.CONNECTIONS.NAME.MERGE_HR;
-        const disconnectedState = {isConnected: false, isSyncInProgress: false, isInitialSyncInProgress: false, hasError: false, needsReconnect: false} as const;
+    const mergeConnectionName = CONST.POLICY.CONNECTIONS.NAME.MERGE_HR;
+    const disconnectedState = {isConnected: false, isSyncInProgress: false, isInitialSyncInProgress: false, hasError: false, needsReconnect: false} as const;
 
-        for (const [slug, providerEntry] of Object.entries(MERGE_HR_PROVIDERS) as Array<[MergeHRProviderSlug, (typeof MERGE_HR_PROVIDERS)[MergeHRProviderSlug]]>) {
-            const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});
-            const mergeConfig = state.isConnected ? policy?.connections?.merge_hris?.config : undefined;
-            const needsSetup = state.isConnected && !state.needsReconnect && isMergeHRCompleteSetupNeeded(policy);
-            const groupsRoute = ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID);
+    for (const [slug, providerEntry] of Object.entries(MERGE_HR_PROVIDERS) as Array<[MergeHRProviderSlug, (typeof MERGE_HR_PROVIDERS)[MergeHRProviderSlug]]>) {
+        const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});
+        const mergeConfig = state.isConnected ? policy?.connections?.merge_hris?.config : undefined;
+        const needsSetup = state.isConnected && !state.needsReconnect && isMergeHRCompleteSetupNeeded(policy);
+        const groupsRoute = ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID);
 
-            const configRows: HRConfigRow[] =
-                state.isConnected && !state.needsReconnect
-                    ? [
-                          {
-                              field: 'groups',
-                              description: translate('workspace.hr.mergeHR.groups.title'),
-                              title: getMergeHRGroupsLabel(policy),
-                              route: groupsRoute,
-                              pendingAction: mergeConfig?.pendingFields?.groups,
-                              errors: mergeConfig?.errorFields?.groups,
-                          },
-                          {
-                              field: 'approvalMode',
-                              description: translate('workspace.hr.approvalMode'),
-                              title: getApprovalModeLabel(policy, mergeConnectionName, translate),
-                              route: ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(policyID),
-                              pendingAction: mergeConfig?.pendingFields?.approvalMode,
-                              errors: mergeConfig?.errorFields?.approvalMode,
-                          },
-                          {
-                              field: 'finalApprover',
-                              description: translate('workspace.hr.finalApprover'),
-                              title: getFinalApproverDisplayName(mergeConfig?.finalApprover, translate),
-                              route: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
-                              pendingAction: mergeConfig?.pendingFields?.finalApprover,
-                              errors: mergeConfig?.errorFields?.finalApprover,
-                          },
-                      ]
-                    : [];
+        const configRows: HRConfigRow[] =
+            state.isConnected && !state.needsReconnect
+                ? [
+                      {
+                          field: 'groups',
+                          description: translate('workspace.hr.mergeHR.groups.title'),
+                          title: getMergeHRGroupsLabel(policy),
+                          route: groupsRoute,
+                          pendingAction: mergeConfig?.pendingFields?.groups,
+                          errors: mergeConfig?.errorFields?.groups,
+                      },
+                      {
+                          field: 'approvalMode',
+                          description: translate('workspace.hr.approvalMode'),
+                          title: getApprovalModeLabel(policy, mergeConnectionName, translate),
+                          route: ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(policyID),
+                          pendingAction: mergeConfig?.pendingFields?.approvalMode,
+                          errors: mergeConfig?.errorFields?.approvalMode,
+                      },
+                      {
+                          field: 'finalApprover',
+                          description: translate('workspace.hr.finalApprover'),
+                          title: getFinalApproverDisplayName(mergeConfig?.finalApprover, translate),
+                          route: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
+                          pendingAction: mergeConfig?.pendingFields?.finalApprover,
+                          errors: mergeConfig?.errorFields?.finalApprover,
+                      },
+                  ]
+                : [];
 
-            cards.push({
-                key: `merge_${slug}`,
-                connectionName: mergeConnectionName,
-                displayName: providerEntry.displayName,
-                icon: providerEntry.iconUrl,
-                setupLink: getMergeHRSetupLink(policyID, slug),
-                ...(state.isConnected ? state : disconnectedState),
-                completeSetupRoute: needsSetup ? groupsRoute : undefined,
-                config: mergeConfig,
-                configRows,
-            });
-        }
+        cards.push({
+            key: `merge_${slug}`,
+            connectionName: mergeConnectionName,
+            displayName: providerEntry.displayName,
+            icon: providerEntry.iconUrl,
+            setupLink: getMergeHRSetupLink(policyID, slug),
+            ...(state.isConnected ? state : disconnectedState),
+            completeSetupRoute: needsSetup ? groupsRoute : undefined,
+            config: mergeConfig,
+            configRows,
+        });
     }
 
     return cards;

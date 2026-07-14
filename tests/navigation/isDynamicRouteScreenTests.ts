@@ -1,6 +1,6 @@
 import isDynamicRouteScreen from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteScreen';
+import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 
-import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 
 describe('isDynamicRouteScreen', () => {
@@ -37,6 +37,15 @@ describe('isDynamicRouteScreen', () => {
     });
 
     it('should return false for a screen name not present in normalizedConfigs', () => {
-        expect(isDynamicRouteScreen('NonExistentScreen_12345' as Screen)).toBe(false);
+        const screen = SCREENS.VALIDATE_LOGIN;
+        const config = normalizedConfigs[screen];
+
+        Reflect.deleteProperty(normalizedConfigs, screen);
+
+        try {
+            expect(isDynamicRouteScreen(screen)).toBe(false);
+        } finally {
+            normalizedConfigs[screen] = config;
+        }
     });
 });

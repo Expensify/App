@@ -43,7 +43,7 @@ function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, te
                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
             >
                 <Icon
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                     src={icons.DownArrow}
                     fill={theme.icon}
                 />

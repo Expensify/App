@@ -1,5 +1,7 @@
 import CONST from '@src/CONST';
 
+import {fromZonedTime} from 'date-fns-tz';
+
 const SIXTY_DAYS_MS = 60 * CONST.DATE.SECONDS_PER_DAY * CONST.MILLISECONDS_PER_SECOND;
 
 /**
@@ -11,7 +13,12 @@ function isWithinGettingStartedPeriod(firstDayFreeTrial: string | undefined): bo
         return false;
     }
 
-    const trialStartMs = new Date(firstDayFreeTrial).getTime();
+    // Trial dates are UTC DB timestamps without a timezone suffix, so parse them as UTC.
+    const trialStartMs = fromZonedTime(firstDayFreeTrial, 'UTC').getTime();
+    if (Number.isNaN(trialStartMs)) {
+        return false;
+    }
+
     const elapsed = Date.now() - trialStartMs;
     return elapsed >= 0 && elapsed <= SIXTY_DAYS_MS;
 }

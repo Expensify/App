@@ -122,6 +122,7 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS,
                     CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS,
                     CONST.QUICKBOOKS_CONFIG.SYNC_TAX,
+                    CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS,
                 ],
                 onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path, basePath)),
                 subscribedExportSettings: [
@@ -413,9 +414,9 @@ function getAccountingIntegrationData(
                 subscribedImportSettings: [
                     CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.RILLET_CONFIG.SYNC_TAX_RATES,
-                    ...(policy?.connections?.rillet?.data?.fields.map((field) => `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`) ?? []),
+                    ...(policy?.connections?.rillet?.data?.fields?.map((field) => `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`) ?? []),
                 ],
-                onExportPagePress: () => null,
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
                     CONST.RILLET_CONFIG.EXPORTER,
                     CONST.RILLET_CONFIG.EXPORT_DATE,
@@ -427,7 +428,7 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNTS,
                 ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.RILLET)),
-                onAdvancedPagePress: () => null,
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
                     CONST.RILLET_CONFIG.ACCOUNTING_METHOD,
                     CONST.RILLET_CONFIG.AUTO_SYNC,

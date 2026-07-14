@@ -85,7 +85,7 @@ function WorkspaceInviteMessageComponent({
     const policyName = policy?.name;
 
     const backToPath = typeof backTo === 'string' ? (backTo.split('?').at(0) ?? '') : '';
-    const isWorkflowApprovalExpensesFromRoute = backToPath.endsWith('/workflows/approvals/expenses-from');
+    const isWorkflowApprovalExpensesFromRoute = backToPath.endsWith('/expenses-from');
     const headerTitle = isWorkflowApprovalExpensesFromRoute ? translate('workflowsExpensesFromPage.title') : translate('workspace.inviteMessage.confirmDetails');
     const subtitle = isWorkflowApprovalExpensesFromRoute ? undefined : policyName;
 

@@ -128,6 +128,7 @@ function usePreviewMessageAnimation({
                 accountID: managerID,
                 shouldUseShortForm: true,
                 formatPhoneNumber,
+                translate,
             });
         }
 
@@ -143,6 +144,7 @@ function usePreviewMessageAnimation({
                 accountID: chatReport?.ownerAccountID,
                 shouldUseShortForm: true,
                 formatPhoneNumber,
+                translate,
             });
         }
         return translate(paymentVerb, payerOrApproverName);

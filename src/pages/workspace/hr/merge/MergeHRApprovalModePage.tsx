@@ -26,7 +26,6 @@ function MergeHRApprovalModePage({
 
     const config: HRApprovalModeProviderConfig<ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE>> = {
         testID: 'MergeHRApprovalModePage',
-        beta: CONST.BETAS.MERGE_HR,
         isConnected: isMergeHRConnected,
         approvalModes: CONST.MERGE_HR.APPROVAL_MODE,
         getCurrentApprovalMode: (policy) => policy?.connections?.merge_hris?.config?.approvalMode ?? null,

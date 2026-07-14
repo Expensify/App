@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
 
-import type {ReactionListAnchor} from '@pages/inbox/ReportScreenContext';
+import type {ReactionListAnchor} from '@pages/inbox/ReactionListContext';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';

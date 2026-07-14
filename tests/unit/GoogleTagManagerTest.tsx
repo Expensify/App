@@ -290,6 +290,7 @@ describe('GoogleTagManagerTest', () => {
             betas: [CONST.BETAS.ALL],
             isSelfTourViewed: false,
             currentUserLocalCurrency: undefined,
+            delegateAccountID: undefined,
             reportActionsList: undefined,
         });
 

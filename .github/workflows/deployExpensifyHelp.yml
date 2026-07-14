@@ -56,7 +56,7 @@ jobs:
         run: ./.github/scripts/enforceVideoFormats.sh
 
       - name: Generate allowed URLs whitelist for AI search
-        run: npx ts-node .github/scripts/generateAllowedUrls.ts
+        run: npx bun .github/scripts/generateAllowedUrls.ts
 
       - name: Set up Ruby
         # v1.306.0

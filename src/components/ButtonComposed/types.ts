@@ -85,7 +85,7 @@ type ButtonStyleProps = {
     hoverStyles?: StyleProp<ViewStyle>;
 
     /** Should we remove the border radius on a specific side? */
-    removeBorderRadius?: 'left' | 'right' | 'all';
+    removeBorderRadius?: ValueOf<typeof CONST.BUTTON_REMOVE_BORDER_RADIUS>;
 
     /** The size of the button */
     size?: ValueOf<typeof CONST.BUTTON_SIZE>;

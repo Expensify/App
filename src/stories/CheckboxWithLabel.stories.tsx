@@ -5,7 +5,7 @@ import Text from '@components/Text';
 import styles from '@src/styles';
 import {defaultTheme} from '@src/styles/theme';
 
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React from 'react';
 

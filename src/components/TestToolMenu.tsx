@@ -5,6 +5,7 @@ import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import {useIsAgentAccount} from '@libs/SessionUtils';
 import xstateInspector from '@libs/XStateInspector';
 
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
@@ -38,6 +39,9 @@ function TestToolMenu() {
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
+
+    // Agent accounts can't have biometric multifactor authentication, so hide the biometrics test row for them.
+    const isAgentAccount = useIsAgentAccount();
 
     return (
         <>
@@ -109,7 +113,7 @@ function TestToolMenu() {
                     </TestToolRow>
 
                     {/* Allows testing and revoking biometric multifactor authentication */}
-                    <BiometricsTestToolRow />
+                    {!isAgentAccount && <BiometricsTestToolRow />}
                 </>
             )}
 

@@ -24,7 +24,6 @@ function MergeHRFinalApproverPage({
 
     const config: HRFinalApproverProviderConfig = {
         testID: 'MergeHRFinalApproverPage',
-        beta: CONST.BETAS.MERGE_HR,
         isConnected: isMergeHRConnected,
         getCurrentFinalApprover: (policy) => policy?.connections?.merge_hris?.config?.finalApprover ?? null,
         getProviderName: (policy) => getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_hris,

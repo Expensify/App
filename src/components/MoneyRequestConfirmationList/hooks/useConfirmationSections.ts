@@ -71,7 +71,7 @@ function useConfirmationSections({
         options.push(
             {
                 title: translate('moneyRequestConfirmationList.paidBy'),
-                data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)],
+                data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, translate)],
                 sectionIndex: 0,
             },
             {

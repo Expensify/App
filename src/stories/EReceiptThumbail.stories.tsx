@@ -1,7 +1,7 @@
 import type {EReceiptThumbnailProps} from '@components/EReceiptThumbnail';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React from 'react';
 import {View} from 'react-native';

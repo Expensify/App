@@ -7,7 +7,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
 import {filterValidHasValues} from '@libs/SearchUIUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -24,7 +23,7 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
 
         if (updatedFilterFormValues.type !== currentValues.type) {
             updatedFilterFormValues.columns = [];
-            updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+            updatedFilterFormValues.status = undefined;
             updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
         }
 

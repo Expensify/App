@@ -6,7 +6,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -38,8 +37,6 @@ type PolicyDistanceRateDateEditPageProps = PlatformStackScreenProps<
 function PolicyDistanceRateDateEditPage({route}: PolicyDistanceRateDateEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
-    const isDateBoundMileageRateEnabled = isBetaEnabled(CONST.BETAS.DATE_BOUND_MILEAGE_RATE);
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const policy = usePolicy(policyID);
@@ -87,7 +84,7 @@ function PolicyDistanceRateDateEditPage({route}: PolicyDistanceRateDateEditPageP
         Navigation.goBack();
     };
 
-    if (!rate || !isDateBoundMileageRateEnabled) {
+    if (!rate) {
         return <NotFoundPage />;
     }
 

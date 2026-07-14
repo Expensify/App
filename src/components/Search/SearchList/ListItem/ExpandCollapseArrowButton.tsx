@@ -35,6 +35,7 @@ function ExpandCollapseArrowButton({isExpanded, onPress}: ExpandCollapseArrowBut
                     src={isExpanded ? icons.UpArrow : icons.DownArrow}
                     fill={theme.icon}
                     additionalStyles={!hovered && styles.opacitySemiTransparent}
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                     small={isLargeScreenWidth}
                 />
             )}

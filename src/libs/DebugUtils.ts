@@ -827,6 +827,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 isTestReceipt: 'boolean',
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
+                receiptTraceId: 'string',
             });
         case 'childRecentReceiptTransactionIDs':
             return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
@@ -992,6 +993,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'linkedTrackedExpenseReportID':
         case 'bank':
         case 'cardName':
+        case 'feedCountry':
         case 'cardNumber':
         case 'taxValue':
         case 'groupCurrency':
@@ -1153,6 +1155,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     bank: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     liabilityType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    feedCountry: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1188,6 +1191,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 isTestReceipt: 'boolean',
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
+                receiptTraceId: 'string',
             });
         case 'taxRate':
             return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {
@@ -1235,13 +1239,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 email: 'string',
                 displayName: 'string',
                 avatarUrl: 'string',
-                accountID: 'number',
-                text: 'string',
-                login: 'string',
-                searchText: 'string',
-                selected: 'boolean',
-                iouType: CONST.IOU.TYPE,
-                reportID: 'string',
             });
         case 'modifiedWaypoints':
             return validateObject<ObjectElement<Transaction, 'modifiedWaypoints'>>(

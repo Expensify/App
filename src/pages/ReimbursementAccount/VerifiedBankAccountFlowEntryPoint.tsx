@@ -246,7 +246,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 src={expensifyIcons.Lightbulb}
                                 fill={theme.icon}
                                 additionalStyles={styles.mr2}
-                                medium
+                                size={CONST.ICON_SIZE.MEDIUM}
                             />
                             <Text
                                 style={[styles.textLabelSupportingNormal, styles.flex1]}

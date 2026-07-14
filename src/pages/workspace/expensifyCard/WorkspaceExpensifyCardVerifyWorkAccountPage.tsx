@@ -44,7 +44,7 @@ function WorkspaceExpensifyCardVerifyWorkAccountPageContent({route}: WorkspaceEx
         if (!workEmail) {
             return;
         }
-        resendValidateCode(workEmail);
+        resendValidateCode({reasonCode: null}, workEmail);
     };
 
     const validateAccountAndMerge = (validateCode: string) => {

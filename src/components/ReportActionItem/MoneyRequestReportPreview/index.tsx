@@ -138,7 +138,9 @@ function MoneyRequestReportPreview({
     });
     const isFocused = useIsFocused();
     const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions, pendingNewTransactionIDs, chatReportID, isFocused);
-    const newTransactionIDs = new Set(newTransactions.map((transaction) => transaction.transactionID));
+    // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
+    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
+    const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 

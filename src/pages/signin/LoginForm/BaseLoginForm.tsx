@@ -301,6 +301,8 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                         <FormAlertWithSubmitButton
                             buttonText={translate('common.continue')}
                             isLoading={account?.isLoading && account?.loadingForm === CONST.FORMS.LOGIN_FORM}
+                            // `beginSignIn` sets `isLoading` in Onyx the moment it's dispatched, so this `isLoading` shows the spinner immediately on press on its own
+                            shouldShowLoadingImmediatelyOnPress={false}
                             onSubmit={validateAndSubmitForm}
                             message={serverErrorText}
                             isAlertVisible={shouldShowServerError}

@@ -85,13 +85,13 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const isPaidGroupPolicy = isPaidGroupPolicyFn(policy);
-    const recentAttendeeLists = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? [], currentUserEmail, currentUserAccountID);
+    const recentAttendeeLists = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? [], currentUserEmail, currentUserAccountID, translate);
 
     const initialSelectedOptions = sortAlphabetically([...attendees], 'displayName', localeCompare).map((attendee) => ({
         ...attendee,
         reportID: CONST.DEFAULT_NUMBER_ID.toString(),
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        keyForList: String(attendee.accountID) || attendee.email || attendee.displayName,
+        keyForList: attendee.email || attendee.displayName,
         selected: true,
         // Use || to fall back to displayName for name-only attendees (empty email)
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -222,6 +222,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            translate,
             personalDetails,
             true,
             undefined,
@@ -269,7 +270,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
                         ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
-                        : getParticipantsOption(participant, personalDetails);
+                        : getParticipantsOption(participant, personalDetails, translate);
                 }) as OptionData[],
                 sectionIndex: 3,
             });

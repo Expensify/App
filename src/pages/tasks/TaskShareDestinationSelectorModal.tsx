@@ -22,7 +22,6 @@ import {setShareDestinationValue} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Report, ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -39,7 +38,7 @@ const selectReportHandler = (option: unknown) => {
     }
 
     setShareDestinationValue(optionItem?.reportID);
-    Navigation.goBack(ROUTES.NEW_TASK.getRoute());
+    Navigation.goBack();
 };
 
 const reportFilter = (reportOptions: Array<SearchOption<Report>>, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) =>
@@ -119,7 +118,7 @@ function TaskShareDestinationSelectorModal() {
             <>
                 <HeaderWithBackButton
                     title={translate('common.share')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK.getRoute())}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                     <SelectionList

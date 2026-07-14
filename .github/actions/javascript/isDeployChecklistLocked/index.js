@@ -12132,7 +12132,116 @@ exports["default"] = new Logger_1.default({
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MAX_LOG_LINE_BYTES = void 0;
+exports.truncateMessageToFitLine = truncateMessageToFitLine;
+exports.serializeLineWithinByteLimit = serializeLineWithinByteLimit;
+exports.utf8ByteLength = utf8ByteLength;
 const MAX_LOG_LINES_BEFORE_FLUSH = 50;
+// The server rejects any single serialized log line larger than 1,048,576 bytes (1 MiB).
+// We enforce a lower cap on the JSON-serialized line (message + parameters + metadata, with
+// escaping) so it stays comfortably under the server limit.
+const MAX_LOG_LINE_BYTES = 1000000;
+exports.MAX_LOG_LINE_BYTES = MAX_LOG_LINE_BYTES;
+/**
+ * Gets the UTF-8 byte length of a single unicode code point.
+ */
+function codePointByteSize(code) {
+    if (code >= 0x10000) {
+        return 4;
+    }
+    if (code >= 0x800) {
+        return 3;
+    }
+    if (code >= 0x80) {
+        return 2;
+    }
+    return 1;
+}
+/**
+ * Gets the total UTF-8 byte length of a string.
+ */
+function utf8ByteLength(input) {
+    return Array.from(input).reduce((sum, char) => { var _a; return sum + codePointByteSize((_a = char.codePointAt(0)) !== null && _a !== void 0 ? _a : 0); }, 0);
+}
+/**
+ * UTF-8 byte length of a single code point *after JSON string escaping*, matching the output of
+ * JSON.stringify: `"` `\` and the short control escapes are 2 bytes, other control characters
+ * and lone surrogates become `\uXXXX` (6 bytes), everything else is its plain UTF-8 size.
+ */
+function jsonEscapedByteSize(code) {
+    if (code === 0x22 || code === 0x5c || code === 0x08 || code === 0x09 || code === 0x0a || code === 0x0c || code === 0x0d) {
+        return 2;
+    }
+    if (code < 0x20 || (code >= 0xd800 && code <= 0xdfff)) {
+        return 6;
+    }
+    return codePointByteSize(code);
+}
+/**
+ * Truncates `message` so that the SERIALIZED `line` fits within maxSize bytes. The serialized
+ * line is `overhead(empty message) + JSON-escaped bytes of the message`, so we measure the
+ * message's escaped size directly (single pass) instead of repeatedly re-serializing the whole
+ * line. This is exact for JSON.stringify's escaping and avoids the cost of a binary search.
+ */
+function truncateMessageToFitLine(line, message, maxSize) {
+    var _a;
+    const overhead = utf8ByteLength(JSON.stringify(Object.assign(Object.assign({}, line), { message: '' })));
+    const totalRawBytes = utf8ByteLength(message);
+    // Marker "...[truncated N bytes]" is escape-free ASCII, so its serialized size equals its
+    // raw size = 21 + digits(N). Reserve for the max possible N so the final line never overflows.
+    const MARKER_STATIC_BYTES = 21;
+    const reservedMarkerBytes = MARKER_STATIC_BYTES + String(totalRawBytes).length;
+    const contentBudget = maxSize - overhead - reservedMarkerBytes;
+    if (contentBudget <= 0) {
+        return '';
+    }
+    // Keep whole code points until the escaped budget is exhausted (never splits a character).
+    let keptUnits = 0;
+    let keptEscapedBytes = 0;
+    let keptRawBytes = 0;
+    for (let i = 0; i < message.length;) {
+        const code = (_a = message.codePointAt(i)) !== null && _a !== void 0 ? _a : 0;
+        const escapedBytes = jsonEscapedByteSize(code);
+        if (keptEscapedBytes + escapedBytes > contentBudget) {
+            break;
+        }
+        keptEscapedBytes += escapedBytes;
+        keptRawBytes += codePointByteSize(code);
+        const units = code > 0xffff ? 2 : 1;
+        i += units;
+        keptUnits += units;
+    }
+    if (keptRawBytes >= totalRawBytes) {
+        return message;
+    }
+    const removed = totalRawBytes - keptRawBytes;
+    return `${message.slice(0, keptUnits)}...[truncated ${removed} bytes]`;
+}
+/**
+ * Serializes a log line while enforcing the per-line byte limit on the *serialized* line — what
+ * the server measures — covering the message, parameters and metadata plus JSON-escaping
+ * overhead. Returns the JSON string for the line (reused to build the packet, so each line is
+ * serialized only once). Oversized `parameters` (structured data we can't safely truncate
+ * mid-JSON) are replaced with a size marker; the message is then truncated to fit the remainder.
+ */
+function serializeLineWithinByteLimit(line, maxSize) {
+    var _a;
+    const serialized = JSON.stringify(line);
+    // Cheap fast path: at most 3 UTF-8 bytes per UTF-16 code unit, so if 3 * length fits the
+    // line is definitely under the limit and we avoid the exact byte count entirely.
+    if (serialized.length * 3 <= maxSize || utf8ByteLength(serialized) <= maxSize) {
+        return serialized;
+    }
+    const result = Object.assign({}, line);
+    // If the line is over the limit even with an empty message, the bulk is in `parameters` —
+    // replace it with a marker so the (human-readable) message is what we keep room for.
+    if (utf8ByteLength(JSON.stringify(Object.assign(Object.assign({}, result), { message: '' }))) > maxSize) {
+        const parametersByteSize = utf8ByteLength(JSON.stringify((_a = result.parameters) !== null && _a !== void 0 ? _a : ''));
+        result.parameters = { truncated: true, originalByteSize: parametersByteSize };
+    }
+    result.message = truncateMessageToFitLine(result, line.message, maxSize);
+    return JSON.stringify(result);
+}
 class Logger {
     constructor({ serverLoggingCallback, isDebug, clientLoggingCallback, maxLogLinesBeforeFlush, getContextEmail }) {
         // An array of log lines that limits itself to a certain number of entries (deleting the oldest)
@@ -12158,16 +12267,20 @@ class Logger {
         if (!this.logLines.length || ((_a = this.logLines) === null || _a === void 0 ? void 0 : _a.every((l) => l.onlyFlushWithOthers))) {
             return;
         }
-        // We don't care about log setting web cookies so let's define it as false
-        const linesToLog = (_b = this.logLines) === null || _b === void 0 ? void 0 : _b.map((l) => {
+        // We don't care about log setting web cookies so let's define it as false.
+        // Serialize each line while bounding it to the server's per-line size limit (covers
+        // message, parameters and JSON-escaping overhead). Building the packet by joining the
+        // per-line JSON keeps each line serialized only once — identical output to
+        // JSON.stringify(array) with no extra pass.
+        const serializedLines = (_b = this.logLines) === null || _b === void 0 ? void 0 : _b.map((l) => {
             // eslint-disable-next-line no-param-reassign
             delete l.onlyFlushWithOthers;
-            return l;
+            return serializeLineWithinByteLimit(l, MAX_LOG_LINE_BYTES);
         });
         this.logLines = [];
         const promise = this.serverLoggingCallback(this, {
             api_setCookie: false,
-            logPacket: JSON.stringify(linesToLog),
+            logPacket: `[${serializedLines.join(',')}]`,
         });
         if (!promise) {
             return;

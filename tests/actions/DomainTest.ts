@@ -182,6 +182,11 @@ describe('actions/Domain', () => {
                         key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
                         value: {memberErrors: {[email]: {errors: null}}},
                     }),
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        value: {type: 'members', id: expect.any(String)},
+                    }),
                 ],
                 successData: expect.arrayContaining([
                     expect.objectContaining({
@@ -198,6 +203,10 @@ describe('actions/Domain', () => {
                     expect.objectContaining({
                         key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
                         value: {member: {[email]: {pendingAction: null}}},
+                    }),
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+                        value: {type: null, id: null},
                     }),
                 ]),
             },

@@ -114,7 +114,6 @@ function makeQueryJSON(overrides: Partial<SearchQueryJSON> = {}): SearchQueryJSO
     const base = {
         hash: HASH,
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
         sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
         ...overrides,

@@ -1911,7 +1911,6 @@ describe('getViolationsOnyxData', () => {
         };
 
         const ownerAccountID = 123;
-        const otherAccountID = 456;
 
         let iouReport: Report;
 
@@ -1950,7 +1949,7 @@ describe('getViolationsOnyxData', () => {
 
         it('should add missingAttendees violation when only owner is an attendee', () => {
             transaction.comment = {
-                attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID}],
+                attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''}],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
                 updatedTransaction: transaction,
@@ -1969,8 +1968,8 @@ describe('getViolationsOnyxData', () => {
         it('should not add missingAttendees violation when there is at least one non-owner attendee', () => {
             transaction.comment = {
                 attendees: [
-                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID},
-                    {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
+                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''},
+                    {email: 'other@example.com', displayName: 'Other', avatarUrl: ''},
                 ],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -1991,8 +1990,8 @@ describe('getViolationsOnyxData', () => {
             transactionViolations = [missingAttendeesViolation];
             transaction.comment = {
                 attendees: [
-                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID},
-                    {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
+                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''},
+                    {email: 'other@example.com', displayName: 'Other', avatarUrl: ''},
                 ],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -2041,6 +2040,57 @@ describe('getViolationsOnyxData', () => {
                 iouReport,
             });
             expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        describe('owner identified via report ownerAccountID', () => {
+            const ownerLogin = 'owner@example.com';
+
+            beforeEach(async () => {
+                // Seed personal details so the report owner's accountID resolves to a login via getLoginByAccountID.
+                // This populates the allPersonalDetails cache that PersonalDetailsUtils reads from.
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: {accountID: ownerAccountID, login: ownerLogin}});
+                await waitForBatchedUpdates();
+            });
+
+            it('should not add missingAttendees violation for a single non-owner attendee when the owner is resolved from ownerAccountID', () => {
+                // The report owner (owner@example.com) is NOT in the attendee list, so the single attendee is a genuine
+                // non-owner. Without owner-aware identification, the count-based fallback would wrongly flag this as missing.
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [{email: 'other@example.com', displayName: 'Other', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                    iouReport,
+                });
+                expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should add missingAttendees violation when the only attendee is the report owner resolved from ownerAccountID', () => {
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [{email: ownerLogin, displayName: 'Owner', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                    iouReport,
+                });
+                expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
         });
 
         describe('optimistic / offline scenarios (iouReport is undefined)', () => {
@@ -2908,7 +2958,7 @@ describe('getViolations', () => {
         await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined, undefined);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 
@@ -2949,7 +2999,7 @@ describe('getViolations', () => {
         await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, CARLOS_EMAIL, policy);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 

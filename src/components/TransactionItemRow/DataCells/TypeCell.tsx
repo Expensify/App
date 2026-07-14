@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isTravelCard} from '@libs/CardUtils';
+import {isTravelCardTransaction} from '@libs/CardUtils';
 import {getExpenseTypeTranslationKey, getTransactionType, isExpensifyCardTransaction, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -61,6 +61,7 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Car',
         'CreditCard',
+        'CreditCardHourglass',
         'CreditCardLock',
         'CreditCardWithPlane',
         'CreditCardWithPlaneHourglass',
@@ -73,15 +74,24 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     const type = getTransactionType(transactionItem, card);
     const isExpensifyCard = isExpensifyCardTransaction(transactionItem);
     const isManagedCard = isManagedCardTransaction(transactionItem);
-    const isTravelInvoicingCard = isTravelCard(card);
-    const isPendingExpensifyCardTransaction = isExpensifyCard && isPending(transactionItem);
-    const pendingIcon = isTravelInvoicingCard ? expensifyIcons.CreditCardWithPlaneHourglass : expensifyIcons.ExpensifyCardHourglass;
-    const typeIcon = isPendingExpensifyCardTransaction ? pendingIcon : getTypeIcon(expensifyIcons, type, isExpensifyCard, isManagedCard, isTravelInvoicingCard);
-    const typeText = isPendingExpensifyCardTransaction ? 'iou.pending' : getExpenseTypeTranslationKey(type);
+    const isTravelInvoicingCard = isTravelCardTransaction(transactionItem.feedCountry, card);
+    const isPendingCardTransaction = isPending(transactionItem);
+    const getPendingIcon = () => {
+        if (isTravelInvoicingCard) {
+            return expensifyIcons.CreditCardWithPlaneHourglass;
+        }
+        if (isExpensifyCard) {
+            return expensifyIcons.ExpensifyCardHourglass;
+        }
+        return expensifyIcons.CreditCardHourglass;
+    };
+    const pendingIcon = getPendingIcon();
+    const typeIcon = isPendingCardTransaction ? pendingIcon : getTypeIcon(expensifyIcons, type, isExpensifyCard, isManagedCard, isTravelInvoicingCard);
+    const typeText = isPendingCardTransaction ? 'iou.pending' : getExpenseTypeTranslationKey(type);
     const styles = useThemeStyles();
 
     const getTooltipText = () => {
-        if (isPendingExpensifyCardTransaction) {
+        if (isPendingCardTransaction) {
             return translate('iou.pending');
         }
         if (isTravelInvoicingCard) {

@@ -35,7 +35,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const {reusablePoliciesConnectedTo: reusablePoliciesConnectedToSageIntacct} = useReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
 
     const menuItems = reusablePoliciesConnectedToSageIntacct.map((policy) => {
-        const lastSuccessfulSyncDate = policy.connections?.intacct.lastSync?.successfulDate;
+        const lastSuccessfulSyncDate = policy.connections?.intacct?.lastSync?.successfulDate;
         const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
         return {
             title: policy.name,

@@ -5,7 +5,7 @@ import CONST from '@github/libs/CONST';
  *
  * To run this script from the root of E/App:
  *
- * ts-node ./scripts/aggregateGitHubDataFromUpwork.js <path_to_csv> <github_pat> <output_path>
+ * bun ./scripts/aggregateGitHubDataFromUpwork.ts <path_to_csv> <github_pat> <output_path>
  *
  * The input file must be a CSV with a single column containing just the GitHub issue number. The CSV must have a single header row.
  */

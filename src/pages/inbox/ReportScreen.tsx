@@ -3,7 +3,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 
-import useActionListContextValue from '@hooks/useActionListContextValue';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -29,6 +28,7 @@ import {View} from 'react-native';
 import type ReportScreenNavigationProps from './types';
 
 import AccountManagerBanner from './AccountManagerBanner';
+import {ActionListContextProvider} from './ActionListContext';
 import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
 import {ConciergeDraftProvider} from './ConciergeDraftContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
@@ -48,7 +48,6 @@ import ReportLifecycleHandler from './ReportLifecycleHandler';
 import ReportNavigateAwayHandler from './ReportNavigateAwayHandler';
 import ReportNotFoundGuard from './ReportNotFoundGuard';
 import ReportRouteParamHandler from './ReportRouteParamHandler';
-import {ActionListContext} from './ReportScreenContext';
 import WideRHPReceiptPanel from './WideRHPReceiptPanel';
 
 type ReportScreenProps = ReportScreenNavigationProps;
@@ -92,8 +91,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     useFlushDeferredWriteOnFocus(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
 
-    const actionListValue = useActionListContextValue();
-
     const [reportPendingActionAndErrors] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {
         selector: (r) => ({
             reportPendingAction: r?.pendingFields?.createReport ?? r?.pendingFields?.reportName,
@@ -113,7 +110,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     return (
         <ReportScreenEditMessageProvider reportID={reportIDFromRoute}>
             <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
-                <ActionListContext.Provider value={actionListValue}>
+                <ActionListContextProvider>
                     <ReactionListWrapper>
                         <ScreenWrapper
                             navigation={navigation}
@@ -167,7 +164,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             </ReportNotFoundGuard>
                         </ScreenWrapper>
                     </ReactionListWrapper>
-                </ActionListContext.Provider>
+                </ActionListContextProvider>
             </WideRHPOverlayWrapper>
         </ReportScreenEditMessageProvider>
     );

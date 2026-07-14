@@ -28,7 +28,7 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                     if (!shouldRedirect) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute());
+                    Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()));
                 }, [shouldRedirect]);
 
                 if (shouldRedirect) {

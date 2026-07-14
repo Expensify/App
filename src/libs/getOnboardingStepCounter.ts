@@ -16,6 +16,7 @@ type OnboardingFlowContext = {
     purposeSelected?: ValueOf<typeof CONST.ONBOARDING_CHOICES>;
     isMergeAccountStepSkipped?: boolean;
     isAccountValidated?: boolean;
+    hasJoinablePolicies?: boolean;
 };
 
 type OnboardingStepResult = {
@@ -86,7 +87,15 @@ function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
         return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }
     if (context.hasAccessibleDomainPolicies) {
-        return [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.PRIVATE_DOMAIN, ONBOARDING.WORKSPACES];
+        // A private-domain user reaches exactly one of PRIVATE_DOMAIN / WORKSPACES before EMPLOYEES, and only when it
+        // is actually shown. Unvalidated users see PRIVATE_DOMAIN and skip straight to EMPLOYEES on the magic-code
+        // screen. Validated users skip PRIVATE_DOMAIN and see WORKSPACES only when joinable workspaces exist; with
+        // none, that screen auto-skips too. Keeping a never-traversed screen in the flow makes the EMPLOYEES back
+        // button resolve to a blank, never-visited screen and inflates the step counter.
+        if (!context.isAccountValidated) {
+            return [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.PRIVATE_DOMAIN];
+        }
+        return context.hasJoinablePolicies ? [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPACES] : [ONBOARDING.PERSONAL_DETAILS];
     }
     return [];
 }

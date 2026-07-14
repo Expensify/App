@@ -51,6 +51,13 @@ type SubmitExpenseOrchestratorProps = {
     /** Current IOU type (request, split, track, send, invoice, etc.). */
     iouType: IOUType;
 
+    /**
+     * Whether the sole recipient resolves to the current user's self-DM while the route iouType is still CREATE
+     * (new manual expense flow). Such a submit is routed through trackExpense, so it must navigate to the self-DM
+     * report like a TRACK expense instead of taking the global-create Search path.
+     */
+    isSelfDMDestination: boolean;
+
     /** Request sub-type (manual, scan, distance). Used for telemetry scenario derivation. */
     requestType: string | undefined;
 
@@ -128,6 +135,7 @@ function SubmitExpenseOrchestrator({
     destinationReportID,
     isFromGlobalCreate,
     iouType,
+    isSelfDMDestination,
     requestType,
     canDismissFromSearch,
     gpsRequired,
@@ -200,7 +208,7 @@ function SubmitExpenseOrchestrator({
             isReportPreInserted: isPreInserted && Navigation.getPreInsertedFullscreenRouteName() === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
             isFromGlobalCreate: isFromGlobalCreateForNavigation,
             canDismissFromSearch,
-            navigatesToDestinationReport: iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
+            navigatesToDestinationReport: iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK || isSelfDMDestination,
             destinationReportID,
             isReportInRHP: isReportOpenInRHP(rootState),
             isReportTopmostSplit: isReportTopmostSplitNavigator(),

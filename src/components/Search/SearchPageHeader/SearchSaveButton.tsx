@@ -39,7 +39,9 @@ function SearchSaveButton() {
                 <Icon
                     src={expensifyIcons.Bookmark}
                     fill={theme.icon}
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                     small={shouldUseNarrowLayout}
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                     extraSmall={isMediumScreenWidth}
                 />
             </PressableWithFeedback>

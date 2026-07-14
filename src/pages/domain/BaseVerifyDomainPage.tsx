@@ -23,6 +23,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -172,7 +173,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
                             <Icon
                                 src={Exclamation}
                                 fill={theme.icon}
-                                medium
+                                size={CONST.ICON_SIZE.MEDIUM}
                             />
 
                             <View style={styles.flex1}>

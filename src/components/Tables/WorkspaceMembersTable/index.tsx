@@ -332,6 +332,7 @@ export default function WorkspaceMembersTable({
             onRowSelectionChange={onRowSelectionChange}
         >
             <Table.FilterBar label={translate('workspace.people.findMember')} />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>

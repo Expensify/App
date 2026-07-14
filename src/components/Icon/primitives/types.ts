@@ -1,6 +1,5 @@
 import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {Dimensions} from '@src/types/utils/Layout';
 
 import type {ImageContentFit} from 'expo-image';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -39,10 +38,4 @@ type BaseIconProps = {
     contentFit: ImageContentFit;
 };
 
-/** Shared props for primitives that also receive a measured or layout content size. */
-type ContentSizedIconProps = BaseIconProps & {
-    /** Layout size for inline icons, or intrinsic content size for gesture canvases. */
-    contentSize: Dimensions;
-};
-
-export type {BaseIconProps, ContentSizedIconProps, IconSize};
+export type {IconSize, BaseIconProps};

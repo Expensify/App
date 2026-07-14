@@ -4,6 +4,8 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {
     calculateRemainingFreeTrialDays,
+    calculateRemainingTrialSeconds,
+    calculateTrialDayNumber,
     canCancelSubscription,
     doesUserHavePaymentCardAdded,
     getEarlyDiscountInfo,
@@ -33,7 +35,7 @@ import type PrivatePromoDiscount from '@src/types/onyx/PrivatePromoDiscount';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {addDays, addMinutes, format as formatDate, getUnixTime, subDays} from 'date-fns';
+import {addDays, addMinutes, format as formatDate, getUnixTime, subDays, subSeconds} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
@@ -190,7 +192,9 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return true if the current date is on the same date of free trial start date', async () => {
-            const firstDayFreeTrial = formatDate(new Date(), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            // Subtract 1 second so firstDayFreeTrial is always in the past relative to when isUserOnFreeTrial reads new Date() internally,
+            // avoiding a race condition where both timestamps land at the exact same millisecond and isAfter() returns false.
+            const firstDayFreeTrial = formatDate(subSeconds(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             const lastDayFreeTrial = formatDate(addDays(new Date(), 3), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
@@ -1447,6 +1451,72 @@ describe('SubscriptionUtils', () => {
 
         it('should return false when empty policies collection is passed', () => {
             expect(shouldCalculateBillNewDot(testUserAccountID, true, {})).toBeFalsy();
+        });
+    });
+
+    // Helper to format a Date as UTC string in the format the functions expect (yyyy-MM-dd HH:mm:ss)
+    function formatUTC(date: Date): string {
+        return date
+            .toISOString()
+            .replace('T', ' ')
+            .replace(/\.\d+Z$/, '');
+    }
+
+    describe('calculateTrialDayNumber', () => {
+        it('should return 0 when firstDayFreeTrial is undefined', () => {
+            expect(calculateTrialDayNumber(undefined)).toBe(0);
+        });
+
+        it('should return 0 when firstDayFreeTrial is in the future', () => {
+            const futureDate = formatUTC(addDays(new Date(), 2));
+            expect(calculateTrialDayNumber(futureDate)).toBe(0);
+        });
+
+        it('should return 1 on the first day of the trial', () => {
+            const today = formatUTC(new Date());
+            expect(calculateTrialDayNumber(today)).toBe(1);
+        });
+
+        it('should return the correct day number during the trial', () => {
+            const fiveDaysAgo = formatUTC(subDays(new Date(), 4));
+            expect(calculateTrialDayNumber(fiveDaysAgo)).toBe(5);
+        });
+
+        it('should return the correct day number for day 28', () => {
+            const day28 = formatUTC(subDays(new Date(), 27));
+            expect(calculateTrialDayNumber(day28)).toBe(28);
+        });
+    });
+
+    describe('calculateRemainingTrialSeconds', () => {
+        it('should return 0 when lastDayFreeTrial is undefined', () => {
+            expect(calculateRemainingTrialSeconds(undefined)).toBe(0);
+        });
+
+        it('should return 0 when the trial has already ended', () => {
+            const pastDate = formatUTC(subDays(new Date(), 1));
+            expect(calculateRemainingTrialSeconds(pastDate)).toBe(0);
+        });
+
+        it('should return a positive number when the trial is still active', () => {
+            const futureDate = formatUTC(addDays(new Date(), 1));
+            expect(calculateRemainingTrialSeconds(futureDate)).toBeGreaterThan(0);
+        });
+
+        it('should return approximately 3600 seconds when trial ends in 1 hour', () => {
+            const oneHourFromNow = formatUTC(new Date(Date.now() + 3600 * 1000));
+            const remaining = calculateRemainingTrialSeconds(oneHourFromNow);
+            // Allow 5 seconds tolerance for test execution time
+            expect(remaining).toBeGreaterThanOrEqual(3595);
+            expect(remaining).toBeLessThanOrEqual(3600);
+        });
+
+        it('should return approximately 86400 seconds when trial ends in 24 hours', () => {
+            const oneDayFromNow = formatUTC(new Date(Date.now() + 86400 * 1000));
+            const remaining = calculateRemainingTrialSeconds(oneDayFromNow);
+            // Allow 5 seconds tolerance for test execution time
+            expect(remaining).toBeGreaterThanOrEqual(86395);
+            expect(remaining).toBeLessThanOrEqual(86400);
         });
     });
 

@@ -77,6 +77,7 @@ jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     handleMoneyRequestStepDistanceNavigation: jest.fn(),
+    getMoneyRequestParticipantsFromReport: jest.fn(() => []),
 }));
 
 jest.mock('@libs/actions/MapboxToken', () => ({

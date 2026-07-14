@@ -181,6 +181,6 @@ const netSuiteConnection: Pick<Connections, 'netsuite'> = {
     },
 };
 
-const connections = netSuiteConnection as Connections;
+const connections: Partial<Connections> = netSuiteConnection;
 
 export default connections;

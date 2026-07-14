@@ -4,7 +4,6 @@
  *     not the on-demand `transactions_` Onyx collection
  *   - returns the current user's expenses, most recent first
  *   - sorts strictly by the `inserted` (creation/insertion) timestamp, never by `created` (expense date);
- *     falls back to `created` only when `inserted` is missing
  *   - caps the list at CONST.HOME.SECTION_VISIBLE_LIMIT (5) rows
  *   - includes expenses regardless of report status (no recency-window / draft-only filter)
  *   - defensively excludes expenses owned by another account when the snapshot carries the parent report
@@ -140,19 +139,21 @@ describe('useRecentlyAddedData — ordering', () => {
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['t3', 't2', 't1']);
     });
 
-    it('falls back to the created date for ordering when an expense is missing its inserted timestamp', () => {
+    it('breaks ties between equal inserted timestamps deterministically by transactionID', () => {
         setupSnapshot(
             [
-                makeTransaction({transactionID: 'withCreatedOnly', created: '2026-06-05', inserted: undefined}),
-                makeTransaction({transactionID: 'withInserted', created: '2026-01-01', inserted: '2026-06-04 10:00:00'}),
+                makeTransaction({transactionID: 'aaa', created: '2026-06-01', inserted: '2026-06-05 10:00:00'}),
+                makeTransaction({transactionID: 'ccc', created: '2026-06-09', inserted: '2026-06-05 10:00:00'}),
+                makeTransaction({transactionID: 'bbb', created: '2026-06-05', inserted: '2026-06-05 10:00:00'}),
             ],
             [makeReport('report_owned', ACCOUNT_ID)],
         );
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
-        // withCreatedOnly has no inserted, so its created date (2026-06-05) is used and outranks withInserted (2026-06-04).
-        expect(resultTransactionIDs(result.current.transactions)).toEqual(['withCreatedOnly', 'withInserted']);
+        // Equal `inserted` timestamps tie-break on transactionID (descending) rather than the differing created dates,
+        // giving a stable order that never silently reshuffles across renders.
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['ccc', 'bbb', 'aaa']);
     });
 
     it('ranks an old-dated expense first when it was inserted most recently', () => {

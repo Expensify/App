@@ -337,7 +337,7 @@ function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
 
-function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails, reportID?: string) {
+function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails) {
     if (!currentUser) {
         return;
     }
@@ -350,13 +350,8 @@ function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails, r
 
     const initialAttendee: Attendee = {
         email: login,
-        login,
         displayName,
         avatarUrl: SafeString(currentUser.avatar),
-        accountID: currentUser.accountID,
-        text: displayName,
-        selected: true,
-        reportID,
     };
 
     return [initialAttendee];
@@ -546,6 +541,33 @@ function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?
 }
 
 /**
+ * A participant points at the current user's self-DM when it carries the self-DM flag, or — for flows that seed the
+ * raw account before the flag is set (e.g. the new manual expense flow, which skips the iouType -> TRACK conversion) —
+ * when it resolves to the current user. Workspace (policy expense chat) and sender (invoice) participants are excluded.
+ */
+function isSelfDMParticipant(participant: Participant | undefined, currentUserAccountID: number | undefined): boolean {
+    if (!participant || participant.isSender || participant.isPolicyExpenseChat) {
+        return false;
+    }
+    return participant.isSelfDM === true || (!!currentUserAccountID && participant.accountID === currentUserAccountID);
+}
+
+/**
+ * An expense targets the current user's self-DM (and therefore must be tracked rather than requested) when it has a
+ * single selected participant that resolves to the current user's self-DM. SPLIT/INVOICE/PAY are never self-DM
+ * destinations. This is the single source of truth shared by the confirmation step (to resolve the destination report)
+ * and the submission hook (to route through trackExpense), so both stay in sync.
+ */
+function isSelfDMSoleDestination(participants: Participant[], iouType: IOUType, currentUserAccountID: number | undefined): boolean {
+    if (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.INVOICE || iouType === CONST.IOU.TYPE.PAY) {
+        return false;
+    }
+    const selectedParticipants = participants.filter((participant) => participant.selected);
+    const soleSelectedParticipant = selectedParticipants.length === 1 ? selectedParticipants.at(0) : undefined;
+    return isSelfDMParticipant(soleSelectedParticipant, currentUserAccountID);
+}
+
+/**
  * Resolves the reportID that should be set on the transaction draft for
  * global-create flows with default participants. Returns undefined when
  * no early set is needed (non-global-create or empty participants).
@@ -580,6 +602,7 @@ export {
     getInitialPerDiemTargetReport,
     getIsWorkspacesOnlyForTransaction,
     isParticipantP2P,
+    isSelfDMSoleDestination,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
     resolveEarlyReportID,

@@ -10,13 +10,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {validateBankAccount} from '@libs/actions/BankAccounts';
 import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
-import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {Policy, ReimbursementAccount} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -27,11 +26,14 @@ import {View} from 'react-native';
 import Enable2FACard from './Enable2FACard';
 
 type BankAccountValidationFormProps = {
-    /** Bank account currently in setup */
-    reimbursementAccount?: ReimbursementAccount;
-
     /** Boolean required to display Enable2FACard component */
     requiresTwoFactorAuth: boolean;
+
+    /** ID of current policy */
+    policyID: string | undefined;
+
+    /** ID of the bank account being validated */
+    bankAccountID: number | undefined;
 
     /** The policy which the user has access to and which the report is tied to */
     policy: OnyxEntry<Policy>;
@@ -62,13 +64,11 @@ const filterInput = (amount: string, amountRegex?: RegExp, permittedDecimalSepar
     return value;
 };
 
-function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount, policy}: BankAccountValidationFormProps) {
+function BankAccountValidationForm({requiresTwoFactorAuth, policyID, bankAccountID, policy}: BankAccountValidationFormProps) {
     const {translate, toLocaleDigit} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
 
-    const policyID = reimbursementAccount?.achData?.policyID;
-    const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
     const decimalSeparator = toLocaleDigit('.');
     const permittedDecimalSeparator = getPermittedDecimalSeparator(decimalSeparator);
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {

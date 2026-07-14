@@ -1,5 +1,6 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -35,11 +36,11 @@ type WorkspacePerDiemTableProps = {
     perDiemData: PerDiemTableRowData[];
     selectionEnabled: boolean;
     selectedKeys: string[];
+    emptyState: TableEmptyStateProps;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    EmptyStateComponent: React.ReactElement;
 };
 
-export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, selectedKeys, onRowSelectionChange, EmptyStateComponent}: WorkspacePerDiemTableProps) {
+export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, selectedKeys, emptyState, onRowSelectionChange}: WorkspacePerDiemTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -111,8 +112,6 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
         />
     );
 
-    const isEmpty = perDiemData.length === 0;
-
     return (
         <Table
             data={perDiemData}
@@ -128,14 +127,11 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             narrowLayoutSortColumn="destination"
             title={translate('common.perDiem')}
         >
-            {isEmpty && EmptyStateComponent}
-            {!isEmpty && (
-                <>
-                    <Table.FilterBar label={translate('workspace.perDiem.findPerDiemRate')} />
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.FilterBar label={translate('workspace.perDiem.findPerDiemRate')} />
+            <Table.EmptyState {...emptyState} />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

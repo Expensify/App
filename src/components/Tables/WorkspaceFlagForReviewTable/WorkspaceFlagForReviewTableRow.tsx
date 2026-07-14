@@ -42,7 +42,10 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_ITEM}
-            offlineWithFeedback={{pendingAction: item.pendingAction, shouldHideOnDelete: false}}
+            offlineWithFeedback={{
+                pendingAction: item.pendingAction,
+                shouldHideOnDelete: false,
+            }}
             onPress={item.action}
         >
             {({hovered}) => (
@@ -65,12 +68,14 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                                     isCondensed
                                 />
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     text={item.conditionText}
                                     numberOfLines={1}
                                     style={[styles.optionDisplayName, styles.pre, styles.flexShrink1]}
                                 />
                             </View>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 text={item.ruleDescription}
                                 numberOfLines={1}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mt1]}
@@ -98,6 +103,7 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                             </View>
                             <View style={[styles.flex1]}>
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     numberOfLines={1}
                                     text={item.conditionText}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -105,6 +111,7 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                             </View>
                             <View style={[styles.flex1]}>
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     numberOfLines={1}
                                     text={item.ruleDescription}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
