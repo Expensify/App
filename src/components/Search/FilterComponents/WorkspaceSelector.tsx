@@ -6,12 +6,14 @@ import type {ListItem, TextInputOptions} from '@components/SelectionList/types';
 
 import {advancedSearchPoliciesSelector, useAdvancedSearchFiltersWorkspaces} from '@hooks/useAdvancedSearchFilters';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
@@ -50,6 +52,12 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
             icons: workspace.icons,
         }));
 
+    // Snapshot the workspaces selected when the filter first opened so they can be floated to the top of a long list on
+    // first render without repinning rows that are toggled afterwards. moveInitialSelectionToTop gates on the list
+    // length, so it only pins once the list is long enough to require scrolling.
+    const initialSelectedValues = useInitialValue(() => value);
+    const orderedOptions = moveInitialSelectionToTop(workspaceOptions, initialSelectedValues);
+
     const updateSelectedItems = (item: ListItem) => {
         let newValue;
         if (item.isSelected) {
@@ -60,7 +68,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
         onChange(newValue);
     };
 
-    const listData: ListItem[] = workspaceOptions.map((item) => ({
+    const listData: ListItem[] = orderedOptions.map((item) => ({
         text: item.text,
         keyForList: item.value,
         isSelected: value.includes(item.value),

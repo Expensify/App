@@ -4,8 +4,11 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem, TextInputOptions} from '@components/SelectionList/types';
 
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import variables from '@styles/variables';
 
@@ -60,22 +63,22 @@ function SingleSelect<T extends string>({
     const [selectedItem, setSelectedItem] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
+    // Snapshot the value selected when the filter first opened so it can be floated to the top of a long list on
+    // first render without repinning the row when the selection is changed afterwards. moveInitialSelectionToTop gates
+    // on the list length, so it only pins once the list is long enough to require scrolling.
+    const initialSelectedValues = useInitialValue(() => (value ? [value.value] : []));
+    const orderedItems = moveInitialSelectionToTop(items, initialSelectedValues);
+
     const {options, noResultsFound} = (() => {
-        // If the selection is searchable, we push the initially selected item into its own section and display it at the top
         if (isSearchable) {
             const searchLower = debouncedSearchTerm.toLowerCase();
-            const initiallySelectedOption =
-                value?.text.toLowerCase().includes(searchLower) || value?.searchableText?.toLowerCase().includes(searchLower)
-                    ? [{text: value.text, keyForList: value.value, isSelected: selectedItem?.value === value.value}]
-                    : [];
-            const remainingOptions = items
-                .filter((item) => item.value !== value?.value && (item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower)))
+            const allOptions = orderedItems
+                .filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower))
                 .map((item) => ({
                     text: item.text,
                     keyForList: item.value,
                     isSelected: selectedItem?.value === item.value,
                 }));
-            const allOptions = [...initiallySelectedOption, ...remainingOptions];
             const isEmpty = allOptions.length === 0;
             return {
                 options: allOptions,
@@ -84,7 +87,7 @@ function SingleSelect<T extends string>({
         }
 
         return {
-            options: items.map((item) => ({
+            options: orderedItems.map((item) => ({
                 text: item.text,
                 keyForList: item.value,
                 isSelected: item.value === selectedItem?.value,
