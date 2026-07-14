@@ -90,6 +90,7 @@ type SubmitAmountArgs = {
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     duplicateTransactions: OnyxCollection<OnyxTypes.Transaction>;
     duplicateTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    isTrackIntentUser: boolean | undefined;
     reportAttributesDerivedValue: OnyxEntry<ReportAttributesDerivedValue>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     betaConfiguration: OnyxEntry<OnyxTypes.BetaConfiguration>;
@@ -293,6 +294,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         allPersonalDetails,
         action,
         currentUserPersonalDetails,
+        isTrackIntentUser,
     } = args;
     const {currentUserAccountID, currentUserEmail, existingTransactionID, isASAPSubmitBetaEnabled, newAmount: backendAmount} = ctx;
 
@@ -373,6 +375,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 optimisticChatReportID,
                 optimisticTransactionID,
                 delegateAccountID,
+                isTrackIntentUser,
             });
         }
         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
@@ -534,6 +537,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         policyRecentlyUsedCurrencies,
         allReports,
         navigateBack,
+        isTrackIntentUser,
     } = args;
     const {currentTransaction, allowNegative, disableOppositeConversion, isSplitBill, currentUserAccountID, currentUserEmail, isASAPSubmitBetaEnabled, newAmount} = ctx;
 
@@ -587,6 +591,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
         delegateAccountID,
         reportPolicyTags,
+        isTrackIntentUser,
     });
     navigateBack();
 }
