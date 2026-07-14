@@ -9154,8 +9154,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     },
     actionableMentionTrackExpense: {
         submit: 'Prześlij to do kogoś',
-        submitToFriend: 'Prześlij do znajomego',
-        submitToEmployer: 'Prześlij do mojego pracodawcy',
         categorize: 'Skategoryzuj to',
         share: 'Udostępnij to mojemu księgowemu',
         nothing: 'Na razie nic',

@@ -68,8 +68,6 @@ type TrackedExpenseParams = {
     policyParams: TrackedExpensePolicyParams;
     createdWorkspaceParams?: CreateWorkspaceParams;
     accountantParams?: TrackExpenseAccountantParams;
-    /** Whether the tracked expense is a distance request. Used to decide if a created workspace's distance custom unit should be applied to the transaction. */
-    isDistanceRequest?: boolean;
     currentUser: CurrentUser;
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
     // Personal details list is optional here because we only use/pass it for SHARE case

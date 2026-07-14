@@ -136,7 +136,6 @@ import type {
     Attributes,
     AutoReportingOffset,
     CompanyAddress,
-    CreatableWorkspaceType,
     CustomUnit,
     NetSuiteCustomList,
     NetSuiteCustomSegment,
@@ -264,7 +263,7 @@ type BuildPolicyDataOptions = {
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
     shouldCreateControlPolicy?: boolean;
-    type?: CreatableWorkspaceType;
+    type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
     hasActiveAdminPolicies: boolean | undefined;
@@ -2443,7 +2442,7 @@ type CreateDraftInitialWorkspaceParams = {
     policyID?: string;
     makeMeAdmin?: boolean;
     file?: File;
-    type?: CreatableWorkspaceType;
+    type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
     isAnnualSubscription?: boolean;
 };
 
@@ -3187,7 +3186,6 @@ type CreateDraftWorkspaceParams = {
     makeMeAdmin?: boolean;
     policyID?: string;
     file?: File;
-    type?: CreatableWorkspaceType;
 };
 
 function createDraftWorkspace({
@@ -3200,11 +3198,8 @@ function createDraftWorkspace({
     makeMeAdmin = false,
     policyID = generatePolicyID(),
     file,
-    type = CONST.POLICY.TYPE.TEAM,
 }: CreateDraftWorkspaceParams): CreateWorkspaceParams {
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
-    // Submit (submit2026) workspaces ship with Categories, Tags, Workflows (manual submission), and Distance enabled by default.
-    const isSubmitWorkspace = type === CONST.POLICY.TYPE.SUBMIT;
 
     const {expenseChatData, adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID} = ReportUtils.buildOptimisticWorkspaceChats(
         policyID,
@@ -3216,20 +3211,13 @@ function createDraftWorkspace({
     const shouldEnableWorkflowsByDefault =
         !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
 
-    let draftApprovalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE> = CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-    if (isSubmitWorkspace) {
-        draftApprovalMode = CONST.POLICY.APPROVAL_MODE.ADVANCED;
-    } else if (shouldEnableWorkflowsByDefault) {
-        draftApprovalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
-    }
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_DRAFTS | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
             value: {
                 id: policyID,
-                type,
+                type: CONST.POLICY.TYPE.TEAM,
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: currentUserEmail,
@@ -3239,18 +3227,17 @@ function createDraftWorkspace({
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
                 approver: currentUserEmail,
-                autoReportingFrequency:
-                    shouldEnableWorkflowsByDefault || isSubmitWorkspace ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                autoReportingFrequency: shouldEnableWorkflowsByDefault ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 harvesting: {
-                    enabled: !shouldEnableWorkflowsByDefault && !isSubmitWorkspace,
+                    enabled: !shouldEnableWorkflowsByDefault,
                 },
-                approvalMode: draftApprovalMode,
+                approvalMode: shouldEnableWorkflowsByDefault ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 customUnits,
                 areCategoriesEnabled: true,
-                areWorkflowsEnabled: shouldEnableWorkflowsByDefault || isSubmitWorkspace,
+                areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 areCompanyCardsEnabled: true,
-                areTagsEnabled: isSubmitWorkspace,
-                areDistanceRatesEnabled: isSubmitWorkspace,
+                areTagsEnabled: false,
+                areDistanceRatesEnabled: false,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
@@ -3304,7 +3291,7 @@ function createDraftWorkspace({
         ownerEmail: policyOwnerEmail,
         makeMeAdmin,
         policyName: workspaceName,
-        type,
+        type: CONST.POLICY.TYPE.TEAM,
         adminsCreatedReportActionID,
         expenseCreatedReportActionID,
         customUnitID,

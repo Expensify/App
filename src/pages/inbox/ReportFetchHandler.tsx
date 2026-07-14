@@ -97,7 +97,6 @@ function ReportFetchHandler() {
     const didSubscribeToReportLeavingEvents = useRef(false);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [reportDraftOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
@@ -148,14 +147,6 @@ function ReportFetchHandler() {
 
     const fetchReport = useEffectEvent(() => {
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
-            return;
-        }
-
-        // A draft-only report (created optimistically via createDraftWorkspace, e.g. the "Submit to my employer" Submit
-        // workspace when the user has none) exists only in REPORT_DRAFT and has no server counterpart. openReport would
-        // 403 "Report not found" and merge an errorFields.notFound stub into REPORT, shadowing the draft. It's persisted
-        // later by the confirmation's AddTrackedExpenseToPolicy request, so never openReport it here.
-        if (!reportOnyx?.reportID && !!reportDraftOnyx?.reportID) {
             return;
         }
 

@@ -1,20 +1,29 @@
-import type CONST from '@src/CONST';
+import type {Receipt} from '@src/types/onyx/Transaction';
 
-import type {ValueOf} from 'type-fest';
-
-import type CategorizeTrackedExpenseParams from './CategorizeTrackedExpenseParams';
-
-// AddTrackedExpenseToPolicy is a backend alias of CategorizeTrackedExpense, so it accepts the same
-// parameters (including the optional workspace-creation params used when moving a tracked expense into
-// a newly created draft workspace).
-type AddTrackedExpenseToPolicyParams = CategorizeTrackedExpenseParams & {
-    reimbursable?: boolean;
-    distance?: number;
+type AddTrackedExpenseToPolicyParams = {
+    amount: number;
+    currency: string;
+    created: string;
+    comment?: string;
+    merchant?: string;
+    category: string | undefined;
+    tag: string | undefined;
+    taxCode: string;
+    taxAmount: number;
+    reimbursable: boolean;
+    billable: boolean | undefined;
+    receipt: Receipt | undefined;
+    waypoints?: string;
+    customUnitRateID?: string;
+    policyID: string;
+    transactionID: string;
+    actionableWhisperReportActionID: string | undefined;
+    moneyRequestReportID: string;
+    reportPreviewReportActionID: string;
+    modifiedExpenseReportActionID: string;
+    moneyRequestCreatedReportActionID: string | undefined;
+    moneyRequestPreviewReportActionID: string;
     shouldDeferAutoSubmit?: boolean;
-    /** Name to give the workspace when one is created as part of this request, so the backend matches the optimistic name. */
-    policyName?: string;
-    /** Policy type to create when a workspace is created as part of this request (e.g. submit2026 for "Submit to my employer"). */
-    type?: ValueOf<typeof CONST.POLICY.TYPE>;
 };
 
 export default AddTrackedExpenseToPolicyParams;

@@ -2,7 +2,6 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
-import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {isTaxAmountInvalid, isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
@@ -231,9 +230,7 @@ function useConfirmationValidation({
 
         const isCategoryBeingCreated = policyCategories?.[iouCategory]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
-        // The 'Uncategorized'/'none' sentinel means no category, so treat it as missing (not out of policy) here, mirroring
-        // isCategoryMissing/ViolationsUtils. Otherwise it wrongly blocks confirmation when the policy lacks that literal category.
-        if (iouCategory && !isCategoryMissing(iouCategory) && policyCategories && !policyCategories[iouCategory]?.enabled && !isCategoryBeingCreated) {
+        if (iouCategory && policyCategories && !policyCategories[iouCategory]?.enabled && !isCategoryBeingCreated) {
             return {errorKey: 'violations.categoryOutOfPolicy'};
         }
 
