@@ -3,7 +3,11 @@ import CONST from '@github/libs/CONST';
 import {getDeployChecklist, NoOpenDeployChecklistError} from '@github/libs/DeployChecklistUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
+// GitHub REST API request fields are snake_case (per_page, commit_sha, pull_number), which this rule would otherwise flag.
 /* eslint-disable @typescript-eslint/naming-convention */
+
+// Tags come back paginated; the request size and the "last page" check must stay in sync.
+const TAGS_PER_PAGE = 100;
 
 /**
  * When a deploy-blocker fix is cherry-picked to staging, QA needs to retest the blocker.
@@ -40,14 +44,14 @@ async function getDeployedCommitMessages(deploySHA: string, deployTag: string): 
         const {data: tags} = await GithubUtils.octokit.repos.listTags({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            per_page: 100,
+            per_page: TAGS_PER_PAGE,
             page,
         });
         if (tags.length === 0) {
             break;
         }
         previousStagingTag = tags.find((tag) => tag.name !== deployTag && tag.name.endsWith('-staging'))?.name ?? null;
-        if (tags.length < 100) {
+        if (tags.length < TAGS_PER_PAGE) {
             break;
         }
     }
