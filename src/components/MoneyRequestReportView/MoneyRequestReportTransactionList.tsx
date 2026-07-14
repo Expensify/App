@@ -356,14 +356,6 @@ function MoneyRequestReportTransactionList({
         return ids;
     })();
 
-    const transactionSortValueReportData = {
-        type: report?.type,
-        currency: report?.currency,
-        submitterUserID: report?.submitterUserID,
-        submitterPayrollID: report?.submitterPayrollID,
-        orderDealNumbers: report?.orderDealNumbers,
-    };
-
     const sortedTransactions: TransactionWithOptionalHighlight[] = [...transactions].sort((a, b) => {
         // When on default sort (Date/ASC), prioritize RBR-flagged transactions
         if (rbrTransactionIDs) {
@@ -374,8 +366,8 @@ function MoneyRequestReportTransactionList({
             }
         }
         return compareValues(
-            getTransactionSortValue(a, sortBy, transactionSortValueReportData, policy, policyCategories, policyTagLists),
-            getTransactionSortValue(b, sortBy, transactionSortValueReportData, policy, policyCategories, policyTagLists),
+            getTransactionSortValue(a, sortBy, report, policy, policyCategories, policyTagLists),
+            getTransactionSortValue(b, sortBy, report, policy, policyCategories, policyTagLists),
             sortOrder,
             sortBy,
             localeCompare,
@@ -443,13 +435,13 @@ function MoneyRequestReportTransactionList({
     const shouldGroupTransactions = shouldShowGroupedTransactions && !isLayoutMatrixSelected;
 
     const getGroupedTransactions = () => {
-        if (!shouldGroupTransactions) {
+        if (!shouldGroupTransactions || !report) {
             return [];
         }
         if (currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG) {
-            return groupTransactionsByTag(resolvedTransactions, report?.currency, localeCompare);
+            return groupTransactionsByTag(resolvedTransactions, report.currency, localeCompare);
         }
-        return groupTransactionsByCategory(resolvedTransactions, report?.currency, localeCompare);
+        return groupTransactionsByCategory(resolvedTransactions, report.currency, localeCompare);
     };
 
     const groupedTransactions = getGroupedTransactions();
