@@ -105,7 +105,7 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
     // the shared moveInitialSelectionToTop gate; for short lists items stay in their natural order so nothing is pinned.
     const initialSelectedValues = useInitialValue(() => value);
     const wasInitiallySelected = (item: BankAccountFilterItem) => initialSelectedValues.includes(item.value);
-    const shouldPinInitialSelection = openItems.length + closedItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldPinInitialSelection = shouldShowSearchInput;
 
     const searchFunction = (item: BankAccountFilterItem) =>
         item.text.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) || item.lastFour.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase());

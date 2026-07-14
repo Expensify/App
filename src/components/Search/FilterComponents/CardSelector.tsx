@@ -77,7 +77,7 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
     // the shared moveInitialSelectionToTop gate; for short lists items stay in their natural order so nothing is pinned.
     const initialSelectedValues = useInitialValue(() => value);
     const wasInitiallySelected = (item: CardFilterItem) => !!item.keyForList && initialSelectedValues.includes(item.keyForList);
-    const shouldPinInitialSelection = individualCardsSectionData.length + closedCardsSectionData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldPinInitialSelection = shouldShowSearchInput;
 
     const searchFunction = (item: CardFilterItem) =>
         !!item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
