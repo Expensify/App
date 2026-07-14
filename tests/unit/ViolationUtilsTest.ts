@@ -1295,6 +1295,7 @@ describe('getViolationsOnyxData', () => {
                 policyCategories,
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
+                ownerLogin: undefined,
             });
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
         });
@@ -2482,6 +2483,7 @@ describe('getViolationsOnyxData', () => {
                     policyCategories,
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
+                    ownerLogin: undefined,
                 });
                 expect(result.value).toContainEqual(taxOutOfPolicyViolation);
             });

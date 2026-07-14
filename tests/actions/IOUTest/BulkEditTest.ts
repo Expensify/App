@@ -1822,6 +1822,7 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                personalDetailsList: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -1905,6 +1906,7 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                personalDetailsList: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2003,6 +2005,7 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                personalDetailsList: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2085,6 +2088,7 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                personalDetailsList: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2160,6 +2164,7 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                personalDetailsList: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2237,6 +2242,7 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                personalDetailsList: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
