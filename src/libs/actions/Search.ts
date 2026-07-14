@@ -692,7 +692,7 @@ function getOnyxLoadingData(
         },
     ];
 
-    // successData writes the terminal `loaded` state on any jsonCode 200 resolve. It also stamps type/status so a
+    // successData writes the terminal `loaded` state on any jsonCode 200 resolve. It also stamps `type` so a
     // resolve that returns no snapshot data (the "dataless resolve" bug) still leaves the snapshot in a consistent,
     // terminal state that the anti-stale isSearchDataLoaded check can resolve.
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
@@ -701,7 +701,7 @@ function getOnyxLoadingData(
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 search: {
-                    ...(isSearchRequest && {isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, status: queryJSON?.status, type: queryJSON?.type}),
+                    ...(isSearchRequest && {isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type: queryJSON?.type}),
                 },
             },
         },
