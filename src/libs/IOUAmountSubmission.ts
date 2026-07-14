@@ -16,7 +16,6 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 
 import type {WriteOverrides} from './Navigation/helpers/submitWithDismissFirst';
 
-import {getPolicyTagsData} from './actions/IOU';
 import {
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestAmount,
@@ -55,6 +54,7 @@ type SubmitAmountArgs = {
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isDraftChatReport: boolean | undefined;
     selectedCurrency: string;
     decimals: number;
@@ -538,6 +538,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         allReports,
         navigateBack,
         isTrackIntentUser,
+        reportPolicyTags,
     } = args;
     const {currentTransaction, allowNegative, disableOppositeConversion, isSplitBill, currentUserAccountID, currentUserEmail, isASAPSubmitBetaEnabled, newAmount} = ctx;
 
@@ -568,9 +569,6 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
 
     const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
 
-    // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportPolicyTags = getPolicyTagsData(parentReport?.policyID);
     updateMoneyRequestAmountAndCurrency({
         transactionID,
         transactionThreadReport: report,
