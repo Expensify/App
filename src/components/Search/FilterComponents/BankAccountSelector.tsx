@@ -186,6 +186,9 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
                     textInputOptions={textInputOptions}
                     shouldStopPropagation
                     canSelectMultiple
+                    shouldClearInputOnSelect={false}
+                    shouldUpdateFocusedIndex
+                    shouldPreventAutoScrollOnSelect
                     style={selectionListStyle}
                     footerContent={footer}
                 />

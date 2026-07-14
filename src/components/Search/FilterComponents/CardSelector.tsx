@@ -165,6 +165,9 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
                     textInputOptions={textInputOptions}
                     shouldStopPropagation
                     canSelectMultiple
+                    shouldClearInputOnSelect={false}
+                    shouldUpdateFocusedIndex
+                    shouldPreventAutoScrollOnSelect
                     style={selectionListStyle}
                     footerContent={footer}
                 />

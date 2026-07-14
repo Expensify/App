@@ -147,4 +147,18 @@ describe('BankAccountSelector', () => {
         expect(mainSection.map((item) => item.keyForList)).toEqual(['1', '2', '3', '4', '5']);
         expect(mainSection.find((item) => item.keyForList === '2')?.isSelected).toBe(true);
     });
+
+    it('passes the expected selection behavior props to the list so a selected row does not clear the search, lose focus, or auto-scroll', () => {
+        render(
+            <BankAccountSelector
+                value={[]}
+                onChange={jest.fn()}
+            />,
+        );
+
+        const props = mockedSelectionList.mock.lastCall?.[0];
+        expect(props?.shouldClearInputOnSelect).toBe(false);
+        expect(props?.shouldUpdateFocusedIndex).toBe(true);
+        expect(props?.shouldPreventAutoScrollOnSelect).toBe(true);
+    });
 });
