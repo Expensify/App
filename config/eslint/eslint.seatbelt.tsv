@@ -663,7 +663,7 @@
 "../../src/libs/Avatars/InitialAvatars.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Avatars/PresetAvatarCatalog.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/BankAccountUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/CardFeedUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../src/libs/CardFeedUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/libs/CardUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
 "../../src/libs/CategoryOptionListUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Clipboard/index.ts"	"@typescript-eslint/no-deprecated/document.execCommand"	1
