@@ -67,7 +67,9 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         );
     }
 
-    return withPolicy(WithPolicyConnections);
+    // OXC's React Compiler does not memoize this component on web; memoize it before wrapping so it is
+    // memoized on both platforms.
+    return withPolicy(React.memo(WithPolicyConnections));
 }
 
 export default withPolicyConnections;
