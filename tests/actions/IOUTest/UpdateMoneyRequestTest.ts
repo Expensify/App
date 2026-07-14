@@ -915,6 +915,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updating the date
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport,
                 parentReport,
@@ -2021,6 +2022,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2149,6 +2151,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2246,6 +2249,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2364,6 +2368,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2483,6 +2488,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: selfDMReport,
