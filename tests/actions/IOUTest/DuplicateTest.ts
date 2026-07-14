@@ -38,7 +38,7 @@ import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
-import isObject from '../../utils/typeGuards';
+import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -1352,6 +1352,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1418,6 +1419,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1476,6 +1478,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1527,6 +1530,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1578,6 +1582,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1632,6 +1637,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1696,6 +1702,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1745,6 +1752,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1787,6 +1795,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1832,6 +1841,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1883,6 +1893,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1950,6 +1961,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2017,6 +2029,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2067,6 +2080,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2129,6 +2143,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2300,6 +2315,7 @@ describe('actions/Duplicate', () => {
             currentUserAccountID: RORY_ACCOUNT_ID,
             currentUserLogin: RORY_EMAIL,
             recentWaypoints: [],
+            isTrackIntentUser: false,
             delegateAccountID: undefined,
             ...overrides,
         });
@@ -2872,6 +2888,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2983,6 +3000,7 @@ describe('actions/Duplicate', () => {
             translate: mockTranslate,
             recentWaypoints: [],
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
             ...overrides,
         });
 

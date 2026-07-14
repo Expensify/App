@@ -42,12 +42,14 @@ function SelectableListItem<TItem extends ListItem>({
             rightHandSideComponent={
                 selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT ? (
                     <>
-                        <ButtonComponent
-                            item={item}
-                            onSelectRow={onSelectionButtonPress ?? onSelectRow}
-                            disabled={!!isDisabled || !!item.isDisabledCheckbox}
-                            style={styles.ml3}
-                        />
+                        {!item.shouldHideSelectionButton && (
+                            <ButtonComponent
+                                item={item}
+                                onSelectRow={onSelectionButtonPress ?? onSelectRow}
+                                disabled={!!isDisabled || !!item.isDisabledCheckbox}
+                                style={styles.ml3}
+                            />
+                        )}
                         {typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent}
                     </>
                 ) : (
@@ -58,12 +60,14 @@ function SelectableListItem<TItem extends ListItem>({
             {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT
                 ? (hovered: boolean) => (
                       <>
-                          <ButtonComponent
-                              item={item}
-                              onSelectRow={onSelectionButtonPress ?? onSelectRow}
-                              disabled={!!isDisabled || item.isDisabledCheckbox}
-                              style={styles.mr3}
-                          />
+                          {!item.shouldHideSelectionButton && (
+                              <ButtonComponent
+                                  item={item}
+                                  onSelectRow={onSelectionButtonPress ?? onSelectRow}
+                                  disabled={!!isDisabled || item.isDisabledCheckbox}
+                                  style={styles.mr3}
+                              />
+                          )}
                           {typeof children === 'function' ? children(hovered) : children}
                       </>
                   )
