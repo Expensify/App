@@ -55,6 +55,7 @@ import {
     hasAssignedCardMatching,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    isBrokenConnectionPastDismissThreshold,
     isCardAlreadyAssigned,
     isCardFrozen,
     isCSVFeedOrExpensifyCard,
@@ -99,6 +100,7 @@ import * as fs from 'fs';
 import lodashSortBy from 'lodash/sortBy';
 import * as path from 'path';
 
+import createRandomCard from '../utils/collections/card';
 import createMock from '../utils/createMock';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -4251,6 +4253,43 @@ describe('CardUtils', () => {
         it('returns false when validThru is after current time', () => {
             jest.spyOn(DateUtils, 'getDBTime').mockReturnValue('2026-02-25 00:00:00');
             expect(isExpiredCard(createMock<Card>({nameValuePairs: {validThru: '2026-02-25 00:00:01'}}))).toBe(false);
+        });
+    });
+
+    describe('isBrokenConnectionPastDismissThreshold', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('returns false when the connection is not broken', () => {
+            const spy = jest.spyOn(DateUtils, 'getDifferenceInDaysFromNow');
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 200, lastScrape: '2020-01-01'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
+        });
+
+        it('returns false when the connection is broken but lastScrape is missing', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: ''};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+        });
+
+        it('returns true when broken and unresolved for at least the grace period', () => {
+            jest.spyOn(DateUtils, 'getDifferenceInDaysFromNow').mockReturnValue(CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS);
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
+        });
+
+        it('returns false when broken but still within the grace period', () => {
+            jest.spyOn(DateUtils, 'getDifferenceInDaysFromNow').mockReturnValue(CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS - 1);
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+        });
+
+        // Uses the real DateUtils (no mock) to prove the DB-format string is parsed correctly, since new Date() on
+        // "yyyy-MM-dd HH:mm:ss" is not portable across JS engines and an invalid parse would silently never dismiss.
+        it('parses the DB datetime format and dismisses a long-broken connection without mocking', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
         });
     });
 

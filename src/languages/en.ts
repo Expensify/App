@@ -157,6 +157,7 @@ const translations = {
         signInWithApple: 'Sign in with Apple',
         signInWith: 'Sign in with',
         continue: 'Continue',
+        tryAgain: 'Try again',
         firstName: 'First name',
         lastName: 'Last name',
         scanning: 'Scanning',
@@ -1016,8 +1017,8 @@ const translations = {
                 cta: 'Add address',
             },
             addVirtualCardPersonalDetails: {
-                title: 'We need your personal details',
-                subtitle: 'Add your details to view and start using your Expensify Card.',
+                title: 'Add your details to view and start using your Expensify Card.',
+                subtitle: 'Expensify Card',
                 cta: 'Add details',
             },
             addPaymentCard: {
@@ -1686,6 +1687,7 @@ const translations = {
         changed: 'changed',
         removed: 'removed',
         transactionPending: 'Transaction pending.',
+        transactionPendingDescription: 'Transaction pending. It may take a few days to post.',
         chooseARate: 'Select a workspace reimbursement rate per mile or kilometer',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} to ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Valid from ${startDate}`,
@@ -2240,7 +2242,7 @@ const translations = {
         pleaseInstall: 'Please update to the latest version of New Expensify',
         pleaseInstallExpensifyClassic: 'Please install the latest version of Expensify',
         toGetLatestChanges: 'For mobile, download and install the latest version. For web, refresh your browser.',
-        newAppNotAvailable: 'The New Expensify app is no longer available.',
+        newAppNotAvailable: "Update now and you'll thank us later.",
     },
     initialSettingsPage: {
         about: 'About',
@@ -2307,18 +2309,6 @@ const translations = {
         signOut: 'Sign out',
         restoreStashed: 'Restore stashed login',
         signOutConfirmationText: "You'll lose any offline changes if you sign out.",
-        saveReceiptsConfirmation: {
-            title: 'Save your receipts?',
-            prompt: ({count}: {count: number}) =>
-                `You have ${count} ${count === 1 ? 'receipt' : 'receipts'} still uploading. Sign out now and we'll save ${count === 1 ? 'it' : 'them'} to your photos so you can add ${count === 1 ? 'it' : 'them'} to a new expense later.`,
-            confirm: 'Save and sign out',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Save your receipts?',
-            prompt: ({count}: {count: number}) =>
-                `You have ${count} ${count === 1 ? 'receipt' : 'receipts'} still uploading. Sign out now and we'll save ${count === 1 ? 'it' : 'them'} to your photos so you can add ${count === 1 ? 'it' : 'them'} to a new expense later. You'll lose any other offline changes.`,
-            confirm: 'Save and sign out',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.`,
         help: 'Help',
@@ -3862,7 +3852,6 @@ const translations = {
         facialScan: 'Onfido’s Facial Scan Policy and Release',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfido’s Facial Scan Policy and Release</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Privacy</a> and <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Terms of Service</a>.</muted-text-micro>`,
-        tryAgain: 'Try again',
         verifyIdentity: 'Verify identity',
         letsVerifyIdentity: "Let's verify your identity",
         butFirst: `But first, the boring stuff. Read up on the legalese in the next step and click "Accept" when you're ready.`,
@@ -5629,6 +5618,8 @@ const translations = {
             noVendorsFoundDescription: 'Please add vendors in Rillet and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add accounts in Rillet and sync the connection again',
+            noBankAccountsFound: 'No bank accounts found',
+            noBankAccountsFoundDescription: 'Please add bank accounts in Rillet and sync the connection again',
             accountTypesDescription: 'Your Rillet accounts will import as categories.',
             enableNewAccountsTitle: 'Enable newly imported accounts',
             enableNewAccountsDescription: 'New Rillet accounts will be available as categories.',
@@ -5677,6 +5668,35 @@ const translations = {
                 label: 'Company card account',
                 description: 'Choose where to export company card transactions.',
             },
+            autoSyncDescription: 'Sync Rillet and Expensify automatically, every day. Reports sync in realtime.',
+            accountingMethods: {
+                label: 'Export method',
+                description: 'Choose when to export expenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+            billPaymentAccount: {
+                label: 'Bill payment account',
+                description: "Choose where to pay bills from and we'll create the payment in Rillet.",
+            },
+            syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
+            settlementAccount: {
+                label: 'Expensify Card settlement account',
+                description: "Choose your settlement account and we'll create the payment in Rillet.",
+            },
+            syncTravelInvoicingSettlements: 'Sync Travel Invoicing settlements',
+            travelInvoicingSettlementAccount: {
+                label: 'Travel Invoicing settlement account',
+                description: "Choose your settlement account and we'll create the payment in Rillet.",
+            },
         },
         type: {
             free: 'Free',
@@ -5695,7 +5715,6 @@ const translations = {
                 workspaceFeedsCouldNotBeLoadedMessage: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',
                 feedCouldNotBeLoadedTitle: "Couldn't load this feed",
                 feedCouldNotBeLoadedMessage: 'An error occurred while loading this feed. Please try again or contact your administrator.',
-                tryAgain: 'Try again',
             },
             addNewCard: {
                 other: 'Other',
@@ -6494,6 +6513,7 @@ const translations = {
                 conciergeNotificationTitle: 'Concierge will let you know',
                 conciergeNotificationDescription: 'When the process is completed, Concierge will send you a message.',
                 copyCompleted: 'Your workspace settings have been copied.',
+                copyFailedTitle: 'Copy failed',
             },
         },
         emptyWorkspace: {
@@ -7048,6 +7068,10 @@ const translations = {
                     title: 'Groups',
                     description: 'Choose the groups of employees you would like to sync with this workspace',
                 },
+                syncLimitReached: {
+                    title: 'Try again tomorrow',
+                    prompt: "You've reached your sync limit for the day.",
+                },
             },
         },
         export: {
@@ -7107,6 +7131,7 @@ const translations = {
                 distanceLabel: 'Distance',
                 errors: {
                     distanceMustBePositive: 'Distance must be a positive whole number.',
+                    distanceTooLarge: 'Distance is too large.',
                 },
             },
             distance: 'Distance',
@@ -9295,6 +9320,8 @@ const translations = {
     },
     actionableMentionTrackExpense: {
         submit: 'Submit it to someone',
+        submitToFriend: 'Submit to a friend',
+        submitToEmployer: 'Submit to my employer',
         categorize: 'Categorize it',
         share: 'Share it with my accountant',
         nothing: 'Nothing for now',
@@ -10133,6 +10160,22 @@ const translations = {
             search: 'More powerful search on mobile, web, and desktop',
             concierge: 'Built-in Concierge AI to help automate your expenses',
             chat: 'Chat on any expense to resolve questions quickly',
+        },
+    },
+    aiFeaturesPromoModal: {
+        subtitle: 'New to Concierge AI',
+        confirmText: "Let's go!",
+        spendAnalysis: {
+            title: 'Interactive spend analysis',
+            description: `<muted-text>Concierge surfaces monthly spend insights and lets you drill into the details behind every number. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Learn more</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Meet your new expense assistant',
+            description: `<muted-text>Chat with Concierge to create and update expenses, right in the app or by email or text. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Learn more</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Build your own agents',
+            description: `<muted-text>Create custom agents to review, approve, and route expenses based on rules you set. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Learn more</a>.</muted-text>`,
         },
     },
     productTrainingTooltip: {

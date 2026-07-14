@@ -160,7 +160,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
-    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, policy);
+    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, submitterLogin, policy);
 
     const handleMarkPendingRTERTransactionsAsCash = () => {
         markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
