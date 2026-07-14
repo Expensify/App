@@ -73,9 +73,14 @@ const isEmojiImage = (image: HTMLImageElement): boolean => {
 };
 
 const getEmojiReplacementText = (image: HTMLImageElement, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE): string => {
-    const emojiFromImageAlt = getEmojiFromImageAlt(image.alt);
-    if (emojiFromImageAlt) {
-        return emojiFromImageAlt;
+    const shouldReadEmojiFromAlt = isEmojiImage(image) || image.src.startsWith('blob:');
+
+    if (shouldReadEmojiFromAlt) {
+        const emojiFromImageAlt = getEmojiFromImageAlt(image.alt);
+
+        if (emojiFromImageAlt) {
+            return emojiFromImageAlt;
+        }
     }
 
     // Slack can put shortcode text in emoji image alt text, e.g. ":tada:".

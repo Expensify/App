@@ -422,7 +422,7 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis, frequentlyUse
 /**
  * Given an emoji item object, return an emoji code based on its type.
  */
-const getEmojiCodeWithSkinColor = (item: Emoji, preferredSkinToneIndex: OnyxEntry<number | string>): string => {
+function getEmojiCodeWithSkinColor(item: Emoji, preferredSkinToneIndex: OnyxEntry<number | string>): string {
     const {code, types} = item;
 
     if (typeof preferredSkinToneIndex === 'number' && types?.[preferredSkinToneIndex]) {
@@ -430,7 +430,7 @@ const getEmojiCodeWithSkinColor = (item: Emoji, preferredSkinToneIndex: OnyxEntr
     }
 
     return code;
-};
+}
 
 /**
  * Extracts emojis from a given text.
