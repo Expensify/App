@@ -563,18 +563,23 @@ describe('SequentialQueue - QueueFlushedData', () => {
         expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
     });
 
-    it('does not commit queueFlushedData when the resolved response is not a 200', async () => {
+    // Pushes an OpenApp request carrying queueFlushedData, with processWithMiddleware mocked to resolve with the given jsonCode.
+    async function pushOpenAppAndWaitForIdle(jsonCode: number) {
         await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: false, shouldForceOffline: false});
         await clearPersistedRequests();
         await waitForBatchedUpdates();
 
         const flushedUpdate: OnyxUpdate<typeof ONYXKEYS.HAS_LOADED_APP> = {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.HAS_LOADED_APP, value: true};
-        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue({jsonCode: CONST.JSON_CODE.BAD_REQUEST} as Response<OnyxKey>);
-        try {
-            SequentialQueue.push({command: 'OpenApp', queueFlushedData: [flushedUpdate]});
-            await SequentialQueue.waitForIdle();
-            await waitForBatchedUpdates();
+        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue({jsonCode} as Response<OnyxKey>);
+        SequentialQueue.push({command: 'OpenApp', queueFlushedData: [flushedUpdate]});
+        await SequentialQueue.waitForIdle();
+        await waitForBatchedUpdates();
+        return processSpy;
+    }
 
+    it('does not commit queueFlushedData when the resolved response is not a 200', async () => {
+        const processSpy = await pushOpenAppAndWaitForIdle(CONST.JSON_CODE.BAD_REQUEST);
+        try {
             // A failed-but-resolved OpenApp must not stage HAS_LOADED_APP, or the next boot runs ReconnectApp only and can't self-heal.
             expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
             expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBeFalsy();
@@ -584,21 +589,8 @@ describe('SequentialQueue - QueueFlushedData', () => {
     });
 
     it('commits queueFlushedData when the resolved response is a 200', async () => {
-        await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: false, shouldForceOffline: false});
-        await clearPersistedRequests();
-        await waitForBatchedUpdates();
-
-        const flushedUpdate: OnyxUpdate<typeof ONYXKEYS.HAS_LOADED_APP> = {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.HAS_LOADED_APP, value: true};
-        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS} as Response<OnyxKey>);
+        const processSpy = await pushOpenAppAndWaitForIdle(CONST.JSON_CODE.SUCCESS);
         try {
-            SequentialQueue.push({command: 'OpenApp', queueFlushedData: [flushedUpdate]});
-            await SequentialQueue.waitForIdle();
-            // queueFlushedData is applied after waitForIdle resolves (two Onyx.update batches in flush()'s finally),
-            // so drain a few batches before asserting the durable HAS_LOADED_APP write landed.
-            await waitForBatchedUpdates();
-            await waitForBatchedUpdates();
-            await waitForBatchedUpdates();
-
             expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBe(true);
         } finally {
             processSpy.mockRestore();
