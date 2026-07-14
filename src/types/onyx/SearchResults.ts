@@ -63,7 +63,7 @@ type SearchResultsInfo = {
      * Optional because snapshots persisted before this field existed (and snapshots written by
      * non-search actions) may not carry it.
      *
-     * TODO: nothing reads this field yet. The existing isLoading/type/status-based loading and error gates
+     * Nothing reads this field yet. The existing isLoading/type/status-based loading and error gates
      * migrate to read it in a follow-up PR.
      *
      * Residual limitation: if the app is killed or reloaded mid-request, no cleanup runs, so `loading` can
