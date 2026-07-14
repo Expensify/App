@@ -2409,7 +2409,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         delegateAccountID,
         reportActionsList,
         isDraftChatReport,
-        personalDetailsList,
         currentUserLocalCurrency,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
