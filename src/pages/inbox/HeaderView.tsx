@@ -219,6 +219,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
     const accountManagerAccountID = accountManagerBookingDetails?.accountManagerAccountID;
+
+    // Show the "Book a call" button in the 1:1 DM with the assigned account manager
     const shouldShowAccountManagerBookCallInDM =
         !!accountManagerAccountID &&
         !!accountManagerBookingDetails?.accountManagerCalendarLink &&
@@ -226,9 +228,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         !!report?.participants?.[Number(accountManagerAccountID)] &&
         !!canUserPerformWriteAction(report, isReportArchived) &&
         !isChatThread;
-
     const shouldShowAccountManagerBookCallInConcierge = isConciergeChat && !!accountManagerAccountID && !!accountManagerBookingDetails?.accountManagerCalendarLink;
-
     const shouldShowAccountManagerBookCall = shouldShowAccountManagerBookCallInDM || shouldShowAccountManagerBookCallInConcierge;
 
     // Render the button full width below the header whenever the available space is narrow, which includes the side panel (e.g. Concierge third-panel)
