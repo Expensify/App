@@ -202,7 +202,11 @@ function process(): Promise<void> {
             });
             endPersistedRequestAndRemoveFromQueue(requestToProcess);
 
-            if (requestToProcess.queueFlushedData) {
+            // Only commit queueFlushedData (e.g. HAS_LOADED_APP: true) on a genuine 200. HttpUtils resolves
+            // application-level failures instead of rejecting them, so a failed-but-resolved OpenApp/ReconnectApp
+            // would otherwise mark the app as loaded — flipping the next boot to ReconnectApp-only and preventing
+            // self-healing.
+            if (requestToProcess.queueFlushedData && response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
                 Log.info('[SequentialQueue] Will store queueFlushedData.', false, {
                     command: requestToProcess.command,
                     queueFlushedDataLength: requestToProcess.queueFlushedData.length,
