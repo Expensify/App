@@ -4443,6 +4443,7 @@ ${amount} für ${merchant} – ${date}`,
             delete: 'Arbeitsbereich löschen',
             settings: 'Einstellungen',
             categories: 'Kategorien',
+            vendors: 'Anbieter',
             tags: 'Tags',
             customField1: 'Benutzerdefiniertes Feld 1',
             customField2: 'Benutzerdefiniertes Feld 2',
@@ -6243,6 +6244,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Formelfeld ${value} nicht erkannt`,
             reportFieldInitialValueRequiredError: 'Bitte wähle einen Anfangswert für ein Berichtsfeld aus',
             genericFailureMessage: 'Beim Aktualisieren des Berichtfelds ist ein Fehler aufgetreten. Bitte versuche es erneut.',
+        },
+        vendors: {
+            emptyTitle: 'Noch keine Anbieter',
+            emptySubtitle: 'Anbieter erscheinen hier, sobald die Synchronisierung mit deiner Buchhaltung abgeschlossen ist.',
         },
         tags: {
             tagName: 'Tag-Name',

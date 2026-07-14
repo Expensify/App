@@ -4301,6 +4301,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             delete: '删除工作区',
             settings: '设置',
             categories: '类别',
+            vendors: '供应商',
             tags: '标签',
             customField1: '自定义字段 1',
             customField2: '自定义字段 2',
@@ -6026,6 +6027,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `无法识别公式字段 ${value}`,
             reportFieldInitialValueRequiredError: '请选择报表字段的初始值',
             genericFailureMessage: '更新报表字段时出错。请重试。',
+        },
+        vendors: {
+            emptyTitle: '暂无供应商',
+            emptySubtitle: '会计同步完成后，供应商将显示在这里。',
         },
         tags: {
             tagName: '标签名称',

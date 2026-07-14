@@ -4392,6 +4392,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             delete: 'ワークスペースを削除',
             settings: '設定',
             categories: 'カテゴリ',
+            vendors: 'ベンダー',
             tags: 'タグ',
             customField1: 'カスタムフィールド1',
             customField2: 'カスタムフィールド2',
@@ -6150,6 +6151,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `数式フィールド ${value} が認識されません`,
             reportFieldInitialValueRequiredError: 'レポート項目の初期値を選択してください',
             genericFailureMessage: 'レポートフィールドの更新中にエラーが発生しました。もう一度お試しください。',
+        },
+        vendors: {
+            emptyTitle: 'ベンダーはまだありません',
+            emptySubtitle: '会計連携の同期が完了すると、ベンダーがここに表示されます。',
         },
         tags: {
             tagName: 'タグ名',

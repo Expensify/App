@@ -2293,6 +2293,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 [SCREENS.WORKSPACE.CATEGORIES]: {
                                     path: ROUTES.WORKSPACE_CATEGORIES.route,
                                 },
+                                [SCREENS.WORKSPACE.VENDORS]: {
+                                    path: ROUTES.WORKSPACE_VENDORS.route,
+                                },
                                 [SCREENS.WORKSPACE.MORE_FEATURES]: {
                                     path: ROUTES.WORKSPACE_MORE_FEATURES.route,
                                 },

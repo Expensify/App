@@ -754,6 +754,7 @@ const SCREENS = {
         DYNAMIC_WORKSPACE_INVITE_MESSAGE_ROLE: 'Dynamic_Workspace_Invite_Message_Role',
         INVITE_MESSAGE_APPROVER: 'Workspace_Invite_Message_Approver',
         CATEGORIES: 'Workspace_Categories',
+        VENDORS: 'Workspace_Vendors',
         TAGS: 'Workspace_Tags',
         DYNAMIC_TAGS_SETTINGS: 'Dynamic_Tags_Settings',
         DYNAMIC_TAGS_EDIT: 'Dynamic_Tags_Edit',

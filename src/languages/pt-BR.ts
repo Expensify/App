@@ -4413,6 +4413,7 @@ ${amount} para ${merchant} - ${date}`,
             delete: 'Excluir workspace',
             settings: 'Configurações',
             categories: 'Categorias',
+            vendors: 'Fornecedores',
             tags: 'Tags',
             customField1: 'Campo personalizado 1',
             customField2: 'Campo personalizado 2',
@@ -6206,6 +6207,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Campo de fórmula ${value} não reconhecido`,
             reportFieldInitialValueRequiredError: 'Escolha um valor inicial para o campo de relatório',
             genericFailureMessage: 'Ocorreu um erro ao atualizar o campo do relatório. Tente novamente.',
+        },
+        vendors: {
+            emptyTitle: 'Nenhum fornecedor ainda',
+            emptySubtitle: 'Os fornecedores aparecerão aqui após a conclusão da sincronização contábil.',
         },
         tags: {
             tagName: 'Nome da tag',

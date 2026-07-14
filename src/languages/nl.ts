@@ -4423,6 +4423,7 @@ ${amount} voor ${merchant} - ${date}`,
             delete: 'Werkruimte verwijderen',
             settings: 'Instellingen',
             categories: 'Categorieën',
+            vendors: 'Leveranciers',
             tags: 'Tags',
             customField1: 'Aangepast veld 1',
             customField2: 'Aangepast veld 2',
@@ -6213,6 +6214,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Formuleveld ${value} niet herkend`,
             reportFieldInitialValueRequiredError: 'Kies een beginwaarde voor een rapportveld',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van het rapportveld. Probeer het opnieuw.',
+        },
+        vendors: {
+            emptyTitle: 'Nog geen leveranciers',
+            emptySubtitle: 'Leveranciers verschijnen hier zodra de synchronisatie met je boekhouding is voltooid.',
         },
         tags: {
             tagName: 'Tagnaam',

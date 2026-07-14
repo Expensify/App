@@ -40,7 +40,9 @@ import {
     hasAccountingFeatureConnection,
     hasPolicyCategoriesError,
     hasPolicyRulesError,
+    hasVendorFeature,
     isGroupPolicy,
+    isMatchingVendorListLoaded,
     isPendingDeletePolicy,
     isPerDiemEnabled,
     isPolicyAdmin,
@@ -129,6 +131,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Building',
+        'Buildings',
         'CalendarSolid',
         'Car',
         'Coins',
@@ -341,6 +344,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 screenName: SCREENS.WORKSPACE.CATEGORIES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.CATEGORIES,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
+            });
+        }
+
+        if (hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && isMatchingVendorListLoaded(policy)) {
+            workspaceMenuItems.push({
+                translationKey: 'workspace.common.vendors',
+                icon: expensifyIcons.Buildings,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_VENDORS.getRoute(policyID)))),
+                screenName: SCREENS.WORKSPACE.VENDORS,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS,
             });
         }
 
