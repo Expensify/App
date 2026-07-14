@@ -1,6 +1,7 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
 
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -33,18 +34,12 @@ type WorkspaceReportFieldListValuesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    EmptyStateComponent: React.ReactElement;
 };
 
-export default function WorkspaceReportFieldListValuesTable({
-    listValues,
-    selectionEnabled,
-    selectedKeys,
-    onRowSelectionChange,
-    EmptyStateComponent,
-}: WorkspaceReportFieldListValuesTableProps) {
+export default function WorkspaceReportFieldListValuesTable({listValues, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceReportFieldListValuesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
 
     const columns: Array<TableColumn<ReportFieldListValueColumnKey>> = [
         {
@@ -93,8 +88,6 @@ export default function WorkspaceReportFieldListValuesTable({
         />
     );
 
-    const isEmpty = listValues.length === 0;
-
     return (
         <Table
             data={listValues}
@@ -110,14 +103,17 @@ export default function WorkspaceReportFieldListValuesTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {isEmpty && EmptyStateComponent}
-            {!isEmpty && (
-                <>
-                    <Table.FilterBar label={translate('workspace.reportFields.findReportField')} />
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.FilterBar label={translate('workspace.reportFields.findReportField')} />
+            <Table.EmptyState
+                title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
+                subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
+                headerMedia={illustrations.FolderWithPapers}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
+            />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

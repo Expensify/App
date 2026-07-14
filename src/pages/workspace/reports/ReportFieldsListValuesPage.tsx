@@ -1,11 +1,9 @@
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import type {ReportFieldListValueRowData} from '@components/Tables/WorkspaceReportFieldListValuesTable';
 import WorkspaceReportFieldListValuesTable from '@components/Tables/WorkspaceReportFieldListValuesTable';
 import Text from '@components/Text';
@@ -13,7 +11,7 @@ import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
@@ -66,7 +64,6 @@ function ReportFieldsListValuesPage({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
     const {showConfirmModal} = useConfirmModal();
     const {canWrite: canWriteReportFields, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
 
@@ -179,8 +176,6 @@ function ReportFieldsListValuesPage({
 
         clearTableSelection();
     }, [clearTableSelection, disabledListValues, listValues, policy, reportFieldID, selectedKeys]);
-
-    const shouldShowEmptyState = listValues.length === 0;
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
@@ -321,25 +316,6 @@ function ReportFieldsListValuesPage({
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
-    const headerContent = (
-        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-            <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
-        </View>
-    );
-
-    const emptyStateContent = (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-            {headerContent}
-            <EmptyStateComponent
-                title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
-                subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
-                headerMedia={illustrations.FolderWithPapers}
-                headerStyles={styles.emptyStateCardIllustrationContainer}
-                headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
-            />
-        </ScrollView>
-    );
-
     const headerButtons = getHeaderButtons();
 
     return (
@@ -369,13 +345,14 @@ function ReportFieldsListValuesPage({
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
                 {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
-                {!shouldShowEmptyState && headerContent}
+                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                    <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
+                </View>
                 <WorkspaceReportFieldListValuesTable
                     listValues={listValueRows}
                     selectionEnabled={canWriteReportFields}
                     selectedKeys={selectedKeys}
                     onRowSelectionChange={setSelectedKeys}
-                    EmptyStateComponent={emptyStateContent}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
