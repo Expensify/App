@@ -132,7 +132,7 @@ function buildRetestPayload(hit: RetestHit): Record<string, string> {
         isDb: 'dbTrue',
         whereToRetest: 'Staging',
         notes: `Auto-filed after cherry-pick to staging: "${hit.prTitle}"`,
-        ghIssueLink: hit.blockerIssueURLs.join('\n'),
+        ghIssueLink: hit.blockerIssueURLs.join(' '),
         adhocLink: EMPTY,
         requesterName: hit.prAuthor || EMPTY,
         cpLink: hit.prURL,
