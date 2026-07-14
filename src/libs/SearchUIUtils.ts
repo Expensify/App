@@ -5438,7 +5438,7 @@ function getDisplayValue(
         return getPaidStatusDisplayText(form[key], translate);
     }
 
-    if (key === FILTER_KEYS.STATUS) {
+    if (key === FILTER_KEYS.STATUS || key === FILTER_KEYS.STATUS_NOT) {
         const status = form[key];
         if (!status?.length) {
             return;
