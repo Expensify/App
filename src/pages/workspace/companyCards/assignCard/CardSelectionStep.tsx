@@ -1,6 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -10,6 +7,7 @@ import RenderHTML from '@components/RenderHTML';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
@@ -17,21 +15,32 @@ import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {getCardFeedIcon, getCompanyCardFeed, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {UnassignedCard} from '@src/types/onyx/Card';
+
+import {Str} from 'expensify-common';
+import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION>;
 
@@ -57,6 +66,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
 
     const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const cardListOptions = filteredCardList.map((card: UnassignedCard) => ({
         keyForList: card.cardID,
@@ -84,7 +94,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
             setAssignCardStepAndData({
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute({policyID, feed, cardID}));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.path));
             return;
         }
         Navigation.goBack();
@@ -101,22 +111,24 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
             return;
         }
 
-        // Find the card by its ID to get the display name
-        const selectedCard = filteredCardList.find((card) => card.cardID === cardSelected);
-        const cardName = selectedCard?.cardName ?? '';
+        startWithLoading(() => {
+            // Find the card by its ID to get the display name
+            const selectedCard = filteredCardList.find((card) => card.cardID === cardSelected);
+            const cardName = selectedCard?.cardName ?? '';
 
-        const customCardName = assignCard?.cardToAssign?.customCardName ?? '';
+            const customCardName = assignCard?.cardToAssign?.customCardName ?? '';
 
-        setAssignCardStepAndData({
-            cardToAssign: {encryptedCardNumber: cardSelected, cardName, customCardName},
-            isEditing: false,
+            setAssignCardStepAndData({
+                cardToAssign: {encryptedCardNumber: cardSelected, cardName, customCardName},
+                isEditing: false,
+            });
+
+            if (isEditing) {
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.path));
+            } else {
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute({policyID, feed, cardID}));
+            }
         });
-
-        if (isEditing) {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute({policyID, feed, cardID}));
-        } else {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute({policyID, feed, cardID}));
-        }
     };
 
     const searchedListOptions = useMemo(() => {
@@ -142,6 +154,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                 <InteractiveStepSubHeader
                     startStepIndex={1}
                     stepNames={CONST.COMPANY_CARD.STEP_NAMES}
+                    currentStepAccessibilityDescription={translate('workspace.companyCards.chooseCard')}
                 />
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
@@ -152,49 +165,58 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     );
 
     return (
-        <InteractiveStepWrapper
-            wrapperID="CardSelectionStep"
-            handleBackButtonPress={handleBackButtonPress}
-            headerTitle={translate('workspace.companyCards.assignCard')}
-            headerSubtitle={assigneeDisplayName}
-            enableEdgeToEdgeBottomSafeAreaPadding
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
-            {!cardListOptions.length ? (
-                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9, safeAreaPaddingBottomStyle]}>
-                    <Icon
-                        src={lazyIllustrations.BrokenMagnifyingGlass}
-                        width={116}
-                        height={168}
-                    />
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.companyCards.noActiveCards')}</Text>
-                    <View style={[styles.renderHTML, styles.flexRow, styles.ph5, styles.mv3]}>
-                        <RenderHTML html={translate('workspace.companyCards.somethingMightBeBroken')} />
-                    </View>
-                </View>
-            ) : (
-                <SelectionList
-                    data={searchedListOptions}
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={({value}) => handleSelectCard(value)}
-                    initiallyFocusedItemKey={cardSelected}
-                    textInputOptions={textInputOptions}
-                    customListHeaderContent={customListHeader}
-                    shouldScrollToFocusedIndex={false}
-                    shouldShowListEmptyContent={false}
-                    addBottomSafeAreaPadding
-                    shouldUpdateFocusedIndex
-                    footerContent={
-                        <FormAlertWithSubmitButton
-                            buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-                            onSubmit={submit}
-                            isAlertVisible={shouldShowError}
-                            containerStyles={[!shouldShowError && styles.mt5]}
-                            message={translate('common.error.pleaseSelectOne')}
+            <InteractiveStepWrapper
+                wrapperID="CardSelectionStep"
+                handleBackButtonPress={handleBackButtonPress}
+                headerTitle={translate('workspace.companyCards.assignCard')}
+                headerSubtitle={assigneeDisplayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
+                {!cardListOptions.length ? (
+                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9, safeAreaPaddingBottomStyle]}>
+                        <Icon
+                            src={lazyIllustrations.BrokenMagnifyingGlass}
+                            width={116}
+                            height={168}
                         />
-                    }
-                />
-            )}
-        </InteractiveStepWrapper>
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.companyCards.noActiveCards')}</Text>
+                        <View style={[styles.renderHTML, styles.flexRow, styles.ph5, styles.mv3]}>
+                            <RenderHTML html={translate('workspace.companyCards.somethingMightBeBroken')} />
+                        </View>
+                    </View>
+                ) : (
+                    <SelectionList
+                        data={searchedListOptions}
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={({value}) => handleSelectCard(value)}
+                        initiallyFocusedItemKey={cardSelected}
+                        textInputOptions={textInputOptions}
+                        customListHeaderContent={customListHeader}
+                        shouldScrollToFocusedIndex={false}
+                        shouldShowListEmptyContent={false}
+                        addBottomSafeAreaPadding
+                        shouldUpdateFocusedIndex
+                        footerContent={
+                            <FormAlertWithSubmitButton
+                                buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                                onSubmit={submit}
+                                isAlertVisible={shouldShowError}
+                                containerStyles={[!shouldShowError && styles.mt5]}
+                                message={translate('common.error.pleaseSelectOne')}
+                                shouldShowLoadingImmediatelyOnPress={false}
+                                isLoading={isLoading}
+                            />
+                        }
+                    />
+                )}
+            </InteractiveStepWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

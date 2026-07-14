@@ -1,11 +1,18 @@
-import {filterGroupCurrencySelector} from '@selectors/Search';
-import React from 'react';
 import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import SingleSelectPopup from './SingleSelectPopup';
 
 type GroupCurrencyPopupProps = {
@@ -13,6 +20,10 @@ type GroupCurrencyPopupProps = {
     closeOverlay: () => void;
     onChange: (item: SingleSelectItem<string> | undefined) => void;
 };
+
+function filterGroupCurrencySelector(searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) {
+    return searchAdvancedFiltersForm?.groupCurrency;
+}
 
 function GroupCurrencyPopup({onBackButtonPress, onChange, closeOverlay}: GroupCurrencyPopupProps) {
     const {translate} = useLocalize();

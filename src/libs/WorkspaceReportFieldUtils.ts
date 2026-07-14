@@ -1,13 +1,15 @@
-import type {ValueOf} from 'type-fest';
 import type {FormInputErrors} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
-import {addErrorMessage} from './ErrorUtils';
+
 import type {FormulaPart} from './Formula';
+
+import {addErrorMessage} from './ErrorUtils';
 import {isRequiredFulfilled} from './ValidationUtils';
 
 /**
@@ -64,9 +66,8 @@ function validateReportFieldListValueName(
 /**
  * Generates a field ID based on the field name.
  */
-function generateFieldID(name: string, target?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>) {
-    const targetPrefix = target ? `${target.toUpperCase()}_` : '';
-    return `field_id_${targetPrefix}${name.replaceAll(CONST.REGEX.ANY_SPACE, '_').toUpperCase()}`;
+function generateFieldID(name: string) {
+    return `field_id_${name.replaceAll(CONST.REGEX.ANY_SPACE, '_').toUpperCase()}`;
 }
 
 /**
@@ -108,33 +109,8 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
 /**
  * Checks if a report field name already exists in the policy's field list (case-insensitive).
  */
-function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): boolean {
-    return Object.values(fieldList ?? {}).some((reportField) => {
-        if (!isReportFieldTargetValid(reportField, expectedTarget)) {
-            return false;
-        }
-
-        return reportField.name.toLowerCase() === fieldName.toLowerCase();
-    });
-}
-
-/**
- * Determines whether a report field matches the expected target.
- */
-function isReportFieldTargetValid(reportField: PolicyReportField | null, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): boolean {
-    if (!reportField) {
-        return false;
-    }
-
-    if (expectedTarget === CONST.REPORT_FIELD_TARGETS.INVOICE) {
-        return reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
-    }
-
-    if (expectedTarget === CONST.REPORT_FIELD_TARGETS.EXPENSE) {
-        return !reportField.target || reportField.target === CONST.REPORT_FIELD_TARGETS.EXPENSE;
-    }
-
-    return true;
+function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string): boolean {
+    return Object.values(fieldList ?? {}).some((reportField) => reportField.name.toLowerCase() === fieldName.toLowerCase());
 }
 
 /**
@@ -245,5 +221,4 @@ export {
     getUnsupportedReportFieldFormulaParts,
     hasFormulaPartsInInitialValue,
     isReportFieldNameExisting,
-    isReportFieldTargetValid,
 };

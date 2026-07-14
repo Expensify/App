@@ -1,13 +1,18 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {LoginList, Logins, NewLogin, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+
+import type {AvatarSource} from './UserAvatarUtils';
+
 import hashCode from './hashCode';
 import {formatPhoneNumber} from './LocalePhoneNumber';
-import type {AvatarSource} from './UserAvatarUtils';
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
@@ -64,8 +69,14 @@ function expensifyLoginsSelector(logins: OnyxEntry<Logins>): LoginList | undefin
     }
 
     const result: LoginList = {};
+    const policyDomainRegex = CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME;
     for (const login of Object.values(logins)) {
         if (login.partnerID !== CONST.PARTNER_ID.EXPENSIFY) {
+            continue;
+        }
+        // Exclude synthetic Expensify Card domain logins (e.g. ...@expensify-policy<policyID>.exfy) auto-created for workspaces.
+        // These are not real contact methods and should never surface in the contact methods list or participant selectors.
+        if (policyDomainRegex.test(login.partnerUserID)) {
             continue;
         }
         result[login.partnerUserID] = {
@@ -87,7 +98,17 @@ function isDeviceLogin(login: NewLogin) {
 }
 
 function getDeviceLogins(logins: OnyxEntry<Logins>) {
-    return Object.values(logins ?? {})?.filter(isDeviceLogin);
+    return Object.values(logins ?? {})
+        ?.filter(isDeviceLogin)
+        .sort((a, b) => {
+            const aLastLogin = getLastLogin(a);
+            const bLastLogin = getLastLogin(b);
+            if (aLastLogin === bLastLogin) {
+                return 0;
+            }
+            // lastLogin/created are ISO datetime strings, so a lexicographic comparison sorts them chronologically. Descending puts the most recent device first.
+            return aLastLogin > bLastLogin ? -1 : 1;
+        });
 }
 
 function hasDeviceManagementError(logins: OnyxEntry<Logins>) {

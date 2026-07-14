@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -88,29 +88,32 @@ Each row represents an expense and includes:
 
 ---
 
-## How to use filters to find reports and expenses
-Filters help you narrow down expenses or reports so you can find exactly what you need, fast. This is especially useful when you're working with a large dataset or trying to take specific actions, such as reporting unsubmitted expenses.
+# Filters
 
-**Filters can help you:**
+## How to apply filters in New Expensify
 
-- **Add unreported expenses to a report**: Use filters to find unreported expenses, and then add them to a report with just a few clicks.
-- **Quickly search and locate specific reports using filters**  
-  On the **Spend** page, filter by:
-  - **Workspace**
-  - **Submitter**
-  - **Report status** (e.g., Open, Approved, Reimbursed)
+Web:
 
-### Available Filters in New Expensify
+1. In the navigation tabs on the left, click **Spend**.
+2. Click **Filters**.
+3. Click **Type** and select **Expense**, **Expense Report**, **Chat**, **Invoice**, **Trip**, or **Task**.
+5. Select the filters you want to apply. Available filters vary based on the selected **Type**.
 
-You can filter your **expenses** and **reports** using dropdowns, search bars, and chips. 
+Selected filter values are applied to the list immediately.
 
-- **Expenses:** can be filtered by `Date`, `Merchant`, `Category`, `Tag`, `Amount`, `Reimbursable`, `Billable`, `Status` (e.g. Unreported, Deleted)
+Mobile:
 
-- **Reports**: can be filtered by `Submitter`, `Workspace`, `Report Status` (e.g. Draft, Outstanding, Approved, Paid), `Date`
+1. In the navigation tabs on the bottom, tap **Spend**. 
+2. Tap the **Filters** icon next to the search box. 
+3. Tap **Type** and select **Expense**, **Expense Report**, **Chat**, **Invoice**, **Trip**, or **Task**.
+4. Tap **Save**.
+5. Select the filters you want to apply. Available filters vary based on the selected **Type**.
+6. Tap **Save** after selecting each filter.
+7. Tap **View Results**. 
 
-To view other available filters, click into the **search box** on the **Spend** page while viewing **Reports** or **Expenses** under **Explore**.
+For more advanced filtering, you can enter search operators directly into the search box on the **Spend** page. [Learn how to use search operators to filter and analyze](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
 
-## How Filtering Works
+## How filtering works on the Spend page
 
 1. Apply filters to view only the results that match your criteria.
 2. Once filters are applied:
@@ -121,7 +124,15 @@ You can also combine filters with a keyword search for even more precision. For 
 
 **Note**: If no filters are applied, the page defaults to showing all your unreported expenses.
 
+## How to export from the Spend page
+
+The **Current view** option within the **Export** menu lets you download a CSV of exactly what you're currently seeing on the Spend page—your active filters, column configuration, and ordering are all preserved. The exported file is named `Expensify_<current_view>_<unique id>.csv`. Once you initiate the export, you can choose to wait for the download to finish or have **Concierge** send it to you once it's ready.
+
+For more detail on every export method, see [how to export from the Spend page](/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses).
+
 ---
+
+# Smart Suggestions
 
 ## How to use Smart Suggestions
 
@@ -146,7 +157,7 @@ If you create a draft report and have unreported expenses in your SelfDM, a prom
 # FAQ
 
 ## Can I export reports from the Spend page?
-Yes! You can [export filtered reports to CSV](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses) using the export option at the top of the Spend page.
+Yes! Choose the **Current view** option within the **Export** menu to download a CSV of exactly what you're seeing—your active filters, columns, and ordering are all preserved. You can also use a template-based export for a standard set of columns. Learn more about [exporting from the Spend page](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses).
 
 ## Do smart suggestions work on mobile?
 Yes, smart suggestions also appear in the mobile Inbox and draft reports.

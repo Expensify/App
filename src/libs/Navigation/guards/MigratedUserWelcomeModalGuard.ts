@@ -1,17 +1,23 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
-import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {DismissedProductTraining, Session} from '@src/types/onyx';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
+import Onyx from 'react-native-onyx';
+
 import type {GuardResult, NavigationGuard} from './types';
 
 let hasBeenAddedToNudgeMigration = false;
@@ -21,6 +27,10 @@ let session: OnyxEntry<Session>;
 let isLoadingApp = true;
 
 let hasRedirectedToMigratedUserModal = false;
+
+function getMigratedUserWelcomeModalRoute(basePath?: string): Route {
+    return createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, basePath ?? (Navigation.getActiveRoute() || ROUTES.HOME));
+}
 
 function resetSessionFlag() {
     hasRedirectedToMigratedUserModal = false;
@@ -46,7 +56,7 @@ function navigateToMigratedUserWelcomeModalIfReady() {
 
     Log.info('[MigratedUserWelcomeModalGuard] Proactively navigating to migrated user welcome modal');
     hasRedirectedToMigratedUserModal = true;
-    Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
+    Navigation.navigate(getMigratedUserWelcomeModalRoute());
 }
 
 /**
@@ -97,8 +107,8 @@ function shouldBlockWhileModalActive(state: NavigationState, action: NavigationA
 
 /** Prevents redirect loops by detecting when we're already on or resetting to the modal. */
 function isNavigatingToMigratedUserModal(state: NavigationState, action: NavigationAction): boolean {
-    const isOnModal = findFocusedRoute(state)?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
-    const isResettingToModal = action.type === 'RESET' && !!action.payload && findFocusedRoute(action.payload as NavigationState)?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
+    const isOnModal = findFocusedRoute(state)?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
+    const isResettingToModal = action.type === 'RESET' && !!action.payload && findFocusedRoute(action.payload as NavigationState)?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
 
     return isOnModal || isResettingToModal;
 }
@@ -139,7 +149,7 @@ const MigratedUserWelcomeModalGuard: NavigationGuard = {
 
             return {
                 type: 'REDIRECT',
-                route: ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(),
+                route: getMigratedUserWelcomeModalRoute(),
             };
         }
 

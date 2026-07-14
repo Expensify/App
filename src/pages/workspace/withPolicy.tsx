@@ -1,14 +1,20 @@
-import type {ComponentType} from 'react';
-import React, {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
+
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {AuthScreensParamList, ReimbursementAccountNavigatorParamList, SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import {updateLastAccessedWorkspace} from '@userActions/Policy/Policy';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {ComponentType} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect} from 'react';
 
 type NavigatorsParamList = AuthScreensParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList & WorkspaceSplitNavigatorParamList;
 
@@ -28,7 +34,7 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.WORKFLOWS
     | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW
     | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT
-    | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM
+    | typeof SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM
     | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER
     | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE
     | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT
@@ -39,7 +45,7 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE
     | typeof SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD
     | typeof SCREENS.WORKSPACE.INVOICES
-    | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
+    | typeof SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK
     | typeof SCREENS.WORKSPACE.TAX_EDIT
     | typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS
     | typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS
@@ -47,19 +53,9 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT
     | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT
     | typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE
-    | typeof SCREENS.WORKSPACE.REPORT_FIELDS_SETTINGS
     | typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES
-    | typeof SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE
-    | typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE
     | typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE
     | typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS
-    | typeof SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE
-    | typeof SCREENS.WORKSPACE.INVOICE_FIELDS_SETTINGS
-    | typeof SCREENS.WORKSPACE.INVOICE_FIELDS_LIST_VALUES
-    | typeof SCREENS.WORKSPACE.INVOICE_FIELDS_ADD_VALUE
-    | typeof SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_VALUE
-    | typeof SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_INITIAL_VALUE
-    | typeof SCREENS.WORKSPACE.INVOICE_FIELDS_VALUE_SETTINGS
     | typeof SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION
     | typeof SCREENS.WORKSPACE.RULES
     | typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW

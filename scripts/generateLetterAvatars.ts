@@ -1,3 +1,5 @@
+import {LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
+
 /**
  * Generates the static letter-avatar PNG set.
  *
@@ -13,7 +15,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
-import {LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
 
 const GLYPH_DIR = path.resolve(__dirname, '../assets/images/avatars/workspace');
 
@@ -53,7 +54,8 @@ async function main() {
     }
 
     let written = 0;
-    for (const {key, backgroundColor, fillColor} of LETTER_AVATAR_SCHEMES) {
+    const schemes = Object.entries(LETTER_AVATAR_SCHEMES);
+    for (const [key, {backgroundColor, fillColor}] of schemes) {
         const dir = path.join(OUTPUT_DIR, 'avatars/generated/letter', key);
         await fs.mkdir(dir, {recursive: true});
         for (const ch of CHARS) {
@@ -65,7 +67,7 @@ async function main() {
             written++;
         }
     }
-    console.log(`Wrote ${written} PNGs (${LETTER_AVATAR_SCHEMES.length} schemes x ${CHARS.length} chars) to ${OUTPUT_DIR}`);
+    console.log(`Wrote ${written} PNGs (${schemes.length} schemes x ${CHARS.length} chars) to ${OUTPUT_DIR}`);
 }
 
 main().catch((err) => {

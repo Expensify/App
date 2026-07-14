@@ -1,11 +1,15 @@
-import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+
+import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport, createInvoiceReport} from '../utils/collections/reports';
@@ -64,13 +68,13 @@ describe('canEditFieldOfMoneyRequest', () => {
 
             const reportAction = {
                 ...randomReportAction,
+                reportID: IOUReportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 childStateNum: CONST.REPORT.STATE_NUM.OPEN,
                 childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 originalMessage: {
                     ...randomReportAction.originalMessage,
-                    IOUReportID,
                     IOUTransactionID,
                     type: CONST.IOU.ACTION.CREATE,
                     amount,
@@ -189,13 +193,13 @@ describe('canEditFieldOfMoneyRequest', () => {
 
             const reportAction = {
                 ...randomReportAction,
+                reportID: String(IOUReportID),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 childStatusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 originalMessage: {
                     ...randomReportAction.originalMessage,
-                    IOUReportID,
                     IOUTransactionID,
                     type: CONST.IOU.ACTION.CREATE,
                     amount: EXPENSE_AMOUNT,
@@ -365,10 +369,10 @@ describe('canEditFieldOfMoneyRequest', () => {
 
             const dewReportAction = {
                 ...createRandomReportAction(7),
+                reportID: IOU_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 originalMessage: {
-                    IOUReportID: IOU_REPORT_ID,
                     IOUTransactionID: IOU_TRANSACTION_ID,
                     type: CONST.IOU.ACTION.CREATE,
                     amount: EXPENSE_AMOUNT,
@@ -536,18 +540,120 @@ describe('canEditFieldOfMoneyRequest', () => {
             });
         });
 
+        describe('legacy unreported expense (no report action)', () => {
+            const LEGACY_TRANSACTION_ID = '777';
+            const LEGACY_CUSTOM_UNIT_ID = 'legacyPerDiemUnit';
+            const LEGACY_POLICY_ID = '66';
+
+            const legacyTransaction = {
+                ...createRandomTransaction(Number(LEGACY_TRANSACTION_ID)),
+                transactionID: LEGACY_TRANSACTION_ID,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 75,
+            };
+
+            const legacyPerDiemTransaction = {
+                ...legacyTransaction,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        customUnitID: LEGACY_CUSTOM_UNIT_ID,
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    },
+                },
+            };
+
+            const policyWithPerDiemRates: Policy = {
+                ...createRandomPolicy(Number(LEGACY_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                id: LEGACY_POLICY_ID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                arePerDiemRatesEnabled: true,
+                customUnits: {
+                    [LEGACY_CUSTOM_UNIT_ID]: {
+                        customUnitID: LEGACY_CUSTOM_UNIT_ID,
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        rates: {rate1: {customUnitRateID: 'rate1', name: 'Overnight', rate: 100, enabled: true}},
+                        enabled: true,
+                    },
+                },
+            };
+
+            const policyWithoutPerDiemRates: Policy = {
+                ...policyWithPerDiemRates,
+                customUnits: {
+                    [LEGACY_CUSTOM_UNIT_ID]: {
+                        customUnitID: LEGACY_CUSTOM_UNIT_ID,
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        rates: {},
+                        enabled: true,
+                    },
+                },
+            };
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should return true for a regular legacy unreported expense with no report action', () => {
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction: undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    transaction: legacyTransaction,
+                });
+                expect(canEditReportField).toBe(true);
+            });
+
+            it('should return true for a legacy unreported per diem expense when policy has rates', async () => {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policyWithPerDiemRates], (p) => p.id);
+                Onyx.multiSet({...policyCollectionDataSet});
+                await waitForBatchedUpdates();
+
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction: undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    transaction: legacyPerDiemTransaction,
+                });
+                expect(canEditReportField).toBe(true);
+            });
+
+            it('should return false for a legacy unreported per diem expense when policy has no rates', async () => {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policyWithoutPerDiemRates], (p) => p.id);
+                Onyx.multiSet({...policyCollectionDataSet});
+                await waitForBatchedUpdates();
+
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction: undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    transaction: legacyPerDiemTransaction,
+                });
+                expect(canEditReportField).toBe(false);
+            });
+
+            it('should return false for a legacy unreported expense when field is not REPORT', () => {
+                const canEditDescription = canEditFieldOfMoneyRequest({
+                    reportAction: undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.DESCRIPTION,
+                    transaction: legacyTransaction,
+                });
+                expect(canEditDescription).toBe(false);
+            });
+        });
+
         describe('unreported per diem expense', () => {
             const PER_DIEM_IOU_TRANSACTION_ID = '99';
             const PER_DIEM_CUSTOM_UNIT_ID = 'perDiemUnit1';
             const PER_DIEM_POLICY_ID = '55';
+            const selfDMReportID = 'self-dm-report-1';
 
             const perDiemReportAction = {
                 ...createRandomReportAction(1),
+                reportID: selfDMReportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 originalMessage: {
                     IOUTransactionID: PER_DIEM_IOU_TRANSACTION_ID,
-                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                     type: CONST.IOU.ACTION.CREATE,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -648,13 +754,13 @@ describe('canEditFieldOfMoneyRequest', () => {
 
         const reportAction = {
             ...randomReportAction,
+            reportID: RECEIPT_IOU_REPORT_ID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
             childStateNum: CONST.REPORT.STATE_NUM.OPEN,
             childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
             originalMessage: {
                 ...randomReportAction.originalMessage,
-                IOUReportID: RECEIPT_IOU_REPORT_ID,
                 IOUTransactionID: RECEIPT_IOU_TRANSACTION_ID,
                 type: CONST.IOU.ACTION.CREATE,
                 amount: RECEIPT_AMOUNT,

@@ -1,23 +1,27 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import type {RefObject} from 'react';
-import {useEffect, useRef, useState} from 'react';
-import {DeviceEventEmitter} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isCurrentActionUnread, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {isArchivedNonExpenseReport, isUnread} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
+
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+
 import {readNewestAction} from '@userActions/Report';
+
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
+import {DeviceEventEmitter} from 'react-native';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
-import useOnyx from './useOnyx';
+import useIsReportActionsLoaded from './useIsReportActionsLoaded';
 import useReportIsArchived from './useReportIsArchived';
 
 // useRef gets reset when the reportID changes (the list reuses the same instance per report),
@@ -34,7 +38,11 @@ type UseMarkAsReadParams = {
 };
 
 type UseMarkAsReadResult = {
-    readActionSkippedRef: RefObject<boolean>;
+    /** Marks the newest action as read and clears any pending skipped mark-as-read */
+    markNewestActionAsRead: () => void;
+
+    /** Completes a previously skipped mark-as-read; no-op when none is pending */
+    completeSkippedMarkAsRead: () => void;
 };
 
 function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisibleReportActions, isScrolledToEnd, hasNewerActions}: UseMarkAsReadParams): UseMarkAsReadResult {
@@ -43,8 +51,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isFocused = useIsFocused();
     const isReportArchived = useReportIsArchived(reportID);
-
-    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
+    const isReportActionsLoaded = useIsReportActionsLoaded(reportID);
 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     useEffect(() => {
@@ -86,12 +93,12 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         }
 
         didMarkReportAsReadInitially.current = true;
-        readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
-    }, [isReportUnreadValue, reportID, reportLoadingState?.hasOnceLoadedReportActions]);
+        readNewestAction(reportID, isReportActionsLoaded);
+    }, [isReportUnreadValue, reportID, isReportActionsLoaded]);
 
     const didMarkOnReportChangeRef = useRef(false);
 
-    useEffect(() => {
+    const handleReportChangeMarkAsRead = useEffectEvent(() => {
         didMarkOnReportChangeRef.current = false;
         if (reportID !== prevReportID) {
             return;
@@ -102,9 +109,10 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             return;
         }
         const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
+        const shouldReadOnReportChange = ((isVisible && Visibility.hasFocus()) || isFromNotification) && !hasNewerActions && isScrolledToEnd;
 
-        if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
-            readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+        if (shouldReadOnReportChange) {
+            readNewestAction(reportID, isReportActionsLoaded);
             if (isFromNotification) {
                 Navigation.setParams({referrer: undefined});
             }
@@ -113,10 +121,16 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         }
 
         readActionSkippedRef.current = true;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
+    });
 
+    // Only re-run on newest-action changes; otherwise any report update can prematurely consume unread state.
     useEffect(() => {
+        handleReportChangeMarkAsRead();
+    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isReportActionsLoaded]);
+
+    // isFocused is passed as an arg because the Effect Event closure can be stale (stuck true) on frozen screens,
+    // re-marking a just-unread report as read on report switch
+    const handleAppVisibilityMarkAsRead = useEffectEvent((isFocusedArg: boolean) => {
         if (didMarkOnReportChangeRef.current) {
             didMarkOnReportChangeRef.current = false;
             return;
@@ -125,7 +139,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             return;
         }
 
-        if (!isVisible || !isFocused) {
+        if (!isVisible || !Visibility.hasFocus() || !isFocusedArg) {
             if (!lastMessageTime.current) {
                 lastMessageTime.current = lastAction?.created ?? '';
             }
@@ -148,12 +162,28 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             return;
         }
 
-        readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+        readNewestAction(reportID, true);
         userActiveSince.current = DateUtils.getDBTime();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isVisible, isFocused, reportLoadingState?.hasOnceLoadedReportActions]);
+    });
 
-    return {readActionSkippedRef};
+    // Only re-run when app visibility/focus changes, so action updates don't keep marking the report as read.
+    useEffect(() => {
+        handleAppVisibilityMarkAsRead(isFocused);
+    }, [isVisible, isFocused]);
+
+    const markNewestActionAsRead = () => {
+        readActionSkippedRef.current = false;
+        readNewestAction(reportID, true);
+    };
+
+    const completeSkippedMarkAsRead = () => {
+        if (!readActionSkippedRef.current || !Visibility.hasFocus()) {
+            return;
+        }
+        markNewestActionAsRead();
+    };
+
+    return {markNewestActionAsRead, completeSkippedMarkAsRead};
 }
 
 export default useMarkAsRead;

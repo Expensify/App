@@ -1,13 +1,19 @@
-import {isModalActiveSelector} from '@selectors/Modal';
-import React, {useState} from 'react';
+import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import useProactiveAppReview from '@hooks/useProactiveAppReview';
+
 import requestStoreReview from '@libs/actions/StoreReview';
 import {respondToProactiveAppReview} from '@libs/actions/User';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AppReviewResponse} from '@src/types/onyx/AppReview';
+
+import {isModalActiveSelector} from '@selectors/Modal';
+import React, {useState} from 'react';
+
 import ProactiveAppReviewModal from './ProactiveAppReviewModal';
 
 const CONCIERGE_POSITIVE_MESSAGE = "Hi there! I'm glad to hear you're enjoying Expensify. What's your favorite thing about the app? Thanks!";
@@ -16,6 +22,9 @@ const CONCIERGE_NEGATIVE_MESSAGE = "Hi there! I'm sorry to hear you aren't fully
 function ProactiveAppReviewModalManager() {
     const {shouldShowModal, proactiveAppReview} = useProactiveAppReview();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const activePolicy = useActivePolicy();
+    // Only send a policyID for real group workspaces, not personal policies.
+    const policyID = activePolicy && activePolicy.type !== CONST.POLICY.TYPE.PERSONAL ? activePolicy.id : undefined;
     const [isAnyOtherModalActive] = useOnyx(ONYXKEYS.MODAL, {
         selector: isModalActiveSelector,
     });
@@ -41,7 +50,7 @@ function ProactiveAppReviewModalManager() {
     }
 
     const handleResponse = (response: AppReviewResponse, message?: string) => {
-        respondToProactiveAppReview(response, proactiveAppReview, currentUserEmail, currentUserAccountID, delegateAccountID, message, conciergeReportID);
+        respondToProactiveAppReview(response, proactiveAppReview, currentUserEmail, currentUserAccountID, delegateAccountID, policyID, message, conciergeReportID);
     };
 
     const handlePositive = () => {

@@ -1,15 +1,6 @@
-import type {FileToCopy} from '@react-native-documents/picker';
-import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
-import {Str} from 'expensify-common';
-import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {Alert, View} from 'react-native';
-import RNFetchBlob from 'react-native-blob-util';
-import {launchImageLibrary} from 'react-native-image-picker';
-import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
-import ImageSize from 'react-native-image-size';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
+
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -18,14 +9,31 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
+import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import launchCamera from './launchCamera/launchCamera';
+
+import type {FileToCopy} from '@react-native-documents/picker';
+import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
+
+import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
+import {Str} from 'expensify-common';
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {Alert, View} from 'react-native';
+import RNFetchBlob from 'react-native-blob-util';
+import {launchImageLibrary} from 'react-native-image-picker';
+import ImageSize from 'react-native-image-size';
+
 import type AttachmentPickerProps from './types';
+
+import launchCamera from './launchCamera/launchCamera';
 
 const EXTENSION_TO_NATIVE_TYPE: Record<string, string> = {
     pdf: String(types.pdf),
@@ -108,7 +116,7 @@ const getImagePickerOptions = (type: string, fileLimit: number): CameraOptions |
  * send to the xhr will be handled properly.
  */
 const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
-    const fileName = fileData.name || 'chat_attachment';
+    const fileName = fileData.name || CONST.DEFAULT_ATTACHMENT_FILENAME;
     const fileResult: FileObject = {
         name: cleanFileName(fileName),
         type: fileData.type,
@@ -118,14 +126,25 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
         size: fileData.size,
     };
 
-    if (fileResult.size) {
-        return Promise.resolve(fileResult);
-    }
+    const fileWithSize = fileResult.size
+        ? Promise.resolve(fileResult)
+        : RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
+              fileResult.size = stats.size;
+              return fileResult;
+          });
 
-    return RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
-        fileResult.size = stats.size;
-        return fileResult;
-    });
+    // Move the file out of the cache directory (which the OS can purge) into durable storage so it
+    // survives an app force-kill while the upload is queued offline. `source` is what prepareRequestPayload
+    // re-reads on offline replay, so it must point at the durable path too. On failure
+    // moveReceiptToDurableStorage returns the original URI, so the catch is just a safeguard.
+    return fileWithSize.then((file) =>
+        moveReceiptToDurableStorage(file.uri ?? '', file.name ?? CONST.DEFAULT_ATTACHMENT_FILENAME)
+            .then((durableUri) => ({...file, uri: durableUri, source: durableUri}) as FileObject)
+            .catch((error: unknown) => {
+                Log.warn('[AttachmentPicker] Failed to move attachment to durable storage, using original URI', {error});
+                return file;
+            }),
+    );
 };
 
 /**

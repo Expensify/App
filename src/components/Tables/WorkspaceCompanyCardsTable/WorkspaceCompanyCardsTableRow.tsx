@@ -1,27 +1,29 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
-import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatMaskedCardName, getCardFeedWithDomainID} from '@libs/CardUtils';
+
+import {formatMaskedCardName} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardAssignmentData} from '@src/types/onyx/Card';
-import WorkspaceCompanyCardsTableSkeleton from './WorkspaceCompanyCardsTableSkeleton';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCompanyCardTableRowData = TableData &
     CardAssignmentData & {
@@ -42,8 +44,8 @@ type WorkspaceCompanyCardTableRowProps = {
     /** The workspace company card table item */
     item: WorkspaceCompanyCardTableRowData;
 
-    /** Policy ID */
-    policyID: string;
+    /** Selected card feed */
+    feedName?: CompanyCardFeedWithDomainID;
 
     /** Card feed icon element */
     CardFeedIcon?: React.ReactNode;
@@ -70,7 +72,7 @@ type WorkspaceCompanyCardTableRowProps = {
 
 function WorkspaceCompanyCardTableRow({
     item,
-    policyID,
+    feedName,
     CardFeedIcon,
     shouldUseNarrowTableLayout,
     rowIndex,
@@ -80,13 +82,10 @@ function WorkspaceCompanyCardTableRow({
 }: WorkspaceCompanyCardTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, onDismissError} = item;
-
-    const isDeleting = !isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const formattedCustomCardName = customCardName ?? '';
     const formattedCardDetails = formatMaskedCardName(cardName);
@@ -98,17 +97,12 @@ function WorkspaceCompanyCardTableRow({
     const memberColumnTitle = isAssigned ? Str.removeSMSDomain(cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
     const memberCardSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'WorkspaceCompanyCardsTableItem',
-        isDeleting,
-    };
-
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const subscriptCardFeedIconSize = shouldUseNarrowTableLayout
         ? {width: variables.cardAvatarWidth, height: variables.cardAvatarHeight}
         : {width: variables.cardAvatarWidthSmall, height: variables.cardAvatarHeightSmall};
 
-    const canOpenCardDetails = !!assignedCard?.accountID && !!assignedCard?.fundID && assignedCard?.cardID !== undefined;
+    const canOpenCardDetails = !!assignedCard?.accountID && assignedCard?.cardID !== undefined && !!feedName;
     const canAssignCard = !isAssigned && canWriteCompanyCards && !isAssigningCardDisabled;
     const canPressRow = canOpenCardDetails || canAssignCard;
 
@@ -122,25 +116,20 @@ function WorkspaceCompanyCardTableRow({
             return;
         }
 
-        const {cardID, fundID} = assignedCard;
-        if (!canOpenCardDetails || cardID === undefined || !fundID) {
+        const {cardID} = assignedCard;
+        if (!canOpenCardDetails || cardID === undefined || !feedName) {
             return;
         }
 
-        const feedName = getCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, fundID);
-
-        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName as CompanyCardFeedWithDomainID, cardID.toString()));
+        return Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feedName, cardID.toString())));
     };
 
     return (
         <Table.Row
             interactive
             rowIndex={rowIndex}
-            isLoading={isDeleting}
             disabled={isCardDeleted || !canPressRow}
-            skeletonReasonAttributes={reasonAttributes}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_ITEM}
-            LoadingComponent={WorkspaceCompanyCardsTableSkeleton}
             offlineWithFeedback={{errors, pendingAction, onClose: onDismissError, shouldHideOnDelete: false}}
             onPress={handleRowPress}
         >
@@ -162,11 +151,13 @@ function WorkspaceCompanyCardTableRow({
 
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 text={memberColumnTitle}
                                 style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter]}
                             />
                             {!!memberCardSubtitle && (
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     text={memberCardSubtitle}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
@@ -176,23 +167,23 @@ function WorkspaceCompanyCardTableRow({
 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <Text
+                            <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
+                                text={formattedCardDetails}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            >
-                                {formattedCardDetails}
-                            </Text>
+                            />
                         </View>
                     )}
 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <Text
+                            <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
+                                text={customCardName ?? ''}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            >
-                                {customCardName}
-                            </Text>
+                            />
                         </View>
                     )}
 

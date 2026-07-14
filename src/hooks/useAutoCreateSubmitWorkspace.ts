@@ -1,14 +1,20 @@
-import {useCallback, useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
+import Log from '@libs/Log';
 import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {canEditWorkspaceSettings, isGroupPolicy} from '@libs/PolicyUtils';
+
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useCallback, useMemo} from 'react';
+
 import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
 import useOnyx from './useOnyx';
 
@@ -43,9 +49,13 @@ function useAutoCreateSubmitWorkspace() {
         [],
     );
     const [hasEditableGroupPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPolicySelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const autoCreateSubmitWorkspace = useCallback(
-        (firstName: string, lastName: string) => {
+        // Callers that already finished onboarding (e.g. the Submit plan welcome modal) don't need to
+        // run guided setup again, so they can skip the CompleteGuidedSetup request by passing `false`.
+        async (firstName: string, lastName: string, shouldCompleteOnboarding = true) => {
             const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasEditableGroupPolicy;
             const displayName = createDisplayName(currentUserEmail, {firstName, lastName}, formatPhoneNumber);
 
@@ -71,16 +81,26 @@ function useAutoCreateSubmitWorkspace() {
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
-            completeOnboarding({
-                engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
-                onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.EMPLOYER],
-                firstName,
-                lastName,
-                adminsChatReportID: newAdminsChatReportID,
-                onboardingPolicyID: newPolicyID,
-                introSelected,
-                isSelfTourViewed,
-            });
+            if (shouldCompleteOnboarding) {
+                try {
+                    await completeOnboarding({
+                        engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                        onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.EMPLOYER],
+                        firstName,
+                        lastName,
+                        adminsChatReportID: newAdminsChatReportID,
+                        onboardingPolicyID: newPolicyID,
+                        introSelected,
+                        isSelfTourViewed,
+                        conciergeChat,
+                    });
+                } catch (error) {
+                    // Swallow onboarding completion failures so a network error doesn't block workspace
+                    // creation or the follow-up navigation; the optimistic Onyx data is already applied.
+                    // Still log so the failure remains diagnosable.
+                    Log.warn('[useAutoCreateSubmitWorkspace] Error completing onboarding', {error});
+                }
+            }
 
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
@@ -105,6 +125,7 @@ function useAutoCreateSubmitWorkspace() {
             betas,
             hasActiveAdminPolicies,
             shouldUseNarrowLayout,
+            conciergeChat,
         ],
     );
 
