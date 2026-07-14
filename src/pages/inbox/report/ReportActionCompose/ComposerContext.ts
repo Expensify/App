@@ -10,7 +10,7 @@ import type {ReportAction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {RefObject} from 'react';
-import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native';
+import type {BlurEvent, TextInputSelectionChangeEvent, View, LayoutChangeEvent} from 'react-native';
 
 import {createContext, useContext} from 'react';
 
