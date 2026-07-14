@@ -895,6 +895,27 @@ jobs:
           echo "IS_RELEASE_READY=$isReleaseReady" >> "$GITHUB_OUTPUT"
           echo "IS_RELEASE_READY is $isReleaseReady (VCR result: ${{ needs.victoryChartRendererBuild.result }})"
 
+  autoRetestRequestForCP:
+    name: File retest request for cherry-picked deploy-blocker fixes
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    # Only for a cherry-pick to staging, once every platform is on staging.
+    if: ${{ github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
+    needs: [prep, checkDeploymentSuccess]
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: File retest request
+        run: npx bun scripts/createRetestRequestForCP.ts
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          DEPLOY_SHA: ${{ needs.prep.outputs.DEPLOY_SHA }}
+          DEPLOY_TAG: ${{ needs.prep.outputs.TAG }}
+          SLACK_RETEST_WEBHOOK: ${{ secrets.SLACK_RETEST_WEBHOOK }}
+
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
