@@ -119,20 +119,16 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare']);
     const illustrations = useMemoizedLazyIllustrations(['Accounting']);
 
-    const canUseCertiniaIntegration = isBetaEnabled(CONST.BETAS.CERTINIA) || !!policy?.connections?.financialforce;
     const canUseRilletIntegration = isBetaEnabled(CONST.BETAS.RILLET) || !!policy?.connections?.rillet;
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
-                if (name === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
-                    return canUseCertiniaIntegration;
-                }
                 if (name === CONST.POLICY.CONNECTIONS.NAME.RILLET) {
                     return canUseRilletIntegration;
                 }
                 return true;
             }),
-        [canUseCertiniaIntegration, canUseRilletIntegration],
+        [canUseRilletIntegration],
     );
     const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
@@ -152,7 +148,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     );
 
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, accountingIntegrations);
-    const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && hasSupportedOnlyOnOldDotIntegration(policy) && !canUseCertiniaIntegration;
+    const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && hasSupportedOnlyOnOldDotIntegration(policy);
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);

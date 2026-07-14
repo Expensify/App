@@ -991,7 +991,6 @@ const CONST = {
         SUBMIT_2026: 'submit2026',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
-        CERTINIA: 'financialForceNewDot',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
@@ -4196,9 +4195,7 @@ const CONST = {
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
             },
-            SUPPORTED_ONLY_ON_OLDDOT: {
-                FINANCIALFORCE: 'financialforce',
-            },
+            SUPPORTED_ONLY_ON_OLDDOT: {},
             UNSUPPORTED_NAMES: {
                 GENERIC_INDIRECT_CONNECTION: 'generic_indirect_connection',
             },
