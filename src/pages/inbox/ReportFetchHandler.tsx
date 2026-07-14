@@ -12,7 +12,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
@@ -20,6 +22,7 @@ import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTr
 import {
     isChatThread,
     isHiddenForCurrentUser,
+    isMoneyRequestReport,
     isOneTransactionThread,
     isPolicyExpenseChat,
     isPublicRoom,
@@ -46,6 +49,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 
@@ -79,8 +83,10 @@ function ReportFetchHandler() {
     const route = useRoute<ReportScreenRoute>();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const reportActionIDFromRoute = route?.params?.reportActionID;
+
     // Only the main report route carries a Submit-via-PDF secure access key.
     const secureKeyFromRoute = route.name === SCREENS.REPORT ? route.params?.secureKey : undefined;
+    const shouldReplaceWithExpenseReportRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && route.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP] === 'true';
 
     const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isFocused = useIsFocused();
@@ -96,6 +102,7 @@ function ReportFetchHandler() {
     const hasJoinedViaSecureLinkRef = useRef(false);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [reportDraftOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
@@ -146,6 +153,14 @@ function ReportFetchHandler() {
 
     const fetchReport = useEffectEvent(() => {
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
+            return;
+        }
+
+        // A draft-only report (created optimistically via createDraftWorkspace, e.g. the "Submit to my employer" Submit
+        // workspace when the user has none) exists only in REPORT_DRAFT and has no server counterpart. openReport would
+        // 403 "Report not found" and merge an errorFields.notFound stub into REPORT, shadowing the draft. It's persisted
+        // later by the confirmation's AddTrackedExpenseToPolicy request, so never openReport it here.
+        if (!reportOnyx?.reportID && !!reportDraftOnyx?.reportID) {
             return;
         }
 
@@ -329,6 +344,23 @@ function ReportFetchHandler() {
         }
         updateLoadingInitialReportAction(reportIDFromRoute, true);
     }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
+
+    useEffect(() => {
+        // Both `Navigation.setParams` and `forceReplace` below act on the currently focused route, but this effect
+        // can fire late (after a slow `OpenReport`) while this SearchReport RHP has been blurred but is still mounted.
+        // Bail while blurred so we never clear the flag on, or replace, whatever route the user has since navigated
+        // to; the effect re-runs if focus returns to this screen.
+        if (!shouldReplaceWithExpenseReportRHP || !report || !reportIDFromRoute || !isFocused) {
+            return;
+        }
+
+        if (!isMoneyRequestReport(report)) {
+            Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP]: undefined});
+            return;
+        }
+
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: reportIDFromRoute, backTo: route.params?.backTo}), {forceReplace: true});
+    }, [isFocused, report, reportIDFromRoute, route.params?.backTo, shouldReplaceWithExpenseReportRHP]);
 
     useEffect(() => {
         // This function is triggered when a user clicks on a link to navigate to a report.

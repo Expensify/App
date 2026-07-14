@@ -144,6 +144,14 @@ const DYNAMIC_ROUTES = {
         path: 'migrated-user-welcome',
         entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
     },
+    SUBMIT_PLAN_WELCOME: {
+        path: 'submit-plan-welcome',
+        entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
+    },
+    AI_FEATURES_PROMO: {
+        path: 'ai-features-promo',
+        entryScreens: ['*'],
+    },
     EXPENSE_LIMIT_TYPE_SELECTOR: {
         path: 'expense-limit-type',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER],
@@ -158,7 +166,7 @@ const DYNAMIC_ROUTES = {
     },
     PAYMENT_CARD_CURRENCY_SELECTOR: {
         path: 'payment-card-currency',
-        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY, SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD, SCREENS.WORKSPACE.OWNER_CHANGE_CHECK],
+        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY, SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD, SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK],
     },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
@@ -204,6 +212,17 @@ const DYNAMIC_ROUTES = {
         path: 'avatar/:accountID',
         entryScreens: ['*'],
         getRoute: (accountID: number) => `avatar/${accountID}` as const,
+    },
+    SPLIT_EXPENSE_EDIT: {
+        path: 'edit/split-expense/:reportID/:transactionID/:splitExpenseTransactionID?',
+        entryScreens: [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH],
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, splitExpenseTransactionID?: string) => {
+            if (!reportID || !transactionID) {
+                Log.warn(`Invalid ${reportID}(reportID) or ${transactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT dynamic route`);
+            }
+
+            return `edit/split-expense/${reportID}/${transactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}` as const;
+        },
     },
     AVATAR_CROP: {
         path: 'avatar-crop',
@@ -568,10 +587,12 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
     NOTIFICATION_PREFERENCES: {
-        path: 'notification-preferences',
+        // `reportID` is intentionally carried as a distinct path param (`notificationReportID`) rather than
+        // `reportID`, so it never collides with a `reportID` inherited from the surrounding report chain's
+        // query string. This keeps the inherited `?reportID=` intact for back navigation.
+        path: 'notification-preferences/:notificationReportID',
         entryScreens: [SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT, SCREENS.DYNAMIC_PROFILE],
-        getRoute: (reportID: string) => getUrlWithParams('notification-preferences', {reportID}),
-        queryParams: ['reportID'],
+        getRoute: (notificationReportID: string) => `notification-preferences/${notificationReportID}` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT: {
         path: 'sage-intacct/export',
@@ -594,6 +615,10 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_PLAN,
             SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS,
         ],
+    },
+    WORKSPACE_PAY_AND_DOWNGRADE: {
+        path: 'pay-and-downgrade',
+        entryScreens: [SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE],
     },
     WORKSPACE_CATEGORIES_IMPORT: {
         path: 'import',
@@ -670,7 +695,30 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_INVITE_MESSAGE: {
         path: 'invite-message',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE, SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM],
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
+        path: 'expenses-from',
+        entryScreens: [SCREENS.WORKSPACE.WORKFLOWS, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT],
+    },
+    WORKSPACE_OWNER_CHANGE_SUCCESS: {
+        path: 'owner-change-success',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK, SCREENS.WORKSPACE.MEMBER_DETAILS],
+    },
+    WORKSPACE_OWNER_CHANGE_ERROR: {
+        path: 'owner-change-failure',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK, SCREENS.WORKSPACE.MEMBER_DETAILS],
+    },
+    WORKSPACE_OWNER_CHANGE_CHECK: {
+        path: 'change-owner/:policyID/:accountID/:error',
+        entryScreens: [SCREENS.WORKSPACE.MEMBER_DETAILS, SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACES_LIST],
+        getRoute: (policyID: string | undefined, accountID: number, error: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID while building route WORKSPACE_OWNER_CHANGE_CHECK');
+            }
+
+            return `change-owner/${policyID}/${accountID}/${error}` as const;
+        },
     },
     WORKSPACE_INVITE_MESSAGE_ROLE: {
         path: 'role',
@@ -1709,16 +1757,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`create/split-expense/create-date-range/${reportID}/${transactionID}`, backTo);
         },
     },
-    SPLIT_EXPENSE_EDIT: {
-        route: 'edit/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
-        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
-            if (!reportID || !originalTransactionID) {
-                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT route`);
-            }
-
-            return getUrlWithBackToParam(`edit/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
-        },
-    },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?/:searchHash?',
         getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string | undefined, backTo: string, searchHash?: number) => {
@@ -2046,8 +2084,10 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
         route: ':action/:iouType/participants/:transactionID/:reportID',
-        getRoute: (iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', action: IOUAction = 'create') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}`, backTo),
+        getRoute: (iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', action: IOUAction = 'create', isWorkspacesOnly = false) => {
+            const queryParams = isWorkspacesOnly ? '?isWorkspacesOnly=true' : '';
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}${queryParams}`, backTo);
+        },
     },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',
@@ -2422,11 +2462,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/workflows/approvals/:firstApproverEmail/edit',
         getRoute: (policyID: string, firstApproverEmail: string) => `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit` as const,
     },
-    WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
-        route: 'workspaces/:policyID/workflows/approvals/expenses-from',
-
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/workflows/approvals/expenses-from` as const, backTo),
-    },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'workspaces/:policyID/workflows/approvals/approver',
         getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approver?approverIndex=${approverIndex}` as const,
@@ -2589,11 +2624,6 @@ const ROUTES = {
 
         getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(policyID ? (`workspaces/${policyID}/downgrade/` as const) : (`workspaces/downgrade` as const), backTo),
     },
-    WORKSPACE_PAY_AND_DOWNGRADE: {
-        route: 'workspaces/pay-and-downgrade/',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`workspaces/pay-and-downgrade` as const, backTo),
-    },
     WORKSPACE_MORE_FEATURES: {
         route: 'workspaces/:policyID/more-features',
         getRoute: (policyID: string | undefined) => {
@@ -2717,26 +2747,6 @@ const ROUTES = {
     WORKSPACE_CUSTOM_FIELDS: {
         route: 'workspaces/:policyID/members/:accountID/:customFieldType',
         getRoute: (policyID: string, accountID: number, customFieldType: CustomFieldType) => `/workspaces/${policyID}/members/${accountID}/${customFieldType}` as const,
-    },
-    WORKSPACE_OWNER_CHANGE_SUCCESS: {
-        route: 'workspaces/:policyID/change-owner/:accountID/success',
-
-        getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/change-owner/${accountID}/success` as const, backTo),
-    },
-    WORKSPACE_OWNER_CHANGE_ERROR: {
-        route: 'workspaces/:policyID/change-owner/:accountID/failure',
-
-        getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/change-owner/${accountID}/failure` as const, backTo),
-    },
-    WORKSPACE_OWNER_CHANGE_CHECK: {
-        route: 'workspaces/:policyID/change-owner/:accountID/:error',
-        getRoute: (policyID: string | undefined, accountID: number, error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_OWNER_CHANGE_CHECK route');
-            }
-
-            return getUrlWithBackToParam(`workspaces/${policyID}/change-owner/${accountID}/${error as string}` as const, backTo);
-        },
     },
     WORKSPACE_TAX_CREATE: {
         route: 'workspaces/:policyID/taxes/new',
