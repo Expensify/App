@@ -187,6 +187,7 @@ type GetIouParamsInput = {
     policyForTrackExpense?: OnyxEntry<Policy>;
     policyCategories: OnyxEntry<PolicyCategories>;
     policyTags: OnyxEntry<PolicyTagLists>;
+    reportPolicyTags: OnyxEntry<PolicyTagLists>;
     policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     parentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
@@ -217,6 +218,7 @@ function getIouParamsForTransaction({
     policyForTrackExpense,
     policyCategories,
     policyTags,
+    reportPolicyTags,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     parentReportNextStep,
@@ -287,6 +289,7 @@ function getIouParamsForTransaction({
         isTrackIntentUser,
         // delegateAccountID: will be threaded in PR 11; updateMoneyRequest* falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
         delegateAccountID: undefined,
+        reportPolicyTags,
         // Field-specific extras
         transaction,
         policyTagList: policyTags,
@@ -298,6 +301,7 @@ function getIouParamsForTransaction({
 /** Updates the date of an expense from the Search results table or the Expense Report page. */
 function editTransactionDateInline(params: TransactionInlineEditParams, newDate: string, personalPolicyOutputCurrency: string | undefined) {
     const iouParams = getIouParamsForTransaction(params);
+
     updateMoneyRequestDate({
         ...iouParams,
         // updateMoneyRequestDate uses 'policyTags' (not policyTagList)
@@ -321,6 +325,7 @@ function editTransactionMerchantInline(params: TransactionInlineEditParams, newM
     }
 
     const iouParams = getIouParamsForTransaction(params);
+
     updateMoneyRequestMerchant({
         ...iouParams,
         value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
