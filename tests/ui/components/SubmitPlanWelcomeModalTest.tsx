@@ -8,6 +8,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ViewProps} from 'react-native';
 import type ReactNative from 'react-native';
 
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -48,6 +50,20 @@ jest.mock('@components/ImageSVG', () => {
     return (props: ViewProps) => <View {...props} />;
 });
 
+const Stack = createStackNavigator();
+
+// The modal renders FormAlertWithSubmitButton, which uses usePressLoading -> useFocusEffect. That hook
+// needs a navigation context, so the modal must be rendered inside a NavigationContainer/screen.
+function withNavigation(ui: React.ReactElement): React.ReactElement {
+    return (
+        <NavigationContainer>
+            <Stack.Navigator>
+                <Stack.Screen name="SubmitPlanWelcomeModal">{() => ui}</Stack.Screen>
+            </Stack.Navigator>
+        </NavigationContainer>
+    );
+}
+
 describe('SubmitPlanWelcomeModal', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -63,7 +79,7 @@ describe('SubmitPlanWelcomeModal', () => {
     function renderModal() {
         return render(
             <OnyxListItemProvider>
-                <SubmitPlanWelcomeModal />
+                {withNavigation(<SubmitPlanWelcomeModal />)}
             </OnyxListItemProvider>,
         );
     }
