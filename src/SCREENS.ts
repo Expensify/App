@@ -967,6 +967,10 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_MigratedUserWelcomeModal_Root',
     },
 
+    SUBMIT_PLAN_WELCOME_MODAL: {
+        DYNAMIC_ROOT: 'Dynamic_SubmitPlanWelcomeModal_Root',
+    },
+
     AI_FEATURES_PROMO_MODAL: {
         DYNAMIC_ROOT: 'Dynamic_AIFeaturesPromoModal_Root',
     },
