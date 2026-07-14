@@ -83,9 +83,8 @@ type MfaActorDoneOutputFixtures = {
  * variants are added.
  */
 const MFA_ACTOR_DONE_OUTPUT_FIXTURES = {
-    // The refusal variants mirror the actor's gates, such as the scenario disallowing the platform
-    // method and the device failing the capability check. Each reason maps to its own failure screen,
-    // so every variant needs a graph branch for the walk to reach that screen.
+    // The refusal variants mirror the actor's gates. Each reason maps to its own failure screen, so
+    // every variant needs a graph branch for the walk to reach that screen.
     validateDevice: [
         {success: true},
         {success: false, error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED, 'Graph-traversal device-check refusal')},
@@ -151,13 +150,12 @@ function getTraversalEvents(snapshot: MfaSnapshot): MfaEvent[] {
                 throw new Error(`Missing MFA actor done-output fixtures for invoked actor "${actorId}"`);
             }
             // XState types `events` as the machine's event union, which cannot name framework events, so
-            // this widens the synthesized done events exactly like the bare synthesis below.
+            // this widens the synthesized done events.
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             events.push(...MFA_ACTOR_DONE_OUTPUT_FIXTURES[actorId].map((output) => ({type, output}) as MfaEvent));
             continue;
         }
-        // XState types `events` as the machine's event union, which cannot name framework events, so
-        // this widens the synthesized event exactly like XState's own default traversal does.
+        // This widens the remaining framework events for the same reason as the done events above.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         events.push({type} as MfaEvent);
     }
@@ -181,15 +179,12 @@ function getDrivingJourneyPaths() {
 }
 
 /**
- * Returns the generated coverage paths plus the explicit driving journeys. The journeys are needed
- * because a shortest path can be empty, such as the path to the initial `closed` state, so the
- * generated paths alone would never drive the teardown. Paths with a delayed step are filtered out
- * because the UI walk cannot drive them. `everyStateReachable.test.ts` checks stable-state
- * reachability over the unfiltered graph, while the walk-coverage guard in
- * `viewMatchesMachine.test.tsx` catches a state that loses every UI-drivable route.
- *
- * `path.test` skips framework steps without an executor, such as `xstate.init`. Actor completion
- * steps keep their executors so the UI walk settles the corresponding mock at the correct transition.
+ * Returns the generated coverage paths plus the explicit driving journeys, keeping only UI-drivable
+ * paths. The journeys are needed because a shortest path can be empty, such as the path to the
+ * initial `closed` state, so the generated paths alone would never drive the teardown.
+ * `everyStateReachable.test.ts` checks stable-state reachability over the unfiltered graph, while
+ * the walk-coverage guard in `viewMatchesMachine.test.tsx` catches a state that loses every
+ * UI-drivable route. `path.test` skips framework steps without an executor, such as `xstate.init`.
  */
 function getWalkedPaths() {
     const coveragePaths = mfaTestModel.getPaths(() => getMfaShortestPaths());

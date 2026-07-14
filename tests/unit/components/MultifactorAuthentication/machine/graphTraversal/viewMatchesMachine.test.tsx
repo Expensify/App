@@ -31,9 +31,11 @@ import {matchesState} from 'xstate';
 jest.mock('@hooks/useResponsiveLayout');
 // This mock disables the dev-only Stately inspector so `useInspectedMachine` falls back to `useMachine`.
 jest.mock('@libs/XStateInspector', () => ({__esModule: true, default: {inspect: undefined}}));
+
+// Jest hoists every `jest.mock` call above the imports, so a factory cannot reference a top-of-file
+// import. Each factory below therefore loads the shared mock module through `jest.requireActual`.
+
 // The UI walk needs to control invoked actor outcomes, and the actors' real side effects are outside the modal lifecycle contract.
-// Jest hoists every `jest.mock` call above the imports, so a factory cannot reference a top-of-file import
-// and each factory below loads the shared mock module through `jest.requireActual` instead.
 jest.mock('@components/MultifactorAuthentication/machine/mfaActors', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').mfaActorsMock());
 // Native and WebAuthn biometrics are outside the modal lifecycle contract.
 jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').biometricsHookMock());
@@ -137,10 +139,8 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(1);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE);
             expect(state.context.error).toBeDefined();
-            // The mock actor produces the same error the graph snapshot carries, so the walk can demand
-            // the exact screen the scenario maps for it. Each device-check refusal fixture has a
-            // dedicated failure screen, while a plain rejection is recorded as a local unhandled
-            // exception and falls back to the scenario's default client failure screen, which shows
+            // The mock actor produces the same error the graph snapshot carries, so each branch can
+            // assert the exact screen mapped for that error. The default client failure screen shows
             // the failure copy in both its header and its body title.
             if (state.context.error?.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED) {
                 expect(screen.getByText(translateLocal('multifactorAuthentication.unsupportedDevice.unsupportedDevice'))).toBeOnTheScreen();
