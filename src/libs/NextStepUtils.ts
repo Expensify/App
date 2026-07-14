@@ -426,6 +426,12 @@ function getReportNextStep(
         });
     }
 
+    // Prefer the new translatable next step for the empty-report case so the "Waiting for you to add expenses" message
+    // respects the user's locale. The deprecated format is kept as the fallback for every other case.
+    if (reportNextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS) {
+        return reportNextStep;
+    }
+
     // The server keeps report.nextStep (the new ReportNextStep format) in sync with statusNum for every client via the
     // report push, but the deprecated reportNextStep_* collection is only refreshed for the local actor. Prefer the
     // report-embedded value so non-actor viewers (e.g. a submitter watching an approver approve) see real-time updates,
