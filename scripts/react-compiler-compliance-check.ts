@@ -259,7 +259,6 @@ async function checkChangedFiles(remote: string, verbose: boolean, checkOxc: Oxc
 
     logInfo(`Checking ${reactFiles.length} changed React files with both compilers (Babel + OXC)...`);
 
-    const mainRef = remote ? `${remote}/main` : 'origin/main';
     const failures: Array<{file: string; reason: string}> = [];
 
     for (const {filename, status, previousFilename} of reactFiles) {
@@ -270,6 +269,13 @@ async function checkChangedFiles(remote: string, verbose: boolean, checkOxc: Oxc
 
         const source = fs.readFileSync(absolutePath, 'utf8');
         const branchResult = checkBoth(source, absolutePath, checkOxc);
+
+        // Resolve the file's state on the base branch once, reused by the regression + divergence rules.
+        // Use the resolved base commit hash (which honors GITHUB_BASE_REF) rather than a hardcoded `main`,
+        // so grandfathering/regression detection works for PRs targeting any base branch.
+        const mainPath = previousFilename ?? filename;
+        const mainSource = status === 'added' ? undefined : getMainSource(mainBaseCommitHash, mainPath);
+        const mainResult = mainSource !== undefined ? checkBoth(mainSource, mainPath, checkOxc) : undefined;
 
         // Rule 1 + 2: compile failures.
         for (const [compiler, result] of [
@@ -287,10 +293,7 @@ async function checkChangedFiles(remote: string, verbose: boolean, checkOxc: Oxc
                 continue;
             }
 
-            // Modified/renamed: only a regression from main counts.
-            const mainPath = previousFilename ?? filename;
-            const mainSource = getMainSource(mainRef, mainPath);
-            const mainResult = mainSource !== undefined ? checkBoth(mainSource, mainPath, checkOxc) : undefined;
+            // Modified/renamed: only a regression from the base branch counts.
             const mainCompiledHere = compiler === 'babel' ? mainResult?.babel.status === 'compiled' : mainResult?.oxc.status === 'compiled';
 
             if (mainCompiledHere) {
@@ -302,14 +305,9 @@ async function checkChangedFiles(remote: string, verbose: boolean, checkOxc: Oxc
             }
         }
 
-        // Rule 3: newly-introduced memoization divergence. Existing main divergences are grandfathered.
+        // Rule 3: newly-introduced memoization divergence. Existing base-branch divergences are grandfathered.
         if (branchResult.isDivergent) {
-            let wasDivergentOnMain = false;
-            if (status !== 'added') {
-                const mainPath = previousFilename ?? filename;
-                const mainSource = getMainSource(mainRef, mainPath);
-                wasDivergentOnMain = mainSource !== undefined ? checkBoth(mainSource, mainPath, checkOxc).isDivergent : false;
-            }
+            const wasDivergentOnMain = mainResult?.isDivergent ?? false;
 
             if (!wasDivergentOnMain) {
                 const introduced = status === 'added' ? 'new file is memoization-divergent' : 'introduces new memoization divergence';
