@@ -2,13 +2,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
 
-import React from 'react';
 import {View} from 'react-native';
-import {TNodeRenderer} from 'react-native-render-html';
 
-function getElementChildren(node: TNode | null | undefined): TNode[] {
-    return node?.children?.filter((child) => !!child.tagName) ?? [];
-}
+import TableChildrenRenderer, {getElementChildren} from './TableChildrenRenderer';
 
 function isLastRowOfTable(tnode: TNode): boolean {
     const section = tnode.parent;
@@ -18,7 +14,7 @@ function isLastRowOfTable(tnode: TNode): boolean {
     }
     const sectionRows = getElementChildren(section);
     const tableSections = getElementChildren(table);
-    return sectionRows[sectionRows.length - 1] === tnode && tableSections[tableSections.length - 1] === section;
+    return sectionRows.at(-1) === tnode && tableSections.at(-1) === section;
 }
 
 function TableRowRenderer({tnode}: CustomRendererProps<TBlock>) {
@@ -27,22 +23,9 @@ function TableRowRenderer({tnode}: CustomRendererProps<TBlock>) {
     // Header rows (inside <thead>) use header padding; body rows use the compact min-height.
     const isHeaderRow = tnode.parent?.tagName === 'thead';
 
-    // Skip whitespace-only text nodes that sit between cells in the source HTML.
-    const cells = tnode.children.filter((child) => !!child.tagName);
-
     return (
         <View style={[isHeaderRow ? styles.htmlTableHeaderRow : styles.htmlTableRow, isLastRowOfTable(tnode) && styles.htmlTableLastRow]}>
-            {cells.map((child, index) => {
-                const key = `${child.tagName ?? 'node'}-${index}`;
-                return (
-                    <TNodeRenderer
-                        key={key}
-                        tnode={child}
-                        renderIndex={index}
-                        renderLength={cells.length}
-                    />
-                );
-            })}
+            <TableChildrenRenderer tnode={tnode} />
         </View>
     );
 }

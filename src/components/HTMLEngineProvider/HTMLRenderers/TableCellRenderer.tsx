@@ -2,36 +2,43 @@ import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {FlexStyle, TextStyle} from 'react-native';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 
-import React from 'react';
 import {View} from 'react-native';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 
-type CellAlignment = {
-    alignItems: FlexStyle['alignItems'];
-    textAlign: TextStyle['textAlign'];
-};
+type CellHorizontalAlignment = 'left' | 'center' | 'right';
 
-function getCellAlignment(styleAttribute: string | undefined): CellAlignment {
+function getCellHorizontalAlignment(styleAttribute: string | undefined): CellHorizontalAlignment {
     if (styleAttribute?.includes('text-align: right')) {
-        return {alignItems: 'flex-end', textAlign: 'right'};
+        return 'right';
     }
     if (styleAttribute?.includes('text-align: center')) {
-        return {alignItems: 'center', textAlign: 'center'};
+        return 'center';
     }
-    return {alignItems: 'flex-start', textAlign: 'left'};
+    return 'left';
 }
 
 function TableCellRenderer({tnode}: CustomRendererProps<TBlock>) {
     const styles = useThemeStyles();
     const isHeaderCell = tnode.tagName === 'th';
-    const {alignItems, textAlign} = getCellAlignment(tnode.attributes.style);
+    const alignment = getCellHorizontalAlignment(tnode.attributes.style);
+
+    // Map the cell alignment to the shared named styles instead of building inline style objects.
+    const cellAlignmentStyle = {
+        left: styles.alignItemsStart,
+        center: styles.alignItemsCenter,
+        right: styles.alignItemsEnd,
+    }[alignment];
+    const textAlignmentStyle = {
+        left: styles.textAlignLeft,
+        center: styles.textAlignCenter,
+        right: styles.textAlignRight,
+    }[alignment];
 
     return (
-        <View style={[styles.htmlTableCell, {alignItems}]}>
-            <Text style={[isHeaderCell ? styles.htmlTableHeaderCellText : styles.htmlTableCellText, {textAlign}]}>
+        <View style={[styles.htmlTableCell, cellAlignmentStyle]}>
+            <Text style={[isHeaderCell ? styles.htmlTableHeaderCellText : styles.htmlTableCellText, textAlignmentStyle]}>
                 <TNodeChildrenRenderer tnode={tnode} />
             </Text>
         </View>
