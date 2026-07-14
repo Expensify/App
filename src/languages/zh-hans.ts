@@ -513,7 +513,6 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: '头像',
         editor: '编辑',
         restrictions: '限制',
-        tryAgain: '重试',
         tagGLCode: '标记总账代码',
         off: '关',
         noResultsFoundSubtitle: '无结果。请尝试调整筛选条件或搜索内容',
@@ -3637,6 +3636,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         facialScan: 'Onfido 人脸扫描政策与授权书',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfido 的人脸扫描政策和授权</a>、<a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>隐私政策</a>和<a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>服务条款</a>。</muted-text-micro>`,
+        tryAgain: '重试',
         verifyIdentity: '验证身份',
         letsVerifyIdentity: '让我们验证您的身份',
         butFirst: `不过首先是一些无聊的内容。请在下一步仔细阅读法律条款，准备好后点击“接受”。`,
@@ -5440,6 +5440,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 workspaceFeedsCouldNotBeLoadedMessage: '加载工作区卡片动态时发生错误。请重试或联系管理员。',
                 feedCouldNotBeLoadedTitle: '无法加载此动态',
                 feedCouldNotBeLoadedMessage: '加载此订阅源时发生错误。请重试或联系您的管理员。',
+                tryAgain: '重试',
             },
             addNewCard: {
                 other: '其他',
@@ -6204,7 +6205,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 conciergeNotificationTitle: 'Concierge 会通知你',
                 conciergeNotificationDescription: '流程完成后，Concierge 会向你发送一条消息。',
                 copyCompleted: '您的工作区设置已复制。',
-                copyFailedTitle: '复制失败',
             },
             upgrade: {
                 title: '部分功能需要 Control 方案',

@@ -517,7 +517,6 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Edytor',
         restrictions: 'Ograniczenia',
-        tryAgain: 'Spróbuj ponownie',
         tagGLCode: 'Oznacz kod GL',
         off: 'Wyłączone',
         noResultsFoundSubtitle: 'Brak wyników. Spróbuj zmienić filtry lub zapytanie wyszukiwania',
@@ -3726,6 +3725,7 @@ ${amount} dla ${merchant} - ${date}`,
         facialScan: 'Zasady skanów twarzy i zgoda Onfido',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Polityka skanowania twarzy i zgoda Onfido</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Prywatność</a> oraz <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Warunki korzystania z usługi</a>.</muted-text-micro>`,
+        tryAgain: 'Spróbuj ponownie',
         verifyIdentity: 'Zweryfikuj tożsamość',
         letsVerifyIdentity: 'Zweryfikujmy Twoją tożsamość',
         butFirst: `Ale najpierw trochę nudnych rzeczy. Przeczytaj prawniczy żargon w następnym kroku i kliknij „Akceptuj”, gdy będziesz gotowy(-a).`,
@@ -5583,6 +5583,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 workspaceFeedsCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania kanałów kart w przestrzeni roboczej. Spróbuj ponownie lub skontaktuj się ze swoim administratorem.',
                 feedCouldNotBeLoadedTitle: 'Nie udało się wczytać tego kanału',
                 feedCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania tego kanału. Spróbuj ponownie lub skontaktuj się z administratorem.',
+                tryAgain: 'Spróbuj ponownie',
             },
             addNewCard: {
                 other: 'Inne',
@@ -6374,7 +6375,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 conciergeNotificationTitle: 'Concierge da ci znać',
                 conciergeNotificationDescription: 'Gdy proces się zakończy, Concierge wyśle ci wiadomość.',
                 copyCompleted: 'Twoje ustawienia przestrzeni roboczej zostały skopiowane.',
-                copyFailedTitle: 'Kopiowanie nie powiodło się',
             },
             upgrade: {
                 title: 'Niektóre funkcje wymagają planu Control',

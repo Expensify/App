@@ -77,7 +77,7 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
                             }}
                             message={onfidoError}
                             isLoading={isLoading}
-                            buttonText={translate(onfidoError ? 'common.tryAgain' : 'common.continue')}
+                            buttonText={onfidoError ? translate('onfidoStep.tryAgain') : translate('common.continue')}
                             containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
                         />
                     </FixedFooter>

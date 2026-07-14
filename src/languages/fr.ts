@@ -518,7 +518,6 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Éditeur',
         restrictions: 'Restrictions',
-        tryAgain: 'Réessayer',
         tagGLCode: 'Taguer le code GL',
         off: 'Désactivé',
         noResultsFoundSubtitle: 'Aucun résultat. Veuillez essayer de modifier vos filtres ou votre requête de recherche',
@@ -3766,6 +3765,7 @@ ${amount} pour ${merchant} - ${date}`,
         facialScan: 'Politique et autorisation relatives à la reconnaissance faciale d’Onfido',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Politique et autorisation de numérisation faciale d’Onfido</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Confidentialité</a> et <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Conditions d’utilisation</a>.</muted-text-micro>`,
+        tryAgain: 'Réessayer',
         verifyIdentity: 'Vérifier l’identité',
         letsVerifyIdentity: 'Vérifions votre identité',
         butFirst: `Mais d’abord, les choses ennuyeuses. Lisez le jargon juridique à l’étape suivante et cliquez sur « Accepter » quand vous êtes prêt.`,
@@ -5642,6 +5642,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     'Une erreur s’est produite lors du chargement des flux de cartes de l’espace de travail. Veuillez réessayer ou contacter votre administrateur.',
                 feedCouldNotBeLoadedTitle: 'Impossible de charger ce flux',
                 feedCouldNotBeLoadedMessage: 'Une erreur s’est produite lors du chargement de ce flux. Veuillez réessayer ou contacter votre administrateur.',
+                tryAgain: 'Réessayer',
             },
             addNewCard: {
                 other: 'Autre',
@@ -6450,7 +6451,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 conciergeNotificationTitle: 'Concierge vous en informera',
                 conciergeNotificationDescription: 'Une fois le processus terminé, Concierge vous enverra un message.',
                 copyCompleted: 'Les paramètres de votre espace de travail ont été copiés.',
-                copyFailedTitle: 'Échec de la copie',
             },
             upgrade: {
                 title: 'Certaines fonctionnalités nécessitent un forfait Control',
