@@ -162,12 +162,6 @@ The goal is successful task completion, not exhaustive documentation.
 
 # 7. Screenshot Guidelines
 
-Suggest screenshots only when they meaningfully improve a member's understanding of the workflow.
-
-Only suggest screenshots when they meaningfully improve a member's understanding of the article. Screenshots are optional—not every article or workflow requires them.
-
-## Screenshot Decision Criteria
-
 Suggest a screenshot only if it accomplishes one or more of the following:
 
 * Helps members orient themselves within an interface by confirming they are on the correct page or screen
