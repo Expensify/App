@@ -1,8 +1,11 @@
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 
+import ImageSVG from '@src/components/ImageSVG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -19,6 +22,8 @@ function Slider({onSliderRatioChange}: SliderProps) {
     const styles = useThemeStyles();
 
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MapStopWaypoint']);
 
     const totalDistanceMeters = gpsDraftDetails?.distanceInMeters ?? 0;
 
@@ -44,7 +49,7 @@ function Slider({onSliderRatioChange}: SliderProps) {
     });
 
     const thumbStyle = useAnimatedStyle(() => ({
-        transform: [{translateX: sliderRatio.get() * Math.max(0, sliderWidthShared.get() - styles.sliderKnob.width / 2)}],
+        transform: [{translateX: sliderRatio.get() * sliderWidthShared.get()}],
     }));
 
     const filledStyle = useAnimatedStyle(() => ({
@@ -59,15 +64,14 @@ function Slider({onSliderRatioChange}: SliderProps) {
                     sliderWidthShared.set(e.nativeEvent.layout.width);
                 }}
             >
-                <Animated.View style={[styles.sliderBarFilled, filledStyle]} />
+                <Animated.View style={[styles.editStopSliderFilled, filledStyle]} />
                 <GestureDetector gesture={panGesture}>
-                    <Animated.View style={[styles.sliderKnob, thumbStyle]}>
-                        {/* <ImageSVG
-                                        src={Location}
-                                        width={THUMB_SIZE}
-                                        height={THUMB_SIZE}
-                                        fill={theme.success}
-                                    /> */}
+                    <Animated.View style={[styles.editedStopSliderKnob, thumbStyle]}>
+                        <ImageSVG
+                            src={expensifyIcons.MapStopWaypoint}
+                            width={CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width}
+                            height={CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.height}
+                        />
                     </Animated.View>
                 </GestureDetector>
             </View>
