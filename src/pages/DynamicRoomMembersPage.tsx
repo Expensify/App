@@ -273,16 +273,15 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         tableRef.current?.updateSearchString(phrase);
     }, [isFocusedScreen, isLoading, members.length, userSearchPhrase]);
 
-    // Clear the persisted phrase when the room has no members left. This is page-level state, not table search middleware.
+    // Clear the persisted Onyx phrase when the room has no members left. Table input clears via FilterBar unmount.
     useEffect(() => {
         if (!isFocusedScreen) {
             return;
         }
         if (members.length === 0) {
             clearUserSearchPhrase();
-            clearTableSearch();
         }
-    }, [clearTableSearch, isFocusedScreen, members.length]);
+    }, [isFocusedScreen, members.length]);
 
     const selectedKeys = selectedMembers.map(String);
 
