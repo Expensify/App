@@ -9909,6 +9909,20 @@ ${reportName}`,
             inviteBoss: '準備ができたら上司を招待しましょう',
         },
     },
+    productMarketingWindow: {
+        expensePolicyPdf: {
+            admin: {
+                heading: '経費ポリシーのPDFをアップロード',
+                body: '管理者は経費ポリシーのPDFをワークスペースに直接アップロードして、全従業員が1か所で確認できるようにできるようになりました。',
+                cta: 'お試しください',
+            },
+            member: {
+                heading: '1つの経費に複数の領収書を添付',
+                body: '領収書のプレビューから直接、1つの経費に複数の領収書を添付できるようになりました。',
+                cta: 'お試しください',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
         saveSearchTooltip: '<tooltip>保存済み検索の<strong>名前を変更</strong>しましょう！</tooltip>',

@@ -10005,6 +10005,20 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             inviteBoss: 'Convide seu chefe quando estiver pronto',
         },
     },
+    productMarketingWindow: {
+        expensePolicyPdf: {
+            admin: {
+                heading: 'Envie o PDF da sua política de despesas',
+                body: 'Os administradores agora podem enviar um PDF da política de despesas diretamente para o espaço de trabalho, deixando-o visível para todos os funcionários em um só lugar.',
+                cta: 'Experimente',
+            },
+            member: {
+                heading: 'Anexe vários recibos a uma única despesa',
+                body: 'Agora você pode anexar vários recibos a uma única despesa diretamente na pré-visualização do recibo.',
+                cta: 'Experimente',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renomeie suas buscas salvas</strong> aqui!</tooltip>',

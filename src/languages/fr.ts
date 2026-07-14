@@ -10097,6 +10097,20 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             inviteBoss: 'Invitez votre responsable quand vous êtes prêt',
         },
     },
+    productMarketingWindow: {
+        expensePolicyPdf: {
+            admin: {
+                heading: 'Importez le PDF de votre politique de dépenses',
+                body: 'Les administrateurs peuvent désormais importer un PDF de leur politique de dépenses directement dans leur espace de travail, le rendant visible par tous les employés en un seul endroit.',
+                cta: 'Essayer',
+            },
+            member: {
+                heading: 'Joignez plusieurs reçus à une seule dépense',
+                body: 'Vous pouvez désormais joindre plusieurs reçus à une seule dépense directement depuis l’aperçu du reçu.',
+                cta: 'Essayer',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renommez vos recherches enregistrées</strong> ici !</tooltip>',

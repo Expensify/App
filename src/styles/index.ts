@@ -1178,6 +1178,44 @@ const staticStyles = (theme: ThemeColors) =>
             }),
         },
 
+        // The product marketing window keeps the same dark branded look in both themes, per design,
+        // so it uses productDark colors directly instead of theme tokens.
+        productMarketingWindowContainer: {
+            ...positioning.pAbsolute,
+            backgroundColor: colors.productDark100,
+            borderRadius: variables.componentBorderRadiusLarge,
+            boxShadow: theme.shadow,
+        },
+        productMarketingWindowContainerWide: {
+            bottom: variables.productMarketingWindowOffset,
+            right: variables.productMarketingWindowOffset,
+            width: variables.productMarketingWindowWidth,
+        },
+        productMarketingWindowContainerNarrow: {
+            left: variables.productMarketingWindowOffsetNarrow,
+            right: variables.productMarketingWindowOffsetNarrow,
+        },
+        productMarketingWindowIllustrationContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: colors.productDark300,
+            borderRadius: variables.componentBorderRadiusNormal,
+            height: variables.productMarketingWindowIllustrationHeight,
+            overflow: 'hidden',
+        },
+        productMarketingWindowHeading: {
+            color: colors.productDark900,
+        },
+        productMarketingWindowBody: {
+            color: colors.productDark800,
+        },
+        productMarketingWindowDismissButton: {
+            backgroundColor: colors.productDark400,
+        },
+        productMarketingWindowDismissButtonText: {
+            color: colors.productDark900,
+        },
+
         cardBadgeText: {
             color: colors.white,
             fontSize: variables.fontSizeExtraSmall,

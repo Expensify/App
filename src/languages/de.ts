@@ -10063,6 +10063,20 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             inviteBoss: 'Lade deinen Chef ein, wenn du bereit bist',
         },
     },
+    productMarketingWindow: {
+        expensePolicyPdf: {
+            admin: {
+                heading: 'Lade das PDF deiner Spesenrichtlinie hoch',
+                body: 'Admins können jetzt ein PDF ihrer Spesenrichtlinie direkt in ihren Arbeitsbereich hochladen, sodass es für alle Mitarbeitenden an einem Ort sichtbar ist.',
+                cta: 'Ausprobieren',
+            },
+            member: {
+                heading: 'Füge mehrere Belege zu einer Ausgabe hinzu',
+                body: 'Du kannst jetzt mehrere Belege direkt aus der Belegvorschau zu einer einzigen Ausgabe hinzufügen.',
+                cta: 'Ausprobieren',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Benenne deine gespeicherten Suchen um</strong> – hier!</tooltip>',

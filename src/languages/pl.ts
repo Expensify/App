@@ -9990,6 +9990,20 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             inviteBoss: 'Zaproś swojego szefa, gdy będziesz gotowy',
         },
     },
+    productMarketingWindow: {
+        expensePolicyPdf: {
+            admin: {
+                heading: 'Prześlij PDF z polityką wydatków',
+                body: 'Administratorzy mogą teraz przesłać PDF z polityką wydatków bezpośrednio do swojego obszaru roboczego, dzięki czemu wszyscy pracownicy widzą ją w jednym miejscu.',
+                cta: 'Wypróbuj',
+            },
+            member: {
+                heading: 'Dołącz wiele paragonów do jednego wydatku',
+                body: 'Możesz teraz dołączyć wiele paragonów do jednego wydatku bezpośrednio z podglądu paragonu.',
+                cta: 'Wypróbuj',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Rozpocznij <strong>tutaj!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Zmień nazwę zapisanych wyszukiwań</strong> tutaj!</tooltip>',

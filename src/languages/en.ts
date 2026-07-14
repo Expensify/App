@@ -10201,6 +10201,20 @@ const translations = {
             description: `<muted-text>Create custom agents to review, approve, and route expenses based on rules you set. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Learn more</a>.</muted-text>`,
         },
     },
+    productMarketingWindow: {
+        expensePolicyPdf: {
+            admin: {
+                heading: 'Upload your expense policy PDF',
+                body: 'Admins can now upload a PDF of their expense policy directly to their workspace, making it visible to all employees in one place.',
+                cta: 'Try it out',
+            },
+            member: {
+                heading: 'Attach multiple receipts to one expense',
+                body: 'You can now attach multiple receipts to a single expense directly from the receipt preview.',
+                cta: 'Try it out',
+            },
+        },
+    },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668

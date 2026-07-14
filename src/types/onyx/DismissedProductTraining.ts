@@ -23,6 +23,12 @@ type DismissedProductTrainingElement = {
     dismissedMethod: 'click' | 'x';
 };
 /**
+ * Key under which a product marketing window dismissal is stored, namespaced per announcement ID
+ * so that dismissing one announcement never affects another.
+ */
+type ProductMarketingWindowDismissedKey = `${typeof CONST.PRODUCT_MARKETING_WINDOW.DISMISSED_KEY_PREFIX}${string}`;
+
+/**
  * This type is used to store the timestamp of when the user dismisses a product training ui elements.
  */
 type DismissedProductTraining = {
@@ -92,6 +98,13 @@ type DismissedProductTraining = {
      * When user dismisses the mileage rate auto-updated tooltip, we store the timestamp here.
      */
     [MILEAGE_RATE_AUTO_UPDATED]: DismissedProductTrainingElement;
+} & {
+    /**
+     * When user dismisses a product marketing window announcement (via its Dismiss button or by completing its CTA),
+     * we store the timestamp under a key namespaced by the announcement ID.
+     */
+    [key: ProductMarketingWindowDismissedKey]: DismissedProductTrainingElement | undefined;
 };
 
 export default DismissedProductTraining;
+export type {ProductMarketingWindowDismissedKey};
