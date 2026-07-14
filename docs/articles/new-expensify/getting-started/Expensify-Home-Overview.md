@@ -99,18 +99,9 @@ If you don't hold one of these roles, or your workspace doesn't have expenses ac
 
 ## How the Getting started section works on Home
 
-The **Getting started** section shows a checklist of key setup steps to help Workspace Admins configure their workspace during onboarding.
+The **Getting started** section shows a checklist of key setup tasks and appears only under certain conditions during onboarding.
 
-This section appears only if:
-
- - The workspace is on a free trial
- - The workspace owner selected **manage my team** or **track and budget my expenses** during setup
-
-If these conditions aren’t met, the section won’t appear.
-
-The checklist items vary based on the intent selected during onboarding. Users who chose **track and budget my expenses** see tasks for creating a workspace, customizing accounting categories, linking a company card, and inviting an accountant.
-
-The customizing accounting categories and linking a company card steps follow their workspace **More features** toggles. If **Categories** or **Company cards** is turned off in **More features**, the matching step is hidden, and it reappears when the feature is turned back on.
+The checklist items vary based on the intent selected when setting up your Expensify account.
 
 ---
 
