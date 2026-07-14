@@ -66,7 +66,7 @@ function usePopoverEditState<T>({
     const [popoverPosition, setPopoverPosition] = useState<PopoverPosition>({horizontal: 0, vertical: 0});
     const [isInverted, setIsInverted] = useState(false);
 
-    const openPopover = () => {
+    const openPopover = useCallback(() => {
         anchorRef.current?.measureInWindow((x, y, width, height) => {
             const wouldExceedBottom = y + popoverHeight + padding > windowHeight;
             setIsInverted(wouldExceedBottom);
@@ -76,15 +76,15 @@ function usePopoverEditState<T>({
             });
             setIsPopoverVisible(true);
         });
-    };
+    }, [anchorEdge, padding, popoverHeight, windowHeight]);
 
-    const startEditing = () => {
+    const startEditing = useCallback(() => {
         setIsEditing(true);
         // EditableCell renders conditionally based on isEditing, defer measurement until that render completes and the anchor is laid out
         requestAnimationFrame(() => {
             openPopover();
         });
-    };
+    }, [openPopover]);
 
     const cancelEditing = useCallback(() => {
         setIsPopoverVisible(false);
@@ -96,15 +96,18 @@ function usePopoverEditState<T>({
      * Compares the new value with the original value and only calls onSave if they differ.
      * Always closes the popover after handling.
      */
-    const handleSave = (newValue: T) => {
-        if (value !== undefined && onSave) {
-            const shouldSave = isEqual ? !isEqual(newValue, value) : !Object.is(newValue, value);
-            if (shouldSave) {
-                onSave(newValue);
+    const handleSave = useCallback(
+        (newValue: T) => {
+            if (value !== undefined && onSave) {
+                const shouldSave = isEqual ? !isEqual(newValue, value) : !Object.is(newValue, value);
+                if (shouldSave) {
+                    onSave(newValue);
+                }
             }
-        }
-        cancelEditing();
-    };
+            cancelEditing();
+        },
+        [value, onSave, isEqual, cancelEditing],
+    );
 
     // Cancel editing when permission is revoked (e.g., transaction status changed)
     useEffect(() => {
