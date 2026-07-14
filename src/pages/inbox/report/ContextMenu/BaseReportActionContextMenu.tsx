@@ -254,12 +254,8 @@ function BaseReportActionContextMenu({
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
-        selector: isTrackIntentUserSelector,
-    });
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: guidedSetupAndTourStatusSelector,
-    });
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const personalDetails = usePersonalDetails();
@@ -384,16 +380,10 @@ function BaseReportActionContextMenu({
         });
     };
 
-    const card = useGetExpensifyCardFromReportAction({
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        reportAction: (reportAction ?? null) as ReportAction,
-        policyID,
-    });
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+    const card = useGetExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
 
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding,
-        style: wrapperStyle,
-    });
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding, style: wrapperStyle});
 
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
@@ -461,12 +451,7 @@ function BaseReportActionContextMenu({
                             const {textTranslateKey} = contextAction;
                             const isKeyInActionUpdateKeys = textTranslateKey === 'reportActionContextMenu.editAction' || textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
                             const text =
-                                textTranslateKey &&
-                                (isKeyInActionUpdateKeys
-                                    ? translate(textTranslateKey, {
-                                          action: moneyRequestAction ?? reportAction,
-                                      })
-                                    : translate(textTranslateKey));
+                                textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
                             const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
                             const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
                             const successIcon = contextAction.successIcon ? icons[contextAction.successIcon] : undefined;
@@ -482,13 +467,7 @@ function BaseReportActionContextMenu({
                                     key={contextAction.textTranslateKey}
                                     onPress={(event) =>
                                         interceptAnonymousUser(
-                                            () =>
-                                                contextAction.onPress?.(closePopup, {
-                                                    ...payload,
-                                                    ...transactionPayload,
-                                                    event,
-                                                    ...(isMenuAction ? {anchorRef: threeDotRef} : {}),
-                                                }),
+                                            () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threeDotRef} : {})}),
                                             contextAction.isAnonymousAction,
                                         )
                                     }
