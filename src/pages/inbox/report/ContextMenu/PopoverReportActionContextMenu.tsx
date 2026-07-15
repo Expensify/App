@@ -352,6 +352,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const childParentReportAction = useParentReportAction(childReport);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {currentSearchHash} = useSearchQueryContext();
     const {deleteTransactions} = useDeleteTransactions({
@@ -393,6 +394,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     allTransactionViolationsParam: allTransactionViolations,
                     currentUserAccountID,
                     currentUserEmail: email ?? '',
+                    policy: iouPolicy,
                     yourSpendPatchData,
                 });
             } else if (originalMessage?.IOUTransactionID) {
@@ -457,6 +459,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         visibleReportActionsData,
         iouTransaction,
         iouOriginalTransaction,
+        iouPolicy,
         yourSpendPatchData,
     ]);
 

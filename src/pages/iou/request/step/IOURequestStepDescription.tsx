@@ -36,6 +36,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -68,6 +69,7 @@ function IOURequestStepDescription({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
 
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -162,6 +164,7 @@ function IOURequestStepDescription({
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
                 delegateAccountID,
+                isTrackIntentUser,
             });
         } else {
             setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft, hasReceipt(transaction));

@@ -226,6 +226,7 @@ type HandleActionButtonPressParams = {
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
     delegateEmail?: string;
+    isTrackIntentUser: boolean | undefined;
     yourSpendPatchData?: YourSpendPatchData;
 };
 
@@ -263,6 +264,7 @@ function handleActionButtonPress({
     searchData,
     chatReportActions,
     delegateEmail,
+    isTrackIntentUser,
     yourSpendPatchData,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
@@ -314,6 +316,7 @@ function handleActionButtonPress({
                 policy,
                 searchData,
                 chatReportActions,
+                isTrackIntentUser,
                 yourSpendPatchData,
             });
             return;
@@ -345,6 +348,7 @@ function handleActionButtonPress({
                 amountOwed,
                 iouReportCurrentNextStepDeprecated,
                 delegateEmail,
+                isTrackIntentUser,
                 yourSpendPatchData,
                 ownerLogin: submitterLogin,
             });
@@ -520,6 +524,7 @@ type GetPayActionCallbackParams = {
     policy: OnyxEntry<Policy>;
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
+    isTrackIntentUser: boolean | undefined;
     yourSpendPatchData?: YourSpendPatchData;
 };
 
@@ -547,6 +552,7 @@ function getPayActionCallback({
     policy,
     searchData,
     chatReportActions,
+    isTrackIntentUser,
     yourSpendPatchData,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
@@ -595,6 +601,7 @@ function getPayActionCallback({
         methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
+        isTrackIntentUser,
         yourSpendPatchData,
     });
 }
@@ -614,6 +621,7 @@ type GetApproveActionCallbackParams = {
     amountOwed: OnyxEntry<number>;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     delegateEmail?: string;
+    isTrackIntentUser: boolean | undefined;
     yourSpendPatchData?: YourSpendPatchData;
     ownerLogin: string | undefined;
 };
@@ -633,6 +641,7 @@ function getApproveActionCallback({
     amountOwed,
     iouReportCurrentNextStepDeprecated,
     delegateEmail,
+    isTrackIntentUser,
     yourSpendPatchData,
     ownerLogin,
 }: GetApproveActionCallbackParams) {
@@ -661,6 +670,7 @@ function getApproveActionCallback({
         delegateEmail,
         full: true,
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
+        isTrackIntentUser,
         yourSpendPatchData,
     });
 }
@@ -714,7 +724,6 @@ function getOnyxLoadingData(
             value: {
                 ...(isOffline ? {} : {data: null}),
                 search: {
-                    status: queryJSON?.status,
                     type: queryJSON?.type,
                     ...(isSearchAPI && {isLoading: false}),
                 },
@@ -1329,7 +1338,7 @@ function rejectMoneyRequestsOnSearch(
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV(
-    {query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams,
+    {jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
 ) {
@@ -1359,7 +1368,6 @@ function exportSearchItemsToCSV(
     }
 
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
-        query,
         jsonQuery,
         reportIDList: Array.from(reportIDSet),
         transactionIDList,
@@ -1390,7 +1398,7 @@ function exportSearchItemsToCSV(
     );
 }
 
-function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams): string {
+function queueExportSearchItemsToCSV({jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -1416,7 +1424,6 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
         },
     ];
     const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, {
-        query,
         jsonQuery,
         reportIDList,
         transactionIDList,

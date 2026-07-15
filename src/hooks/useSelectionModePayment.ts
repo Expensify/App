@@ -12,6 +12,7 @@ import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentat
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
@@ -111,6 +112,7 @@ function useSelectionModePayment({
     const email = session?.email;
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
@@ -192,6 +194,7 @@ function useSelectionModePayment({
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
+                isTrackIntentUser,
             });
         } else {
             payMoneyRequest({
@@ -214,6 +217,7 @@ function useSelectionModePayment({
                 yourSpendPatchData,
                 onPaid,
                 chatReportActions: getChatReportActions(false),
+                isTrackIntentUser,
             });
             refreshSearchAfterReportAction({
                 currentSearchQueryJSON,
@@ -307,6 +311,7 @@ function useSelectionModePayment({
             ownerBillingGracePeriodEnd,
             delegateEmail,
             expenseReportPolicy: policy,
+            isTrackIntentUser,
             yourSpendPatchData,
             ownerLogin,
         });

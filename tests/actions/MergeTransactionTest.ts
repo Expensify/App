@@ -202,6 +202,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         isASAPSubmitBetaEnabled: false,
         selfDMReport: undefined,
         delegateAccountID: undefined,
+        isTrackIntentUser: false,
     });
 }
 
@@ -316,6 +317,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -431,6 +433,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -531,6 +534,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -693,6 +697,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -796,6 +801,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -1024,6 +1030,7 @@ describe('mergeTransactionRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 selfDMReport: undefined,
+                isTrackIntentUser: false,
             });
 
             await mockFetch?.resume?.();
@@ -1145,6 +1152,7 @@ describe('mergeTransactionRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: undefined,
                 participants,
@@ -1222,6 +1230,7 @@ describe('mergeTransactionRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 selfDMReport: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1330,6 +1339,7 @@ describe('mergeTransactionRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: undefined,
                 participants,
@@ -1371,6 +1381,7 @@ describe('mergeTransactionRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 selfDMReport,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();

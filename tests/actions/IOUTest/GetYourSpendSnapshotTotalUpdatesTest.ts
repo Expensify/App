@@ -45,7 +45,7 @@ function buildSnapshotSearchResults(total: number, currency: string): SearchResu
         search: {
             offset: 0,
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+            hash: 0,
             hasMoreResults: false,
             hasResults: true,
             isLoading: false,
@@ -353,6 +353,7 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
             yourSpendPatchData: buildYourSpendPatchData(snapshotKey, -10000, CONST.CURRENCY.USD),
         });
 
@@ -393,6 +394,7 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
             yourSpendPatchData: buildYourSpendPatchData(snapshotKey, -30000, CONST.CURRENCY.USD),
         });
 
@@ -427,6 +429,7 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
             yourSpendPatchData: buildYourSpendPatchData(snapshotKey, -10000, CONST.CURRENCY.USD),
         });
 

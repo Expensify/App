@@ -162,7 +162,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
-    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, policy);
+    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, submitterLogin, policy);
 
     const handleMarkPendingRTERTransactionsAsCash = () => {
         markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
@@ -204,6 +204,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 startApprovedAnimation();
             },
             delegateEmail,
+            isTrackIntentUser,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);
@@ -254,6 +255,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
                 submitterLogin,
+                isTrackIntentUser,
             });
             refreshSearchAfterReportAction({
                 currentSearchQueryJSON,
@@ -319,7 +321,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         CONST.IOU.REPORT_ACTION_TYPE.PAY,
                         () => {
                             startAnimation();
-                            markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '', chatReportActions);
+                            markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '', chatReportActions, isTrackIntentUser);
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     );
@@ -327,7 +329,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 startAnimation();
-                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '', chatReportActions);
+                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '', chatReportActions, isTrackIntentUser);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
@@ -362,7 +364,18 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail, yourSpendPatchData);
+                unapproveExpenseReport(
+                    moneyRequestReport,
+                    policy,
+                    accountID,
+                    email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    nextStep,
+                    delegateEmail,
+                    isTrackIntentUser,
+                    yourSpendPatchData,
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
@@ -383,7 +396,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     return;
                 }
 
-                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations, yourSpendPatchData);
+                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations, isTrackIntentUser, yourSpendPatchData);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
@@ -417,7 +430,19 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail, yourSpendPatchData);
+                retractReport(
+                    moneyRequestReport,
+                    chatReport,
+                    policy,
+                    accountID,
+                    email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    nextStep,
+                    delegateEmail,
+                    isTrackIntentUser,
+                    yourSpendPatchData,
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
@@ -451,7 +476,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, chatReport);
+                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, chatReport, isTrackIntentUser);
             },
         },
     };

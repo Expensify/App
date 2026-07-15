@@ -45,7 +45,7 @@ function buildSnapshotSearchResults(total: number, currency: string, count = 1):
         search: {
             offset: 0,
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+            hash: 0,
             hasMoreResults: false,
             hasResults: true,
             isLoading: false,

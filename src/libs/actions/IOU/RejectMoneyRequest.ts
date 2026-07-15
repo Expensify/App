@@ -1028,6 +1028,7 @@ function rejectExpenseReport(
     currentUserAccountID: number | undefined,
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
+    isTrackIntentUser: boolean | undefined,
     yourSpendPatchData?: YourSpendPatchData,
 ) {
     const {reportID} = report;
@@ -1051,11 +1052,13 @@ function rejectExpenseReport(
               report,
               predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
               isRejectedReport: true,
+              isTrackIntentUser,
           })
         : buildOptimisticNextStep({
               report,
               predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
               bypassNextApproverID: targetAccountID,
+              isTrackIntentUser,
           });
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [

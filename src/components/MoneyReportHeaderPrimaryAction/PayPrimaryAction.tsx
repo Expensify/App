@@ -22,6 +22,7 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isAllowedToApproveExpenseReport, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 import {isPending} from '@libs/TransactionUtils';
@@ -75,6 +76,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
     const {convertToDisplayString} = useCurrencyListActions();
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
@@ -158,6 +160,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
+                isTrackIntentUser,
             });
         } else {
             startAnimation();
@@ -181,6 +184,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 yourSpendPatchData,
                 onPaid: startAnimation,
                 chatReportActions: getChatReportActions(false),
+                isTrackIntentUser,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

@@ -1,18 +1,24 @@
+import RenderHTML from '@components/RenderHTML';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
 
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import AgentsTableRow from './AgentsTableRow';
 
@@ -35,8 +41,12 @@ type AgentsTableProps = {
 };
 
 export default function AgentsTable({agents}: AgentsTableProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const illustrations = useMemoizedLazyIllustrations(['TvScreenRobot', 'AiBot']);
+
+    const [areAgentsLoaded] = useOnyx(ONYXKEYS.ARE_AGENTS_LOADED);
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -72,6 +82,10 @@ export default function AgentsTable({agents}: AgentsTableProps) {
         />
     );
 
+    if (!areAgentsLoaded) {
+        return <Table.LoadingState context="AgentsTable" />;
+    }
+
     return (
         <Table
             data={agents}
@@ -84,6 +98,18 @@ export default function AgentsTable({agents}: AgentsTableProps) {
             keyExtractor={(item) => item.keyForList}
         >
             <Table.FilterBar label={translate('agentsPage.findAgent')} />
+            <Table.EmptyState
+                headerMedia={illustrations.TvScreenRobot}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                headerContentStyles={styles.agentsPageEmptyStateIllustration}
+                title={translate('agentsPage.emptyAgents.title')}
+                subtitleText={
+                    <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, !shouldUseNarrowLayout && styles.agentsPageEmptyStateSubtitle]}>
+                        <RenderHTML html={translate('agentsPage.emptyAgents.subtitle')} />
+                    </View>
+                }
+            />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>
