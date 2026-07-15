@@ -526,6 +526,8 @@ const translations: TranslationDeepObject<typeof en> = {
         allSet: 'Έτοιμοι!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `εισάγετε το ψηφίο ${digitIndex} από ${totalDigits}`,
         apiKey: 'Κλειδί API',
+        tryAgain: 'Δοκιμάστε ξανά',
+        noResultsFoundSubtitle: 'Δεν βρέθηκαν αποτελέσματα. Δοκιμάστε να προσαρμόσετε τα φίλτρα ή το ερώτημα αναζήτησης σας',
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',
@@ -997,8 +999,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Προσθήκη διεύθυνσης',
             },
             addVirtualCardPersonalDetails: {
-                title: 'Χρειαζόμαστε τα προσωπικά σας στοιχεία',
-                subtitle: 'Προσθέστε τα στοιχεία σας για να δείτε και να αρχίσετε να χρησιμοποιείτε την Κάρτα Expensify.',
+                title: 'Προσθέστε τα στοιχεία σας για να δείτε και να αρχίσετε να χρησιμοποιείτε την Κάρτα Expensify.',
+                subtitle: 'Κάρτα Expensify',
                 cta: 'Προσθέστε λεπτομέρειες',
             },
             addPaymentCard: {
@@ -1121,6 +1123,18 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCards: 'Έκδοση καρτών Expensify',
             issueExpensifyCardsSubtitle: 'Προσαρμόστε τους ελέγχους και απλοποιήστε τις δαπάνες',
             setupRules: 'Ρυθμίστε κανόνες δαπανών',
+            begin: 'Έναρξη',
+            done: 'Ολοκληρώθηκε',
+            createWorkspaceSubText: 'Ο χώρος εργασίας είναι έτοιμος για ρύθμιση',
+            connectAccountingSubText: 'Συγχρονίστε το λογιστικό σας σχέδιο και άλλα',
+            customizeCategoriesSubText: 'Προσθέστε το λογιστικό σας σχέδιο',
+            inviteAccountantSubText: 'Επιταχύνετε το κλείσιμο μήνα στη λογιστική',
+            linkCompanyCardsSubText: 'Εισαγάγετε αυτόματα τις δαπάνες',
+            setupRulesSubText: 'Απαιτήστε αποδείξεις, επισημάνετε υψηλές δαπάνες και πολλά άλλα',
+            needHelp: 'Χρειάζεστε βοήθεια;',
+            talkToConcierge: 'Μιλήστε με το Concierge',
+            talkToAccountExecutive: 'Μιλήστε με τον υπεύθυνο λογαριασμού σας',
+            forGuidedSetup: 'για καθοδηγούμενη ρύθμιση.',
         },
         upcomingTravel: 'Επερχόμενα ταξίδια',
         upcomingTravelSection: {
@@ -1799,6 +1813,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Ενεργοποιήστε τις ετικέτες στον χώρο εργασίας για να επεξεργαστείτε τις λεπτομέρειες της δαπάνης ή να διαγράψετε την ετικέτα από αυτήν τη δαπάνη.',
             confirmText: 'Διαγραφή ετικέτας',
         },
+        transactionPendingDescription: 'Η συναλλαγή εκκρεμεί. Μπορεί να χρειαστούν μερικές ημέρες για να καταχωριστεί.',
     },
     transactionMerge: {
         listPage: {
@@ -2188,7 +2203,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstall: 'Παρακαλούμε ενημερώστε στην τελευταία έκδοση του New Expensify',
         pleaseInstallExpensifyClassic: 'Παρακαλούμε εγκαταστήστε την πιο πρόσφατη έκδοση του Expensify',
         toGetLatestChanges: 'Σε κινητό, κάντε λήψη και εγκαταστήστε την πιο πρόσφατη έκδοση. Σε web, ανανεώστε το πρόγραμμα περιήγησής σας.',
-        newAppNotAvailable: 'Η εφαρμογή New Expensify δεν είναι πλέον διαθέσιμη.',
+        newAppNotAvailable: 'Ενημερώστε τώρα και θα μας ευχαριστήσετε αργότερα.',
     },
     initialSettingsPage: {
         about: 'Πληροφορίες',
@@ -2943,6 +2958,7 @@ ${amount} για ${merchant} - ${date}`,
             updatePrompt: 'Παρουσιάστηκε πρόβλημα κατά την ενημέρωση των οδηγιών αυτού του αντιπροσώπου',
             updateAvatar: 'Παρουσιάστηκε πρόβλημα κατά την ενημέρωση του avatar αυτού του αντιπροσώπου',
         },
+        findAgent: 'Εύρεση αντιπροσώπου',
     },
     addAgentPage: {
         title: 'Νέος εκπρόσωπος',
@@ -3811,7 +3827,6 @@ ${amount} για ${merchant} - ${date}`,
         facialScan: 'Πολιτική και άδεια σάρωσης προσώπου της Onfido',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Πολιτική και Έγκριση Σάρωσης Προσώπου της Onfido</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Προστασία Προσωπικών Δεδομένων</a> και <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Όροι Παροχής Υπηρεσιών</a>.</muted-text-micro>`,
-        tryAgain: 'Προσπαθήστε ξανά',
         verifyIdentity: 'Επαληθεύστε την ταυτότητα',
         letsVerifyIdentity: 'Ας επιβεβαιώσουμε την ταυτότητά σας',
         butFirst: `Αλλά πρώτα, τα βαρετά. Διαβάστε τα νομικά στο επόμενο βήμα και κάντε κλικ στο «Αποδοχή» όταν είστε έτοιμοι.`,
@@ -4613,7 +4628,7 @@ ${amount} για ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
-                        return 'Ιδιοκτήτης';
+                        return 'Κάτοχος';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Διαχειριστής χώρου εργασίας';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -4623,9 +4638,9 @@ ${amount} για ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Διαχείριση κάρτας';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Διαχείριση προσωπικού';
+                        return 'Διαχείριση προσώπων';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return 'Διαχειριστής πληρωμών';
+                        return 'διαχείριση πληρωμών';
                     case CONST.POLICY.ROLE.USER:
                         return 'Μέλος';
                     default:
@@ -4959,6 +4974,8 @@ ${amount} για ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν εξοφληθούν',
                 },
             },
+            items: 'Στοιχεία',
+            itemsDescription: 'Επιλέξτε πώς θέλετε να διαχειρίζεστε τα στοιχεία του QuickBooks Online στο Expensify.',
         },
         workspaceList: {
             joinNow: 'Γίνετε μέλος τώρα',
@@ -5644,6 +5661,61 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Rillet θα είναι διαθέσιμοι ως κατηγορίες.',
             dimensionsImport: 'Όλες οι διαστάσεις Rillet εισάγονται ως ετικέτες',
             importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θέλετε να εισαγάγετε από το Rillet.',
+            noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
+            noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Rillet και συγχρονίστε ξανά τη σύνδεση',
+            noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
+            noAccountsFoundDescription: 'Παρακαλούμε προσθέστε λογαριασμούς στο Rillet και συγχρονίστε ξανά τη σύνδεση',
+            noBankAccountsFound: 'Δεν βρέθηκαν τραπεζικοί λογαριασμοί',
+            noBankAccountsFoundDescription: 'Παρακαλούμε προσθέστε τραπεζικούς λογαριασμούς στο Rillet και συγχρονίστε ξανά τη σύνδεση',
+            exportDescription: 'Ρυθμίστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο Rillet.',
+            exportReimbursable: {label: 'Εξαγωγή αποζημιώσιμων εξόδων ως', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Τιμολόγια προμηθευτών'}}},
+            exportDate: {
+                label: 'Ημερομηνία τιμολογίου προμηθευτή',
+                description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο Rillet.',
+                values: {
+                    [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Ημερομηνία τελευταίας δαπάνης',
+                        description: 'Ημερομηνία της πιο πρόσφατης δαπάνης στην αναφορά.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Ημερομηνία εξαγωγής',
+                        description: 'Ημερομηνία εξαγωγής της αναφοράς στο Rillet.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Ημερομηνία υποβολής',
+                        description: 'Ημερομηνία που η αναφορά υποβλήθηκε για έγκριση.',
+                    },
+                },
+            },
+            exportCompanyCard: {label: 'Εξαγωγή εξόδων εταιρικής κάρτας ως', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'Πιστωτικές κάρτες'}}},
+            defaultCompanyCardVendor: {
+                label: 'Προεπιλεγμένος προμηθευτής εταιρικής κάρτας',
+                description: 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή Rillet για έξοδα που δεν αντιστοιχίζονται αυτόματα.',
+            },
+            companyCardAccount: {label: 'Λογαριασμός εταιρικής κάρτας', description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.'},
+            autoSyncDescription: 'Συγχρονίστε αυτόματα το Rillet και το Expensify, κάθε μέρα. Οι αναφορές συγχρονίζονται σε πραγματικό χρόνο.',
+            accountingMethods: {
+                label: 'Μέθοδος εξαγωγής',
+                description: 'Επιλέξτε πότε θα γίνεται η εξαγωγή των εξόδων.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Δεδουλευμένη βάση',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Μετρητά',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν εγκριθούν οριστικά',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Τα έξοδα από την τσέπη θα εξαχθούν όταν εξοφληθούν',
+                },
+            },
+            syncReimbursedReports: 'Συγχρονισμός αποζημιωμένων αναφορών',
+            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργείται μια πληρωμή τιμολογίου σε αυτόν τον λογαριασμό.',
+            billPaymentAccount: {label: 'Λογαριασμός πληρωμής λογαριασμών', description: 'Επιλέξτε από πού θα πληρώνονται οι λογαριασμοί και θα δημιουργήσουμε την πληρωμή στο Rillet.'},
+            syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών Κάρτας Expensify',
+            settlementAccount: {label: 'Λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Rillet.'},
+            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών τιμολόγησης ταξιδιών',
+            travelInvoicingSettlementAccount: {
+                label: 'Λογαριασμός διακανονισμού τιμολόγησης ταξιδιών',
+                description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Rillet.',
+            },
         },
         type: {
             free: 'Δωρεάν',
@@ -5662,7 +5734,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 workspaceFeedsCouldNotBeLoadedMessage: 'Προέκυψε σφάλμα κατά τη φόρτωση των ροών καρτών του χώρου εργασίας. Δοκιμάστε ξανά ή επικοινωνήστε με τον διαχειριστή σας.',
                 feedCouldNotBeLoadedTitle: 'Δεν ήταν δυνατή η φόρτωση αυτής της ροής',
                 feedCouldNotBeLoadedMessage: 'Παρουσιάστηκε σφάλμα κατά τη φόρτωση αυτής της ροής. Δοκιμάστε ξανά ή επικοινωνήστε με τον διαχειριστή σας.',
-                tryAgain: 'Προσπαθήστε ξανά',
             },
             addNewCard: {
                 other: 'Άλλο',
@@ -5919,6 +5990,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 'Φαίνεται ότι χρειάζεται να επαληθεύσουμε χειροκίνητα τον τραπεζικό σας λογαριασμό. Παρακαλούμε πηγαίνετε στο Concierge, όπου σας περιμένουν οι οδηγίες σας.',
             gotIt: 'Εντάξει',
             goToConcierge: 'Μεταβείτε στο Concierge',
+            statusPendingOrder: 'Εκκρεμής παραγγελία',
+            statusShipped: 'Απεστάλη',
+            statusActive: 'Ενεργό',
+            statusInactive: 'Ανενεργό',
         },
         categories: {
             deleteCategories: 'Διαγραφή κατηγοριών',
@@ -6491,6 +6566,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 conciergeNotificationTitle: 'Ο Concierge θα σας ενημερώσει',
                 conciergeNotificationDescription: 'Όταν ολοκληρωθεί η διαδικασία, η Concierge θα σας στείλει ένα μήνυμα.',
                 copyCompleted: 'Οι ρυθμίσεις του χώρου εργασίας σας αντιγράφηκαν.',
+                copyFailedTitle: 'Η αντιγραφή απέτυχε',
             },
         },
         emptyWorkspace: {
@@ -7044,6 +7120,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     title: 'Ομάδες',
                     description: 'Επιλέξτε τις ομάδες υπαλλήλων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
                 },
+                syncLimitReached: {title: 'Δοκιμάστε ξανά αύριο', prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.'},
             },
         },
         export: {
@@ -7103,9 +7180,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 optionFixedDistanceTitle: 'Εξαίρεση σταθερής απόστασης ανά αίτημα',
                 optionFixedDistanceHelp: 'Αφαιρέστε την ίδια απόσταση μετακίνησης από κάθε αίτημα. Ιδανικό για μέλη που υποβάλλουν ένα αίτημα ανά εργάσιμη ημέρα.',
                 distanceLabel: 'Απόσταση',
-                errors: {
-                    distanceMustBePositive: 'Η απόσταση πρέπει να είναι ένας θετικός ακέραιος αριθμός.',
-                },
+                errors: {distanceMustBePositive: 'Η απόσταση πρέπει να είναι ένας θετικός ακέραιος αριθμός.', distanceTooLarge: 'Η απόσταση είναι πολύ μεγάλη.'},
             },
             distance: 'Απόσταση',
             centrallyManage: 'Διαχειριστείτε κεντρικά τις χρεώσεις, παρακολουθήστε σε μίλια ή χιλιόμετρα και ορίστε μια προεπιλεγμένη κατηγορία.',
@@ -9333,6 +9408,8 @@ ${reportName}`,
         categorize: 'Κατηγοριοποιήστε το',
         share: 'Κοινοποιήστε το στον λογιστή μου',
         nothing: 'Τίποτα προς το παρόν',
+        submitToFriend: 'Υποβολή σε φίλο',
+        submitToEmployer: 'Υποβολή στον εργοδότη μου',
     },
     teachersUnitePage: {
         teachersUnite: 'Ενότητα Εκπαιδευτικών',
@@ -10175,7 +10252,7 @@ ${reportName}`,
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Ξεκινήστε <strong>εδώ!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Μετονομάστε τις αποθηκευμένες αναζητήσεις σας</strong> εδώ!</tooltip>',
-        accountSwitcher: '<tooltip>Μπορείτε πλέον να συν-πιλοτάρετε σε άλλον λογαριασμό!</tooltip>',
+        accountSwitcher: '<tooltip>Αποκτήστε πρόσβαση στους <strong>λογαριασμούς Copilot</strong> σας εδώ</tooltip>',
         outstandingFilter: '<tooltip>Φιλτράρετε για δαπάνες\nπου <strong>χρειάζονται έγκριση</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Στείλτε αυτήν την απόδειξη για να\n<strong>ολοκληρώσετε τη δοκιμαστική χρήση!</strong></tooltip>',
         gpsTooltip: '<tooltip>Η παρακολούθηση GPS βρίσκεται σε εξέλιξη! Όταν τελειώσετε, διακόψτε την παρακολούθηση παρακάτω.</tooltip>',
@@ -10466,6 +10543,34 @@ ${reportName}`,
             expensifyCardPreferredWorkspaceDisabledMessage:
                 'Για να ενεργοποιήσετε αυτήν τη ρύθμιση, ενεργοποιήστε πρώτα ένα προτιμώμενο χώρο εργασίας και ρυθμίστε τις Κάρτες Expensify στον τομέα σας.',
             findGroup: 'Εύρεση ομάδας',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: 'Θέλετε ένα ΔΩΡΕΑΝ πρόγραμμα για υπαλλήλους;',
+        description: 'Μηn περιμένετε την εταιρεία σας για να αποκτήσει το Expensify. Δημιουργήσαμε ένα δωρεάν πλάνο μόνο για εσάς:',
+        confirmText: 'Αποκτήστε το δωρεάν πλάνο',
+        dismissText: 'Όχι, ευχαριστώ',
+        features: {
+            getReimbursed: 'Αποζημιωθείτε πιο γρήγορα, απευθείας μέσα στο Expensify',
+            buildReports: 'Δημιουργήστε αναφορές εξόδων σε δευτερόλεπτα',
+            categorize: 'Κατηγοριοποιήστε τα έξοδά σας',
+            inviteBoss: 'Προσκαλέστε το/τη διευθυντή/ρια σας όταν είστε έτοιμοι',
+        },
+    },
+    aiFeaturesPromoModal: {
+        subtitle: 'Νέο στο Concierge AI',
+        confirmText: 'Πάμε!',
+        spendAnalysis: {
+            title: 'Διαδραστική ανάλυση δαπανών',
+            description: `<muted-text>Το Concierge εμφανίζει πληροφορίες για τις μηνιαίες δαπάνες και σας επιτρέπει να εξερευνήσετε τις λεπτομέρειες πίσω από κάθε αριθμό. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Μάθετε περισσότερα</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Γνωρίστε τον νέο σας βοηθό εξόδων',
+            description: `<muted-text>Συνομιλήστε με το Concierge για να δημιουργείτε και να ενημερώνετε δαπάνες, απευθείας στην εφαρμογή ή μέσω email ή μηνύματος κειμένου. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Μάθετε περισσότερα</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Δημιουργήστε τους δικούς σας πράκτορες',
+            description: `<muted-text>Δημιουργήστε προσαρμοσμένους agents για να ελέγχετε, να εγκρίνετε και να δρομολογείτε δαπάνες με βάση κανόνες που ορίζετε εσείς. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Μάθετε περισσότερα</a>.</muted-text>`,
         },
     },
 };
