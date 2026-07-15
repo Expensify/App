@@ -288,6 +288,18 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/settings/wallet/enable-payments/fees-and-terms/terms')).toBe(undefined);
     });
 
+    it('redirects old workspace workflows approvals expenses-from path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/workflows/approvals/expenses-from')).toBe('/workspaces/p123/workflows/approvals/new/expenses-from');
+    });
+
+    it('preserves query params when redirecting old workspace workflows approvals expenses-from path', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/workflows/approvals/expenses-from?backTo=/home')).toBe('/workspaces/p123/workflows/approvals/new/expenses-from?backTo=/home');
+    });
+
+    it('does not redirect the new workspace workflows approvals expenses-from dynamic route', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/workflows/approvals/new/expenses-from')).toBe(undefined);
+    });
+
     it('redirects legacy QuickBooks Online connections autosync paths to dynamic routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/connections/quickbooks-online/advanced/autosync')).toBe(
             '/workspaces/p123/accounting/quickbooks-online/advanced/quickbooks-online-autosync',

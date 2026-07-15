@@ -5,10 +5,14 @@ import FollowupListSkeleton from '@components/ReportActionItem/FollowupListSkele
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -36,6 +40,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {ValueOf} from 'type-fest';
+
 import {createFilteredPoliciesInfoSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
@@ -49,12 +55,16 @@ type ChatActionableButtonsProps = {
 
 function ChatActionableButtons({action, originalReportID, reportID, hasPendingFollowupListSkeleton}: ChatActionableButtonsProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
     const actionOwnerReportID = originalReportID ?? reportID;
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const actionOwnerReport = originalReport ?? report;
     const personalDetail = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const activePolicy = useActivePolicy();
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -206,12 +216,34 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                     });
                 },
             });
-            const options = [
-                prepareTrackExpenseButton('submit', {
-                    isRestrictedToPreferredPolicy,
-                    preferredPolicyID,
-                }),
-            ];
+            // On the Submit (submit2026) plan, "Submit it to someone" splits into two destinations:
+            // submit to an individual ("a friend") or route to a submit-enabled workspace ("my employer").
+            const prepareSubmitDestinationButton = (destination: ValueOf<typeof CONST.IOU.SUBMIT_DESTINATION>, textKey: 'submitToFriend' | 'submitToEmployer'): ActionableItem => ({
+                text: `actionableMentionTrackExpense.${textKey}`,
+                key: `${action.reportActionID}-actionableMentionTrackExpense-${textKey}`,
+                onPress: () => {
+                    createDraftTransactionAndNavigateToParticipantSelector({
+                        ...baseDraftTransactionParams,
+                        isRestrictedToPreferredPolicy,
+                        preferredPolicyID,
+                        actionName: CONST.IOU.ACTION.SUBMIT,
+                        submitDestination: destination,
+                        defaultWorkspaceName: generateDefaultWorkspaceName(personalDetail.email ?? '', lastWorkspaceNumber, translate, personalDetail.displayName),
+                    });
+                },
+            });
+            const submitButtons: ActionableItem[] = canUseSubmit2026
+                ? [
+                      prepareSubmitDestinationButton(CONST.IOU.SUBMIT_DESTINATION.FRIEND, 'submitToFriend'),
+                      prepareSubmitDestinationButton(CONST.IOU.SUBMIT_DESTINATION.EMPLOYER, 'submitToEmployer'),
+                  ]
+                : [
+                      prepareTrackExpenseButton('submit', {
+                          isRestrictedToPreferredPolicy,
+                          preferredPolicyID,
+                      }),
+                  ];
+            const options = [...submitButtons];
 
             if (Permissions.canUseTrackFlows()) {
                 options.push(prepareTrackExpenseButton('categorize'), prepareTrackExpenseButton('share'));

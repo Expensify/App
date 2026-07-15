@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import type {IntroSelected} from './actions/Report';
 
-import isTrackOnboardingChoice from './OnboardingUtils';
+import {isTrackOnboardingChoice} from './OnboardingUtils';
 
 function getTestDriveURL(shouldUseNarrowLayout: boolean, introSelected: OnyxEntry<IntroSelected>, isUserPolicyAdmin: boolean): string {
     if (introSelected) {
