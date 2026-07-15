@@ -164,11 +164,13 @@ function useMemoizedLazyIllustrations<const TName extends readonly IllustrationN
         };
     }, [namesList, cachedChunk]);
 
-    const icons = {} as Record<TName[number], IconAsset>;
-    for (const name of namesList) {
-        icons[name] = resolveIconComponent(assets[name as string]);
-    }
-    return icons;
+    return useMemo(() => {
+        const icons = {} as Record<TName[number], IconAsset>;
+        for (const name of namesList) {
+            icons[name] = resolveIconComponent(assets[name as string]);
+        }
+        return icons;
+    }, [assets, namesList]);
 }
 
 /**
@@ -231,11 +233,13 @@ function useMemoizedLazyExpensifyIcons<const TName extends readonly ExpensifyIco
         };
     }, [namesList, cachedChunk]);
 
-    const icons = {} as Record<TName[number], IconAsset>;
-    for (const name of namesList) {
-        icons[name] = resolveIconComponent(assets[name as string]);
-    }
-    return icons;
+    return useMemo(() => {
+        const icons = {} as Record<TName[number], IconAsset>;
+        for (const name of namesList) {
+            icons[name] = resolveIconComponent(assets[name as string]);
+        }
+        return icons;
+    }, [assets, namesList]);
 }
 
 export {useMemoizedLazyAsset, useMemoizedLazyIllustrations, useMemoizedLazyExpensifyIcons};
