@@ -272,7 +272,7 @@ function PaymentMethodList({
                 const isUserPersonalCard = isPersonalCard(card);
                 const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
                 const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
-                const policyIDForCard = shouldShowConnectionStatus ? getPolicyIDFromDomainName(card.domainName) : undefined;
+                const policyIDForCard = shouldShowConnectionStatus && card.domainName ? getPolicyIDFromDomainName(card.domainName) : undefined;
                 const policyForCard = policyIDForCard ? policiesForAssignedCards?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForCard}`] : undefined;
                 const isAdminForCardPolicy = shouldShowConnectionStatus ? isPolicyAdmin(policyForCard) : false;
 
