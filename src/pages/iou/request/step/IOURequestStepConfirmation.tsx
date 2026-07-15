@@ -337,7 +337,8 @@ function IOURequestStepConfirmation({
                 return;
             }
             const selectedParticipant = participantsList.at(0);
-            if (shouldBlockManualOrOdometerDistanceRequest(selectedParticipant?.policyID)) {
+            const selectedPolicyID = selectedParticipant?.policyID ?? (selectedParticipant?.reportID ? getReportOrDraftReport(selectedParticipant.reportID)?.policyID : undefined);
+            if (shouldBlockManualOrOdometerDistanceRequest(selectedPolicyID)) {
                 return;
             }
             // P2P chats don't support negative amounts. When a negative amount was entered before a participant
@@ -1013,6 +1014,7 @@ function IOURequestStepConfirmation({
                             // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
                             // matching standard RHP behavior, not just close the stacked participant picker.
                             onBackdropPress={() => Navigation.dismissModal()}
+                            shouldBlockParticipantSelection={shouldBlockManualOrOdometerDistanceRequest}
                         />
                     )}
                 </View>

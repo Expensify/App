@@ -5,9 +5,9 @@ import HttpUtils from '@libs/HttpUtils';
 import {isParticipantP2P} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isDistanceRequest} from '@libs/TransactionUtils';
+import {isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 
 import {
     resetDraftTransactionsCustomUnit,
@@ -33,6 +33,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
+import useCommuterExclusionGuard from './useCommuterExclusionGuard';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useMappedPolicies from './useMappedPolicies';
@@ -101,6 +102,10 @@ function useParticipantSubmission({
     // explicit useMemo is needed here.
     const transactionIDs = draftTransactions?.map((transaction) => transaction.transactionID);
     const [transactions] = useTransactionsByID(transactionIDs);
+    const shouldBlockManualOrOdometerDistanceRequest = useCommuterExclusionGuard({
+        isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
+        isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
+    });
 
     const isActivePolicyRequest =
         iouType === CONST.IOU.TYPE.CREATE &&
@@ -234,6 +239,12 @@ function useParticipantSubmission({
 
         if ((firstParticipant?.isSelfDM || shouldKeepNegativeExpenseOnSelfDM(firstParticipant)) && !isSplitRequest) {
             trackExpense();
+            return;
+        }
+
+        // Block selecting a workspace with commuter exclusions before participants/workspace are committed.
+        const selectedPolicyID = firstParticipant?.policyID ?? (firstParticipant?.reportID ? getReportOrDraftReport(firstParticipant.reportID)?.policyID : undefined);
+        if (shouldBlockManualOrOdometerDistanceRequest(selectedPolicyID)) {
             return;
         }
 
