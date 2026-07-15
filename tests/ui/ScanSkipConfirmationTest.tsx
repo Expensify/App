@@ -96,7 +96,7 @@ jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
 
 jest.mock('@pages/iou/request/step/resolveChatTarget', () => ({
     __esModule: true,
-    default: () => mockResolveChatTargetForScan(),
+    resolveChatTargetForScan: () => mockResolveChatTargetForScan(),
 }));
 
 const REPORT_ID = '1';

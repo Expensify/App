@@ -73,12 +73,18 @@ jest.mock('@libs/getCurrentPosition');
 
 // Fire executeWrite synchronously so downstream writes can be asserted.
 jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual<typeof SubmitWithDismissFirstMock>('../../__mocks__/submitWithDismissFirst'));
-// cleanupAfterExpenseCreate is a spy so the cleanup contract (draft ids + linked tracked action) can be asserted. It's cleanup-only — the write action owns post-create navigation.
 const mockCleanupAfterExpenseCreate = jest.fn();
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
     __esModule: true,
     default: (...args: unknown[]): void => {
         mockCleanupAfterExpenseCreate(...args);
+    },
+}));
+const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
+jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({
+    __esModule: true,
+    default: (...args: unknown[]): void => {
+        mockCleanupAndNavigateAfterExpenseCreate(...args);
     },
 }));
 
@@ -182,10 +188,9 @@ describe('MoneyRequest', () => {
                 }),
             );
 
-            // Deferral is channel-driven (no shouldDeferForSearch flag), but the action owns post-create navigation, so it receives shouldHandleNavigation.
             const lastTrackExpenseParams = jest.mocked(TrackExpense.trackExpense).mock.calls.at(-1)?.at(0);
             expect(lastTrackExpenseParams && 'shouldDeferForSearch' in lastTrackExpenseParams).toBeFalsy();
-            expect(lastTrackExpenseParams && 'shouldHandleNavigation' in lastTrackExpenseParams).toBeTruthy();
+            expect(lastTrackExpenseParams && 'shouldHandleNavigation' in lastTrackExpenseParams).toBeFalsy();
         });
 
         it('should call requestMoney for non-TRACK (SEND) iouType', () => {
@@ -769,7 +774,7 @@ describe('MoneyRequest', () => {
             const distanceTrackExpenseParams = jest.mocked(TrackExpense.trackExpense).mock.calls.at(-1)?.at(0);
             expect(typeof distanceTrackExpenseParams?.optimisticTransactionID).toBe('string');
             expect(typeof distanceTrackExpenseParams?.optimisticChatReportID).toBe('string');
-            expect(distanceTrackExpenseParams && 'shouldHandleNavigation' in distanceTrackExpenseParams).toBeTruthy();
+            expect(distanceTrackExpenseParams && 'shouldHandleNavigation' in distanceTrackExpenseParams).toBeFalsy();
 
             // The function must return after trackExpense and not call createDistanceRequest
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
@@ -805,10 +810,10 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
-            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
-            // Cleanup is cleanup-only now; it carries the moved transaction's linkedTrackedExpenseReportAction
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
+            // Navigate-path cleanup carries the moved transaction's linkedTrackedExpenseReportAction
             // (used to release the original tracked expense thread screen).
-            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith(
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
                 expect.objectContaining({
                     linkedTrackedExpenseReportAction,
                 }),
