@@ -1087,6 +1087,7 @@ function updateMoneyRequestCategory({
     hash,
     parentReportNextStep,
     delegateAccountID,
+    reportPolicyTags,
     isTrackIntentUser,
 }: {
     transactionID: string;
@@ -1103,6 +1104,7 @@ function updateMoneyRequestCategory({
     hash?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
@@ -1116,8 +1118,7 @@ function updateMoneyRequestCategory({
         transactionChanges,
         policy,
         policyTagList,
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+        reportPolicyTags,
         policyCategories,
         policyRecentlyUsedCategories,
         currentUserAccountIDParam,
