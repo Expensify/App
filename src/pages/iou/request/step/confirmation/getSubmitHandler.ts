@@ -79,8 +79,7 @@ function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
     if (snapshot.isPreInserted && !snapshot.isReportPreInserted) {
         return SUBMIT_HANDLER.SEARCH_PRE_INSERT;
     }
-    // Native shortcut flows should always land on Spend > Expenses regardless of
-    // what was pre-inserted or whether the pre-insert timer has fired yet.
+    // Native shortcut flows always land on Spend > Expenses, regardless of pre-insert state.
     if (snapshot.isFromNativeShortcut && snapshot.isFromGlobalCreate) {
         return SUBMIT_HANDLER.SEARCH_PRE_INSERT;
     }

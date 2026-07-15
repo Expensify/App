@@ -52,8 +52,7 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             return;
         }
 
-        // Only mark the native-shortcut flow after all skip/drop guards pass,
-        // so a dropped URL cannot leave a stale marker that leaks into later flows.
+        // Mark only after all skip/drop guards pass, so a dropped URL cannot leave a stale marker.
         markNativeShortcutFlowIfNeeded(url);
         listener(url);
     });

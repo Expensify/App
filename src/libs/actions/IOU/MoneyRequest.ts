@@ -266,8 +266,7 @@ type InitMoneyRequestParams = {
     personalPolicy: Pick<Policy, 'id' | 'type' | 'autoReporting' | 'outputCurrency'> | undefined;
     isFromGlobalCreate?: boolean;
     isFromFloatingActionButton?: boolean;
-    /** Preserved from the existing draft so re-inits (e.g. tab switches, which recreate the draft
-     * via Onyx.set) don't wipe the native-shortcut marker set when the flow was opened via deeplink. */
+    /** Preserved across re-inits so Onyx.set draft rebuilds don't wipe the native-shortcut marker. */
     isFromNativeShortcut?: boolean;
     currentIouRequestType?: IOURequestType | undefined;
     newIouRequestType: IOURequestType | undefined;

@@ -35,13 +35,9 @@ function getNavigateAfterCreateSearchNavigatorState() {
 }
 
 /**
- * Helper to navigate after an expense is created in order to standardize the post‑creation experience
- * when creating an expense from the global create button.
- * If the expense is created from the global create button then:
- * - If it is created on the inbox tab, it will open the chat report containing that expense.
- * - Exception: native home-screen shortcuts (force touch) always navigate to Spend > Expenses,
- *   even when initiated from the inbox tab.
- * - If it is created elsewhere, it will navigate to Spend > Expenses and highlight the newly created expense.
+ * Standardizes post-creation navigation for expenses created from the global create button:
+ * from the inbox tab it opens the chat report containing the expense; elsewhere it navigates to
+ * Spend > Expenses. Exception: native home-screen shortcuts always go to Spend > Expenses.
  */
 function navigateAfterExpenseCreate({
     activeReportID,
@@ -55,10 +51,8 @@ function navigateAfterExpenseCreate({
 }: NavigateAfterExpenseCreateParams) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
 
-    // If the expense is not created from global create or is currently on the inbox tab
-    // (unless it's from a native shortcut, which should always go to Spend > Expenses),
-    // we just need to dismiss the money request flow screens
-    // and open the report chat containing the IOU report
+    // Dismiss to the report chat unless the flow must land on Spend > Expenses
+    // (global create outside the inbox tab, or any native shortcut).
     if (!isFromGlobalCreate || (isUserOnInbox && !isFromNativeShortcut) || !transactionID) {
         if (shouldNavigate) {
             dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);

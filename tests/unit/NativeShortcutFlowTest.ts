@@ -14,6 +14,10 @@ describe('NativeShortcutFlow', () => {
             ['Scan receipt shortcut (https)', 'https://new.expensify.com/create/create/start/1/123456789/scan'],
             ['shortcut URL with a trailing slash', 'new-expensify://create/create/start/1/123456789/scan/'],
             ['shortcut URL with a query string', 'new-expensify://create/create/start/1/123456789/manual?foo=bar'],
+            ['bare HybridApp route (scan)', 'create/create/start/1/123456789/scan'],
+            ['bare HybridApp route (manual)', 'create/create/start/1/123456789/manual'],
+            ['bare HybridApp route (distance)', 'create/create/start/1/123456789/distance-new'],
+            ['route with a leading slash', '/create/create/start/1/123456789/scan'],
         ])('marks the flow as active for the %s', (_description, url) => {
             markNativeShortcutFlowIfNeeded(url);
             expect(isNativeShortcutFlowActive()).toBe(true);
@@ -26,6 +30,8 @@ describe('NativeShortcutFlow', () => {
             ['create flow deeplink for a non-shortcut step', 'new-expensify://create/create/amount/1/123456789'],
             ['URL that only partially matches the shortcut path', 'new-expensify://create/start/1/123456789/scan'],
             ['shortcut-like path with an unknown request type', 'new-expensify://create/create/start/1/123456789/per-diem'],
+            ['bare route that only partially matches the shortcut path', 'create/start/1/123456789/scan'],
+            ['path where create/create is part of a longer segment', 'foocreate/create/start/1/123456789/scan'],
             ['empty string', ''],
         ])('does not mark the flow for the %s', (_description, url) => {
             markNativeShortcutFlowIfNeeded(url);

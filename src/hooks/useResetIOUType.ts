@@ -137,9 +137,7 @@ function useResetIOUType({
             isFromGlobalCreate,
             isTrackDistanceExpense,
             isFromFloatingActionButton: getIsFromGlobalCreate(transaction) ?? isFromGlobalCreate,
-            // Preserve the native-shortcut marker across draft re-initialization (Onyx.set would otherwise
-            // wipe it). The module-level marker covers the first rebuild, when the deeplink-opened flow has
-            // no draft yet (or a stale one) and the `transaction` closure can't carry the flag.
+            // Preserve the native-shortcut marker across draft re-initialization (Onyx.set would wipe it).
             isFromNativeShortcut: shouldMarkNativeShortcut,
             currentIouRequestType: transaction?.iouRequestType,
             newIouRequestType: newIOUType,
@@ -153,8 +151,7 @@ function useResetIOUType({
             defaultParticipants: isSelfDMDefault ? undefined : defaultParticipants,
         });
 
-        // Clear the module-level marker immediately after copying it to the draft so it cannot
-        // leak into unrelated flows that navigate directly to MONEY_REQUEST_CREATE (e.g. Wallet).
+        // Clear the marker right after copying it to the draft so it cannot leak into later flows.
         if (shouldMarkNativeShortcut) {
             endNativeShortcutFlow();
         }
