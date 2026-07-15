@@ -1,3 +1,5 @@
+import type {LayoutChangeEvent} from 'react-native';
+
 import React from 'react';
 
 import type {SuggestionsRef} from './ComposerContext';
@@ -23,11 +25,21 @@ import ComposerTypingIndicator from './ComposerTypingIndicator';
 type ReportActionComposeProps = {
     /** Report ID */
     reportID: string;
+
+    /** The native ID for this component */
+    nativeID?: string;
+
+    /** Callback when layout of composer changes */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-function ReportActionCompose({reportID}: ReportActionComposeProps) {
+function ReportActionCompose({reportID, nativeID, onLayout}: ReportActionComposeProps) {
     return (
-        <ComposerProvider reportID={reportID}>
+        <ComposerProvider
+            reportID={reportID}
+            nativeID={nativeID}
+            onLayout={onLayout}
+        >
             <ComposerInputArea>
                 <ComposerDefaultFooter />
             </ComposerInputArea>
@@ -35,9 +47,13 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     );
 }
 
-function EditOnlyReportActionCompose({reportID}: ReportActionComposeProps) {
+function EditOnlyReportActionCompose({reportID, nativeID, onLayout}: ReportActionComposeProps) {
     return (
-        <ComposerProvider reportID={reportID}>
+        <ComposerProvider
+            reportID={reportID}
+            nativeID={nativeID}
+            onLayout={onLayout}
+        >
             <ComposerInputArea />
         </ComposerProvider>
     );

@@ -3,7 +3,6 @@ import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
 import OfflineIndicator from '@components/OfflineIndicator';
-import SwipeableView from '@components/SwipeableView';
 
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
@@ -30,16 +29,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
-import React from 'react';
-import {Keyboard, View} from 'react-native';
+import {useState, useCallback} from 'react';
+import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import EnableNotificationsBanner, {BANNER_COMPOSER_OVERLAP_PX} from './EnableNotificationsBanner';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
+import useReportFooterStyles from './useReportFooterStyles';
 import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
 import useShouldShowEnableNotificationsBanner from './useShouldShowEnableNotificationsBanner';
 
@@ -47,19 +49,34 @@ const policyRoleSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => policy?.role
 
 const composerOverlapStyle = {marginTop: -BANNER_COMPOSER_OVERLAP_PX};
 
+type ReportFooterProps = {
+    /** The native ID for this component */
+    nativeID?: string;
+
+    /** Callback when layout of composer changes */
+    onLayout: (height: number) => void;
+
+    /** The current fixed header height of the chat */
+    headerHeight: number;
+};
+
 /**
  * Footer component that decides between the composer and
  * archived/anonymous/blocked/system chat/admins-only footer.
  */
-function ReportFooter() {
+function ReportFooter({nativeID, onLayout, headerHeight}: ReportFooterProps) {
     const route = useRoute();
     const routeParams = route.params as {reportID?: string} | undefined;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`);
+    const reportFooterStyles = useReportFooterStyles({composerHeight, headerHeight, isComposerFullSize});
+
+    const {isOffline} = useNetwork();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
@@ -74,7 +91,6 @@ function ReportFooter() {
     const [policyRole] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {
         selector: policyRoleSelector,
     });
-    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`);
     const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`, {
         selector: isLoadingInitialReportActionsSelector,
     });
@@ -91,6 +107,16 @@ function ReportFooter() {
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
     const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
 
+    const onLayoutInternal = useCallback(
+        (event: LayoutChangeEvent) => {
+            const {height} = event.nativeEvent.layout;
+
+            setComposerHeight(height);
+            onLayout(height);
+        },
+        [onLayout],
+    );
+
     if (!isCurrentReportLoadedFromOnyx || !report || !reportIDFromRoute) {
         return null;
     }
@@ -100,12 +126,14 @@ function ReportFooter() {
     // Happy path — user can compose
     if (!shouldHideComposer) {
         const composer = (
-            <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                <ReportActionCompose reportID={reportIDFromRoute} />
-            </SwipeableView>
+            <ReportActionCompose
+                reportID={reportIDFromRoute}
+                nativeID={nativeID}
+                onLayout={onLayoutInternal}
+            />
         );
         return (
-            <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
+            <Animated.View style={[chatFooterStyles, reportFooterStyles]}>
                 {shouldShowEnableNotificationsBanner ? (
                     <>
                         <EnableNotificationsBanner />
@@ -114,7 +142,7 @@ function ReportFooter() {
                 ) : (
                     composer
                 )}
-            </View>
+            </Animated.View>
         );
     }
 
@@ -181,11 +209,13 @@ function ReportFooter() {
         return (
             <View style={[styles.chatFooter, !isEditingWithComposer && styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 {isEditingWithComposer && (
-                    <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>
-                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                            <ReportActionCompose.EditOnly reportID={reportIDFromRoute} />
-                        </SwipeableView>
-                    </View>
+                    <Animated.View style={[chatFooterStyles, reportFooterStyles]}>
+                        <ReportActionCompose.EditOnly
+                            reportID={reportIDFromRoute}
+                            nativeID={nativeID}
+                            onLayout={onLayoutInternal}
+                        />
+                    </Animated.View>
                 )}
                 <Banner
                     containerStyles={[styles.chatFooterBanner, isEditingWithComposer && styles.mt2]}

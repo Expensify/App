@@ -17,6 +17,7 @@ import type Nullable from '@src/types/utils/Nullable';
 // eslint-disable-next-line no-restricted-imports
 import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {SharedValue} from 'react-native-reanimated';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 
@@ -35,6 +36,7 @@ import type {
     EReceiptColorName,
     EreceiptColorStyle,
     ParsableStyle,
+    ReportFooterStyle,
     SVGAvatarColorStyle,
     TextColorStyle,
 } from './types';
@@ -51,6 +53,7 @@ import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperSty
 import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewStyle';
 import getNavigationBarType from './getNavigationBarType/index';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getReportPaddingBottom from './getReportPaddingBottom';
 import getSafeAreaInsets from './getSafeAreaInsets';
 import getSuccessReportCardLostIllustrationStyle from './getSuccessReportCardLostIllustrationStyle';
 import {compactContentContainerStyles} from './optionRowStyles';
@@ -1448,6 +1451,7 @@ const staticStyleUtils = {
     getNavigationBarType,
     getSuccessReportCardLostIllustrationStyle,
     getOptionMargin,
+    getReportPaddingBottom,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -2161,6 +2165,69 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                   }
                 : {},
             containerStyle: {paddingBottom},
+        };
+    },
+
+    /**
+     * Returns the styles for the ReportFooter when the keyboard is active on iOS.
+     */
+    getReportFooterIosKeyboardHandlingStyles: ({
+        headerHeight,
+        isKeyboardActive,
+        keyboardHeight,
+        windowHeight,
+        isComposerFullSize,
+        paddingBottom = 0,
+        paddingTop = 0,
+        composerHeight,
+    }: ReportFooterStyle): ViewStyle => {
+        'worklet';
+
+        const correctedHeaderHeight = paddingTop + headerHeight;
+
+        const keyboardHeightValue = keyboardHeight.get();
+
+        const getComposerHeight = (): number => {
+            if (isComposerFullSize) {
+                if (isKeyboardActive) {
+                    return windowHeight - keyboardHeightValue - correctedHeaderHeight;
+                }
+
+                return windowHeight - correctedHeaderHeight - 24;
+            }
+
+            return composerHeight;
+        };
+
+        const getTransform = () => {
+            if (keyboardHeightValue > paddingBottom) {
+                return [{translateY: -keyboardHeightValue}];
+            }
+
+            return [{translateY: -paddingBottom}];
+        };
+
+        return {
+            position: 'absolute',
+            bottom: 0,
+            width: '100%',
+            transform: getTransform(),
+            height: getComposerHeight(),
+        };
+    },
+
+    /**
+     * Returns the styles for the OfflineIndicator when the keyboard is active on iOS.
+     */
+    getOfflineIndicatorKeyboardHandlingStyles: (keyboardHeight: SharedValue<number>, paddingBottom: number): ViewStyle => {
+        'worklet';
+
+        const keyboardHeightValue = keyboardHeight.get();
+
+        return {
+            position: 'absolute',
+            bottom: 0,
+            transform: [{translateY: keyboardHeightValue > paddingBottom ? -keyboardHeightValue + paddingBottom : 0}],
         };
     },
 

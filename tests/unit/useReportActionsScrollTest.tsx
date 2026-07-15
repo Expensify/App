@@ -45,7 +45,6 @@ jest.mock('@hooks/useReportScrollManager', () => ({
 
 // --- useReportUnreadMessageScrollTracking ---
 const mockSetIsFloatingMessageCounterVisible = jest.fn();
-const mockTrackVerticalScrolling = jest.fn();
 const mockOnViewableItemsChanged = jest.fn();
 let mockIsFloatingMessageCounterVisible = false;
 let mockIsActionBadgeAboveViewport = false;
@@ -55,7 +54,6 @@ jest.mock('@pages/inbox/report/useReportUnreadMessageScrollTracking', () => ({
         isFloatingMessageCounterVisible: mockIsFloatingMessageCounterVisible,
         setIsFloatingMessageCounterVisible: mockSetIsFloatingMessageCounterVisible,
         isActionBadgeAboveViewport: mockIsActionBadgeAboveViewport,
-        trackVerticalScrolling: mockTrackVerticalScrolling,
         onViewableItemsChanged: mockOnViewableItemsChanged,
     }),
 }));
@@ -602,9 +600,6 @@ describe('useReportActionsScroll', () => {
 
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
             expect(result.current.isActionBadgeAboveViewport).toBe(true);
-
-            result.current.trackVerticalScrolling(undefined);
-            expect(mockTrackVerticalScrolling).toHaveBeenCalledWith(undefined);
 
             result.current.onViewableItemsChanged({viewableItems: [], changed: []});
             expect(mockOnViewableItemsChanged).toHaveBeenCalled();

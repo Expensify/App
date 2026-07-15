@@ -111,6 +111,7 @@ function ReportActionsListWrapper() {
                         <ReportActionsList
                             reportID={REPORT_ID}
                             onLayout={mockOnLayout}
+                            composerHeight={CONST.CHAT_FOOTER_MIN_HEIGHT}
                         />
                     </ActionListContext.Provider>
                 </ReactionListContext.Provider>

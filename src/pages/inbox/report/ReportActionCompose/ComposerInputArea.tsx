@@ -12,7 +12,7 @@ import {View} from 'react-native';
 import ComposerActionButton from './ComposerActionButton';
 import ComposerBox from './ComposerBox';
 import ComposerContainer from './ComposerContainer';
-import {useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerState} from './ComposerContext';
 import ComposerDropZone from './ComposerDropZone';
 import ComposerEmojiPicker from './ComposerEmojiPicker';
 import ComposerImportedState from './ComposerImportedState';
@@ -21,13 +21,15 @@ import ComposerLocalTime from './ComposerLocalTime';
 import ComposerSendButton from './ComposerSendButton';
 
 function ComposerInputArea({children}: PropsWithChildren) {
-    const {reportID} = useComposerState();
     const styles = useThemeStyles();
+    const {reportID} = useComposerState();
+    const {onLayout} = useComposerActions();
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
     return (
         <View
             testID={CONST.COMPOSER.TEST_ID.REPORT_ACTION_COMPOSE}
+            onLayout={onLayout}
             style={[isComposerFullSize && styles.chatItemFullComposeRow]}
         >
             <ComposerLocalTime />

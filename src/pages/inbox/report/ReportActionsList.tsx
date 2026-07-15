@@ -73,9 +73,14 @@ import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
 
+const ON_SCROLL_TO_LIMITS_THRESHOLD = 0.75;
+
 type ReportActionsListProps = {
     /** The ID of the report to display actions for */
     reportID: string;
+
+    /** The current composer height */
+    composerHeight?: number;
 
     /** Callback executed on list layout */
     onLayout?: (event: LayoutChangeEvent) => void;
@@ -100,7 +105,7 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
  * UI-close hooks (`useUnreadMarker` / `useMarkAsRead` / `useReportActionsScroll`). `ReportActionsSkeletonGuard`
  * mounts it only once content is ready, so those hooks never run while a skeleton shows.
  */
-function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) {
+function ReportActionsListContent({reportID, composerHeight = 0, onLayout}: ReportActionsListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -258,7 +263,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const actionBadgeTargetIndex = actionBadgeTargetID ? renderedVisibleReportActions.findIndex((action) => action.reportActionID === actionBadgeTargetID) : -1;
 
     const {
-        trackVerticalScrolling,
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
@@ -293,7 +297,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     });
 
     const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        trackVerticalScrolling(event);
         setHasScrolledOverThreshold(event.nativeEvent.contentOffset.y >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
     };
 
@@ -449,22 +452,24 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
             <ReportActionsListPaddingView
                 report={report}
                 isReportArchived={isReportArchived}
+                composerHeight={composerHeight}
             >
                 <InvertedFlashList
+                    enableAnimatedKeyboardDismissal
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={listRef}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
                     data={renderedVisibleReportActions}
                     renderItem={renderItem}
+                    onStartReached={loadNewerChatsAfterTransitions}
+                    onStartReachedThreshold={ON_SCROLL_TO_LIMITS_THRESHOLD}
+                    onEndReached={loadOlderChatsOnEndReached}
+                    onEndReachedThreshold={ON_SCROLL_TO_LIMITS_THRESHOLD}
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={styles.chatContentScrollView}
-                    onEndReached={loadOlderChatsOnEndReached}
-                    onEndReachedThreshold={0.75}
-                    onStartReached={loadNewerChatsAfterTransitions}
-                    onStartReachedThreshold={0.75}
                     ListHeaderComponent={listHeaderComponent}
                     ListHeaderComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                     ListFooterComponent={listFooterComponent}
@@ -486,9 +491,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                     initialScrollIndexParams={initialScrollIndexParams}
                     maintainVisibleContentPosition={maintainVisibleContentPosition}
                     onLoad={onLoad}
-                    onContentSizeChange={() => {
-                        trackVerticalScrolling(undefined);
-                    }}
+                    keyboardDismissMode="interactive"
                 />
             </ReportActionsListPaddingView>
         </>
@@ -499,11 +502,12 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
  * Public report-actions list. Thin composition that wraps the content in `ReportActionsSkeletonGuard`,
  * which owns the data pipeline + skeleton decision and only mounts the content once it is ready.
  */
-function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
+function ReportActionsList({reportID, onLayout, composerHeight}: ReportActionsListProps) {
     return (
         <ReportActionsSkeletonGuard reportID={reportID}>
             <ReportActionsListContent
                 reportID={reportID}
+                composerHeight={composerHeight}
                 onLayout={onLayout}
             />
         </ReportActionsSkeletonGuard>

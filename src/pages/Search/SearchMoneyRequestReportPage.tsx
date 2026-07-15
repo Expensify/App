@@ -37,6 +37,7 @@ import Navigation from '@navigation/Navigation';
 
 import {ActionListContextProvider} from '@pages/inbox/ActionListContext';
 import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
+import includeSafeAreaPaddingBottomInReportScreen from '@pages/inbox/report/includeSafeAreaPaddingBottomInReportScreen';
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
 import useClearReportActionDraftsOnReportChange from '@pages/inbox/report/useClearReportActionDraftsOnReportChange';
 
@@ -54,9 +55,9 @@ import {useIsFocused} from '@react-navigation/native';
 import reportByIDsSelector from '@selectors/ReportAttributes';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 
-type SearchMoneyRequestPageProps =
-    | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
-    | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT>;
+import shouldEnableKeyboardAvoidingView from './shouldEnableKeyboardAvoidingView';
+
+type SearchMoneyRequestPageProps = PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT>;
 
 const defaultReportLoadingState = {
     isLoadingInitialReportActions: true,
@@ -391,6 +392,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                             testID="SearchMoneyRequestReportPage"
                             shouldEnableMaxHeight
                             offlineIndicatorStyle={styles.mtAuto}
+                            shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+                            includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottomInReportScreen}
                         >
                             <FullPageNotFoundView
                                 shouldShow={shouldShowAccessErrorPage}

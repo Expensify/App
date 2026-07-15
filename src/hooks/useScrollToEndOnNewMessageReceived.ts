@@ -8,7 +8,7 @@ import usePrevious from './usePrevious';
 
 type UseScrollToEndOnPaginationMergeParams = {
     /** The ref to the scroll offset. */
-    scrollOffsetRef: React.RefObject<number>;
+    scrollingVerticalOffsetRef: React.RefObject<number>;
     /** The ID of the last visible report action. */
     lastActionID?: string;
     /** The length of the visible report actions. */
@@ -34,7 +34,7 @@ type UseScrollToEndOnPaginationMergeParams = {
 };
 
 function useScrollToEndOnNewMessageReceived({
-    scrollOffsetRef,
+    scrollingVerticalOffsetRef,
     lastActionID,
     visibleActionsLength,
     reportActionsLength,
@@ -66,7 +66,7 @@ function useScrollToEndOnNewMessageReceived({
         const didListSizeChange = sizeChangeType === 'grewFromReportActions' ? reportActionSize.current > (reportActionsLength ?? 0) : reportActionSize.current !== visibleActionsLength;
 
         if (
-            scrollOffsetRef.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
+            scrollingVerticalOffsetRef.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
             previousLastIndex.current !== lastActionID &&
             didListSizeChange &&
             hasNewestReportAction &&
@@ -84,7 +84,7 @@ function useScrollToEndOnNewMessageReceived({
         previousLastIndex.current = lastActionID;
         reportActionSize.current = visibleActionsLength;
     }, [
-        scrollOffsetRef,
+        scrollingVerticalOffsetRef,
         lastActionID,
         reportActionsLength,
         visibleActionsLength,

@@ -176,6 +176,9 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** policy ID of the report */
         policyID?: string;
 
+        /** The native ID for this component */
+        nativeID?: string;
+
         /** Reference to the outer element */
         ref?: Ref<ComposerWithSuggestionsRef | null>;
     };
@@ -238,6 +241,7 @@ function ComposerWithSuggestions({
     raiseIsScrollLikelyLayoutTriggered,
     onClear: onClearProp = () => {},
     onLayout,
+    nativeID,
 
     // Refs
     suggestionsRef,
@@ -1118,6 +1122,7 @@ function ComposerWithSuggestions({
                     shouldContainScroll={isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
                     forwardedFSClass={forwardedFSClass}
+                    nativeID={nativeID}
                 />
             </View>
 

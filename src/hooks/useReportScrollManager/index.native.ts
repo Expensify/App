@@ -1,3 +1,5 @@
+import useKeyboardState from '@hooks/useKeyboardState';
+
 import {useActionListContext} from '@pages/inbox/ActionListContext';
 
 // eslint-disable-next-line no-restricted-imports
@@ -5,8 +7,12 @@ import type {ScrollView} from 'react-native';
 
 import type {ReportScrollManagerData, ScrollToIndexOptions} from './types';
 
+import nativeScrollToBottomHandler from './handlers/nativeScrollToBottomHandler';
+import scrollToOffsetHandler from './handlers/scrollToOffset';
+
 function useReportScrollManager(): ReportScrollManagerData {
     const {getListRef} = useActionListContext();
+    const {isKeyboardActive, keyboardHeight} = useKeyboardState();
 
     /**
      * Scroll to the provided index. `isEditing` is accepted for signature parity with the web
@@ -27,11 +33,7 @@ function useReportScrollManager(): ReportScrollManagerData {
      */
     const scrollToBottom = () => {
         const listRef = getListRef();
-        if (!listRef?.current) {
-            return;
-        }
-
-        listRef.current.scrollToIndex({animated: false, index: 0});
+        nativeScrollToBottomHandler({listRef, isKeyboardActive, keyboardHeight});
     };
 
     /**
@@ -55,10 +57,7 @@ function useReportScrollManager(): ReportScrollManagerData {
 
     const scrollToOffset = (offset: number) => {
         const listRef = getListRef();
-        if (!listRef?.current) {
-            return;
-        }
-        listRef.current.scrollToOffset({offset, animated: false});
+        scrollToOffsetHandler({listRef, isKeyboardActive, keyboardHeight, offset});
     };
 
     return {scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};

@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {View} from 'react-native';
+import type {LayoutChangeEvent, View} from 'react-native';
 
 import React, {useRef, useState} from 'react';
 import {scheduleOnUI} from 'react-native-worklets';
@@ -39,10 +39,12 @@ const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 type ComposerProviderProps = {
     reportID: string;
+    nativeID?: string;
+    onLayout?: (event: LayoutChangeEvent) => void;
     children: React.ReactNode;
 };
 
-function ComposerProvider({children, reportID}: ComposerProviderProps) {
+function ComposerProvider({children, reportID, nativeID, onLayout}: ComposerProviderProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
@@ -156,6 +158,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         isFocused,
         isMenuVisible,
         isFullComposerAvailable,
+        nativeID,
     };
 
     const composerEditState = {
@@ -191,6 +194,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         onItemSelected,
         onTriggerAttachmentPicker,
         clearComposer,
+        onLayout,
     };
 
     const composerEditActions = {

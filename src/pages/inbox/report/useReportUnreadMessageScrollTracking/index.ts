@@ -1,10 +1,14 @@
 import CONST from '@src/CONST';
 
-import type {RefObject} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {ViewToken} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
+import {useAnimatedReaction} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
+import getPillVisibilityOffsetY from './getPillVisibilityOffsetY';
 
 type Args = {
     /** The report ID */
@@ -12,9 +16,6 @@ type Args = {
 
     /** Whether the FlatList is inverted, we need it to determine if the current unread message is visible. */
     isInverted: boolean;
-
-    /** The current offset of scrolling from either top or bottom of chat list */
-    currentVerticalScrollingOffsetRef: RefObject<number>;
 
     /** Called when the unread-marker action is within the viewport, on every viewability change */
     onUnreadActionVisible: () => void;
@@ -25,9 +26,6 @@ type Args = {
     /** Whether the report has newer actions to load */
     hasNewerActions: boolean;
 
-    /** Callback to call on every scroll event */
-    onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
     /** The index of the action badge target report action in the sorted visible actions list (-1 if none) */
     actionBadgeTargetIndex?: number;
 
@@ -36,14 +34,20 @@ type Args = {
 
     /** If pill tracking should be disabled, used during initial linked message positioning */
     shouldDisablePillTracking?: boolean;
+
+    /** The current offset of scrolling from either top or bottom of chat list */
+    currentVerticalScrollingOffset: SharedValue<number>;
+
+    /** The current keyboard height, updated on every keyboard movement frame */
+    keyboardHeight: SharedValue<number>;
 };
 
 export default function useReportUnreadMessageScrollTracking({
     reportID,
-    currentVerticalScrollingOffsetRef,
+    currentVerticalScrollingOffset,
+    keyboardHeight,
     hasNewerActions,
     onUnreadActionVisible,
-    onTrackScrolling,
     unreadMarkerReportActionIndex,
     isInverted,
     actionBadgeTargetIndex = -1,
@@ -68,6 +72,17 @@ export default function useReportUnreadMessageScrollTracking({
         onUnreadActionVisible,
         actionBadgeTargetIndex,
     });
+    const wasManuallySetRef = useRef(false);
+
+    const updateFloatingMessageCounterVisibility = (visible: boolean) => {
+        wasManuallySetRef.current = true;
+        setIsFloatingMessageCounterVisible(visible);
+
+        requestAnimationFrame(() => {
+            wasManuallySetRef.current = false;
+        });
+    };
+
     // We want to save the updated value on ref to use it in onViewableItemsChanged
     // because FlatList requires the callback to be stable and we cannot add a dependency on the useCallback.
     useEffect(() => {
@@ -83,15 +98,18 @@ export default function useReportUnreadMessageScrollTracking({
         ref.current.onUnreadActionVisible = onUnreadActionVisible;
     }, [onUnreadActionVisible]);
 
-    /**
-     * Show/hide the latest message pill when user is scrolling back/forth in the history of messages.
-     */
-    const updatePillVisibility = () => {
+    const updatePillVisibilityInternal = (offsetY: number, kHeight: number) => {
+        const platformOffsetY = getPillVisibilityOffsetY({offsetY, kHeight});
+
+        if (shouldDisablePillTracking || wasManuallySetRef.current) {
+            return;
+        }
+
         const hasUnreadMarkerReportAction = unreadMarkerReportActionIndex !== -1;
 
         // display floating button if we're scrolled more than the offset
         if (
-            currentVerticalScrollingOffsetRef.current > CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
+            platformOffsetY > CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
             !isFloatingMessageCounterVisible &&
             !hasUnreadMarkerReportAction &&
             !shouldBeAlignedToTop
@@ -99,35 +117,31 @@ export default function useReportUnreadMessageScrollTracking({
             setIsFloatingMessageCounterVisible(true);
         }
 
-        // hide floating button if we're scrolled closer than the offset
-        if (
-            currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
-            isFloatingMessageCounterVisible &&
-            !hasUnreadMarkerReportAction &&
-            !hasNewerActions
-        ) {
+        // hide floating button if we're scrolled closer than the offset and mark message as read
+        if (platformOffsetY < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible && !hasUnreadMarkerReportAction && !hasNewerActions) {
             setIsFloatingMessageCounterVisible(false);
         }
     };
 
     /**
-     * On every scroll event we want to:
-     * Update the current scroll offset ref
-     * Show/hide the latest message pill, if it's not disabled
+     * Show/hide the latest message pill when user is scrolling back/forth in the history of messages.
      */
-    const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => {
-        if (event) {
-            onTrackScrolling(event);
-        }
-
-        if (shouldDisablePillTracking) {
-            return;
-        }
-
-        updatePillVisibility();
+    const updatePillVisibility = () => {
+        updatePillVisibilityInternal(currentVerticalScrollingOffset.get(), keyboardHeight.get());
     };
 
-    const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    useAnimatedReaction(
+        () => {
+            return {
+                offsetY: currentVerticalScrollingOffset.get(),
+                kHeight: keyboardHeight.get(),
+            };
+        },
+        ({offsetY, kHeight}) => scheduleOnRN(updatePillVisibilityInternal, offsetY, kHeight),
+        [reportID, unreadMarkerReportActionIndex],
+    );
+
+    const onViewableItemsChanged = ({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         if (!ref.current.isFocused) {
             return;
         }
@@ -172,8 +186,7 @@ export default function useReportUnreadMessageScrollTracking({
 
         // FlatList requires a stable onViewableItemsChanged callback for optimal performance.
         // Therefore, we use a ref to store values instead of adding them as dependencies.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    };
 
     // When unreadMarkerReportActionIndex changes we will manually call onViewableItemsChanged with previousViewableItems to recalculate
     // the state of floating button because onViewableItemsChanged on  FlatList will only be called when viewable items change.
@@ -194,8 +207,8 @@ export default function useReportUnreadMessageScrollTracking({
     return {
         isFloatingMessageCounterVisible,
         setIsFloatingMessageCounterVisible,
+        updateFloatingMessageCounterVisibility,
         isActionBadgeAboveViewport,
-        trackVerticalScrolling,
         onViewableItemsChanged,
         updatePillVisibility,
     };

@@ -1,4 +1,5 @@
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
+import useKeyboardDismissibleFlashListValues from '@components/KeyboardDismissibleFlashList/useKeyboardDismissibleFlashListValues';
 
 import {isSafari} from '@libs/Browser';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -14,6 +15,7 @@ import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {useActionListContext} from '@pages/inbox/ActionListContext';
 import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
+import useScrollingVerticalOffsetRef from '@pages/inbox/report/useScrollingVerticalOffsetRef';
 
 import {openReport} from '@userActions/Report';
 
@@ -23,7 +25,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
@@ -92,9 +94,6 @@ type UseReportActionsScrollParams = {
 };
 
 type UseReportActionsScrollResult = {
-    /** Scroll handler that tracks vertical offset and floating counter visibility */
-    trackVerticalScrolling: (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => void;
-
     /** Viewability handler that drives the floating counter and badge visibility */
     onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
 
@@ -157,6 +156,7 @@ function useReportActionsScroll({
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
     const {scrollOffsetRef} = useActionListContext();
+    const {scrollY, keyboardHeight} = useKeyboardDismissibleFlashListValues();
     const {windowHeight} = useWindowDimensions();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
@@ -204,18 +204,16 @@ function useReportActionsScroll({
         ...(shouldFocusToTopOnMount ? {autoscrollToBottomThreshold: shouldAutoscrollToBottom ? CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD : 0, animateAutoScrollToBottom: false} : {}),
     };
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged, updatePillVisibility} =
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, onViewableItemsChanged, updatePillVisibility} =
         useReportUnreadMessageScrollTracking({
             reportID,
-            currentVerticalScrollingOffsetRef: scrollOffsetRef,
+            currentVerticalScrollingOffset: scrollY,
+            keyboardHeight,
             onUnreadActionVisible: completeSkippedMarkAsRead,
             hasNewerActions,
             unreadMarkerReportActionIndex,
             isInverted: true,
             shouldDisablePillTracking,
-            onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-                scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
-            },
             actionBadgeTargetIndex,
             shouldBeAlignedToTop,
         });
@@ -241,9 +239,11 @@ function useReportActionsScroll({
         reportLoadingState,
     });
 
+    const scrollingVerticalOffsetRef = useScrollingVerticalOffsetRef({scrollOffsetRef, keyboardHeight, scrollY});
+
     useScrollToEndOnNewMessageReceived({
         sizeChangeType: 'changed',
-        scrollOffsetRef,
+        scrollingVerticalOffsetRef,
         lastActionID: lastAction?.reportActionID,
         visibleActionsLength: sortedVisibleReportActions.length,
         hasNewestReportAction,
@@ -420,7 +420,6 @@ function useReportActionsScroll({
     }
 
     return {
-        trackVerticalScrolling,
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,

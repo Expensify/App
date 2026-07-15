@@ -115,7 +115,6 @@ jest.mock('@hooks/useMarkAsRead', () => jest.fn(() => ({markNewestActionAsRead: 
 jest.mock('@hooks/useReportActionsScroll', () =>
     jest.fn(() => ({
         listRef: {current: null},
-        trackVerticalScrolling: jest.fn(),
         onViewableItemsChanged: jest.fn(),
         isFloatingMessageCounterVisible: false,
         isActionBadgeAboveViewport: false,

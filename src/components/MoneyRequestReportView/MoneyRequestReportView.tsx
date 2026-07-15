@@ -43,11 +43,12 @@ import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {PortalHost} from '@gorhom/portal';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated, ScrollView, View} from 'react-native';
+import {KeyboardGestureArea} from 'react-native-keyboard-controller';
 
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
 
@@ -118,11 +119,16 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
+    const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
+    // Starts with this value to avoid a big jump while the container height is being calculated in case the screen is first rendered w/ a full size composer. It's based on the perceived concierge header height on the iPhone 16 Pro.
+    const [headerHeight, setHeaderHeight] = useState<number>(73);
+
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const reportID = report?.reportID;
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const {reportPendingAction, reportErrors: allReportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
@@ -169,6 +175,11 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
 
     const isEmptyTransactionReport = visibleTransactions?.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
+
+    const onComposerLayout = useCallback((height: number) => setComposerHeight(height), []);
+    const onHeaderLayout = useCallback((e: LayoutChangeEvent) => {
+        setHeaderHeight(e.nativeEvent.layout.height);
+    }, []);
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const shouldShowWideRHPReceipt = visibleTransactions.length === 1 && !isSmallScreenWidth && !!transactionThreadReport;
@@ -238,20 +249,33 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
             <View style={styles.flex1}>
                 <ReportHeaderSkeletonView reasonAttributes={loadingAppReasonAttributes} />
                 <ReportActionsSkeletonView />
-                {shouldDisplayReportFooter ? <ReportFooter /> : null}
+                {shouldDisplayReportFooter ? (
+                    <ReportFooter
+                        onLayout={onComposerLayout}
+                        headerHeight={headerHeight}
+                    />
+                ) : null}
             </View>
         );
     }
 
     return (
-        <View style={styles.flex1}>
+        <KeyboardGestureArea
+            style={styles.flex1}
+            offset={composerHeight}
+            interpolator="ios"
+            textInputNativeID="composer"
+            enableSwipeToDismiss={!isComposerFullSize}
+        >
             <OfflineWithFeedback
                 pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
                 errors={reportErrors}
                 needsOffscreenAlphaCompositing
                 shouldShowErrorMessages={false}
             >
-                <CollapsibleHeaderOnKeyboard>{reportHeaderView}</CollapsibleHeaderOnKeyboard>
+                <View onLayout={onHeaderLayout}>
+                    <CollapsibleHeaderOnKeyboard>{reportHeaderView}</CollapsibleHeaderOnKeyboard>
+                </View>
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 pendingAction={reportPendingAction}
@@ -277,26 +301,33 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                     )}
                     <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
                         {shouldDisplayMoneyRequestActionsList ? (
-                            <MoneyRequestReportActionsList onLayout={onLayout} />
+                            <MoneyRequestReportActionsList
+                                onLayout={onLayout}
+                                composerHeight={composerHeight}
+                            />
                         ) : (
                             <>
                                 <ReportActionsList
                                     reportID={report.reportID}
                                     onLayout={onLayout}
+                                    composerHeight={composerHeight}
                                 />
                                 <UserTypingEventListener report={report} />
                             </>
                         )}
                         {shouldDisplayReportFooter ? (
                             <>
-                                <ReportFooter />
+                                <ReportFooter
+                                    onLayout={onComposerLayout}
+                                    headerHeight={headerHeight}
+                                />
                                 <PortalHost name="suggestions" />
                             </>
                         ) : null}
                     </View>
                 </View>
             </OfflineWithFeedback>
-        </View>
+        </KeyboardGestureArea>
     );
 }
 

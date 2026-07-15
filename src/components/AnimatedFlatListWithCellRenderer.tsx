@@ -6,7 +6,7 @@ import genericMemo from '@libs/genericMemo';
  * Taken from: https://github.com/software-mansion/react-native-reanimated/blob/main/packages/react-native-reanimated/src/component/FlatList.tsx
  */
 import type {Ref} from 'react';
-import type {FlatListProps, CellRendererProps as RNCellRendererProps} from 'react-native';
+import type {FlatListProps, CellRendererProps} from 'react-native';
 import type {AnimatedProps, ILayoutAnimationBuilder} from 'react-native-reanimated';
 
 import React, {useRef} from 'react';
@@ -15,11 +15,11 @@ import Animated, {LayoutAnimationConfig} from 'react-native-reanimated';
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
-type CellRendererComponentProps<T> = React.ComponentType<RNCellRendererProps<T>> | null | undefined;
+type CellRendererComponentType<T> = React.ComponentType<CellRendererProps<T>> | null | undefined;
 
-const createCellRendererComponent = <Item,>(CellRendererComponentProp?: CellRendererComponentProps<Item>, itemLayoutAnimationRef?: React.RefObject<ILayoutAnimationBuilder | undefined>) => {
+const createCellRendererComponent = <Item,>(CellRendererComponentProp?: CellRendererComponentType<Item>, itemLayoutAnimationRef?: React.RefObject<ILayoutAnimationBuilder | undefined>) => {
     // Make CellRendererComponent specifically use the 'Item' type from its parent scope
-    function CellRendererComponent(props: RNCellRendererProps<Item>) {
+    function CellRendererComponent(props: CellRendererProps<Item>) {
         return (
             <Animated.View
                 // TODO TYPESCRIPT This is temporary cast is to get rid of .d.ts file.
@@ -51,7 +51,7 @@ type ReanimatedFlatListPropsWithLayout<T> = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatListPropsWithLayout<Item>, 'CellRendererComponent' | 'onScroll' | 'inverted'> & {
-    CellRendererComponent?: CellRendererComponentProps<Item>;
+    CellRendererComponent?: CellRendererComponentType<Item>;
     onScroll?: FlatListProps<Item>['onScroll'];
     inverted?: boolean | null | undefined;
     ref?: Ref<FlatList>;

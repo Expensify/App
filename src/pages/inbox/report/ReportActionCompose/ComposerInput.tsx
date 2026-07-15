@@ -40,7 +40,7 @@ function getRandomPlaceholder(translate: LocalizedTranslate): string {
 function ComposerInput() {
     const {reportID} = useComposerState();
     const {translate, preferredLocale} = useLocalize();
-    const {isMenuVisible} = useComposerState();
+    const {isMenuVisible, nativeID} = useComposerState();
     const {isBlockedFromConcierge, debouncedCommentMaxLengthValidation} = useComposerSendState();
     const {setIsFullComposerAvailable, onBlur, onFocus, setComposerRef} = useComposerActions();
     const {containerRef, suggestionsRef, isNextModalWillOpenRef} = useComposerMeta();
@@ -107,6 +107,7 @@ function ComposerInput() {
                 measureParentContainer={measureContainer}
                 onValueChange={onValueChange}
                 forwardedFSClass={fsClass}
+                nativeID={nativeID}
             />
             {PDFValidationComponent}
             {ErrorModal}

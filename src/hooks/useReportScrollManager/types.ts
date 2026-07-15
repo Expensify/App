@@ -1,3 +1,8 @@
+import type {FlashListRefType} from '@components/FlashList/types';
+import type FlatListRefType from '@components/FlashList/types';
+
+import type {RefObject} from 'react';
+
 type ScrollToIndexOptions = {
     /** Is user editing message */
     isEditing?: boolean;
@@ -25,4 +30,18 @@ type ReportScrollManagerData = {
     scrollToOffset: (offset: number) => void;
 };
 
-export type {ScrollToIndexOptions, ReportScrollManagerData};
+type ScrollToCommonParams = {
+    listRef: FlatListRefType | FlashListRefType;
+    isKeyboardActive: boolean;
+    keyboardHeight: number;
+};
+
+type ScrollToOffsetHandlerParams = ScrollToCommonParams & {
+    offset: number;
+};
+
+type ScrollToBottomHandlerParams = ScrollToCommonParams & {
+    scrollPositionRef: RefObject<{offset: number}>;
+};
+
+export type {ReportScrollManagerData, ScrollToIndexOptions, ScrollToBottomHandlerParams, ScrollToOffsetHandlerParams};

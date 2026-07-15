@@ -42,6 +42,8 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
     const contentSizeHeight = useSharedValue(0);
     const layoutMeasurementHeight = useSharedValue(0);
 
+    const isKeyboardOpening = useSharedValue(false);
+
     useKeyboardHandler({
         onStart: (e) => {
             'worklet';
@@ -49,9 +51,8 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
             const scrollYValueAtStart = scrollY.get();
             const prevHeight = height.get();
 
-            height.set(e.height);
-
             const willKeyboardOpen = e.progress === 1;
+            isKeyboardOpening.set(willKeyboardOpen);
 
             if (willKeyboardOpen) {
                 if (e.height > 0) {
@@ -104,6 +105,12 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
         },
         onMove: (e) => {
             'worklet';
+
+            // This is to fix an issue with react-native-keyboard-controller, where an `onMove` event is triggered with an invalid height value when the keyboard is opened
+            // react-native-keyboard-controller issue: https://github.com/kirillzyusko/react-native-keyboard-controller/issues/1298
+            if (isKeyboardOpening.get() && e.height < height.get()) {
+                return;
+            }
 
             height.set(e.height);
         },

@@ -54,6 +54,7 @@ function Composer({
     onContentSizeChange,
     shouldContainScroll = true,
     isGroupPolicyReport = false,
+    nativeID,
     ref,
     ...props
 }: ComposerProps) {
@@ -362,7 +363,7 @@ function Composer({
 
     return (
         <RNMarkdownTextInput
-            id={CONST.COMPOSER.NATIVE_ID}
+            nativeID={nativeID ?? CONST.COMPOSER.NATIVE_ID}
             autoComplete="off"
             autoCorrect={!isMobileSafari()}
             placeholderTextColor={theme.placeholderText}

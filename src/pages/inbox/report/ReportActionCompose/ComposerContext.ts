@@ -10,7 +10,7 @@ import type {ReportAction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {RefObject} from 'react';
-import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native';
+import type {BlurEvent, TextInputSelectionChangeEvent, View, LayoutChangeEvent} from 'react-native';
 
 import {createContext, useContext} from 'react';
 
@@ -36,6 +36,7 @@ type ComposerState = {
     isFocused: boolean;
     isMenuVisible: boolean;
     isFullComposerAvailable: boolean;
+    nativeID?: string;
 };
 
 type ComposerEditState = {
@@ -73,6 +74,7 @@ type ComposerActions = {
     onItemSelected: () => void;
     onTriggerAttachmentPicker: () => void;
     clearComposer: () => void;
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 type ComposerEditActions = {

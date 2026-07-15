@@ -3,7 +3,7 @@ import {CurrencyListContextProvider} from '@components/CurrencyListContextProvid
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import GPSInProgressModal from '@components/GPSInProgressModal';
 import GPSTripStateChecker from '@components/GPSTripStateChecker';
-import {KeyboardDismissibleFlatListContextProvider} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
+import {KeyboardDismissibleFlashListContextProvider} from '@components/KeyboardDismissibleFlashList/KeyboardDismissibleFlashListContext';
 import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
@@ -45,8 +45,8 @@ import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import '@src/libs/subscribeToFullReconnect';
+import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {RouteProp} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
@@ -178,7 +178,7 @@ function AuthScreens() {
                         TravelCVVContextProvider,
                         KYCWallContextProvider,
                         WideRHPContextProvider,
-                        KeyboardDismissibleFlatListContextProvider,
+                        KeyboardDismissibleFlashListContextProvider,
                         CurrencyListContextProvider,
                         SidebarOrderedReportsContextProvider,
                         SearchContextProvider,
