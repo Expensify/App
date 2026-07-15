@@ -37,13 +37,23 @@ type AgentRowData = TableData & {
 };
 
 type AgentsTableProps = {
+    /** The list of agents to render as rows */
     agents: AgentRowData[];
 
     /** Content rendered above the table header inside the scrollable list */
     headerComponent?: React.ReactElement;
+
+    /** Whether rows can be selected (enables selection UI) */
+    canSelectAgents: boolean;
+
+    /** Keys of the currently selected rows */
+    selectedKeys: string[];
+
+    /** Called with the updated selected row keys when the selection changes */
+    onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function AgentsTable({agents, headerComponent}: AgentsTableProps) {
+export default function AgentsTable({agents, headerComponent, canSelectAgents, selectedKeys, onRowSelectionChange}: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -110,6 +120,9 @@ export default function AgentsTable({agents, headerComponent}: AgentsTableProps)
             keyExtractor={(item) => item.keyForList}
             headerComponent={tableHeaderComponent}
             shouldUseStickyColumnHeader
+            selectionEnabled={canSelectAgents}
+            selectedKeys={selectedKeys}
+            onRowSelectionChange={onRowSelectionChange}
         >
             <Table.EmptyState
                 headerMedia={illustrations.TvScreenRobot}
