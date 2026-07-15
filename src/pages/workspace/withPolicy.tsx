@@ -117,7 +117,7 @@ export default function <TProps extends WithPolicyProps>(WrappedComponent: Compo
         );
     }
 
-    return WithPolicy;
+    return React.memo(WithPolicy);
 }
 
 export {policyDefaultProps};
