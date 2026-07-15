@@ -12,6 +12,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+
 import type useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
 
 import {useReportPreviewActions, useReportPreviewActionState} from './MoneyRequestReportPreviewContext';
@@ -24,6 +26,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
     const {shouldShowPayButton} = useReportPreviewActionState();
     const {startApprovedAnimation, onHoldMenuOpen} = useReportPreviewActions();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {iouReport, policy, ownerLogin, userBillingGracePeriodEnds, iouReportNextStep, amountOwed, ownerBillingGracePeriodEnd, delegateEmail} = actionButtonData;
 
@@ -49,6 +52,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
                 full: true,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
+                isTrackIntentUser,
             });
         }
     };

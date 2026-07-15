@@ -18,7 +18,7 @@ import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
-import {getExistingTransactionID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
+import {getExistingTransactionID, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
@@ -26,6 +26,7 @@ import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {
     findSelfDMReportID,
@@ -252,6 +253,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         );
     }
     const selectedParticipantsForRequest = iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants;
+
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
+
     const firstSelectedParticipantReportID = selectedParticipantsForRequest.at(0)?.reportID;
     const [selectedParticipantsReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${firstSelectedParticipantReportID}`);
     const iouReportPolicyID = (moneyRequestReportID ? moneyRequestReport?.policyID : undefined) ?? currentChatReport?.policyID ?? selectedParticipantsReport?.policyID;
@@ -279,6 +283,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const delegateAccountID = useDelegateAccountID();
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     // Onboarding task data
     const {
         taskReport: viewTourTaskReport,
@@ -296,7 +301,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const customUnitRateID = getRateID(transaction) ?? '';
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
+    const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense || isSelfDMDestination, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
         ? ((transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '')
         : '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -496,6 +501,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                isTrackIntentUser,
                 delegateAccountID,
             });
             existingIOUReport = iouReport;
@@ -548,6 +554,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 quickAction,
                 optimisticChatReportID,
+                isTrackIntentUser,
             });
             if (shouldHandleNavigation) {
                 dismissModalAndOpenReportInInboxTabHelper(optimisticChatReportID, false, false);
@@ -604,6 +611,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                isTrackIntentUser,
             });
             const targetReportID = backToReport ?? activeReportID;
             // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
@@ -631,12 +639,15 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!participant) {
             return;
         }
-        // trackExpense bails per-item on malformed CATEGORIZE/SHARE too late for UI cleanup — reject the batch upfront.
-        const requiresLinkedTracked = action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE;
+        // trackExpense bails per-item on malformed CATEGORIZE/SHARE/SUBMIT too late for UI cleanup — reject the batch upfront.
+        const requiresLinkedTracked = action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.SUBMIT;
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
         }
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
+        // When the destination resolved to the current user/self-DM, force the self-DM as the chat (clearing any
+        // non-self route report) so getTrackExpenseInformation defaults to the self-DM instead of the route report.
+        const trackReport = isSelfDMDestination ? undefined : report;
         const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         let lastOptimisticTransactionID: string | undefined;
         for (const item of transactions) {
@@ -647,7 +658,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
             const email = currentUserPersonalDetails.email ?? '';
             trackExpenseIOUActions({
-                report,
+                report: trackReport,
                 isDraftPolicy,
                 isDraftChatReport,
                 action,
@@ -720,6 +731,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             fallbackOptimisticChatReportID: optimisticSelfDMReportID,
             navigateBackToReport: undefined,
             lastOptimisticTransactionID,
+            // trackExpense wrote to optimisticSelfDMReportID, so resolve the self-DM nav target directly. This
+            // suppresses the route-report fallback in resolveChatTargetForSubmitCleanup, which would otherwise keep a
+            // policy/group/source route report as the target when the self-DM report isn't loaded yet (fresh account
+            // or before Onyx hydration) — leaving first-time self-DM creates navigating against the wrong report.
+            preResolvedChatTarget: isSelfDMDestination ? {report: selfDMReport, chatReportID: optimisticSelfDMReportID} : undefined,
         });
     }
 
@@ -779,6 +795,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             recentWaypoints,
             betas,
             previousOdometerDraft: odometerDraft,
+            isTrackIntentUser,
             delegateAccountID,
         });
 
@@ -812,7 +829,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
-        if (!isTrackExpense && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
+        if (!isTrackExpense && !isSelfDMDestination && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
             createDistanceRequest(trimmedComment, shouldHandleNavigation);
             markSubmitExpenseEnd();
             return;
@@ -897,6 +914,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     personalDetails,
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
+                    isTrackIntentUser,
                 });
             }
             markSubmitExpenseEnd();
@@ -934,6 +952,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     personalDetails,
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
+                    isTrackIntentUser,
                 });
             }
             markSubmitExpenseEnd();
@@ -958,16 +977,34 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
-                shouldHandleNavigation,
             });
+            if (shouldHandleNavigation) {
+                cleanupAndNavigateAfterExpenseCreate({
+                    report: undefined,
+                    action,
+                    draftTransactionIDs,
+                    transactionID: transaction?.transactionID,
+                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                    optimisticChatReportID: invoiceChatReport?.reportID ?? invoiceChatReportID,
+                    isInvoice: true,
+                });
+            } else {
+                cleanupAfterExpenseCreate({draftTransactionIDs});
+            }
             markSubmitExpenseEnd();
             return;
         }
 
-        if (!isPerDiemRequest && (isTrackExpense || isCategorizingTrackExpense || isSharingTrackExpense)) {
+        // "Submit to my employer" with no existing workspace creates a draft Submit (submit2026) workspace. Route it
+        // through trackExpense (AddTrackedExpenseToPolicy) so the workspace is created and the expense submitted
+        // atomically, instead of requestMoney/ConvertTrackedExpenseToRequest which can't create a workspace.
+        // Scoped to submit2026 drafts only so other (team/corporate) draft flows keep their existing behavior.
+        const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy && policy?.type === CONST.POLICY.TYPE.SUBMIT;
+
+        if (!isPerDiemRequest && (isTrackExpense || isCategorizingTrackExpense || isSharingTrackExpense || isSelfDMDestination || isSubmittingExpenseToDraftWorkspace)) {
             if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-                if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
+                if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && !isSubmittingExpenseToDraftWorkspace && locationPermissionGranted) {
                     if (userLocation) {
                         trackExpense(shouldHandleNavigation, {
                             gpsPoint: {lat: userLocation.latitude, long: userLocation.longitude},
