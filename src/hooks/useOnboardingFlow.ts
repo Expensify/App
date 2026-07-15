@@ -92,11 +92,14 @@ function useOnboardingFlowRouter() {
                     return;
                 }
 
-                // Pause the onboarding redirect while the required-2FA overlay is active. The user must complete
-                // required 2FA setup first; auto-resetting to onboarding on every transition fights the 2FA wizard,
-                // corrupts its dynamic base route, and flashes the overlay. Once 2FA finishes, the success page clears
-                // twoFactorAuthSetupInProgress and explicitly starts onboarding.
-                if (AccountUtils.shouldShowRequire2FAPage(account, !!isOnboardingCompleted)) {
+                // Pause the onboarding redirect while required 2FA is in progress:
+                // 1) Overlay visible (pre-verify / cancel-resume) via shouldShowRequire2FAPage
+                // 2) Post-verify handoff window when requiresTwoFactorAuth is true, setupInProgress is still
+                //    true, and the overlay is intentionally hidden — isForced2FAOnboardingSetup covers this.
+                // Auto-resetting to onboarding fights the 2FA wizard, corrupts its dynamic base route, and can
+                // bypass getRequired2FAOnboardingResumePath. Once Got it clears twoFactorAuthSetupInProgress,
+                // DynamicSuccessPage explicitly starts onboarding.
+                if (AccountUtils.shouldShowRequire2FAPage(account, !!isOnboardingCompleted) || AccountUtils.isForced2FAOnboardingSetup(account, !!isOnboardingCompleted)) {
                     return;
                 }
 
