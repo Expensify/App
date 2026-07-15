@@ -195,6 +195,7 @@ function process(): Promise<void> {
                 // request was queued (while offline). That merge only ran once, so it never sees this bump —
                 // mirror it into Onyx now so the origin device's own report also reflects the corrected read
                 // time immediately, instead of only sending the corrected value to the server.
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data -- correcting a request-specific optimistic value already owned by this queue, not general report state
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastReadTime: recordedTime});
             }
             reportsWithProcessedOfflineComments.delete(reportID);
@@ -232,14 +233,17 @@ function process(): Promise<void> {
                         if (!value || typeof value !== 'object') {
                             continue;
                         }
-                        for (const [actionID, actionValue] of Object.entries(value)) {
-                            if (actionID !== reportActionID || !actionValue || typeof actionValue !== 'object' || !('created' in actionValue)) {
-                                continue;
-                            }
-                            const created = actionValue.created;
-                            if (typeof created === 'string' && created > serverTimestamp) {
-                                serverTimestamp = created;
-                            }
+                        // Object.entries/values on a plain object has no type-safe overload for this TS lib
+                        // target (it resolves to `any`), so read the single key we care about directly instead
+                        // of enumerating. The value is re-validated with typeof/`in` immediately below.
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- reading one known key off an object already confirmed non-null; re-validated below
+                        const actionValue: unknown = (value as Record<string, unknown>)[reportActionID];
+                        if (!actionValue || typeof actionValue !== 'object' || !('created' in actionValue)) {
+                            continue;
+                        }
+                        const created = actionValue.created;
+                        if (typeof created === 'string' && created > serverTimestamp) {
+                            serverTimestamp = created;
                         }
                     }
 
