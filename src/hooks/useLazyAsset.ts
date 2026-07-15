@@ -6,7 +6,15 @@ import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
 
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {isValidElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+
+function resolveIconComponent(asset: IconAsset | undefined, fallback: IconAsset = PlaceholderIcon): IconAsset {
+    if (asset == null || isValidElement(asset)) {
+        return fallback;
+    }
+
+    return asset;
+}
 
 type LazyAssetResult<T> = {
     asset: T | undefined;
@@ -91,7 +99,7 @@ function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => {default: T} 
     const {asset, isLoaded} = useLazyAsset(stableImportFn, fallback);
 
     return {
-        asset: (isLoaded ? asset : PlaceholderIcon) as T,
+        asset: (isLoaded ? resolveIconComponent(asset, fallback ?? PlaceholderIcon) : PlaceholderIcon) as T,
     };
 }
 
@@ -156,7 +164,11 @@ function useMemoizedLazyIllustrations<const TName extends readonly IllustrationN
         };
     }, [namesList, cachedChunk]);
 
-    return useMemo(() => Object.fromEntries(namesList.map((name) => [name, assets[name as string] ?? PlaceholderIcon])) as Record<TName[number], IconAsset>, [assets, namesList]);
+    const icons = {} as Record<TName[number], IconAsset>;
+    for (const name of namesList) {
+        icons[name] = resolveIconComponent(assets[name as string]);
+    }
+    return icons;
 }
 
 /**
@@ -219,7 +231,11 @@ function useMemoizedLazyExpensifyIcons<const TName extends readonly ExpensifyIco
         };
     }, [namesList, cachedChunk]);
 
-    return useMemo(() => Object.fromEntries(namesList.map((name) => [name, assets[name as string] ?? PlaceholderIcon])) as Record<TName[number], IconAsset>, [assets, namesList]);
+    const icons = {} as Record<TName[number], IconAsset>;
+    for (const name of namesList) {
+        icons[name] = resolveIconComponent(assets[name as string]);
+    }
+    return icons;
 }
 
 export {useMemoizedLazyAsset, useMemoizedLazyIllustrations, useMemoizedLazyExpensifyIcons};
