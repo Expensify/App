@@ -14,6 +14,8 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserveSearchChannelIfGlobalCreate';
 import {startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import {extractUrlDomain} from '@libs/Url';
@@ -30,6 +32,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestCompanyInfoForm';
 
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 
@@ -43,7 +46,8 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 type DynamicIOURequestStepCompanyInfoProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO>;
 
-function DynamicIOURequestStepCompanyInfo({report, transaction}: DynamicIOURequestStepCompanyInfoProps) {
+function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicIOURequestStepCompanyInfoProps) {
+    const {reportID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.path);
 
     const styles = useThemeStyles();
@@ -62,6 +66,7 @@ function DynamicIOURequestStepCompanyInfo({report, transaction}: DynamicIOUReque
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const formattedAmount = convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency);
 
@@ -101,11 +106,14 @@ function DynamicIOURequestStepCompanyInfo({report, transaction}: DynamicIOUReque
             },
             {skipSubmitExpenseSpan: true},
         );
+        reserveSearchChannelIfGlobalCreate(!!isFromGlobalCreate);
+        const invoiceChatReportID = report?.reportID ? undefined : reportID;
         sendInvoice({
             currentUserAccountID: currentUserPersonalDetails.accountID,
             transaction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             invoiceChatReport: report,
+            invoiceChatReportID,
             policy,
             policyTagList: policyTags,
             policyCategories,
@@ -113,8 +121,17 @@ function DynamicIOURequestStepCompanyInfo({report, transaction}: DynamicIOUReque
             companyWebsite,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
-            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+            isFromGlobalCreate,
             senderPolicyTags: policyTags ?? {},
+        });
+        cleanupAndNavigateAfterExpenseCreate({
+            report: undefined,
+            action: CONST.IOU.ACTION.CREATE,
+            draftTransactionIDs,
+            transactionID: transaction?.transactionID,
+            isFromGlobalCreate,
+            optimisticChatReportID: report?.reportID ?? reportID,
+            isInvoice: true,
         });
     };
 
