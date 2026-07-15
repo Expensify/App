@@ -1525,7 +1525,7 @@ function shouldShowYear(
                 }
 
                 // Latch once true so a later current-year date can't reset it (the row renderer latches the same way).
-                if (!result.shouldShowYearPosted && shouldShowTransactionPostedYear(item, currentYear)) {
+                if (!result.shouldShowYearPosted && shouldShowTransactionPostedYear(item)) {
                     result.shouldShowYearPosted = true;
                 }
             }
@@ -1556,7 +1556,7 @@ function shouldShowYear(
             }
 
             // Latch once true so a later current-year date can't reset it (the row renderer latches the same way).
-            if (!result.shouldShowYearPosted && shouldShowTransactionPostedYear(item, currentYear)) {
+            if (!result.shouldShowYearPosted && shouldShowTransactionPostedYear(item)) {
                 result.shouldShowYearPosted = true;
             }
 
@@ -1769,7 +1769,6 @@ type PreprocessingContext = {
     shouldShowAmountInWideColumn: boolean;
     shouldShowTaxAmountInWideColumn: boolean;
     hasDeletedTransaction: boolean;
-    currentYear: number;
 };
 
 function createPreprocessingContext(): PreprocessingContext {
@@ -1796,7 +1795,6 @@ function createPreprocessingContext(): PreprocessingContext {
         shouldShowAmountInWideColumn: false,
         shouldShowTaxAmountInWideColumn: false,
         hasDeletedTransaction: false,
-        currentYear: new Date().getFullYear(),
     };
 }
 
@@ -1914,7 +1912,7 @@ function processTransactionEntry(ctx: PreprocessingContext, transaction: OnyxTyp
         ctx.shouldShowYearApproved = true;
     }
 
-    if (!ctx.shouldShowYearPosted && shouldShowTransactionPostedYear(transaction, ctx.currentYear)) {
+    if (!ctx.shouldShowYearPosted && shouldShowTransactionPostedYear(transaction)) {
         ctx.shouldShowYearPosted = true;
     }
 
@@ -1986,7 +1984,7 @@ function resolveExportedYearFlags(ctx: PreprocessingContext, data: OnyxTypes.Sea
  * (key classification, violations, export/action maps, year flags, column indicators)
  * needed by getTransactionsSections and getReportSections.
  */
-function classifyAndPreprocess(data: OnyxTypes.SearchResults['data']): Omit<PreprocessingContext, 'allHoldReportActions' | 'currentYear'> {
+function classifyAndPreprocess(data: OnyxTypes.SearchResults['data']): Omit<PreprocessingContext, 'allHoldReportActions'> {
     const ctx = createPreprocessingContext();
 
     for (const key of Object.keys(data)) {

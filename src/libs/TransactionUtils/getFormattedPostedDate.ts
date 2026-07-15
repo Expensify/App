@@ -1,4 +1,3 @@
-/** Card posted dates are stored raw as `YYYYMMDD` (which `new Date()` treats as invalid); convert to `YYYY-MM-DD`. Already-ISO or empty values pass through. */
 function getFormattedPostedDate(posted?: string): string {
     if (!posted) {
         return '';
