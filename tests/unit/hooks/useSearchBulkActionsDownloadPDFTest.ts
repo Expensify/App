@@ -14,7 +14,7 @@ import {getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUt
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchResults} from '@src/types/onyx';
+import type {Domain, SearchResults} from '@src/types/onyx';
 import type {SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
 
 import Onyx from 'react-native-onyx';
@@ -476,9 +476,9 @@ describe('useSearchBulkActions - Download as PDF', () => {
             [groupKey]: makeSettlementGroup({count: 2}),
         });
 
-        // The settlement is on policy1; the user must be an admin of it for the export to be offered.
+        // The settlement is on policy1; the user must be able to manage that workspace's card for the export to show.
         expect(
-            getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, mockSelectedTransactions, mockCurrentSearchResults?.data, (policyID) => policyID === 'policy1', false),
+            getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, mockSelectedTransactions, mockCurrentSearchResults?.data, (policyID) => policyID === 'policy1'),
         ).toBeDefined();
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
@@ -634,7 +634,8 @@ describe('useSearchBulkActions - Download as PDF', () => {
         });
         // The export is admin-only. For a cross-workspace settlement it is offered only when the user is an admin of
         // the feed's domain; the feed fundID 1 maps to domain_1, admin'd by the current user.
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}1`, {[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${CURRENT_USER_ACCOUNT_ID}`]: CURRENT_USER_ACCOUNT_ID});
+        const adminDomain = {[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${CURRENT_USER_ACCOUNT_ID}`]: CURRENT_USER_ACCOUNT_ID} as unknown as Domain;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}1`, adminDomain);
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: unscopedExpensifyCardStatementQueryJSON}));
 
