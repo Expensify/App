@@ -187,6 +187,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             memberName: formatPhoneNumber(getPersonalDetailsByID(firstSelectedEmployeeAccountID, personalDetails)?.displayName ?? ''),
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails]);
+
+    const focusTextInput = useCallback(() => {
+        textInputRef.current?.focus();
+    }, []);
     /**
      * Get members for the current workspace
      */
@@ -272,12 +276,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             prompt: confirmModalPrompt,
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-            onModalHide: () => {
-                if (!textInputRef.current) {
-                    return;
-                }
-                textInputRef.current.focus();
-            },
+            onModalHide: focusTextInput,
         }).then(({action}) => {
             if (action !== ModalActions.CONFIRM) {
                 return;
@@ -285,7 +284,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
             removeUsers();
         });
-    }, [confirmModalPrompt, removeUsers, selectedEmployees.length, showConfirmModal, translate]);
+    }, [confirmModalPrompt, focusTextInput, removeUsers, selectedEmployees.length, showConfirmModal, translate]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
