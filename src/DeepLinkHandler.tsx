@@ -12,7 +12,6 @@ import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
 import {hasAuthToken} from './libs/actions/Session';
 import Log from './libs/Log';
-import {markNativeShortcutFlowIfNeeded} from './libs/NativeShortcutFlow';
 import {endSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
 import {hasSeenTourSelector} from './selectors/Onboarding';
@@ -81,12 +80,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
 
                 initialUrlProcessed.current = true;
                 onInitialUrl(url as Route);
-
-                // Cold-start shortcut marking. Complements linkingConfig's getInitialURL, which gives up
-                // after 150ms — this path (10s timeout) still processes the URL via openReportFromDeepLink,
-                // so the marker is always consumed. Warm starts are handled by linkingConfig/subscribe.ts
-                // only, since it can apply the skip/drop guards this parallel listener cannot.
-                markNativeShortcutFlowIfNeeded(url);
 
                 if (url) {
                     if (conciergeReportID === undefined) {
