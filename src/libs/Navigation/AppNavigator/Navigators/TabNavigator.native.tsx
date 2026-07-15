@@ -2,7 +2,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import {setTabNavigatorMounted, setTabNavigatorUnmounted} from '@libs/Navigation/helpers/tabNavigatorReadiness';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import HomePage from '@pages/home/HomePage';
@@ -56,13 +55,6 @@ function TabNavigator() {
     // `useNavigationState((s) => s)` here because TabNavigator's body runs before <Tab.Navigator>
     // mounts, so the nearest navigation listener context is still the parent stack's.
     const tabState = useNavigationState((parentState) => parentState.routes.find((r) => r.key === route.key)?.state as NavigationState | undefined);
-
-    // Signal that TAB_NAVIGATOR's child router has mounted (and reset on unmount/logout) so deep-link
-    // and notification navigation waits for it before dispatching a nested NAVIGATE action.
-    useEffect(() => {
-        setTabNavigatorMounted();
-        return setTabNavigatorUnmounted;
-    }, []);
 
     useEffect(() => {
         if (!shouldUseNarrowLayout || !parentNavigation) {
