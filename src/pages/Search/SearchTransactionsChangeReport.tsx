@@ -26,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails, Report, Transaction} from '@src/types/onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -59,6 +60,7 @@ function SearchTransactionsChangeReport() {
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const hasUnreportedManagedCardTransactions = transactions.some((transaction) => isUnreportedManagedCardTransaction(transaction));
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -152,6 +154,7 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             policyForMovingExpenses,
             betas,
+            isTrackIntentUser,
             false,
             shouldDismissEmptyReportsConfirmation,
         );
@@ -171,6 +174,7 @@ function SearchTransactionsChangeReport() {
                 transactions,
                 allTransactionViolation: transactionViolations,
                 allReports,
+                isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
             });
@@ -251,6 +255,7 @@ function SearchTransactionsChangeReport() {
             transactions,
             allTransactionViolation: transactionViolations,
             allReports,
+            isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
         });
@@ -272,6 +277,7 @@ function SearchTransactionsChangeReport() {
             transactions,
             allTransactionViolation: transactionViolations,
             allReports,
+            isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
         });

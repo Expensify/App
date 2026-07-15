@@ -1,6 +1,6 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import * as ActiveClientManager from '@libs/ActiveClientManager';
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import {waitForWrites} from '@libs/API';
@@ -360,12 +360,16 @@ type OpenReportActionParams = {
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
 
+    /** Whether the report has report actions or not */
+    hasReportActions?: boolean;
+
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
 };
 
 type PregeneratedResponseParams = {
     optimisticConciergeReportActionID: string;
+    optimisticConciergeCreated: string;
     pregeneratedResponse: string;
 };
 
@@ -828,7 +832,7 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
  * @param report - The report where the comment should be added
  * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
  * @param isInSidePanel - Whether the comment is being added from the side panel
- * @param pregeneratedResponseParams - Optional params for pre-generated response (API only, no optimistic action - used when response display is delayed)
+ * @param pregeneratedResponseParams - Optional params for pre-generated response (API only; the optimistic action is queued by SuggestedFollowup)
  */
 function addActions({
     report,
@@ -990,6 +994,7 @@ function addActions({
     // Add pregenerated params
     if (pregeneratedResponseParams) {
         parameters.optimisticConciergeReportActionID = pregeneratedResponseParams.optimisticConciergeReportActionID;
+        parameters.optimisticConciergeCreated = pregeneratedResponseParams.optimisticConciergeCreated;
         parameters.pregeneratedResponse = pregeneratedResponseParams.pregeneratedResponse;
     }
 
@@ -1502,6 +1507,7 @@ function openReport(params: OpenReportActionParams) {
         currentUserAccountID,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
+        hasReportActions,
     } = params;
     if (!reportID) {
         return;
@@ -1512,7 +1518,7 @@ function openReport(params: OpenReportActionParams) {
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
     const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
-    const optimisticReport: Partial<Pick<Report, 'reportName'>> = reportActionsExist(reportID) || !existingReportName ? {} : {reportName: existingReportName};
+    const optimisticReport: Partial<Pick<Report, 'reportName'>> = (hasReportActions ?? reportActionsExist(reportID)) || !existingReportName ? {} : {reportName: existingReportName};
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -2118,6 +2124,8 @@ function createGroupChat(
 
 function prepareOnyxDataForCleanUpOptimisticParticipants(
     reportID: string,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    currentUserAccountID: number | undefined,
 ): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined {
     const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!existingReport?.participants) {
@@ -2126,7 +2134,13 @@ function prepareOnyxDataForCleanUpOptimisticParticipants(
     const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
     const redundantParticipants: Record<number, null> = {};
     for (const accountID in existingReport.participants) {
-        if (!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+        // Never clean up the current user's own personal details. Removing them here (even momentarily) drops the
+        // current user's avatar down to the fallback avatar until the real details settle, which is what caused the
+        // avatar to flicker between the user initials and the default avatar. See https://github.com/Expensify/App/issues/95427
+        if (Number(accountID) === currentUserAccountID) {
+            continue;
+        }
+        if (!personalDetails?.[accountID]?.isOptimisticPersonalDetail) {
             continue;
         }
         settledPersonalDetails[accountID] = null;
@@ -3645,6 +3659,7 @@ function updateReportField({
     hasViolationsParam,
     recentlyUsedReportFields,
     shouldFixViolations = false,
+    isTrackIntentUser,
 }: {
     report: Report;
     reportField: PolicyReportField;
@@ -3656,6 +3671,7 @@ function updateReportField({
     hasViolationsParam: boolean;
     recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
     shouldFixViolations: boolean | undefined;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
@@ -3684,6 +3700,7 @@ function updateReportField({
         currentUserEmailParam: email,
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
 
     const optimisticData: Array<
@@ -3982,18 +3999,7 @@ function navigateToConciergeChat(
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            navigateToAndOpenReport(
-                [CONST.EMAIL.CONCIERGE],
-                personalDetails ?? allPersonalDetails,
-                currentUserAccountID,
-                introSelected,
-                isSelfTourViewed,
-                betas,
-                shouldDismissModal,
-                false,
-                linkToOptions,
-            );
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, shouldDismissModal, false, linkToOptions);
         });
     } else if (shouldDismissModal) {
         const reportParams = {reportID: conciergeReportID, reportActionID};
@@ -4016,6 +4022,7 @@ function buildNewReportOptimisticData(
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     betas: OnyxEntry<Beta[]>,
+    isTrackIntentUser: boolean | undefined,
     reportName?: string,
 ) {
     const {accountID, login, email} = ownerPersonalDetails;
@@ -4035,6 +4042,7 @@ function buildNewReportOptimisticData(
         currentUserEmailParam: email ?? '',
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
     if (optimisticNextStep) {
         optimisticReportData.nextStep = optimisticNextStep;
@@ -4259,6 +4267,7 @@ function createNewReport(
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
     betas: OnyxEntry<Beta[]>,
+    isTrackIntentUser: boolean | undefined,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
     reportName?: string,
@@ -4276,6 +4285,7 @@ function createNewReport(
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         betas,
+        isTrackIntentUser,
         reportName,
     );
 
@@ -4610,7 +4620,7 @@ function shouldShowReportActionNotification(
         return false;
     }
 
-    if (!ActiveClientManager.isClientTheLeader()) {
+    if (!isClientTheLeader()) {
         Log.info(`${tag} Skipping notification because this client is not the leader`);
         return false;
     }
@@ -7201,6 +7211,7 @@ function buildOptimisticChangePolicyData({
     reportNextStep,
     optimisticPolicyExpenseChatReport,
     reportPreviewAction,
+    isTrackIntentUser,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7215,6 +7226,7 @@ function buildOptimisticChangePolicyData({
     reportNextStep?: ReportNextStepDeprecated;
     optimisticPolicyExpenseChatReport?: Report;
     reportPreviewAction: OnyxEntry<ReportAction>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -7335,6 +7347,7 @@ function buildOptimisticChangePolicyData({
             hasViolations: hasViolationsParam,
             isASAPSubmitBetaEnabled,
             bypassNextApproverID: shouldResetApprovalChain ? newManagerAccountID : undefined,
+            isTrackIntentUser,
         });
 
         optimisticData.push({
@@ -7713,6 +7726,7 @@ function changeReportPolicy({
     reportNextStep,
     isReportLastVisibleArchived = false,
     reportPreviewAction,
+    isTrackIntentUser,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7727,6 +7741,7 @@ function changeReportPolicy({
     reportNextStep?: ReportNextStepDeprecated;
     isReportLastVisibleArchived?: boolean;
     reportPreviewAction: OnyxEntry<ReportAction>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
@@ -7745,6 +7760,7 @@ function changeReportPolicy({
         isReportLastVisibleArchived,
         reportNextStep,
         reportPreviewAction,
+        isTrackIntentUser,
     });
 
     const params = {
@@ -7780,6 +7796,7 @@ function changeReportPolicyAndInviteSubmitter({
     reportNextStep,
     reportActionsList,
     reportPreviewAction,
+    isTrackIntentUser,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7797,6 +7814,7 @@ function changeReportPolicyAndInviteSubmitter({
     reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     reportActionsList: OnyxCollection<ReportActions>;
     reportPreviewAction: OnyxEntry<ReportAction>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID || !submitterLogin) {
         return;
@@ -7848,6 +7866,7 @@ function changeReportPolicyAndInviteSubmitter({
         reportNextStep,
         optimisticPolicyExpenseChatReport: membersChats.reportCreationData[submitterLogin],
         reportPreviewAction,
+        isTrackIntentUser,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];

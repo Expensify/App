@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import genericMemo from '@libs/genericMemo';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
@@ -75,4 +76,4 @@ function PushRowFieldsStep<TFormID extends keyof OnyxFormValuesMapping>({formID,
     );
 }
 
-export default PushRowFieldsStep;
+export default genericMemo(PushRowFieldsStep);

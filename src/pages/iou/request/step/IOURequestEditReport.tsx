@@ -31,6 +31,7 @@ import type {PersonalDetails, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useMemo} from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -87,6 +88,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
@@ -110,6 +112,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 transactions,
                 allTransactionViolation: transactionViolations,
                 allReports,
+                isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
             });
@@ -135,6 +138,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             transactions,
             allTransactionViolation: transactionViolations,
             allReports,
+            isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
         });
@@ -150,7 +154,16 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
 
-        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, betas, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(
+            ownerPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policyForMovingExpenses,
+            betas,
+            isTrackIntentUser,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
         selectReport(
             {
                 value: optimisticReport.reportID,

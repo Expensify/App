@@ -203,6 +203,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         selfDMReport: undefined,
         selfDMReportActions: undefined,
         delegateAccountID: undefined,
+        isTrackIntentUser: false,
     });
 }
 
@@ -318,6 +319,7 @@ describe('mergeTransactionRequest', () => {
             delegateAccountID: undefined,
             selfDMReport: undefined,
             selfDMReportActions: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -434,6 +436,7 @@ describe('mergeTransactionRequest', () => {
             delegateAccountID: undefined,
             selfDMReport: undefined,
             selfDMReportActions: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -535,6 +538,7 @@ describe('mergeTransactionRequest', () => {
             delegateAccountID: undefined,
             selfDMReport: undefined,
             selfDMReportActions: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -698,6 +702,7 @@ describe('mergeTransactionRequest', () => {
             delegateAccountID: undefined,
             selfDMReport: undefined,
             selfDMReportActions: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -802,6 +807,7 @@ describe('mergeTransactionRequest', () => {
             delegateAccountID: undefined,
             selfDMReport: undefined,
             selfDMReportActions: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -1031,6 +1037,7 @@ describe('mergeTransactionRequest', () => {
                 delegateAccountID: undefined,
                 selfDMReport: undefined,
                 selfDMReportActions: undefined,
+                isTrackIntentUser: false,
             });
 
             await mockFetch?.resume?.();
@@ -1152,6 +1159,7 @@ describe('mergeTransactionRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: undefined,
                 participants,
@@ -1230,6 +1238,7 @@ describe('mergeTransactionRequest', () => {
                 delegateAccountID: undefined,
                 selfDMReport: undefined,
                 selfDMReportActions: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1338,6 +1347,7 @@ describe('mergeTransactionRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: undefined,
                 participants,
@@ -1380,6 +1390,7 @@ describe('mergeTransactionRequest', () => {
                 delegateAccountID: undefined,
                 selfDMReport,
                 selfDMReportActions: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
