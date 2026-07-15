@@ -1077,6 +1077,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Pas controles aan en stroomlijn uitgaven',
             setupRules: 'Uitgavenregels instellen',
             inviteAccountant: 'Nodig je accountant uit',
+            configureApprovals: 'Goedkeuringsworkflow instellen',
             begin: 'Begin',
             done: 'Klaar',
             createWorkspaceSubText: 'Werkruimte klaar voor configuratie',
@@ -1089,6 +1090,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Praat met Concierge',
             talkToAccountExecutive: 'Praat met je accountmanager',
             forGuidedSetup: 'voor begeleide installatie.',
+            configureApprovalsSubText: 'Definieer rapportgoedkeuringen',
         },
         yourSpend: {
             title: 'Je uitgaven',
@@ -2888,6 +2890,14 @@ ${amount} voor ${merchant} - ${date}`,
         title: 'Agenten',
         subtitle: `<muted-text>Agents verwerken je workflows voor je, zodat je uren per dag terugkrijgt. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Meer informatie</a>.</muted-text>`,
         findAgent: 'Agent zoeken',
+        deleteAgentsTitle: () => ({
+            one: 'Agent verwijderen',
+            other: 'Agents verwijderen',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Weet je zeker dat je deze agent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
+            other: 'Weet je zeker dat je deze agents wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
+        }),
         newAgent: 'Nieuwe medewerker',
         emptyAgents: {
             title: 'Geen agents aangemaakt',
@@ -10307,17 +10317,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         description: 'Laat het ons weten, zodat we je uitgavenervaring nog beter kunnen maken.',
         positiveButton: 'Ja!',
         negativeButton: 'Niet echt',
-    },
-    trialPaymentReminder: {
-        title: 'Blijf de deadline voor',
-        subtitle: 'Wacht niet tot het laatste moment, voeg vandaag nog je betaalmethode toe om doorlopende toegang tot je uitgaven op Expensify te garanderen.',
-        trialEndsInDays: () => ({
-            one: 'Proefperiode eindigt over 1 dag',
-            other: (pluralCount: number) => `Proefperiode eindigt over ${pluralCount} dagen`,
-        }),
-        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Proefperiode eindigt over ${hours}u : ${minutes}m : ${seconds}s`,
-        closeButton: 'Sluiten',
-        addPaymentCardButton: 'Betaalkaart toevoegen',
     },
     monthPickerPage: {month: 'Maand', selectMonth: 'Selecteer een maand'},
     aiFeaturesPromoModal: {

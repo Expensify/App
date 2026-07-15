@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import genericMemo from '@libs/genericMemo';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
@@ -188,4 +189,4 @@ function MemberListItemHeader<TItem extends ListItem>({
     );
 }
 
-export default MemberListItemHeader;
+export default genericMemo(MemberListItemHeader);
