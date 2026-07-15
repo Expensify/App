@@ -498,6 +498,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
               hasViolations,
               isASAPSubmitBetaEnabled,
               predictedNextStatus,
+              isTrackIntentUser,
           });
     const optimisticNextStep = isDEWPolicy
         ? null
@@ -857,6 +858,7 @@ function reopenReport(
         hasViolations,
         isASAPSubmitBetaEnabled,
         isReopen: true,
+        isTrackIntentUser,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -1045,6 +1047,7 @@ function retractReport(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -1224,6 +1227,7 @@ function unapproveExpenseReport(
         isASAPSubmitBetaEnabled,
         shouldFixViolations: false,
         isUnapprove: true,
+        isTrackIntentUser,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -1428,6 +1432,7 @@ function submitReport({
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
               bypassNextApproverID: optimisticNextStepApproverID,
+              isTrackIntentUser,
           });
     const optimisticNextStep = isDEWPolicy
         ? null
@@ -1691,6 +1696,7 @@ function assignReportToMe(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: accountID,
+        isTrackIntentUser,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: accountID},
@@ -1808,6 +1814,7 @@ function addReportApprover(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: newApproverAccountID,
+        isTrackIntentUser,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: newApproverAccountID},
