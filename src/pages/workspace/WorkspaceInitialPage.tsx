@@ -25,6 +25,7 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
+import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/HRUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
@@ -258,6 +259,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }
         goBackFromInvalidPolicy();
     }, [isFocused, isPendingDelete, policy, prevIsPendingDelete, prevPolicy]);
+
+    // Only the active policy has connections data at app start; non-active workspaces have to fetch
+    // it. hasVendorFeature() and isMatchingVendorListLoaded() both read connections, so the Vendors
+    // menu row would otherwise never render on a non-active workspace until the user visited its
+    // Accounting tab. Mirror the fetch trigger from withPolicyConnections, gated on the beta so we
+    // don't add an accounting-page fetch to every workspace visit for non-beta users.
+    const [hasConnectionsDataBeenFetched] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policyID}`);
+    useEffect(() => {
+        if (!isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) || !policyID || hasConnectionsDataBeenFetched) {
+            return;
+        }
+        if (!policy?.areConnectionsEnabled && isEmptyObject(policy?.connections)) {
+            return;
+        }
+        openPolicyAccountingPage(policyID);
+    }, [policyID, hasConnectionsDataBeenFetched, isBetaEnabled, policy?.areConnectionsEnabled, policy?.connections]);
 
     const workspaceMenuItems: WorkspaceMenuItem[] = [
         {
