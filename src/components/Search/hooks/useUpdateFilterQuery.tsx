@@ -24,7 +24,9 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
         if (updatedFilterFormValues.type !== currentValues.type) {
             updatedFilterFormValues.columns = [];
             updatedFilterFormValues.status = undefined;
+            updatedFilterFormValues.statusNot = undefined;
             updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
+            updatedFilterFormValues.hasNot = filterValidHasValues(updatedFilterFormValues.hasNot, updatedFilterFormValues.type, translate);
         }
 
         if (updatedFilterFormValues.groupBy !== currentValues.groupBy) {
