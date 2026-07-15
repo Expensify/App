@@ -440,7 +440,9 @@ function useSidebarOrderedReportsActions() {
 function useSidebarOrderedReports() {
     const state = useSidebarOrderedReportsState();
     const actions = useSidebarOrderedReportsActions();
-    return {...state, ...actions};
+    // Memoize the merged result: OXC's React Compiler bails on this file, so without this the returned
+    // object would be a fresh reference every render on web.
+    return useMemo(() => ({...state, ...actions}), [state, actions]);
 }
 
 export {SidebarOrderedReportsContextProvider, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};
