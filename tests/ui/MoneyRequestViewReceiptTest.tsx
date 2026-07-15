@@ -53,7 +53,7 @@ jest.mock('@components/WideRHPContextProvider', () => ({
     useWideRHPState: jest.fn(),
 }));
 
-// Render the receipt as a lightweight probe so its presence/absence is assertable.
+// Render the receipt as a lightweight probe so the test can assert its presence or absence.
 jest.mock('@components/ReportActionItem/MoneyRequestReceiptView', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string}>>>('react-native');
     return () => <RN.View testID="money-request-receipt-view" />;
