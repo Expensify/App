@@ -1485,17 +1485,12 @@ function getExpensifyCardProgramCurrency(programKey: CardProgramKey | undefined,
 
 /**
  * Parenthetical qualifier appended to a feed's label so that, when a domain is provisioned with more than one program
- * (e.g. both US and GB), each program's row is distinguishable by its settlement currency (and country).
+ * (e.g. both US and GB), each program's row is distinguishable by its settlement currency (e.g. `expensify.com (GBP)`).
  */
 function getExpensifyCardProgramLabelSuffix(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey): string {
     const programSettings = getCardSettings(cardSettings, programKey);
-    const country = programSettings?.country;
-    const currency = getExpensifyCardProgramCurrency(programKey, country, programSettings?.currency);
-    if (currency === CONST.CURRENCY.USD) {
-        return `(${currency})`;
-    }
-
-    return country ? `(${country} - ${currency})` : `(${currency})`;
+    const currency = getExpensifyCardProgramCurrency(programKey, programSettings?.country, programSettings?.currency);
+    return `(${currency})`;
 }
 
 /**

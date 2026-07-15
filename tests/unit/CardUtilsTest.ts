@@ -4706,19 +4706,12 @@ describe('multi-program Expensify Card helpers', () => {
             [CONST.COUNTRY.GB]: {paymentBankAccountID: 2, currency: CONST.CURRENCY.GBP, country: CONST.COUNTRY.GB},
         });
 
-        it('shows currency without country for the USD (US) program', () => {
+        it('shows the currency for the USD (US) program', () => {
             expect(getExpensifyCardProgramLabelSuffix(usAndGbSettings, CONST.COUNTRY.US)).toBe('(USD)');
         });
 
-        it('shows the program country and currency for non-USD programs', () => {
-            expect(getExpensifyCardProgramLabelSuffix(usAndGbSettings, CONST.COUNTRY.GB)).toBe('(GB - GBP)');
-        });
-
-        it('falls back to currency only when the program has no country', () => {
-            const noCountry = createMock<ExpensifyCardSettings>({
-                [CONST.COUNTRY.GB]: {paymentBankAccountID: 2, currency: CONST.CURRENCY.GBP},
-            });
-            expect(getExpensifyCardProgramLabelSuffix(noCountry, CONST.COUNTRY.GB)).toBe('(GBP)');
+        it('shows the currency for non-USD programs', () => {
+            expect(getExpensifyCardProgramLabelSuffix(usAndGbSettings, CONST.COUNTRY.GB)).toBe('(GBP)');
         });
 
         it('shows (USD) for the US program even when settings carry no explicit currency', () => {
@@ -4734,7 +4727,15 @@ describe('multi-program Expensify Card helpers', () => {
                 [CONST.COUNTRY.US]: {paymentBankAccountID: 1},
                 [CONST.COUNTRY.GB]: {paymentBankAccountID: 2, country: CONST.COUNTRY.GB},
             });
-            expect(getExpensifyCardProgramLabelSuffix(noCurrency, CONST.COUNTRY.GB)).toBe('(GB - GBP)');
+            expect(getExpensifyCardProgramLabelSuffix(noCurrency, CONST.COUNTRY.GB)).toBe('(GBP)');
+        });
+
+        it('derives EUR for the GB program in a non-GBP country when settings carry no explicit currency', () => {
+            const noCurrency = createMock<ExpensifyCardSettings>({
+                [CONST.COUNTRY.US]: {paymentBankAccountID: 1},
+                [CONST.COUNTRY.GB]: {paymentBankAccountID: 2, country: CONST.COUNTRY.IE},
+            });
+            expect(getExpensifyCardProgramLabelSuffix(noCurrency, CONST.COUNTRY.GB)).toBe('(EUR)');
         });
     });
 });
