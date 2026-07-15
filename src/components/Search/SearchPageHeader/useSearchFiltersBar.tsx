@@ -16,7 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import {getAdvancedFiltersToReset, removeNegation} from '@libs/SearchQueryUtils';
-import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -152,7 +152,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
             PopoverComponent: ({closeOverlay, setPopoverWidth}) => (
                 <ListFilterHeightContextProvider>
                     <FilterPopup
-                        baseFilterKey={removeNegation(filterKey) as SearchFilter['key']}
+                        baseFilterKey={removeNegation(filterKey)}
                         searchAdvancedFiltersForm={searchAdvancedFiltersForm}
                         closeOverlay={closeOverlay}
                         setPopoverWidth={setPopoverWidth}
@@ -181,8 +181,8 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
 
                 if (filterKey === CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) {
                     const formValues = Object.keys(searchAdvancedFiltersForm).reduce((acc, curr) => {
-                        if (curr.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
-                            acc[curr as SearchAdvancedFiltersKey] = undefined;
+                        if (isReportFieldKey(curr)) {
+                            acc[curr] = undefined;
                         }
                         return acc;
                     }, {} as Partial<SearchAdvancedFiltersForm>);

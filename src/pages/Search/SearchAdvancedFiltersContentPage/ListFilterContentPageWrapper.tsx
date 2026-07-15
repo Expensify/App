@@ -1,8 +1,10 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import type {ListFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import ListFilterContent from '@components/Search/FilterComponents/ListFilterContent';
 
 import useLocalize from '@hooks/useLocalize';
+
+import CONST from '@src/CONST';
 
 import React, {useState} from 'react';
 
@@ -24,11 +26,12 @@ function ListFilterContentPageWrapper({baseFilterKey, value: initialValue, isNeg
             onNegationChange={setIsNegatedValue}
             footer={
                 <Button
-                    success
-                    large
-                    text={translate('common.confirm')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => onChange(value, isNegated)}
-                />
+                >
+                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                </Button>
             }
         />
     );

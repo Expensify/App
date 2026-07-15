@@ -31,6 +31,7 @@ import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import type {
     GroupedItem,
     QueryFilters,
+    ReportFieldKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
     SearchColumnType,
@@ -5526,13 +5527,21 @@ function isDateFilterKey(key: string): key is Exclude<SearchDateFilterKeys, Repo
     return DATE_FILTER_KEYS.includes(key as SearchDateFilterKeys);
 }
 
+function isReportFieldKey(key: string): key is ReportFieldKey {
+    return key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
+}
+
 type SearchFilter = {
     key: keyof typeof FILTER_VIEW_MAP;
     label: string;
     value: string | string[];
 };
 
-type MappedFilterKey = Exclude<SearchAdvancedFiltersKey, keyof typeof FILTER_TO_SYNTAX_KEY> | SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX;
+type MappedFilterKey = SearchFilter['key'] | Extract<SearchAdvancedFiltersKey, `${SearchFilter['key']}${typeof CONST.SEARCH.NOT_MODIFIER}`>;
+
+function isMappedFilterKey(key: string): key is MappedFilterKey {
+    return hasKey(FILTER_VIEW_MAP, removeNegation(key));
+}
 
 function mapFiltersFormToLabelValueList(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
@@ -5602,18 +5611,17 @@ function mapFiltersFormToLabelValueList(
         }
 
         // Handle regular filters
-        const baseKey = removeNegation(key);
-        if (!hasKey(FILTER_VIEW_MAP, baseKey)) {
+        if (!isMappedFilterKey(key)) {
             continue;
         }
 
+        const baseKey = removeNegation(key);
         const labelKey = FILTER_VIEW_MAP[baseKey].labelKey;
         const value = getDisplayValue(key, searchAdvancedFiltersForm, type, translate, localeCompare);
         const label = getLabelValue(key, labelKey, translate);
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
-            const filterLabelMapKey = baseKey;
-            filters.push({key: filterLabelMapKey, label, value, ...mapper?.(key)});
+            filters.push({key: baseKey, label, value, ...mapper?.(key)});
         }
     }
 
@@ -6594,6 +6602,7 @@ export {
     isTextFilterKey,
     isAmountFilterKey,
     isDateFilterKey,
+    isReportFieldKey,
     getSingleSelectFilterOptions,
     getMultiSelectFilterOptions,
     TODO_SEARCH_KEYS,

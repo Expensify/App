@@ -2442,8 +2442,11 @@ function addNegation<T extends string>(filterKey: T, isNegated: boolean): T | `$
     return isNegated ? `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` : filterKey;
 }
 
-function removeNegation(filterKey: string) {
-    return filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
+type RemoveNegation<T extends string> = T extends `${infer S}${typeof CONST.SEARCH.NOT_MODIFIER}` ? S : T;
+
+function removeNegation<T extends string>(filterKey: T): RemoveNegation<T>;
+function removeNegation(filterKey: string): string {
+    return filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER) ? filterKey.slice(0, -CONST.SEARCH.NOT_MODIFIER.length) : filterKey;
 }
 
 function isFilterNegatable(key: SearchAdvancedFiltersKey) {
@@ -2459,8 +2462,8 @@ function getFilterFormValues<K extends ListFilterContentProps['baseFilterKey'] |
     value: SearchAdvancedFiltersForm[K] | undefined,
     isNegated: boolean,
 ): Partial<SearchAdvancedFiltersForm> {
-    const update: Partial<SearchAdvancedFiltersForm> = {};
-    const negatedFilterKey = `${baseFilterKey}${CONST.SEARCH.NOT_MODIFIER}` as K;
+    const update: Partial<Record<K | `${K}${typeof CONST.SEARCH.NOT_MODIFIER}`, SearchAdvancedFiltersForm[K]>> = {};
+    const negatedFilterKey = addNegation(baseFilterKey, true);
     if (isFilterNegatable(baseFilterKey)) {
         update[negatedFilterKey] = isNegated ? value : undefined;
         update[baseFilterKey] = isNegated ? undefined : value;

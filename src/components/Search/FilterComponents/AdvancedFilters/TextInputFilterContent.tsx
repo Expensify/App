@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
 import TextInput from '@components/TextInput';
@@ -16,8 +17,6 @@ import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native'
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
-
-import NegatableFilter from '../NegatableFilter';
 
 type TextInputFilterContentProps = {
     baseFilterKey: Exclude<SearchTextFilterKeys, typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT | ReportFieldTextKey>;
