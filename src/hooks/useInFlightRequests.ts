@@ -6,6 +6,7 @@ import type {AnyRequest} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
 /**
@@ -114,4 +115,15 @@ function useIsLoadingBarPending(): boolean {
     return useIsPendingInternal('loadingBar');
 }
 
-export {useIsAppLoadPending, useIsReportLoadPending, useIsLoadingBarPending};
+/**
+ * Whether the LoadingBar should be visible: any loading-bar command is being processed and the app is online.
+ */
+function useLoadingBarVisibility(): boolean {
+    const hasPendingLoadingBarRequest = useIsPendingInternal('loadingBar');
+    const {isOffline} = useNetwork();
+
+    // Don't show loading bar if currently offline
+    return !isOffline && hasPendingLoadingBarRequest;
+}
+
+export {useIsAppLoadPending, useIsReportLoadPending, useIsLoadingBarPending, useLoadingBarVisibility};
