@@ -991,11 +991,11 @@ const CONST = {
         SUBMIT_2026: 'submit2026',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
-        CERTINIA: 'financialForceNewDot',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -4195,9 +4195,7 @@ const CONST = {
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
             },
-            SUPPORTED_ONLY_ON_OLDDOT: {
-                FINANCIALFORCE: 'financialforce',
-            },
+            SUPPORTED_ONLY_ON_OLDDOT: {},
             UNSUPPORTED_NAMES: {
                 GENERIC_INDIRECT_CONNECTION: 'generic_indirect_connection',
             },
@@ -7459,6 +7457,7 @@ const CONST = {
         SCREENS.SAML_SIGN_IN,
         SCREENS.VALIDATE_LOGIN,
         SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT,
+        SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT,
         SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT,
         SCREENS.MONEY_REQUEST.STEP_SCAN,
         SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP,
@@ -7994,6 +7993,10 @@ const CONST = {
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 
+    // Backend NVP name for the Submit migration modal. The Onyx key is prefixed with `nvp_`
+    // (ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN), but the API expects the unprefixed name.
+    SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME: 'submitMigrationModalShown',
+
     AI_FEATURES_PROMO_MODAL: 'aiFeaturesPromoModal',
 
     AI_FEATURES_PROMO_LEARN_MORE_URLS: {
@@ -8164,6 +8167,9 @@ const CONST = {
     SENTRY_LABEL: {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
+        },
+        ACCOUNT_MANAGER_BOOK_CALL: {
+            BUTTON: 'AccountManagerBookCallButton-Button',
         },
         HIGH_CONTRAST_MODE_SWITCHER: {
             TOGGLE: 'HighContrastModeSwitcher-Toggle',
@@ -8348,6 +8354,8 @@ const CONST = {
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
+            PARTICIPANTS_ROW: 'Report-ParticipantsRow',
+            ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
         },
         SIDEBAR: {
             SIGN_IN_BUTTON: 'Sidebar-SignInButton',
@@ -8698,6 +8706,9 @@ const CONST = {
                 MORE_DROPDOWN: 'WorkspaceTags-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTags-BulkActionsDropdown',
             },
+            REPORT_FIELDS: {
+                LIST_VALUE_ROW: 'WorkspaceReportFields-ListValueRow',
+            },
             TAXES: {
                 ROW: 'WorkspaceTaxes-Row',
                 ADD_BUTTON: 'WorkspaceTaxes-AddButton',
@@ -9021,6 +9032,12 @@ const CONST = {
         AI_FEATURES_PROMO_MODAL: {
             CONFIRM_BUTTON: 'AIFeaturesPromoModal-ConfirmButton',
             HELP_BUTTON: 'AIFeaturesPromoModal-HelpButton',
+        },
+    },
+
+    AGENTS: {
+        BULK_ACTION_TYPES: {
+            DELETE: 'delete',
         },
     },
 

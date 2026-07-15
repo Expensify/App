@@ -65,14 +65,12 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
     hasAnyTransactionWithoutRTERViolation,
-    hasSmartScanFailedWithMissingFields,
-    hasSubmissionBlockingViolations,
     isDuplicate,
-    isExpensifyCardTransaction,
     isOnHold,
     isPending,
     isScanning,
     isScanningTransaction,
+    isTransactionSubmittable,
 } from '@libs/TransactionUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 
@@ -101,6 +99,7 @@ type ApproveMoneyRequestFunctionParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
+    isTrackIntentUser: boolean | undefined;
     isASAPSubmitBetaEnabled: boolean;
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -121,6 +120,7 @@ type SubmitReportFunctionParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
+    isTrackIntentUser: boolean | undefined;
     isASAPSubmitBetaEnabled: boolean;
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
@@ -281,10 +281,10 @@ function canSubmitReport(
         policy,
     );
     const hasNoSubmittableTransaction =
-        transactions.length > 0 && transactions.every((t) => isScanningTransaction(t) || (isExpensifyCardTransaction(t) && isPending(t)) || hasSmartScanFailedWithMissingFields([t], report));
-    const hasAnySubmissionBlockingViolations = transactions.some((transaction) =>
-        hasSubmissionBlockingViolations(transaction, allViolations, currentUserEmailParam, currentUserAccountID, report, reportOwnerLogin, policy),
-    );
+        transactions.length > 0 &&
+        !transactions.some((transaction) =>
+            isTransactionSubmittable(transaction, report, allViolations, currentUserEmailParam, currentUserAccountID, reportOwnerLogin, policy, isScanningTransaction),
+        );
 
     return (
         isOpenExpenseReport &&
@@ -293,7 +293,6 @@ function canSubmitReport(
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
         !isReportArchived &&
-        !hasAnySubmissionBlockingViolations &&
         transactions.length > 0
     );
 }
@@ -446,6 +445,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         expenseReportPolicy,
         additionalOnyxData,
         shouldPlaySuccessSound = true,
+        isTrackIntentUser,
     } = params;
     if (!expenseReport) {
         return;
@@ -504,6 +504,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
               hasViolations,
               isASAPSubmitBetaEnabled,
               predictedNextStatus,
+              isTrackIntentUser,
           });
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
 
@@ -831,6 +832,7 @@ function reopenReport(
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
+    isTrackIntentUser: boolean | undefined,
 ) {
     if (!expenseReport) {
         return;
@@ -860,6 +862,7 @@ function reopenReport(
         hasViolations,
         isASAPSubmitBetaEnabled,
         isReopen: true,
+        isTrackIntentUser,
     });
     const optimisticReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -1018,6 +1021,7 @@ function retractReport(
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     delegateEmail: string | undefined,
+    isTrackIntentUser: boolean | undefined,
 ) {
     if (!expenseReport) {
         return;
@@ -1045,6 +1049,7 @@ function retractReport(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
     const optimisticReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -1195,6 +1200,7 @@ function unapproveExpenseReport(
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     delegateEmail: string | undefined,
+    isTrackIntentUser: boolean | undefined,
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -1224,6 +1230,7 @@ function unapproveExpenseReport(
         isASAPSubmitBetaEnabled,
         shouldFixViolations: false,
         isUnapprove: true,
+        isTrackIntentUser,
     });
 
     const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
@@ -1369,6 +1376,7 @@ function submitReport({
     submitterLogin,
     managerEmail,
     managerAccountID: managerAccountIDFromPopover,
+    isTrackIntentUser,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1428,6 +1436,7 @@ function submitReport({
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
               bypassNextApproverID: optimisticNextStepApproverID,
+              isTrackIntentUser,
           });
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
@@ -1661,6 +1670,7 @@ function assignReportToMe(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    isTrackIntentUser: boolean | undefined,
 ) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID);
 
@@ -1688,6 +1698,7 @@ function assignReportToMe(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: accountID,
+        isTrackIntentUser,
     });
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
@@ -1776,6 +1787,7 @@ function addReportApprover(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    isTrackIntentUser: boolean | undefined,
 ) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID);
 
@@ -1803,6 +1815,7 @@ function addReportApprover(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: newApproverAccountID,
+        isTrackIntentUser,
     });
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
         optimisticData: [
