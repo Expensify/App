@@ -1065,6 +1065,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Kontrollen anpassen und Ausgaben optimieren',
             setupRules: 'Ausgabelimits einrichten',
             inviteAccountant: 'Lade deine:n Steuerberater:in ein',
+            configureApprovals: 'Genehmigungsworkflow konfigurieren',
             begin: 'Beginnen',
             done: 'Fertig',
             createWorkspaceSubText: 'Workspace bereit für die Einrichtung',
@@ -1077,6 +1078,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Mit Concierge chatten',
             talkToAccountExecutive: 'Sprechen Sie mit Ihrer Kundenbetreuung',
             forGuidedSetup: 'für die geführte Einrichtung.',
+            configureApprovalsSubText: 'Berichtsfreigaben festlegen',
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Kostenlose Testversion: Noch ${days} ${days === 1 ? 'Tag' : 'Tage'}!`,
@@ -1619,6 +1621,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: 'geändert',
         removed: 'entfernt',
         transactionPending: 'Transaktion ausstehend.',
+        transactionPendingDescription: 'Transaktion ausstehend. Es kann einige Tage dauern, bis sie verbucht wird.',
         chooseARate: 'Wähle einen Rückerstattungssatz pro Meile oder Kilometer für den Workspace aus',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} bis ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Gültig ab ${startDate}`,
@@ -2221,18 +2224,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Abmelden',
         restoreStashed: 'Gespeicherten Login wiederherstellen',
         signOutConfirmationText: 'Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.',
-        saveReceiptsConfirmation: {
-            title: 'Belege speichern?',
-            prompt: ({count}: {count: number}) =>
-                `Es ${count === 1 ? 'wird noch 1 Beleg' : `werden noch ${count} Belege`} hochgeladen. Wenn du dich jetzt abmeldest, ${count === 1 ? 'speichern wir ihn' : 'speichern wir sie'} in deinen Fotos, damit du ${count === 1 ? 'ihn' : 'sie'} später zu einer neuen Ausgabe hinzufügen kannst.`,
-            confirm: 'Speichern und abmelden',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Belege speichern?',
-            prompt: ({count}: {count: number}) =>
-                `Es ${count === 1 ? 'wird noch 1 Beleg' : `werden noch ${count} Belege`} hochgeladen. Wenn du dich jetzt abmeldest, ${count === 1 ? 'speichern wir ihn' : 'speichern wir sie'} in deinen Fotos, damit du ${count === 1 ? 'ihn' : 'sie'} später zu einer neuen Ausgabe hinzufügen kannst. Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.`,
-            confirm: 'Speichern und abmelden',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Lesen Sie die <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Nutzungsbedingungen</a> und die <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutzerklärung</a>.`,
         help: 'Hilfe',
@@ -2907,6 +2898,14 @@ ${amount} für ${merchant} – ${date}`,
         title: 'Agenten',
         subtitle: `<muted-text>Agents übernehmen Ihre Workflows für Sie, sodass Sie täglich Stunden zurückgewinnen. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Mehr erfahren</a>.</muted-text>`,
         findAgent: 'Agent suchen',
+        deleteAgentsTitle: () => ({
+            one: 'Agent:in löschen',
+            other: 'Agent:innen löschen',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Sind Sie sicher, dass Sie diese Vermittlerin/diesen Vermittler löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+            other: 'Sind Sie sicher, dass Sie diese Vermittlerinnen/diese Vermittler löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+        }),
         newAgent: 'Neue:r Agent:in',
         emptyAgents: {
             title: 'Keine Agenten erstellt',
@@ -4489,6 +4488,7 @@ ${amount} für ${merchant} – ${date}`,
             deleteConfirmation: 'Möchten Sie diesen Workspace wirklich löschen?',
             deleteWithCardsConfirmation: 'Möchtest du diesen Workspace wirklich löschen? Dadurch werden alle Kartenfeeds und zugewiesenen Karten entfernt.',
             deleteOpenExpensifyCardsError: 'Ihre Firma hat noch Expensify Karten. Bitte <concierge-link>wenden Sie sich an Concierge</concierge-link>, um sie zu entfernen.',
+            deleteTravelInvoicingError: 'Ihr Unternehmen hat die Konsolidierte Reiseabrechnung noch aktiviert.',
             outstandingBalanceWarning:
                 'Sie haben einen offenen Saldo, der beglichen werden muss, bevor Sie Ihren letzten Workspace löschen können. Bitte gehen Sie zu Ihren Abonnementeinstellungen, um die Zahlung abzuschließen.',
             settleBalance: 'Zu Abo wechseln',
@@ -7652,7 +7652,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blockiert' : 'Erlaubt'} ${shownCount > 1 ? 'Kategorien' : 'Kategorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
-                defaultRuleSummary: 'Kategorien einschließlich Erwachsenendienste, Geldautomaten, Glücksspiel und ...',
+                defaultRuleSummary: 'Kategorien einschließlich Erotikdienstleistungen, Geldautomaten, Glücksspiel und Geldüberweisungen',
                 findRule: 'Regel suchen',
                 defaultSection: 'Standard',
                 customRulesSection: 'Benutzerdefinierte Regeln',
@@ -10060,6 +10060,18 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             search: 'Leistungsstärkere Suche auf Mobilgerät, Web und Desktop',
             concierge: 'Integrierte Concierge-AI zur Automatisierung Ihrer Ausgaben',
             chat: 'Bei jeder Ausgabe chatten, um Fragen schnell zu klären',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: 'Möchtest du einen KOSTENLOSEN Mitarbeitertarif?',
+        description: 'Warte nicht, bis dein Unternehmen Expensify einführt. Wir haben einen kostenlosen Tarif nur für dich entwickelt:',
+        confirmText: 'Kostenlosen Tarif holen',
+        dismissText: 'Nein, danke',
+        features: {
+            getReimbursed: 'Schneller erstattet werden – direkt in Expensify',
+            buildReports: 'Erstelle Ausgabenberichte in Sekunden',
+            categorize: 'Kategorisiere deine Ausgaben',
+            inviteBoss: 'Lade deinen Chef ein, wenn du bereit bist',
         },
     },
     productTrainingTooltip: {
