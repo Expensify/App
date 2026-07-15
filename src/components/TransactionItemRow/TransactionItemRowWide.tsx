@@ -149,6 +149,7 @@ function TransactionItemRowWide({
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
+        const shouldHideTaxValueByRequestType = isTimeRequest(transactionItem) || isPerDiemRequest(transactionItem);
         switch (column) {
             case CONST.SEARCH.TABLE_COLUMNS.TYPE:
                 return (
@@ -510,7 +511,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                     >
-                        <TextCell text={isTimeRequest(transactionItem) || isPerDiemRequest(transactionItem) ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
+                        <TextCell text={shouldHideTaxValueByRequestType ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
@@ -519,13 +520,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_CODE)]}
                     >
-                        <TextCell
-                            text={
-                                isTimeRequest(transactionItem) || isPerDiemRequest(transactionItem) || !isTaxCodeCustomized(transactionItem.taxCode, policy)
-                                    ? ''
-                                    : (transactionItem.taxCode ?? '')
-                            }
-                        />
+                        <TextCell text={shouldHideTaxValueByRequestType || !isTaxCodeCustomized(transactionItem.taxCode, policy) ? '' : (transactionItem.taxCode ?? '')} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.MCC:
@@ -543,7 +538,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, {isTaxAmountColumnWide})]}
                     >
-                        {isTimeRequest(transactionItem) || isPerDiemRequest(transactionItem) ? null : (
+                        {shouldHideTaxValueByRequestType ? null : (
                             <TaxCell
                                 transactionItem={transactionItem}
                                 shouldShowTooltip={shouldShowTooltip}
