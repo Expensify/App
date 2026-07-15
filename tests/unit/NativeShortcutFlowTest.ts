@@ -31,7 +31,7 @@ describe('NativeShortcutFlow', () => {
             ['URL that only partially matches the shortcut path', 'new-expensify://create/start/1/123456789/scan'],
             ['shortcut-like path with an unknown request type', 'new-expensify://create/create/start/1/123456789/per-diem'],
             ['bare route that only partially matches the shortcut path', 'create/start/1/123456789/scan'],
-            ['path where create/create is part of a longer segment', 'foocreate/create/start/1/123456789/scan'],
+            ['path where create/create is part of a longer segment', 'recreate/create/start/1/123456789/scan'],
             ['empty string', ''],
         ])('does not mark the flow for the %s', (_description, url) => {
             markNativeShortcutFlowIfNeeded(url);
