@@ -1,3 +1,4 @@
+import {searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -7,7 +8,7 @@ import {useMemo} from 'react';
 
 import useOnyx from './useOnyx';
 
-function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, searchHash: number | undefined, enabled: boolean, areAllMatchingItemsSelected = false) {
+function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, enabled: boolean, areAllMatchingItemsSelected = false) {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
 
     const shouldCalculateTotals = useMemo(() => {
@@ -43,10 +44,11 @@ function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, search
         ];
 
         const isSuggestedSearchWithTotals = eligibleSearchKeys.includes(searchKey);
-        const isSavedSearch = searchHash !== undefined && savedSearches && !!savedSearches[searchHash];
+        const savedSearchID = searchKeyToSavedSearchID(searchKey);
+        const isSavedSearch = savedSearchID !== undefined && savedSearches && !!savedSearches[savedSearchID];
 
         return isSuggestedSearchWithTotals || isSavedSearch;
-    }, [enabled, savedSearches, searchKey, searchHash, areAllMatchingItemsSelected]);
+    }, [enabled, savedSearches, searchKey, areAllMatchingItemsSelected]);
 
     return shouldCalculateTotals ?? false;
 }

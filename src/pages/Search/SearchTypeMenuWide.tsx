@@ -98,12 +98,7 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
             title={translate(section.translationPath)}
             badgeText={getSectionBadgeText(section.translationPath, reportCounts)}
         >
-            {isSavedSearchesSection && (
-                <SavedSearchList
-                    hash={hash}
-                    areAllSectionsExpanded={areAllSectionsExpanded}
-                />
-            )}
+            {isSavedSearchesSection && <SavedSearchList areAllSectionsExpanded={areAllSectionsExpanded} />}
             {!isSavedSearchesSection &&
                 section.menuItems.map((item, itemIndex) => {
                     const flattenedIndex = sectionStartIndex + itemIndex;

@@ -125,7 +125,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const menuAnchorRef = useRef<View>(null);
     const {showDeleteModal} = useDeleteSavedSearch();
 
-    const {copiedHash, handleShare} = useShareSavedSearch();
+    const {copiedID, handleShare} = useShareSavedSearch();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Receipt',
@@ -151,7 +151,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
     const savedSearchesPopoverMenuItems: Record<string, PopoverMenuItem[]> = {};
-    let activeKey = '';
 
     const savedSearchesTabItems: TabSelectorBaseItem[] = savedSearches
         ? Object.entries(savedSearches)
@@ -162,22 +161,28 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                   const title = item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name;
 
-                  queryMap.set(key, {query: item.query ?? '', name: item.name});
-                  const itemHash = Number(key);
-                  savedSearchesPopoverMenuItems[key] = getOverflowMenu(expensifyIcons, title, itemHash, item.query, translate, showDeleteModal, true, () => setSavedSearchToModifyKey(null), {
-                      onShare: () => {
-                          handleShare(itemHash, item.query);
-                          setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
+                  const savedSearchKey = `${CONST.SEARCH.SAVED_SEARCH_PREFIX}${key}`;
+                  queryMap.set(savedSearchKey, {query: item.query ?? '', name: item.name});
+                  savedSearchesPopoverMenuItems[savedSearchKey] = getOverflowMenu(
+                      expensifyIcons,
+                      title,
+                      key,
+                      item.query,
+                      translate,
+                      showDeleteModal,
+                      true,
+                      () => setSavedSearchToModifyKey(null),
+                      {
+                          onShare: () => {
+                              handleShare(key, item.query);
+                              setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
+                          },
+                          isCopied: copiedID === key,
                       },
-                      isCopied: copiedHash === itemHash,
-                  });
-
-                  if (Number(key) === queryJSON?.hash) {
-                      activeKey = key;
-                  }
+                  );
 
                   return {
-                      key,
+                      key: savedSearchKey,
                       icon: expensifyIcons.Bookmark,
                       title,
                       isDisabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -203,9 +208,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                     badgeText,
                 });
                 queryMap.set(item.key, {query: item.searchQuery});
-                if (item.key === activeTypeMenuKey) {
-                    activeKey = item.key;
-                }
             }
         }
     }
