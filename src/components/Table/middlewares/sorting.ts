@@ -1,6 +1,6 @@
 import type {SetStateAction} from 'react';
 
-import {useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 
 import type {Middleware, MiddlewareHookResult} from './types';
 
@@ -102,7 +102,7 @@ function useSorting<T, ColumnKey extends string = string>({
         [shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting],
     );
 
-    const toggleColumnSorting: SortingMethods<ColumnKey>['toggleColumnSorting'] = (columnKey) => {
+    const toggleColumnSorting: SortingMethods<ColumnKey>['toggleColumnSorting'] = useCallback((columnKey) => {
         setUserSorting((previousSorting) => {
             const columnKeyToUse = columnKey ?? previousSorting.columnKey;
             const orderToUse = previousSorting.order === 'asc' ? 'desc' : 'asc';
@@ -112,19 +112,20 @@ function useSorting<T, ColumnKey extends string = string>({
                 order: orderToUse,
             };
         });
-    };
+    }, []);
 
-    const getActiveSorting: SortingMethods<ColumnKey>['getActiveSorting'] = () => {
-        return activeSorting;
-    };
+    const getActiveSorting: SortingMethods<ColumnKey>['getActiveSorting'] = useCallback(() => activeSorting, [activeSorting]);
 
-    const middleware: Middleware<T> = (data) => sort({data, activeSorting, compareItems});
+    const middleware: Middleware<T> = useCallback((data) => sort({data, activeSorting, compareItems}), [activeSorting, compareItems]);
 
-    const methods: SortingMethods<ColumnKey> = {
-        updateSorting: setUserSorting,
-        toggleColumnSorting,
-        getActiveSorting,
-    };
+    const methods: SortingMethods<ColumnKey> = useMemo(
+        () => ({
+            updateSorting: setUserSorting,
+            toggleColumnSorting,
+            getActiveSorting,
+        }),
+        [toggleColumnSorting, getActiveSorting],
+    );
 
     return {middleware, activeSorting, methods};
 }

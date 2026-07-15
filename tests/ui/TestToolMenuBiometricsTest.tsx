@@ -79,6 +79,11 @@ jest.mock('@libs/ApiUtils', () => ({
     getCommandURL: () => 'https://test-api.expensify.com/api/Ping?',
 }));
 
+let mockIsAgentAccount = false;
+jest.mock('@libs/SessionUtils', () => ({
+    useIsAgentAccount: () => mockIsAgentAccount,
+}));
+
 const mockExecuteScenario = jest.fn().mockResolvedValue(undefined);
 jest.mock('@components/MultifactorAuthentication/Context', () => ({
     useMultifactorAuthentication: () => ({
@@ -192,6 +197,7 @@ function setBiometricStatus(overrides: Partial<typeof mockBiometricStatus>) {
 describe('TestToolMenu biometrics', () => {
     afterEach(() => {
         jest.clearAllMocks();
+        mockIsAgentAccount = false;
     });
 
     it('renders biometrics title with "Never registered" status', () => {
@@ -301,5 +307,15 @@ describe('TestToolMenu biometrics', () => {
 
         expect(mockDismissModal).not.toHaveBeenCalled();
         expect(mockExecuteScenario).toHaveBeenCalledWith(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
+    });
+
+    it('hides the biometrics test row for agent accounts', () => {
+        mockIsAgentAccount = true;
+        setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
+
+        render(<TestToolMenu />);
+
+        expect(screen.queryByText(/troubleshootBiometricsStatus/)).toBeNull();
+        expect(screen.queryByText('multifactorAuthentication.biometricsTest.test')).toBeNull();
     });
 });
