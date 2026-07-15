@@ -76,8 +76,9 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.VENDORS}
             shouldBeBlocked={!isFeatureAvailable}
         >
             <ScreenWrapper

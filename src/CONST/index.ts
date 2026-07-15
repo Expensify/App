@@ -3928,6 +3928,7 @@ const CONST = {
             EXPENSIFY_CARD: 'expensifyCard',
             COMPANY_CARDS: 'companyCards',
             CATEGORIES: 'categories',
+            VENDORS: 'vendors',
             TAGS: 'tags',
             TAXES: 'taxes',
             RULES: 'rules',
