@@ -4,6 +4,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
 import type AgentPrompt from './AgentPrompt';
 import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
@@ -426,5 +427,6 @@ export type {
     DeviceBiometrics,
     LocallyProcessed3DSChallengeReviews,
     InitiatingBankAccountUnlock,
+    AgentNewAvatarDraft,
     AgentPrompt,
 };

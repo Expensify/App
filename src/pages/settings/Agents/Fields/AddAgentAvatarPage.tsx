@@ -1,7 +1,11 @@
+import useOnyx from '@hooks/useOnyx';
+
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {getInitialPresetID, getReturnRoute, setPendingAvatar} from '@pages/settings/Agents/pendingAgentAvatarStore';
+import {setNewAgentAvatarPreset, setNewAgentUploadedAvatar} from '@userActions/Agent';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -11,16 +15,21 @@ import type {OnSaveParams} from './EditAgentAvatarPage';
 import {EditAgentAvatarContent} from './EditAgentAvatarPage';
 
 function AddAgentAvatarPage() {
-    const returnRoute = getReturnRoute() ?? ROUTES.SETTINGS_AGENTS_ADD.getRoute();
-    const initialPresetID = getInitialPresetID();
+    const returnRoute = ROUTES.SETTINGS_AGENTS_ADD.getRoute();
+    const [avatarDraft] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
+    const initialPresetID = avatarDraft?.customExpensifyAvatarID;
 
     const handleSave = (params: OnSaveParams) => {
-        if ('customExpensifyAvatarID' in params) {
-            setPendingAvatar({type: 'preset', id: params.customExpensifyAvatarID});
-        } else {
-            setPendingAvatar({type: 'file', file: params.file, uri: params.uri});
-        }
-        Navigation.goBack(returnRoute);
+        // Wait for the async draft write to persist before navigating back, so a quick "Create agent" tap doesn't read a stale draft.
+        const savePromise = 'customExpensifyAvatarID' in params ? setNewAgentAvatarPreset(params.customExpensifyAvatarID) : setNewAgentUploadedAvatar(params.file);
+
+        savePromise
+            .catch((error: unknown) => {
+                Log.warn('Failed to persist the new-agent avatar draft', {error});
+            })
+            .finally(() => {
+                Navigation.goBack(returnRoute);
+            });
     };
 
     return (
