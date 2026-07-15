@@ -13,7 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {canReportBeMentionedWithinPolicy, isConciergeChatReport, isGroupChat, isPolicyRelatedReport, isReportParticipant} from '@libs/ReportUtils';
+import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getSortedPersonalDetails, trimLeadingSpace} from '@libs/SuggestionUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
@@ -342,7 +342,7 @@ function SuggestionMention({
 
     const getUserMentionOptions = useCallback(
         (searchValue = ''): Mention[] => {
-            const shouldWeightDetails = isGroupChat(currentReport) || isConciergeChatReport(currentReport, conciergeReportID) || isPolicyRelatedReport(currentReport, policyID);
+            const shouldWeightDetails = isGroupChat(currentReport) || doesReportBelongToWorkspace(currentReport, policyID, conciergeReportID);
 
             let personalDetailsParam: PersonalDetailsList | SuggestionPersonalDetailsList | undefined;
 

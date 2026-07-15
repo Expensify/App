@@ -1932,6 +1932,14 @@ function isPolicyRelatedReport(report: OnyxEntry<Report>, policyID?: string) {
 }
 
 /**
+ * Checks if the supplied report is the workspace's own chat (or concierge). Intentionally limited to cheap field
+ * comparisons — do not add policy member lookups here.
+ */
+function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyID: string | undefined, conciergeReportID: string | undefined) {
+    return isConciergeChatReport(report, conciergeReportID) || isPolicyRelatedReport(report, policyID);
+}
+
+/**
  * Checks if a report is a self-DM or belongs to a self-DM context
  * (including moved reports and threads within self-DMs)
  */
@@ -13577,6 +13585,7 @@ export {
     chatIncludesChronosWithID,
     chatIncludesConcierge,
     createDraftTransactionAndNavigateToParticipantSelector,
+    doesReportBelongToWorkspace,
     shouldEnableNegative,
     findLastAccessedReport,
     findSelfDMReportID,

@@ -4,13 +4,12 @@ import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {
+    doesReportBelongToWorkspace,
     getBankAccountRoute,
     getInvoiceReceiverPolicyID,
-    isConciergeChatReport,
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
     isInvoiceReport as isInvoiceReportUtil,
-    isPolicyRelatedReport,
 } from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -79,7 +78,7 @@ function usePaymentOptions({
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
-    const reportBelongsToWorkspace = policyID ? isConciergeChatReport(chatReport, conciergeReportID) || isPolicyRelatedReport(chatReport, policyID) : false;
+    const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyID, conciergeReportID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
     const lastPaymentMethodSelector = useCallback(
         (paymentMethod: OnyxEntry<LastPaymentMethod>) => {
