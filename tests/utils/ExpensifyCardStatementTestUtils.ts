@@ -50,6 +50,7 @@ function makeSettlementGroup(overrides: Partial<SearchWithdrawalIDGroup> = {}): 
         policyID: 'policy1',
         feedCountry: 'US',
         fundID: 1,
+        canExportStatement: true,
         ...overrides,
     };
 }

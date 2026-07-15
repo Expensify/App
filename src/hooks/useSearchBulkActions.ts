@@ -36,14 +36,13 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
-import {getDomainByFundID} from '@libs/CardUtils';
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
-import type {CanExportSettlementFeed, ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
+import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {canMemberWrite, getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -94,7 +93,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import {isAdminSelector} from '@src/selectors/Domain';
 import {doesPersonalDetailExistSelector} from '@src/selectors/PersonalDetails';
 import type {BillingGraceEndPeriod, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
@@ -380,7 +378,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -569,22 +566,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const {hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-    const expensifyCardStatementSelection = useMemo(() => {
-        // The statement export is admin-only. Mirror Auth's authorization: a settlement scoped to one workspace is
-        // exportable by a user who can manage that workspace's Expensify Card (admin or card admin); a cross-workspace
-        // settlement (no policyID) is exportable by an admin of the feed's domain.
-        const canExportSettlementFeed: CanExportSettlementFeed = (policyID, fundID) => {
-            if (policyID) {
-                return canMemberWrite(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
-            }
-            if (fundID) {
-                return isAdminSelector(accountID)(getDomainByFundID(domains, fundID));
-            }
-            return false;
-        };
-
-        return getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchResults?.data, canExportSettlementFeed);
-    }, [queryJSON, searchResults?.data, selectedTransactions, policies, currentUserLogin, domains, accountID]);
+    const expensifyCardStatementSelection = useMemo(
+        () => getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchResults?.data),
+        [queryJSON, searchResults?.data, selectedTransactions],
+    );
 
     // PopoverMenu snapshots its items, so onSelected can run detached from the current render. Read the
     // latest selection from a ref so the request reflects what is selected now, not what was when the menu

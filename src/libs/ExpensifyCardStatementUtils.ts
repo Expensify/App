@@ -108,9 +108,6 @@ function isWithdrawalIDGroup(value: SearchResultDataType[keyof SearchResultDataT
     return typeof value === 'object' && value !== null && 'entryID' in value && typeof value.entryID === 'number';
 }
 
-/** Decides whether the current user may export a settlement's feed, given the settlement's workspace and feed. */
-type CanExportSettlementFeed = (policyID: string | undefined, fundID: number | undefined) => boolean;
-
 function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchWithdrawalIDGroup[] {
     if (!searchData) {
         return [];
@@ -155,7 +152,6 @@ function getExpensifyCardStatementSelection(
     queryJSON: SearchQueryJSON | undefined,
     selectedTransactions: SelectedTransactions | undefined,
     searchData: SearchResultDataType | undefined,
-    canExportSettlementFeed: CanExportSettlementFeed,
 ): ExpensifyCardStatementSelection | undefined {
     if (!isExpensifyCardStatementSearch(queryJSON) || !selectedTransactions) {
         return undefined;
@@ -173,13 +169,10 @@ function getExpensifyCardStatementSelection(
         return undefined;
     }
 
-    // The statement export is admin-only, so drop any selected settlement the user cannot export. This keeps the
-    // action from being offered for a settlement the backend would reject with a 401 (e.g. a cardholder who can see
-    // the settlement in search but does not administer its feed). A settlement scoped to one workspace is gated on
-    // that workspace's card permission; a cross-workspace settlement is gated on being an admin of the feed's domain.
-    const selectedSettlementGroups = getSelectedSettlementGroups(selectedTransactions, searchData).filter((settlementGroup) =>
-        canExportSettlementFeed(settlementGroup.policyID, settlementGroup.fundID),
-    );
+    // The statement export is admin-only. The backend already knows whether the current user may export each
+    // settlement (it applies the same authorization when generating the PDF) and stamps canExportStatement on the
+    // group, so drop any selected settlement the user cannot export rather than re-deriving admin access on the client.
+    const selectedSettlementGroups = getSelectedSettlementGroups(selectedTransactions, searchData).filter((settlementGroup) => settlementGroup.canExportStatement);
     if (selectedSettlementGroups.length === 0) {
         return undefined;
     }
@@ -246,5 +239,5 @@ function downloadExpensifyCardStatementPDF(
     fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
 }
 
-export type {CanExportSettlementFeed, ExpensifyCardStatementParams};
+export type {ExpensifyCardStatementParams};
 export {downloadExpensifyCardStatementPDF, getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch};

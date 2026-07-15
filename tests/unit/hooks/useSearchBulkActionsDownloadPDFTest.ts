@@ -14,7 +14,7 @@ import {getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUt
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain, SearchResults} from '@src/types/onyx';
+import type {SearchResults} from '@src/types/onyx';
 import type {SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
 
 import Onyx from 'react-native-onyx';
@@ -241,8 +241,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: 'Report 1',
         });
-        // The statement export is admin-only, so the current user must be an admin of the settlement's workspace for
-        // the action to appear.
+        // The settlements are on policy1; provide the policy so the bulk-action hook can resolve it.
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
             id: 'policy1',
             role: CONST.POLICY.ROLE.ADMIN,
@@ -476,10 +475,8 @@ describe('useSearchBulkActions - Download as PDF', () => {
             [groupKey]: makeSettlementGroup({count: 2}),
         });
 
-        // The settlement is on policy1; the user must be able to manage that workspace's card for the export to show.
-        expect(
-            getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, mockSelectedTransactions, mockCurrentSearchResults?.data, (policyID) => policyID === 'policy1'),
-        ).toBeDefined();
+        // The settlement is backend-marked exportable (makeSettlementGroup defaults canExportStatement), so the action shows.
+        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, mockSelectedTransactions, mockCurrentSearchResults?.data)).toBeDefined();
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
@@ -629,13 +626,9 @@ describe('useSearchBulkActions - Download as PDF', () => {
         };
         mockCurrentSearchResults = makeCurrentSearchResults({
             // A cross-workspace settlement has no single policyID; it is still exportable as the whole settlement. The
-            // settlement's feed (fundID) resolves to a domain the current user administers - see the domain_ merge below.
-            [groupKey]: makeSettlementGroup({total: 100, policyID: undefined, fundID: 1}),
+            // backend marks it exportable (makeSettlementGroup defaults canExportStatement) for an admin of its feed.
+            [groupKey]: makeSettlementGroup({total: 100, policyID: undefined}),
         });
-        // The export is admin-only. For a cross-workspace settlement it is offered only when the user is an admin of
-        // the feed's domain; the feed fundID 1 maps to domain_1, admin'd by the current user.
-        const adminDomain = {[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${CURRENT_USER_ACCOUNT_ID}`]: CURRENT_USER_ACCOUNT_ID} as unknown as Domain;
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}1`, adminDomain);
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: unscopedExpensifyCardStatementQueryJSON}));
 
