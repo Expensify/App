@@ -15,6 +15,7 @@ import {
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,
     getRulesSubmitterToFirstApprover,
+    getRulesSubmitterToWorkflowKey,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
     reconcileApprovalWorkflowRulesForEdit,
@@ -1884,6 +1885,41 @@ describe('WorkflowUtils', () => {
                 const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1, 2])));
 
                 expect(getRulesSubmitterToFirstApprover(rules)).toEqual({'5@example.com': '1@example.com'});
+            });
+        });
+
+        describe('getRulesSubmitterToWorkflowKey', () => {
+            // Submitters 2 and 3 share the full chain 1 -> 8, while 4 shares only the first approver (1) but
+            // then diverges to 9. The workflow key must group 2 and 3 together and set 4 apart, so callers can
+            // tell a real cross-workflow move from a same-first-approver re-add.
+            const rules: Record<string, ApprovalWorkflowRule> = {
+                sub2: {triggers: submitTriggers, filters: buildFromFilter(['2@example.com']), actions: forwardActions('1@example.com')},
+                app2at1: {triggers: approveTriggers, filters: and(buildFromFilter(['2@example.com']), buildToFilter('1@example.com')), actions: forwardActions('8@example.com')},
+                app2at8: {triggers: approveTriggers, filters: and(buildFromFilter(['2@example.com']), buildToFilter('8@example.com')), actions: approveActions},
+                sub3: {triggers: submitTriggers, filters: buildFromFilter(['3@example.com']), actions: forwardActions('1@example.com')},
+                app3at1: {triggers: approveTriggers, filters: and(buildFromFilter(['3@example.com']), buildToFilter('1@example.com')), actions: forwardActions('8@example.com')},
+                app3at8: {triggers: approveTriggers, filters: and(buildFromFilter(['3@example.com']), buildToFilter('8@example.com')), actions: approveActions},
+                sub4: {triggers: submitTriggers, filters: buildFromFilter(['4@example.com']), actions: forwardActions('1@example.com')},
+                app4at1: {triggers: approveTriggers, filters: and(buildFromFilter(['4@example.com']), buildToFilter('1@example.com')), actions: forwardActions('9@example.com')},
+                app4at9: {triggers: approveTriggers, filters: and(buildFromFilter(['4@example.com']), buildToFilter('9@example.com')), actions: approveActions},
+            };
+
+            it('Should give submitters with identical chains the same key', () => {
+                const keys = getRulesSubmitterToWorkflowKey(rules);
+
+                expect(keys['2@example.com']).toBe(keys['3@example.com']);
+            });
+
+            it('Should give submitters that share a first approver but diverge later different keys', () => {
+                const keys = getRulesSubmitterToWorkflowKey(rules);
+
+                // All three route to approver 1 first, so first-approver alone cannot distinguish them.
+                expect(getRulesSubmitterToFirstApprover(rules)).toEqual({
+                    '2@example.com': '1@example.com',
+                    '3@example.com': '1@example.com',
+                    '4@example.com': '1@example.com',
+                });
+                expect(keys['4@example.com']).not.toBe(keys['2@example.com']);
             });
         });
 

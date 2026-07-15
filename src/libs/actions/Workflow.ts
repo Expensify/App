@@ -534,10 +534,12 @@ type SelectApprovalWorkflowForEditParams = {
     usedApproverEmails: string[];
     /** Override for the approvers list (the Edit page uses this to seed an optimistic agent). */
     approvers?: Approver[];
+    /** Identity anchor of the member whose workflow is being edited, preserved across sub-page back routes. */
+    memberEmail?: string;
 };
 
 /** Commits a workflow to onyx in EDIT mode so any sub-page can be entered directly, skipping the Edit RHP. */
-function selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers, usedApproverEmails, approvers}: SelectApprovalWorkflowForEditParams) {
+function selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers, usedApproverEmails, approvers, memberEmail}: SelectApprovalWorkflowForEditParams) {
     setApprovalWorkflow({
         ...workflow,
         approvers: approvers ?? workflow.approvers,
@@ -546,6 +548,7 @@ function selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers, usedAp
         action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
         errors: null,
         originalApprovers: workflow.approvers,
+        memberEmail,
     });
 }
 

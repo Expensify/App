@@ -26,7 +26,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {canMemberWrite, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getApprovalWorkflowRulesForPolicy, getRulesSubmitterToFirstApprover} from '@libs/WorkflowUtils';
+import {approverChainFingerprint, getApprovalWorkflowRulesForPolicy, getRulesSubmitterToFirstApprover, getRulesSubmitterToWorkflowKey} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -131,6 +131,18 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         }
         return map;
     })();
+
+    // Beta only: identity (full approver-chain fingerprint) of each submitter's current workflow, plus the
+    // identity of the workflow being edited. Comparing these — instead of just first approvers — lets us warn
+    // before moving a member out of a workflow that merely shares its first approver with this one.
+    const submitterToWorkflowKey = (() => {
+        if (!isMultipleApproversBetaEnabled) {
+            return undefined;
+        }
+        const rules = getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID);
+        return new Map(Object.entries(getRulesSubmitterToWorkflowKey(rules, policy?.employeeList ?? {})));
+    })();
+    const currentWorkflowKey = approverChainFingerprint(approvalWorkflow?.originalApprovers ?? []);
 
     useEffect(() => {
         if (!approvalWorkflow?.members) {
@@ -495,7 +507,14 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 const newMember = members.find((m) => !selectedMembers.some((s) => s.login === m.login));
                 const existingApproverEmail = newMember?.login ? membersInExistingWorkflows.get(newMember.login) : undefined;
 
-                if (newMember && existingApproverEmail && existingApproverEmail !== firstApprover) {
+                // With the beta on, compare full workflow identities so a member that submits to the same
+                // first approver but through a different chain is still treated as a cross-workflow move.
+                // Legacy has no diverging chains here, so first-approver comparison is enough.
+                const belongsToDifferentWorkflow = isMultipleApproversBetaEnabled
+                    ? !!newMember?.login && !!submitterToWorkflowKey?.get(newMember.login) && submitterToWorkflowKey.get(newMember.login) !== currentWorkflowKey
+                    : !!existingApproverEmail && existingApproverEmail !== firstApprover;
+
+                if (newMember && existingApproverEmail && belongsToDifferentWorkflow) {
                     const memberName = Str.removeSMSDomain(newMember.text ?? newMember.login ?? '');
                     const approverDetails = getPersonalDetailByEmail(existingApproverEmail);
                     const approverName = Str.removeSMSDomain(approverDetails?.displayName ?? existingApproverEmail);
@@ -526,6 +545,8 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             firstApprover,
             selectedMembers,
             membersInExistingWorkflows,
+            submitterToWorkflowKey,
+            currentWorkflowKey,
             showConfirmModal,
             translate,
         ],

@@ -1432,6 +1432,31 @@ function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflow
 }
 
 /**
+ * Map every submitter found in the rules to a stable identity of the workflow they belong to (a fingerprint
+ * of their full approver chain). Unlike `getRulesSubmitterToFirstApprover`, this distinguishes workflows that
+ * share a first approver but diverge later, so callers can detect a genuine cross-workflow move rather than
+ * treating "same first approver" as "same workflow".
+ */
+function getRulesSubmitterToWorkflowKey(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}): Record<string, string> {
+    const submitters = new Set<string>();
+    for (const rule of Object.values(rules)) {
+        for (const email of extractSubmitterEmails(rule)) {
+            submitters.add(email);
+        }
+    }
+
+    const result: Record<string, string> = {};
+    for (const submitter of submitters) {
+        // The fingerprint ignores display/avatar fields, so personal details aren't needed here.
+        const chain = buildApproverChainFromRules({submitter, rules, employees, personalDetailsByEmail: {}});
+        if (chain.length > 0) {
+            result[submitter] = approverChainFingerprint(chain);
+        }
+    }
+    return result;
+}
+
+/**
  * Beta-enabled counterpart to `convertPolicyEmployeesToApprovalWorkflows`: rebuild the same
  * `PolicyConversionResult` from `params.rules`, falling back to `employeeList` for any chain step the
  * rules don't cover.
@@ -1580,6 +1605,7 @@ function convertApprovalWorkflowRulesToWorkflows({
 
 export {
     applyApprovalWorkflowRulesDiff,
+    approverChainFingerprint,
     buildApprovalWorkflowRules,
     calculateApprovers,
     convertApprovalWorkflowRulesToWorkflows,
@@ -1588,6 +1614,7 @@ export {
     getApprovalLimitDescription,
     getApprovalWorkflowRulesForPolicy,
     getRulesSubmitterToFirstApprover,
+    getRulesSubmitterToWorkflowKey,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,

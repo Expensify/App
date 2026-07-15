@@ -186,6 +186,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             workflow: currentApprovalWorkflow,
             defaultWorkflowMembers,
             usedApproverEmails,
+            memberEmail: route.params.memberEmail,
         });
         // Snapshot for diffing on save; runs alongside selectApprovalWorkflowForEdit above.
         setInitialApprovalWorkflow(currentApprovalWorkflow);
@@ -197,6 +198,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         policy,
         route.params.policyID,
         route.params.firstApproverEmail,
+        route.params.memberEmail,
         approvalWorkflow?.action,
         approvalWorkflow?.originalApprovers,
         isLoadingApprovalWorkflow,
