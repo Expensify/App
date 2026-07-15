@@ -1,4 +1,4 @@
-import useKeyboardDismissibleFlatListValues from '@components/KeyboardDismissibleFlatList/useKeyboardDismissibleFlatListValues';
+import useKeyboardDismissibleFlashListValues from '@components/KeyboardDismissibleFlashList/useKeyboardDismissibleFlashListValues';
 
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -9,7 +9,7 @@ import type UseOfflineIndicatorKeyboardHandlingStyles from './types';
 
 const useOfflineIndicatorKeyboardHandlingStyles: UseOfflineIndicatorKeyboardHandlingStyles = () => {
     const StyleUtils = useStyleUtils();
-    const {keyboardHeight} = useKeyboardDismissibleFlatListValues();
+    const {keyboardHeight} = useKeyboardDismissibleFlashListValues();
     const {paddingBottom} = useSafeAreaPaddings(true);
 
     return useAnimatedStyle(() => StyleUtils.getOfflineIndicatorKeyboardHandlingStyles(keyboardHeight, paddingBottom));

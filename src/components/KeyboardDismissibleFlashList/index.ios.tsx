@@ -15,6 +15,7 @@ function KeyboardDismissibleFlashList<T>({onScroll: onScrollProp, ref, ...restPr
     const onScroll = useComposedEventHandler([onScrollHandleKeyboard, onScrollProp ?? null]);
 
     const invertedListAnimatedProps = useAnimatedProps(() => {
+        'worklet';
         return {
             contentInset: {
                 top: keyboardHeight.get(),
@@ -27,6 +28,7 @@ function KeyboardDismissibleFlashList<T>({onScroll: onScrollProp, ref, ...restPr
     });
 
     const regularListAnimatedProps = useAnimatedProps(() => {
+        'worklet';
         return {
             contentInset: {
                 bottom: keyboardHeight.get(),

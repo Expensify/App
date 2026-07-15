@@ -1,12 +1,15 @@
+import KeyboardDismissibleFlashList from '@components/KeyboardDismissibleFlashList';
+
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 
-import type {FlashListProps} from '@shopify/flash-list';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {FlashList as ShopifyFlashList} from '@shopify/flash-list';
 import React from 'react';
 
-function FlashList<T>({onScroll: onScrollProp, inverted, ...restProps}: FlashListProps<T>) {
+import type {CustomFlashListProps} from './types';
+
+function FlashList<T>({enableAnimatedKeyboardDismissal, onScroll: onScrollProp, inverted, ...restProps}: CustomFlashListProps<T>) {
     const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true, inverted});
 
     const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -14,6 +17,17 @@ function FlashList<T>({onScroll: onScrollProp, inverted, ...restProps}: FlashLis
         // Emit scroll events so that ActiveHoverable can suppress hover effects during scroll
         emitComposerScrollEvents();
     };
+
+    if (enableAnimatedKeyboardDismissal) {
+        return (
+            <KeyboardDismissibleFlashList
+                {...restProps}
+                inverted={inverted}
+                // Composer scroll events are emitted in `KeyboardDismissibleFlatList` separately, therefore we pass the `onScroll` prop instead of the `handleScroll` callback.
+                onScroll={onScrollProp}
+            />
+        );
+    }
 
     return (
         <ShopifyFlashList<T>

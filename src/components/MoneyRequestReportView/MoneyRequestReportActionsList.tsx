@@ -1,5 +1,5 @@
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
-import useKeyboardDismissibleFlatListValues from '@components/KeyboardDismissibleFlatList/useKeyboardDismissibleFlatListValues';
+import useKeyboardDismissibleFlashListValues from '@components/KeyboardDismissibleFlashList/useKeyboardDismissibleFlashListValues';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -123,7 +123,7 @@ function MoneyRequestReportActionsList({onLayout, composerHeight = 0}: MoneyRequ
     const {unmodifiedPaddings} = useSafeAreaPaddings();
     const {isKeyboardActive} = useKeyboardState();
     const StyleUtils = useStyleUtils();
-    const {contentSizeHeight, layoutMeasurementHeight, keyboardHeight, scrollY} = useKeyboardDismissibleFlatListValues();
+    const {contentSizeHeight, layoutMeasurementHeight, keyboardHeight, scrollY} = useKeyboardDismissibleFlashListValues();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportIDFromRoute = route?.params?.reportID;
 

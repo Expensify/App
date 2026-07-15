@@ -1,4 +1,4 @@
-import useKeyboardDismissibleFlatListValues from '@components/KeyboardDismissibleFlatList/useKeyboardDismissibleFlatListValues';
+import useKeyboardDismissibleFlashListValues from '@components/KeyboardDismissibleFlashList/useKeyboardDismissibleFlashListValues';
 
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -12,7 +12,7 @@ import type {UseReportFooterStyles} from './types';
 
 const useReportFooterStyles: UseReportFooterStyles = ({composerHeight, headerHeight, isComposerFullSize}) => {
     const StyleUtils = useStyleUtils();
-    const {keyboardHeight} = useKeyboardDismissibleFlatListValues();
+    const {keyboardHeight} = useKeyboardDismissibleFlashListValues();
     const {unmodifiedPaddings} = useSafeAreaPaddings();
     const {isKeyboardActive} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();

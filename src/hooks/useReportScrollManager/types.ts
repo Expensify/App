@@ -44,5 +44,4 @@ type ScrollToBottomHandlerParams = ScrollToCommonParams & {
     scrollPositionRef: RefObject<{offset: number}>;
 };
 
-export type {ScrollToIndexOptions, ScrollToBottomHandlerParams, ScrollToOffsetHandlerParams};
-export default ReportScrollManagerData;
+export type {ReportScrollManagerData, ScrollToIndexOptions, ScrollToBottomHandlerParams, ScrollToOffsetHandlerParams};
