@@ -1,7 +1,9 @@
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
@@ -18,6 +20,7 @@ import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated, Transac
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
 import Button from './Button';
@@ -50,6 +53,8 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
+    const personalPolicy = usePersonalPolicy();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -57,6 +62,8 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [chatReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${chatReport?.policyID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
     const [transactions] = useTransactionsByID([...selectedIds]);
     const transactionsCollection: OnyxCollection<Transaction> = Object.fromEntries(
         transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction]),
@@ -85,6 +92,8 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         personalDetails,
                         betas,
                         policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
+                        delegateAccountID,
+                        isTrackIntentUser,
                     });
                 } else {
                     changeTransactionsReport({
@@ -100,6 +109,8 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         transactions,
                         allTransactionViolation: transactionViolations,
                         reports,
+                        isTrackIntentUser,
+                        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     });
                 }
             },

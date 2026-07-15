@@ -22,6 +22,8 @@ import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
     value: string;
@@ -113,6 +115,7 @@ function useReportSelectionActions({
         transactions.map((transactionItem) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, transactionItem]),
     );
     const reports = useChangeTransactionsReportReports(transaction?.transactionID ? [transaction.transactionID] : [], transactionsCollection, undefined);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
     const targetTransactions = transaction ? [transaction] : [];
@@ -216,6 +219,8 @@ function useReportSelectionActions({
                         transactions: targetTransactions,
                         allTransactionViolation: transactionViolations,
                         reports: reportsForCall,
+                        isTrackIntentUser,
+                        personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -240,6 +245,8 @@ function useReportSelectionActions({
                     transactions: targetTransactions,
                     allTransactionViolation: transactionViolations,
                     reports,
+                    isTrackIntentUser,
+                    personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                 });
                 removeTransaction(transaction.transactionID);
             },

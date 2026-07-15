@@ -62,4 +62,4 @@ SEATBELT_FROZEN="${SEATBELT_FROZEN:-0}" \
 
 # Fail if a new inline eslint-disable bypasses the Onyx.connect() ban (rulesdir/no-onyx-connect),
 # checking the same targets as ESLint above. Reached only when ESLint itself passes (set -e).
-exec npx ts-node scripts/checkOnyxConnectBypass.ts "${PASSTHROUGH_ARGS[@]}"
+exec bun scripts/checkOnyxConnectBypass.ts "${PASSTHROUGH_ARGS[@]}"

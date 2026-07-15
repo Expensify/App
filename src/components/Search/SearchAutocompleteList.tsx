@@ -99,6 +99,19 @@ const defaultListOptions = {
 
 const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
 
+// A DM's keyForList changes from the accountID to the reportID once its report loads from search, which would move the
+// row between sections. To keep it stable, key DMs and personal details by accountID instead. We can't do this for every
+// account-backed option though: task/expense reports also carry an accountID, and keying them by it would let them
+// masquerade as the DM row for the same person. So only DMs and personal details use the accountID; everything else
+// keeps its reportID/keyForList. The `account-` prefix keeps accountIDs from clashing with reportIDs.
+function getStableRankKey(option: {accountID?: number | null; keyForList?: string; reportID?: string; isDM?: boolean}): string | undefined {
+    const isDMOrPersonalDetail = !!option.isDM || !option.reportID;
+    if (isDMOrPersonalDetail && option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID) {
+        return `account-${option.accountID}`;
+    }
+    return option.keyForList ?? option.reportID ?? undefined;
+}
+
 const emptyOptionList = {
     reports: [],
     personalDetails: [],
@@ -398,7 +411,7 @@ function SearchAutocompleteList({
         return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, searchOptions]);
 
-    // Locked rank map (keyForList -> originalIndex) capturing the order of locally-known
+    // Locked rank map (stable key -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
     // reports merged into Onyx later do not shift the rows already visible in the top section.
     const [frozenLocalRank, setFrozenLocalRank] = useState<ReadonlyMap<string, number>>(EMPTY_RANK_MAP);
@@ -407,7 +420,7 @@ function SearchAutocompleteList({
     const buildRankMap = (options: OptionData[]): Map<string, number> => {
         const rank = new Map<string, number>();
         for (const [index, option] of options.entries()) {
-            const key = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
+            const key = getStableRankKey(option);
             if (key) {
                 rank.set(key, index);
             }
@@ -519,7 +532,8 @@ function SearchAutocompleteList({
             const localRows: AutocompleteListItem[] = [];
             const serverRows: AutocompleteListItem[] = [];
             for (const item of nextStyledRecentReports) {
-                if (item.keyForList && frozenLocalRank.has(item.keyForList)) {
+                const stableKey = getStableRankKey(item);
+                if (stableKey && frozenLocalRank.has(stableKey)) {
                     localRows.push(item);
                 } else {
                     serverRows.push(item);
@@ -527,7 +541,7 @@ function SearchAutocompleteList({
             }
             // Sort the local section by the rank captured at query-change time so it cannot
             // reorder when the API returns.
-            localRows.sort((a, b) => (frozenLocalRank.get(a.keyForList ?? '') ?? 0) - (frozenLocalRank.get(b.keyForList ?? '') ?? 0));
+            localRows.sort((a, b) => (frozenLocalRank.get(getStableRankKey(a) ?? '') ?? 0) - (frozenLocalRank.get(getStableRankKey(b) ?? '') ?? 0));
 
             if (localRows.length > 0 || !isLoadingOptions) {
                 pushSection({title: translate('search.recentChats'), data: localRows, sectionIndex: sectionIndex++});
