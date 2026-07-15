@@ -18,19 +18,28 @@ import React, {useMemo} from 'react';
 
 import wrapDescriptorsWithFreeze from './wrapDescriptorsWithFreeze';
 
-function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
-    displayName: string,
-    options?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>,
-) {
-    const createRouter = options?.createRouter ?? StackRouter;
-    const useCustomState = options?.useCustomState ?? (() => undefined);
-    const defaultScreenOptions = options?.defaultScreenOptions;
-    const ExtraContent = options?.ExtraContent;
-    const NavigationContentWrapper = options?.NavigationContentWrapper;
-    const useCustomEffects = options?.useCustomEffects ?? (() => undefined);
-    const freezeNonTopScreens = options?.freezeNonTopScreens;
+type PlatformNavigatorBindings<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = {
+    createRouter: NonNullable<CreatePlatformStackNavigatorComponentOptions<RouterOptions>['createRouter']>;
+    useCustomState: NonNullable<CreatePlatformStackNavigatorComponentOptions<RouterOptions>['useCustomState']>;
+    defaultScreenOptions?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['defaultScreenOptions'];
+    ExtraContent?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['ExtraContent'];
+    NavigationContentWrapper?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['NavigationContentWrapper'];
+    useCustomEffects: NonNullable<CreatePlatformStackNavigatorComponentOptions<RouterOptions>['useCustomEffects']>;
+    freezeNonTopScreens?: boolean;
+    displayName: string;
+};
 
-    function PlatformNavigator({
+function createPlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>({
+    createRouter,
+    useCustomState,
+    defaultScreenOptions,
+    ExtraContent,
+    NavigationContentWrapper,
+    useCustomEffects,
+    freezeNonTopScreens,
+    displayName,
+}: PlatformNavigatorBindings<RouterOptions>) {
+    function PlatformNavigatorImpl({
         id,
         initialRouteName,
         screenOptions,
@@ -41,7 +50,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
         parentRoute,
         persistentScreens,
         ...props
-    }: PlatformStackNavigatorProps<ParamListBase>) {
+    }: PlatformStackNavigatorProps<ParamListBase, RouterOptions>) {
         const {
             navigation,
             state: originalState,
@@ -128,9 +137,34 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
 
         return NavigationContentWrapper === undefined ? Content : <NavigationContentWrapper {...customCodePropsWithCustomState}>{Content}</NavigationContentWrapper>;
     }
-    PlatformNavigator.displayName = displayName;
 
-    return PlatformNavigator;
+    return PlatformNavigatorImpl;
+}
+
+function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
+    displayName: string,
+    options?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>,
+) {
+    const PlatformNavigatorImpl = createPlatformNavigatorImpl<RouterOptions>({
+        createRouter: (options?.createRouter ?? StackRouter) as NonNullable<CreatePlatformStackNavigatorComponentOptions<RouterOptions>['createRouter']>,
+        useCustomState: (options?.useCustomState ?? (() => undefined)) as NonNullable<CreatePlatformStackNavigatorComponentOptions<RouterOptions>['useCustomState']>,
+        defaultScreenOptions: options?.defaultScreenOptions,
+        ExtraContent: options?.ExtraContent,
+        NavigationContentWrapper: options?.NavigationContentWrapper,
+        useCustomEffects: (options?.useCustomEffects ?? (() => undefined)) as NonNullable<CreatePlatformStackNavigatorComponentOptions<RouterOptions>['useCustomEffects']>,
+        freezeNonTopScreens: options?.freezeNonTopScreens,
+        displayName,
+    });
+
+    function PlatformNavigator(props: PlatformStackNavigatorProps<ParamListBase>) {
+        return <PlatformNavigatorImpl {...props} />;
+    }
+
+    // OXC's React Compiler does not memoize this generated navigator on web; memoize it explicitly.
+    const MemoizedPlatformNavigator = React.memo(PlatformNavigator);
+    MemoizedPlatformNavigator.displayName = displayName;
+
+    return MemoizedPlatformNavigator;
 }
 
 export default createPlatformStackNavigatorComponent;
