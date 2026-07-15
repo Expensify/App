@@ -6,10 +6,14 @@ import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
 
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {isValidElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 function resolveIconComponent(asset: IconAsset | undefined, fallback: IconAsset = PlaceholderIcon): IconAsset {
-    return typeof asset === 'function' ? asset : fallback;
+    if (asset == null || isValidElement(asset)) {
+        return fallback;
+    }
+
+    return asset;
 }
 
 type LazyAssetResult<T> = {
