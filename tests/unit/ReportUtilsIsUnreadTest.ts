@@ -44,7 +44,6 @@ describe('ReportUtils.isUnread - unconfirmedReadWindow reconciliation', () => {
 
     function buildReport(overrides: Partial<Report>): Report {
         // The cast is contained to this helper: tests only need the handful of fields isUnread() reads.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         return {
             reportID,
             type: 'chat',
@@ -55,7 +54,6 @@ describe('ReportUtils.isUnread - unconfirmedReadWindow reconciliation', () => {
 
     function buildCommentAction(overrides: Partial<ReportAction>): ReportAction {
         // Same containment rationale as buildReport.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         return {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             reportActionID: '100',
@@ -65,6 +63,11 @@ describe('ReportUtils.isUnread - unconfirmedReadWindow reconciliation', () => {
             shouldShow: true,
             ...overrides,
         } as ReportAction;
+    }
+
+    /** Keys report actions by their reportActionID (IDs are numeric strings, so literal keys would trip naming-convention lint). */
+    function buildActionsMap(...actions: ReportAction[]): Record<string, ReportAction> {
+        return Object.fromEntries(actions.map((action) => [action.reportActionID, action]));
     }
 
     it("returns false (read) when the newest action is the current user's own message and no window is recorded", () => {
@@ -84,10 +87,13 @@ describe('ReportUtils.isUnread - unconfirmedReadWindow reconciliation', () => {
         const otherUserMessageTime = '2026-01-01 10:30:00.000';
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {unconfirmedReadWindow: {from: staleReadTime, to: bumpedReadTime}});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            '100': buildCommentAction({reportActionID: '100', created: otherUserMessageTime, actorAccountID: otherUserAccountID}),
-            '101': buildCommentAction({reportActionID: '101', created: bumpedReadTime, actorAccountID: currentUserAccountID}),
-        });
+        await Onyx.merge(
+            `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            buildActionsMap(
+                buildCommentAction({reportActionID: '100', created: otherUserMessageTime, actorAccountID: otherUserAccountID}),
+                buildCommentAction({reportActionID: '101', created: bumpedReadTime, actorAccountID: currentUserAccountID}),
+            ),
+        );
         await waitForBatchedUpdates();
 
         const report = buildReport({
@@ -104,9 +110,10 @@ describe('ReportUtils.isUnread - unconfirmedReadWindow reconciliation', () => {
         const bumpedReadTime = '2026-01-01 12:00:00.000';
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {unconfirmedReadWindow: {from: staleReadTime, to: bumpedReadTime}});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            '101': buildCommentAction({reportActionID: '101', created: bumpedReadTime, actorAccountID: currentUserAccountID}),
-        });
+        await Onyx.merge(
+            `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            buildActionsMap(buildCommentAction({reportActionID: '101', created: bumpedReadTime, actorAccountID: currentUserAccountID})),
+        );
         await waitForBatchedUpdates();
 
         const report = buildReport({
@@ -125,10 +132,13 @@ describe('ReportUtils.isUnread - unconfirmedReadWindow reconciliation', () => {
         const otherUserMessageTime = '2026-01-01 08:00:00.000';
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {unconfirmedReadWindow: {from: staleReadTime, to: bumpedReadTime}});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            '99': buildCommentAction({reportActionID: '99', created: otherUserMessageTime, actorAccountID: otherUserAccountID}),
-            '101': buildCommentAction({reportActionID: '101', created: bumpedReadTime, actorAccountID: currentUserAccountID}),
-        });
+        await Onyx.merge(
+            `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            buildActionsMap(
+                buildCommentAction({reportActionID: '99', created: otherUserMessageTime, actorAccountID: otherUserAccountID}),
+                buildCommentAction({reportActionID: '101', created: bumpedReadTime, actorAccountID: currentUserAccountID}),
+            ),
+        );
         await waitForBatchedUpdates();
 
         const report = buildReport({
@@ -165,9 +175,10 @@ describe('ReportUtils.isUnread - unconfirmedReadWindow reconciliation', () => {
         const onlineReadTime = '2026-01-01 14:00:00.000';
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {unconfirmedReadWindow: {from: staleReadTime, to: bumpedReadTime}});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            '100': buildCommentAction({reportActionID: '100', created: otherUserMessageTime, actorAccountID: otherUserAccountID}),
-        });
+        await Onyx.merge(
+            `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            buildActionsMap(buildCommentAction({reportActionID: '100', created: otherUserMessageTime, actorAccountID: otherUserAccountID})),
+        );
         // The user opened the report online: readNewestAction clears the window and advances lastReadTime.
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {unconfirmedReadWindow: null});
         await waitForBatchedUpdates();
