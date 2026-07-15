@@ -3,7 +3,8 @@ import useTheme from '@hooks/useTheme';
 
 import CONST from '@src/CONST';
 
-import React, {useState} from 'react';
+import {NavigationContext} from '@react-navigation/core';
+import React, {useContext, useRef} from 'react';
 import {Easing, interpolate, interpolateColor, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
@@ -71,11 +72,13 @@ export default function useAnimatedHighlightStyle({
     shouldApplyOtherStyles = true,
     skipInitialFade = false,
 }: Props) {
-    const [startHighlight, setStartHighlight] = useState(false);
+    const prevShouldHighlightRef = useRef(false);
+    const pendingPlayRef = useRef(false);
     const repeatableProgress = useSharedValue(0);
     const initialNonRepeatableProgressValue = skipInitialFade || !shouldHighlight ? 1 : 0;
     const nonRepeatableProgress = useSharedValue(initialNonRepeatableProgressValue);
-    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const {didScreenTransitionEnd, shouldUseNarrowLayout} = useScreenWrapperTransitionStatus();
+    const navigation = useContext(NavigationContext);
     const theme = useTheme();
 
     const highlightBackgroundStyle = useAnimatedStyle(() => {
@@ -92,43 +95,55 @@ export default function useAnimatedHighlightStyle({
     }, [borderRadius, height, backgroundColor, highlightColor, theme.appBG, theme.border]);
 
     React.useEffect(() => {
-        if (!shouldHighlight || startHighlight) {
+        if (shouldHighlight && !prevShouldHighlightRef.current) {
+            pendingPlayRef.current = true;
+        } else if (!shouldHighlight && pendingPlayRef.current) {
+            pendingPlayRef.current = false;
+            nonRepeatableProgress.set(withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}));
+        }
+        prevShouldHighlightRef.current = shouldHighlight;
+        if (!pendingPlayRef.current || !didScreenTransitionEnd) {
             return;
         }
-        setStartHighlight(true);
-        // We only need to add shouldHighlight as a dependency and adding startHighlight as deps will cause a loop because
-        // if shouldHighlight stays at true the above early return will not be executed and this useEffect will be run
-        // as long as shouldHighlight is true as we set startHighlight to false in the below useEffect.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shouldHighlight]);
+        const play = () => {
+            if (!pendingPlayRef.current) {
+                return;
+            }
+            pendingPlayRef.current = false;
+            scheduleOnRN(() => {
+                nonRepeatableProgress.set(
+                    withDelay(
+                        itemEnterDelay,
+                        withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}, (finished) => {
+                            if (!finished) {
+                                return;
+                            }
 
-    React.useEffect(() => {
-        if (!startHighlight || !didScreenTransitionEnd) {
+                            repeatableProgress.set(
+                                withSequence(
+                                    withDelay(highlightStartDelay, withTiming(1, {duration: highlightStartDuration, easing: Easing.inOut(Easing.ease)})),
+                                    withDelay(highlightEndDelay, withTiming(0, {duration: highlightEndDuration, easing: Easing.inOut(Easing.ease)})),
+                                ),
+                            );
+                        }),
+                    ),
+                );
+            });
+        };
+        if (!navigation || !shouldUseNarrowLayout || navigation.isFocused()) {
+            play();
             return;
         }
-        setStartHighlight(false);
-        scheduleOnRN(() => {
-            nonRepeatableProgress.set(
-                withDelay(
-                    itemEnterDelay,
-                    withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}, (finished) => {
-                        if (!finished) {
-                            return;
-                        }
-
-                        repeatableProgress.set(
-                            withSequence(
-                                withDelay(highlightStartDelay, withTiming(1, {duration: highlightStartDuration, easing: Easing.inOut(Easing.ease)})),
-                                withDelay(highlightEndDelay, withTiming(0, {duration: highlightEndDuration, easing: Easing.inOut(Easing.ease)})),
-                            ),
-                        );
-                    }),
-                ),
-            );
+        const unsubscribe = navigation.addListener('focus', () => {
+            play();
+            unsubscribe();
         });
+        return unsubscribe;
     }, [
+        shouldHighlight,
         didScreenTransitionEnd,
-        startHighlight,
+        navigation,
+        shouldUseNarrowLayout,
         itemEnterDelay,
         itemEnterDuration,
         highlightStartDelay,

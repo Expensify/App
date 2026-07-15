@@ -10,6 +10,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -146,9 +147,10 @@ function ScreenWrapper({
     // We disable legacy bottom safe area padding handling, if we are using edge-to-edge mode.
     const includeSafeAreaPaddingBottom = isUsingEdgeToEdgeMode ? false : includeSafeAreaPaddingBottomProp;
     const isSafeAreaTopPaddingApplied = includePaddingTop;
+    const {shouldUseNarrowLayout: shouldUseNarrowLayoutOnWideRHP} = useResponsiveLayoutOnWideRHP();
     const statusContextValue = useMemo(
-        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
-        [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
+        () => ({didScreenTransitionEnd, shouldUseNarrowLayout: shouldUseNarrowLayoutOnWideRHP, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
+        [didScreenTransitionEnd, shouldUseNarrowLayoutOnWideRHP, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
     );
 
     // This context allows us to disable the safe area padding offsetting the offline indicator in scrollable components like 'ScrollView', 'SelectionList' or 'FormProvider'.

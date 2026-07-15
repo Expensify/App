@@ -52,7 +52,6 @@ import {
 
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
 
-import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
@@ -614,8 +613,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isTrackIntentUser,
             });
             const targetReportID = backToReport ?? activeReportID;
-            // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
-            const isOneToTwoTransition = !backToReport && isOneToTwoTransactionTransition(isMoneyRequestReport, reportTransactions);
 
             if (result && targetReportID) {
                 navigateAfterExpenseCreate({
@@ -623,7 +620,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     transactionID: result.transactionID,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                     hasMultipleTransactions: reportTransactions.length > 0,
-                    shouldAddPendingNewTransactionIDs: (shouldHandleNavigation && targetReportID === chatReportID) || isOneToTwoTransition,
+                    shouldAddPendingNewTransactionIDs: shouldHandleNavigation && targetReportID === chatReportID,
                     shouldNavigate: shouldHandleNavigation,
                 });
             }

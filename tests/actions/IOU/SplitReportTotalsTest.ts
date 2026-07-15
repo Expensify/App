@@ -65,8 +65,8 @@ jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
     addPendingNewTransactionIDs: jest.fn(),
+    buildPendingNewTransactionFlag: jest.fn((transactionID: string) => ({[transactionID]: 1})),
     deletePendingNewTransactionIDs: jest.fn(),
-    isOneToTwoTransactionTransition: jest.fn(() => false),
 }));
 // In production, requestMoney defers its API.write() call until the target screen's
 // content lays out (or a safety timeout fires). In tests there is no target component

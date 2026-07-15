@@ -42,7 +42,9 @@ const decorators = [
                 SearchContextProvider,
             ]}
         >
-            <ScreenWrapperStatusContext.Provider value={{didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}>
+            <ScreenWrapperStatusContext.Provider
+                value={{didScreenTransitionEnd: true, shouldUseNarrowLayout: false, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}
+            >
                 <Story />
             </ScreenWrapperStatusContext.Provider>
         </ComposeProviders>

@@ -81,6 +81,7 @@ import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantP
 import type {GPSPoint} from './types/TrackExpenseTransactionParams';
 
 import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports} from './index';
+import {buildPendingNewTransactionFlag} from './PendingNewTransactions';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 
 type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
@@ -675,17 +676,18 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    // Flag for the highlight rail only when the add makes the report multi-tx (its table fresh-mounts with the tx present, so the diff misses it); never the first tx (0→1), which would leave a stale flag; no successData (races the mount).
-    const existingReportTransactions = iou.report?.reportID
-        ? getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID)
-        : [];
+    const reportTransactionsFromCache = iou.report?.reportID ? getReportTransactions(iou.report.reportID) : [];
+    const isTransactionAlreadyOnReport = reportTransactionsFromCache.some((reportTransaction) => reportTransaction.transactionID === transaction.transactionID);
+    const existingReportTransactions = reportTransactionsFromCache.filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID);
     const addMakesReportMultiTransaction =
-        isMoneyRequestReport(iou.report) && existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        isMoneyRequestReport(iou.report) &&
+        !isTransactionAlreadyOnReport &&
+        ((iou.report?.transactionCount ?? 0) >= 2 || existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
     if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && addMakesReportMultiTransaction) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {pendingNewTransactionIDs: {[transaction.transactionID]: true}},
+            value: {pendingNewTransactionIDs: buildPendingNewTransactionFlag(transaction.transactionID)},
         });
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,

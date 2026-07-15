@@ -3,7 +3,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
 import NAVIGATORS from '@src/NAVIGATORS';
 
 import {useRoute} from '@react-navigation/native';
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 import type {RHPWidth} from '..';
 
@@ -27,17 +27,17 @@ function useRHPWidth(width: RHPWidth) {
 
     const onClose = () => {
         removeRHPRouteKey(route);
-        // Clear the one-shot hint on unmount so it can't pin the report wide on a later visit.
-        if (reportID) {
-            unmarkReportRHPWidth(reportID);
-        }
         // When the RHP has been closed, expandedRHPProgress should be set to 0.
         if (navigationRef?.getRootState()?.routes?.at(-1)?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             expandedRHPProgress.setValue(0);
         }
     };
 
-    useEffect(() => () => onClose(), [onClose]);
+    const onCloseRef = useRef(onClose);
+    useEffect(() => {
+        onCloseRef.current = onClose;
+    }, [onClose]);
+    useEffect(() => () => onCloseRef.current(), []);
 
     // Register the width; a higher hint outranks the caller so the screen opens pre-marked before its data loads.
     useEffect(() => {
@@ -46,7 +46,14 @@ function useRHPWidth(width: RHPWidth) {
         setRHPWidth(route, effectiveWidth);
     }, [width, reportID, route, setRHPWidth, getReportRHPWidthHint]);
 
-    // Clear the hint once the caller's width reaches it; onClose handles the never-reached case.
+    useEffect(() => {
+        if (!reportID) {
+            return;
+        }
+        return () => unmarkReportRHPWidth(reportID);
+    }, [reportID, unmarkReportRHPWidth]);
+
+    // Clear the hint once the caller's width reaches it; the effect above handles the never-reached case.
     useEffect(() => {
         if (!reportID) {
             return;

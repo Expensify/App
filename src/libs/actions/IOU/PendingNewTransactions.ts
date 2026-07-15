@@ -1,13 +1,9 @@
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type Transaction from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
 
-// The 1→2 transaction transition causes MoneyRequestReportActionsList to fresh-mount, breaking diff-based new transaction detection.
-// This helper detects that transition so callers can register pending IDs for the fallback highlight path.
-function isOneToTwoTransactionTransition(isMoneyRequestReport: boolean, transactions: Transaction[]) {
-    return isMoneyRequestReport && transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === 1;
+function buildPendingNewTransactionFlag(transactionID: string): Record<string, number> {
+    return {[transactionID]: Date.now()};
 }
 
 function addPendingNewTransactionIDs(reportID: string | undefined, transactionID: string | undefined) {
@@ -16,7 +12,7 @@ function addPendingNewTransactionIDs(reportID: string | undefined, transactionID
     }
 
     // We are saving in object form so that consecutive onyx merge will not reset previous value.
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs: {[transactionID]: true}});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs: buildPendingNewTransactionFlag(transactionID)});
 }
 
 function deletePendingNewTransactionIDs(reportID: string | undefined, transactionIDs: string[]) {
@@ -31,4 +27,4 @@ function deletePendingNewTransactionIDs(reportID: string | undefined, transactio
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs});
 }
 
-export {addPendingNewTransactionIDs, deletePendingNewTransactionIDs, isOneToTwoTransactionTransition};
+export {addPendingNewTransactionIDs, buildPendingNewTransactionFlag, deletePendingNewTransactionIDs};

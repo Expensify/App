@@ -1,11 +1,17 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import useNewTransactions from '@hooks/useNewTransactions';
 
+import {deletePendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
+
 import CONST from '@src/CONST';
+import type {PendingNewTransactions} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
 
-// Keep the rail-cleanup timer from touching Onyx; tests assert on whether it is scheduled, not on the merge itself.
+function rail(activeIDs: string[], expiredIDs: string[] = []): PendingNewTransactions {
+    return {activeIDs: Object.fromEntries(activeIDs.map((id) => [id, true as const])), expiredIDs};
+}
+
 jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
     deletePendingNewTransactionIDs: jest.fn(),
 }));
@@ -290,6 +296,31 @@ describe('useNewTransactions with transactions in cache', () => {
         expect(result.current).toEqual([newTransaction]);
     });
 
+    it('stops surfacing a diff-detected add after its highlight window, so a row remount cannot replay it', () => {
+        jest.useFakeTimers();
+        try {
+            const {rerender, result} = renderHook((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions), {
+                initialProps: {
+                    hasOnceLoadedReportActions: true,
+                    transactions: transactionsAlreadyInReport,
+                },
+            });
+
+            rerender({
+                hasOnceLoadedReportActions: true,
+                transactions: [...transactionsAlreadyInReport, newTransaction],
+            });
+            expect(result.current).toEqual([newTransaction]);
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+            expect(result.current).toEqual([]);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
     it('returns new transactions when adding transactions to empty report', async () => {
         // 1. Report and transactions data is loaded from Onyx
         const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; hasOnceLoadedReportActions: boolean}>(
@@ -373,23 +404,21 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
     };
 
     it('returns pending new transactions on first load when submitted from another report', () => {
-        // Simulates: user submitted expense from Self DM to workspace, then navigated to workspace chat.
-        // The transaction is already in the transactions list by the time the component mounts.
         // 1. Component mounts, report not loaded yet, but transaction is already in Onyx
         const {rerender, result} = renderHook<
             Transaction[],
             {
                 transactions: Transaction[];
                 hasOnceLoadedReportActions: boolean;
-                pendingNewTransactionIDs: Record<string, true | null> | undefined;
-                isFocused?: boolean;
+                pendingNewTransactionIDs: PendingNewTransactions | undefined;
+                isReportVisible?: boolean;
             }
-        >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs, '1', props.isFocused), {
+        >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs, '1', props.isReportVisible), {
             initialProps: {
                 hasOnceLoadedReportActions: false,
                 transactions: [],
-                pendingNewTransactionIDs: {[newTransaction.transactionID]: true},
-                isFocused: true,
+                pendingNewTransactionIDs: rail([newTransaction.transactionID]),
+                isReportVisible: true,
             },
         });
         expect(result.current).toEqual([]);
@@ -398,10 +427,9 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         rerender({
             hasOnceLoadedReportActions: true,
             transactions: [...transactionsAlreadyInReport, newTransaction],
-            pendingNewTransactionIDs: {[newTransaction.transactionID]: true},
-            isFocused: true,
+            pendingNewTransactionIDs: rail([newTransaction.transactionID]),
+            isReportVisible: true,
         });
-        // The pending transaction should be detected even though it was present from the first load
         expect(result.current).toEqual([newTransaction]);
 
         // 3. On subsequent renders, the pending transaction should not be returned again
@@ -409,19 +437,18 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
             hasOnceLoadedReportActions: true,
             transactions: [...transactionsAlreadyInReport, newTransaction],
             pendingNewTransactionIDs: undefined,
-            isFocused: true,
+            isReportVisible: true,
         });
         expect(result.current).toEqual([]);
     });
 
     it('does not highlight transactions without pendingNewTransactionIDs', () => {
-        // Normal navigation to a report (no cross-navigation pending IDs)
         const {rerender, result} = renderHook<
             Transaction[],
             {
                 transactions: Transaction[];
                 hasOnceLoadedReportActions: boolean;
-                pendingNewTransactionIDs: Record<string, true | null> | undefined;
+                pendingNewTransactionIDs: PendingNewTransactions | undefined;
             }
         >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs), {
             initialProps: {
@@ -446,7 +473,7 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
             Transaction[],
             {
                 transactions: Transaction[];
-                pendingNewTransactionIDs: Record<string, true | null> | undefined;
+                pendingNewTransactionIDs: PendingNewTransactions | undefined;
             }
         >((props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true), {
             initialProps: {
@@ -464,7 +491,7 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
 
         rerender({
             transactions: stableTransactions,
-            pendingNewTransactionIDs: {[newTransaction.transactionID]: true},
+            pendingNewTransactionIDs: rail([newTransaction.transactionID]),
         });
         expect(result.current).toEqual([newTransaction]);
     });
@@ -478,15 +505,15 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
             {
                 transactions: Transaction[];
                 hasOnceLoadedReportActions: boolean;
-                pendingNewTransactionIDs: Record<string, true | null> | undefined;
-                isFocused?: boolean;
+                pendingNewTransactionIDs: PendingNewTransactions | undefined;
+                isReportVisible?: boolean;
             }
-        >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs, 'report1', props.isFocused), {
+        >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs, 'report1', props.isReportVisible), {
             initialProps: {
                 hasOnceLoadedReportActions: true,
                 transactions: [originalTx, duplicateTx],
                 pendingNewTransactionIDs: undefined,
-                isFocused: true,
+                isReportVisible: true,
             },
         });
         expect(result.current).toEqual([]);
@@ -495,15 +522,15 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
             hasOnceLoadedReportActions: true,
             transactions: [originalTx, duplicateTx],
             pendingNewTransactionIDs: undefined,
-            isFocused: true,
+            isReportVisible: true,
         });
         expect(result.current).toEqual([]);
 
         rerender({
             hasOnceLoadedReportActions: true,
             transactions: [originalTx, duplicateTx],
-            pendingNewTransactionIDs: {[duplicateTx.transactionID]: true},
-            isFocused: true,
+            pendingNewTransactionIDs: rail([duplicateTx.transactionID]),
+            isReportVisible: true,
         });
         expect(result.current).toEqual([duplicateTx]);
 
@@ -511,38 +538,36 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
             hasOnceLoadedReportActions: true,
             transactions: [originalTx, duplicateTx],
             pendingNewTransactionIDs: undefined,
-            isFocused: true,
+            isReportVisible: true,
         });
         expect(result.current).toEqual([]);
     });
 
     it('falls through to the diff when the rail holds only cleared tombstones', () => {
-        // A {clearedID: null} rail is not "active": a later add (e.g. Pusher/import) without its own flag must still be caught by the diff.
         const [existingTx] = transactionsAlreadyInReport;
         const pusherTx = newTransaction;
         const {rerender, result} = renderHook<
             Transaction[],
             {
                 transactions: Transaction[];
-                pendingNewTransactionIDs: Record<string, true | null>;
+                pendingNewTransactionIDs: PendingNewTransactions;
             }
         >((props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true), {
             initialProps: {
                 transactions: [existingTx],
-                pendingNewTransactionIDs: {[existingTx.transactionID]: null},
+                pendingNewTransactionIDs: rail([], [existingTx.transactionID]),
             },
         });
         expect(result.current).toEqual([]);
 
         rerender({
             transactions: [existingTx, pusherTx],
-            pendingNewTransactionIDs: {[existingTx.transactionID]: null},
+            pendingNewTransactionIDs: rail([], [existingTx.transactionID]),
         });
         expect(result.current).toEqual([pusherTx]);
     });
 
     it('unions a rail-flagged add with a concurrent unflagged diff add (Pusher landing inside the cleanup delay)', () => {
-        // A rail flag (txB) must not make the branch swallow a concurrent unflagged diff add (txC) — both highlight, txB first.
         const [existingTx] = transactionsAlreadyInReport;
         const txB = {
             transactionID: 'B',
@@ -564,32 +589,32 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
             Transaction[],
             {
                 transactions: Transaction[];
-                pendingNewTransactionIDs: Record<string, true | null>;
+                pendingNewTransactionIDs: PendingNewTransactions;
             }
         >((props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true), {
             initialProps: {
                 transactions: [existingTx],
-                pendingNewTransactionIDs: {},
+                pendingNewTransactionIDs: rail([]),
             },
         });
         expect(result.current).toEqual([]);
 
         rerender({
             transactions: [existingTx, txB],
-            pendingNewTransactionIDs: {B: true},
+            pendingNewTransactionIDs: rail(['B']),
         });
         expect(result.current).toEqual([txB]);
 
         rerender({
             transactions: [existingTx, txB, txC],
-            pendingNewTransactionIDs: {B: true},
+            pendingNewTransactionIDs: rail(['B']),
         });
         expect(result.current).toEqual([txB, txC]);
         expect(result.current.at(0)).toBe(txB);
     });
 });
 
-describe('useNewTransactions with an unfocused report', () => {
+describe('useNewTransactions with a covered report', () => {
     const transactionsAlreadyInReport = [
         {
             transactionID: '2',
@@ -617,14 +642,13 @@ describe('useNewTransactions with an unfocused report', () => {
         merchant: '',
     };
 
-    it('returns newly added transactions even when the report is unfocused', () => {
-        // The diff emits regardless of focus — the consumer gates visibility, not this hook.
-        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; isFocused: boolean}>(
-            (props) => useNewTransactions(true, props.transactions, undefined, 'report1', props.isFocused),
+    it('returns newly added transactions even when the report is not visible', () => {
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; isReportVisible: boolean}>(
+            (props) => useNewTransactions(true, props.transactions, undefined, 'report1', props.isReportVisible),
             {
                 initialProps: {
                     transactions: transactionsAlreadyInReport,
-                    isFocused: false,
+                    isReportVisible: false,
                 },
             },
         );
@@ -632,20 +656,18 @@ describe('useNewTransactions with an unfocused report', () => {
 
         rerender({
             transactions: [...transactionsAlreadyInReport, newTransaction],
-            isFocused: false,
+            isReportVisible: false,
         });
         expect(result.current).toEqual([newTransaction]);
     });
 
-    it('emits a flagged add regardless of focus (the consumer gates visibility)', () => {
-        // The hook marks the row new continuously; the report table gates the highlight on visibility, not this hook.
+    it('emits a flagged add even when the report is not visible', () => {
         const allTransactions = [...transactionsAlreadyInReport, newTransaction];
-        const {result} = renderHook(() => useNewTransactions(true, allTransactions, {[newTransaction.transactionID]: true}, 'report1', false));
+        const {result} = renderHook(() => useNewTransactions(true, allTransactions, rail([newTransaction.transactionID]), 'report1', false));
         expect(result.current).toEqual([newTransaction]);
     });
 
     it('keeps an earlier pending transaction highlighted continuously when a second one is added', () => {
-        // Adding a later transaction must not drop the earlier one out of the result and back in — that flicker would re-fire its highlight animation.
         const txB = {
             transactionID: 'B',
             amount: 100,
@@ -666,38 +688,37 @@ describe('useNewTransactions with an unfocused report', () => {
             Transaction[],
             {
                 transactions: Transaction[];
-                pendingNewTransactionIDs: Record<string, true | null>;
+                pendingNewTransactionIDs: PendingNewTransactions;
             }
         >((props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true), {
             initialProps: {
                 transactions: transactionsAlreadyInReport,
-                pendingNewTransactionIDs: {},
+                pendingNewTransactionIDs: rail([]),
             },
         });
         expect(result.current).toEqual([]);
 
         rerender({
             transactions: [...transactionsAlreadyInReport, txB],
-            pendingNewTransactionIDs: {B: true},
+            pendingNewTransactionIDs: rail(['B']),
         });
         expect(result.current).toEqual([txB]);
 
         rerender({
             transactions: [...transactionsAlreadyInReport, txB],
-            pendingNewTransactionIDs: {B: true},
+            pendingNewTransactionIDs: rail(['B']),
         });
         expect(result.current).toEqual([txB]);
 
         rerender({
             transactions: [...transactionsAlreadyInReport, txB, txC],
-            pendingNewTransactionIDs: {B: true, C: true},
+            pendingNewTransactionIDs: rail(['B', 'C']),
         });
         expect(result.current).toEqual(expect.arrayContaining([txB, txC]));
         expect(result.current).toHaveLength(2);
     });
 
-    it('schedules the rail cleanup only from a focused consumer', () => {
-        // Narrow: only a focused consumer schedules the cleanup; an unfocused one must not clear a flag a later focused mount needs.
+    it('schedules the rail cleanup only from a visible consumer', () => {
         const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
         const txD = {
             transactionID: 'D',
@@ -713,32 +734,146 @@ describe('useNewTransactions with an unfocused report', () => {
             Transaction[],
             {
                 transactions: Transaction[];
-                pendingNewTransactionIDs: Record<string, true | null>;
-                isFocused: boolean;
+                pendingNewTransactionIDs: PendingNewTransactions;
+                isReportVisible: boolean;
             }
-        >((props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', props.isFocused), {
+        >((props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', props.isReportVisible), {
             initialProps: {
                 transactions: transactionsAlreadyInReport,
-                pendingNewTransactionIDs: {D: true},
-                isFocused: false,
+                pendingNewTransactionIDs: rail(['D']),
+                isReportVisible: false,
             },
         });
 
         rerender({
             transactions: [...transactionsAlreadyInReport, txD],
-            pendingNewTransactionIDs: {D: true},
-            isFocused: false,
+            pendingNewTransactionIDs: rail(['D']),
+            isReportVisible: false,
         });
         expect(scheduledCleanups()).toBe(0);
 
         rerender({
             transactions: [...transactionsAlreadyInReport, txD],
-            pendingNewTransactionIDs: {D: true},
-            isFocused: true,
+            pendingNewTransactionIDs: rail(['D']),
+            isReportVisible: true,
         });
         expect(scheduledCleanups()).toBeGreaterThan(0);
 
         setTimeoutSpy.mockRestore();
+    });
+});
+
+describe('useNewTransactions rail cleanup lifecycle', () => {
+    const baseTx: Transaction = {
+        transactionID: 'base',
+        amount: 100,
+        created: '2023-10-01',
+        currency: 'USD',
+        reportID: 'report1',
+        merchant: '',
+    };
+    const railTx: Transaction = {
+        transactionID: 'railTx',
+        amount: 200,
+        created: '2023-10-02',
+        currency: 'USD',
+        reportID: 'report1',
+        merchant: '',
+    };
+
+    beforeEach(() => {
+        jest.mocked(deletePendingNewTransactionIDs).mockClear();
+    });
+
+    it('completes the scheduled rail deletion even if the consumer unmounts first', () => {
+        jest.useFakeTimers();
+        try {
+            const transactions = [baseTx, railTx];
+            const pendingNewTransactions = rail(['railTx']);
+            const {unmount} = renderHook(() => useNewTransactions(true, transactions, pendingNewTransactions, 'report1', true));
+            unmount();
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', ['railTx']);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('sweeps expired flags together with the consumed ones', () => {
+        jest.useFakeTimers();
+        try {
+            const transactions = [baseTx, railTx];
+            const pendingNewTransactions = rail(['railTx'], ['staleTx']);
+            renderHook(() => useNewTransactions(true, transactions, pendingNewTransactions, 'report1', true));
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', ['railTx', 'staleTx']);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('schedules a flag deletion only once while report data keeps changing', () => {
+        jest.useFakeTimers();
+        try {
+            const pendingNewTransactions = rail(['railTx']);
+            const {rerender} = renderHook<Transaction[], {transactions: Transaction[]}>((props) => useNewTransactions(true, props.transactions, pendingNewTransactions, 'report1', true), {
+                initialProps: {transactions: [baseTx, railTx]},
+            });
+
+            rerender({transactions: [baseTx, railTx]});
+            rerender({transactions: [{...baseTx, amount: 150}, railTx]});
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledTimes(1);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('does not misattribute a same-length swap as new on the next addition', () => {
+        const txA = {...baseTx, transactionID: 'A'};
+        const txB = {...baseTx, transactionID: 'B'};
+        const txC = {...baseTx, transactionID: 'C'};
+        const txD = {...baseTx, transactionID: 'D'};
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]}>((props) => useNewTransactions(true, props.transactions, undefined, 'report1', true), {
+            initialProps: {transactions: [txA, txB]},
+        });
+
+        rerender({transactions: [txA, txC]});
+        expect(result.current).toEqual([]);
+
+        rerender({transactions: [txA, txC, txD]});
+        expect(result.current).toEqual([txD]);
+    });
+
+    it('expires a rail-backed diff add in the first window, so it cannot resurface once the rail clears', () => {
+        jest.useFakeTimers();
+        try {
+            const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; pendingNewTransactionIDs: PendingNewTransactions | undefined}>(
+                (props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true),
+                {initialProps: {transactions: [baseTx], pendingNewTransactionIDs: rail(['railTx'])}},
+            );
+
+            rerender({transactions: [baseTx, railTx], pendingNewTransactionIDs: rail(['railTx'])});
+            expect(result.current).toEqual([railTx]);
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+
+            rerender({transactions: [baseTx, railTx], pendingNewTransactionIDs: undefined});
+            expect(result.current).toEqual([]);
+        } finally {
+            jest.useRealTimers();
+        }
     });
 });
 

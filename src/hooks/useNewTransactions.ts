@@ -1,101 +1,118 @@
 import {deletePendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
 
 import CONST from '@src/CONST';
+import type {PendingNewTransactions} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
 
-import {useEffect, useMemo, useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
-import usePrevious from './usePrevious';
-
-// Stable empty result so a "nothing new" return keeps a constant reference (no consumer re-render).
 const EMPTY_TRANSACTIONS: Transaction[] = [];
 
 /**
  * This hook returns new transactions that have been added since the last transactions update.
  * This hook should be used only in the context of highlighting the new transactions on the Report table view.
  *
- * When `pendingNewTransactionIDs` is provided, those transactions will be treated as new even on the
+ * When `pendingNewTransactions` is provided, its active transactions will be treated as new even on the
  * first load. This handles the case where a transaction was created before the component mounts
  * (e.g., submitting a tracked expense from Self DM to a workspace on Web).
- *
- * It marks a row "new" continuously, regardless of focus — the consumer gates when to show the highlight (e.g. only while the report is visible), keeping this hook free of layout concerns.
  */
 function useNewTransactions(
     hasOnceLoadedReportActions: boolean | undefined,
     transactions: Transaction[] | undefined,
-    pendingNewTransactionIDs?: Record<string, true | null>,
+    pendingNewTransactions?: PendingNewTransactions,
     reportID?: string,
-    isFocused?: boolean,
+    isReportVisible?: boolean,
 ) {
-    // If we haven't loaded report yet we set previous transaction ids to undefined.
-    const prevTransactions = usePrevious(hasOnceLoadedReportActions ? transactions : undefined);
-
-    // We need to skip the first transactions change, to avoid highlighting transactions on the first load.
-    const skipFirstTransactionsChange = useRef(!hasOnceLoadedReportActions);
-
-    const newTransactions = useMemo(() => {
-        // Rail-flagged adds survive the remount the diff can't see. Truthy-only so an all-cleared tombstone rail falls through to the diff.
-        const activePendingTransactionIDs = pendingNewTransactionIDs ? Object.keys(pendingNewTransactionIDs).filter((id) => pendingNewTransactionIDs[id]) : [];
-        const railSet = new Set(activePendingTransactionIDs);
-        const railTransactions =
-            reportID && activePendingTransactionIDs.length && transactions?.length ? transactions.filter(({transactionID}) => railSet.has(transactionID)) : EMPTY_TRANSACTIONS;
-
-        // Diff-detected adds the rail never flagged (e.g. a Pusher add).
-        let diffTransactions: Transaction[] = [];
-        if (transactions !== undefined && prevTransactions !== undefined && transactions.length > prevTransactions.length) {
-            if (skipFirstTransactionsChange.current) {
-                skipFirstTransactionsChange.current = false;
+    const [hasSettledAfterInitialLoad, setHasSettledAfterInitialLoad] = useState(() => !!hasOnceLoadedReportActions);
+    const scheduledForDeletionIDs = useRef<Set<string>>(new Set());
+    const [highlightedDiffTransactionIDs, setHighlightedDiffTransactionIDs] = useState<Set<string>>(() => new Set());
+    const [diffState, setDiffState] = useState<{source: Transaction[] | undefined; added: Transaction[]}>({source: undefined, added: EMPTY_TRANSACTIONS});
+    const trackedTransactions = hasOnceLoadedReportActions ? transactions : undefined;
+    const baselineSource = diffState.source;
+    const hasSameTransactionIDs =
+        trackedTransactions !== undefined &&
+        baselineSource !== undefined &&
+        trackedTransactions.length === baselineSource.length &&
+        trackedTransactions.every((transaction, index) => transaction.transactionID === baselineSource.at(index)?.transactionID);
+    if (trackedTransactions !== baselineSource && !hasSameTransactionIDs) {
+        const prevSource = baselineSource;
+        let added = EMPTY_TRANSACTIONS;
+        if (prevSource !== undefined && trackedTransactions !== undefined && trackedTransactions.length > prevSource.length) {
+            if (hasSettledAfterInitialLoad) {
+                added = trackedTransactions.filter((transaction) => !prevSource.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
             } else {
-                diffTransactions = transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
+                setHasSettledAfterInitialLoad(true);
             }
         }
+        setDiffState({source: trackedTransactions, added});
+    }
 
-        // Union, rail first so newTransactions[0] (the scroll target) stays stable across a later add.
-        if (!railTransactions.length) {
-            return diffTransactions.length ? diffTransactions : EMPTY_TRANSACTIONS;
-        }
+    const activePendingTransactionIDs = pendingNewTransactions ? Object.keys(pendingNewTransactions.activeIDs) : [];
+    const railSet = new Set(activePendingTransactionIDs);
+    const railTransactions =
+        reportID && activePendingTransactionIDs.length && transactions?.length ? transactions.filter(({transactionID}) => railSet.has(transactionID)) : EMPTY_TRANSACTIONS;
+
+    const diffTransactions = highlightedDiffTransactionIDs.size ? diffState.added.filter(({transactionID}) => !highlightedDiffTransactionIDs.has(transactionID)) : diffState.added;
+
+    let newTransactions = railTransactions;
+    if (!railTransactions.length) {
+        newTransactions = diffTransactions.length ? diffTransactions : EMPTY_TRANSACTIONS;
+    } else {
         const extraDiff = diffTransactions.filter(({transactionID}) => !railSet.has(transactionID));
-        return extraDiff.length ? [...railTransactions, ...extraDiff] : railTransactions;
-
-        // We don't need to recalculate on change of prevTransactions as it will make the value
-        // disappear quickly which will break the scroll and highlight on slower devices like mobile app.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactions, reportID, pendingNewTransactionIDs]);
+        newTransactions = extraDiff.length ? [...railTransactions, ...extraDiff] : railTransactions;
+    }
 
     useEffect(() => {
-        // Only the focused consumer clears the rail, so a covered view can't clear the flag before the visible one highlights it.
-        if (isFocused === false || !pendingNewTransactionIDs) {
+        if (isReportVisible === false || !pendingNewTransactions) {
             return;
         }
-        const pendingSet = new Set(Object.keys(pendingNewTransactionIDs));
-        const pendingTransactions = newTransactions.filter(({transactionID}) => pendingSet.has(transactionID) && pendingNewTransactionIDs[transactionID]);
-        if (!pendingTransactions.length) {
+        const {activeIDs, expiredIDs} = pendingNewTransactions;
+        const consumedIDs = newTransactions.filter(({transactionID}) => activeIDs[transactionID]).map(({transactionID}) => transactionID);
+        const idsToDelete = [...consumedIDs, ...expiredIDs].filter((transactionID) => !scheduledForDeletionIDs.current.has(transactionID));
+        if (!idsToDelete.length) {
             return;
+        }
+        for (const transactionID of idsToDelete) {
+            scheduledForDeletionIDs.current.add(transactionID);
         }
 
-        // We deletePendingNewTransactionIDs after the scroll and highlight has occurred.
         setTimeout(() => {
-            deletePendingNewTransactionIDs(
-                reportID,
-                pendingTransactions.map((transaction) => transaction.transactionID),
-            );
+            deletePendingNewTransactionIDs(reportID, idsToDelete);
         }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
-    }, [isFocused, pendingNewTransactionIDs, newTransactions, reportID]);
+    }, [isReportVisible, pendingNewTransactions, newTransactions, reportID]);
 
-    // In case when we have loaded the report, but there were no transactions in it, then we need to explicitly set skipFirstTransactionsChange to false, as it will be not set in the useMemo above.
     useEffect(() => {
-        if (!hasOnceLoadedReportActions) {
+        if (isReportVisible === false) {
             return;
         }
-        // This is needed to ensure that set we skipFirstTransactionsChange to false only after the Onyx merge is done.
+        const diffIDsToExpire = diffState.added.filter(({transactionID}) => !highlightedDiffTransactionIDs.has(transactionID)).map(({transactionID}) => transactionID);
+        if (!diffIDsToExpire.length) {
+            return;
+        }
+        const timer = setTimeout(() => {
+            setHighlightedDiffTransactionIDs((prev) => {
+                const next = new Set(prev);
+                for (const transactionID of diffIDsToExpire) {
+                    next.add(transactionID);
+                }
+                return next;
+            });
+        }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
+        return () => clearTimeout(timer);
+    }, [isReportVisible, diffState, highlightedDiffTransactionIDs]);
+
+    useEffect(() => {
+        if (!hasOnceLoadedReportActions || hasSettledAfterInitialLoad) {
+            return;
+        }
         new Promise<void>((resolve) => {
             resolve();
         }).then(() => {
             requestAnimationFrame(() => {
-                skipFirstTransactionsChange.current = false;
+                setHasSettledAfterInitialLoad(true);
             });
         });
-    }, [hasOnceLoadedReportActions]);
+    }, [hasOnceLoadedReportActions, hasSettledAfterInitialLoad]);
 
     return newTransactions;
 }
