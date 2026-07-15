@@ -10,6 +10,7 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import genericMemo from '@libs/genericMemo';
 import {getFieldRequiredErrors, isValidPastDate, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -118,4 +119,4 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-export default DateOfBirthStep;
+export default genericMemo(DateOfBirthStep);

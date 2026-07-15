@@ -435,7 +435,7 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
                         pendingFields: {foreignTaxDefault: isForeignTaxRemoved ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null},
                         foreignTaxDefault: isForeignTaxRemoved ? firstTaxID : foreignTaxDefault,
                         taxes: taxesToDelete.reduce<TaxRateDeleteMap>((acc, taxID) => {
-                            acc[taxID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null, isDisabled: true};
+                            acc[taxID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null};
                             return acc;
                         }, {}),
                     },
@@ -484,7 +484,6 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
                             acc[taxID] = {
                                 pendingAction: null,
                                 errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.deleteFailureMessage'),
-                                isDisabled: !!policyTaxes?.[taxID]?.isDisabled,
                             };
                             return acc;
                         }, {}),
@@ -722,6 +721,7 @@ function setPolicyTaxCode(
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 errorFields: {code: null},
                                 previousTaxCode: oldTaxCode,
+                                optimisticPreviousTaxCode: oldTaxCode,
                             },
                         },
                     },
@@ -745,6 +745,8 @@ function setPolicyTaxCode(
                                 pendingFields: {...originalTaxRate.pendingFields, code: null},
                                 pendingAction: null,
                                 errorFields: {code: null},
+                                previousTaxCode: oldTaxCode,
+                                optimisticPreviousTaxCode: null,
                             },
                         },
                     },

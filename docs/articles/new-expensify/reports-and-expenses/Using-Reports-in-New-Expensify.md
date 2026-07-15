@@ -73,6 +73,9 @@ You can choose from a wide range of columns, including:
 - **MCC** – The Merchant Category Code from the transaction
 - **Tax code** – The tax code applied to the expense
 - **Category GL code** – The general ledger (GL) code from the expense's category
+- **Custom field 1** – The Custom field 1 value set for the report submitter
+- **Custom field 2** – The Custom field 2 value set for the report submitter
+- **International reimbursement IDs** – The reference IDs for international reimbursements on the report
 
 To view the full list of available columns, click the **Columns** icon in the **Spend** tab.
 

@@ -11,7 +11,7 @@ import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
-import type {Connections, NetSuiteConnection} from '@src/types/onyx/Policy';
+import type {NetSuiteConnection} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
@@ -138,6 +138,51 @@ describe('getReportPreviewAction', () => {
                 ownerLogin: CURRENT_USER_EMAIL,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+    });
+
+    it('canSubmit should return false when the report only has pending card transactions', async () => {
+        const report: Report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        if (policy.harvesting) {
+            policy.harvesting.enabled = false;
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction: Transaction = {
+            ...createRandomTransaction(0),
+            reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
+            status: CONST.TRANSACTION.STATUS.PENDING,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+        };
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+                ownerLogin: CURRENT_USER_EMAIL,
+            }),
+        ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
     it('canSubmit should return false for manager who is not the submitter', async () => {
@@ -278,7 +323,7 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
-    it('canSubmit should return true for expense preview report with only pending transactions', async () => {
+    it('getReportPreviewAction should return VIEW for expense preview report with only pending transactions', async () => {
         const report: Report = {
             ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -320,7 +365,7 @@ describe('getReportPreviewAction', () => {
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
             }),
-        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
     it('canSubmit should return false for expense preview report with smartscan failed violation', async () => {
@@ -1077,7 +1122,7 @@ describe('getReportPreviewAction', () => {
 
         const policy = createRandomPolicy(0);
         policy.type = CONST.POLICY.TYPE.CORPORATE;
-        policy.connections = {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {} as NetSuiteConnection} as Connections;
+        policy.connections = {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {} as NetSuiteConnection};
         policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const transaction = {

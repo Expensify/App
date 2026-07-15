@@ -18,6 +18,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
@@ -26,7 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import {canMemberWrite, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -76,6 +77,10 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const bankAccountFromList = policyBankAccountID ? bankAccountList?.[policyBankAccountID] : undefined;
     const bankAccountInfo = bankAccountFromList ?? bankAccountConnectedToWorkspace;
     const bankAccountID = policyBankAccountID ?? bankAccountInfo?.accountData?.bankAccountID;
+    const policyAchAccountState = policy?.achAccount?.state;
+    const isBankAccountFullySetup = policyAchAccountState === CONST.BANK_ACCOUNT.STATE.OPEN || policyAchAccountState === CONST.BANK_ACCOUNT.STATE.LOCKED;
+    const bankAccountState = isBankAccountFullySetup ? policyAchAccountState : bankAccountConnectedToWorkspace?.accountData?.state;
+    const isAccountInSetupState = isBankAccountPartiallySetup(bankAccountState);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -89,7 +94,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
-    const isLoading = sharedBankAccountData?.isLoading ?? false;
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: sharedBankAccountData?.isLoading ?? false});
     const [isAlertVisible, setIsAlertVisible] = useState<boolean>(false);
     const [showValidationModal, setShowValidationModal] = useState<boolean>(false);
     const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
@@ -115,12 +120,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 continue;
             }
             const isOwner = policy?.owner === details?.login;
-            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
-            const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
+            const canBePayer = canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+            const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || isExpensifyTeam(details?.login) || !canBePayer;
             if (shouldSkipMember) {
                 continue;
             }
-            const roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
+            const roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('workspace.common.roleName', policyEmployee.role)} />;
             const isAuthorizedPayer = selectedPayer === details?.login;
             const formattedMember = {
                 keyForList: String(adminAccountID),
@@ -196,7 +201,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             Navigation.goBack();
             return;
         }
-        shareBankAccountAndSetPayer(Number(bankAccountID), accountID, policyID);
+        startWithLoading(() => shareBankAccountAndSetPayer(Number(bankAccountID), accountID, policyID));
     };
 
     const onButtonPress = () => {
@@ -269,21 +274,25 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const setPolicyAuthorizedPayer = (member: MemberOption) => setSelectedPayer(personalDetails?.[member.accountID]?.login);
 
     const shouldShowBlockingPage =
-        (isEmptyObject(policy) && !isLoadingReportData) || isPendingDeletePolicy(policy) || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        (isEmptyObject(policy) && !isLoadingReportData) ||
+        isPendingDeletePolicy(policy) ||
+        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ||
+        isAccountInSetupState;
 
-    const totalNumberOfEmployeesEitherOwnerOrAdmin = Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
-        const isOwner = policy?.owner === email;
-        const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
-        return !isDeletedPolicyEmployee(policyEmployee) && (isOwner || isAdmin);
+    const totalNumberOfPayerCandidates = Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
+        const canBePayer = canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+        return !isDeletedPolicyEmployee(policyEmployee) && canBePayer;
     });
 
-    const shouldShowSearchInput = totalNumberOfEmployeesEitherOwnerOrAdmin.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowSearchInput = totalNumberOfPayerCandidates.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <FullPageNotFoundView
                 shouldShow={shouldShowBlockingPage}
@@ -321,6 +330,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                             footerContent={
                                 <FormAlertWithSubmitButton
                                     isLoading={isLoading}
+                                    shouldShowLoadingImmediatelyOnPress={false}
                                     message={translate('walletPage.shareBankAccountNoAdminsSelected')}
                                     isAlertVisible={isAlertVisible}
                                     shouldRenderFooterAboveSubmit
@@ -354,7 +364,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         <RenderHTML
                             onLinkPress={() => {
                                 setShowValidationModal(false);
-                                navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)});
+                                navigateToBankAccountRoute({
+                                    policyID,
+                                    backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID),
+                                    policyCurrency: policy?.outputCurrency,
+                                    bankAccountState: bankAccountInfo?.accountData?.state,
+                                });
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.validationDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',
