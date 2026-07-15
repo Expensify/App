@@ -22,7 +22,6 @@ import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
@@ -116,7 +115,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             const adminAccountID = policyMemberEmailsToAccountIDs?.[email] ?? '';
             const details = personalDetails?.[adminAccountID];
             if (!details) {
-                Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${adminAccountID}`);
                 continue;
             }
             const isOwner = policy?.owner === details?.login;
