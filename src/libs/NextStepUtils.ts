@@ -512,6 +512,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const [policyOwnerPersonalDetails, ownerPersonalDetails] = deprecatedGetPersonalDetailsByIDs({
         accountIDs: [policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, ownerAccountID],
         currentUserAccountID: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
@@ -530,6 +531,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         ? (getDisplayNameForParticipant({accountID: bypassNextApproverID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(bypassNextApproverID).login)
         : getNextApproverDisplayName(report, isUnapprove);
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const approvers = deprecatedGetLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);

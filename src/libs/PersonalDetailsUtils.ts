@@ -620,6 +620,7 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByID,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     deprecatedGetPersonalDetailsByIDs,
     getPersonalDetailsByIDs,
     getParticipantsPersonalDetails,
@@ -628,6 +629,7 @@ export {
     getPersonalDetailByEmail,
     getKnownAccountIDByLogin,
     getAccountIDsByLogins,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     deprecatedGetLoginsByAccountIDs,
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
