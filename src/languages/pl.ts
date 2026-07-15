@@ -7593,7 +7593,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Zablokowane' : 'Dozwolone'} ${shownCount > 1 ? 'kategorie' : 'kategoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} więcej` : ''}`,
-                defaultRuleSummary: 'Kategorie obejmujące usługi dla dorosłych, bankomaty, hazard i...',
+                defaultRuleSummary: 'Kategorie obejmujące usługi dla dorosłych, bankomaty, hazard i przekazy pieniężne',
                 findRule: 'Znajdź regułę',
                 defaultSection: 'Domyślne',
                 customRulesSection: 'Własne zasady',

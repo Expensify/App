@@ -7681,7 +7681,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
-                defaultRuleSummary: 'Catégories incluant les services pour adultes, les distributeurs automatiques, les jeux d’argent, et...',
+                defaultRuleSummary: 'Catégories incluant les services pour adultes, les distributeurs automatiques, les jeux d’argent et les transferts d’argent',
                 findRule: 'Trouver une règle',
                 defaultSection: 'Par défaut',
                 customRulesSection: 'Règles personnalisées',
