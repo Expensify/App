@@ -71,27 +71,26 @@ describe('useProfileAvatarForm', () => {
         expect(result.current.selected).toBe('default-avatar_1');
     });
 
-    it('saves a letter avatar color and removes the uploaded photo', () => {
+    it('saves a letter avatar color with a single call and never deletes', () => {
         const {result} = renderHook(() => useProfileAvatarForm());
 
         act(() => result.current.onSelectPreset('green400'));
         act(() => result.current.save());
 
-        expect(deleteAvatar).toHaveBeenCalledWith(currentUserPersonalDetails);
         expect(updateAvatarStyle).toHaveBeenCalledWith('green400', currentUserPersonalDetails);
+        expect(deleteAvatar).not.toHaveBeenCalled();
         expect(updateAvatar).not.toHaveBeenCalled();
         expect(Navigation.dismissModal).toHaveBeenCalled();
         expect(result.current.selected).toBeUndefined();
     });
 
-    it('saves a letter avatar color without deleting a generated letter avatar', () => {
-        currentUserPersonalDetails.avatar = GENERATED_LETTER_AVATAR_URL;
+    it('resends an unchanged color when an uploaded photo still needs clearing', () => {
+        currentUserPersonalDetails.avatarStyle = {color: 'green400'};
         const {result} = renderHook(() => useProfileAvatarForm());
 
         act(() => result.current.onSelectPreset('green400'));
         act(() => result.current.save());
 
-        expect(deleteAvatar).not.toHaveBeenCalled();
         expect(updateAvatarStyle).toHaveBeenCalledWith('green400', currentUserPersonalDetails);
         expect(Navigation.dismissModal).toHaveBeenCalled();
     });
@@ -104,8 +103,8 @@ describe('useProfileAvatarForm', () => {
         act(() => result.current.onSelectPreset('green400'));
         act(() => result.current.save());
 
-        expect(deleteAvatar).not.toHaveBeenCalled();
         expect(updateAvatarStyle).not.toHaveBeenCalled();
+        expect(deleteAvatar).not.toHaveBeenCalled();
         expect(Navigation.dismissModal).toHaveBeenCalled();
     });
 });

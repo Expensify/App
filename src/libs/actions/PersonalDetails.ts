@@ -415,12 +415,15 @@ function updateAvatar(
 }
 
 /**
- * Updates the color of the user's letter avatar
+ * Updates the color of the user's letter avatar. The backend also clears any uploaded
+ * avatar image, since picking a letter color means using the letter avatar.
  */
-function updateAvatarStyle(color: LetterAvatarSchemeKey, currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'avatarStyle' | 'accountID'>) {
+function updateAvatarStyle(color: LetterAvatarSchemeKey, currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'avatarStyle' | 'avatar' | 'fallbackIcon' | 'accountID' | 'email'>) {
     if (!currentUserPersonalDetails.accountID) {
         return;
     }
+
+    const willClearUploadedAvatar = UserAvatarUtils.isUploadedAvatar(currentUserPersonalDetails.avatar);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
@@ -432,6 +435,10 @@ function updateAvatarStyle(color: LetterAvatarSchemeKey, currentUserPersonalDeta
                     pendingFields: {
                         avatarStyle: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
+                    ...(willClearUploadedAvatar && {
+                        avatar: UserAvatarUtils.getDefaultAvatarURL({accountID: currentUserPersonalDetails.accountID, accountEmail: currentUserPersonalDetails.email}),
+                        fallbackIcon: null,
+                    }),
                 },
             },
         },
@@ -459,7 +466,11 @@ function updateAvatarStyle(color: LetterAvatarSchemeKey, currentUserPersonalDeta
                     pendingFields: {
                         avatarStyle: null,
                     },
-                },
+                    ...(willClearUploadedAvatar && {
+                        avatar: currentUserPersonalDetails.avatar,
+                        fallbackIcon: currentUserPersonalDetails.fallbackIcon,
+                    }),
+                } as OnyxEntry<Partial<PersonalDetails>>,
             },
         },
     ];
