@@ -7,7 +7,6 @@ import type {FlashListRef, FlashListProps} from '@shopify/flash-list';
 import type {Ref} from 'react';
 import type {CellRendererProps} from 'react-native';
 import type {AnimatedProps, ILayoutAnimationBuilder} from 'react-native-reanimated';
-import type {AnimatedComponentRef} from 'react-native-reanimated/src/createAnimatedComponent/commonTypes';
 
 import {FlashList} from '@shopify/flash-list';
 import React, {useRef} from 'react';
@@ -79,6 +78,7 @@ function FlashListRender<Item = any>(props: AnimatedFlashListWithCellRendererPro
     const animatedFlashList = (
         <AnimatedFlashList
             {...restProps}
+            // @ts-expect-error In its current type state, createAnimatedComponent cannot create generic components.
             ref={ref}
             CellRendererComponent={CellRendererComponent}
         />
