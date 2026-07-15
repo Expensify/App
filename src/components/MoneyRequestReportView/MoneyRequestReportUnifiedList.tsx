@@ -43,7 +43,7 @@ function unifiedListKeyExtractor(item: UnifiedListItem) {
 }
 
 function unifiedListItemType(item: UnifiedListItem) {
-    return item.type;
+    return item.type === 'report-action' ? item.action.actionName : item.type;
 }
 
 type MoneyRequestReportFlashListProps = FlashListProps<UnifiedListItem> & {
