@@ -1,7 +1,6 @@
 import Log from '@libs/Log';
 
 import {fastMerge} from 'expensify-common';
-import {useCallback} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 
@@ -34,6 +33,83 @@ type StateMachine<S extends string = string, A extends string = string> = Partia
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const client = (...args: Parameters<typeof Log.client>) => scheduleOnRN(Log.client, ...args);
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the hook.
+ * OXC bails on type params inside hooks ("Unsupported declaration type for hoisting").
+ */
+function useWorkletStateMachineImpl(stateMachine: StateMachine, initialState: State<unknown>) {
+    const currentState = useSharedValue(initialState);
+
+    const log = (message: string, params?: unknown) => {
+        'worklet';
+
+        if (!DEBUG_MODE) {
+            return;
+        }
+
+        client(`[StateMachine] ${message}. Params: ${JSON.stringify(params)}`);
+    };
+
+    const transitionWorklet = (action: ActionWithPayload) => {
+        'worklet';
+
+        if (!action) {
+            throw new Error('state machine action is required');
+        }
+
+        const state = currentState.get();
+
+        log(`Current STATE: ${state.current.state}`);
+        log(`Next ACTION: ${action.type}`, action.payload);
+
+        const nextMachine = stateMachine[state.current.state];
+        if (!nextMachine) {
+            log(`No next machine found for state: ${state.current.state}`);
+            return;
+        }
+
+        const nextState = nextMachine[action.type];
+        if (!nextState) {
+            log(`No next state found for action: ${action.type}`);
+            return;
+        }
+
+        // save previous payload or merge the new payload with the previous payload
+        const nextPayload = typeof action.payload === 'undefined' ? state.current.payload : fastMerge(state.current.payload, action.payload);
+        log(`Next STATE: ${nextState}`, nextPayload);
+
+        currentState.set({
+            previous: state.current,
+            current: {
+                state: nextState,
+                payload: nextPayload,
+            },
+        });
+    };
+
+    const resetWorklet = () => {
+        'worklet';
+
+        log('RESET STATE MACHINE');
+        currentState.set(initialState);
+    };
+
+    const reset = () => {
+        scheduleOnUI(resetWorklet);
+    };
+
+    const transition = (action: ActionWithPayload) => {
+        runOnUISync(transitionWorklet, action);
+    };
+
+    return {
+        currentState,
+        transitionWorklet,
+        transition,
+        reset,
+    };
+}
 
 /**
  * A hook that creates a state machine that can be used with Reanimated Worklets, useful for when you need to keep the native thread and JS tightly in-sync.
@@ -87,81 +163,9 @@ const client = (...args: Parameters<typeof Log.client>) => scheduleOnRN(Log.clie
  * @returns an object containing the current state, a transition function, and a reset function
  */
 function useWorkletStateMachine<SM extends StateMachine<string, string>, P>(stateMachine: SM, initialState: State<P>) {
-    const currentState = useSharedValue(initialState);
-
-    const log = useCallback((message: string, params?: P | null) => {
-        'worklet';
-
-        if (!DEBUG_MODE) {
-            return;
-        }
-
-        client(`[StateMachine] ${message}. Params: ${JSON.stringify(params)}`);
-    }, []);
-
-    const transitionWorklet = useCallback(
-        (action: ActionWithPayload<P>) => {
-            'worklet';
-
-            if (!action) {
-                throw new Error('state machine action is required');
-            }
-
-            const state = currentState.get();
-
-            log(`Current STATE: ${state.current.state}`);
-            log(`Next ACTION: ${action.type}`, action.payload);
-
-            const nextMachine = stateMachine[state.current.state];
-            if (!nextMachine) {
-                log(`No next machine found for state: ${state.current.state}`);
-                return;
-            }
-
-            const nextState = nextMachine[action.type];
-            if (!nextState) {
-                log(`No next state found for action: ${action.type}`);
-                return;
-            }
-
-            // save previous payload or merge the new payload with the previous payload
-            const nextPayload = typeof action.payload === 'undefined' ? state.current.payload : fastMerge(state.current.payload, action.payload);
-            log(`Next STATE: ${nextState}`, nextPayload);
-
-            currentState.set({
-                previous: state.current,
-                current: {
-                    state: nextState,
-                    payload: nextPayload,
-                },
-            });
-        },
-        [currentState, log, stateMachine],
-    );
-
-    const resetWorklet = useCallback(() => {
-        'worklet';
-
-        log('RESET STATE MACHINE');
-        currentState.set(initialState);
-    }, [currentState, initialState, log]);
-
-    const reset = useCallback(() => {
-        scheduleOnUI(resetWorklet);
-    }, [resetWorklet]);
-
-    const transition = useCallback(
-        (action: ActionWithPayload<P>) => {
-            runOnUISync(transitionWorklet, action);
-        },
-        [transitionWorklet],
-    );
-
-    return {
-        currentState,
-        transitionWorklet,
-        transition,
-        reset,
+    return useWorkletStateMachineImpl(stateMachine, initialState as State<unknown>) as ReturnType<typeof useWorkletStateMachineImpl> & {
+        transitionWorklet: (action: ActionWithPayload<P>) => void;
+        transition: (action: ActionWithPayload<P>) => void;
     };
 }
 

@@ -2,16 +2,38 @@ import type {FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 
 import * as FormActions from '@userActions/FormActions';
 
-import type {OnyxFormKey, OnyxFormValuesMapping, OnyxValues} from '@src/ONYXKEYS';
-import type {BaseForm} from '@src/types/form/Form';
-
-import type {TupleToUnion} from 'type-fest';
-
-import {useCallback} from 'react';
+import type {OnyxFormKey, OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 import type {SubStepProps} from './useSubStep/types';
 
-type UseStepFormSubmitParams<T extends keyof OnyxFormValuesMapping> = Pick<SubStepProps, 'onNext'> & {
+type UseStepFormSubmitParams = Pick<SubStepProps, 'onNext'> & {
+    formId: OnyxFormKey;
+    fieldIds: readonly (string | number | symbol)[];
+    shouldSaveDraft: boolean;
+};
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the hook.
+ * OXC bails on type params inside hooks ("Unsupported declaration type for hoisting").
+ */
+function useStepFormSubmitImpl({formId, onNext, fieldIds, shouldSaveDraft}: UseStepFormSubmitParams) {
+    return (values: Record<string, unknown>) => {
+        if (shouldSaveDraft) {
+            const stepValues = fieldIds.reduce<Record<string, unknown>>((acc, key) => {
+                acc[String(key)] = values[String(key)];
+                return acc;
+            }, {});
+
+            FormActions.setDraftValues(formId, stepValues);
+            onNext(stepValues);
+            return;
+        }
+
+        onNext();
+    };
+}
+
+type UseStepFormSubmitParamsGeneric<T extends keyof OnyxFormValuesMapping> = Pick<SubStepProps, 'onNext'> & {
     formId: OnyxFormKey;
     fieldIds: Array<FormOnyxKeys<T>>;
     shouldSaveDraft: boolean;
@@ -25,25 +47,6 @@ type UseStepFormSubmitParams<T extends keyof OnyxFormValuesMapping> = Pick<SubSt
  * @param fieldIds - field IDs for particular step
  * @param shouldSaveDraft - if we should save draft values
  */
-export default function useStepFormSubmit<T extends keyof OnyxFormValuesMapping>({formId, onNext, fieldIds, shouldSaveDraft}: UseStepFormSubmitParams<T>) {
-    return useCallback(
-        (values: FormOnyxValues<T>) => {
-            if (shouldSaveDraft) {
-                const stepValues = fieldIds.reduce(
-                    (acc, key) => {
-                        acc[key] = values[key];
-                        return acc;
-                    },
-                    {} as Record<TupleToUnion<typeof fieldIds>, OnyxValues[T][Exclude<keyof OnyxValues[T], keyof BaseForm>]>,
-                );
-
-                FormActions.setDraftValues(formId, stepValues);
-                onNext(stepValues);
-                return;
-            }
-
-            onNext();
-        },
-        [onNext, formId, fieldIds, shouldSaveDraft],
-    );
+export default function useStepFormSubmit<T extends keyof OnyxFormValuesMapping>({formId, onNext, fieldIds, shouldSaveDraft}: UseStepFormSubmitParamsGeneric<T>) {
+    return useStepFormSubmitImpl({formId, onNext, fieldIds, shouldSaveDraft}) as (values: FormOnyxValues<T>) => void;
 }
