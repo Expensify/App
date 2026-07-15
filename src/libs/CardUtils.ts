@@ -1405,7 +1405,7 @@ function getCardProgramKey(cardSettings: OnyxEntry<ExpensifyCardSettings>): Card
 
 /**
  * A single settings NVP can hold more than one provisioned Expensify Card program (e.g. a domain with both a US and a GB feed).
- * The user-selectable programs are US and GB; CURRENT is deprecated and TRAVEL_US is backend-managed, so neither is offered as its own row.
+ * The user-selectable programs are US and GB;
  * Returns the configured program keys in display order (US before GB).
  */
 function getConfiguredExpensifyCardProgramKeys(cardSettings: OnyxEntry<ExpensifyCardSettings>): CardProgramKey[] {
