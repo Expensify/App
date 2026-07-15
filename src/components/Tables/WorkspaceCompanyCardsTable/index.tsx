@@ -32,7 +32,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
-import React, {useRef, useState} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
@@ -43,7 +43,13 @@ import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
 
 type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'actions';
 
+type WorkspaceCompanyCardsTableHandle = {
+    clearSelection: () => void;
+};
+
 type WorkspaceCompanyCardsTableProps = {
+    ref?: React.Ref<WorkspaceCompanyCardsTableHandle>;
+
     /** Policy ID */
     policyID: string;
 
@@ -73,6 +79,7 @@ type WorkspaceCompanyCardsTableProps = {
 };
 
 function WorkspaceCompanyCardsTable({
+    ref,
     policyID,
     isPolicyLoaded,
     domainOrWorkspaceAccountID,
@@ -109,6 +116,8 @@ function WorkspaceCompanyCardsTable({
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [selectedCardKeys, setSelectedCardKeys] = useState<string[]>([]);
+    const clearCardSelection = () => setSelectedCardKeys([]);
+    useImperativeHandle(ref, () => ({clearSelection: clearCardSelection}));
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
     const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
@@ -234,8 +243,6 @@ function WorkspaceCompanyCardsTable({
     }
 
     const validSelectedCardKeys = selectedCardKeysForCurrentData;
-
-    const clearCardSelection = () => setSelectedCardKeys([]);
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData) => item.keyForList;
 
@@ -468,3 +475,5 @@ function WorkspaceCompanyCardsTable({
 }
 
 export default WorkspaceCompanyCardsTable;
+
+export type {WorkspaceCompanyCardsTableHandle};

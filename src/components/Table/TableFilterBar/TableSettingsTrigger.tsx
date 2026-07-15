@@ -77,6 +77,7 @@ export default function TableSettingsTrigger() {
             label={translate('search.display.label')}
             sentryLabel={CONST.SENTRY_LABEL.TABLE.SETTINGS}
             value={null}
+            wrapperStyle={styles.mt0Half}
             PopoverComponent={renderTableSettingsPopover}
         />
     );
