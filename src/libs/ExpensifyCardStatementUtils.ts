@@ -81,11 +81,12 @@ function getScopedPolicyID(queryJSON: SearchQueryJSON | undefined): string | und
     return policyIDFilter.value?.length === 1 && !policyIDFilter.isNegated ? policyIDFilter.value.at(0) : undefined;
 }
 
-// True when the search is filtered to more than one workspace. The statement can scope to one workspace or the whole
-// settlement, but not to an arbitrary subset, so a multi-workspace filter (e.g. policyID:A,B) cannot be honored - the
-// on-screen rows would be A/B while an unscoped export would include every workspace in the settlement.
-function hasMultipleScopedPolicies(queryJSON: SearchQueryJSON | undefined): boolean {
-    return (getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID).value?.length ?? 0) > 1;
+// True when a workspace filter cannot be honored as a statement scope: more than one workspace (policyID:A,B) or a
+// negated one (-policyID:A). A statement scopes to a single workspace or the whole settlement, never a subset, so
+// either case would make the export disagree with the on-screen rows; hide the action instead.
+function hasUnscopeableWorkspaceFilter(queryJSON: SearchQueryJSON | undefined): boolean {
+    const policyIDFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+    return (policyIDFilter.value?.length ?? 0) > 1 || (policyIDFilter.isNegated && (policyIDFilter.value?.length ?? 0) > 0);
 }
 
 function hasOnlyStatementScopeFilters(queryJSON: SearchQueryJSON | undefined): boolean {
@@ -113,12 +114,9 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
         return [];
     }
 
-    // The statement exports the whole settlement, so only offer it when the whole settlement is selected - never
-    // when the user selected a single transaction inside it. A settlement is selected in one of two ways:
-    //   1. Its row is collapsed and selected directly, so its group key is stored in selectedTransactions.
-    //   2. Its row is expanded and every transaction is selected; each transaction is tagged with the group key.
-    // Case 2 tags each selected child with the group key, and a single selected child carries the same tag, so we
-    // must count the selected children and require all of them (group count) rather than treat one as the whole.
+    // Only offer the statement when a whole settlement is selected, never a single transaction inside it. A settlement
+    // is selected either directly (its group key is in selectedTransactions, e.g. a collapsed row) or by selecting all
+    // of its transactions (each tagged with the group key), so we count tagged children and require the full count.
     const directlySelectedGroupKeys = new Set<string>();
     const selectedCountByGroupKey = new Map<string, number>();
     for (const [key, selection] of Object.entries(selectedTransactions)) {
@@ -138,7 +136,7 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
         if (!isWithdrawalIDGroup(value)) {
             continue;
         }
-        const isWholeSettlementSelected = directlySelectedGroupKeys.has(key) || (selectedCountByGroupKey.get(key) ?? 0) >= value.count;
+        const isWholeSettlementSelected = directlySelectedGroupKeys.has(key) || (value.count > 0 && (selectedCountByGroupKey.get(key) ?? 0) >= value.count);
         if (!isWholeSettlementSelected) {
             continue;
         }
@@ -163,9 +161,9 @@ function getExpensifyCardStatementSelection(
         return undefined;
     }
 
-    // A multi-workspace filter cannot be scoped to a statement and must not silently fall back to an unscoped export
-    // (which would include workspaces outside the filter), so hide the action entirely.
-    if (hasMultipleScopedPolicies(queryJSON)) {
+    // A multi-workspace or negated workspace filter cannot be scoped to a statement and must not silently fall back to
+    // an unscoped export (which would include workspaces the filter narrowed out), so hide the action entirely.
+    if (hasUnscopeableWorkspaceFilter(queryJSON)) {
         return undefined;
     }
 
@@ -179,11 +177,12 @@ function getExpensifyCardStatementSelection(
 
     const scopedPolicyID = getScopedPolicyID(queryJSON);
 
-    // A statement covers one feed, so group the selected settlements by feed and reject a selection that spans more
-    // than one. The feed is identified by fundID, not feedCountry: one program can have several feeds.
+    // A statement covers one feed, so group settlements by feed (fundID, not feedCountry: one program can have several
+    // feeds) and reject a selection spanning more than one. A settlement with no fundID already spans multiple feeds,
+    // so key it uniquely by entryID; that keeps the multi-feed guard firing instead of merging mixed feeds.
     const feedsByKey = new Map<string, ExpensifyCardStatementFeed>();
     for (const settlementGroup of selectedSettlementGroups) {
-        const feedKey = settlementGroup.fundID !== undefined ? String(settlementGroup.fundID) : '';
+        const feedKey = settlementGroup.fundID !== undefined ? `fund_${settlementGroup.fundID}` : `entry_${settlementGroup.entryID}`;
         const existingFeed = feedsByKey.get(feedKey);
         if (existingFeed) {
             existingFeed.entryIDs.push(settlementGroup.entryID);

@@ -101,6 +101,26 @@ describe('ExpensifyCardStatementUtils', () => {
         expect(getExpensifyCardStatementSelection(multiPolicyQueryJSON, selectedTransactions, searchData)).toBeUndefined();
     });
 
+    it('hides the export when the search excludes a workspace (negated policyID filter)', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+        // -policyID:policy1 hides that workspace on screen, but an unscoped export would still include it, so the
+        // statement would disagree with the rows. It cannot be scoped, so the export is hidden.
+        const negatedPolicyQueryJSON: SearchQueryJSON = {
+            ...expensifyCardStatementQueryJSON,
+            flatFilters: [
+                ...expensifyCardStatementQueryJSON.flatFilters,
+                {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                    filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'policy1'}],
+                },
+            ],
+        };
+
+        expect(getExpensifyCardStatementSelection(negatedPolicyQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
     it('returns undefined when no selected transaction maps to a settlement group', () => {
         // A plain transaction key (not group_-prefixed) can't resolve to a settlement.
         const selectedTransactions: SelectedTransactions = {
@@ -135,6 +155,21 @@ describe('ExpensifyCardStatementUtils', () => {
         // Every transaction in the (expanded) settlement is selected, so the whole settlement is selected.
         const selectedTransactions = makeSettlementSelection(groupKey, 2);
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+    });
+
+    it('does not treat an unselected zero-count settlement as fully selected', () => {
+        const selectedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const zeroCountGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;
+        const selectedTransactions = makeSettlementSelection(selectedGroupKey, 1);
+        // Only settlement 123 is selected. Settlement 456 has count 0 and nothing selected, so its "selected count
+        // (0) >= count (0)" must not be read as fully selected, which would pull an unselected settlement into the export.
+        const searchData = makeSearchData({
+            [selectedGroupKey]: makeSettlementGroup({entryID: 123}),
+            [zeroCountGroupKey]: makeSettlementGroup({entryID: 456, count: 0}),
+        });
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
         expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
@@ -210,6 +245,25 @@ describe('ExpensifyCardStatementUtils', () => {
         const searchData = makeSearchData({
             [firstGroupKey]: makeSettlementGroup({entryID: 123, feedCountry: 'US', fundID: 1}),
             [secondGroupKey]: makeSettlementGroup({entryID: 456, feedCountry: 'US', fundID: 2}),
+        });
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.hasMultipleFeeds).toBe(true);
+        expect(getStatementParamsForExport(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
+    it('flags multiple feeds when settlements have no single feed (missing fundID)', () => {
+        const firstGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const secondGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;
+        const selectedTransactions: SelectedTransactions = {
+            ...makeSettlementSelection(firstGroupKey, 1),
+            ...makeSettlementSelection(secondGroupKey, 1),
+        };
+        // A settlement with no fundID already spans more than one feed, so two of them must not collapse into one
+        // exportable feed - each stays distinct so the multi-feed guard triggers instead of exporting a mixed statement.
+        const searchData = makeSearchData({
+            [firstGroupKey]: makeSettlementGroup({entryID: 123, fundID: undefined}),
+            [secondGroupKey]: makeSettlementGroup({entryID: 456, fundID: undefined}),
         });
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
