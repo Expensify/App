@@ -84,7 +84,7 @@ function getScopedPolicyID(queryJSON: SearchQueryJSON | undefined): string | und
 // True when a workspace filter cannot be honored as a statement scope: more than one workspace (policyID:A,B) or a
 // negated one (-policyID:A). A statement scopes to a single workspace or the whole settlement, never a subset, so
 // either case would make the export disagree with the on-screen rows; hide the action instead.
-function hasUnscopeableWorkspaceFilter(queryJSON: SearchQueryJSON | undefined): boolean {
+function hasUnsupportedWorkspaceFilter(queryJSON: SearchQueryJSON | undefined): boolean {
     const policyIDFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     return (policyIDFilter.value?.length ?? 0) > 1 || (policyIDFilter.isNegated && (policyIDFilter.value?.length ?? 0) > 0);
 }
@@ -163,7 +163,7 @@ function getExpensifyCardStatementSelection(
 
     // A multi-workspace or negated workspace filter cannot be scoped to a statement and must not silently fall back to
     // an unscoped export (which would include workspaces the filter narrowed out), so hide the action entirely.
-    if (hasUnscopeableWorkspaceFilter(queryJSON)) {
+    if (hasUnsupportedWorkspaceFilter(queryJSON)) {
         return undefined;
     }
 
