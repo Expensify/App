@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -45,13 +46,14 @@ import {View} from 'react-native';
 
 import MergeFieldReview from './MergeFieldReview';
 
-type DetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DETAILS_PAGE>;
+type DynamicDetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_DETAILS_PAGE>;
 
-function DetailsReviewPage({route}: DetailsReviewPageProps) {
+function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
-    const {transactionID, backTo} = route.params;
+    const {transactionID} = route.params;
+    const backTo = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS.path);
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
@@ -195,7 +197,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionMerge.DetailsReviewPage',
+            context: 'TransactionMerge.DynamicDetailsReviewPage',
             isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
         };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
@@ -203,7 +205,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     return (
         <ScreenWrapper
-            testID="DetailsReviewPage"
+            testID="DynamicDetailsReviewPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -248,4 +250,4 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     );
 }
 
-export default DetailsReviewPage;
+export default DynamicDetailsReviewPage;

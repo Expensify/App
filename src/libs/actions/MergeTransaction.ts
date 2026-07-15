@@ -125,7 +125,7 @@ function setupMergeTransactionDataAndNavigate(
             return;
         }
 
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute(), isOnSearch));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS.getRoute(navigationTransactionID)));
     }
 }
 

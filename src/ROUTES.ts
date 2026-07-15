@@ -1130,12 +1130,25 @@ const DYNAMIC_ROUTES = {
         path: 'initial-list-value',
         entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
     },
+    MERGE_TRANSACTION_DETAILS: {
+        path: 'merge/:transactionID/details',
+        entryScreens: [
+            SCREENS.MERGE_TRANSACTION.LIST_PAGE,
+            SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+        ],
+        getRoute: (transactionID: string) => `merge/${transactionID}/details` as const,
+    },
     MERGE_TRANSACTION_CONFIRMATION: {
         path: 'merge/:transactionID/confirmation',
         entryScreens: [
             SCREENS.MERGE_TRANSACTION.LIST_PAGE,
             SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE,
-            SCREENS.MERGE_TRANSACTION.DETAILS_PAGE,
+            SCREENS.MERGE_TRANSACTION.DYNAMIC_DETAILS_PAGE,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
@@ -3575,14 +3588,6 @@ const ROUTES = {
 
         getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
             const url = getUrlWithBackToParam(`merge/${transactionID}/receipt` as const, backTo);
-            return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
-        },
-    },
-    MERGE_TRANSACTION_DETAILS_PAGE: {
-        route: 'merge/:transactionID/details',
-
-        getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
-            const url = getUrlWithBackToParam(`merge/${transactionID}/details` as const, backTo);
             return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
         },
     },
