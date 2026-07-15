@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 /**
  * A report lifecycle event that can fire an approval-workflow rule (`ReportSubmit` or `ReportApprove`).
  */
-type ApprovalWorkflowTrigger = ValueOf<typeof CONST.APPROVAL_WORKFLOW_RULE.TRIGGER>;
+type ApprovalWorkflowTrigger = ValueOf<typeof CONST.RULES.APPROVAL_WORKFLOW.TRIGGER>;
 
 /**
  * The triggers of a rule, keyed by a string index (e.g. `{"0": "ReportSubmit"}`). A rule fires when
@@ -16,7 +16,7 @@ type ApprovalWorkflowTriggers = Record<string, ApprovalWorkflowTrigger>;
 /**
  * The name of the action a rule performs when it matches (`ForwardTo` or `ApproveReport`).
  */
-type ApprovalWorkflowActionName = ValueOf<typeof CONST.APPROVAL_WORKFLOW_RULE.ACTION>;
+type ApprovalWorkflowActionName = ValueOf<typeof CONST.RULES.APPROVAL_WORKFLOW.ACTION>;
 
 /**
  * A single action a rule performs when it matches.

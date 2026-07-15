@@ -1683,10 +1683,10 @@ describe('WorkflowUtils', () => {
     });
 
     describe('rule-based approval workflows', () => {
-        const submitTriggers = {'0': CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT};
-        const approveTriggers = {'0': CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE};
-        const forwardActions = (approver: string) => ({'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO, approver}});
-        const approveActions = {'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}};
+        const submitTriggers = {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT};
+        const approveTriggers = {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE};
+        const forwardActions = (approver: string) => ({'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}});
+        const approveActions = {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}};
         const buildFromFilter = (emails: string[]) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: emails});
         const buildToFilter = (email: string) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: email});
         const and = (left: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison, right: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): ApprovalWorkflowFilter => ({
@@ -1796,14 +1796,14 @@ describe('WorkflowUtils', () => {
                 // new submitter folds into the existing rule instead of minting a fresh pair.
                 const existingRules: Record<string, ApprovalWorkflowRule> = {
                     r1: {
-                        actions: asServerShape([{approver: '1@example.com', name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO}]),
+                        actions: asServerShape([{approver: '1@example.com', name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO}]),
                         filters: buildFromFilter(['20@example.com']),
-                        triggers: asServerShape([CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT]),
+                        triggers: asServerShape([CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT]),
                     },
                     r2: {
-                        actions: asServerShape([{name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}]),
+                        actions: asServerShape([{name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}]),
                         filters: and(buildFromFilter(['20@example.com']), buildToFilter('1@example.com')),
-                        triggers: asServerShape([CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE]),
+                        triggers: asServerShape([CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE]),
                     },
                 };
                 const newRules = buildApprovalWorkflowRules(buildWorkflow([10], [1]));

@@ -6,7 +6,7 @@ import type {ApprovalWorkflowRule} from './ApprovalWorkflowRules';
 import type {Errors, OnyxValueWithOfflineFeedback} from './OnyxCommon';
 
 /** The kind of entity a rule is scoped to (currently only workspace policies). */
-type RuleScope = ValueOf<typeof CONST.APPROVAL_WORKFLOW_RULE.SCOPE>;
+type RuleScope = ValueOf<typeof CONST.RULES.SCOPE>;
 
 /**
  * A rule as stored in the `ONYXKEYS.COLLECTION.RULE` collection under `rules_<ruleID>`. This mirrors a

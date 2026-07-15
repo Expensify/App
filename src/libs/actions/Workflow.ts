@@ -332,7 +332,7 @@ function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetAppro
             ? {
                   onyxMethod: Onyx.METHOD.SET,
                   key: ruleKey,
-                  value: {...previousRule, scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY, scopeID: policyID, pendingAction: null, errors: genericError},
+                  value: {...previousRule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID, pendingAction: null, errors: genericError},
               }
             : {onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: null};
 
@@ -346,7 +346,7 @@ function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetAppro
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ruleKey,
-            value: {...rule, scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY, scopeID: policyID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null},
+            value: {...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null},
         });
         successData.push({onyxMethod: Onyx.METHOD.MERGE, key: ruleKey, value: {pendingAction: null}});
         failureData.push(restore);

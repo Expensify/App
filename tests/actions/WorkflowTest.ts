@@ -69,8 +69,7 @@ async function getActivePolicyRules(policyID: string): Promise<Rule[]> {
         },
     });
     return Object.values(collection).filter(
-        (rule): rule is Rule =>
-            !!rule && rule.scope === CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY && rule.scopeID === policyID && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        (rule): rule is Rule => !!rule && rule.scope === CONST.RULES.SCOPE.POLICY && rule.scopeID === policyID && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
 }
 
@@ -82,22 +81,22 @@ function indexMap<T>(...values: T[]): Record<string, T> {
 /** Seed the two rules (submit -> forward, approve -> finalize) that describe a `submitters -> approver` workflow. */
 async function seedForwardApproveRules(policyID: string, submitters: string[], approver: string) {
     await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule1`, {
-        scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY,
+        scope: CONST.RULES.SCOPE.POLICY,
         scopeID: policyID,
-        triggers: indexMap(CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT),
+        triggers: indexMap(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT),
         filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitters},
-        actions: indexMap({name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO, approver}),
+        actions: indexMap({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}),
     });
     await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule2`, {
-        scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY,
+        scope: CONST.RULES.SCOPE.POLICY,
         scopeID: policyID,
-        triggers: indexMap(CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE),
+        triggers: indexMap(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE),
         filters: {
             operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
             left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitters},
             right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approver},
         },
-        actions: indexMap({name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}),
+        actions: indexMap({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}),
     });
 }
 
@@ -933,14 +932,14 @@ describe('actions/Workflow', () => {
             const rules = await getActivePolicyRules(policyID);
             expect(rules).toHaveLength(2);
 
-            const submitRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT));
-            expect(submitRule?.scope).toBe(CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY);
+            const submitRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT));
+            expect(submitRule?.scope).toBe(CONST.RULES.SCOPE.POLICY);
             expect(submitRule?.scopeID).toBe(policyID);
             expect(submitRule?.filters).toEqual({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employee1Email]});
-            expect(submitRule?.actions[0]).toEqual({name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO, approver: ownerEmail});
+            expect(submitRule?.actions[0]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: ownerEmail});
 
-            const approveRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE));
-            expect(approveRule?.actions[0]).toEqual({name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT});
+            const approveRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE));
+            expect(approveRule?.actions[0]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT});
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
@@ -1086,7 +1085,7 @@ describe('actions/Workflow', () => {
             const rules = await getActivePolicyRules(policyID);
             const forwardApprovers = rules
                 .flatMap((rule) => Object.values(rule.actions))
-                .filter((action) => action.name === CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO)
+                .filter((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)
                 .map((action) => action.approver);
             expect(forwardApprovers).toContain(employee2Email);
             expect(forwardApprovers).not.toContain(ownerEmail);

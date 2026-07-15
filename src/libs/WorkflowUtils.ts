@@ -766,19 +766,19 @@ function toIndexMap<T>(values: T[]): Record<string, T> {
 }
 
 function buildSubmitTriggers(): ApprovalWorkflowTriggers {
-    return toIndexMap([CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT]);
+    return toIndexMap([CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT]);
 }
 
 function buildApproveTriggers(): ApprovalWorkflowTriggers {
-    return toIndexMap([CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE]);
+    return toIndexMap([CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE]);
 }
 
 function buildForwardActions(approver: string): ApprovalWorkflowActions {
-    return toIndexMap([{name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO, approver}]);
+    return toIndexMap([{name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}]);
 }
 
 function buildApproveActions(): ApprovalWorkflowActions {
-    return toIndexMap([{name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}]);
+    return toIndexMap([{name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}]);
 }
 
 /**
@@ -1207,7 +1207,7 @@ function findComparisonByLeft(node: ApprovalWorkflowFilter | ApprovalWorkflowFil
 }
 
 /** The triggers of a rule as a flat list. */
-function getRuleTriggers(rule: ApprovalWorkflowRule): Array<ValueOf<typeof CONST.APPROVAL_WORKFLOW_RULE.TRIGGER>> {
+function getRuleTriggers(rule: ApprovalWorkflowRule): Array<ValueOf<typeof CONST.RULES.APPROVAL_WORKFLOW.TRIGGER>> {
     return Object.values(rule.triggers ?? {});
 }
 
@@ -1218,17 +1218,17 @@ function getRuleActions(rule: ApprovalWorkflowRule): ApprovalWorkflowAction[] {
 
 /** True when the rule fires on report submission. */
 function isSubmitRule(rule: ApprovalWorkflowRule): boolean {
-    return getRuleTriggers(rule).includes(CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT);
+    return getRuleTriggers(rule).includes(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT);
 }
 
 /** True when the rule approves (finalizes) the report. */
 function isApproveReportRule(rule: ApprovalWorkflowRule): boolean {
-    return getRuleActions(rule).some((action) => action.name === CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT);
+    return getRuleActions(rule).some((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT);
 }
 
 /** The approver a `ForwardTo` rule routes to, if any. */
 function getForwardApprover(rule: ApprovalWorkflowRule): string | undefined {
-    return getRuleActions(rule).find((action) => action.name === CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO)?.approver;
+    return getRuleActions(rule).find((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)?.approver;
 }
 
 /**
@@ -1400,7 +1400,7 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
     }
 
     for (const [onyxKey, rule] of Object.entries(rulesCollection)) {
-        if (!rule || rule.scope !== CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY || rule.scopeID !== policyID) {
+        if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policyID) {
             continue;
         }
         if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {

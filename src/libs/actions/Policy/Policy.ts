@@ -1025,7 +1025,7 @@ function setWorkspaceApprovalMode(
     // so the workflows UI doesn't keep rebuilding stale workflows (e.g. after re-enabling).
     if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && allRules) {
         for (const [ruleKey, rule] of Object.entries(allRules)) {
-            if (!rule || rule.scope !== CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY || rule.scopeID !== policyID) {
+            if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policyID) {
                 continue;
             }
             const ruleOnyxKey: `${typeof ONYXKEYS.COLLECTION.RULE}${string}` = `${ONYXKEYS.COLLECTION.RULE}${ruleKey.slice(ONYXKEYS.COLLECTION.RULE.length)}`;
