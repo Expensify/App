@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -34,13 +35,14 @@ import {View} from 'react-native';
 
 import TransactionMergeReceipts from './TransactionMergeReceipts';
 
-type ReceiptReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE>;
+type DynamicReceiptReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE>;
 
-function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
+function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const {transactionID, backTo} = route.params;
+    const {transactionID} = route.params;
+    const backTo = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_RECEIPT.path);
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({mergeTransaction});
@@ -76,7 +78,7 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionMerge.ReceiptReviewPage',
+            context: 'TransactionMerge.DynamicReceiptReviewPage',
             isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
         };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
@@ -84,7 +86,7 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
 
     return (
         <ScreenWrapper
-            testID="ReceiptReviewPage"
+            testID="DynamicReceiptReviewPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -120,4 +122,4 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
     );
 }
 
-export default ReceiptReviewPage;
+export default DynamicReceiptReviewPage;
