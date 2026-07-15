@@ -8,7 +8,7 @@ import type {SearchKey} from './SearchUIUtils';
 
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from './ReportPrimaryActionUtils';
-import {hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions} from './ReportUtils';
+import {didCurrentUserPlaceHoldOnReportExpense, hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions} from './ReportUtils';
 
 type CreateTodosReportsAndTransactionsParams = {
     /** Every report, keyed by report Onyx key - iterated to find the expense reports that belong in a to-do bucket */
@@ -78,6 +78,9 @@ type TodoBucketContext = {
     /** Whether every transaction on the report is on hold - precomputed once so held reports are excluded from submit/approve/pay */
     allExpensesHeld: boolean;
 
+    /** Whether the current user placed the hold on one of the report's expenses - keeps an all-held report in their approve/pay to-do */
+    currentUserPlacedHold: boolean;
+
     /** The report owner's login, resolved from `ownerAccountID` - the submit predicate matches it against the submitter */
     ownerLogin: string | undefined;
 
@@ -99,13 +102,25 @@ type TodoBucketContext = {
 function reportMatchesTodoBucket(
     searchKey: SearchKey,
     report: Report,
-    {policy, reportNameValuePair, reportTransactions, reportMetadata, allReportActions, allExpensesHeld, ownerLogin, bankAccountList, currentUserAccountID, login}: TodoBucketContext,
+    {
+        policy,
+        reportNameValuePair,
+        reportTransactions,
+        reportMetadata,
+        allReportActions,
+        allExpensesHeld,
+        currentUserPlacedHold,
+        ownerLogin,
+        bankAccountList,
+        currentUserAccountID,
+        login,
+    }: TodoBucketContext,
 ): boolean {
     switch (searchKey) {
         case CONST.SEARCH.SEARCH_KEYS.SUBMIT:
             return isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !allExpensesHeld;
         case CONST.SEARCH.SEARCH_KEYS.APPROVE:
-            return isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !allExpensesHeld;
+            return isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && (!allExpensesHeld || currentUserPlacedHold);
         case CONST.SEARCH.SEARCH_KEYS.PAY:
             return (
                 isPrimaryPayAction({
@@ -118,7 +133,7 @@ function reportMatchesTodoBucket(
                     reportNameValuePairs: reportNameValuePair,
                 }) &&
                 !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions) &&
-                !allExpensesHeld
+                (!allExpensesHeld || currentUserPlacedHold)
             );
         case CONST.SEARCH.SEARCH_KEYS.EXPORT: {
             const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
@@ -170,6 +185,11 @@ function createTodosReportsAndTransactions({
             reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
             allReportActions,
             allExpensesHeld: hasOnlyHeldExpenses(reportTransactions),
+            currentUserPlacedHold: didCurrentUserPlaceHoldOnReportExpense(
+                allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`],
+                reportTransactions,
+                currentUserAccountID,
+            ),
             ownerLogin: getLoginByAccountID(report.ownerAccountID, personalDetailsList),
             bankAccountList,
             currentUserAccountID,
@@ -226,6 +246,11 @@ function getTodoReportsForSearchKey(
             reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
             allReportActions,
             allExpensesHeld: hasOnlyHeldExpenses(reportTransactions),
+            currentUserPlacedHold: didCurrentUserPlaceHoldOnReportExpense(
+                allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`],
+                reportTransactions,
+                currentUserAccountID,
+            ),
             ownerLogin: getLoginByAccountID(report.ownerAccountID, personalDetailsList),
             bankAccountList,
             currentUserAccountID,
