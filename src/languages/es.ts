@@ -5854,7 +5854,7 @@ ${amount} para ${merchant} - ${date}`,
                     },
                     sendInvoiceModal: {
                         title: (amount: string) => `¿Enviar factura por ${amount}?`,
-                        body: 'Crearemos una factura por tu gasto de viaje actual. Tu límite de viaje se libera una vez pagada la factura.',
+                        body: 'Crearemos una factura por tus gastos de viaje actuales. Tu límite de viaje se liberará una vez que se pague la factura.',
                     },
                     exportToPDF: 'Exportar a PDF',
                     exportToCSV: 'Exportar a CSV',

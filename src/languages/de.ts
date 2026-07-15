@@ -6000,6 +6000,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                                 'Wenn Sie das Limit reduzieren, können Mitglieder, die diesen Betrag bereits überschritten haben, bis zum nächsten Monat keine neuen Reisebuchungen vornehmen.',
                             provisioningError:
                                 'Wir konnten einige Mitglieder Ihres Arbeitsbereichs nicht für die Konsolidierte Reiseabrechnung einrichten. Bitte versuchen Sie es später erneut oder wenden Sie sich für Unterstützung an Concierge.',
+                            sendInvoiceNowCta: 'Rechnung jetzt senden',
                         },
                     },
                     disableModal: {
@@ -6022,6 +6023,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     invalidDateRangeError: 'Das Startdatum muss vor dem Enddatum liegen',
                     enabled: 'Zentrale Reiseabrechnung aktiviert!',
                     enabledDescription: 'Alle Reisekosten in diesem Workspace werden nun in einer monatlichen Rechnung zentralisiert.',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Rechnung über ${amount} senden?`,
+                        body: 'Wir erstellen eine Rechnung für Ihre aktuellen Reisekosten. Ihr Reisekredit wird wieder verfügbar, sobald die Rechnung bezahlt ist.',
+                    },
+                    depositOnly: 'Nur Einzahlung',
                 },
                 personalDetailsDescription: 'Um eine Reise zu buchen, gib bitte deinen amtlichen Namen genau so ein, wie er auf deinem amtlichen Ausweis steht.',
             },

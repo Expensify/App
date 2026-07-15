@@ -5988,6 +5988,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                                 'Se riduci il limite, i membri che hanno già speso più di questo importo non potranno effettuare nuove prenotazioni di viaggio fino al mese prossimo.',
                             provisioningError:
                                 'Non siamo riusciti a effettuare il provisioning di alcuni membri del tuo workspace per la Fatturazione Viaggi Consolidata. Riprova più tardi oppure contatta Concierge per assistenza.',
+                            sendInvoiceNowCta: 'Invia fattura ora',
                         },
                     },
                     disableModal: {
@@ -6010,6 +6011,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     invalidDateRangeError: 'La data di inizio deve essere precedente alla data di fine',
                     enabled: 'Fatturazione viaggio consolidata abilitata!',
                     enabledDescription: 'Tutte le spese di viaggio in questo spazio di lavoro saranno ora accentrate in una fattura mensile.',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Inviare la fattura per ${amount}?`,
+                        body: 'Creeremo una fattura per le tue spese di viaggio attuali. Il tuo limite di viaggio si libera una volta pagata la fattura.',
+                    },
+                    depositOnly: 'Solo deposito',
                 },
                 personalDetailsDescription: 'Per prenotare il viaggio, inserisci il tuo nome legale così come appare sul tuo documento d’identità rilasciato dal governo.',
             },

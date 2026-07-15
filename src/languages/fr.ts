@@ -6022,6 +6022,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                                 'Si vous réduisez la limite, les membres ayant déjà dépensé plus que ce montant ne pourront pas effectuer de nouvelles réservations de voyage avant le mois prochain.',
                             provisioningError:
                                 'Nous n’avons pas pu configurer certains membres de votre espace de travail pour la facturation de voyage consolidée. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
+                            sendInvoiceNowCta: 'Envoyer la facture maintenant',
                         },
                     },
                     disableModal: {
@@ -6044,6 +6045,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     invalidDateRangeError: 'La date de début doit être antérieure à la date de fin',
                     enabled: 'Facturation de voyage consolidée activée !',
                     enabledDescription: 'Toutes les dépenses de voyage sur cet espace de travail seront désormais centralisées dans une facture mensuelle.',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Envoyer la facture pour ${amount} ?`,
+                        body: 'Nous créerons une facture pour vos dépenses de voyage actuelles. Votre plafond de voyage est à nouveau disponible une fois la facture payée.',
+                    },
+                    depositOnly: 'Dépôt uniquement',
                 },
                 personalDetailsDescription: 'Pour pouvoir réserver un voyage, veuillez saisir votre nom légal tel qu’il apparaît sur votre pièce d’identité délivrée par le gouvernement.',
             },

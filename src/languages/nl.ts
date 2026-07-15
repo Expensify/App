@@ -5971,6 +5971,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             reduceLimitWarning: 'Als u het limiet verlaagt, kunnen leden die dit bedrag al hebben overschreden geen nieuwe reisboekingen maken tot volgende maand.',
                             provisioningError:
                                 'We konden voor sommige leden van je werkruimte geen toegang instellen tot Geconsolideerde Reisfacturering. Probeer het later opnieuw of neem contact op met Concierge voor ondersteuning.',
+                            sendInvoiceNowCta: 'Verstuur factuur nu',
                         },
                     },
                     disableModal: {
@@ -5993,6 +5994,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     invalidDateRangeError: 'De begindatum moet vóór de einddatum liggen',
                     enabled: 'Geconsolideerde reiskostenfacturatie ingeschakeld!',
                     enabledDescription: 'Alle reiskosten in deze workspace worden nu gebundeld op één maandelijkse factuur.',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Factuur voor ${amount} verzenden?`,
+                        body: 'We maken een factuur voor je huidige reiskosten. Je reistegoed komt weer vrij zodra de factuur is betaald.',
+                    },
+                    depositOnly: 'Alleen stortingen',
                 },
                 personalDetailsDescription: 'Om een reis te boeken, voer je wettelijke naam in zoals deze op je door de overheid uitgegeven identiteitsbewijs staat.',
             },
