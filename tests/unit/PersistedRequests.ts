@@ -360,3 +360,59 @@ describe('PersistedRequests persistence guarantees', () => {
         expect(PersistedRequests.getAll().map((r) => r.command)).toEqual(['CommandB', 'CommandC']);
     });
 });
+
+// Root cause of the `Failed to write blobs (InvalidBlob)` storm: file-upload requests used to be
+// persisted with their File/Blob INLINE in the single networkRequestQueue value, so the one record
+// grew with (queued file requests × file size) until its IndexedDB blob write failed and deadlocked
+// the queue. The fix keeps files in the in-memory queue (so live uploads still work) but strips them
+// from what is persisted, so the record stays small and writable.
+describe('PersistedRequests inline file storage (InvalidBlob root-cause fix)', () => {
+    const makeReceiptRequest = (index: number, bytes: number): Request<OnyxKey> =>
+        ({
+            command: 'ReplaceReceipt',
+            data: {transactionID: String(index), receipt: new Blob(['x'.repeat(bytes)], {type: 'image/jpeg'})},
+            requestIndex: index,
+        }) as Request<OnyxKey>;
+
+    const receiptSize = (r: {data?: Record<string, unknown>} | undefined) => {
+        const receipt = r?.data?.receipt;
+        return receipt instanceof Blob ? receipt.size : 0;
+    };
+
+    beforeEach(async () => {
+        PersistedRequests.clear();
+        await waitForBatchedUpdates();
+    });
+
+    it('keeps the receipt File in memory but STRIPS it from the persisted queue value', async () => {
+        PersistedRequests.save(makeReceiptRequest(1, 100_000));
+        await waitForBatchedUpdates();
+
+        // In-memory queue keeps the File so the live (same-session) upload still works.
+        expect(PersistedRequests.getAll().at(0)?.data?.receipt).toBeInstanceOf(Blob);
+
+        // Persisted value has the file stripped, so the single record cannot balloon.
+        const persisted = (await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS)) as Request<OnyxKey>[] | undefined;
+        expect(persisted).toHaveLength(1);
+        expect(persisted?.at(0)?.data?.receipt).toBeUndefined();
+        // The rest of the request is preserved on disk (id, command, other data) so ordering
+        // and cross-tab reconciliation are unaffected.
+        expect(persisted?.at(0)?.command).toBe('ReplaceReceipt');
+        expect(persisted?.at(0)?.data?.transactionID).toBe('1');
+    });
+
+    it('persisted queue value stays small regardless of file count', async () => {
+        for (let i = 1; i <= 5; i++) {
+            PersistedRequests.save(makeReceiptRequest(i, 100_000));
+        }
+        await waitForBatchedUpdates();
+
+        const persisted = (await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS)) as Request<OnyxKey>[] | undefined;
+        const persistedInlineBytes = (persisted ?? []).reduce((sum, r) => sum + receiptSize(r), 0);
+        const memoryInlineBytes = PersistedRequests.getAll().reduce((sum, r) => sum + receiptSize(r), 0);
+
+        expect(persisted).toHaveLength(5);
+        expect(persistedInlineBytes).toBe(0); // all files stripped from disk -> record can't balloon
+        expect(memoryInlineBytes).toBe(500_000); // memory keeps them for live uploads
+    });
+});
