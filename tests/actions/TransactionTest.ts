@@ -511,6 +511,15 @@ describe('actions/Transaction', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
                 await waitForBatchedUpdates();
 
+                let reports: OnyxCollection<Report>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (value) => {
+                        reports = value;
+                    },
+                });
+
                 changeTransactionsReport({
                     transactionIDs: [TRANSACTION_ID],
                     isASAPSubmitBetaEnabled: false,
@@ -521,7 +530,7 @@ describe('actions/Transaction', () => {
                     allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: transaction},
                     policyTagList: undefined,
                     transactionViolations: {},
-                    reports: undefined,
+                    reports,
                     isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
