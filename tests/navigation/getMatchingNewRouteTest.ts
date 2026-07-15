@@ -234,14 +234,12 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/new/task/share-destination')).toBe('/task-details/task-confirm/task-share-destination');
     });
 
-    it('redirects legacy invoice send-from substep to the confirmation entry screen', () => {
-        expect(getMatchingNewRoute('/create/invoice/from/123/456')).toBe('/create/invoice/confirmation/123/456');
-        expect(getMatchingNewRoute('/create/invoice/from/123/456?backTo=/home')).toBe('/create/invoice/confirmation/123/456?backTo=/home');
+    it('redirects legacy invoice send-from substep to the confirmation dynamic route', () => {
+        expect(getMatchingNewRoute('/create/invoice/from/123/456')).toBe('/create/invoice/confirmation/123/456/send-from');
     });
 
-    it('redirects legacy invoice company-info substep to the confirmation entry screen', () => {
-        expect(getMatchingNewRoute('/create/invoice/company-info/123/456')).toBe('/create/invoice/confirmation/123/456');
-        expect(getMatchingNewRoute('/create/invoice/company-info/123/456?backTo=/home')).toBe('/create/invoice/confirmation/123/456?backTo=/home');
+    it('redirects legacy invoice company-info substep to the confirmation dynamic route', () => {
+        expect(getMatchingNewRoute('/create/invoice/company-info/123/456')).toBe('/create/invoice/confirmation/123/456/company-info');
     });
 
     it('redirects legacy profile avatar path to new avatar route', () => {
