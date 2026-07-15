@@ -7,7 +7,7 @@ import {
     getReportNextStep,
 } from '@libs/NextStepUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getFilteredReportActionsForReportView, hasPendingDEWApprove, hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getOriginalMessage, hasPendingDEWApprove, hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getReasonAndReportActionThatRequiresAttention,
@@ -93,7 +93,10 @@ function useOptimisticNextStep(reportID: string | undefined) {
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
             const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
             if (hasDEWApproveFailed && isCurrentUserTheApprover) {
-                optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme.danger);
+                const {automaticAction} = getOriginalMessage(gbrResult?.reportAction) ?? {};
+                if (!automaticAction) {
+                    optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme.danger);
+                }
             } else if (isOffline && hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
                 optimisticNextStep = buildOptimisticNextStepForDEWOffline();
             }
