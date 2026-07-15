@@ -1,3 +1,4 @@
+import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
 import TextInput from '@components/TextInput';
@@ -14,7 +15,6 @@ import React, {useState} from 'react';
 
 import type {PopoverComponentProps} from './FilterPopupButton';
 
-import NegatableFilter from '../FilterComponents/NegatableFilter';
 import BasePopup from './BasePopup';
 
 type TextFilterPopupProps = {
