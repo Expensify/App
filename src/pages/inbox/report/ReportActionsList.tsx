@@ -1,4 +1,4 @@
-import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
+import {renderInvertedScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
