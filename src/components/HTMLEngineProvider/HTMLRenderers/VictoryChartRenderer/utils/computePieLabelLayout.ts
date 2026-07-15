@@ -88,6 +88,70 @@ function computeLabelBlockHeight(baseLabelItem: Pick<LabelItem, 'fontSize' | 'fo
     return totalHeight;
 }
 
+function computeLabelLineWidth(
+    line: string,
+    lineIndex: number,
+    baseLabelItem: Pick<LabelItem, 'fontSize' | 'fontFamily' | 'fontStyle' | 'fontWeight'>,
+    typefaces: ChartDefaultTypeface,
+): number {
+    const fontSize = baseLabelItem.fontSize?.[lineIndex];
+    const typeface = getChartSkiaTypeface(typefaces, {
+        fontFamily: baseLabelItem.fontFamily?.[lineIndex],
+        fontStyle: baseLabelItem.fontStyle?.[lineIndex],
+        fontWeight: baseLabelItem.fontWeight?.[lineIndex],
+    });
+    const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
+
+    if (!font) {
+        return 0;
+    }
+
+    return font.getGlyphWidths(font.getGlyphIDs(line)).reduce((totalWidth, width) => totalWidth + width, 0);
+}
+
+/**
+ * Every label in a column shares one text anchor (`labelRadius` from center), so the column's widest
+ * rendered label determines how close that anchor can sit to the container's edge — shrinking it column-wide
+ * keeps the column's right/left text edges aligned, instead of only the widest label overflowing past `edgePadding`.
+ */
+function computeTextRadiusBySide({
+    slices,
+    getText,
+    baseLabelItem,
+    typefaces,
+    labelRadius,
+    designWidth,
+    edgePadding,
+}: {
+    slices: PieSliceAngle[];
+    getText: (label: string) => string;
+    baseLabelItem: Pick<LabelItem, 'fontSize' | 'fontFamily' | 'fontStyle' | 'fontWeight'>;
+    typefaces: ChartDefaultTypeface;
+    labelRadius: number;
+    designWidth: number | undefined;
+    edgePadding: number;
+}): Record<PieLabelSide, number> {
+    if (designWidth === undefined) {
+        return {left: labelRadius, right: labelRadius};
+    }
+
+    const maxWidth: Record<PieLabelSide, number> = {left: 0, right: 0};
+
+    for (const currentSlice of slices) {
+        const side = assignColumnSide(currentSlice.midAngle);
+        const lines = getText(currentSlice.label).split('\n');
+        const widestLine = Math.max(...lines.map((line, lineIndex) => computeLabelLineWidth(line, lineIndex, baseLabelItem, typefaces)));
+        maxWidth[side] = Math.max(maxWidth[side], widestLine);
+    }
+
+    const centerX = designWidth / 2;
+
+    return {
+        left: Math.min(labelRadius, Math.max(0, centerX - edgePadding - maxWidth.left)),
+        right: Math.min(labelRadius, Math.max(0, designWidth - edgePadding - centerX - maxWidth.right)),
+    };
+}
+
 function resolveColumnRows(naturalYs: number[], rowHeight: number, plotBounds: PlotBounds): number[] {
     const forwardPass: number[] = [];
 
@@ -112,13 +176,17 @@ function computePieLabelLayout({
     slices,
     rowHeight,
     labelRadius,
+    textRadius,
     plotBounds,
 }: {
     slices: PieSliceAngle[];
     rowHeight: number;
     labelRadius: number;
+    /** Per-side text anchor distance, when it must be pulled in tighter than `labelRadius` to clear an edge. Defaults to `labelRadius` on both sides. */
+    textRadius?: Record<PieLabelSide, number>;
     plotBounds: Record<PieLabelSide, PlotBounds>;
 }): Record<string, ResolvedPieLabelLayout> {
+    const resolvedTextRadius = textRadius ?? {left: labelRadius, right: labelRadius};
     const bySide: Record<PieLabelSide, Array<{label: string; naturalY: number; midAngle: number}>> = {left: [], right: []};
 
     for (const slice of slices) {
@@ -134,7 +202,7 @@ function computePieLabelLayout({
             rowHeight,
             plotBounds[side],
         );
-        const relativeX = side === 'right' ? labelRadius : -labelRadius;
+        const relativeX = side === 'right' ? resolvedTextRadius.right : -resolvedTextRadius.left;
         const textAnchor: TextAnchor = side === 'right' ? 'start' : 'end';
 
         for (const [index, item] of columnItems.entries()) {
@@ -145,6 +213,6 @@ function computePieLabelLayout({
     return resolved;
 }
 
-export {computeSliceAngles, assignColumnSide, computeLabelBlockHeight};
+export {computeSliceAngles, assignColumnSide, computeLabelBlockHeight, computeTextRadiusBySide};
 export type {PieSliceAngle, PieSliceValue, PlotBounds};
 export default computePieLabelLayout;

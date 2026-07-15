@@ -4,7 +4,11 @@ import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRendere
 import parseShiftedLineSegmentNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/shiftedLineSegmentParser';
 import parseVictoryLabelNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryLabelParser';
 import type {PolarChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
-import computePieLabelLayout, {computeLabelBlockHeight, computeSliceAngles} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computePieLabelLayout';
+import computePieLabelLayout, {
+    computeLabelBlockHeight,
+    computeSliceAngles,
+    computeTextRadiusBySide,
+} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computePieLabelLayout';
 import type {PieSliceValue} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computePieLabelLayout';
 import convertAngleToArcLength from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/convertAngleToArcLength';
 import {parseAttributeAsNumber, parseAttributeAsStringArray} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
@@ -33,6 +37,11 @@ const TITLE_SAFE_TOP = 75;
 // The title/subtitle are left-aligned at the same x the left column's labels end at, so add padding to the left column labels so a label
 // stacked right at TITLE_SAFE_TOP reads as cramped against them even without overlapping.
 const LEFT_COLUMN_TOP_PADDING = 24;
+
+// The title/subtitle sit x=32 from the left edge, so every other label uses that same distance from
+// its nearest edge (bottom, left, or right) for a consistent margin - instead of a label stacked at
+// the very bottom of a column, or a long label in a column's text, rendering flush against the edge.
+const EDGE_PADDING = 32;
 
 function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const {data, chartContainerStyles, chartContentStyles} = useVictoryChartContext();
@@ -76,16 +85,26 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
         const slices = computeSliceAngles(sliceValues, START_ANGLE);
         const rowHeight = computeLabelBlockHeight(baseLabelItem, typefaces);
         const designHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
-        const bottom = designHeight ? Math.min(designHeight * (POLAR_CONTAINER_HEIGHT_RATIO - 0.5), effectiveLabelRadius) : effectiveLabelRadius;
+        const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
+        const bottom = designHeight ? Math.min(designHeight * (POLAR_CONTAINER_HEIGHT_RATIO - 0.5) - rowHeight / 2 - EDGE_PADDING, effectiveLabelRadius) : effectiveLabelRadius;
         const topFor = (titleSafeTop: number) =>
             designHeight ? Math.max(-Math.min(designHeight / 2, effectiveLabelRadius), titleSafeTop + rowHeight / 2 - designHeight / 2) : -effectiveLabelRadius;
         const plotBounds = {
             left: {top: topFor(TITLE_SAFE_TOP + LEFT_COLUMN_TOP_PADDING), bottom},
             right: {top: topFor(TITLE_SAFE_TOP), bottom},
         };
+        const textRadius = computeTextRadiusBySide({
+            slices,
+            getText: (label) => customLabelByDataLabel[label] ?? label,
+            baseLabelItem,
+            typefaces,
+            labelRadius: effectiveLabelRadius,
+            designWidth,
+            edgePadding: EDGE_PADDING,
+        });
 
-        return computePieLabelLayout({slices, rowHeight, labelRadius: effectiveLabelRadius, plotBounds});
-    }, [sliceValues, baseLabelItem, effectiveLabelRadius, typefaces, chartContentStyles.height]);
+        return computePieLabelLayout({slices, rowHeight, labelRadius: effectiveLabelRadius, textRadius, plotBounds});
+    }, [sliceValues, baseLabelItem, effectiveLabelRadius, typefaces, chartContentStyles.height, chartContentStyles.width, customLabelByDataLabel]);
 
     return (
         <Pie.Chart
