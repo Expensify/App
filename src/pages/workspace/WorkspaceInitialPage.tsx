@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -26,7 +27,6 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
-import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/HRUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
@@ -67,7 +67,6 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {LayoutChangeEvent} from 'react-native';
@@ -246,7 +245,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }
         openPolicyInitialPage(route.params.policyID);
     };
-    const {isOffline} = useNetwork({onReconnect: fetchPolicyData});
+    useNetwork({onReconnect: fetchPolicyData});
     useFocusEffect(
         useCallback(() => {
             fetchPolicyData();
@@ -264,20 +263,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     // Only the active policy has connections data at app start; non-active workspaces have to fetch
     // it. hasVendorFeature() and isMatchingVendorListLoaded() both read connections, so the Vendors
     // menu row would otherwise never render on a non-active workspace until the user visited its
-    // Accounting tab. Mirror the fetch trigger from withPolicyConnections, gated on the beta so we
-    // don't add an accounting-page fetch to every workspace visit for non-beta users.
-    const [hasConnectionsDataBeenFetched, hasConnectionsDataBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policyID}`);
-    const isConnectionsFetchedFlagLoading = isLoadingOnyxValue(hasConnectionsDataBeenFetchedResult);
+    // Accounting tab. Trigger the prefetch inline, scoped to read-access + beta so we don't add an
+    // accounting-page fetch to every workspace visit for non-beta users.
     const canReadVendors = canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.VENDORS);
-    useEffect(() => {
-        if (isConnectionsFetchedFlagLoading || isOffline || !canReadVendors || !isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) || !policyID || hasConnectionsDataBeenFetched) {
-            return;
-        }
-        if (!policy?.areConnectionsEnabled && isEmptyObject(policy?.connections)) {
-            return;
-        }
-        openPolicyAccountingPage(policyID);
-    }, [policyID, hasConnectionsDataBeenFetched, isConnectionsFetchedFlagLoading, isOffline, canReadVendors, isBetaEnabled, policy?.areConnectionsEnabled, policy?.connections]);
+    usePolicyConnectionsPrefetch(policy, canReadVendors && isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
 
     const workspaceMenuItems: WorkspaceMenuItem[] = [
         {
