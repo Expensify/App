@@ -71,8 +71,6 @@ describe('FullReconnectUtils', () => {
         });
 
         it('records the reconnect time right before the delivered cutoff', () => {
-            // The response delivers a cutoff ahead of the client clock. The recorded time must be
-            // held to that cutoff and saved in the same batch, just before it.
             const responseOnyxData = [someOtherEntry(), cutoffEntry(AFTER_CLIENT_NOW)];
 
             recordFullReconnectTimeFromResponse(responseOnyxData, '');

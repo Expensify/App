@@ -15,9 +15,7 @@ import DateUtils from './DateUtils';
  * so comparing them as strings is correct.
  */
 
-// The cutoff the client currently holds. subscribeToFullReconnect owns reacting to changes; this
-// only exposes the current value. Nothing in the UI reads it, so connectWithoutView is correct
-// here; components should use useOnyx instead.
+// subscribeToFullReconnect owns reacting to cutoff changes; this only exposes the current value.
 let currentServerReconnectCutoff = '';
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
@@ -53,11 +51,10 @@ function getLastFullReconnectTimeToRecord(serverReconnectCutoff: string): string
 }
 
 /**
- * Records LAST_FULL_RECONNECT_TIME into the response's onyxData. The response can deliver a newer
- * cutoff than the one known when the request was built, and the held cutoff can be newer still (a
- * Pusher update can overtake an in-flight response), so the recorded time satisfies whichever of
- * the two is later. A time below either would read as stale and fire an extra reconnect right
- * after the full download.
+ * The response can deliver a newer cutoff than the one known when the request was built, and the
+ * held cutoff can be newer still (a Pusher update can overtake an in-flight response), so the
+ * recorded time satisfies whichever of the two is later. A time below either would read as stale
+ * and fire an extra reconnect right after the full download.
  *
  * The entry goes right before the delivered cutoff entry, so the reconnect subscription never sees
  * a new cutoff next to an old reconnect time. That assumes Onyx broadcasts a batch's merges in

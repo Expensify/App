@@ -148,10 +148,6 @@ function reconnectCoverageFrom(request: AnyRequest): number {
     return typeof updateIDFrom === 'number' ? updateIDFrom : 0;
 }
 
-/**
- * A request whose success means the app downloaded everything: OpenApp, or a ReconnectApp without
- * `updateIDFrom`. Same rule reconnectCoverageFrom expresses as coverage 0.
- */
 function isFullDownloadRequest(request: AnyRequest): boolean {
     return isReconnectFamilyRequest(request) && reconnectCoverageFrom(request) === 0;
 }
