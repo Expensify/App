@@ -4,6 +4,7 @@ import {useIsAppLoadPending, useIsLoadingBarPending, useIsReportLoadPending} fro
 
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
+import type * as NetworkStateModule from '@libs/NetworkState';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyRequest} from '@src/types/onyx';
@@ -18,7 +19,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // Forcing the network state to offline keeps the engine inert (SequentialQueue.flush returns early while
 // offline), so the fake queue contents stay exactly as written. The hooks under test never read network state.
 jest.mock('@libs/NetworkState', () => ({
-    ...jest.requireActual<typeof import('@libs/NetworkState')>('@libs/NetworkState'),
+    ...jest.requireActual<typeof NetworkStateModule>('@libs/NetworkState'),
     getIsOffline: () => true,
 }));
 
