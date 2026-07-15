@@ -148,16 +148,8 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
             route: null,
         },
 
-        // Clear the existing route so that we don't show an old route
-        routes: {
-            route0: {
-                // Clear the existing distance to recalculate next time
-                distance: null,
-                geometry: {
-                    coordinates: null,
-                },
-            },
-        },
+        // Clear all existing routes so that we don't show stale routes (backend may return multiple alternatives)
+        routes: null,
     });
 
     // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
@@ -459,15 +451,29 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
             route: null,
         },
 
-        // Clear the existing route so that we don't show an old route
-        routes: {
-            route0: {
-                // Clear the existing distance to recalculate next time
-                distance: null,
-                geometry: {
-                    coordinates: null,
-                },
-            },
+        // Clear all existing routes so that we don't show stale routes (backend may return multiple alternatives)
+        routes: null,
+    });
+}
+
+function setSelectedRoute(transactionID: string, routeKey: string, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT): Promise<void> {
+    let keyPrefix;
+    switch (transactionState) {
+        case CONST.TRANSACTION.STATE.DRAFT:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
+            break;
+        case CONST.TRANSACTION.STATE.SPLIT_DRAFT:
+            keyPrefix = ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT;
+            break;
+        case CONST.TRANSACTION.STATE.CURRENT:
+        default:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION;
+            break;
+    }
+
+    return Onyx.merge(`${keyPrefix}${transactionID}`, {
+        comment: {
+            selectedRouteKey: routeKey,
         },
     });
 }
@@ -1972,4 +1978,5 @@ export {
     getDefaultP2PMileageRate,
     mergeTransactionIdsHighlightOnSearchRoute,
     getDuplicateTransactionDetails,
+    setSelectedRoute,
 };

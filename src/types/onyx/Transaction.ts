@@ -150,6 +150,9 @@ type Comment = {
     /** Odometer end image (File object with uri on web, URI string on native) */
     odometerEndImage?: FileObject | string;
 
+    /** Key of the route selected by the user when multiple alternative routes are available (e.g. 'route0', 'route1') */
+    selectedRouteKey?: string;
+
     /** Spotnana trip ID, set on travel transactions and used to link the expense to its trip room */
     tripID?: string;
 };

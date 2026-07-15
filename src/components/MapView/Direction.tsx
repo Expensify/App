@@ -8,7 +8,15 @@ import type {DirectionProps} from './MapViewTypes';
 
 import utils from './utils';
 
-function Direction({coordinates, belowLayerID}: DirectionProps) {
+function getId(idSuffix: string, idPrefix?: string) {
+    if (!idPrefix) {
+        return idSuffix;
+    }
+
+    return `${idPrefix}-${idSuffix}`;
+}
+
+function Direction({coordinates, belowLayerID, isSelected = true, id, onPress}: DirectionProps) {
     const styles = useThemeStyles();
 
     // If not a single segment route, we need to handle route split into multiple separate segments
@@ -24,8 +32,8 @@ function Direction({coordinates, belowLayerID}: DirectionProps) {
                     <Mapbox.ShapeSource
                         // Using index as key is safe because we are not reordering the routes
                         // eslint-disable-next-line react/no-array-index-key
-                        key={`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`}
-                        id={`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`}
+                        key={getId(`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`, id)}
+                        id={getId(`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`, id)}
                         shape={{
                             type: 'Feature',
                             properties: {},
@@ -34,16 +42,17 @@ function Direction({coordinates, belowLayerID}: DirectionProps) {
                                 coordinates: segmentCoordinates,
                             },
                         }}
+                        onPress={onPress}
                     >
                         <Mapbox.LineLayer
                             belowLayerID={belowLayerID}
-                            id={`${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}-segment-${index}`}
-                            style={styles.mapDirection}
+                            id={getId(`${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}-segment-${index}`, id)}
+                            style={isSelected ? styles.mapDirection : styles.alternativeMapDirection}
                         />
                         <Mapbox.LineLayer
-                            belowLayerID={`${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}-segment-${index}`}
-                            id={`${CONST.MAP_VIEW_LAYERS.ROUTE_BORDER}-segment-${index}`}
-                            style={styles.mapDirectionBorder}
+                            belowLayerID={getId(`${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}-segment-${index}`, id)}
+                            id={getId(`${CONST.MAP_VIEW_LAYERS.ROUTE_BORDER}-segment-${index}`, id)}
+                            style={isSelected ? styles.mapDirectionBorder : styles.alternativeMapDirectionBorder}
                         />
                     </Mapbox.ShapeSource>
                 ))}
@@ -57,7 +66,7 @@ function Direction({coordinates, belowLayerID}: DirectionProps) {
 
     return (
         <Mapbox.ShapeSource
-            id={CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}
+            id={getId(CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE, id)}
             shape={{
                 type: 'Feature',
                 properties: {},
@@ -66,16 +75,17 @@ function Direction({coordinates, belowLayerID}: DirectionProps) {
                     coordinates,
                 },
             }}
+            onPress={onPress}
         >
             <Mapbox.LineLayer
                 belowLayerID={belowLayerID}
-                id={CONST.MAP_VIEW_LAYERS.ROUTE_FILL}
-                style={styles.mapDirection}
+                id={getId(CONST.MAP_VIEW_LAYERS.ROUTE_FILL, id)}
+                style={isSelected ? styles.mapDirection : styles.alternativeMapDirection}
             />
             <Mapbox.LineLayer
-                belowLayerID={CONST.MAP_VIEW_LAYERS.ROUTE_FILL}
-                id={CONST.MAP_VIEW_LAYERS.ROUTE_BORDER}
-                style={styles.mapDirectionBorder}
+                belowLayerID={getId(CONST.MAP_VIEW_LAYERS.ROUTE_FILL, id)}
+                id={getId(CONST.MAP_VIEW_LAYERS.ROUTE_BORDER, id)}
+                style={isSelected ? styles.mapDirectionBorder : styles.alternativeMapDirectionBorder}
             />
         </Mapbox.ShapeSource>
     );

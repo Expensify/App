@@ -15,8 +15,10 @@ function getDistanceInMeters(transaction: OnyxInputOrEntry<Transaction>, unit: U
     }
 
     // If we are creating a new distance request, the distance is available in routes.route0.distance and it's already in meters.
-    if (transaction?.routes?.route0?.distance) {
-        return transaction.routes.route0.distance;
+    // Use the user-selected route key if available, otherwise fall back to route0.
+    const selectedRouteKey = transaction?.comment?.selectedRouteKey ?? 'route0';
+    if (transaction?.routes?.[selectedRouteKey]?.distance) {
+        return transaction.routes[selectedRouteKey].distance ?? 0;
     }
 
     return 0;

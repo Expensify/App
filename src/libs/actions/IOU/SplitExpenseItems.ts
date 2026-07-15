@@ -570,9 +570,13 @@ function updateSplitExpenseField(
             if (transactionDetails?.created !== item.created) {
                 shouldResetDateRange = true;
             }
+            const splitSelectedRouteKey = splitExpenseDraftTransaction?.comment?.selectedRouteKey ?? 'route0';
             let quantity: number | undefined;
-            if (splitExpenseDraftTransaction?.routes?.route0?.distance && splitExpenseDraftTransaction?.comment?.customUnit?.distanceUnit) {
-                quantity = DistanceRequestUtils.convertDistanceUnit(splitExpenseDraftTransaction?.routes?.route0?.distance, splitExpenseDraftTransaction?.comment?.customUnit?.distanceUnit);
+            if (splitExpenseDraftTransaction?.routes?.[splitSelectedRouteKey]?.distance && splitExpenseDraftTransaction?.comment?.customUnit?.distanceUnit) {
+                quantity = DistanceRequestUtils.convertDistanceUnit(
+                    splitExpenseDraftTransaction.routes[splitSelectedRouteKey].distance ?? 0,
+                    splitExpenseDraftTransaction?.comment?.customUnit?.distanceUnit,
+                );
             } else {
                 quantity = splitExpenseDraftTransaction?.comment?.customUnit?.quantity ?? 0;
             }
@@ -603,9 +607,9 @@ function updateSplitExpenseField(
                 if (rate && rate > 0) {
                     // Get distance from routes or customUnit.quantity (same logic as in initSplitExpense)
                     let distanceInUnits: number | undefined;
-                    if (splitExpenseDraftTransaction?.routes?.route0?.distance && splitExpenseDraftTransaction?.comment?.customUnit?.distanceUnit) {
+                    if (splitExpenseDraftTransaction?.routes?.[splitSelectedRouteKey]?.distance && splitExpenseDraftTransaction?.comment?.customUnit?.distanceUnit) {
                         distanceInUnits = DistanceRequestUtils.convertDistanceUnit(
-                            splitExpenseDraftTransaction.routes.route0.distance,
+                            splitExpenseDraftTransaction.routes[splitSelectedRouteKey].distance ?? 0,
                             splitExpenseDraftTransaction.comment.customUnit.distanceUnit,
                         );
                     } else {
