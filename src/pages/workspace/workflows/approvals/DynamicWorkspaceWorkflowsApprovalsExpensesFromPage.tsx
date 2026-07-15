@@ -107,13 +107,14 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const isCreateAction = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE;
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
 
+    const policyRules = isMultipleApproversBetaEnabled ? getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID) : {};
+
     // Build a map of member emails to their existing workflow's first approver. With the beta on this
     // is derived from the `ONYXKEYS.COLLECTION.RULE` rules; otherwise it falls back to the legacy
     // employeeList `submitsTo` (non-default workflows only).
     const membersInExistingWorkflows = (() => {
         if (isMultipleApproversBetaEnabled) {
-            const rules = getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID);
-            return new Map(Object.entries(getRulesSubmitterToFirstApprover(rules, policy?.employeeList ?? {})));
+            return new Map(Object.entries(getRulesSubmitterToFirstApprover(policyRules, policy?.employeeList ?? {})));
         }
 
         const employees = policy?.employeeList ?? {};
@@ -135,13 +136,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     // Beta only: identity (full approver-chain fingerprint) of each submitter's current workflow, plus the
     // identity of the workflow being edited. Comparing these — instead of just first approvers — lets us warn
     // before moving a member out of a workflow that merely shares its first approver with this one.
-    const submitterToWorkflowKey = (() => {
-        if (!isMultipleApproversBetaEnabled) {
-            return undefined;
-        }
-        const rules = getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID);
-        return new Map(Object.entries(getRulesSubmitterToWorkflowKey(rules, policy?.employeeList ?? {})));
-    })();
+    const submitterToWorkflowKey = isMultipleApproversBetaEnabled ? new Map(Object.entries(getRulesSubmitterToWorkflowKey(policyRules, policy?.employeeList ?? {}))) : undefined;
     const currentWorkflowKey = approverChainFingerprint(approvalWorkflow?.originalApprovers ?? []);
 
     useEffect(() => {

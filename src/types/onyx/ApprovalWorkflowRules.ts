@@ -91,12 +91,6 @@ type ApprovalWorkflowRule = {
     actions: ApprovalWorkflowActions;
 };
 
-/**
- * Map of approval-workflow rule bodies keyed by ruleID. Used as the in-memory working shape by the
- * rules builder/reconcilers; on disk each rule lives under its own `ONYXKEYS.COLLECTION.RULE` key.
- */
-type ApprovalWorkflowRules = Record<string, ApprovalWorkflowRule>;
-
 export type {
     ApprovalWorkflowAction,
     ApprovalWorkflowActionName,
@@ -105,7 +99,6 @@ export type {
     ApprovalWorkflowFilterComparison,
     ApprovalWorkflowFilterOperand,
     ApprovalWorkflowRule,
-    ApprovalWorkflowRules,
     ApprovalWorkflowTrigger,
     ApprovalWorkflowTriggers,
 };

@@ -320,7 +320,7 @@ Onyx.connect({
 });
 
 let allRules: OnyxCollection<Rule>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.RULE,
     waitForCollectionCallback: true,
     callback: (val) => (allRules = val),
@@ -1028,8 +1028,9 @@ function setWorkspaceApprovalMode(
             if (!rule || rule.scope !== CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY || rule.scopeID !== policyID) {
                 continue;
             }
-            optimisticData.push({onyxMethod: Onyx.METHOD.SET, key: ruleKey as `${typeof ONYXKEYS.COLLECTION.RULE}${string}`, value: null});
-            failureData.push({onyxMethod: Onyx.METHOD.SET, key: ruleKey as `${typeof ONYXKEYS.COLLECTION.RULE}${string}`, value: rule});
+            const ruleOnyxKey: `${typeof ONYXKEYS.COLLECTION.RULE}${string}` = `${ONYXKEYS.COLLECTION.RULE}${ruleKey.slice(ONYXKEYS.COLLECTION.RULE.length)}`;
+            optimisticData.push({onyxMethod: Onyx.METHOD.SET, key: ruleOnyxKey, value: null});
+            failureData.push({onyxMethod: Onyx.METHOD.SET, key: ruleOnyxKey, value: rule});
         }
     }
 

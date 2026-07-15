@@ -740,7 +740,6 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
 
 type ApprovalWorkflowRulesDiff = Record<string, ApprovalWorkflowRule | null>;
 
-/** Build a comparison filter: `<left> <operator> <right>`. */
 function buildComparison(
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>,
     left: ApprovalWorkflowFilterComparison['left'],
@@ -749,39 +748,37 @@ function buildComparison(
     return {operator, left, right};
 }
 
-/** Combine two filter nodes with a boolean `AND`. */
 function buildAnd(left: ApprovalWorkflowFilter['left'], right: ApprovalWorkflowFilter['right']): ApprovalWorkflowFilter {
     return {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left, right};
 }
 
-/** Build the `from = [emails]` filter used by every approval-workflow rule. Kept at the top-level left of the tree. */
 function buildSubmitterFilter(memberEmails: string[]): ApprovalWorkflowFilterComparison {
     return buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, [...memberEmails]);
 }
 
-/** Build the `to = email` filter that matches the approver who just approved the report. */
 function buildToComparison(email: string): ApprovalWorkflowFilterComparison {
     return buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, email);
 }
 
-/** A rule that fires when a report is submitted. */
+/** The index-keyed object shape the rules API uses for lists (`['a', 'b'] -> {'0': 'a', '1': 'b'}`). */
+function toIndexMap<T>(values: T[]): Record<string, T> {
+    return Object.fromEntries(values.map((value, index) => [String(index), value]));
+}
+
 function buildSubmitTriggers(): ApprovalWorkflowTriggers {
-    return {'0': CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT};
+    return toIndexMap([CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT]);
 }
 
-/** A rule that fires when a report is approved. */
 function buildApproveTriggers(): ApprovalWorkflowTriggers {
-    return {'0': CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE};
+    return toIndexMap([CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE]);
 }
 
-/** Forward the report to `approver`. */
 function buildForwardActions(approver: string): ApprovalWorkflowActions {
-    return {'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO, approver}};
+    return toIndexMap([{name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO, approver}]);
 }
 
-/** Approve (finalize) the report. */
 function buildApproveActions(): ApprovalWorkflowActions {
-    return {'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}};
+    return toIndexMap([{name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}]);
 }
 
 /**
@@ -1611,6 +1608,7 @@ export {
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
+    extractSubmitterEmails,
     getApprovalLimitDescription,
     getApprovalWorkflowRulesForPolicy,
     getRulesSubmitterToFirstApprover,

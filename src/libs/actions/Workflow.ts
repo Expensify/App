@@ -37,7 +37,7 @@ import {completeTask} from './Task';
 
 /** Cache of every approval-workflow rule (`ONYXKEYS.COLLECTION.RULE`) so actions can read the current rule set. */
 let allRules: OnyxCollection<Rule> = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.RULE,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -423,7 +423,7 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: existingRules});
 }
 
-/** Delete an approval workflow using the rules-based backend structure, gated behind the `multipleApprovers` beta. */
+/** Delete an approval workflow using the rules-based backend structure. */
 function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
     if (!policy) {
         return;

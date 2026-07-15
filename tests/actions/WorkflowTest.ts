@@ -14,7 +14,7 @@ import {
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
 } from '@src/libs/actions/Workflow';
-import {calculateApprovers} from '@src/libs/WorkflowUtils';
+import {calculateApprovers, extractSubmitterEmails} from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType, Report} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
@@ -72,6 +72,33 @@ async function getActivePolicyRules(policyID: string): Promise<Rule[]> {
         (rule): rule is Rule =>
             !!rule && rule.scope === CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY && rule.scopeID === policyID && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
+}
+
+/** Build the index-keyed object shape the rules API uses for lists (`['a'] -> {'0': 'a'}`). */
+function indexMap<T>(...values: T[]): Record<string, T> {
+    return Object.fromEntries(values.map((value, index) => [String(index), value]));
+}
+
+/** Seed the two rules (submit -> forward, approve -> finalize) that describe a `submitters -> approver` workflow. */
+async function seedForwardApproveRules(policyID: string, submitters: string[], approver: string) {
+    await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule1`, {
+        scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY,
+        scopeID: policyID,
+        triggers: indexMap(CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT),
+        filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitters},
+        actions: indexMap({name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO, approver}),
+    });
+    await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule2`, {
+        scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY,
+        scopeID: policyID,
+        triggers: indexMap(CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE),
+        filters: {
+            operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+            left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitters},
+            right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approver},
+        },
+        actions: indexMap({name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}),
+    });
 }
 
 describe('actions/Workflow', () => {
@@ -931,24 +958,7 @@ describe('actions/Workflow', () => {
             };
 
             // Existing workflow: employee1 (A) and employee2 (B) submit to owner (C).
-            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule1`, {
-                scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY,
-                scopeID: policyID,
-                triggers: {'0': CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT},
-                filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employee1Email, employee2Email]},
-                actions: {'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO, approver: ownerEmail}},
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule2`, {
-                scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY,
-                scopeID: policyID,
-                triggers: {'0': CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE},
-                filters: {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                    left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employee1Email, employee2Email]},
-                    right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: ownerEmail},
-                },
-                actions: {'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}},
-            });
+            await seedForwardApproveRules(policyID, [employee1Email, employee2Email], ownerEmail);
 
             // New workflow: employee3 (D) submits to owner (C) — same chain as the existing workflow.
             const approvalWorkflow = {
@@ -972,10 +982,7 @@ describe('actions/Workflow', () => {
             // D should be folded into the two existing rules, not create a third/fourth rule.
             expect(rules).toHaveLength(2);
             for (const rule of rules) {
-                const fromLeaf = Object.values(rule.actions).some((action) => action.name === CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO)
-                    ? rule.filters
-                    : (rule.filters as {left: unknown}).left;
-                expect((fromLeaf as {right: string[]}).right).toEqual([employee1Email, employee2Email, employee3Email]);
+                expect(extractSubmitterEmails(rule)).toEqual([employee1Email, employee2Email, employee3Email]);
             }
 
             await mockFetch.resume();
@@ -1031,10 +1038,7 @@ describe('actions/Workflow', () => {
             // Still only two rules, each now listing all three submitters.
             expect(rulesAfterSecond).toHaveLength(2);
             for (const rule of rulesAfterSecond) {
-                const fromLeaf = Object.values(rule.actions).some((action) => action.name === CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO)
-                    ? rule.filters
-                    : (rule.filters as {left: unknown}).left;
-                expect((fromLeaf as {right: string[]}).right).toEqual([employee1Email, employee2Email, employee3Email]);
+                expect(extractSubmitterEmails(rule)).toEqual([employee1Email, employee2Email, employee3Email]);
             }
 
             await mockFetch.resume();
@@ -1055,24 +1059,7 @@ describe('actions/Workflow', () => {
             };
 
             // Seed the existing [employee1] → [owner] workflow as rules in the collection.
-            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule1`, {
-                scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY,
-                scopeID: policyID,
-                triggers: {'0': CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT},
-                filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employee1Email]},
-                actions: {'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO, approver: ownerEmail}},
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule2`, {
-                scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY,
-                scopeID: policyID,
-                triggers: {'0': CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE},
-                filters: {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                    left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employee1Email]},
-                    right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: ownerEmail},
-                },
-                actions: {'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}},
-            });
+            await seedForwardApproveRules(policyID, [employee1Email], ownerEmail);
 
             const initialApprovalWorkflow = {
                 members: [{email: employee1Email, displayName: employee1Email}],
@@ -1122,24 +1109,7 @@ describe('actions/Workflow', () => {
             };
 
             // Seed the existing [employee1] → [owner] workflow as rules in the collection.
-            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule1`, {
-                scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY,
-                scopeID: policyID,
-                triggers: {'0': CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT},
-                filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employee1Email]},
-                actions: {'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO, approver: ownerEmail}},
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule2`, {
-                scope: CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY,
-                scopeID: policyID,
-                triggers: {'0': CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE},
-                filters: {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                    left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employee1Email]},
-                    right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: ownerEmail},
-                },
-                actions: {'0': {name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}},
-            });
+            await seedForwardApproveRules(policyID, [employee1Email], ownerEmail);
 
             const approvalWorkflow = {
                 members: [{email: employee1Email, displayName: employee1Email}],

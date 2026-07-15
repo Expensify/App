@@ -570,8 +570,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         />
                         {displayedWorkflows.map((workflow) => {
                             const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
-                            // A workflow's first approver isn't unique once rule-based chains diverge, but a member
-                            // belongs to exactly one workflow
+                            // The first approver isn't unique once rule-based chains diverge, so anchor the key/edit route
+                            // on a member too (each member belongs to exactly one workflow).
                             const firstMemberEmail = workflow.members.at(0)?.email ?? '';
 
                             return (

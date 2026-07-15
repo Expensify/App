@@ -10,6 +10,7 @@ import {
     convertApprovalWorkflowRulesToWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
     convertPolicyEmployeesToApprovalWorkflows,
+    extractSubmitterEmails,
     getApprovalLimitDescription,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
@@ -1694,6 +1695,8 @@ describe('WorkflowUtils', () => {
             right,
         });
         const keyRules = (rules: ApprovalWorkflowRule[]): Record<string, ApprovalWorkflowRule> => Object.fromEntries(rules.map((rule, index) => [`rule${index}`, rule]));
+        // Present a list as the array-shaped value the API returns for `triggers`/`actions` (PHP decodes index maps to arrays).
+        const asServerShape = <T>(value: unknown[]): T => value as unknown as T;
 
         describe('buildApprovalWorkflowRules', () => {
             it('Should return an empty list when there are no members', () => {
@@ -1793,14 +1796,14 @@ describe('WorkflowUtils', () => {
                 // new submitter folds into the existing rule instead of minting a fresh pair.
                 const existingRules: Record<string, ApprovalWorkflowRule> = {
                     r1: {
-                        actions: [{approver: '1@example.com', name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO}] as unknown as ApprovalWorkflowRule['actions'],
+                        actions: asServerShape([{approver: '1@example.com', name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.FORWARD_TO}]),
                         filters: buildFromFilter(['20@example.com']),
-                        triggers: [CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT] as unknown as ApprovalWorkflowRule['triggers'],
+                        triggers: asServerShape([CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_SUBMIT]),
                     },
                     r2: {
-                        actions: [{name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}] as unknown as ApprovalWorkflowRule['actions'],
+                        actions: asServerShape([{name: CONST.APPROVAL_WORKFLOW_RULE.ACTION.APPROVE_REPORT}]),
                         filters: and(buildFromFilter(['20@example.com']), buildToFilter('1@example.com')),
-                        triggers: [CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE] as unknown as ApprovalWorkflowRule['triggers'],
+                        triggers: asServerShape([CONST.APPROVAL_WORKFLOW_RULE.TRIGGER.REPORT_APPROVE]),
                     },
                 };
                 const newRules = buildApprovalWorkflowRules(buildWorkflow([10], [1]));
@@ -1808,7 +1811,7 @@ describe('WorkflowUtils', () => {
 
                 // Folds into the two existing rules (r1/r2) instead of creating fresh IDs, and appends the submitter.
                 expect(Object.keys(diff).sort()).toEqual(['r1', 'r2']);
-                expect((diff.r1?.filters as {right: string[]}).right).toEqual(['20@example.com', '10@example.com']);
+                expect(diff.r1 ? extractSubmitterEmails(diff.r1) : []).toEqual(['20@example.com', '10@example.com']);
             });
         });
 
