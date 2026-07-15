@@ -1,9 +1,11 @@
-import {useNavigation} from '@react-navigation/native';
-import type {ComponentType} from 'react';
-import React, {useEffect, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+
+import type {ComponentType} from 'react';
+
+import {useNavigation} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
 
 type WithNavigationTransitionEndProps = {didScreenTransitionEnd: boolean};
 
@@ -31,7 +33,8 @@ export default function <TProps>(WrappedComponent: ComponentType<TProps>): React
 
     WithNavigationTransitionEnd.displayName = `WithNavigationTransitionEnd(${getComponentDisplayName(WrappedComponent)})`;
 
-    return WithNavigationTransitionEnd;
+    // OXC's React Compiler does not memoize this component on web; memoize it explicitly.
+    return React.memo(WithNavigationTransitionEnd);
 }
 
 export type {WithNavigationTransitionEndProps};

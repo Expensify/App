@@ -1,4 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useReceiptPreviewsSizes from '@pages/iou/request/step/IOURequestStepScan/hooks/useReceiptPreviewsSizes';
 
 const MOCK_STYLES = {

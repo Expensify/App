@@ -1,13 +1,19 @@
-import type {ComponentProps} from 'react';
-import React from 'react';
 import NavigationDeferredMount from '@components/NavigationDeferredMount';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {endSpanWithAttributes} from '@libs/telemetry/activeSpans';
 import {endNavigateToReportsFirstPaint} from '@libs/telemetry/navigateToReportsSpans';
 import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+
 import CONST from '@src/CONST';
+
+import type {ComponentProps} from 'react';
+
+import React from 'react';
+
 import Search from './index';
 
 const REASON_ATTRIBUTES = {context: 'SearchPage.NavigationDeferred'} as const;

@@ -1,17 +1,23 @@
-import React from 'react';
-import type {TextInput} from 'react-native';
 import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
+
+import type {TextInput} from 'react-native';
+
+import React from 'react';
 
 type DistanceManualTabContentProps = {
     currentDistance: number | undefined;

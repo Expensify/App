@@ -1,11 +1,16 @@
+import LoadingIndicator from '@components/LoadingIndicator';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import Pdf from 'react-native-pdf';
-import LoadingIndicator from '@components/LoadingIndicator';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import PDFThumbnailError from './PDFThumbnailError';
+
 import type PDFThumbnailProps from './types';
+
+import PDFThumbnailError from './PDFThumbnailError';
 
 const PDF_THUMBNAIL_REASON_ATTRIBUTES: SkeletonSpanReasonAttributes = {context: 'PDFThumbnail'};
 

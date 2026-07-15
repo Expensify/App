@@ -1,10 +1,12 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
 
 /** Responses of the additional KYB verification checks, hinting at which documents the user still needs to upload */
 type KYBVerificationResponses = NonNullable<ACHData['verifications']>['externalApiResponses'];
@@ -17,8 +19,30 @@ function getLastFourDigits(bankAccountNumber: string): string {
     return bankAccountNumber ? bankAccountNumber.slice(-4) : '';
 }
 
+/**
+ * Renders a bank account as `${friendlyBankName} xx${last4}` for Search filter
+ * pickers, chips, and autocomplete suggestions. Falls back to GENERIC_BANK when
+ * the bank name is missing or not in CONST.BANK_NAMES_USER_FRIENDLY.
+ */
+function getBankAccountSearchLabel(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): string {
+    // BE returns bankName with the first letter uppercase (e.g. "Chase") but CONST.BANK_NAMES_USER_FRIENDLY keys are lowercase, so lowercase before the lookup.
+    const bankName = bankAccount?.accountData?.additionalData?.bankName?.toLowerCase() as keyof typeof CONST.BANK_NAMES_USER_FRIENDLY | undefined;
+    const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
+    const formattedBankName = (bankName ? CONST.BANK_NAMES_USER_FRIENDLY[bankName] : undefined) ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
+    const maskedNumber = accountNumber ? `xx${getLastFourDigits(accountNumber)}` : '';
+    return maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
+}
+
 function isBankAccountPartiallySetup(state: string | undefined) {
     return state === CONST.BANK_ACCOUNT.STATE.SETUP || state === CONST.BANK_ACCOUNT.STATE.VERIFYING || state === CONST.BANK_ACCOUNT.STATE.PENDING;
+}
+
+/**
+ * A BUSINESS account in a state that has actually been usable for paying expenses (anything other than SETUP / VERIFYING / PENDING).
+ * Used by the search picker, the autocomplete suggestions, and the advanced-filter visibility gate so all three surfaces accept and count the same set of accounts.
+ */
+function isFilterableBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    return bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !isBankAccountPartiallySetup(bankAccount?.accountData?.state);
 }
 
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
@@ -174,6 +198,8 @@ function getRequiredKYBDocuments(externalApiResponses: KYBVerificationResponses)
 }
 
 export {
+    getBankAccountSearchLabel,
+    isFilterableBankAccount,
     getDefaultCompanyWebsite,
     getRequiredKYBDocuments,
     getLastFourDigits,

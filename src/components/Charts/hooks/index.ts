@@ -1,7 +1,6 @@
 export {default as useChartLabelLayout} from './useChartLabelLayout';
 export {default as useChartLabelMeasurements} from './useChartLabelMeasurements';
 export {default as useChartParagraphs} from './useChartParagraphs';
-export {default as useYAxisLabelWidth} from './useYAxisLabelWidth';
 export {useChartFontManager} from '@components/Charts/context/ChartFontsContext';
 export {default as ChartFontsProvider} from '@components/Charts/context/ChartFontsProvider';
 export {useChartInteractions, TOOLTIP_BAR_GAP} from './useChartInteractions';

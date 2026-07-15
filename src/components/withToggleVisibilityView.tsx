@@ -1,15 +1,18 @@
-import type {ComponentType, ReactElement} from 'react';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+
+import type {ComponentType} from 'react';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import getComponentDisplayName from '@libs/getComponentDisplayName';
 
 type WithToggleVisibilityViewProps = {
     /** Whether the content is visible. */
     isVisible?: boolean;
 };
 
-export default function withToggleVisibilityView<TProps>(WrappedComponent: ComponentType<TProps>): (props: TProps & WithToggleVisibilityViewProps) => ReactElement | null {
+export default function withToggleVisibilityView<TProps>(WrappedComponent: ComponentType<TProps>): ComponentType<TProps & WithToggleVisibilityViewProps> {
     function WithToggleVisibilityView({isVisible = false, ...rest}: WithToggleVisibilityViewProps) {
         const styles = useThemeStyles();
         return (
@@ -27,7 +30,7 @@ export default function withToggleVisibilityView<TProps>(WrappedComponent: Compo
 
     WithToggleVisibilityView.displayName = `WithToggleVisibilityViewWithRef(${getComponentDisplayName(WrappedComponent)})`;
 
-    return WithToggleVisibilityView;
+    return React.memo(WithToggleVisibilityView);
 }
 
 export type {WithToggleVisibilityViewProps};

@@ -1,6 +1,10 @@
 import {FlatCompat} from '@eslint/eslintrc';
-import tsParser from '@typescript-eslint/parser';
-import expensifyConfig from 'eslint-config-expensify';
+import browserConfig from 'eslint-config-expensify/browser';
+import expensifyPluginConfig from 'eslint-config-expensify/expensify';
+import jestConfig from 'eslint-config-expensify/jest';
+import reactConfig from 'eslint-config-expensify/react';
+import scriptsConfig from 'eslint-config-expensify/scripts';
+import tsExpensifyConfig from 'eslint-config-expensify/typescript';
 import fileProgress from 'eslint-plugin-file-progress';
 import jsdoc from 'eslint-plugin-jsdoc';
 import lodash from 'eslint-plugin-lodash';
@@ -15,7 +19,8 @@ import globals from 'globals';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import typescriptEslint from 'typescript-eslint';
+import tseslint from 'typescript-eslint';
+
 import reportNameUtilsPlugin from './plugins/eslint-plugin-report-name-utils.mjs';
 import expensifyProcessor from './processors/eslint-processor-expensify.mjs';
 
@@ -33,13 +38,23 @@ const projectRoot = path.resolve(dirname, '../..');
 // rely on `rulesdir/<rule>` resolve them) and at our own `eslint-plugin-local-rules/`
 // at the repo root.
 const require = createRequire(import.meta.url);
-const expensifyConfigDirectory = path.dirname(require.resolve('eslint-config-expensify/package.json'));
+const expensifyConfigDirectory = path.dirname(require.resolve('eslint-config-expensify'));
 const expensifyRulesDir = path.resolve(expensifyConfigDirectory, 'eslint-plugin-expensify');
 const localRulesDir = path.resolve(projectRoot, 'eslint-plugin-local-rules');
 
 rulesdir.RULES_DIR = [expensifyRulesDir, localRulesDir];
 
 const restrictedImportPaths = [
+    {
+        name: '@components/Button',
+        importNames: ['default'],
+        message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
+    },
+    {
+        name: '@src/components/Button',
+        importNames: ['default'],
+        message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
+    },
     {
         name: 'react-native',
         importNames: [
@@ -123,7 +138,7 @@ const restrictedImportPaths = [
         importNames: ['Device', 'ExpensiMark'],
         message: [
             '',
-            "For 'Device', do not import it directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/dist/Device` instead.",
+            "For 'Device', do not import it directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/Device` instead.",
             "For 'ExpensiMark', please use '@libs/Parser' instead.",
         ].join('\n'),
     },
@@ -203,10 +218,28 @@ const restrictedPaidGroupPolicyImportPatterns = [
     },
 ];
 
+// Headless email chart CLI cannot use useTheme; charts always render with the light theme.
+const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((restriction) => restriction.name !== '@styles/theme');
+const victoryChartRendererRestrictedImportPatterns = [
+    ...restrictedImportPatterns.filter((restriction) => restriction.group[0] !== '@styles/theme/themes/**'),
+    ...restrictedReportNameImportPatterns,
+    ...restrictedPaidGroupPolicyImportPatterns,
+];
+
 const config = defineConfig([
-    expensifyConfig,
-    typescriptEslint.configs.recommendedTypeChecked,
-    typescriptEslint.configs.stylisticTypeChecked,
+    ...browserConfig,
+    ...reactConfig,
+    ...expensifyPluginConfig,
+    ...tsExpensifyConfig,
+    ...scriptsConfig,
+    ...jestConfig,
+    {
+        languageOptions: {
+            globals: {
+                ...globals.node,
+            },
+        },
+    },
     fileProgress.configs['recommended-ci'],
 
     // Suppress lint rules that are unnecessary for files successfully compiled by React Compiler.
@@ -240,7 +273,6 @@ const config = defineConfig([
 
     {
         extends: new FlatCompat({baseDirectory: projectRoot}).extends(
-            'airbnb-typescript',
             'plugin:storybook/recommended',
             'plugin:react-native-a11y/all',
             'plugin:@dword-design/import-alias/recommended',
@@ -255,11 +287,25 @@ const config = defineConfig([
             lodash,
         },
 
-        languageOptions: {
-            parser: tsParser,
+        settings: {
+            // `plugin:@dword-design/import-alias/recommended` overrides `import/resolver`
+            // with JS-only extensions. Restore TS resolution so `import/extensions` can resolve
+            // relative imports without file extensions like `../src/foo` to `foo.ts`.
+            'import/resolver': {
+                node: {
+                    extensions: ['.mjs', '.js', '.jsx', '.json', '.ts', '.tsx', '.d.ts', '.cts', '.mts'],
+                },
+            },
+            'import/extensions': ['.js', '.mjs', '.jsx', '.ts', '.tsx', '.d.ts', '.cts', '.mts'],
+            'import/parsers': {
+                '@typescript-eslint/parser': ['.ts', '.tsx', '.d.ts', '.cts', '.mts'],
+            },
+        },
 
+        languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tsconfig.json'),
+                projectService: false,
             },
 
             globals: {
@@ -270,84 +316,9 @@ const config = defineConfig([
 
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         rules: {
-            // TypeScript specific rules
-            '@typescript-eslint/prefer-enum-initializers': 'error',
-            '@typescript-eslint/no-var-requires': 'off',
-            '@typescript-eslint/no-non-null-assertion': 'error',
-            '@typescript-eslint/no-unsafe-type-assertion': 'error',
-            '@typescript-eslint/switch-exhaustiveness-check': ['error', {considerDefaultExhaustiveForUnions: true}],
-            '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
-            '@typescript-eslint/no-floating-promises': 'off',
-            '@typescript-eslint/no-import-type-side-effects': 'error',
-            '@typescript-eslint/array-type': ['error', {default: 'array-simple'}],
-            '@typescript-eslint/max-params': ['error', {max: 10}],
-            '@typescript-eslint/naming-convention': [
-                'error',
-                {
-                    selector: ['variable', 'property'],
-                    format: null,
-                    // Allow __esModule because it is a well-known interop property injected by bundlers
-                    // (e.g. Babel/Webpack) and sometimes required by library internals (e.g. react-native-skia).
-                    filter: {
-                        regex: '^__esModule$',
-                        match: true,
-                    },
-                },
-                {
-                    selector: ['variable', 'property'],
-                    format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
-                    // This filter excludes variables and properties that start with "private_" to make them valid.
-                    //
-                    // Examples:
-                    // - "private_a" → valid
-                    // - "private_test" → valid
-                    // - "private_" → not valid
-                    filter: {
-                        regex: '^private_[a-z][a-zA-Z0-9]*$',
-                        match: false,
-                    },
-                },
-                {
-                    selector: 'function',
-                    format: ['camelCase', 'PascalCase'],
-                },
-                {
-                    selector: ['typeLike', 'enumMember'],
-                    format: ['PascalCase'],
-                },
-                {
-                    selector: ['parameter', 'method'],
-                    format: ['camelCase', 'PascalCase'],
-                    leadingUnderscore: 'allow',
-                },
-            ],
-            '@typescript-eslint/no-restricted-types': [
-                'error',
-                {
-                    types: {
-                        object: "Use 'Record<string, T>' instead.",
-                    },
-                },
-            ],
-            '@typescript-eslint/consistent-type-imports': [
-                'error',
-                {
-                    prefer: 'type-imports',
-                    fixStyle: 'separate-type-imports',
-                },
-            ],
-            '@typescript-eslint/consistent-type-exports': [
-                'error',
-                {
-                    fixMixedExportsWithInlineTypeSpecifier: false,
-                },
-            ],
-            '@typescript-eslint/no-use-before-define': ['error', {functions: false}],
-
             // ESLint core rules
             'es/no-nullish-coalescing-operators': 'off',
             'es/no-optional-chaining': 'off',
-            '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
             'arrow-body-style': 'off',
             'no-empty': ['error', {allowEmptyCatch: true}],
 
@@ -363,6 +334,8 @@ const config = defineConfig([
             'rulesdir/no-beta-handler': 'error',
             'rulesdir/require-live-region-for-status-updates': 'error',
             'rulesdir/require-a11y-disable-justification': 'error',
+            'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
+            'rulesdir/no-useOnyx-dependencies-arg': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
@@ -382,6 +355,7 @@ const config = defineConfig([
             'react-native-a11y/has-valid-accessibility-ignores-invert-colors': 'error',
             'react/require-default-props': 'off',
             'react/prop-types': 'off',
+            'react/no-unused-prop-types': ['error', {customValidators: [], skipShapeProps: true}],
             'react/jsx-key': 'error',
             'react/jsx-no-constructed-context-values': 'error',
             'react/forbid-component-props': [
@@ -511,54 +485,6 @@ const config = defineConfig([
         },
     },
 
-    // Some rules became stricter or stopped working after upgrading to ESLint 9, so these configs adjust the rules to match the old behavior.
-    {
-        files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
-        rules: {
-            // @typescript-eslint/lines-between-class-members was moved to @stylistic/eslint-plugin, so replaced with lines-between-class-members.
-            'lines-between-class-members': 'error',
-            '@typescript-eslint/lines-between-class-members': 'off',
-
-            // Sometimes it's useful to include duplicate types for documentation purposes.
-            '@typescript-eslint/no-duplicate-type-constituents': ['error', {ignoreUnions: true}],
-
-            '@typescript-eslint/no-require-imports': 'off',
-
-            // @typescript-eslint/no-throw-literal was removed, so replaced with no-throw-literal.
-            'no-throw-literal': 'error',
-            '@typescript-eslint/no-throw-literal': 'off',
-
-            '@typescript-eslint/no-unused-vars': [
-                'error',
-                {
-                    vars: 'all',
-                    args: 'after-used',
-                    caughtErrors: 'none',
-                    ignoreRestSiblings: true,
-                },
-            ],
-            '@typescript-eslint/prefer-find': 'off',
-            '@typescript-eslint/prefer-includes': 'off',
-            '@typescript-eslint/prefer-optional-chain': 'off',
-            '@typescript-eslint/prefer-nullish-coalescing': [
-                'error',
-                {
-                    ignoreIfStatements: true,
-                    ignorePrimitives: {
-                        // string: true,
-                    },
-                    ignoreTernaryTests: true,
-                },
-            ],
-
-            // @typescript-eslint/prefer-promise-reject-errors enforces Promises are only rejected with Error objects, so replaced with prefer-promise-reject-errors.
-            'prefer-promise-reject-errors': 'error',
-            '@typescript-eslint/prefer-promise-reject-errors': 'off',
-
-            '@typescript-eslint/prefer-regexp-exec': 'off',
-        },
-    },
-
     // Enforces every Onyx type and its properties to have a comment explaining its purpose.
     {
         files: ['src/types/onyx/**/*.ts'],
@@ -572,10 +498,6 @@ const config = defineConfig([
         },
     },
 
-    {
-        files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
-        ...typescriptEslint.configs.disableTypeChecked,
-    },
     {
         files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         rules: {
@@ -593,7 +515,7 @@ const config = defineConfig([
     },
 
     // Node.js ESM requires relative imports to include a file extension (unlike
-    // bundled `.js`/`.ts`, which are resolved by webpack/metro). Relax the
+    // bundled `.js`/`.ts`, which are resolved by Rspack/metro). Relax the
     // airbnb-inherited `import/extensions` rule for `.mjs`/`.cjs` so it stops
     // flagging legitimate ESM imports like `import x from './foo.mjs'`.
     {
@@ -603,18 +525,28 @@ const config = defineConfig([
         },
     },
 
+    // Storybook (loaded as native ESM by Storybook 10) and our Rspack/Rsbuild config
+    // entry points load .ts files directly and require explicit .ts extensions on
+    // relative imports — the opposite of bundled src/ code.
     {
-        files: ['**/en.ts', '**/es.ts'],
+        files: ['.storybook/**/*.ts', '.storybook/**/*.tsx', 'config/rsbuild/**/*.ts'],
         rules: {
-            'rulesdir/use-periods-for-error-messages': 'error',
+            'import/extensions': 'off',
+        },
+    },
+
+    // Rspack loaders receive their `this` from the bundler, and it's standard practice to use it
+    {
+        files: ['config/rsbuild/loaders/*-loader.mjs'],
+        rules: {
+            'no-invalid-this': 'off',
         },
     },
 
     {
-        files: ['**/*.ts', '**/*.tsx'],
+        files: ['**/en.ts', '**/es.ts'],
         rules: {
-            'rulesdir/prefer-at': 'error',
-            'rulesdir/boolean-conditional-rendering': 'error',
+            'rulesdir/use-periods-for-error-messages': 'error',
         },
     },
 
@@ -644,15 +576,12 @@ const config = defineConfig([
     },
 
     {
-        files: ['.github/**/*', 'scripts/**/*', 'server/**/*'],
-        rules: {
-            // For all these Node.js scripts, we do not want to disable `console` statements
-            'no-console': 'off',
-        },
-    },
-
-    {
         files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*'],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+            },
+        },
         rules: {
             'no-await-in-loop': 'off',
             'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
@@ -677,8 +606,19 @@ const config = defineConfig([
     },
 
     {
+        files: ['**/*.ts', '**/*.tsx'],
+        plugins: {
+            '@typescript-eslint': tseslint.plugin,
+        },
+        rules: {
+            '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
+        },
+    },
+
+    {
         files: ['tests/**/*'],
         rules: {
+            'import/extensions': 'off',
             'no-import-assign': 'off',
 
             // This helps disable the `prefer-alias` rule for tests
@@ -753,6 +693,7 @@ const config = defineConfig([
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'server/tsconfig.json'),
+                projectService: false,
             },
         },
     },
@@ -762,7 +703,18 @@ const config = defineConfig([
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'server/victory-chart-renderer/tsconfig.json'),
+                projectService: false,
             },
+        },
+        rules: {
+            // Headless CLI cannot use useTheme; email charts always render with the light theme.
+            'no-restricted-imports': [
+                'error',
+                {
+                    paths: victoryChartRendererRestrictedImportPaths,
+                    patterns: victoryChartRendererRestrictedImportPatterns,
+                },
+            ],
         },
     },
 
@@ -775,6 +727,7 @@ const config = defineConfig([
         '**/node_modules/**/*',
         '**/dist/**/*',
         'server/**/dist/**',
+        'server/victory-chart-renderer/.dev/**',
         '.eslint-reports/**/*',
         'android/**/build/**/*',
         'docs/vendor/**/*',

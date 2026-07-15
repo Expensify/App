@@ -1,11 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import TextWithTooltip from '@components/TextWithTooltip';
+
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getPolicyName, getWorkspaceIcon} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCellProps = {
     policyID?: string;
@@ -13,9 +18,10 @@ type WorkspaceCellProps = {
 };
 
 function WorkspaceCell({policyID, report}: WorkspaceCellProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icon = getWorkspaceIcon(report);
-    const name = getPolicyName({report});
+    const name = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
 
     if (report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
         return null;

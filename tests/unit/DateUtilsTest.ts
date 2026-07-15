@@ -1,15 +1,19 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startOfDay, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
-import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
-import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import DateUtils from '@libs/DateUtils';
 import {translate} from '@libs/Localize';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startOfDay, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
+import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -591,6 +595,38 @@ describe('DateUtils', () => {
             const americaNewYork = 'America/New_York' as SelectedTimezone;
             const result = DateUtils.normalizeDateToEndOfDay('2024-01-15', americaNewYork);
             expect(result).toBe('2024-01-16 04:59:59');
+        });
+    });
+
+    describe('getFormattedCancellationDate', () => {
+        it('should format the date using the venue timezone embedded in the ISO string', () => {
+            // Pin "now" before 2026 so the 2026 date is treated as a non-current year and the year is shown.
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+            // 2026-04-19T15:00:00+07:00 — venue is UTC+7, device timezone is UTC
+            const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00');
+            // Should display 3:00 PM in the venue's +07:00 timezone, not converted to device-local time
+            expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, GMT+7');
+        });
+
+        it('should format without year when date is in the current year', () => {
+            // Pin "now" to 2026 so the 2026 date is treated as the current year and the year is omitted.
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-06-01T00:00:00Z'));
+            const result = DateUtils.getFormattedCancellationDate('2026-06-15T10:30:00+00:00');
+            expect(result).toBe('Monday, Jun 15 10:30 AM, UTC');
+        });
+
+        it('should return empty string for falsy input', () => {
+            expect(DateUtils.getFormattedCancellationDate('')).toBe('');
+        });
+
+        it('should fall back to UTC when no timezone offset is present in the ISO string', () => {
+            // Pin "now" before 2026 so the 2026 date is treated as a non-current year and the year is shown.
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+            const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00');
+            expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, UTC');
         });
     });
 

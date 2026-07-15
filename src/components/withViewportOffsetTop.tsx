@@ -1,7 +1,9 @@
-import type {ComponentType} from 'react';
-import React, {useEffect, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import addViewportResizeListener from '@libs/VisualViewport';
+
+import type {ComponentType} from 'react';
+
+import React, {useEffect, useState} from 'react';
 
 type ViewportOffsetTopProps = {
     // viewportOffsetTop returns the offset of the top edge of the visual viewport from the
@@ -36,5 +38,6 @@ export default function withViewportOffsetTop<TProps extends ViewportOffsetTopPr
 
     WithViewportOffsetTop.displayName = `WithViewportOffsetTop(${getComponentDisplayName(WrappedComponent)})`;
 
-    return WithViewportOffsetTop;
+    // OXC's React Compiler does not memoize this component on web; memoize it explicitly.
+    return React.memo(WithViewportOffsetTop);
 }

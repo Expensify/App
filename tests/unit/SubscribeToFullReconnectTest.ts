@@ -1,11 +1,14 @@
-import Onyx from 'react-native-onyx';
-import {confirmReadyToOpenApp, openApp} from '@libs/actions/App';
+import {openApp} from '@libs/actions/App';
 import clearOnyxAndSeedFullReconnect from '@libs/actions/clearOnyxAndSeedFullReconnect';
 import {writeWithNoDuplicatesConflictAction, writeWithNoDuplicatesReconnectConflictAction} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import '@libs/subscribeToFullReconnect';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+import '@libs/subscribeToFullReconnect';
+
+import Onyx from 'react-native-onyx';
+
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -85,7 +88,6 @@ async function setServerCutoff(cutoff: string): Promise<void> {
 describe('subscribeToFullReconnect', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-        confirmReadyToOpenApp();
     });
 
     beforeEach(async () => {

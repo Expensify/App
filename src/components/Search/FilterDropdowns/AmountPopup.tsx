@@ -1,13 +1,19 @@
-import React, {useState} from 'react';
-import type {ValueOf} from 'type-fest';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import MenuItem from '@components/MenuItem';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useState} from 'react';
+
 import BasePopup from './BasePopup';
 
 type AmountPopupProps = {

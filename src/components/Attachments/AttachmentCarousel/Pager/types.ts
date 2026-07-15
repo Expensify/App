@@ -1,8 +1,9 @@
+import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+
 import type {ForwardedRef} from 'react';
 import type {GestureType} from 'react-native-gesture-handler';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
-import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 
 /** The pager items array is used within the pager to render and navigate between the images */
 type AttachmentCarouselPagerItems = Pick<Attachment, 'attachmentID'> & {

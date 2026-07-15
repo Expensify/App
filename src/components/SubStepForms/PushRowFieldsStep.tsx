@@ -1,14 +1,19 @@
-import React, {useCallback} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import genericMemo from '@libs/genericMemo';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+
+import React, {useCallback} from 'react';
 
 type PushRowField<TFormID extends keyof OnyxFormValuesMapping> = {
     inputID: FormOnyxKeys<TFormID>;
@@ -71,4 +76,4 @@ function PushRowFieldsStep<TFormID extends keyof OnyxFormValuesMapping>({formID,
     );
 }
 
-export default PushRowFieldsStep;
+export default genericMemo(PushRowFieldsStep);

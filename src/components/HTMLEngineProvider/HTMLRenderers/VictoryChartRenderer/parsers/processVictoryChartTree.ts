@@ -1,8 +1,11 @@
-import type {SkTypeface} from '@shopify/react-native-skia';
-import lodashMerge from 'lodash/merge';
-import type {TNode} from 'react-native-render-html';
 import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+
+import type {SkTypeface} from '@shopify/react-native-skia';
+import type {TNode} from 'react-native-render-html';
+
+import lodashMerge from 'lodash/merge';
+
 import PARSER_REGISTRY from './parserRegistry';
 
 /**

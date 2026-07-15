@@ -1,10 +1,14 @@
-import {useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import getCompactReceiptDimensions from '@components/MoneyRequestConfirmationListFooter/getCompactReceiptDimensions';
 import getImageCompactModeStyle from '@components/MoneyRequestConfirmationListFooter/getImageCompactModeStyle';
 import getReceiptContainerCompactModeStyle from '@components/MoneyRequestConfirmationListFooter/getReceiptContainerCompactModeStyle';
+
 import {endSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import {useRef, useState} from 'react';
 
 type UseCompactReceiptDimensionsParams = {
     /** Whether the user has expanded the optional fields (disables compact mode) */

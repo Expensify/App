@@ -1,7 +1,8 @@
-import {NavigationContext} from '@react-navigation/core';
 import type {NavigationProp} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import type {ComponentType, ReactElement} from 'react';
+import type {ComponentType} from 'react';
+
+import {NavigationContext} from '@react-navigation/core';
 import React, {useContext, useMemo} from 'react';
 
 type AddListenerCallback = () => void;
@@ -14,7 +15,7 @@ type NavigationContextValue = {
     removeListener: () => RemoveListenerCallback;
 };
 
-export default function <TProps extends Record<string, unknown>>(WrappedComponent: ComponentType<TProps>): (props: TProps) => ReactElement | null {
+export default function <TProps extends Record<string, unknown>>(WrappedComponent: ComponentType<TProps>): ComponentType<TProps> {
     function WithNavigationFallback(props: TProps) {
         const context = useContext(NavigationContext);
 
@@ -38,5 +39,5 @@ export default function <TProps extends Record<string, unknown>>(WrappedComponen
 
     WithNavigationFallback.displayName = `WithNavigationFallback(${WrappedComponent.displayName ?? WrappedComponent.name ?? 'Component'})`;
 
-    return WithNavigationFallback;
+    return React.memo(WithNavigationFallback);
 }

@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
 import {Platform} from 'react-native';
 import {Camera as VisionCamera} from 'react-native-vision-camera';
+
 import type {NavigationAwareCameraNativeProps} from './types';
 
 // iOS `takeSnapshot` requires the video pipeline to be running so it can grab a frame from it.

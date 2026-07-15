@@ -1,13 +1,17 @@
-import React from 'react';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
+
 import useEnterSignerInfoStepFormSubmit from '@hooks/useEnterSignerInfoStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import WhyLink from '@pages/ReimbursementAccount/WhyLink';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
+
+import React from 'react';
 
 function DateOfBirth({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();

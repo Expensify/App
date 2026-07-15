@@ -1,11 +1,14 @@
-import {useEffect} from 'react';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 import useOnyx from '@hooks/useOnyx';
+
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import {useEffect} from 'react';
 
 type ConnectToSageIntacctFlowProps = {
     policyID: string;
