@@ -8,6 +8,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import genericMemo from '@libs/genericMemo';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -189,5 +191,5 @@ function BaseListItemHeader<TItem extends ListItem>({
     );
 }
 
-export default BaseListItemHeader;
+export default genericMemo(BaseListItemHeader);
 export type {BaseListItemHeaderProps};

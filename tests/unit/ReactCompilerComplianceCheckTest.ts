@@ -77,6 +77,29 @@ function BadComponent({condition}) {
         expect(result.errors).toEqual([]);
     });
 
+    it('reports memoized=true when the compiler emits a memoization cache', () => {
+        const source = `
+            function MyComponent({items}: {items: number[]}) {
+                const doubled = items.map((x) => x * 2);
+                return <div>{doubled.join(',')}</div>;
+            }
+        `;
+        const result = checkReactCompilerCompliance(source, 'MyComponent.tsx');
+        expect(result.status).toBe('compiled');
+        expect(result.memoized).toBe(true);
+    });
+
+    it('reports memoized=false for a file with no components or hooks', () => {
+        const source = `
+            export function add(a: number, b: number): number {
+                return a + b;
+            }
+        `;
+        const result = checkReactCompilerCompliance(source, 'mathUtils.ts');
+        expect(result.status).toBe('no-components');
+        expect(result.memoized).toBe(false);
+    });
+
     it('includes function location in error details', () => {
         const source = `
 import {useState} from 'react';

@@ -7,6 +7,8 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import genericMemo from '@libs/genericMemo';
+
 import variables from '@styles/variables';
 
 import React, {Activity, useState} from 'react';
@@ -149,4 +151,4 @@ function SingleSelect<T extends string>({
 }
 
 export type {SingleSelectItem};
-export default SingleSelect;
+export default genericMemo(SingleSelect);

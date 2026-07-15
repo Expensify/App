@@ -2,7 +2,7 @@ import useDebounce from '@hooks/useDebounce';
 
 import CONST from '@src/CONST';
 
-import {useEffect, useRef} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 
 /**
  * Debounces a function to save a draft for a report comment or report action draft.
@@ -15,15 +15,24 @@ import {useEffect, useRef} from 'react';
 function useDebouncedSaveDraft<SaveDraftArgs extends unknown[]>(saveDraftFn: (...args: SaveDraftArgs) => void, wait = CONST.TIMING.DRAFT_SAVE_DEBOUNCE_TIME) {
     const isSavePending = useRef(false);
 
-    const debouncedSaveDraft = useDebounce((...args: SaveDraftArgs) => {
-        saveDraftFn(...args);
-        isSavePending.current = false;
-    }, wait);
+    const debouncedSaveDraft = useDebounce(
+        useCallback(
+            (...args: SaveDraftArgs) => {
+                saveDraftFn(...args);
+                isSavePending.current = false;
+            },
+            [saveDraftFn],
+        ),
+        wait,
+    );
 
-    const saveDraft = (...args: SaveDraftArgs) => {
-        isSavePending.current = true;
-        debouncedSaveDraft(...args);
-    };
+    const saveDraft = useCallback(
+        (...args: SaveDraftArgs) => {
+            isSavePending.current = true;
+            debouncedSaveDraft(...args);
+        },
+        [debouncedSaveDraft],
+    );
 
     // Cancel the debounced save draft on unmount
     useEffect(

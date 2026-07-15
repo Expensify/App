@@ -5,6 +5,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
+import genericMemo from '@libs/genericMemo';
 
 import CONST from '@src/CONST';
 
@@ -121,4 +122,4 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     );
 }
 
-export default BaseAutoCompleteSuggestions;
+export default genericMemo(BaseAutoCompleteSuggestions);

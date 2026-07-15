@@ -4,6 +4,8 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import genericMemo from '@libs/genericMemo';
+
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -540,4 +542,4 @@ function BaseSelectionList<TItem extends ListItem>({
     );
 }
 
-export default BaseSelectionList;
+export default genericMemo(BaseSelectionList);

@@ -16,6 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
+import genericMemo from '@libs/genericMemo';
 import {getSettlementStatus, getSettlementStatusBadgeProps} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
@@ -257,4 +258,4 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     );
 }
 
-export default WithdrawalIDListItemHeader;
+export default genericMemo(WithdrawalIDListItemHeader);

@@ -112,7 +112,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 
     WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return WithReportOrNotFound;
+    return React.memo(WithReportOrNotFound);
 }
 
 export type {WithReportAndReportActionOrNotFoundProps};
