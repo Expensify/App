@@ -115,8 +115,6 @@
 "../../src/components/Button/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Button/validateSubmitShortcut/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ButtonComposed/Button.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/ButtonWithDropdownMenu/index.tsx"	"react-hooks/preserve-manual-memoization"	1
-"../../src/components/ButtonWithDropdownMenu/index.tsx"	"react-hooks/refs"	3
 "../../src/components/ButtonWithDropdownMenu/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/CategoryPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Charts/BarChart/BarChartContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -367,7 +365,7 @@
 "../../src/components/ReportActionItem/receiptHoverUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/RoomHeaderAvatars.tsx"	"no-restricted-syntax"	2
 "../../src/components/Rule/RuleBooleanBase.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Rule/TextBase.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../src/components/Rule/TextBase.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ScreenShareRequestModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/ScreenWrapper/ScreenWrapperContainer.tsx"	"react-hooks/refs"	2
 "../../src/components/Search/FilterComponents/AdvancedFilters/AmountFilterContent.tsx"	"no-restricted-imports"	1
@@ -410,7 +408,7 @@
 "../../src/components/Search/SearchList/ListItem/TaskListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchList/ListItem/TaskListItem.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/Search/SearchList/ListItem/TaskListItemRow.tsx"	"no-restricted-imports"	1
-"../../src/components/Search/SearchList/ListItem/TransactionGroupListExpanded.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/components/Search/SearchList/ListItem/TransactionGroupListExpanded.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchList/ListItem/TransactionGroupListExpanded.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/SearchList/ListItem/TransactionGroupListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	19
 "../../src/components/Search/SearchList/ListItem/TransactionListItem/TransactionListItemNarrow.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -473,9 +471,9 @@
 "../../src/components/SubStepForms/ConfirmationStep.tsx"	"no-restricted-imports"	1
 "../../src/components/SubStepForms/CountryFullStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SubStepForms/DateOfBirthStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/SubStepForms/DocusignFullStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/components/SubStepForms/DocusignFullStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/SubStepForms/DocusignFullStep.tsx"	"no-restricted-imports"	1
-"../../src/components/SubStepForms/FullNameStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../src/components/SubStepForms/FullNameStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/SubStepForms/PushRowFieldsStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SubStepForms/RegistrationNumberStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/SwipeableView/index.native.tsx"	"react-hooks/refs"	2
@@ -591,7 +589,7 @@
 "../../src/hooks/useIsOwnWorkspaceChatRef.ts"	"react-hooks/refs"	2
 "../../src/hooks/useIsPaidPolicyAdmin.ts"	"no-restricted-imports"	1
 "../../src/hooks/useKeyboardShortcut.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useLazyAsset.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../src/hooks/useLazyAsset.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useLazyAsset.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useLifecycleActions.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useListKeyboardNav.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -746,8 +744,6 @@
 "../../src/libs/Navigation/OnyxTabNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/Navigation/PlatformStackNavigation/ScreenLayout.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenFreezeWrapper/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/PlatformStackNavigation/navigationOptions/animation/withAnimation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/libs/Navigation/guards/AIFeaturesPromoGuard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/guards/MigratedUserWelcomeModalGuard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
