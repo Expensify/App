@@ -345,6 +345,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         });
                     },
                     destinationReportID: report?.reportID ?? selfDMReport?.reportID,
+                    isFromNativeShortcut: transactionIsFromNativeShortcut && !!transactionIsFromGlobalCreate,
                     telemetryContext: {
                         scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE,
                         iouType,
@@ -420,6 +421,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     });
                 },
                 destinationReportID: distanceDestinationReportID,
+                isFromNativeShortcut: transactionIsFromNativeShortcut && !!transactionIsFromGlobalCreate,
                 telemetryContext: {
                     scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.DISTANCE,
                     iouType,

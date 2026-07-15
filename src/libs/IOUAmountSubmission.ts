@@ -392,6 +392,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
     submitWithDismissFirst({
         executeWrite: executeExpenseWrite,
         destinationReportID: isTrackExpenseSubmit ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID,
+        isFromNativeShortcut: !!transaction?.isFromNativeShortcut && !!getIsFromGlobalCreate(transaction),
         telemetryContext: {
             scenario: isTrackExpenseSubmit ? CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE : CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_MANUAL,
             iouType,

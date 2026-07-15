@@ -31,9 +31,6 @@ const skipRules: ReadonlyArray<{urlMatcher: RegExp; focusedScreens: readonly str
 
 const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener) => {
     const subscription = Linking.addEventListener('url', ({url}: {url: string}) => {
-        // A native home-screen shortcut deeplink marks the create flow before navigation mounts it.
-        markNativeShortcutFlowIfNeeded(url);
-
         // Skip deep links to screens where the user is already focused.
         const skipRule = skipRules.find(({urlMatcher}) => urlMatcher.test(url));
         if (skipRule) {
@@ -54,6 +51,10 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             continuePlaidOAuth(url);
             return;
         }
+
+        // Only mark the native-shortcut flow after all skip/drop guards pass,
+        // so a dropped URL cannot leave a stale marker that leaks into later flows.
+        markNativeShortcutFlowIfNeeded(url);
         listener(url);
     });
     return () => subscription.remove();

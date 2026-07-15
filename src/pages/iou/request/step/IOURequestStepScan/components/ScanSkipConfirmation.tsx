@@ -250,6 +250,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                     });
                 },
                 destinationReportID: reportID,
+                isFromNativeShortcut: isFromNativeShortcut && !!isFromGlobalCreate,
                 telemetryContext: {
                     scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SPLIT_RECEIPT,
                     iouType: CONST.IOU.TYPE.SPLIT,
@@ -347,6 +348,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 runCleanup();
             },
             destinationReportID: scanDestinationReportID,
+            isFromNativeShortcut: isFromNativeShortcut && !!isFromGlobalCreate,
             telemetryContext: {
                 scenario: iouType === CONST.IOU.TYPE.TRACK ? CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE : CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_SCAN,
                 iouType,

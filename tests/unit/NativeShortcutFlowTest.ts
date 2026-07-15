@@ -61,4 +61,31 @@ describe('NativeShortcutFlow', () => {
             expect(isNativeShortcutFlowActive()).toBe(false);
         });
     });
+
+    describe('stale-marker leakage prevention', () => {
+        it('marker does not persist after being consumed (simulates useResetIOUType clearing it)', () => {
+            // A native shortcut sets the marker
+            markNativeShortcutFlowIfNeeded('new-expensify://create/create/start/1/123456789/scan');
+            expect(isNativeShortcutFlowActive()).toBe(true);
+
+            // useResetIOUType consumes the marker and clears it
+            const consumed = isNativeShortcutFlowActive();
+            expect(consumed).toBe(true);
+            endNativeShortcutFlow();
+
+            // A subsequent direct-create flow (e.g. Wallet Submit/Pay) should NOT see the marker
+            expect(isNativeShortcutFlowActive()).toBe(false);
+        });
+
+        it('marker does not leak into a second create flow after being consumed by the first', () => {
+            // First flow: native shortcut
+            markNativeShortcutFlowIfNeeded('new-expensify://create/create/start/1/123456789/manual');
+            expect(isNativeShortcutFlowActive()).toBe(true);
+            endNativeShortcutFlow();
+
+            // Second flow: in-app wallet navigation that skips startMoneyRequest
+            // The marker must NOT be active
+            expect(isNativeShortcutFlowActive()).toBe(false);
+        });
+    });
 });

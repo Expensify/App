@@ -24,6 +24,10 @@ type SubmitWithDismissFirstParams = {
     destinationReportID: string | undefined;
     /** Telemetry metadata for the submit-expense performance span. */
     telemetryContext: SubmitExpenseContext;
+    /** Whether the flow was opened from a native home-screen shortcut. Shortcut submits must land on
+     * Spend > Expenses (see `navigateAfterExpenseCreate`), so the report fast paths are skipped and
+     * the write's own cleanup handles navigation. */
+    isFromNativeShortcut?: boolean;
 };
 
 function startDismissFirstTracking(
@@ -54,7 +58,20 @@ function startDismissFirstTracking(
  *
  * Must not be called from `src/libs/actions/` — view-layer only.
  */
-function submitWithDismissFirst({executeWrite, destinationReportID, telemetryContext}: SubmitWithDismissFirstParams): void {
+function submitWithDismissFirst({executeWrite, destinationReportID, telemetryContext, isFromNativeShortcut = false}: SubmitWithDismissFirstParams): void {
+    // Native home-screen shortcuts always land on Spend > Expenses, so skip the dismiss/reveal-report
+    // fast paths (which would surface the destination report or a pre-inserted route instead) and let
+    // the write's cleanup run `navigateAfterExpenseCreate`.
+    if (isFromNativeShortcut) {
+        if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+            Navigation.clearFullscreenPreInsertedFlag();
+        }
+        startTracking(telemetryContext, {skipSubmitExpenseSpan: true});
+        setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
+        executeWrite({shouldHandleNavigation: true});
+        return;
+    }
+
     const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
 
     if (shouldStayOnSearch) {

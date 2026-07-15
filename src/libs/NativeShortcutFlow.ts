@@ -11,9 +11,10 @@
  * The marker is:
  *  - set when a received URL matches the shortcut deeplink shape (see Mobile-Expensify's
  *    quickActionCallback, which generates `/create/create/start/1/{reportID}/scan|manual|distance-new`)
- *  - consumed by `useResetIOUType` so the rebuilt draft carries `isFromNativeShortcut`
- *  - cleared whenever an in-app flow starts a new money request, so FAB and other in-app flows
- *    keep their original post-submit navigation
+ *  - consumed (read and immediately cleared) by `useResetIOUType` once it is copied onto the
+ *    draft as `isFromNativeShortcut`, so it cannot leak into later direct-create flows
+ *  - also cleared whenever an in-app flow starts a new money request, so FAB and other in-app
+ *    flows keep their original post-submit navigation
  */
 let isNativeShortcutFlow = false;
 

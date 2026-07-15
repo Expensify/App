@@ -1,5 +1,5 @@
 import {resolveEarlyReportID} from '@libs/IOUUtils';
-import {isNativeShortcutFlowActive} from '@libs/NativeShortcutFlow';
+import {endNativeShortcutFlow, isNativeShortcutFlowActive} from '@libs/NativeShortcutFlow';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 
 import {initMoneyRequest, setNativeShortcutFlag} from '@userActions/IOU/MoneyRequest';
@@ -110,6 +110,7 @@ function useResetIOUType({
             // The draft won't be rebuilt, so stamp the native-shortcut marker onto it directly.
             if (isNativeShortcutFlowActive() && !transaction.isFromNativeShortcut) {
                 setNativeShortcutFlag(transaction.transactionID);
+                endNativeShortcutFlow();
             }
             return;
         }
@@ -127,6 +128,8 @@ function useResetIOUType({
         // Skip seeding self-DM participants here. The confirmation's auto-assign
         // useEffect is the only place that can both set the reportID and switch
         // iouType to TRACK; seeding them early would short-circuit that effect.
+        const shouldMarkNativeShortcut = transaction?.isFromNativeShortcut ?? isNativeShortcutFlowActive();
+
         initMoneyRequest({
             reportID,
             policy,
@@ -137,7 +140,7 @@ function useResetIOUType({
             // Preserve the native-shortcut marker across draft re-initialization (Onyx.set would otherwise
             // wipe it). The module-level marker covers the first rebuild, when the deeplink-opened flow has
             // no draft yet (or a stale one) and the `transaction` closure can't carry the flag.
-            isFromNativeShortcut: transaction?.isFromNativeShortcut ?? isNativeShortcutFlowActive(),
+            isFromNativeShortcut: shouldMarkNativeShortcut,
             currentIouRequestType: transaction?.iouRequestType,
             newIouRequestType: newIOUType,
             report,
@@ -149,6 +152,12 @@ function useResetIOUType({
             draftTransactionIDs,
             defaultParticipants: isSelfDMDefault ? undefined : defaultParticipants,
         });
+
+        // Clear the module-level marker immediately after copying it to the draft so it cannot
+        // leak into unrelated flows that navigate directly to MONEY_REQUEST_CREATE (e.g. Wallet).
+        if (shouldMarkNativeShortcut) {
+            endNativeShortcutFlow();
+        }
 
         // Set the transaction reportID early for global-create flows with resolved default
         // participants. This ensures destinationReportID is defined from the confirmation's
