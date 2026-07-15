@@ -25,6 +25,7 @@ type MultiGestureCanvasVariables = {
     minContentScale: number;
     maxContentScale: number;
     shouldDisableTransformationGestures: SharedValue<boolean>;
+    isTransformGestureActive: SharedValue<boolean>;
     isSwipingDownToClose: SharedValue<boolean>;
     zoomScale: SharedValue<number>;
     totalScale: SharedValue<number>;
@@ -37,6 +38,7 @@ type MultiGestureCanvasVariables = {
     pinchTranslateY: SharedValue<number>;
     stopAnimation: () => void;
     reset: (animated: boolean, callback: () => void) => void;
+    shouldDisableSwipeDownToClose: boolean;
     onTap: OnTapCallback | undefined;
     onScaleChanged: OnScaleChangedCallback | undefined;
     onSwipeDown: OnSwipeDownCallback | undefined;

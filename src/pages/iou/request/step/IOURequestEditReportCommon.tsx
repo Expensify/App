@@ -56,6 +56,7 @@ type Props = {
     createReport?: () => void;
     isPerDiemRequest: boolean;
     isTimeRequest?: boolean;
+    isUnreportedManagedCardTransaction?: boolean;
 };
 
 function IOURequestEditReportCommon({
@@ -73,6 +74,7 @@ function IOURequestEditReportCommon({
     createReport,
     isPerDiemRequest,
     isTimeRequest = false,
+    isUnreportedManagedCardTransaction = false,
 }: Props) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document']);
     const {inputCallbackRef} = useAutoFocusInput();
@@ -100,7 +102,7 @@ function IOURequestEditReportCommon({
     // Use the caller-provided transactionPolicyID so that the "Create report" button shows the correct workspace.
     // Each caller is responsible for passing the appropriate policyID (e.g., selectedReport?.policyID ?? transactionPolicyID).
     // When no transactionPolicyID is provided (e.g., from IOURequestEditReport), the hook falls back to the user's default workspace.
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, transactionPolicyID);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, transactionPolicyID, isUnreportedManagedCardTransaction);
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
 

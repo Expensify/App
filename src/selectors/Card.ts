@@ -1,5 +1,5 @@
 import {getExpensifyCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {filterAllInactiveCards, isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
+import {hasAssignedCardMatching, isActiveCard, isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
@@ -109,10 +109,8 @@ const companyCardCustomNamesSelector = (cardFeeds: OnyxEntry<CardFeeds>) => card
  * assign and any inactive cards, then checks whether an active Expensify Card remains. Reducing to a boolean in the
  * selector keeps consumers from re-rendering on unrelated card changes.
  */
-const hasIssuedExpensifyCardSelector = (cardsList: OnyxEntry<WorkspaceCardsList>): boolean => {
-    const {cardList, ...assignedCards} = cardsList ?? {};
-    return Object.values(filterAllInactiveCards(assignedCards)).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
-};
+const hasIssuedExpensifyCardSelector = (cardsList: OnyxEntry<WorkspaceCardsList>): boolean =>
+    hasAssignedCardMatching(cardsList, (card) => card.bank === CONST.EXPENSIFY_CARD.BANK && isActiveCard(card));
 
 export {
     filterCardsHiddenFromSearch,

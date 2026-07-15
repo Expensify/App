@@ -116,7 +116,9 @@ export default function (pageTitle: TranslationPaths) {
 
         WithReportAndPrivateNotesOrNotFound.displayName = `withReportAndPrivateNotesOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-        return withReportOrNotFound()(WithReportAndPrivateNotesOrNotFound);
+        // OXC's React Compiler does not memoize this component on web; memoize it before wrapping so it
+        // is memoized on both platforms.
+        return withReportOrNotFound()(React.memo(WithReportAndPrivateNotesOrNotFound));
     };
 }
 
