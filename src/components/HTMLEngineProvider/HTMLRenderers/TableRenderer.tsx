@@ -2,26 +2,68 @@ import ScrollView from '@components/ScrollView';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
 
+import {useContext, useMemo} from 'react';
 import {View} from 'react-native';
+import {useContentWidth} from 'react-native-render-html';
 
-import TableChildrenRenderer from './TableChildrenRenderer';
+import type {CellHorizontalAlignment} from './TableColumnAlignmentContext';
+
+import TableChildrenRenderer, {getElementChildren} from './TableChildrenRenderer';
+import TableColumnAlignmentContext from './TableColumnAlignmentContext';
+import TableContentWidthContext from './TableContentWidthContext';
+
+/** Whether `node` has a descendant with the given tag name. */
+function hasDescendantTag(node: TNode, tagName: string): boolean {
+    return node.children?.some((child) => child.tagName === tagName || hasDescendantTag(child, tagName)) ?? false;
+}
+
+/**
+ * Derives the horizontal alignment for each column from the table body. The Concierge HTML wraps amount values in
+ * `<strong>` and carries no alignment attributes, so a column whose body cells are all amounts is right-aligned to
+ * match how amounts are shown elsewhere in the app; every other column stays left-aligned.
+ */
+function getColumnAlignments(tableNode: TNode): CellHorizontalAlignment[] {
+    const bodyRows = getElementChildren(tableNode)
+        .filter((section) => section.tagName === 'tbody')
+        .flatMap((section) => getElementChildren(section));
+    if (bodyRows.length === 0) {
+        return [];
+    }
+
+    const columnCount = bodyRows.reduce((max, row) => Math.max(max, getElementChildren(row).length), 0);
+    return Array.from({length: columnCount}, (_, columnIndex) => {
+        const columnCells = bodyRows.map((row) => getElementChildren(row).at(columnIndex)).filter((cell): cell is TNode => !!cell);
+        const isAmountColumn = columnCells.length > 0 && columnCells.every((cell) => hasDescendantTag(cell, 'strong'));
+        return isAmountColumn ? 'right' : 'left';
+    });
+}
 
 function TableRenderer({tnode}: CustomRendererProps<TBlock>) {
     const styles = useThemeStyles();
+    const columnAlignments = useMemo(() => getColumnAlignments(tnode), [tnode]);
+
+    // The comment-level width fills the message exactly; fall back to the HTML content width when the table is rendered
+    // outside a comment. A concrete number is required because a percentage does not resolve inside a horizontal ScrollView.
+    const measuredContentWidth = useContext(TableContentWidthContext);
+    const fallbackContentWidth = useContentWidth();
+    const minWidth = measuredContentWidth || fallbackContentWidth;
 
     return (
-        <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.w100}
-            contentContainerStyle={styles.htmlTableScrollContainerContent}
-        >
-            <View style={styles.htmlTable}>
-                <TableChildrenRenderer tnode={tnode} />
-            </View>
-        </ScrollView>
+        <TableColumnAlignmentContext.Provider value={columnAlignments}>
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.w100}
+                contentContainerStyle={styles.htmlTableScrollContainerContent}
+            >
+                {/* The width makes the table fill the available message width; it still grows wider and scrolls horizontally when the columns need more room than that. */}
+                <View style={[styles.htmlTable, {minWidth}]}>
+                    <TableChildrenRenderer tnode={tnode} />
+                </View>
+            </ScrollView>
+        </TableColumnAlignmentContext.Provider>
     );
 }
 

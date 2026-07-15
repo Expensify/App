@@ -2701,7 +2701,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         htmlTable: {
-            minWidth: '100%',
             marginVertical: 8,
             borderRadius: variables.componentBorderRadius,
             backgroundColor: theme.highlightBG,
