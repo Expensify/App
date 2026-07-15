@@ -93,6 +93,10 @@ function useLazyAsset<T>(importFn: () => {default: T} | Promise<{default: T}>, f
  * This prevents the need for callers to manually use useCallback
  * Returns guaranteed non-null assets for existing components compatibility
  * Supports both synchronous and async return values for optimal performance
+ *
+ * Captures the first `importFn` only (via useState initializer). If the loader closes over a value
+ * that can change across renders (e.g. a dynamic illustration name), remount the consumer with a
+ * `key` tied to that value so a new importFn is captured.
  */
 function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => {default: T} | Promise<{default: T}>, fallback?: T): {asset: T} {
     // Capture the first importFn only. Callers pass inline loaders that close over constant asset
