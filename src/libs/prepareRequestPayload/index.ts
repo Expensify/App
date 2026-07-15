@@ -1,4 +1,5 @@
 import Log from '@libs/Log';
+import {getFile, isQueuedFileRef} from '@libs/QueuedFileStorage';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 
 import type PrepareRequestPayload from './types';
@@ -34,23 +35,43 @@ async function isUsableFileValue(value: unknown): Promise<boolean> {
  * Prepares the request payload (body) for a given command and data.
  */
 const prepareRequestPayload: PrepareRequestPayload = async (command, data) => {
+    // Resolve every param up front (in parallel) so we can append synchronously afterwards
+    // without awaiting inside the append loop.
+    const resolved = await Promise.all(
+        Object.keys(data).map(async (key) => {
+            const value = data[key];
+
+            if (value === undefined || value === null) {
+                return undefined;
+            }
+
+            // The file was saved to the separate file store at queue time; resolve the key back
+            // into the actual Blob to upload. If it's gone, send without it for a definitive outcome.
+            if (isQueuedFileRef(value)) {
+                const file = await getFile(value.queuedFileKey);
+                if (!file) {
+                    Log.alert('[prepareRequestPayload] Queued file missing at upload time, sending without it', {command, key});
+                    return undefined;
+                }
+                return {key, value: file};
+            }
+
+            if (FILE_UPLOAD_KEYS.has(key) && !(await isUsableFileValue(value))) {
+                Log.alert('[prepareRequestPayload] File missing or unreadable at upload time, sending without it', {command, key});
+                return undefined;
+            }
+
+            return {key, value};
+        }),
+    );
+
     const formData = new FormData();
-
-    for (const key of Object.keys(data)) {
-        const value = data[key];
-
-        if (value === undefined || value === null) {
+    for (const entry of resolved) {
+        if (!entry) {
             continue;
         }
-
-        // eslint-disable-next-line no-await-in-loop
-        if (FILE_UPLOAD_KEYS.has(key) && !(await isUsableFileValue(value))) {
-            Log.alert('[prepareRequestPayload] File missing or unreadable at upload time, sending without it', {command, key});
-            continue;
-        }
-
-        validateFormDataParameter(command, key, value);
-        formData.append(key, value as string | Blob);
+        validateFormDataParameter(command, entry.key, entry.value);
+        formData.append(entry.key, entry.value as string | Blob);
     }
 
     return formData;

@@ -1,3 +1,4 @@
+import 'fake-indexeddb/auto';
 import type {OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
@@ -6,9 +7,15 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type Request from '../../src/types/onyx/Request';
 
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
+import * as QueuedFileStorage from '../../src/libs/QueuedFileStorage';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+
+// The jest resolver picks the native no-op stub for @libs/QueuedFileStorage; force the web
+// (IndexedDB) implementation so file requests are exercised end-to-end like on web.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('@libs/QueuedFileStorage', () => jest.requireActual('@libs/QueuedFileStorage/index.ts'));
 
 const request: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
     command: 'OpenReport',
@@ -200,37 +207,33 @@ describe('PersistedRequests persistence guarantees', () => {
         });
     });
 
-    it('processNextRequest should keep the in-memory ongoing request when data contains a File/Blob', async () => {
+    it('processNextRequest persists a file request as ongoing once its file is stored separately', async () => {
         PersistedRequests.clear();
         await waitForBatchedUpdates();
 
-        const originalFile = global.File;
-        function MockFile() {}
-        global.File = MockFile as unknown as typeof File;
+        const requestWithFile: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
+            command: 'OpenReport',
+            successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
+            failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
+            requestIndex: 30,
+            data: {file: new Blob(['x'], {type: 'image/jpeg'}) as unknown as File},
+        };
 
-        try {
-            const mockFilePrototype = MockFile.prototype as Record<string, never>;
-            const mockFile = Object.create(mockFilePrototype) as File;
-            const requestWithFile: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
-                command: 'OpenReport',
-                successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
-                failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
-                requestIndex: 30,
-                data: {file: mockFile},
-            };
+        await PersistedRequests.save(requestWithFile);
+        await waitForBatchedUpdates();
 
-            PersistedRequests.save(requestWithFile);
-            await waitForBatchedUpdates();
+        // save() swapped the inline Blob for a serializable reference, so the queued request
+        // no longer holds the Blob itself.
+        const queuedFile = PersistedRequests.getAll().at(0)?.data?.file;
+        expect(queuedFile).not.toBeInstanceOf(Blob);
+        expect(QueuedFileStorage.isQueuedFileRef(queuedFile)).toBe(true);
 
-            const nextRequest = PersistedRequests.processNextRequest();
-            await waitForBatchedUpdates();
+        const nextRequest = PersistedRequests.processNextRequest();
+        await waitForBatchedUpdates();
 
-            expect(nextRequest).toEqual(requestWithFile);
-            expect(PersistedRequests.getOngoingRequest()).toEqual(requestWithFile);
-            expect((await OnyxUtils.get(ONYXKEYS.PERSISTED_ONGOING_REQUESTS)) == null).toBe(true);
-        } finally {
-            global.File = originalFile;
-        }
+        // Because the request is now fully serializable, the ongoing request is crash-safe on disk.
+        expect(nextRequest?.command).toBe('OpenReport');
+        expect(await OnyxUtils.get(ONYXKEYS.PERSISTED_ONGOING_REQUESTS)).not.toBeNull();
     });
 
     // BUG: save() at PersistedRequests.ts:124-134 does a read-modify-write
@@ -364,55 +367,69 @@ describe('PersistedRequests persistence guarantees', () => {
 // Root cause of the `Failed to write blobs (InvalidBlob)` storm: file-upload requests used to be
 // persisted with their File/Blob INLINE in the single networkRequestQueue value, so the one record
 // grew with (queued file requests × file size) until its IndexedDB blob write failed and deadlocked
-// the queue. The fix keeps files in the in-memory queue (so live uploads still work) but strips them
-// from what is persisted, so the record stays small and writable.
-describe('PersistedRequests inline file storage (InvalidBlob root-cause fix)', () => {
-    const makeReceiptRequest = (index: number, bytes: number): Request<OnyxKey> =>
+// the queue. The fix saves each file to a separate store and keeps only a small
+// QueuedFileRef in the queue, so the record stays tiny AND the file survives a browser restart.
+describe('PersistedRequests separate file storage (InvalidBlob root-cause fix)', () => {
+    const receiptBytes = 'x'.repeat(100_000);
+    const makeReceiptRequest = (index: number): Request<OnyxKey> =>
         ({
             command: 'ReplaceReceipt',
-            data: {transactionID: String(index), receipt: new Blob(['x'.repeat(bytes)], {type: 'image/jpeg'})},
+            data: {transactionID: String(index), receipt: new Blob([receiptBytes], {type: 'image/jpeg'})},
             requestIndex: index,
         }) as Request<OnyxKey>;
 
-    const receiptSize = (r: {data?: Record<string, unknown>} | undefined) => {
+    const getQueuedFileKey = (r: Request<OnyxKey> | undefined): string | undefined => {
         const receipt = r?.data?.receipt;
-        return receipt instanceof Blob ? receipt.size : 0;
+        return QueuedFileStorage.isQueuedFileRef(receipt) ? receipt.queuedFileKey : undefined;
     };
 
     beforeEach(async () => {
-        PersistedRequests.clear();
+        await PersistedRequests.clear();
         await waitForBatchedUpdates();
     });
 
-    it('keeps the receipt File in memory but STRIPS it from the persisted queue value', async () => {
-        PersistedRequests.save(makeReceiptRequest(1, 100_000));
+    it('persists the receipt as a QueuedFileRef and keeps the bytes in the separate store', async () => {
+        await PersistedRequests.save(makeReceiptRequest(1));
         await waitForBatchedUpdates();
 
-        // In-memory queue keeps the File so the live (same-session) upload still works.
-        expect(PersistedRequests.getAll().at(0)?.data?.receipt).toBeInstanceOf(Blob);
-
-        // Persisted value has the file stripped, so the single record cannot balloon.
-        const persisted = (await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS)) as Request<OnyxKey>[] | undefined;
+        // The persisted request references the file by key instead of embedding the Blob,
+        // so the single networkRequestQueue record cannot balloon.
+        const persisted = await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
         expect(persisted).toHaveLength(1);
-        expect(persisted?.at(0)?.data?.receipt).toBeUndefined();
-        // The rest of the request is preserved on disk (id, command, other data) so ordering
-        // and cross-tab reconciliation are unaffected.
+        const persistedReceipt = persisted?.at(0)?.data?.receipt;
+        expect(persistedReceipt).not.toBeInstanceOf(Blob);
+        expect(persistedReceipt).toBeDefined();
+
+        const key = getQueuedFileKey(persisted?.at(0));
+        expect(typeof key).toBe('string');
+
+        // The rest of the request is preserved on disk so ordering / reconciliation are unaffected.
         expect(persisted?.at(0)?.command).toBe('ReplaceReceipt');
         expect(persisted?.at(0)?.data?.transactionID).toBe('1');
+
+        // A record is durably stored in the separate store under the referenced key (so it survives a browser
+        // restart). jsdom's structuredClone can't round-trip Blob bytes, so we assert presence only —
+        // real browsers preserve the bytes.
+        const stored = await QueuedFileStorage.getFile(key ?? '');
+        expect(stored).toBeDefined();
     });
 
-    it('persisted queue value stays small regardless of file count', async () => {
-        for (let i = 1; i <= 5; i++) {
-            PersistedRequests.save(makeReceiptRequest(i, 100_000));
+    it('reclaims the stored file once its request is removed from the queue', async () => {
+        await PersistedRequests.save(makeReceiptRequest(2));
+        await waitForBatchedUpdates();
+
+        const persisted = await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
+        const key = getQueuedFileKey(persisted?.at(0));
+        expect(typeof key).toBe('string');
+        expect(await QueuedFileStorage.getFile(key ?? '')).toBeDefined();
+
+        // Removing the request should fire-and-forget delete of its stored file.
+        const persistedRequest = PersistedRequests.getAll().at(0);
+        if (persistedRequest) {
+            PersistedRequests.endRequestAndRemoveFromQueue(persistedRequest);
         }
         await waitForBatchedUpdates();
 
-        const persisted = (await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS)) as Request<OnyxKey>[] | undefined;
-        const persistedInlineBytes = (persisted ?? []).reduce((sum, r) => sum + receiptSize(r), 0);
-        const memoryInlineBytes = PersistedRequests.getAll().reduce((sum, r) => sum + receiptSize(r), 0);
-
-        expect(persisted).toHaveLength(5);
-        expect(persistedInlineBytes).toBe(0); // all files stripped from disk -> record can't balloon
-        expect(memoryInlineBytes).toBe(500_000); // memory keeps them for live uploads
+        expect(await QueuedFileStorage.getFile(key ?? '')).toBeUndefined();
     });
 });
