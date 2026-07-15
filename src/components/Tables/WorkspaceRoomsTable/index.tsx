@@ -3,10 +3,13 @@ import Table from '@components/Table';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
+
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -22,22 +25,29 @@ type WorkspaceRoomsTableProps = {
     /** Pre-built row data for each room */
     rooms: WorkspaceRoomRowData[];
 
+    /** The policyID that we are viewing the rooms of */
+    policyID: string;
+
     /** The reportID of the room that should play the highlight animation (e.g. when it was just created) */
     highlightedReportID?: string;
 };
 
-function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
+    const [isPolicyRoomDataLoaded] = useOnyx(ONYXKEYS.ARE_POLICY_ROOMS_LOADED, {
+        selector: (value) => value?.[policyID],
+    });
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
         addOfflineIndicatorBottomSafeAreaPadding: true,
         style: styles.pb5,
     });
+
+    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     useEffect(() => {
         if (!highlightedReportID) {
@@ -77,6 +87,10 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
         />
     );
 
+    if (!isPolicyRoomDataLoaded) {
+        return <Table.LoadingState context="WorkspaceRoomsTable" />;
+    }
+
     return (
         <Table
             ref={tableRef}
@@ -89,7 +103,8 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
         >
-            <Table.SearchBar label={translate('workspace.common.findRoom')} />
+            <Table.FilterBar label={translate('workspace.common.findRoom')} />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
         </Table>

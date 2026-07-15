@@ -6,22 +6,44 @@ import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 const queryJSON: SearchQueryJSON = {
+    inputQuery: '',
+    hash: 0,
+    recentSearchHash: 0,
+    similarSearchHash: 0,
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
     view: CONST.SEARCH.VIEW.LINE,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
     sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
-} as SearchQueryJSON;
+    flatFilters: [],
+    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, right: CONST.SEARCH.DATA_TYPES.EXPENSE},
+};
 
-const makeSearchResults = (overrides: Partial<SearchResults> = {}): SearchResults =>
-    ({
-        search: {offset: 0, type: queryJSON.type, status: queryJSON.status, hasMoreResults: false, hasResults: true, isLoading: false},
-        data: {},
-        ...overrides,
-    }) as SearchResults;
+const defaultSearchResults: SearchResults = {
+    search: {offset: 0, hash: 0, type: queryJSON.type, hasMoreResults: false, hasResults: true, isLoading: false},
+    data: {},
+};
 
-const makeData = (count: number): GroupedItem[] => Array.from({length: count}, (_, i) => ({keyForList: String(i)})) as unknown as GroupedItem[];
+const makeSearchResults = (overrides: Partial<SearchResults> = {}): SearchResults => ({
+    ...defaultSearchResults,
+    ...overrides,
+    search: overrides.search ?? defaultSearchResults.search,
+    data: overrides.data ?? defaultSearchResults.data,
+});
+
+const makeData = (count: number): GroupedItem[] =>
+    Array.from({length: count}, (_, i) => ({
+        keyForList: String(i),
+        transactions: [],
+        groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+        year: 2026,
+        month: i + 1,
+        count: 1,
+        total: 0,
+        currency: CONST.CURRENCY.USD,
+        formattedMonth: `Month ${i + 1}`,
+        sortKey: i,
+    }));
 
 describe('getSpendOverTimeState', () => {
     it('returns OFFLINE when offline with no data', () => {

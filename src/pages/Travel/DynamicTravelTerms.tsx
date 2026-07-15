@@ -83,12 +83,13 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID,
             delegateAccountID,
+            conciergeReportID,
         });
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
     };
 
     const acceptTermsAndOpenTravelDot = () => {
-        acceptSpotnanaTerms(domain, policyID)
+        acceptSpotnanaTerms(domain, policyID, travelProvisioning?.taxID)
             .then((response) => {
                 // Extract the error code from onyxData - the backend sets errors in TRAVEL_PROVISIONING via onyxData
                 const travelProvisioningData = response?.onyxData?.find((data) => data.key === ONYXKEYS.TRAVEL_PROVISIONING);

@@ -4,6 +4,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -168,6 +169,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
                             inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                         />
                     </View>
+                    <Text style={[styles.textLabelSupporting]}>{translate('addAgentPage.copilotNote')}</Text>
                 </View>
             </FormProvider>
         </ScreenWrapper>

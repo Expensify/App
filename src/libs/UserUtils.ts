@@ -98,7 +98,17 @@ function isDeviceLogin(login: NewLogin) {
 }
 
 function getDeviceLogins(logins: OnyxEntry<Logins>) {
-    return Object.values(logins ?? {})?.filter(isDeviceLogin);
+    return Object.values(logins ?? {})
+        ?.filter(isDeviceLogin)
+        .sort((a, b) => {
+            const aLastLogin = getLastLogin(a);
+            const bLastLogin = getLastLogin(b);
+            if (aLastLogin === bLastLogin) {
+                return 0;
+            }
+            // lastLogin/created are ISO datetime strings, so a lexicographic comparison sorts them chronologically. Descending puts the most recent device first.
+            return aLastLogin > bLastLogin ? -1 : 1;
+        });
 }
 
 function hasDeviceManagementError(logins: OnyxEntry<Logins>) {
