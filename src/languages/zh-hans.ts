@@ -1056,6 +1056,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: '与 Concierge 对话',
             talkToAccountExecutive: '联系您的客户经理',
             forGuidedSetup: '以获取引导式设置。',
+            configureApprovalsSubText: '定义报表审批',
         },
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,

@@ -1043,6 +1043,7 @@ const translations: TranslationDeepObject<typeof en> = {
             needHelp: '¿Necesitas ayuda?',
             talkToConcierge: 'Habla con Concierge',
             forGuidedSetup: 'para la configuración guiada.',
+            configureApprovalsSubText: 'Definir aprobaciones de informes',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {

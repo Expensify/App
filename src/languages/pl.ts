@@ -1074,7 +1074,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Dostosuj kontrole i usprawnij wydatki',
             setupRules: 'Skonfiguruj zasady wydatków',
             inviteAccountant: 'Zaproś swojego księgowego',
-            configureApprovals: 'Skonfiguruj proces zatwierdzania',
+            configureApprovals: 'Skonfiguruj przepływ akceptacji',
             begin: 'Rozpocznij',
             done: 'Gotowe',
             createWorkspaceSubText: 'Miejsce pracy gotowe do konfiguracji',
@@ -1087,6 +1087,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Porozmawiaj z Concierge',
             talkToAccountExecutive: 'Porozmawiaj ze swoim opiekunem klienta',
             forGuidedSetup: 'z prowadzeniem konfiguracji.',
+            configureApprovalsSubText: 'Zdefiniuj zatwierdzanie raportów',
         },
         yourSpend: {
             title: 'Twoje wydatki',
