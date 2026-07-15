@@ -23,12 +23,7 @@ const FS: Fullstory = {
 
     identify: (userMetadata, envName) => {
         const localMetadata = {...userMetadata, environment: envName};
-        FullStory.identify(
-            String(localMetadata.accountID),
-            normalizeFullstoryPropertiesForNative(localMetadata, {
-                preserveKeys: ['displayName', 'email'],
-            }),
-        );
+        FullStory.identify(String(localMetadata.accountID), localMetadata);
     },
 
     consentAndIdentify: (userMetadata) => {
