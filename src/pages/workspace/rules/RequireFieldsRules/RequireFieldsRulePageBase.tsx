@@ -23,7 +23,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {
     deleteRequireFieldsRule,
+    getActiveFieldRequirementsDirection,
     getEffectiveRequireFieldsRuleForm,
+    getRequireFieldsDisplayedSetting,
+    getRequireFieldsFieldClearKeys,
     getRequireFieldsFieldSettingUpdate,
     getRequireFieldsFormFromCategory,
     getRequireFieldsRuleKey,
@@ -69,6 +72,8 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [shouldShowError, setShouldShowError] = useState(false);
     const [touchedFields, setTouchedFields] = useState<Set<RequireFieldsRuleSettingFieldKey>>(() => new Set());
+    // Edit-only: fields the user deselected that still have an active category override to remove on save.
+    const [clearedFields, setClearedFields] = useState<Set<RequireFieldsRuleSettingFieldKey>>(() => new Set());
     const initializedDraftForRuleKeyRef = useRef<string | null>(null);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
@@ -77,6 +82,25 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     const effectiveForm = form && selectedCategory ? getEffectiveRequireFieldsRuleForm(selectedCategory, form) : form;
     const categoryDisplayName = selectedCategoryName ? getDecodedCategoryName(selectedCategoryName) : undefined;
     const formCategory = form?.[INPUT_IDS.CATEGORY];
+    const activeRuleKey = isEditing && categoryName ? getRequireFieldsRuleKey(categoryName) : ROUTES.NEW;
+    const [selectionStateForRuleKey, setSelectionStateForRuleKey] = useState(activeRuleKey);
+    const [selectionCategoryName, setSelectionCategoryName] = useState(selectedCategoryName);
+
+    if (selectionStateForRuleKey !== activeRuleKey) {
+        setSelectionStateForRuleKey(activeRuleKey);
+        setTouchedFields(new Set());
+        setClearedFields(new Set());
+        setSelectionCategoryName(selectedCategoryName);
+    } else if (selectionCategoryName !== selectedCategoryName) {
+        const didChangeSelectedCategory = selectionCategoryName !== undefined && selectedCategoryName !== undefined;
+        setSelectionCategoryName(selectedCategoryName);
+        if (didChangeSelectedCategory) {
+            setClearedFields(new Set());
+            if (isEditing) {
+                setTouchedFields(new Set());
+            }
+        }
+    }
 
     useEffect(() => () => clearDraftRequireFieldsRule(), []);
 
@@ -153,19 +177,57 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         },
     ];
 
-    const errorMessage = getRequireFieldsRuleValidationError(form, selectedCategory, translate, isEditing, touchedFields);
+    const errorMessage = getRequireFieldsRuleValidationError(form, selectedCategory, translate, isEditing, touchedFields, clearedFields);
 
-    const getFieldDisplaySetting = (fieldKey: RequireFieldsRuleSettingFieldKey): FieldRequirementsDirection | undefined => {
-        if (isEditing || touchedFields.has(fieldKey)) {
-            return effectiveForm?.[fieldKey];
+    const getFieldDisplaySetting = (fieldKey: RequireFieldsRuleSettingFieldKey): FieldRequirementsDirection | undefined =>
+        getRequireFieldsDisplayedSetting({
+            fieldKey,
+            category: selectedCategory,
+            effectiveForm,
+            touchedFields,
+            clearedFields,
+            isEditing,
+        });
+
+    const handleSelectFieldSetting = (fieldKey: RequireFieldsRuleSettingFieldKey, setting: FieldRequirementsDirection | undefined) => {
+        if (setting === undefined) {
+            const keysToClear = getRequireFieldsFieldClearKeys(fieldKey, getFieldDisplaySetting(fieldKey));
+
+            setTouchedFields((previousTouchedFields) => {
+                const nextTouchedFields = new Set(previousTouchedFields);
+                for (const keyToClear of keysToClear) {
+                    nextTouchedFields.delete(keyToClear);
+                }
+                return nextTouchedFields;
+            });
+
+            if (isEditing) {
+                setClearedFields((previousClearedFields) => {
+                    const nextClearedFields = new Set(previousClearedFields);
+                    for (const keyToClear of keysToClear) {
+                        if (getActiveFieldRequirementsDirection(selectedCategory, keyToClear) !== undefined) {
+                            nextClearedFields.add(keyToClear);
+                        } else {
+                            nextClearedFields.delete(keyToClear);
+                        }
+                    }
+                    return nextClearedFields;
+                });
+            }
+
+            setShouldShowError(false);
+            return;
         }
 
-        return undefined;
-    };
-
-    const handleSelectFieldSetting = (fieldKey: RequireFieldsRuleSettingFieldKey, setting: FieldRequirementsDirection) => {
         const {formUpdate, touchedFieldKeys} = getRequireFieldsFieldSettingUpdate(fieldKey, setting);
 
+        setClearedFields((previousClearedFields) => {
+            const nextClearedFields = new Set(previousClearedFields);
+            for (const touchedFieldKey of touchedFieldKeys) {
+                nextClearedFields.delete(touchedFieldKey);
+            }
+            return nextClearedFields;
+        });
         setTouchedFields((previousTouchedFields) => {
             const nextTouchedFields = new Set(previousTouchedFields);
             for (const touchedFieldKey of touchedFieldKeys) {
@@ -184,12 +246,16 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
 
         const formToSave = getEffectiveRequireFieldsRuleForm(selectedCategory, form);
         const savedCategory = formToSave[INPUT_IDS.CATEGORY];
+        const originalCategoryName = categoryName;
+        const didChangeCategory = isEditing && !!originalCategoryName && !!savedCategory && savedCategory !== originalCategoryName;
 
-        if (isEditing && categoryName && savedCategory && savedCategory !== categoryName) {
-            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName));
+        if (didChangeCategory && originalCategoryName) {
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(originalCategoryName));
+            // Old category is fully removed; clearedFields belonged to that rule, not the new category.
+            saveRequireFieldsRule(policyData, formToSave, touchedFields);
+        } else {
+            saveRequireFieldsRule(policyData, formToSave, touchedFields, clearedFields);
         }
-
-        saveRequireFieldsRule(policyData, formToSave, touchedFields);
 
         if (!isEditing && isRulesRevampEnabled) {
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.REQUIRE_FIELDS);
@@ -280,6 +346,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                                 effectiveForm={effectiveForm}
                                 category={selectedCategory}
                                 touchedFields={touchedFields}
+                                clearedFields={clearedFields}
                                 isEditing={isEditing}
                                 canWriteRules={canWriteRules}
                                 onSelectSetting={handleSelectFieldSetting}

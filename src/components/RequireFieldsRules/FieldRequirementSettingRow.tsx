@@ -29,21 +29,33 @@ type FieldRequirementSettingRowProps = {
     effectiveForm: RequireFieldsRuleForm | undefined;
     category: PolicyCategory | undefined;
     touchedFields: Set<RequireFieldsRuleSettingFieldKey>;
+    clearedFields: Set<RequireFieldsRuleSettingFieldKey>;
     isEditing: boolean;
     canWriteRules: boolean;
-    onSelectSetting: (fieldKey: RequireFieldsRuleSettingFieldKey, setting: FieldRequirementsDirection) => void;
+    onSelectSetting: (fieldKey: RequireFieldsRuleSettingFieldKey, setting: FieldRequirementsDirection | undefined) => void;
 };
 
-function FieldRequirementSettingRow({fieldKey, label, setting, effectiveForm, category, touchedFields, isEditing, canWriteRules, onSelectSetting}: FieldRequirementSettingRowProps) {
+function FieldRequirementSettingRow({
+    fieldKey,
+    label,
+    setting,
+    effectiveForm,
+    category,
+    touchedFields,
+    clearedFields,
+    isEditing,
+    canWriteRules,
+    onSelectSetting,
+}: FieldRequirementSettingRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb']);
     const [dismissedCouplingTooltipKey, setDismissedCouplingTooltipKey] = useState<string | undefined>();
 
-    const isCouplingDisabled = isRequireFieldsFieldCouplingDisabled(fieldKey, effectiveForm, category, touchedFields, isEditing);
+    const isCouplingDisabled = isRequireFieldsFieldCouplingDisabled(fieldKey, effectiveForm, category, touchedFields, isEditing, clearedFields);
     const isReadOnly = !canWriteRules;
-    const couplingTooltipKey = getRequireFieldsFieldCouplingTooltipKey(fieldKey, effectiveForm, category, touchedFields, isEditing);
+    const couplingTooltipKey = getRequireFieldsFieldCouplingTooltipKey(fieldKey, effectiveForm, category, touchedFields, isEditing, clearedFields);
     const couplingTooltip = couplingTooltipKey ? translate(`workspace.rules.requireFieldsRule.${couplingTooltipKey}`) : undefined;
     const shouldMountCouplingTooltip = !!couplingTooltip;
     const shouldDisplayCouplingTooltip = shouldMountCouplingTooltip && dismissedCouplingTooltipKey !== couplingTooltipKey;
@@ -101,7 +113,7 @@ function FieldRequirementSettingRow({fieldKey, label, setting, effectiveForm, ca
         translate,
     ]);
 
-    const handleSelectSetting = (newSetting: FieldRequirementsDirection) => {
+    const handleSelectSetting = (newSetting: FieldRequirementsDirection | undefined) => {
         if (isReadOnly || isCouplingDisabled) {
             return;
         }

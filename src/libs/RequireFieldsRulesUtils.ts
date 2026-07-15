@@ -194,12 +194,17 @@ function hasReceiptSettingsChanged(
     effectiveForm: RequireFieldsRuleForm,
     initialForm: Partial<RequireFieldsRuleForm>,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+    clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
 ): boolean {
-    if (effectiveForm[INPUT_IDS.RECEIPT_SETTING] !== initialForm[INPUT_IDS.RECEIPT_SETTING]) {
+    if (hasClearedRequireFieldsSetting(category, INPUT_IDS.RECEIPT_SETTING, clearedFields) || hasClearedRequireFieldsSetting(category, INPUT_IDS.ITEMIZED_RECEIPT_SETTING, clearedFields)) {
         return true;
     }
 
-    if (effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING] !== initialForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING]) {
+    if (!clearedFields?.has(INPUT_IDS.RECEIPT_SETTING) && effectiveForm[INPUT_IDS.RECEIPT_SETTING] !== initialForm[INPUT_IDS.RECEIPT_SETTING]) {
+        return true;
+    }
+
+    if (!clearedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING) && effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING] !== initialForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING]) {
         return true;
     }
 
@@ -221,17 +226,35 @@ function hasReceiptSettingsChanged(
     );
 }
 
-function hasRequireFieldsRuleChanges(category: PolicyCategory | undefined, effectiveForm: RequireFieldsRuleForm, touchedFields?: Set<RequireFieldsRuleSettingFieldKey>): boolean {
+function hasClearedRequireFieldsSetting(category: PolicyCategory | undefined, fieldKey: RequireFieldsRuleSettingFieldKey, clearedFields?: Set<RequireFieldsRuleSettingFieldKey>): boolean {
+    return !!clearedFields?.has(fieldKey) && getActiveFieldRequirementsDirection(category, fieldKey) !== undefined;
+}
+
+function hasRequireFieldsRuleChanges(
+    category: PolicyCategory | undefined,
+    effectiveForm: RequireFieldsRuleForm,
+    touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+    clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+): boolean {
     const initialForm = getRequireFieldsFormFromCategory(category);
 
     if (
-        effectiveForm[INPUT_IDS.DESCRIPTION_SETTING] !== initialForm[INPUT_IDS.DESCRIPTION_SETTING] ||
-        effectiveForm[INPUT_IDS.ATTENDEES_SETTING] !== initialForm[INPUT_IDS.ATTENDEES_SETTING]
+        ([INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const).some((fieldKey) =>
+            hasClearedRequireFieldsSetting(category, fieldKey, clearedFields),
+        )
     ) {
         return true;
     }
 
-    return hasReceiptSettingsChanged(category, effectiveForm, initialForm, touchedFields);
+    if (!clearedFields?.has(INPUT_IDS.DESCRIPTION_SETTING) && effectiveForm[INPUT_IDS.DESCRIPTION_SETTING] !== initialForm[INPUT_IDS.DESCRIPTION_SETTING]) {
+        return true;
+    }
+
+    if (!clearedFields?.has(INPUT_IDS.ATTENDEES_SETTING) && effectiveForm[INPUT_IDS.ATTENDEES_SETTING] !== initialForm[INPUT_IDS.ATTENDEES_SETTING]) {
+        return true;
+    }
+
+    return hasReceiptSettingsChanged(category, effectiveForm, initialForm, touchedFields, clearedFields);
 }
 
 type ReceiptOverrideTarget = number | null | undefined;
@@ -262,7 +285,12 @@ function shouldApplyReceiptFieldSetting(
     effectiveForm: RequireFieldsRuleForm,
     initialForm: Partial<RequireFieldsRuleForm>,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+    clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
 ): boolean {
+    if (clearedFields?.has(fieldKey)) {
+        return false;
+    }
+
     const setting = effectiveForm[fieldKey];
     const initialSetting = initialForm[fieldKey];
 
@@ -283,11 +311,12 @@ function applyRequireFieldsReceiptSettings(
     effectiveForm: RequireFieldsRuleForm,
     initialForm: Partial<RequireFieldsRuleForm>,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+    clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
 ) {
     const receiptSetting = effectiveForm[INPUT_IDS.RECEIPT_SETTING];
     const itemizedReceiptSetting = effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING];
-    const shouldApplyReceiptSetting = shouldApplyReceiptFieldSetting(INPUT_IDS.RECEIPT_SETTING, category, effectiveForm, initialForm, touchedFields);
-    const shouldApplyItemizedReceiptSetting = shouldApplyReceiptFieldSetting(INPUT_IDS.ITEMIZED_RECEIPT_SETTING, category, effectiveForm, initialForm, touchedFields);
+    const shouldApplyReceiptSetting = shouldApplyReceiptFieldSetting(INPUT_IDS.RECEIPT_SETTING, category, effectiveForm, initialForm, touchedFields, clearedFields);
+    const shouldApplyItemizedReceiptSetting = shouldApplyReceiptFieldSetting(INPUT_IDS.ITEMIZED_RECEIPT_SETTING, category, effectiveForm, initialForm, touchedFields, clearedFields);
 
     let receiptTarget = shouldApplyReceiptSetting ? getReceiptOverrideTarget(category?.maxAmountNoReceipt, receiptSetting) : undefined;
     let itemizedTarget = shouldApplyItemizedReceiptSetting ? getReceiptOverrideTarget(category?.maxAmountNoItemizedReceipt, itemizedReceiptSetting) : undefined;
@@ -324,7 +353,12 @@ function applyRequireFieldsReceiptSettings(
     }
 }
 
-function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleForm, touchedFields?: Set<RequireFieldsRuleSettingFieldKey>) {
+function saveRequireFieldsRule(
+    policyData: PolicyData,
+    form: RequireFieldsRuleForm,
+    touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+    clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+) {
     const categoryName = form[INPUT_IDS.CATEGORY];
     if (!categoryName || !policyData.policy?.id) {
         return;
@@ -335,7 +369,9 @@ function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleFo
     const initialForm = getRequireFieldsFormFromCategory(category);
     const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
 
-    if (effectiveForm[INPUT_IDS.DESCRIPTION_SETTING] !== initialForm[INPUT_IDS.DESCRIPTION_SETTING]) {
+    if (hasClearedRequireFieldsSetting(category, INPUT_IDS.DESCRIPTION_SETTING, clearedFields)) {
+        setPolicyCategoryDescriptionRequired(policyData.policy.id, categoryName, false, policyCategories);
+    } else if (!clearedFields?.has(INPUT_IDS.DESCRIPTION_SETTING) && effectiveForm[INPUT_IDS.DESCRIPTION_SETTING] !== initialForm[INPUT_IDS.DESCRIPTION_SETTING]) {
         setPolicyCategoryDescriptionRequired(
             policyData.policy.id,
             categoryName,
@@ -344,12 +380,22 @@ function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleFo
         );
     }
 
-    if (effectiveForm[INPUT_IDS.ATTENDEES_SETTING] !== initialForm[INPUT_IDS.ATTENDEES_SETTING]) {
+    if (hasClearedRequireFieldsSetting(category, INPUT_IDS.ATTENDEES_SETTING, clearedFields)) {
+        setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, false, policyCategories);
+    } else if (!clearedFields?.has(INPUT_IDS.ATTENDEES_SETTING) && effectiveForm[INPUT_IDS.ATTENDEES_SETTING] !== initialForm[INPUT_IDS.ATTENDEES_SETTING]) {
         setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, effectiveForm[INPUT_IDS.ATTENDEES_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE, policyCategories);
     }
 
-    if (hasReceiptSettingsChanged(category, effectiveForm, initialForm, touchedFields)) {
-        applyRequireFieldsReceiptSettings(policyData, categoryName, category, effectiveForm, initialForm, touchedFields);
+    if (hasClearedRequireFieldsSetting(category, INPUT_IDS.RECEIPT_SETTING, clearedFields)) {
+        removePolicyCategoryReceiptsRequired(policyData, categoryName);
+    }
+
+    if (hasClearedRequireFieldsSetting(category, INPUT_IDS.ITEMIZED_RECEIPT_SETTING, clearedFields)) {
+        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+    }
+
+    if (hasReceiptSettingsChanged(category, effectiveForm, initialForm, touchedFields, clearedFields)) {
+        applyRequireFieldsReceiptSettings(policyData, categoryName, category, effectiveForm, initialForm, touchedFields, clearedFields);
     }
 }
 
@@ -459,6 +505,7 @@ function getRequireFieldsRuleValidationError(
     translate: LocaleContextProps['translate'],
     isEditing: boolean,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+    clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
 ): string {
     if (!form?.[INPUT_IDS.CATEGORY]) {
         return translate('workspace.rules.requireFieldsRule.confirmErrorCategory');
@@ -467,7 +514,7 @@ function getRequireFieldsRuleValidationError(
     const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
 
     if (isEditing) {
-        if (!hasRequireFieldsRuleChanges(category, effectiveForm, touchedFields)) {
+        if (!hasRequireFieldsRuleChanges(category, effectiveForm, touchedFields, clearedFields)) {
             return translate('workspace.rules.requireFieldsRule.confirmErrorField');
         }
 
@@ -479,21 +526,21 @@ function getRequireFieldsRuleValidationError(
     }
 
     const hasRequireSetting = ([INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const).some(
-        (fieldKey) => touchedFields.has(fieldKey) && effectiveForm[fieldKey] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
+        (fieldKey) => touchedFields.has(fieldKey) && !clearedFields?.has(fieldKey) && effectiveForm[fieldKey] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
     );
 
     const hasExplicitWaiveIntent =
         hasExplicitReceiptWaiveIntentForCategory(
             category,
             effectiveForm[INPUT_IDS.RECEIPT_SETTING],
-            touchedFields.has(INPUT_IDS.RECEIPT_SETTING),
+            !!touchedFields.has(INPUT_IDS.RECEIPT_SETTING) && !clearedFields?.has(INPUT_IDS.RECEIPT_SETTING),
             isReceiptWaivedForCategory,
             isReceiptRequireOverrideForCategory,
         ) ||
         hasExplicitReceiptWaiveIntentForCategory(
             category,
             effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING],
-            touchedFields.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING),
+            !!touchedFields.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING) && !clearedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING),
             isItemizedReceiptWaivedForCategory,
             isItemizedReceiptRequireOverrideForCategory,
         );
@@ -759,31 +806,105 @@ function getRequireFieldsFieldSettingUpdate(
     };
 }
 
+/**
+ * Direction currently applied on the category for this field, or undefined when there is no override.
+ * Unlike getRequireFieldsFormFromCategory, unset fields stay undefined instead of defaulting to Don't require.
+ */
+function getActiveFieldRequirementsDirection(category: PolicyCategory | undefined, fieldKey: RequireFieldsRuleSettingFieldKey): FieldRequirementsDirection | undefined {
+    if (!category) {
+        return undefined;
+    }
+
+    switch (fieldKey) {
+        case INPUT_IDS.DESCRIPTION_SETTING:
+            return isDescriptionRequiredForCategory(category) ? CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE : undefined;
+        case INPUT_IDS.ATTENDEES_SETTING:
+            return isAttendeesRequiredForCategory(category) ? CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE : undefined;
+        case INPUT_IDS.RECEIPT_SETTING:
+            if (isReceiptRequireOverrideForCategory(category)) {
+                return CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
+            }
+            if (isReceiptWaivedForCategory(category)) {
+                return CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
+            }
+            return undefined;
+        case INPUT_IDS.ITEMIZED_RECEIPT_SETTING:
+            if (isItemizedReceiptRequireOverrideForCategory(category)) {
+                return CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
+            }
+            if (isItemizedReceiptWaivedForCategory(category)) {
+                return CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
+            }
+            return undefined;
+        default:
+            return undefined;
+    }
+}
+
+type RequireFieldsDisplayedSettingParams = {
+    fieldKey: RequireFieldsRuleSettingFieldKey;
+    category: PolicyCategory | undefined;
+    effectiveForm: RequireFieldsRuleForm | undefined;
+    touchedFields?: Set<RequireFieldsRuleSettingFieldKey>;
+    clearedFields?: Set<RequireFieldsRuleSettingFieldKey>;
+    isEditing: boolean;
+};
+
+function getRequireFieldsDisplayedSetting({
+    fieldKey,
+    category,
+    effectiveForm,
+    touchedFields,
+    clearedFields,
+    isEditing,
+}: RequireFieldsDisplayedSettingParams): FieldRequirementsDirection | undefined {
+    if (clearedFields?.has(fieldKey)) {
+        return undefined;
+    }
+
+    if (touchedFields?.has(fieldKey)) {
+        return effectiveForm?.[fieldKey];
+    }
+
+    if (isEditing) {
+        return getActiveFieldRequirementsDirection(category, fieldKey);
+    }
+
+    return undefined;
+}
+
+/**
+ * Field keys to clear when deselecting the current displayed direction.
+ * Mirrors the forward coupling in getRequireFieldsFieldSettingUpdate.
+ */
+function getRequireFieldsFieldClearKeys(fieldKey: RequireFieldsRuleSettingFieldKey, direction: FieldRequirementsDirection | undefined): RequireFieldsRuleSettingFieldKey[] {
+    if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING && direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE) {
+        return [INPUT_IDS.ITEMIZED_RECEIPT_SETTING, INPUT_IDS.RECEIPT_SETTING];
+    }
+
+    if (fieldKey === INPUT_IDS.RECEIPT_SETTING && direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE) {
+        return [INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING];
+    }
+
+    return [fieldKey];
+}
+
 function isRequireFieldsFieldCouplingDisabled(
     fieldKey: RequireFieldsRuleSettingFieldKey,
     effectiveForm: RequireFieldsRuleForm | undefined,
     category: PolicyCategory | undefined,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
     isEditing = false,
+    clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
 ): boolean {
-    if (fieldKey === INPUT_IDS.RECEIPT_SETTING) {
-        if (effectiveForm?.[INPUT_IDS.ITEMIZED_RECEIPT_SETTING] !== CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE) {
-            return false;
-        }
+    const displayedSettingParams = {category, effectiveForm, touchedFields, clearedFields, isEditing};
 
-        return isEditing || !!touchedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING);
+    if (fieldKey === INPUT_IDS.RECEIPT_SETTING) {
+        return getRequireFieldsDisplayedSetting({...displayedSettingParams, fieldKey: INPUT_IDS.ITEMIZED_RECEIPT_SETTING}) === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
     }
 
     if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING) {
-        if (effectiveForm?.[INPUT_IDS.RECEIPT_SETTING] !== CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE) {
-            return false;
-        }
-
-        if (isEditing && category && isReceiptWaivedForCategory(category)) {
-            return true;
-        }
-
-        return !!touchedFields?.has(INPUT_IDS.RECEIPT_SETTING);
+        return getRequireFieldsDisplayedSetting({...displayedSettingParams, fieldKey: INPUT_IDS.RECEIPT_SETTING}) === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
     }
 
     return false;
@@ -797,16 +918,17 @@ function getRequireFieldsFieldCouplingTooltipKey(
     category: PolicyCategory | undefined,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
     isEditing = false,
+    clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
 ): RequireFieldsFieldCouplingTooltipKey | undefined {
-    if (!isRequireFieldsFieldCouplingDisabled(fieldKey, effectiveForm, category, touchedFields, isEditing)) {
+    if (!isRequireFieldsFieldCouplingDisabled(fieldKey, effectiveForm, category, touchedFields, isEditing, clearedFields)) {
         return undefined;
     }
 
-    if (fieldKey === INPUT_IDS.RECEIPT_SETTING && touchedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING)) {
+    if (fieldKey === INPUT_IDS.RECEIPT_SETTING) {
         return 'receiptDisabledWhenItemizedRequired';
     }
 
-    if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING && touchedFields?.has(INPUT_IDS.RECEIPT_SETTING)) {
+    if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING) {
         return 'itemizedDisabledWhenReceiptWaived';
     }
 
@@ -815,7 +937,10 @@ function getRequireFieldsFieldCouplingTooltipKey(
 
 export {
     deleteRequireFieldsRule,
+    getActiveFieldRequirementsDirection,
     getEffectiveRequireFieldsRuleForm,
+    getRequireFieldsDisplayedSetting,
+    getRequireFieldsFieldClearKeys,
     getRequireFieldsFieldCouplingTooltipKey,
     getRequireFieldsFieldSettingUpdate,
     getRequireFieldsFormFromCategory,
