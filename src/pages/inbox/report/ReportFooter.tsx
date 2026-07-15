@@ -99,11 +99,7 @@ function ReportFooter() {
 
     // Happy path — user can compose
     if (!shouldHideComposer) {
-        const composer = (
-            <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                <ReportActionCompose reportID={reportIDFromRoute} />
-            </SwipeableView>
-        );
+        const composer = <ReportActionCompose reportID={reportIDFromRoute} />;
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                 {shouldShowEnableNotificationsBanner ? (
@@ -182,9 +178,7 @@ function ReportFooter() {
             <View style={[styles.chatFooter, !isEditingWithComposer && styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 {isEditingWithComposer && (
                     <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>
-                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                            <ReportActionCompose.EditOnly reportID={reportIDFromRoute} />
-                        </SwipeableView>
+                        <ReportActionCompose.EditOnly reportID={reportIDFromRoute} />
                     </View>
                 )}
                 <Banner
