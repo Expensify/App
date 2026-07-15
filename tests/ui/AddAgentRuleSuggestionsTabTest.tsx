@@ -3,11 +3,8 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import useNetwork from '@hooks/useNetwork';
 import useSuggestedAgentRules from '@hooks/useSuggestedAgentRules';
 
-import Navigation from '@libs/Navigation/Navigation';
-
 import AddAgentRuleSuggestionsTab from '@pages/workspace/rules/AgentRules/AddAgentRuleSuggestionsTab';
 
-import ROUTES from '@src/ROUTES';
 import type SuggestedAgentRule from '@src/types/onyx/SuggestedAgentRule';
 
 import React from 'react';
@@ -43,9 +40,6 @@ jest.mock('@hooks/useThemeStyles', () =>
             ),
     ),
 );
-jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
-}));
 jest.mock('@components/ActivityIndicator', () => jest.fn(() => <MockView testID="suggestions-loading-indicator" />));
 jest.mock('@components/Icon', () => jest.fn(() => null));
 jest.mock('@components/TextInput', () => ({value, onChangeText, label}: {value?: string; onChangeText?: (text: string) => void; label?: string}) => (
@@ -93,17 +87,16 @@ jest.mock('@components/Text', () => ({children}: {children: React.ReactNode}) =>
 
 const mockedUseSuggestedAgentRules = jest.mocked(useSuggestedAgentRules);
 const mockedUseNetwork = jest.mocked(useNetwork);
-const mockedNavigate = jest.mocked(Navigation.navigate);
 
 const SUGGESTIONS: SuggestedAgentRule[] = [
     {
         id: 'approveUnder75',
-        title: 'Approve any report that consists of expenses under $75',
+        title: 'Approve under $75 title',
         prompt: 'Approve any report that consists of expenses under $75',
     },
     {
         id: 'blockGambling',
-        title: 'Block all spend from gambling or shady websites',
+        title: 'Block gambling title',
         prompt: 'Block all spend from gambling or shady websites',
     },
 ];
@@ -115,11 +108,13 @@ describe('AddAgentRuleSuggestionsTab', () => {
         mockedUseSuggestedAgentRules.mockReturnValue({data: SUGGESTIONS, isLoading: false});
     });
 
-    it('renders suggestion titles from hook data', () => {
+    it('renders suggestion prompts from hook data', () => {
         render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
 
-        expect(screen.getByText(SUGGESTIONS.at(0)?.title ?? '')).toBeOnTheScreen();
-        expect(screen.getByText(SUGGESTIONS.at(1)?.title ?? '')).toBeOnTheScreen();
+        expect(screen.getByText(SUGGESTIONS.at(0)?.prompt ?? '')).toBeOnTheScreen();
+        expect(screen.getByText(SUGGESTIONS.at(1)?.prompt ?? '')).toBeOnTheScreen();
+        expect(screen.queryByText(SUGGESTIONS.at(0)?.title ?? '')).toBeNull();
+        expect(screen.queryByText(SUGGESTIONS.at(1)?.title ?? '')).toBeNull();
     });
 
     it('calls onSelectSuggestion only after a card is chosen and Next is pressed', () => {
@@ -129,35 +124,38 @@ describe('AddAgentRuleSuggestionsTab', () => {
         fireEvent.press(screen.getByText('common.next'));
         expect(onSelectSuggestion).not.toHaveBeenCalled();
 
-        fireEvent.press(screen.getByLabelText(SUGGESTIONS.at(0)?.title ?? ''));
+        fireEvent.press(screen.getByLabelText(SUGGESTIONS.at(0)?.prompt ?? ''));
         fireEvent.press(screen.getByText('common.next'));
 
         expect(onSelectSuggestion).toHaveBeenCalledTimes(1);
         expect(onSelectSuggestion).toHaveBeenCalledWith(SUGGESTIONS.at(0));
     });
 
-    it('navigates to Concierge when help is pressed', () => {
-        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
-
-        fireEvent.press(screen.getByText('workspace.rules.agentRules.getHelpFromConcierge'));
-
-        expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.CONCIERGE);
-    });
-
-    it('filters the list by search text', () => {
+    it('filters the list by search text against prompts', () => {
         render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
 
         fireEvent.changeText(screen.getByLabelText('workspace.rules.agentRules.findSuggestion'), 'gambling');
 
-        expect(screen.queryByText(SUGGESTIONS.at(0)?.title ?? '')).toBeNull();
-        expect(screen.getByText(SUGGESTIONS.at(1)?.title ?? '')).toBeOnTheScreen();
+        expect(screen.queryByText(SUGGESTIONS.at(0)?.prompt ?? '')).toBeNull();
+        expect(screen.getByText(SUGGESTIONS.at(1)?.prompt ?? '')).toBeOnTheScreen();
+    });
+
+    it('shows a simple no-results message when search matches nothing', () => {
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
+
+        fireEvent.changeText(screen.getByLabelText('workspace.rules.agentRules.findSuggestion'), 'zzz-no-match');
+
+        expect(screen.getByText('common.noResultsFound')).toBeOnTheScreen();
+        expect(screen.queryByText('common.noResultsFoundSubtitle')).toBeNull();
+        expect(screen.queryByText(SUGGESTIONS.at(0)?.prompt ?? '')).toBeNull();
+        expect(screen.queryByText(SUGGESTIONS.at(1)?.prompt ?? '')).toBeNull();
     });
 
     it('disables Next when the selected suggestion is filtered out', () => {
         const onSelectSuggestion = jest.fn();
         render(<AddAgentRuleSuggestionsTab onSelectSuggestion={onSelectSuggestion} />);
 
-        fireEvent.press(screen.getByLabelText(SUGGESTIONS.at(0)?.title ?? ''));
+        fireEvent.press(screen.getByLabelText(SUGGESTIONS.at(0)?.prompt ?? ''));
         fireEvent.changeText(screen.getByLabelText('workspace.rules.agentRules.findSuggestion'), 'gambling');
         fireEvent.press(screen.getByText('common.next'));
 

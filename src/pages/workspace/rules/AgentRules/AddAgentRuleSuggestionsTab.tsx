@@ -19,13 +19,11 @@ import useSuggestedAgentRules from '@hooks/useSuggestedAgentRules';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@libs/Navigation/Navigation';
 import {getSuggestedAgentRuleIcon, SUGGESTED_AGENT_RULE_ICON_NAMES} from '@libs/PolicyRulesUtils';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SuggestedAgentRule from '@src/types/onyx/SuggestedAgentRule';
 
 import React, {useState} from 'react';
@@ -57,10 +55,6 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
     const shouldShowLoadingIndicator = isLoading && hasNoSuggestions && !isOffline;
     const shouldShowEmptyState = hasNoSuggestions && (!isLoading || isOffline);
 
-    const goToConcierge = () => {
-        Navigation.navigate(ROUTES.CONCIERGE);
-    };
-
     const goToEditWithSelection = () => {
         if (!selectedSuggestion) {
             return;
@@ -85,10 +79,13 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                 icon={illustrations.Lightbulb}
                 title={translate('workspace.rules.agentRules.emptySuggestionsTitle')}
                 subtitle={isOffline ? translate('common.youAppearToBeOffline') : translate('workspace.rules.agentRules.emptySuggestionsSubtitle')}
+                subtitleStyle={[styles.textSupporting, styles.textNormal]}
                 containerStyle={styles.flex1}
             />
         );
     }
+
+    const hasNoFilteredSuggestions = filteredSuggestions.length === 0;
 
     return (
         <View style={styles.flex1}>
@@ -104,24 +101,22 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
             </View>
             <ScrollView
                 style={styles.flex1}
-                contentContainerStyle={[styles.pb3, styles.gap2]}
+                contentContainerStyle={[styles.pb5, styles.gap2]}
                 keyboardShouldPersistTaps="handled"
             >
-                {filteredSuggestions.length === 0 ? (
-                    <BlockingView
-                        icon={illustrations.Lightbulb}
-                        title={translate('common.noResultsFound')}
-                        subtitle={translate('common.noResultsFoundSubtitle')}
-                        containerStyle={styles.flex1}
-                    />
+                {hasNoFilteredSuggestions ? (
+                    <View style={[styles.ph5, styles.pb5]}>
+                        <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{translate('common.noResultsFound')}</Text>
+                    </View>
                 ) : (
                     filteredSuggestions.map((suggestion) => {
                         const iconName = getSuggestedAgentRuleIcon(suggestion);
                         const isSelected = suggestion.id === selectedSuggestionID;
+                        const suggestionLabel = suggestion.prompt ?? suggestion.title ?? '';
                         return (
                             <PressableWithFeedback
                                 key={suggestion.id}
-                                accessibilityLabel={suggestion.title}
+                                accessibilityLabel={suggestionLabel}
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 accessibilityState={{selected: isSelected}}
                                 onPress={() => setSelectedSuggestionID(suggestion.id)}
@@ -135,6 +130,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                                     styles.borderRadiusComponentNormal,
                                     isSelected && styles.activeComponentBG,
                                 ]}
+                                hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SUGGESTED_AGENT_RULE}
                             >
                                 <Icon
@@ -144,20 +140,13 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                                     fill={theme.icon}
                                     additionalStyles={[styles.mr4]}
                                 />
-                                <Text style={[styles.flex1, styles.textNormal, styles.lh20]}>{suggestion.title}</Text>
+                                <Text style={[styles.flex1, styles.textNormal, styles.lh20]}>{suggestionLabel}</Text>
                             </PressableWithFeedback>
                         );
                     })
                 )}
             </ScrollView>
-            <FixedFooter>
-                <Button
-                    size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={goToConcierge}
-                    style={[styles.mb3]}
-                >
-                    <Button.Text>{translate('workspace.rules.agentRules.getHelpFromConcierge')}</Button.Text>
-                </Button>
+            <FixedFooter style={styles.pt5}>
                 <Button
                     variant="success"
                     size={CONST.BUTTON_SIZE.LARGE}

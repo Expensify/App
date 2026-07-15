@@ -1,6 +1,7 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {BotAvatarBlue} from '@components/Icon/DefaultBotAvatars';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
@@ -8,9 +9,11 @@ import TabSelectorContextProvider from '@components/TabSelector/TabSelectorConte
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -70,7 +73,10 @@ function AddAgentRulePage({
     const {showConfirmModal, closeModal} = useConfirmModal();
     const [activeTab, setActiveTab] = useState<AgentRuleTab>(CONST.TAB.AGENT_RULE.SUGGESTIONS);
     const [activeTabPolicyID, setActiveTabPolicyID] = useState(policyID);
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT);
     const tabIcons = useMemoizedLazyExpensifyIcons(['Feed', 'Pencil']);
+
+    const hasDraftPrompt = !!draftValues?.[INPUT_IDS.PROMPT]?.trim();
 
     // Reset the active tab to Suggestions when the workspace changes.
     if (activeTabPolicyID !== policyID) {
@@ -85,6 +91,11 @@ function AddAgentRulePage({
         }
         return () => clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM);
     }, [policyID, isOffline]);
+
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => hasDraftPrompt,
+        onConfirm: () => clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM),
+    });
 
     const tabs: TabSelectorBaseItem[] = [
         {
@@ -116,10 +127,45 @@ function AddAgentRulePage({
         Tab.setSelectedTab(CONST.TAB.AGENT_RULE_TAB_TYPE, key);
     };
 
+    const leavePage = () => {
+        clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM);
+        Navigation.goBack();
+    };
+
+    const confirmLeaveIfNeeded = () => {
+        if (!hasDraftPrompt) {
+            leavePage();
+            return;
+        }
+
+        showConfirmModal({
+            title: translate('discardChangesConfirmation.title'),
+            prompt: translate('discardChangesConfirmation.body'),
+            danger: true,
+            confirmText: translate('discardChangesConfirmation.confirmText'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            leavePage();
+        });
+    };
+
+    const handleBackButtonPress = () => {
+        if (activeTab === CONST.TAB.AGENT_RULE.WRITE) {
+            setActiveTab(CONST.TAB.AGENT_RULE.SUGGESTIONS);
+            Tab.setSelectedTab(CONST.TAB.AGENT_RULE_TAB_TYPE, CONST.TAB.AGENT_RULE.SUGGESTIONS);
+            return;
+        }
+        confirmLeaveIfNeeded();
+    };
+
     const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>): void => {
         // When the workspace has no agent rules yet, the backend creates the "RuleBot" agent and adds it as
         // an admin. Surface a one-time modal explaining this side effect before navigating back.
         const isFirstRule = isEmptyObject(policy?.rules?.agentRules);
+        suppressDiscardPrompt();
         addPolicyAgentRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
         clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM);
         if (!isFirstRule) {
@@ -176,7 +222,11 @@ function AddAgentRulePage({
                 includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate('workspace.rules.agentRules.newRuleTitle')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.rules.agentRules.newRuleTitle')}
+                    shouldDisplayHelpButton
+                    onBackButtonPress={handleBackButtonPress}
+                />
                 <View style={[styles.flexShrink0, styles.w100]}>
                     <TabSelectorContextProvider activeTabKey={activeTab}>
                         <TabSelectorBase
