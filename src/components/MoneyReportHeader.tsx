@@ -80,18 +80,8 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const [activeTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
 
-    // When the user opens a one-transaction parent report from the flat Spend > Expenses list, the report-level
-    // carousel (search-based) is inactive (search type is EXPENSE, not EXPENSE_REPORT). Fall back to the
-    // transaction carousel, anchored on the parent's single transaction, so navigating ◄/► pages through the
-    // expenses the user was browsing. The carousel itself handles routing to either the parent report (for
-    // other one-tx parents) or the transaction thread (for multi-tx parents).
     const singleTransactionID = transactions.length === 1 ? transactions.at(0)?.transactionID : undefined;
 
-    // For multi-tx parents reached from a broader carousel, the no-thread fallback in
-    // MoneyRequestReportTransactionsNavigation passes `anchorTransactionID`; anchor on it (when it's part of
-    // the active carousel list) so the user can keep paging. We deliberately don't fall back to "the first of
-    // this report's transactions in the active list": viewing a full report is a report-level context handled
-    // by MoneyRequestReportNavigation, and a generic anchor here would page siblings into an empty report body.
     const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
     const multiTxAnchorTransactionID = anchorTransactionIDFromRoute && activeTransactionIDs?.includes(anchorTransactionIDFromRoute) ? anchorTransactionIDFromRoute : undefined;
     const carouselAnchorTransactionID = singleTransactionID ?? multiTxAnchorTransactionID;

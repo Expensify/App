@@ -155,13 +155,6 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     const shouldDisplayNavigationArrows = effectiveAllReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
 
     useEffect(() => {
-        // Only the focused screen's carousel may reconcile previousLengthOfResults. Multiple report screens
-        // can be mounted at once (react-navigation keeps stacked screens alive, each with its own header
-        // carousel) and their lists can differ in length (e.g. a background screen frozen on its cached
-        // lastValidReports while a newly created report is added to the live list). Since every instance
-        // subscribes to lastSearchQuery, two unfocused writers that disagree on the length would re-trigger
-        // each other forever — an infinite Onyx write loop that re-renders the whole app until React throws
-        // "Maximum update depth exceeded" (seen when creating a report on top of an open report view).
         if (!isFocused || !lastSearchQuery?.queryJSON) {
             return;
         }

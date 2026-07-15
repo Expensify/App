@@ -485,20 +485,8 @@ function MoneyRequestReportTransactionList({
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldGroupTransactions]);
 
-    // Membership proxy for visualOrderTransactionIDs used as the effect dependency below.
-    // We key on the *sorted set* of IDs (not their visual order) so the effect only re-fires when a
-    // transaction is added or removed - not when an edit (e.g. changing an expense's date or category)
-    // re-sorts the parent list. This keeps the carousel's stored order frozen across edits so the RHP
-    // carousel counter doesn't jump, mirroring how the report carousel reads from a frozen search
-    // snapshot instead of a live re-sort. Other callers (e.g. TransactionDuplicateReview.onPreviewPressed)
-    // can write a different ordering to the same Onyx key; keying on membership also avoids overwriting
-    // theirs on a referential change.
     const transactionIDsMembershipKey = useMemo(() => [...visualOrderTransactionIDs].sort().join(','), [visualOrderTransactionIDs]);
 
-    // Subscribe so the effect closure captures the latest active list. Used to detect when this report's
-    // transactions are a strict subset of a broader carousel (e.g. the user landed here from the flat
-    // Spend > Expenses carousel via the no-thread fallback in MoneyRequestReportTransactionsNavigation)
-    // and skip overwriting in that case.
     const [latestActiveTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
 
     useEffect(() => {
@@ -506,10 +494,7 @@ function MoneyRequestReportTransactionList({
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
-        // If we arrived from a broader (search) carousel anchored on a specific transaction — the no-thread fallback
-        // in MoneyRequestReportTransactionsNavigation passes `anchorTransactionID` — keep that carousel's list (and its
-        // snapshot context) intact. The superset check below only covers reports fully contained in the active list;
-        // this also covers reports whose transactions are only partially present in the search results.
+
         const anchorTransactionID = (focusedRoute?.params as {anchorTransactionID?: string} | undefined)?.anchorTransactionID;
         if (anchorTransactionID && latestActiveTransactionIDs?.includes(anchorTransactionID)) {
             return;
@@ -521,16 +506,11 @@ function MoneyRequestReportTransactionList({
         if (getActiveTransactionIDs().descriptors) {
             return;
         }
-        // Don't overwrite active transaction IDs for one-transaction parent reports. When such a report is opened
-        // from the flat Spend > Expenses list, the search-list IDs were already set by Search/index.tsx onSelectRow
-        // and they back the carousel; overwriting with just this report's single transaction would collapse it.
+
         if (visualOrderTransactionIDs.length < 2) {
             return;
         }
-        // Same reasoning for multi-tx parents: if the existing carousel already contains every transaction
-        // from this report (i.e. is a strict superset), we arrived here from a broader carousel — likely
-        // via the no-thread fallback in MoneyRequestReportTransactionsNavigation. Overwriting would shrink
-        // the active list to just this report and the user would lose their place in the broader carousel.
+
         if (
             latestActiveTransactionIDs &&
             latestActiveTransactionIDs.length > visualOrderTransactionIDs.length &&
