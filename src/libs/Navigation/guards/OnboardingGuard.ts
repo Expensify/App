@@ -12,7 +12,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {Account, Onboarding} from '@src/types/onyx';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
@@ -141,7 +140,7 @@ function getActionPayloadScreenName(action: NavigationAction): string | undefine
 }
 
 function isTwoFactorSetupRouteName(screenName: string | undefined): boolean {
-    return isTwoFactorSetupScreen(screenName) || screenName === SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH;
+    return isTwoFactorSetupScreen(screenName);
 }
 
 function isTargetTwoFactorSetupRoute(action: NavigationAction): boolean {

@@ -46,7 +46,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
@@ -55,10 +55,12 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
     const isForced2FAOnboardingSetup = AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow);
 
+    // Clear 2FA progress only after the RHP dismisses so useOnboardingFlow stays paused and does not
+    // race the dismiss animation (which briefly re-shows the 2FA modal before onboarding starts).
     const completeForced2FAOnboardingHandoff = () => {
-        clearTwoFactorAuthData(true);
         Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
             afterTransition: () => {
+                clearTwoFactorAuthData(true);
                 const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
                 startOnboardingFlow({
                     ...onboardingFlowParams,

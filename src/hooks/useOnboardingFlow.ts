@@ -5,7 +5,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 
 import {completeHybridAppOnboarding} from '@userActions/Welcome';
-import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
+import {buildOnboardingFlowParams, startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -106,16 +106,7 @@ function useOnboardingFlowRouter() {
                 // waitForProtectedRoutes ensures navigation is ready, which is critical during fresh login.
                 if (isOnboardingCompleted === false) {
                     Navigation.waitForProtectedRoutes().then(() => {
-                        startOnboardingFlow({
-                            onboardingValuesParam: onboardingValues ?? undefined,
-                            isUserFromPublicDomain: !!account?.isFromPublicDomain,
-                            hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
-                            currentOnboardingCompanySize: onboardingCompanySize,
-                            currentOnboardingPurposeSelected: onboardingPurposeSelected,
-                            onboardingInitialPath,
-                            onboardingValues,
-                            isAccountValidated: !!account?.validated,
-                        });
+                        startOnboardingFlow(buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath));
                     });
                 }
             },

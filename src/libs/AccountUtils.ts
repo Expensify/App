@@ -14,15 +14,6 @@ function isDelegateOnlySubmitter(account: OnyxEntry<Account>): boolean {
 }
 
 /**
- * Check if the current user has validateCodeExtendedAccess
- *
- * This is a UX optimization to avoid asking for validation codes when the user
- * has recently provided one.
- * The backend performs an authoritative validation check using server-side time.
- *
- * @return true if the user has extended access, false otherwise
- */
-/**
  * Whether the required-2FA overlay should be shown for the current account state.
  */
 function shouldShowRequire2FAPage(account: OnyxEntry<Account>, hasCompletedGuidedSetupFlow: boolean): boolean {
@@ -37,6 +28,15 @@ function isForced2FAOnboardingSetup(account: OnyxEntry<Account>, hasCompletedGui
     return !!account?.requiresTwoFactorAuth && !!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlow;
 }
 
+/**
+ * Check if the current user has validateCodeExtendedAccess
+ *
+ * This is a UX optimization to avoid asking for validation codes when the user
+ * has recently provided one.
+ * The backend performs an authoritative validation check using server-side time.
+ *
+ * @return true if the user has extended access, false otherwise
+ */
 function hasValidateCodeExtendedAccess(account: OnyxEntry<Account>): boolean {
     const extendedAccessTimestamp = account?.validateCodeExtendedAccessExpires;
     if (extendedAccessTimestamp) {
