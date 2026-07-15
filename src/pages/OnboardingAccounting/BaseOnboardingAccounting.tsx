@@ -34,7 +34,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingAccountingProps} from './types';
@@ -118,12 +118,11 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [onboardingUserReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
     const [onboardingUserReportedIntegrationName] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION_NAME);
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.ACCOUNTING);
-    const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
-    const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(onboardingUserReportedIntegration ?? undefined);
     const [userReportedIntegrationName, setUserReportedIntegrationName] = useState(onboardingUserReportedIntegrationName ?? '');
     const [error, setError] = useState('');
+    const isOtherSelected = userReportedIntegration === 'other';
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
@@ -134,13 +133,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         setOnboardingAdminsChatReportID(paidGroupPolicy.chatReportIDAdmins?.toString());
         setOnboardingPolicyID(paidGroupPolicy.id);
     }, [paidGroupPolicy, onboardingPolicyID]);
-
-    useEffect(
-        () => () => {
-            clearTimeout(scrollTimeoutRef.current);
-        },
-        [],
-    );
 
     const createAccountingOption = (integration: Integration): OnboardingListItem => {
         const icon = expensifyIcons[integration.iconName] as IconAsset | undefined;
@@ -186,7 +178,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3, styles.onboardingSmallIcon]}
             />
         ),
-        isSelected: userReportedIntegration === 'other',
+        isSelected: isOtherSelected,
     };
 
     const accountingOptions: OnboardingListItem[] = [...integrations.map(createAccountingOption), othersAccountingOption, noneAccountingOption];
@@ -208,16 +200,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const handleIntegrationSelect = (integrationKey: OnboardingListItem['keyForList']) => {
         setUserReportedIntegration(integrationKey === 'none' ? null : integrationKey);
         if (integrationKey !== 'other') {
-            clearTimeout(scrollTimeoutRef.current);
             setUserReportedIntegrationName('');
         }
         setError('');
-    };
-
-    const scrollToIntegrationNameInput = () => {
-        // Wait for the keyboard animation so the scroll view uses its final visible height.
-        clearTimeout(scrollTimeoutRef.current);
-        scrollTimeoutRef.current = setTimeout(() => scrollViewRef.current?.scrollToEnd({animated: true}), CONST.ANIMATED_TRANSITION);
     };
 
     function renderOption(item: OnboardingListItem) {
@@ -229,11 +214,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_SELECT_INTEGRATION}
                 accessible={false}
                 hoverStyle={styles.hoveredComponentBG}
-                style={[
-                    styles.onboardingAccountingItem,
-                    // 48.5% handles the gap between columns and keeps items aligned when the scrollbar appears
-                    isSmallScreenWidth ? styles.flexBasis100 : {flexBasis: '48.5%', maxWidth: '48.5%'},
-                ]}
+                style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}
             >
                 <RadioButtonWithLabel
                     isChecked={!!item.isSelected}
@@ -275,16 +256,15 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 </Text>
             </View>
             <ScrollView
-                ref={scrollViewRef}
                 style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
-                contentContainerStyle={[styles.pt3, styles.pb5]}
+                contentContainerStyle={[styles.pt0, styles.pb2]}
                 keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
             >
-                <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>{accountingOptions.map(renderOption)}</View>
-                {userReportedIntegration === 'other' && (
-                    <View style={[styles.mt1, !isSmallScreenWidth && styles.pr2]}>
+                <View style={[styles.flexRow, styles.flexWrap, styles.gap3]}>{accountingOptions.map(renderOption)}</View>
+                {isOtherSelected && (
+                    <View style={styles.mt2}>
                         <TextInput
-                            autoFocus
                             accessibilityLabel={translate('onboarding.accounting.otherAccountingSoftware')}
                             label={translate('onboarding.accounting.otherAccountingSoftware')}
                             value={userReportedIntegrationName}
@@ -292,7 +272,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                                 setUserReportedIntegrationName(text);
                                 setError('');
                             }}
-                            onFocus={scrollToIntegrationNameInput}
                         />
                     </View>
                 )}
