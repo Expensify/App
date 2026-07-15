@@ -589,6 +589,8 @@ function Button({
     );
 }
 
-export default withNavigationFallback(Button);
+// OXC's React Compiler bails on this file (missing memoization dependencies), so Button is not
+// memoized on web. Memoize it explicitly to keep parent-driven re-renders cheap there.
+export default withNavigationFallback(React.memo(Button));
 
 export type {ButtonProps};
