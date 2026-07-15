@@ -45,6 +45,7 @@ import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isHRAdvancedMode} from '@libs/HRUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
@@ -56,7 +57,6 @@ import {
     hasDynamicExternalWorkflow,
     isControlPolicy,
     isGroupPolicy as isGroupPolicyUtil,
-    isPolicyAdmin as isPolicyAdminUtil,
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -77,7 +77,7 @@ import {navigateToConciergeChat} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 
@@ -139,7 +139,7 @@ function WorkflowsLoadMoreCard({count, onPress}: {count: number; onPress: () => 
                 <Icon
                     src={expensifyIcons.CircularArrowBackwards}
                     fill={theme.textSupporting}
-                    extraSmall
+                    size={CONST.ICON_SIZE.EXTRA_SMALL}
                     additionalStyles={styles.mr1}
                 />
                 <Text style={[styles.buttonSmallText, styles.textSupporting]}>{label}</Text>
@@ -231,7 +231,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, [policy]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
-    const isPolicyAdmin = isPolicyAdminUtil(policy);
     const canReadWorkflows = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
     const {canWrite: canWriteWorkflows, showReadOnlyModal, withReadOnlyFallback: withWorkflowsReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
     const {canWrite: canWriteApprovals, withReadOnlyFallback: withApprovalsReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
@@ -301,13 +300,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 ROUTES.WORKSPACE_UPGRADE.getRoute(
                     route.params.policyID,
                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
-                    ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID),
+                    createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path),
                 ),
             );
             return;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
@@ -401,6 +400,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (bankAccountConnectedToWorkspace?.accountData?.state ?? '');
         const isAccountInSetupState = isBankAccountPartiallySetup(state);
         const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
+        const canChangePayer = canWritePayments && !isAccountInSetupState;
 
         const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
         const shouldShowPayer = shouldShowBankAccount || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
@@ -585,12 +585,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                           defaultWorkflowMembers: availableMembers,
                                                           usedApproverEmails,
                                                       });
-                                                      Navigation.navigate(
-                                                          ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(
-                                                              route.params.policyID,
-                                                              ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
-                                                          ),
-                                                      );
+                                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
                                                   }
                                         }
                                         currency={policy?.outputCurrency}
@@ -719,6 +714,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                             navigateToBankAccountRoute({
                                                                 policyID: route.params.policyID,
                                                                 backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                                                                policyCurrency: policy?.outputCurrency,
+                                                                bankAccountState: state,
                                                             });
                                                         }
                                                       : undefined
@@ -730,12 +727,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                               iconStyles={bankIcon.iconStyles}
                                               titleStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
                                               descriptionTextStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
-                                              disabled={isOffline || !isPolicyAdmin}
+                                              disabled={isOffline || !canWritePayments}
                                               badgeText={getBadgeText(accountData?.state)}
                                               sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
-                                              badgeIcon={isAccountInSetupState || (isBusinessBankAccountLocked && isPolicyAdmin) ? expensifyIcons.DotIndicator : undefined}
+                                              badgeIcon={isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments) ? expensifyIcons.DotIndicator : undefined}
                                               isBadgeSuccess={isAccountInSetupState}
-                                              isBadgeError={isBusinessBankAccountLocked && isPolicyAdmin}
+                                              isBadgeError={isBusinessBankAccountLocked && canWritePayments}
                                               shouldShowRightIcon={canWritePayments}
                                               interactive={canWritePayments}
                                               shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
@@ -786,7 +783,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                               iconHeight={20}
                                               iconWidth={20}
                                               shouldShowRightIcon
-                                              disabled={isOffline || !isPolicyAdmin}
+                                              disabled={isOffline || !canWritePayments}
                                               shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                               sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_BANK_ACCOUNT}
                                               wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
@@ -807,10 +804,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                               titleStyle={styles.textNormalThemeText}
                                               descriptionTextStyle={styles.textLabelSupportingNormal}
                                               description={translate('workflowsPayerPage.payer')}
-                                              onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
+                                              onPress={canChangePayer ? () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID)) : undefined}
                                               sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
-                                              shouldShowRightIcon={canWritePayments}
-                                              interactive={canWritePayments}
+                                              shouldShowRightIcon={canChangePayer}
+                                              interactive={canChangePayer}
                                               wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                               brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                           />
@@ -862,7 +859,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         hiddenWorkflowsCount,
         addApprovalAction,
         isOffline,
-        isPolicyAdmin,
         displayNameForAuthorizedPayer,
         route.params.policyID,
         updateApprovalMode,

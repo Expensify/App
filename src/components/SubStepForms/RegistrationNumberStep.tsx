@@ -14,6 +14,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import genericMemo from '@libs/genericMemo';
 import {getFieldRequiredErrors, isValidRegistrationNumber} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -118,4 +119,4 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-export default RegistrationNumberStep;
+export default genericMemo(RegistrationNumberStep);
