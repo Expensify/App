@@ -232,7 +232,19 @@ function MoneyRequestReportPreview({
                     // chat. One frame keeps the report barely visible before the full-screen RHP covers it. (Opening
                     // both in the same tick removes the flash but drops the report from history, so back would skip it.)
                     Navigation.navigate(reportRoute);
-                    setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute})));
+                    // Open the expense's RHP only after the freshly-pushed report has committed and painted, and only
+                    // while it is still the active route. Opening the RHP suspends the whole split via react-freeze, and
+                    // suspending a still-hydrating report (cold Onyx cache right after a hard reload) wedges React
+                    // concurrent rendering on iOS Safari — the app freezes. The extra requestAnimationFrame lets the
+                    // report settle before the freeze lands; the isActiveRoute guard bails if the user navigated away.
+                    setNavigationActionToMicrotaskQueue(() =>
+                        requestAnimationFrame(() => {
+                            if (!Navigation.isActiveRoute(reportRoute)) {
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+                        }),
+                    );
                     return;
                 }
 
