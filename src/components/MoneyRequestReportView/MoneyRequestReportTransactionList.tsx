@@ -182,9 +182,6 @@ type MoneyRequestReportTransactionListProps = {
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
 
-    /** scrollToNewTransaction callback used for scrolling to new transaction when it is created */
-    scrollToNewTransaction: (offset: number) => void;
-
     /** Whether the report that these transactions belong to has any chat comments */
     hasComments: boolean;
 
@@ -255,7 +252,6 @@ function MoneyRequestReportTransactionList({
     isReportVisible = true,
     reportActions,
     hasPendingDeletionTransaction = false,
-    scrollToNewTransaction,
     policy,
     hasComments,
     onLayout,
@@ -854,7 +850,6 @@ function MoneyRequestReportTransactionList({
                         dateColumnSize={dateColumnSize}
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
-                        scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                         onArrowRightPress={handleArrowRightPress}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? {}}
                         isLastItem={!showPendingExpensePlaceholder && transaction.transactionID === lastTransactionID}
@@ -1097,6 +1092,7 @@ function MoneyRequestReportTransactionList({
                 visibleReportActions={visibleReportActions}
                 renderReportAction={renderReportAction}
                 linkedReportActionID={linkedReportActionID}
+                newTransactionID={isReportVisible ? newTransactions.at(0)?.transactionID : undefined}
                 listRef={listRef}
                 onLastItemIndexChange={onLastItemIndexChange}
                 accessibilityLabel={accessibilityLabel}

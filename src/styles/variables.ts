@@ -392,8 +392,6 @@ export default {
     searchListContentWithFiltersMarginTop: 162,
     searchTopBarZIndex: 9,
 
-    scrollToNewTransactionOffset: 300,
-
     searchAutocompleteInputSkeletonHeight: 8,
     searchAutocompleteInputSkeletonWidth: 145,
 

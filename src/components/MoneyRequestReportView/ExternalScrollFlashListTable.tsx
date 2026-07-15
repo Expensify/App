@@ -1,9 +1,12 @@
-import FlashList from '@components/FlashList';
 import ScrollView from '@components/ScrollView';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollViewProps} from 'react-native';
 
+// Deliberately not the @components/FlashList wrapper: it doesn't type `ref` (this list needs one for layout reads),
+// and its only addition — composer scroll-event emission — would fire duplicates here, since this list's scroll events
+// are synthesized from the parent list's scroll, which already emits them.
+import {FlashList} from '@shopify/flash-list';
 import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -127,6 +130,13 @@ function ExternalScrollDriver({store, offsetTop = 0, onScroll, children, style, 
     );
 }
 
+type ExternalScrollFlashListTableHandle = {
+    /** Page-space position of a row — where it sits within the parent's scrollable content. Derived from the nested
+     * list's layout data, so it works for rows that aren't mounted. The table owns this math (offsetTop + its own
+     * header height + the row's layout) so the parent never learns the nested coordinate system. */
+    getRowPageOffset: (index: number) => {top: number; height: number} | undefined;
+};
+
 type ExternalScrollFlashListTableProps<T> = {
     /** Rows to render. FlashList windows and recycles them against the parent's scroll offset. */
     items: T[];
@@ -157,6 +167,9 @@ type ExternalScrollFlashListTableProps<T> = {
 
     /** Where the table region starts within the parent page's scrollable content (px from the top). */
     offsetTop: number;
+
+    /** Imperative handle exposing row positions in page space (see ExternalScrollFlashListTableHandle). */
+    ref?: React.Ref<ExternalScrollFlashListTableHandle>;
 };
 
 /**
@@ -183,8 +196,24 @@ function ExternalScrollFlashListTable<T>({
     store,
     viewportHeight,
     offsetTop,
+    ref,
 }: ExternalScrollFlashListTableProps<T>) {
     const lastIndex = items.length - 1;
+    const listRef = useRef<FlashListRef<T>>(null);
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            getRowPageOffset: (index: number) => {
+                const layout = listRef.current?.getLayout(index);
+                if (!layout) {
+                    return undefined;
+                }
+                return {top: offsetTop + (listRef.current?.getFirstItemOffset() ?? 0) + layout.y, height: layout.height};
+            },
+        }),
+        [offsetTop],
+    );
 
     return (
         <ScrollView
@@ -193,6 +222,7 @@ function ExternalScrollFlashListTable<T>({
             contentContainerStyle={{width: contentWidth}}
         >
             <FlashList<T>
+                ref={listRef}
                 data={items}
                 keyExtractor={keyExtractor}
                 getItemType={getItemType}
@@ -215,3 +245,4 @@ function ExternalScrollFlashListTable<T>({
 
 export default ExternalScrollFlashListTable;
 export {createScrollOffsetStore};
+export type {ExternalScrollFlashListTableHandle};

@@ -54,8 +54,6 @@ import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsList
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
-import variables from '@styles/variables';
-
 import {getOlderActions, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -224,8 +222,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const listRef = useActionListRef();
 
     const scrollingVerticalBottomOffset = useRef(0);
-    const scrollingVerticalTopOffset = useRef(0);
-    const wrapperViewRef = useRef<View>(null);
     const readActionSkipped = useRef(false);
     const stickToBottomRef = useRef(false);
     const stickToBottomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -482,9 +478,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             scrollingVerticalBottomOffset.current = fullContentHeight - layoutMeasurement.height - contentOffset.y;
             scrollOffsetRef.current = scrollingVerticalBottomOffset.current;
 
-            // We additionally track the top offset to be able to scroll to the new transaction when it's added
-            scrollingVerticalTopOffset.current = contentOffset.y;
-
             // Mark the report as read only once the scroll has actually reached the bottom. The jump fired by
             // "Latest messages" settles over several frames as deferred items hydrate, so we wait for the real end.
             if (pendingMarkAsReadRef.current && scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
@@ -695,19 +688,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         }
     };
 
-    const scrollToNewTransaction = useCallback(
-        (pageY: number) => {
-            wrapperViewRef.current?.measureInWindow((x, y, w, height) => {
-                // If the new transaction is already visible, we don't need to scroll to it
-                if (pageY > 0 && pageY < height) {
-                    return;
-                }
-                reportScrollManager.scrollToOffset(scrollingVerticalTopOffset.current + pageY - variables.scrollToNewTransactionOffset);
-            });
-        },
-        [reportScrollManager],
-    );
-
     /**
      * Runs when the FlatList finishes laying out
      */
@@ -735,10 +715,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     });
 
     return (
-        <View
-            style={[styles.flex1]}
-            ref={wrapperViewRef}
-        >
+        <View style={[styles.flex1]}>
             <SelectionToolbar
                 reportID={reportIDFromRoute}
                 transactions={transactions}
@@ -776,7 +753,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         isReportVisible={isReportVisible}
                         hasPendingDeletionTransaction={hasPendingDeletionTransaction}
                         reportActions={reportActions}
-                        scrollToNewTransaction={scrollToNewTransaction}
                         policy={policy}
                         hasComments={visibleReportActions.length > 0}
                         isLoadingInitialReportActions={showReportActionsLoadingState}

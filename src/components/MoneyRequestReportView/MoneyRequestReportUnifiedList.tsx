@@ -15,6 +15,7 @@ import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StylePr
 import React, {memo, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type {ExternalScrollFlashListTableHandle} from './ExternalScrollFlashListTable';
 import type {MoneyRequestReportTransactionListController, TransactionListItemData} from './MoneyRequestReportTransactionList';
 
 import ExternalScrollFlashListTable, {createScrollOffsetStore} from './ExternalScrollFlashListTable';
@@ -72,6 +73,7 @@ type MoneyRequestReportUnifiedListProps = {
     visibleReportActions: OnyxTypes.ReportAction[];
     renderReportAction: (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => React.ReactElement;
     linkedReportActionID: string | undefined;
+    newTransactionID?: string;
     listRef: FlatListRefType;
     accessibilityLabel: string;
     onLayout: () => void;
@@ -97,6 +99,7 @@ function MoneyRequestReportUnifiedList({
     visibleReportActions,
     renderReportAction,
     linkedReportActionID,
+    newTransactionID,
     listRef,
     accessibilityLabel,
     onLayout,
@@ -140,6 +143,12 @@ function MoneyRequestReportUnifiedList({
     const lastTransactionItemIndex = controller.transactionListItems.length - 1;
     const reportActionIndexOffset = shouldInlineTransactions ? controller.transactionListItems.length + 1 : 0;
 
+    // Latest viewable items, kept current from onViewableItemsChanged, so the new-transaction scroll can skip when the row is already on screen.
+    const viewableItemsRef = useRef<ViewToken[]>([]);
+
+    // Handle to the nested table (horizontal mode) — read for row page positions, never driven to scroll (its scroll is a no-op).
+    const tableRef = useRef<ExternalScrollFlashListTableHandle>(null);
+
     // Viewport height + table offset fed to the nested table so it can window its rows against this list's scroll.
     // tableOffsetTop is the height of everything above the table region (the report-fields header).
     // Seed with the window height (a safe over-estimate) so the nested list windows against a non-zero viewport on the
@@ -176,6 +185,8 @@ function MoneyRequestReportUnifiedList({
     // raw FlashList indices. When transactions are present, report actions start at reportActionIndexOffset,
     // so we shift all viewable indices down before forwarding so the comparison is apples-to-apples.
     const onViewableItemsChangedAdjusted = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+        // Keep the raw array so the new-transaction effect can tell whether the new row is already on screen.
+        viewableItemsRef.current = info.viewableItems;
         if (reportActionIndexOffset === 0) {
             onViewableItemsChanged(info);
             return;
@@ -224,6 +235,54 @@ function MoneyRequestReportUnifiedList({
         return () => cancelAnimationFrame(rafId);
     }, [linkedReportActionID, initialScrollIndex, listRef]);
 
+    // Scroll a newly-created transaction into view, once per transaction. The rows are virtualized, so the row can't
+    // drive this itself (an off-window row never mounts) — the list scrolls to it by index/layout instead, which
+    // reaches unmounted rows. Skipped when the row is already on screen so the user isn't yanked.
+    const scrolledToNewTransactionIDRef = useRef<string | undefined>(undefined);
+
+    // The index is derived at render (not inside the effect) so the effect keys on a stable number — the items array
+    // identity churns across the re-renders that follow a transaction insert, and re-firing the effect would cancel
+    // the scheduled frame below before it runs.
+    const newTransactionTableIndex = newTransactionID
+        ? controller.transactionListItems.findIndex((item) => item.type === 'transaction' && item.transaction.transactionID === newTransactionID)
+        : -1;
+
+    useEffect(() => {
+        if (newTransactionTableIndex < 0 || scrolledToNewTransactionIDRef.current === newTransactionID) {
+            return;
+        }
+
+        if (shouldInlineTransactions) {
+            // Inline: the transaction is a main-list item at the same index (transactions lead `data`).
+            const rafId = requestAnimationFrame(() => {
+                // The ID is consumed inside the frame (not at schedule time): if a re-fire cancels this frame, the next
+                // effect run reschedules instead of treating the scroll as done.
+                scrolledToNewTransactionIDRef.current = newTransactionID;
+                if (viewableItemsRef.current.some((token) => token.index === newTransactionTableIndex)) {
+                    return;
+                }
+                listRef?.current?.scrollToIndex({index: newTransactionTableIndex, animated: true, viewPosition: 0.5});
+            });
+            return () => cancelAnimationFrame(rafId);
+        }
+
+        // Horizontal table: the rows live in a nested FlashList whose own scroll is a no-op — only the parent page
+        // scrolls. Ask the table where the row sits in page space (works for unmounted rows) and scroll the parent there.
+        const rafId = requestAnimationFrame(() => {
+            scrolledToNewTransactionIDRef.current = newTransactionID;
+            const row = tableRef.current?.getRowPageOffset(newTransactionTableIndex);
+            if (!row) {
+                return;
+            }
+            const scrollOffset = scrollOffsetStore.getOffset();
+            if (row.top >= scrollOffset && row.top + row.height <= scrollOffset + viewportHeight) {
+                return;
+            }
+            listRef?.current?.scrollToOffset({offset: Math.max(0, row.top - viewportHeight / 2), animated: true});
+        });
+        return () => cancelAnimationFrame(rafId);
+    }, [newTransactionID, newTransactionTableIndex, shouldInlineTransactions, viewportHeight, scrollOffsetStore, listRef]);
+
     const reportFieldsHeader = (
         <MoneyRequestViewReportFields
             report={report}
@@ -266,6 +325,7 @@ function MoneyRequestReportUnifiedList({
                             store={scrollOffsetStore}
                             viewportHeight={viewportHeight}
                             offsetTop={tableOffsetTop}
+                            ref={tableRef}
                         />
                         {/* Rendered outside the horizontal scroller so the totals/add-expense summary stays pinned to the viewport. */}
                         {controller.afterListContent}
