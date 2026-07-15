@@ -7,8 +7,8 @@
  *   );
  *
  * in tests that press a button and assert on the resulting side effect, but aren't testing the
- * double-tap-prevention mechanism itself. That mechanism relies on a real (non-fake) timer to
- * clear `isExecuting` (see CONST.TIMING.SINGLE_EXECUTION_DEBOUNCE_TIME), so it won't resolve
+ * double-tap-prevention mechanism itself. That mechanism relies on real (non-fake) timers, via
+ * `runAfterPredictedTransition`/`TransitionTracker`, to clear `isExecuting`, so it won't resolve
  * within a normal test's lifetime and would otherwise leave buttons stuck disabled.
  */
 function useSingleExecution() {
