@@ -86,14 +86,15 @@ function IOURequestStepDistanceManual({
         iouType,
         transaction,
     });
-    const shouldBlockManualOrOdometerDistanceRequest = useCommuterExclusionGuard({
-        policyID: policy?.id,
-        isManualDistanceRequest: true,
-    });
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const reportAttributesDerived = useReportAttributes();
+
+    const shouldBlockManualOrOdometerDistanceRequest = useCommuterExclusionGuard({
+        policyID: policy?.id ?? defaultExpensePolicy?.id,
+        isManualDistanceRequest: true,
+    });
 
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
