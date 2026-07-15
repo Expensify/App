@@ -3661,6 +3661,90 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(false);
         });
 
+        describe('when the outstanding child expense is all on hold', () => {
+            const expenseReportID = '7201';
+            const transactionThreadReportID = '7202';
+            const transactionID = '7201';
+            const moneyRequestActionID = 'mr_7201';
+            const HOLD_ACTION_ID = 'hold_7201';
+            const otherUserAccountID = 99;
+
+            // Seeds an all-held expense report awaiting the current user, plus the money-request action and the thread's
+            // HOLD action (whose actor is the holder), so the derivation can resolve who placed the hold.
+            const seedHeldChildExpense = async (holderAccountID: number) => {
+                const expenseReport = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: expenseReportID,
+                    policyID: '1',
+                    ownerAccountID: otherUserAccountID,
+                    managerID: currentUserAccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                };
+
+                const policyExpenseChat = {
+                    ...createPolicyExpenseChat(201, true),
+                    policyID: '1',
+                    ownerAccountID: currentUserAccountID,
+                    hasOutstandingChildRequest: true,
+                    iouReportID: expenseReportID,
+                };
+
+                const heldTransaction = {
+                    ...createRandomTransaction(7201),
+                    transactionID,
+                    reportID: expenseReportID,
+                    status: CONST.TRANSACTION.STATUS.POSTED,
+                    comment: {hold: HOLD_ACTION_ID},
+                };
+
+                const moneyRequestAction: ReportAction = {
+                    reportActionID: moneyRequestActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2024-01-01 00:00:00.000',
+                    actorAccountID: otherUserAccountID,
+                    childReportID: transactionThreadReportID,
+                    originalMessage: {
+                        IOUTransactionID: transactionID,
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        amount: 100,
+                        currency: 'USD',
+                    },
+                };
+
+                const holdAction: ReportAction = {
+                    reportActionID: HOLD_ACTION_ID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+                    created: '2024-01-01 00:00:00.000',
+                    actorAccountID: holderAccountID,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, heldTransaction);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, {[moneyRequestActionID]: moneyRequestAction});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {[HOLD_ACTION_ID]: holdAction});
+                await waitForBatchedUpdates();
+
+                return policyExpenseChat;
+            };
+
+            it('does not require attention when another user placed the hold', async () => {
+                const policyExpenseChat = await seedHeldChildExpense(otherUserAccountID);
+
+                // An all-held report can't move to its next state, so it isn't a to-do when someone else placed the hold.
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(false);
+            });
+
+            it('still requires attention when the current user placed the hold', async () => {
+                const policyExpenseChat = await seedHeldChildExpense(currentUserAccountID);
+
+                // Only the person who placed the hold can remove it, so the report stays in their to-do queue.
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+            });
+        });
+
         it('returns true for expense report awaiting user payment/reimbursement', async () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -14731,7 +14815,7 @@ describe('ReportUtils', () => {
         });
     });
 
-    it('should surface a GBR for admin with held expenses requiring approval or payment and avoid showing an RBR', async () => {
+    it('should surface a GBR for the admin who placed the hold on an all-held report requiring approval, and avoid showing an RBR', async () => {
         await Onyx.clear();
 
         const adminAccountID = currentUserAccountID;
@@ -14740,6 +14824,8 @@ describe('ReportUtils', () => {
         const expenseReportID = 'expense-hold';
         const transactionID = 'transaction-hold';
         const holdReportActionID = 'hold-action';
+        const transactionThreadReportID = 'transaction-thread-hold';
+        const moneyRequestActionID = 'money-request-action-hold';
 
         const policy1: Policy = {
             id: policyID,
@@ -14804,6 +14890,30 @@ describe('ReportUtils', () => {
             childReportID: expenseReportID,
         };
 
+        // The current user (admin) placed the hold, so the all-held report stays in their to-do queue (GBR) - only the
+        // person who placed a hold can unhold it. The money-request action links the held transaction to the thread
+        // that carries the HOLD action, so the derivation can resolve who placed the hold.
+        const moneyRequestAction: ReportAction = {
+            reportActionID: moneyRequestActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            created: '2024-01-01 00:00:00.000',
+            actorAccountID: employeeAccountID,
+            childReportID: transactionThreadReportID,
+            originalMessage: {
+                IOUTransactionID: transactionID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 12345,
+                currency: CONST.CURRENCY.USD,
+            },
+        };
+
+        const holdAction: ReportAction = {
+            reportActionID: holdReportActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+            created: '2024-01-01 00:00:00.000',
+            actorAccountID: adminAccountID,
+        };
+
         const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}` as OnyxKey;
         const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {
             [transactionViolationsKey]: [
@@ -14821,6 +14931,12 @@ describe('ReportUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
+            }),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, {
+                [moneyRequestAction.reportActionID]: moneyRequestAction,
+            }),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
+                [holdAction.reportActionID]: holdAction,
             }),
             Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
             Onyx.merge(transactionViolationsKey, transactionViolationsCollection[transactionViolationsKey]),
@@ -14841,6 +14957,7 @@ describe('ReportUtils', () => {
             draftComment: '',
             isReportArchived: undefined,
             conciergeReportID: undefined,
+            currentUserAccountID: adminAccountID,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
