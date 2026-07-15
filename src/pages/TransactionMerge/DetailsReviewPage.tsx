@@ -26,6 +26,7 @@ import {
     isEmptyMergeValue,
 } from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey} from '@libs/MergeTransactionUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
@@ -33,7 +34,7 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -50,7 +51,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
-    const {transactionID, isOnSearch, backTo} = route.params;
+    const {transactionID, backTo} = route.params;
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
@@ -151,9 +152,9 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute(), isOnSearch));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION.getRoute(transactionID)));
         }
-    }, [mergeTransaction, conflictFields, transactionID, isOnSearch]);
+    }, [mergeTransaction, conflictFields, transactionID]);
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(

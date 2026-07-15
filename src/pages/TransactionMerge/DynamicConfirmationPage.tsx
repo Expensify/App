@@ -10,6 +10,7 @@ import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -29,7 +30,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -40,14 +41,15 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type ConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE>;
+type DynamicConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE>;
 
-function ConfirmationPage({route}: ConfirmationPageProps) {
+function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
-    const {transactionID, isOnSearch, backTo} = route.params;
+    const {transactionID, isOnSearch} = route.params;
+    const backTo = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION.path);
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionReport, targetTransactionPolicy} = useMergeTransactions({mergeTransaction});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -66,7 +68,9 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`);
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
     const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
 
     const selfDMReport = useSelfDMReport();
 
@@ -123,7 +127,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionMerge.ConfirmationPage',
+            context: 'TransactionMerge.DynamicConfirmationPage',
             isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
         };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
@@ -131,7 +135,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     return (
         <ScreenWrapper
-            testID="ConfirmationPage"
+            testID="DynamicConfirmationPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -168,4 +172,4 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     );
 }
 
-export default ConfirmationPage;
+export default DynamicConfirmationPage;
