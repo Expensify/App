@@ -5045,7 +5045,7 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
 
-            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID, undefined, []);
+            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID, undefined, false, []);
             await waitForBatchedUpdates();
 
             const expenseReportUpdated = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -5283,10 +5283,19 @@ describe('ReportUtils', () => {
             const unholdRequestSpy = jest.spyOn(HoldUtils, 'unholdRequest').mockImplementation(() => undefined);
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false);
 
             // Then unholdRequest should be called with the correct parameters and navigation should not be called
-            expect(unholdRequestSpy).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false, currentUserEmail, currentUserAccountID, undefined);
+            expect(unholdRequestSpy).toHaveBeenCalledWith(
+                transactionID,
+                childReportID,
+                expect.objectContaining({id: policyID}),
+                false,
+                currentUserEmail,
+                currentUserAccountID,
+                undefined,
+                false,
+            );
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
@@ -5328,7 +5337,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false);
 
             // Then navigation should be called with the correct parameters
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -14074,6 +14083,61 @@ describe('ReportUtils', () => {
             const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID});
             expect(displayName).toBe(fakePersonalDetails?.[1]?.displayName);
         });
+
+        it('should return hidden translation using translate param when participant has no displayName or login', async () => {
+            const hiddenAccountID = 9999;
+            const personalDetailsWithHidden: PersonalDetailsList = {
+                [hiddenAccountID]: {
+                    accountID: hiddenAccountID,
+                    login: '',
+                    displayName: '',
+                    avatar: 'none',
+                    firstName: 'ShouldNotShow',
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsWithHidden);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
+            await waitForBatchedUpdates();
+
+            const result = getDisplayNameForParticipant({
+                formatPhoneNumber,
+                accountID: hiddenAccountID,
+                personalDetailsData: personalDetailsWithHidden,
+                translate: translateLocal,
+            });
+
+            expect(result).toBe(translateLocal('common.hidden'));
+        });
+
+        it('should return hidden translation instead of short name when translate param is passed and shouldUseShortForm is true', async () => {
+            const hiddenAccountID = 9998;
+            const personalDetailsWithHidden: PersonalDetailsList = {
+                [hiddenAccountID]: {
+                    accountID: hiddenAccountID,
+                    login: '',
+                    displayName: '',
+                    avatar: 'none',
+                    firstName: 'ShortName',
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsWithHidden);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
+            await waitForBatchedUpdates();
+
+            const result = getDisplayNameForParticipant({
+                formatPhoneNumber,
+                accountID: hiddenAccountID,
+                shouldUseShortForm: true,
+                personalDetailsData: personalDetailsWithHidden,
+                translate: translateLocal,
+            });
+
+            expect(result).toBe(translateLocal('common.hidden'));
+            expect(result).not.toBe('ShortName');
+        });
+
         it('resolves the hidden participant fallback through the provided translate function', () => {
             const hiddenAccountID = 909090;
             // A known participant with no displayName/login resolves to the hidden label, which must come from the provided translate function.

@@ -42,6 +42,7 @@ import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 // NOTE: The narrow-layout rendering of this component has a static twin in
 // SearchStaticList (src/components/Search/SearchStaticList.tsx) used for fast
 // perceived performance. If you change the narrow-layout UI here, verify the
@@ -144,6 +145,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         reportID: transactionItem.reportID,
         chatReportPolicyID: parentChatReport?.policyID,
     });
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const liveTransactionItem = useLiveRowCapabilities<TransactionListItemType>({
         item: transactionItem,
@@ -230,6 +232,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             searchData: currentSearchResults?.data,
             chatReportActions,
             delegateEmail,
+            isTrackIntentUser,
         });
     };
 
