@@ -230,7 +230,6 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 currentUserAccountID: accountID,
                 currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
-                conciergeChat,
                 policy,
                 chatReportPolicy,
                 betas,

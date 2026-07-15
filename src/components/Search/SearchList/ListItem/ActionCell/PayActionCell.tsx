@@ -140,7 +140,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
             activePolicy,
-            conciergeChat,
             policy,
             chatReportPolicy,
             betas,

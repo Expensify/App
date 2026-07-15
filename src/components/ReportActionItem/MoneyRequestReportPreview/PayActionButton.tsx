@@ -218,7 +218,6 @@ function PayActionButton({
                     currentUserAccountID,
                     currentUserLogin: currentUserDetails.login ?? '',
                     activePolicy,
-                    conciergeChat,
                     policy,
                     chatReportPolicy,
                     betas,

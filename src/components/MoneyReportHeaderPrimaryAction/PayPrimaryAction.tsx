@@ -171,7 +171,6 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 currentUserAccountID: accountID,
                 currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
-                conciergeChat,
                 policy,
                 chatReportPolicy,
                 betas,
