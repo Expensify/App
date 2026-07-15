@@ -1,0 +1,63 @@
+diff --git a/node_modules/expo-image/android/src/main/java/expo/modules/image/ExpoImageViewWrapper.kt b/node_modules/expo-image/android/src/main/java/expo/modules/image/ExpoImageViewWrapper.kt
+index 224404e..ef4451a 100644
+--- a/node_modules/expo-image/android/src/main/java/expo/modules/image/ExpoImageViewWrapper.kt
++++ b/node_modules/expo-image/android/src/main/java/expo/modules/image/ExpoImageViewWrapper.kt
+@@ -45,14 +45,18 @@ import kotlin.math.min
+ 
+ @SuppressLint("ViewConstructor")
+ class ExpoImageViewWrapper(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
+-  private val activity: Activity
+-    get() = appContext.throwingActivity
+-
+-  internal val requestManager = getOrCreateRequestManager(appContext, activity)
++  // In HybridApp, expo's AppContext has no current Activity during a JS reload (the host is OldDot's
++  // ExpensifyActivityBase, not a ReactActivity). Reading `throwingActivity` here made this view's constructor
++  // throw MissingActivity, so every expo-image rendered blank until a cold restart. Use the nullable
++  // currentActivity and fall back to the view Context so the view can still be built; Glide accepts any Context.
++  private val activity: Activity?
++    get() = appContext.currentActivity
++
++  internal val requestManager = getOrCreateRequestManager(appContext, activity, context)
+   private val progressListener = OkHttpProgressListener(WeakReference(this))
+ 
+-  private val firstView = ExpoImageView(activity)
+-  private val secondView = ExpoImageView(activity)
++  private val firstView = ExpoImageView(activity ?: context)
++  private val secondView = ExpoImageView(activity ?: context)
+ 
+   private val mainHandler = Handler(context.mainLooper)
+ 
+@@ -628,10 +632,11 @@ class ExpoImageViewWrapper(context: Context, appContext: AppContext) : ExpoView(
+ 
+     fun getOrCreateRequestManager(
+       appContext: AppContext,
+-      activity: Activity
++      activity: Activity?,
++      fallbackContext: Context
+     ): RequestManager = synchronized(Companion) {
+       val cachedRequestManager = requestManager
+-        ?: return createNewRequestManager(activity).also {
++        ?: return createNewRequestManager(activity, fallbackContext).also {
+           requestManager = it
+           appContextRef = WeakReference(appContext)
+           activityRef = WeakReference(activity)
+@@ -639,7 +644,7 @@ class ExpoImageViewWrapper(context: Context, appContext: AppContext) : ExpoView(
+ 
+       // Request manager was created using different activity or app context
+       if (appContextRef.get() != appContext || activityRef.get() != activity) {
+-        return createNewRequestManager(activity).also {
++        return createNewRequestManager(activity, fallbackContext).also {
+           requestManager = it
+           appContextRef = WeakReference(appContext)
+           activityRef = WeakReference(activity)
+@@ -649,6 +654,9 @@ class ExpoImageViewWrapper(context: Context, appContext: AppContext) : ExpoView(
+       return cachedRequestManager
+     }
+ 
+-    private fun createNewRequestManager(activity: Activity): RequestManager = Glide.with(activity)
++    // Glide.with(Activity) is Activity-lifecycle-aware; when the Activity is temporarily unavailable (e.g. a
++    // HybridApp JS reload) fall back to the view Context so images still load instead of the view failing to build.
++    private fun createNewRequestManager(activity: Activity?, fallbackContext: Context): RequestManager =
++      if (activity != null) Glide.with(activity) else Glide.with(fallbackContext)
+   }
+ }
