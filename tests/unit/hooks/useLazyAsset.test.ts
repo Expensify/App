@@ -289,7 +289,7 @@ describe('useMemoizedLazyAsset', () => {
         });
     });
 
-    it('should handle function reference changes', async () => {
+    it('should keep the initial importFn stable across rerenders', async () => {
         const importFn1 = jest.fn(() => Promise.resolve({default: mockAsset}));
         const importFn2 = jest.fn(() => Promise.resolve({default: mockFallbackAsset}));
 
@@ -306,13 +306,15 @@ describe('useMemoizedLazyAsset', () => {
             expect(result.current.asset).toBe(mockAsset);
         });
 
-        // Change to different function
+        // Callers pass inline loaders; rebinding every render would loop setState, so
+        // useMemoizedLazyAsset captures the first importFn only.
         rerender({importFn: importFn2});
 
-        // Wait for new import function to be called
         await waitFor(() => {
-            expect(importFn2).toHaveBeenCalled();
+            expect(result.current.asset).toBe(mockAsset);
         });
+        expect(importFn2).not.toHaveBeenCalled();
+        expect(importFn1).toHaveBeenCalled();
     });
 
     it('returns PlaceholderIcon while loading', () => {

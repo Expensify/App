@@ -1,5 +1,7 @@
 import Log from '@libs/Log';
 
+import type {SharedValue} from 'react-native-reanimated';
+
 import {fastMerge} from 'expensify-common';
 import {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
@@ -163,9 +165,11 @@ function useWorkletStateMachineImpl(stateMachine: StateMachine, initialState: St
  * @returns an object containing the current state, a transition function, and a reset function
  */
 function useWorkletStateMachine<SM extends StateMachine<string, string>, P>(stateMachine: SM, initialState: State<P>) {
-    return useWorkletStateMachineImpl(stateMachine, initialState as State<unknown>) as ReturnType<typeof useWorkletStateMachineImpl> & {
+    return useWorkletStateMachineImpl(stateMachine, initialState as State<unknown>) as {
+        currentState: SharedValue<State<P>>;
         transitionWorklet: (action: ActionWithPayload<P>) => void;
         transition: (action: ActionWithPayload<P>) => void;
+        reset: () => void;
     };
 }
 
