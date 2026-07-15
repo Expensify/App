@@ -50,6 +50,8 @@ import {
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
+import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
+
 import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
@@ -308,17 +310,74 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionIDs = transactions?.map((tx) => tx.transactionID);
     const [storedTransactions] = useTransactionsByID(transactionIDs);
 
-    function performPostBatchCleanup({allTransactionsCreated}: {allTransactionsCreated: boolean}) {
+    function performPostBatchCleanup({
+        participant,
+        shouldHandleNavigation,
+        allTransactionsCreated,
+        fallbackOptimisticChatReportID,
+        navigateBackToReport,
+        lastOptimisticTransactionID,
+        preResolvedChatTarget,
+        iouReportID,
+        transactionThreadReportID,
+    }: {
+        participant: Participant;
+        shouldHandleNavigation: boolean;
+        allTransactionsCreated: boolean;
+        fallbackOptimisticChatReportID: string;
+        navigateBackToReport: string | undefined;
+        lastOptimisticTransactionID: string | undefined;
+        preResolvedChatTarget?: {report: OnyxEntry<Report>; chatReportID: string};
+        iouReportID?: string;
+        transactionThreadReportID?: string;
+    }) {
         const lastTransaction = transactions.at(-1);
         // Action bailed mid-batch — keep drafts for retry.
         if (!allTransactionsCreated) {
             return;
         }
-        // Navigation + the "Expense added" growl are owned by the IOU action itself (requestMoney/trackExpense
-        // call handleNavigateAfterExpenseCreate / showExpenseAddedGrowl internally). Doing it here as well fired
-        // the growl twice and ran navigation twice on the shouldHandleNavigation=true paths, so this only performs
-        // the non-navigation cleanup now.
-        cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction});
+        // Move-from-track (SUBMIT/CATEGORIZE/SHARE) reuses the tracked transaction's ID — mirror the builder's `existingTransactionID ?? optimisticTransactionID`.
+        const lastTransactionID = getExistingTransactionID(lastTransaction?.linkedTrackedExpenseReportAction) ?? lastOptimisticTransactionID;
+        const buildTransactionThreadParams = {
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            betas,
+            introSelected,
+            transaction: lastTransaction,
+        };
+        if (!shouldHandleNavigation) {
+            cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction});
+            surfaceExpenseCreatedFeedback({
+                iouReportID,
+                transactionID: lastTransactionID,
+                transactionThreadReportID,
+                isMoneyRequestReport,
+                buildTransactionThreadParams,
+            });
+            return;
+        }
+        const {report: resolvedReport, chatReportID} =
+            preResolvedChatTarget ??
+            resolveChatTargetForSubmitCleanup({
+                participant,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                report,
+                fallbackOptimisticChatReportID,
+                action,
+            });
+        cleanupAndNavigateAfterExpenseCreate({
+            report: resolvedReport,
+            action,
+            draftTransactionIDs,
+            transactionID: lastTransactionID,
+            iouReportID,
+            transactionThreadReportID,
+            isFromGlobalCreate: getIsFromGlobalCreate(lastTransaction),
+            backToReport: navigateBackToReport,
+            optimisticChatReportID: chatReportID,
+            linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction,
+            buildTransactionThreadParams,
+        });
     }
 
     function requestMoney(shouldHandleNavigation: boolean, gpsPoint?: GpsPoint) {
@@ -341,9 +400,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         const optimisticReportPreviewActionID = rand64();
         let existingIOUReport: Report | undefined;
         let allTransactionsCreated = true;
+        let lastOptimisticTransactionID: string | undefined;
+        let lastTransactionThreadReportID: string | undefined;
 
-        for (const [index, item] of transactions.entries()) {
-            const optimisticTransactionID = rand64();
+        for (const item of transactions) {
+            lastOptimisticTransactionID = rand64();
             const receipt = receiptFiles[item.transactionID];
             const isTestReceipt = receipt?.isTestReceipt ?? false;
             const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
@@ -390,7 +451,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 }
             }
 
-            const {iouReport} = requestMoneyIOUActions({
+            const {iouReport, transactionThreadReportID} = requestMoneyIOUActions({
                 report,
                 existingIOUReport,
                 optimisticChatReportID,
@@ -447,15 +508,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     isFromGlobalCreate: getIsFromGlobalCreate(item),
                     ...(isTimeRequest ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR} : {}),
                 },
-                optimisticTransactionID,
-                // The action owns post-create navigation + growl, but only when the caller permits it
-                // (dismiss-first orchestrators pass shouldHandleNavigation=false after revealing/dismissing
-                // the destination themselves). Silence every non-final write of a multi-transaction batch so
-                // the feedback fires once, for the last transaction only.
-                shouldHandleNavigation: shouldHandleNavigation && index === transactions.length - 1,
-                shouldShowPostCreateFeedback: index === transactions.length - 1,
-                // Post-create navigation must return to the report the flow started from, not the chat the expense was written to.
-                backToReport,
+                optimisticTransactionID: lastOptimisticTransactionID,
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
@@ -470,15 +523,29 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 isTrackIntentUser,
-                introSelected,
                 delegateAccountID,
             });
             existingIOUReport = iouReport;
+            lastTransactionThreadReportID = transactionThreadReportID;
             if (!iouReport) {
                 allTransactionsCreated = false;
             }
         }
-        performPostBatchCleanup({allTransactionsCreated});
+        const isExpenseReport = isMoneyRequestReportReportUtils(report);
+        performPostBatchCleanup({
+            participant,
+            shouldHandleNavigation,
+            allTransactionsCreated,
+            fallbackOptimisticChatReportID: optimisticChatReportID,
+            navigateBackToReport: backToReport,
+            lastOptimisticTransactionID,
+            preResolvedChatTarget: {
+                report: isExpenseReport ? report : undefined,
+                chatReportID: isExpenseReport ? optimisticChatReportID : (existingIOUReport?.chatReportID ?? optimisticChatReportID),
+            },
+            iouReportID: existingIOUReport?.reportID,
+            transactionThreadReportID: lastTransactionThreadReportID,
+        });
     }
 
     function submitPerDiemExpense(trimmedComment: string, shouldHandleNavigation: boolean, policyRecentlyUsedCategoriesParam?: RecentlyUsedCategories) {
@@ -525,8 +592,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     });
                 }
             } else {
-                // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths) - surface
-                // feedback wherever the user lands, matching the workspace per-diem branch below.
                 surfaceExpenseCreatedFeedback({
                     transactionID: result?.transactionID,
                     transactionThreadReportID: result?.transactionThreadReportID,
@@ -602,10 +667,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         shouldAddPendingNewTransactionIDs: targetReportID === chatReportID || isOneToTwoTransition,
                     });
                 } else {
-                    // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). Surface
-                    // feedback wherever the user lands: highlight the new row for in-report adds,
-                    // otherwise the "Expense added" growl with a "View" deep link - matching
-                    // requestMoney/trackExpense/split/invoice.
                     surfaceExpenseCreatedFeedback({
                         iouReportID: result.iouReport?.reportID,
                         transactionID: result.transactionID,
@@ -636,14 +697,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         // non-self route report) so getTrackExpenseInformation defaults to the self-DM instead of the route report.
         const trackReport = isSelfDMDestination ? undefined : report;
         const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
-        for (const [index, item] of transactions.entries()) {
-            const optimisticTransactionID = rand64();
+        let lastTrackResult: {iouReport?: Report; transactionID?: string; transactionThreadReportID?: string} | undefined;
+        let lastOptimisticTransactionID: string | undefined;
+        for (const item of transactions) {
+            lastOptimisticTransactionID = rand64();
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
 
             const email = currentUserPersonalDetails.email ?? '';
-            trackExpenseIOUActions({
+            lastTrackResult = trackExpenseIOUActions({
                 report: trackReport,
                 isDraftPolicy,
                 isDraftChatReport,
@@ -692,13 +755,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     accountant: item.accountant,
                 },
                 optimisticChatReportID: optimisticSelfDMReportID,
-                optimisticTransactionID,
-                // The action owns post-create navigation + growl, but only when the caller permits it
-                // (dismiss-first orchestrators pass shouldHandleNavigation=false after revealing/dismissing
-                // the destination themselves). Silence every non-final write of a multi-transaction batch so
-                // the feedback fires once, for the last transaction only.
-                shouldHandleNavigation: shouldHandleNavigation && index === transactions.length - 1,
-                shouldShowPostCreateFeedback: index === transactions.length - 1,
+                optimisticTransactionID: lastOptimisticTransactionID,
                 isASAPSubmitBetaEnabled,
                 currentUser: {accountID: currentUserPersonalDetails.accountID, email},
                 introSelected,
@@ -716,7 +773,19 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 delegateAccountID,
             });
         }
-        performPostBatchCleanup({allTransactionsCreated: true});
+        performPostBatchCleanup({
+            participant,
+            shouldHandleNavigation,
+            allTransactionsCreated: true,
+            fallbackOptimisticChatReportID: optimisticSelfDMReportID,
+            navigateBackToReport: undefined,
+            lastOptimisticTransactionID,
+            // trackExpense wrote to optimisticSelfDMReportID, so resolve the self-DM nav target directly instead of
+            // falling back to a route report that may not be loaded yet on a first-time self-DM create.
+            preResolvedChatTarget: isSelfDMDestination ? {report: selfDMReport, chatReportID: optimisticSelfDMReportID} : undefined,
+            iouReportID: lastTrackResult?.iouReport?.reportID,
+            transactionThreadReportID: lastTrackResult?.transactionThreadReportID,
+        });
     }
 
     function createDistanceRequest(trimmedComment: string, shouldHandleNavigation = true, shouldDeferForSearch = false) {
@@ -961,8 +1030,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 });
             } else {
                 cleanupAfterExpenseCreate({draftTransactionIDs});
-                // Dismiss-first paths (orchestrator owns navigation); still surface the growl wherever the
-                // user lands. Invoices go to an invoice room (no expense-report table), so this resolves to the growl.
                 surfaceExpenseCreatedFeedback({
                     iouReportID: invoiceResult?.invoiceReportID,
                     transactionID: invoiceResult?.transactionID,

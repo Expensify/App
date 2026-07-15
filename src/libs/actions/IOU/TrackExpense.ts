@@ -13,7 +13,6 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import isFileUploadable from '@libs/isFileUploadable';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
-import {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -120,7 +119,6 @@ import type {
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
 import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations} from './index';
 import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
-import {handleNavigateAfterExpenseCreate} from './NavigationHelpers';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 
 type TrackExpenseInformation = {
@@ -1620,7 +1618,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
 /**
  * Submit expense to another user
  */
-function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouReport?: OnyxTypes.Report} {
+function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouReport?: OnyxTypes.Report; transactionID?: string; transactionThreadReportID?: string} {
     const {
         report,
         existingIOUReport,
@@ -1630,9 +1628,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         gpsPoint,
         action,
         shouldPlaySound = true,
-        shouldHandleNavigation = true,
-        shouldShowPostCreateFeedback = true,
-        backToReport,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
@@ -1649,7 +1644,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         isSelfTourViewed,
         betas,
         personalDetails,
-        introSelected,
         shouldDeferAutoSubmit,
         delegateAccountID,
         isTrackIntentUser,
@@ -1683,7 +1677,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         count,
         rate,
         unit,
-        isFromGlobalCreate = false,
     } = transactionParams;
 
     const testDriveCommentReportActionID = isTestDrive ? NumberUtils.rand64() : undefined;
@@ -1916,42 +1909,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         });
     }
 
-    if (!requestMoneyInformation.isRetry) {
-        const buildTransactionThreadParams = {
-            currentUserLogin: currentUserEmailParam,
-            currentUserAccountID: currentUserAccountIDParam,
-            betas,
-            introSelected,
-            transaction,
-        };
-        if (shouldHandleNavigation) {
-            const navigationReportID = backToReport ?? activeReportID;
-            handleNavigateAfterExpenseCreate({
-                activeReportID: navigationReportID,
-                iouReportID: iouReport?.reportID,
-                transactionID: transaction.transactionID,
-                transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
-                isFromGlobalCreate,
-                // Pending IDs are the fallback highlight when diff detection can't run (see useNewTransactions):
-                // the chat preview card fresh-mounts on a chat destination's first expense, and the report table
-                // fresh-mounts on the in-report 1→2 transition.
-                shouldAddPendingNewTransactionIDs: isMoneyRequestReport || navigationReportID === chatReport.reportID,
-                buildTransactionThreadParams,
-            });
-        } else if (shouldShowPostCreateFeedback) {
-            // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). Surface feedback
-            // wherever the user lands: highlight the new row for in-report adds, otherwise the
-            // "Expense added" growl with a "View" deep link.
-            surfaceExpenseCreatedFeedback({
-                iouReportID: iouReport?.reportID,
-                transactionID: transaction.transactionID,
-                transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
-                isMoneyRequestReport,
-                buildTransactionThreadParams,
-            });
-        }
-    }
-
     if (activeReportID && !isMoneyRequestReport) {
         Navigation.setNavigationActionToMicrotaskQueue(() =>
             setTimeout(() => {
@@ -1960,7 +1917,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         );
     }
 
-    return {iouReport};
+    return {iouReport, transactionID: transaction.transactionID, transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID};
 }
 
 /**
@@ -2430,8 +2387,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         existingTransaction,
         transactionParams: transactionData,
         accountantParams,
-        shouldHandleNavigation = true,
-        shouldShowPostCreateFeedback = true,
         shouldPlaySound = true,
         optimisticChatReportID,
         optimisticTransactionID,
@@ -2480,7 +2435,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         attendees,
         odometerStart,
         odometerEnd,
-        isFromGlobalCreate = false,
         gpsCoordinates,
         distanceRequestType,
     } = transactionData;
@@ -2889,41 +2843,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
 
-    if (!params.isRetry) {
-        const buildTransactionThreadParams = {
-            currentUserLogin: currentUserEmailParam,
-            currentUserAccountID: currentUserAccountIDParam,
-            betas,
-            introSelected,
-            transaction,
-        };
-        if (shouldHandleNavigation) {
-            handleNavigateAfterExpenseCreate({
-                activeReportID,
-                iouReportID: iouReport?.reportID,
-                transactionID: transaction?.transactionID,
-                transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
-                isFromGlobalCreate,
-                // Moving a tracked expense (CATEGORIZE/SHARE) lands on a report where the transaction
-                // already exists before the view mounts, so diff-based new-transaction detection misses
-                // it - pending IDs are the fallback highlight path (see useNewTransactions).
-                shouldAddPendingNewTransactionIDs: action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE,
-                buildTransactionThreadParams,
-            });
-        } else if (shouldShowPostCreateFeedback) {
-            // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). Surface feedback
-            // wherever the user lands: highlight the new row for in-report adds, otherwise the growl.
-            surfaceExpenseCreatedFeedback({
-                iouReportID: iouReport?.reportID,
-                transactionID: transaction?.transactionID,
-                transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
-                isMoneyRequestReport,
-                buildTransactionThreadParams,
-            });
-        }
-    }
-
     notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
+
+    return {iouReport, transactionID: transaction?.transactionID, transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID};
 }
 
 /**

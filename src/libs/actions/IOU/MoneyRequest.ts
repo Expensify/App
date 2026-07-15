@@ -99,10 +99,6 @@ type CreateTransactionParams = {
     optimisticChatReportID: string | undefined;
     currentUserLocalCurrency: string | undefined;
     isTrackIntentUser: boolean | undefined;
-    /** Whether the created action should own post-creation navigation. Skip-confirm orchestrators that dismiss/reveal first pass `false` so navigation isn't run twice. */
-    shouldHandleNavigation?: boolean;
-    /** Report the flow started from; post-create navigation returns there instead of the written-to report. */
-    backToReport?: string;
     delegateAccountID: number | undefined;
 };
 
@@ -133,12 +129,11 @@ function createTransaction({
     optimisticChatReportID,
     currentUserLocalCurrency,
     isTrackIntentUser,
-    shouldHandleNavigation = true,
-    backToReport,
     delegateAccountID,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
+    let lastResult: {iouReport?: OnyxEntry<Report>; transactionID?: string; transactionThreadReportID?: string} | undefined;
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
         const receipt: Receipt = receiptFile.file ?? {};
@@ -158,7 +153,7 @@ function createTransaction({
             iouType,
         });
         if (iouType === CONST.IOU.TYPE.TRACK && report) {
-            trackExpense({
+            lastResult = trackExpense({
                 report,
                 isDraftPolicy: false,
                 existingTransaction: transaction,
@@ -194,9 +189,6 @@ function createTransaction({
                 optimisticChatReportID,
                 optimisticTransactionID,
                 currentUserLocalCurrency,
-                // Navigation/growl must fire once per multi-receipt batch, on its final transaction.
-                shouldHandleNavigation: shouldHandleNavigation && index === files.length - 1,
-                shouldShowPostCreateFeedback: index === files.length - 1,
                 delegateAccountID,
                 reportActionsList: undefined,
             });
@@ -204,7 +196,7 @@ function createTransaction({
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = existingTransactionID ? allTransactionDrafts?.[existingTransactionID] : undefined;
 
-            requestMoney({
+            lastResult = requestMoney({
                 report,
                 betas,
                 participantParams: {
@@ -239,19 +231,15 @@ function createTransaction({
                 existingTransaction: transaction,
                 isSelfTourViewed,
                 personalDetails,
-                introSelected,
                 optimisticChatReportID,
                 optimisticTransactionID,
                 isTrackIntentUser,
-                // Navigation/growl must fire once per multi-receipt batch, on its final transaction: silence
-                // every non-final write so the action surfaces feedback only for the last one.
-                shouldHandleNavigation: shouldHandleNavigation && index === files.length - 1,
-                shouldShowPostCreateFeedback: index === files.length - 1,
-                backToReport,
                 delegateAccountID,
             });
         }
     }
+
+    return lastResult;
 }
 
 function getMoneyRequestParticipantOptions(

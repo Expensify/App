@@ -39,6 +39,8 @@ import {
     resolveOptimisticChatReportID,
 } from './IOUUtils';
 import cleanupAfterExpenseCreate from './Navigation/helpers/cleanupAfterExpenseCreate';
+import cleanupAndNavigateAfterExpenseCreate from './Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import {surfaceExpenseCreatedFeedback} from './Navigation/helpers/navigateAfterExpenseCreate';
 import {submitWithDismissFirst} from './Navigation/helpers/submitWithDismissFirst';
 import Navigation from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
@@ -306,8 +308,9 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
     const draftTransactionIDsList = Object.keys(transactionDrafts ?? {});
     const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
     const executeExpenseWrite = (overrides: WriteOverrides) => {
+        let result: {iouReport?: OnyxEntry<OnyxTypes.Report>; transactionID?: string; transactionThreadReportID?: string} | undefined;
         if (isTrackExpenseSubmit) {
-            trackExpense({
+            result = trackExpense({
                 report,
                 isDraftPolicy: false,
                 isDraftChatReport: !!isDraftChatReport,
@@ -335,13 +338,12 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 isSelfTourViewed,
                 optimisticChatReportID,
                 optimisticTransactionID,
-                shouldHandleNavigation: overrides.shouldHandleNavigation,
                 delegateAccountID,
                 reportActionsList: undefined,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
-            requestMoney({
+            result = requestMoney({
                 report,
                 betas,
                 participantParams: {
@@ -373,16 +375,45 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 personalDetails: allPersonalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,
-                shouldHandleNavigation: overrides.shouldHandleNavigation,
-                backToReport,
                 delegateAccountID,
                 isTrackIntentUser,
             });
         }
-        cleanupAfterExpenseCreate({
-            draftTransactionIDs: draftTransactionIDsList,
-            linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
-        });
+
+        const buildTransactionThreadParams = {
+            currentUserLogin: currentUserEmail,
+            currentUserAccountID,
+            betas,
+            introSelected,
+            transaction,
+        };
+        if (overrides.shouldHandleNavigation) {
+            cleanupAndNavigateAfterExpenseCreate({
+                report: isMoneyRequestReport(report) ? report : undefined,
+                action: CONST.IOU.ACTION.CREATE,
+                draftTransactionIDs: draftTransactionIDsList,
+                transactionID: result?.transactionID,
+                iouReportID: result?.iouReport?.reportID,
+                transactionThreadReportID: result?.transactionThreadReportID,
+                isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                backToReport,
+                optimisticChatReportID,
+                linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
+                buildTransactionThreadParams,
+            });
+        } else {
+            cleanupAfterExpenseCreate({
+                draftTransactionIDs: draftTransactionIDsList,
+                linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
+            });
+            surfaceExpenseCreatedFeedback({
+                iouReportID: result?.iouReport?.reportID,
+                transactionID: result?.transactionID,
+                transactionThreadReportID: result?.transactionThreadReportID,
+                isMoneyRequestReport: isMoneyRequestReport(report),
+                buildTransactionThreadParams,
+            });
+        }
     };
     submitWithDismissFirst({
         executeWrite: executeExpenseWrite,

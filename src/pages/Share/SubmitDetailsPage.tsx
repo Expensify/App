@@ -312,10 +312,6 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 optimisticTransactionID,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-                // The whole post-create flow (navigation + feedback) is owned by cleanupAndNavigateAfterExpenseCreate below,
-                // which runs after this action returns - keep the action fully silent.
-                shouldHandleNavigation: false,
-                shouldShowPostCreateFeedback: false,
                 delegateAccountID,
                 reportActionsList: undefined,
             });
@@ -363,10 +359,6 @@ function SubmitDetailsPage({
                 personalDetails,
                 optimisticTransactionID,
                 isTrackIntentUser,
-                // The whole post-create flow (navigation + feedback) is owned by cleanupAndNavigateAfterExpenseCreate below,
-                // which runs after this action returns - keep the action fully silent.
-                shouldHandleNavigation: false,
-                shouldShowPostCreateFeedback: false,
                 delegateAccountID,
             });
             iouReportID = iouReport?.reportID;

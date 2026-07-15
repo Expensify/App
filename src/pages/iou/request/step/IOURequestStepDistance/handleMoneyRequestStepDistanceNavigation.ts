@@ -13,10 +13,12 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints} from '@libs/TransactionUtils';
@@ -273,9 +275,8 @@ function handleMoneyRequestStepDistanceNavigation({
 
             if (isCreatingTrackExpense && participant) {
                 submitWithDismissFirst({
-                    // submitWithDismissFirst owns dismiss/reveal; pass its shouldHandleNavigation through so trackExpense doesn't also navigate.
                     executeWrite: (overrides) => {
-                        trackExpense({
+                        const result = trackExpense({
                             report,
                             isDraftPolicy: false,
                             existingTransaction: transaction,
@@ -325,14 +326,43 @@ function handleMoneyRequestStepDistanceNavigation({
                             optimisticTransactionID,
                             optimisticChatReportID,
                             currentUserLocalCurrency,
-                            shouldHandleNavigation: overrides.shouldHandleNavigation,
                             delegateAccountID,
                             reportActionsList: undefined,
                         });
-                        cleanupAfterExpenseCreate({
-                            draftTransactionIDs,
-                            linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
-                        });
+
+                        const buildTransactionThreadParams = {
+                            currentUserLogin: currentUserLogin ?? '',
+                            currentUserAccountID,
+                            betas,
+                            introSelected,
+                            transaction,
+                        };
+                        if (overrides.shouldHandleNavigation) {
+                            cleanupAndNavigateAfterExpenseCreate({
+                                report: isMoneyRequestReport(report) ? report : undefined,
+                                action: CONST.IOU.ACTION.CREATE,
+                                draftTransactionIDs,
+                                transactionID: result?.transactionID,
+                                iouReportID: result?.iouReport?.reportID,
+                                transactionThreadReportID: result?.transactionThreadReportID,
+                                isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                                optimisticChatReportID,
+                                linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
+                                buildTransactionThreadParams,
+                            });
+                        } else {
+                            cleanupAfterExpenseCreate({
+                                draftTransactionIDs,
+                                linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
+                            });
+                            surfaceExpenseCreatedFeedback({
+                                iouReportID: result?.iouReport?.reportID,
+                                transactionID: result?.transactionID,
+                                transactionThreadReportID: result?.transactionThreadReportID,
+                                isMoneyRequestReport: isMoneyRequestReport(report),
+                                buildTransactionThreadParams,
+                            });
+                        }
                     },
                     destinationReportID: report?.reportID ?? selfDMReport?.reportID,
                     telemetryContext: {

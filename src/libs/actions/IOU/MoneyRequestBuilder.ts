@@ -168,22 +168,6 @@ type RequestMoneyInformation = {
     transactionParams: RequestMoneyTransactionParams;
     isRetry?: boolean;
     shouldPlaySound?: boolean;
-    /**
-     * Whether the action owns the post-create flow: dismiss the money request screens, navigate to the
-     * destination and surface the "Expense added" feedback. Defaults to true.
-     */
-    shouldHandleNavigation?: boolean;
-    /**
-     * Only read when shouldHandleNavigation is false. Defaults to true: navigation is owned by the
-     * orchestrator (dismiss-first paths), which has already navigated, so the action surfaces the
-     * post-create feedback (growl/row highlight). Pass false when the caller owns the whole
-     * post-create flow - navigation AND feedback - and the action must stay fully silent
-     * (e.g. the Share flow, which navigates after the action returns, or a non-final write in a
-     * multi-transaction batch whose feedback must fire only once).
-     */
-    shouldShowPostCreateFeedback?: boolean;
-    /** Report the money request flow started from; post-create navigation returns there instead of the written-to chat. */
-    backToReport?: string;
     /** Retry-path cleanup only; the action itself never reads this. */
     draftTransactionIDs?: string[];
     optimisticChatReportID?: string;
@@ -203,8 +187,6 @@ type RequestMoneyInformation = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    /** Onboarding intro selection. */
-    introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
     shouldDeferAutoSubmit?: boolean;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;

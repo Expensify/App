@@ -25,19 +25,6 @@ type CreateTrackExpenseParams = {
     accountantParams?: TrackExpenseAccountantParams;
     isRetry?: boolean;
     shouldPlaySound?: boolean;
-    /**
-     * Whether the action owns the post-create flow: dismiss the money request screens, navigate to the
-     * destination and surface the "Expense added" feedback. Defaults to true.
-     */
-    shouldHandleNavigation?: boolean;
-    /**
-     * Only read when shouldHandleNavigation is false. Defaults to true: navigation is owned by the
-     * orchestrator (dismiss-first paths), which has already navigated, so the action surfaces the
-     * post-create feedback (growl/row highlight). Pass false when the caller owns the whole
-     * post-create flow - navigation AND feedback - and the action must stay fully silent
-     * (e.g. the Share flow, which navigates after the action returns).
-     */
-    shouldShowPostCreateFeedback?: boolean;
     /** Retry-path cleanup only; the action itself never reads this. */
     draftTransactionIDs?: string[];
     optimisticChatReportID?: string;
