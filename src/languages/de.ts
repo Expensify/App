@@ -1065,6 +1065,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Kontrollen anpassen und Ausgaben optimieren',
             setupRules: 'Ausgabelimits einrichten',
             inviteAccountant: 'Lade deine:n Steuerberater:in ein',
+            configureApprovals: 'Genehmigungsworkflow konfigurieren',
             begin: 'Beginnen',
             done: 'Fertig',
             createWorkspaceSubText: 'Workspace bereit für die Einrichtung',
@@ -1077,6 +1078,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Mit Concierge chatten',
             talkToAccountExecutive: 'Sprechen Sie mit Ihrer Kundenbetreuung',
             forGuidedSetup: 'für die geführte Einrichtung.',
+            configureApprovalsSubText: 'Berichtsfreigaben festlegen',
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Kostenlose Testversion: Noch ${days} ${days === 1 ? 'Tag' : 'Tage'}!`,
@@ -2896,6 +2898,14 @@ ${amount} für ${merchant} – ${date}`,
         title: 'Agenten',
         subtitle: `<muted-text>Agents übernehmen Ihre Workflows für Sie, sodass Sie täglich Stunden zurückgewinnen. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Mehr erfahren</a>.</muted-text>`,
         findAgent: 'Agent suchen',
+        deleteAgentsTitle: () => ({
+            one: 'Agent:in löschen',
+            other: 'Agent:innen löschen',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Sind Sie sicher, dass Sie diese Vermittlerin/diesen Vermittler löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+            other: 'Sind Sie sicher, dass Sie diese Vermittlerinnen/diese Vermittler löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+        }),
         newAgent: 'Neue:r Agent:in',
         emptyAgents: {
             title: 'Keine Agenten erstellt',
@@ -4478,6 +4488,7 @@ ${amount} für ${merchant} – ${date}`,
             deleteConfirmation: 'Möchten Sie diesen Workspace wirklich löschen?',
             deleteWithCardsConfirmation: 'Möchtest du diesen Workspace wirklich löschen? Dadurch werden alle Kartenfeeds und zugewiesenen Karten entfernt.',
             deleteOpenExpensifyCardsError: 'Ihre Firma hat noch Expensify Karten. Bitte <concierge-link>wenden Sie sich an Concierge</concierge-link>, um sie zu entfernen.',
+            deleteTravelInvoicingError: 'Ihr Unternehmen hat die Konsolidierte Reiseabrechnung noch aktiviert.',
             outstandingBalanceWarning:
                 'Sie haben einen offenen Saldo, der beglichen werden muss, bevor Sie Ihren letzten Workspace löschen können. Bitte gehen Sie zu Ihren Abonnementeinstellungen, um die Zahlung abzuschließen.',
             settleBalance: 'Zu Abo wechseln',

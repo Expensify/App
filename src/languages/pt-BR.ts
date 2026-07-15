@@ -1077,6 +1077,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Personalize os controles e simplifique os gastos',
             setupRules: 'Configurar regras de gasto',
             inviteAccountant: 'Convide seu contador',
+            configureApprovals: 'Configurar fluxo de aprovação',
             begin: 'Começar',
             done: 'Concluído',
             createWorkspaceSubText: 'Espaço de trabalho pronto para configuração',
@@ -1089,6 +1090,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Falar com o Concierge',
             talkToAccountExecutive: 'Fale com seu executivo de contas',
             forGuidedSetup: 'para configuração guiada.',
+            configureApprovalsSubText: 'Definir aprovações de relatórios',
         },
         yourSpend: {
             title: 'Seus gastos',
@@ -2878,6 +2880,14 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Agentes',
         subtitle: `<muted-text>Agentes cuidam dos seus fluxos de trabalho para você, para que você ganhe horas de volta no seu dia. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Saiba mais</a>.</muted-text>`,
         findAgent: 'Encontrar agente',
+        deleteAgentsTitle: () => ({
+            one: 'Excluir agente',
+            other: 'Excluir agentes',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Tem certeza de que quer excluir este agente? Essa ação não pode ser desfeita.',
+            other: 'Tem certeza de que quer excluir estes agentes? Essa ação não pode ser desfeita.',
+        }),
         newAgent: 'Novo agente',
         emptyAgents: {
             title: 'Nenhum agente criado',
@@ -4448,6 +4458,7 @@ ${amount} para ${merchant} - ${date}`,
             deleteConfirmation: 'Tem certeza de que deseja excluir este workspace?',
             deleteWithCardsConfirmation: 'Tem certeza de que deseja excluir este workspace? Isso removerá todos os feeds de cartão e cartões atribuídos.',
             deleteOpenExpensifyCardsError: 'Sua empresa ainda tem Cartões Expensify. Por favor, <concierge-link>fale com o Concierge</concierge-link> para removê-los.',
+            deleteTravelInvoicingError: 'Sua empresa ainda tem o Faturamento de Viagens Consolidado ativado.',
             outstandingBalanceWarning:
                 'Você tem um saldo pendente que precisa ser quitado antes de excluir seu último espaço de trabalho. Acesse as configurações de assinatura para resolver o pagamento.',
             settleBalance: 'Ir para a assinatura',

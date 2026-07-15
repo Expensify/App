@@ -65,14 +65,12 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
     hasAnyTransactionWithoutRTERViolation,
-    hasSmartScanFailedWithMissingFields,
-    hasSubmissionBlockingViolations,
     isDuplicate,
-    isExpensifyCardTransaction,
     isOnHold,
     isPending,
     isScanning,
     isScanningTransaction,
+    isTransactionSubmittable,
 } from '@libs/TransactionUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 
@@ -285,10 +283,10 @@ function canSubmitReport(
         policy,
     );
     const hasNoSubmittableTransaction =
-        transactions.length > 0 && transactions.every((t) => isScanningTransaction(t) || (isExpensifyCardTransaction(t) && isPending(t)) || hasSmartScanFailedWithMissingFields([t], report));
-    const hasAnySubmissionBlockingViolations = transactions.some((transaction) =>
-        hasSubmissionBlockingViolations(transaction, allViolations, currentUserEmailParam, currentUserAccountID, report, reportOwnerLogin, policy),
-    );
+        transactions.length > 0 &&
+        !transactions.some((transaction) =>
+            isTransactionSubmittable(transaction, report, allViolations, currentUserEmailParam, currentUserAccountID, reportOwnerLogin, policy, isScanningTransaction),
+        );
 
     return (
         isOpenExpenseReport &&
@@ -297,7 +295,6 @@ function canSubmitReport(
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
         !isReportArchived &&
-        !hasAnySubmissionBlockingViolations &&
         transactions.length > 0
     );
 }

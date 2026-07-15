@@ -850,8 +850,20 @@ function buildAddMembersToWorkspaceOnyxData(
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs], currentUser.accountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
+    const doesPersonalDetailExistByAccountID: Record<number, boolean> = {};
+    for (const accountID of accountIDs) {
+        doesPersonalDetailExistByAccountID[accountID] = !!personalDetailsList?.[accountID];
+    }
+
     // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats({policyID, invitedEmailsToAccountIDs, currentUser, reportActionsList, notificationPreference: policyExpenseChatNotificationPreference});
+    const membersChats = createPolicyExpenseChats({
+        policyID,
+        invitedEmailsToAccountIDs,
+        currentUser,
+        reportActionsList,
+        notificationPreference: policyExpenseChatNotificationPreference,
+        doesPersonalDetailExistByAccountID,
+    });
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
