@@ -24,6 +24,7 @@ function goToWithdrawalAccountSetupStep(stepID: BankAccountStep) {
  * @param [navigationOptions] - Optional navigation options to customize the navigation behavior.
  * @param [policyCurrency] - The policy output currency. Used to detect a USD account that should skip straight to validation.
  * @param [bankAccountState] - The current bank account state. Used to detect a pending account that should skip straight to validation.
+ * @param [isChangingBankAccount] - Whether the user is in change bank account flow.
  */
 function navigateToBankAccountRoute({
     policyID = '',
@@ -32,6 +33,7 @@ function navigateToBankAccountRoute({
     navigationOptions,
     policyCurrency,
     bankAccountState,
+    isChangingBankAccount,
 }: {
     policyID?: string;
     bankAccountID?: number;
@@ -39,6 +41,7 @@ function navigateToBankAccountRoute({
     navigationOptions?: LinkToOptions;
     policyCurrency?: string;
     bankAccountState?: string;
+    isChangingBankAccount?: boolean;
 }) {
     // If USD bank account is in pending state, we should navigate straight to the validation step and skip the Continue setup step
     if (policyCurrency === CONST.CURRENCY.USD && bankAccountState === CONST.BANK_ACCOUNT.STATE.PENDING) {
@@ -46,7 +49,7 @@ function navigateToBankAccountRoute({
         return;
     }
 
-    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, bankAccountID, backTo}), navigationOptions);
+    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, bankAccountID, backTo, isChangingBankAccount}), navigationOptions);
 }
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute};

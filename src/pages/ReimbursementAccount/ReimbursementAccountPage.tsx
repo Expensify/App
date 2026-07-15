@@ -104,6 +104,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const bankAccountIDParam = route.params?.bankAccountID;
     const subStepParam = route.params?.subStep;
     const backTo = route.params?.backTo;
+    const isChangingBankAccount = !!route.params?.isChangingBankAccount;
     const isComingFromExpensifyCard = (backTo as string)?.includes(CONST.EXPENSIFY_CARD.ROUTE as string);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -111,6 +112,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const requestorStepRef = useRef<View>(null);
     const hasRequestedNewBankAccountRef = useRef(false);
     const hasClearedStalePlaidErrorsRef = useRef(false);
+    const isChangingBankAccountRef = useRef(isChangingBankAccount);
+    const hasShownConnectedBankAccountRef = useRef(false);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const achData = reimbursementAccount?.achData;
@@ -171,9 +174,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const [isNonUSDSetup, setIsNonUSDSetup] = useState(policy ? isNonUSDWorkspace : achData?.currency !== CONST.CURRENCY.USD || reimbursementAccountDraft?.currency !== CONST.CURRENCY.USD);
 
     useEffect(() => {
+        const isChangingBankAccountInstance = isChangingBankAccountRef.current;
         return () => {
-            clearReimbursementAccountDraft();
-            clearReimbursementAccount();
+            if (!isChangingBankAccountInstance) {
+                clearReimbursementAccountDraft();
+                clearReimbursementAccount();
+            }
             cancelChangingToNewBankAccount();
             getPaymentMethods();
         };
@@ -269,6 +275,22 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         // Run only on the loading transition, not when fetchData's identity changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingWorkspaceReimbursement, prevIsLoadingWorkspaceReimbursement]);
+
+    // A pushed "change bank account" instance and its setup steps mutate the shared reimbursement account. When focus
+    // returns to this connected (non-changing) screen and the shared data has been clobbered, reload it so the
+    // "you're all set" page is shown again instead of the setup entry.
+    useEffect(() => {
+        const isConnectedBankAccount = isNonUSDSetup ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE;
+        if (isConnectedBankAccount && !isChangingBankAccount) {
+            hasShownConnectedBankAccountRef.current = true;
+            return;
+        }
+        if (isFocused && !isChangingBankAccount && hasShownConnectedBankAccountRef.current && !isConnectedBankAccount) {
+            fetchData();
+        }
+        // fetchData is intentionally omitted; this must react to the connected data being clobbered, not to fetchData's identity.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isFocused, isChangingBankAccount, isNonUSDSetup, achData?.state, achData?.currentStep]);
 
     useEffect(() => {
         // Consume this route intent only once so the response changing isPreviousPolicy does not trigger another request.
@@ -570,7 +592,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     const isConnectedVerifiedBankAccountData = isNonUSDSetup ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE;
 
-    if (shouldShowConnectedVerifiedBankAccount && isConnectedVerifiedBankAccountData) {
+    // While this instance is starting a fresh setup (change bank account), show the setup entry instead of the connected
+    // account, even though the shared data still describes the currently connected account.
+    if (shouldShowConnectedVerifiedBankAccount && isConnectedVerifiedBankAccountData && !isChangingBankAccount) {
         if (topmostFullScreenRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
             return (
                 <ScreenWrapper testID="ReimbursementAccountPage">
@@ -601,7 +625,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }
 
     // Once fresh data has loaded, trust the live value to avoid a one-frame flash from the effect-synced state lagging achData.
-    const shouldShowContinueSetupButtonToDisplay = hasLoadedData ? shouldShowContinueSetupButtonValue : shouldShowContinueSetupButton;
+    const shouldShowContinueSetupButtonWhenLoaded = hasLoadedData ? shouldShowContinueSetupButtonValue : shouldShowContinueSetupButton;
+    // On a "change bank account" instance always show the fresh entry (never "continue setup"), since the shared data still
+    // describes the previous account/in-progress setup that this flow is replacing.
+    const shouldShowContinueSetupButtonToDisplay = isChangingBankAccount ? false : shouldShowContinueSetupButtonWhenLoaded;
 
     return (
         <VerifiedBankAccountFlowEntryPoint
@@ -615,6 +642,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             setUSDBankAccountStep={setUSDBankAccountStep}
             policyID={policyIDParam}
             isComingFromExpensifyCard={isComingFromExpensifyCard}
+            isChangingBankAccount={isChangingBankAccount}
         />
     );
 }

@@ -1,6 +1,6 @@
 import Navigation from '@navigation/Navigation';
 
-import {navigateToBankAccountRoute, prepareNewBankAccountSetup} from '@userActions/ReimbursementAccount';
+import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,8 +28,7 @@ function useChangeBankAccount(policyID: string | undefined, currency: string | u
             return;
         }
 
-        prepareNewBankAccountSetup(currency);
-        navigateToBankAccountRoute({policyID});
+        navigateToBankAccountRoute({policyID, isChangingBankAccount: true});
     };
 }
 

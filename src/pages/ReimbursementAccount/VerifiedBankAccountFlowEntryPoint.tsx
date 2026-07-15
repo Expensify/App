@@ -27,7 +27,14 @@ import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
 import {goToWithdrawalAccountSetupStep, openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import {openExternalLink} from '@userActions/Link';
-import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed, updateReimbursementAccount} from '@userActions/ReimbursementAccount';
+import {
+    prepareNewBankAccountSetup,
+    requestResetBankAccount,
+    resetReimbursementAccount,
+    setBankAccountSubStep,
+    setReimbursementAccountOptionPressed,
+    updateReimbursementAccount,
+} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,6 +81,9 @@ type VerifiedBankAccountFlowEntryPointProps = {
 
     /** Whether the user is coming from the expensify card */
     isComingFromExpensifyCard?: boolean;
+
+    /** Whether this instance is starting a fresh setup from a "change bank account" flow */
+    isChangingBankAccount?: boolean;
 };
 
 const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
@@ -89,6 +99,7 @@ function VerifiedBankAccountFlowEntryPoint({
     setUSDBankAccountStep,
     setShouldShowContinueSetupButton,
     isComingFromExpensifyCard,
+    isChangingBankAccount,
 }: VerifiedBankAccountFlowEntryPointProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -117,6 +128,11 @@ function VerifiedBankAccountFlowEntryPoint({
     const handleChangeBankAccount = useChangeBankAccount(policyID, currency, reimbursementAccount?.achData?.bankAccountID);
 
     const removeExistingBankAccountDetails = useCallback(() => {
+        // In a "change bank account" flow, start a completely fresh setup so the new account's steps aren't prefilled.
+        if (isChangingBankAccount && currency) {
+            prepareNewBankAccountSetup(currency);
+            return;
+        }
         const bankAccountData: Partial<ReimbursementAccountForm> = {
             [bankInfoStepKeys.ROUTING_NUMBER]: '',
             [bankInfoStepKeys.ACCOUNT_NUMBER]: '',
@@ -128,7 +144,7 @@ function VerifiedBankAccountFlowEntryPoint({
         };
         updateReimbursementAccountDraft(bankAccountData);
         updateReimbursementAccount({bankAccountID: 0});
-    }, []);
+    }, [isChangingBankAccount, currency]);
 
     /**
      * Prepares and redirects user to next step in the USD flow
