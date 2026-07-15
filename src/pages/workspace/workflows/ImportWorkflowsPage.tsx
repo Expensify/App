@@ -2,6 +2,7 @@ import ImportSpreadsheet from '@components/ImportSpreadsheet';
 
 import usePolicy from '@hooks/usePolicy';
 
+import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
@@ -30,6 +31,7 @@ function ImportWorkflowsPage({route}: ImportWorkflowsPageProps) {
             policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            shouldBeBlocked={isAnyHRReadOnlyWorkflowMode(policy)}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ImportSpreadsheet
