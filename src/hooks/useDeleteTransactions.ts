@@ -1,7 +1,5 @@
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 
-import useLocalize from '@hooks/useLocalize';
-
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
@@ -33,6 +31,7 @@ import {useCallback} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useEnvironment from './useEnvironment';
+import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -402,6 +401,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             isProduction,
             personalPolicy?.outputCurrency,
             isTrackIntentUser,
+            formatPhoneNumber,
         ],
     );
 
