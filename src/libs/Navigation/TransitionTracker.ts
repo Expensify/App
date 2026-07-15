@@ -21,6 +21,8 @@ type RunAfterTransitionsOptions = {
 
 const activeTransitions = new Map<TransitionHandle, ReturnType<typeof setTimeout>>();
 
+const transitionStartListeners = new Set<() => void>();
+
 let pendingCallbacks: Array<() => void | Promise<void>> = [];
 
 let nextTransitionStartResolve: (() => void) | null = null;
@@ -79,6 +81,10 @@ function startTransition(): TransitionHandle {
             nextTransitionStartResolve = r;
         });
         resolve();
+    }
+
+    for (const listener of transitionStartListeners) {
+        listener();
     }
 
     const timeout = setTimeout(() => {
@@ -175,10 +181,22 @@ function runAfterTransitions({callback, runImmediately = false, waitForUpcomingT
     };
 }
 
+/**
+ * Subscribes to be notified synchronously whenever a new transition starts (via {@link startTransition}).
+ * Returns an unsubscribe function.
+ */
+function onTransitionStart(listener: () => void): () => void {
+    transitionStartListeners.add(listener);
+    return () => {
+        transitionStartListeners.delete(listener);
+    };
+}
+
 const TransitionTracker = {
     startTransition,
     endTransition,
     runAfterTransitions,
+    onTransitionStart,
 };
 
 export default TransitionTracker;

@@ -1,7 +1,5 @@
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import runAfterPredictedTransition from '@libs/Navigation/runAfterPredictedTransition';
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
-
-import CONST from '@src/CONST';
 
 import {useCallback, useEffect, useRef, useState} from 'react';
 
@@ -13,16 +11,12 @@ type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
 export default function useSingleExecution() {
     const [isExecuting, setIsExecuting] = useState(false);
     const isExecutingRef = useRef<boolean | undefined>(undefined);
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const transitionHandleRef = useRef<CancelHandle | null>(null);
 
     isExecutingRef.current = isExecuting;
 
     useEffect(
         () => () => {
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
             transitionHandleRef.current?.cancel();
         },
         [],
@@ -39,21 +33,17 @@ export default function useSingleExecution() {
                 isExecutingRef.current = true;
 
                 const execution = action(...params);
-                // The timeout is a minimum debounce applied to every press; checking TransitionTracker afterwards
-                // is an extra safety net in case a transition is still in progress once the debounce ends.
-                timeoutRef.current = setTimeout(() => {
-                    transitionHandleRef.current = TransitionTracker.runAfterTransitions({
-                        callback: () => {
-                            if (!(execution instanceof Promise)) {
-                                setIsExecuting(false);
-                                return;
-                            }
-                            execution.finally(() => {
-                                setIsExecuting(false);
-                            });
-                        },
+                // Re-enables the button once the predicted (or actual) transition triggered by this press
+                // ends - or immediately, if the press wasn't predicted to cause one.
+                transitionHandleRef.current = runAfterPredictedTransition(() => {
+                    if (!(execution instanceof Promise)) {
+                        setIsExecuting(false);
+                        return;
+                    }
+                    execution.finally(() => {
+                        setIsExecuting(false);
                     });
-                }, CONST.TIMING.SINGLE_EXECUTION_DEBOUNCE_TIME);
+                });
             },
         [],
     );
