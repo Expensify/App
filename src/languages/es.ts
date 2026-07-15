@@ -5454,6 +5454,21 @@ ${amount} para ${merchant} - ${date}`,
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
             travelInvoicingSettlementAccount: {label: 'Cuenta de liquidación de facturación de viajes', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
+            exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
+            cardProgramAccount: {
+                label: 'Cuenta del programa de tarjetas',
+                description: 'Sobrescribe la cuenta del espacio de trabajo para estos programas de tarjetas.',
+                descriptionLevel2: 'Sobrescribe la cuenta del espacio de trabajo para este programa de tarjetas.',
+                countInfo: (customAccountsCount: number) =>
+                    !customAccountsCount ? 'Todos los programas usan la cuenta predeterminada' : `${customAccountsCount} programas con cuentas personalizadas`,
+            },
+            cardAccount: {
+                label: 'Cuenta por tarjeta',
+                description: 'Sobrescribe la cuenta del programa para tarjetas individuales.',
+                descriptionLevel2: 'Reemplaza la cuenta del programa para estas tarjetas.',
+                countInfo: (customAccountsCount: number) =>
+                    !customAccountsCount ? 'Todas las tarjetas usan cuentas del programa' : `${customAccountsCount} tarjetas con cuentas personalizadas`,
+            },
         },
         type: {
             free: 'Gratis',

@@ -5609,6 +5609,20 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             settlementAccount: {label: 'Verrechnungskonto für Expensify Karte', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
             syncTravelInvoicingSettlements: 'Abrechnungen für Reiseabrechnungen synchronisieren',
             travelInvoicingSettlementAccount: {label: 'Abrechnungskonto für Reiseabrechnungen', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
+            exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
+            cardProgramAccount: {
+                label: 'Kartenprogramm-Konto',
+                description: 'Überschreiben Sie das Arbeitsbereichskonto für diese Kartenprogramme.',
+                descriptionLevel2: 'Überschreiben Sie das Arbeitsbereichskonto für dieses Kartenprogramm.',
+                countInfo: (customAccountsCount: number) =>
+                    !customAccountsCount ? 'Alle Programme verwenden das Standardkonto' : `${customAccountsCount} Programme mit benutzerdefinierten Konten`,
+            },
+            cardAccount: {
+                label: 'Konto pro Karte',
+                description: 'Programmkonto für einzelne Karten überschreiben.',
+                descriptionLevel2: 'Programm­konto für diese Karten überschreiben.',
+                countInfo: (customAccountsCount: number) => (!customAccountsCount ? 'Alle Karten verwenden Programmkonten' : `${customAccountsCount} Karten mit benutzerdefinierten Konten`),
+            },
         },
         type: {
             free: 'Kostenlos',

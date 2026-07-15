@@ -5573,6 +5573,19 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             settlementAccount: {label: 'Conta de liquidação do Cartão Expensify', description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no Rillet.'},
             syncTravelInvoicingSettlements: 'Sincronizar liquidações de faturamento de viagens',
             travelInvoicingSettlementAccount: {label: 'Conta de liquidação de faturamento de viagem', description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no Rillet.'},
+            exportToMultipleAccounts: 'Configurar exportação para múltiplas contas',
+            cardProgramAccount: {
+                label: 'Conta do programa de cartão',
+                description: 'Substitua a conta do workspace para estes programas de cartão.',
+                descriptionLevel2: 'Substituir a conta do espaço de trabalho para este programa de cartão.',
+                countInfo: (customAccountsCount: number) => (!customAccountsCount ? 'Todos os programas usam a conta padrão' : `${customAccountsCount} programas com contas personalizadas`),
+            },
+            cardAccount: {
+                label: 'Conta por cartão',
+                description: 'Substitua a conta do programa para cartões individuais.',
+                descriptionLevel2: 'Substituir a conta do programa para estes cartões.',
+                countInfo: (customAccountsCount: number) => (!customAccountsCount ? 'Todos os cartões usam contas de programa' : `${customAccountsCount} cartões com contas personalizadas`),
+            },
         },
         type: {
             free: 'Grátis',

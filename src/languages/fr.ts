@@ -5623,6 +5623,21 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 label: 'Compte de règlement de facturation de voyage',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Rillet.',
             },
+            exportToMultipleAccounts: 'Configurer l’exportation vers plusieurs comptes',
+            cardProgramAccount: {
+                label: 'Compte du programme de carte',
+                description: 'Remplacer le compte de l’espace de travail pour ces programmes de carte.',
+                descriptionLevel2: 'Remplacer le compte de l’espace de travail pour ce programme de carte.',
+                countInfo: (customAccountsCount: number) =>
+                    !customAccountsCount ? 'Tous les programmes utilisent le compte par défaut' : `${customAccountsCount} programmes avec comptes personnalisés`,
+            },
+            cardAccount: {
+                label: 'Compte par carte',
+                description: 'Remplacez le compte de programme pour des cartes individuelles.',
+                descriptionLevel2: 'Remplacer le compte du programme pour ces cartes.',
+                countInfo: (customAccountsCount: number) =>
+                    !customAccountsCount ? 'Toutes les cartes utilisent des comptes de programme' : `${customAccountsCount} cartes avec comptes personnalisés`,
+            },
         },
         type: {
             free: 'Gratuit',

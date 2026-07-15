@@ -5565,6 +5565,20 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             settlementAccount: {label: 'Rachunek rozliczeniowy Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Rillet.'},
             syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia fakturowania podróży',
             travelInvoicingSettlementAccount: {label: 'Konto rozliczeniowe fakturowania podróży', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Rillet.'},
+            exportToMultipleAccounts: 'Skonfiguruj eksport do wielu kont',
+            cardProgramAccount: {
+                label: 'Konto programu kartowego',
+                description: 'Zastąp konto przestrzeni roboczej dla tych programów kart.',
+                descriptionLevel2: 'Nadpisz konto workspace dla tego programu kart.',
+                countInfo: (customAccountsCount: number) =>
+                    !customAccountsCount ? 'Wszystkie programy używają domyślnego konta' : `${customAccountsCount} programy z niestandardowymi kontami`,
+            },
+            cardAccount: {
+                label: 'Konto przypisane do karty',
+                description: 'Zastąp konto programu dla pojedynczych kart.',
+                descriptionLevel2: 'Nadpisz konto programu dla tych kart.',
+                countInfo: (customAccountsCount: number) => (!customAccountsCount ? 'Wszystkie karty używają kont programów' : `${customAccountsCount} karty z kontami niestandardowymi`),
+            },
         },
         type: {
             free: 'Darmowy',

@@ -5532,6 +5532,20 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
             syncTravelInvoicingSettlements: '出張請求の精算を同期',
             travelInvoicingSettlementAccount: {label: '出張請求の精算口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
+            exportToMultipleAccounts: '複数の勘定科目へのエクスポートを設定する',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペース口座を上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペースアカウントを上書きします。',
+                countInfo: (customAccountsCount: number) =>
+                    !customAccountsCount ? 'すべてのプログラムがデフォルトアカウントを使用します' : `カスタム勘定科目を使用しているプログラムが ${customAccountsCount} 件あります`,
+            },
+            cardAccount: {
+                label: 'カード単位の口座',
+                description: '個々のカードのプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: (customAccountsCount: number) => (!customAccountsCount ? 'すべてのカードはプログラムアカウントを使用します' : `カスタム口座付きカード ${customAccountsCount} 枚`),
+            },
         },
         type: {
             free: '無料',

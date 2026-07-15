@@ -5422,6 +5422,19 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
             syncTravelInvoicingSettlements: '同步差旅发票结算',
             travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
+            exportToMultipleAccounts: '配置导出到多个账户',
+            cardProgramAccount: {
+                label: '卡计划账户',
+                description: '为这些卡片计划覆盖工作区账户。',
+                descriptionLevel2: '为此卡计划覆盖工作区账户。',
+                countInfo: (customAccountsCount: number) => (!customAccountsCount ? '所有项目使用默认账户' : `${customAccountsCount} 个包含自定义科目的项目`),
+            },
+            cardAccount: {
+                label: '按卡计费账户',
+                description: '为单张卡片覆盖所属的项目账户。',
+                descriptionLevel2: '覆盖这些卡片的项目账户。',
+                countInfo: (customAccountsCount: number) => (!customAccountsCount ? '所有卡都使用项目账户' : `${customAccountsCount} 张带有自定义账户的卡`),
+            },
         },
         type: {
             free: '免费',

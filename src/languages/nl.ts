@@ -5582,6 +5582,20 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 label: 'Rekening voor verrekening van reiskostenfacturen',
                 description: 'Kies je vereffeningsrekening en we maken de betaling voor je aan in Rillet.',
             },
+            exportToMultipleAccounts: 'Instellen van exporteren naar meerdere rekeningen',
+            cardProgramAccount: {
+                label: 'Kaartprogramma-account',
+                description: 'Overschrijf de werkruimte-account voor deze kaartprogramma’s.',
+                descriptionLevel2: 'Overschrijf de werkruimte-account voor dit kaartprogramma.',
+                countInfo: (customAccountsCount: number) =>
+                    !customAccountsCount ? 'Alle programma’s gebruiken de standaardrekening' : `${customAccountsCount} programma’s met aangepaste accounts`,
+            },
+            cardAccount: {
+                label: 'Rekening per kaart',
+                description: 'Overschrijf de programmarekening voor individuele kaarten.',
+                descriptionLevel2: 'Overschrijf de programmarekening voor deze kaarten.',
+                countInfo: (customAccountsCount: number) => (!customAccountsCount ? 'Alle kaarten gebruiken programma-accounts' : `${customAccountsCount} kaarten met aangepaste rekeningen`),
+            },
         },
         type: {
             free: 'Gratis',
