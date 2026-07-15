@@ -156,6 +156,7 @@ function createTransaction({
         if (iouType === CONST.IOU.TYPE.TRACK && report) {
             trackExpense({
                 report,
+                parentChatReport: report,
                 isDraftPolicy: false,
                 isDraftChatReport: !!isDraftChatReport,
                 existingTransaction: transaction,

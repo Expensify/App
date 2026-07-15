@@ -869,6 +869,7 @@ function duplicateExpenseTransaction({
                 validWaypoints: waypoints,
             },
             report: undefined,
+            parentChatReport: targetReport,
             isDraftPolicy: false,
             isDraftChatReport: !!isDraftChatReport,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},

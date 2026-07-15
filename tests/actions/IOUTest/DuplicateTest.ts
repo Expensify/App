@@ -1830,6 +1830,7 @@ describe('actions/Duplicate', () => {
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 isDraftChatReport: true,
+                isTrackIntentUser: false,
                 delegateAccountID: undefined,
                 policyTagList: targetPolicyTags ?? {},
             });

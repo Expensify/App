@@ -2390,6 +2390,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 function trackExpense(params: CreateTrackExpenseParams) {
     const {
         report,
+        parentChatReport: parentChatReportParam,
         action,
         isDraftPolicy,
         participantParams,
@@ -2450,7 +2451,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         distanceRequestType,
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = parentChatReportParam;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
 

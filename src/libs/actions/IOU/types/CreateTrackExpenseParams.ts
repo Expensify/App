@@ -16,6 +16,7 @@ type TrackExpenseAccountantParams = {
 
 type CreateTrackExpenseParams = {
     report: OnyxEntry<OnyxTypes.Report>;
+    parentChatReport: OnyxEntry<OnyxTypes.Report>;
     isDraftPolicy: boolean;
     action?: IOUAction;
     participantParams: RequestMoneyParticipantParams;

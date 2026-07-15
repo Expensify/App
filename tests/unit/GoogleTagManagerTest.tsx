@@ -262,6 +262,7 @@ describe('GoogleTagManagerTest', () => {
 
         trackExpense({
             report: {reportID: '123'},
+            parentChatReport: {reportID: '123'},
             isDraftPolicy: true,
             isDraftChatReport: false,
             action: CONST.IOU.ACTION.CATEGORIZE,

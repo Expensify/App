@@ -787,6 +787,7 @@ describe('Unread Indicators', () => {
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
         trackExpense({
             report: selfDMReport,
+            parentChatReport: selfDMReport,
             isDraftPolicy: true,
             isDraftChatReport: false,
             action: CONST.IOU.ACTION.CREATE,

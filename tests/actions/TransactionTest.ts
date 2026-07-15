@@ -215,6 +215,7 @@ describe('actions/Transaction', () => {
 
             trackExpense({
                 report: selfDMReport,
+                parentChatReport: selfDMReport,
                 isDraftPolicy: true,
                 isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,

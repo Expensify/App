@@ -280,6 +280,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     executeWrite: (overrides) => {
                         trackExpense({
                             report,
+                            parentChatReport: report,
                             isDraftPolicy: false,
                             isDraftChatReport: !!reportDraft,
                             existingTransaction: transaction,
