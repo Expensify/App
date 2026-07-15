@@ -1,6 +1,7 @@
 /**
  * Builds the top-level navigation suggestions shown in the Search Router.
  */
+import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -8,9 +9,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 
-import CONST from '@src/CONST';
+import navigationRef from '@navigation/navigationRef';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -31,11 +32,11 @@ type BuildTopLevelNavigationItemsParams = {
         account: string;
     };
     icons: TopLevelNavigationIcons;
-    spendRoute: Route;
+    getSpendRoute: () => Route;
     getDestinationText: (destination: string) => string;
 };
 
-function buildTopLevelNavigationItems({labels, icons, spendRoute, getDestinationText}: BuildTopLevelNavigationItemsParams): NavigationSuggestionSourceItem[] {
+function buildTopLevelNavigationItems({labels, icons, getSpendRoute, getDestinationText}: BuildTopLevelNavigationItemsParams): NavigationSuggestionSourceItem[] {
     return [
         {
             text: getDestinationText(labels.home),
@@ -54,7 +55,7 @@ function buildTopLevelNavigationItems({labels, icons, spendRoute, getDestination
         {
             text: getDestinationText(labels.spend),
             singleIcon: icons.ReceiptMultiple,
-            action: () => Navigation.navigate(spendRoute),
+            action: () => Navigation.navigate(getSpendRoute()),
             keyForList: 'topLevelSpend',
             matchTerms: [labels.spend],
         },
@@ -80,9 +81,6 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'ReceiptMultiple', 'Building', 'Gear']);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
 
-    const defaultSpendQuery = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
-    const lastSpendQuery = lastSearchParams?.queryJSON ? buildSearchQueryString(lastSearchParams.queryJSON) : undefined;
-    const spendRoute = ROUTES.SEARCH_ROOT.getRoute({query: lastSpendQuery ?? defaultSpendQuery});
     const topLevelItems = buildTopLevelNavigationItems({
         labels: {
             home: translate('common.home'),
@@ -92,7 +90,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
             account: translate('initialSettingsPage.account'),
         },
         icons,
-        spendRoute,
+        getSpendRoute: () => getSearchTabRoute(navigationRef.getRootState(), lastSearchParams),
         getDestinationText: (destination) => getGoToText(translate, destination),
     });
 

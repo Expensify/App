@@ -76,9 +76,7 @@ function buildNavigationSuggestions(query: string, sources: NavigationSuggestion
         .filter(
             (item) =>
                 isNavigationIntentOnly ||
-                (shouldMatchExactDestination
-                    ? matchesNavigationQueryExactly(matchQuery, ...(item.matchTerms ?? []))
-                    : matchesNavigationQuery(matchQuery, item.text, ...(item.matchTerms ?? []))),
+                (shouldMatchExactDestination ? matchesNavigationQueryExactly(matchQuery, ...(item.matchTerms ?? [])) : matchesNavigationQuery(matchQuery, ...(item.matchTerms ?? []))),
         )
         .map((item) => ({
             ...item,

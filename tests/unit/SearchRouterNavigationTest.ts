@@ -51,6 +51,13 @@ describe('Search Router navigation query helpers', () => {
         expect(buildNavigationSuggestions('ab', source, localeCompare)).toEqual([]);
     });
 
+    it('does not match text from the Go to label', () => {
+        const source = [[{text: 'Go to Inbox', keyForList: 'inbox', matchTerms: ['Inbox']}]];
+
+        expect(buildNavigationSuggestions('to i', source, localeCompare)).toEqual([]);
+        expect(buildNavigationSuggestions('o inbox', source, localeCompare)).toEqual([]);
+    });
+
     it('matches short queries only when they exactly match a localized destination', () => {
         const source = [
             [
@@ -115,7 +122,7 @@ describe('top-level Search Router navigation source', () => {
                 Building: mockIcon,
                 Gear: mockIcon,
             },
-            spendRoute: ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
+            getSpendRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
             getDestinationText: (destination) => `Go to ${destination}`,
         });
 
@@ -125,6 +132,7 @@ describe('top-level Search Router navigation source', () => {
 
     it('navigates each top-level row to its intended route', () => {
         const spendRoute = ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'});
+        const getSpendRoute = jest.fn(() => spendRoute);
         const items = buildTopLevelNavigationItems({
             labels: {
                 home: 'Home',
@@ -140,7 +148,7 @@ describe('top-level Search Router navigation source', () => {
                 Building: mockIcon,
                 Gear: mockIcon,
             },
-            spendRoute,
+            getSpendRoute,
             getDestinationText: (destination) => `Go to ${destination}`,
         });
 
@@ -151,6 +159,7 @@ describe('top-level Search Router navigation source', () => {
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, ROUTES.HOME);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.INBOX);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(3, spendRoute);
+        expect(getSpendRoute).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(4, ROUTES.WORKSPACES_LIST.route);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(5, ROUTES.SETTINGS);
     });
