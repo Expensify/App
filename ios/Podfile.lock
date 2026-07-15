@@ -2612,7 +2612,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-keyboard-controller (1.21.0-beta.1):
+  - react-native-keyboard-controller (1.22.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -2630,7 +2630,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-keyboard-controller/common (= 1.21.0-beta.1)
+    - react-native-keyboard-controller/common (= 1.22.1)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -2641,7 +2641,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-keyboard-controller/common (1.21.0-beta.1):
+  - react-native-keyboard-controller/common (1.22.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -4837,7 +4837,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  hermes-engine: 1a37d030ed54575ddb733c6484f4b70fbcda5d87
+  hermes-engine: 55379484e10d0712e57475b830038a3842508f71
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
@@ -4901,7 +4901,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: 18a9d68e6117d37ac5facd87619cbc3ff17575a7
   react-native-image-picker: 1722f5d3dc5de5039d423e290dc31a717ba9605e
   react-native-key-command: 7538df85ed26502b2a929c0584235459b26c7a91
-  react-native-keyboard-controller: 0619a578e4d79a38dc4b1bef3b89cee6525bc1c7
+  react-native-keyboard-controller: 1fe3fcd7cc26a549e72e733905cf1131dc478948
   react-native-netinfo: f94b3a0fc305e812f3f615989d99299d7110c2ae
   react-native-pager-view: c62ab82db28e2d11e7809c59085e2984a45979c5
   react-native-pdf: 6a09a9be0e7ee954ea671437483316f9a28f8572
