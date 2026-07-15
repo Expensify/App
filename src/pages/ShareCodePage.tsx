@@ -101,7 +101,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
             if (isMoneyRequestReport(report)) {
                 // generate subtitle from participants
                 return getParticipantsAccountIDsForDisplay(report, true)
-                    .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber}))
+                    .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber, translate}))
                     .join(' & ');
             }
 
