@@ -41,7 +41,7 @@ type UseSearchFiltersBarResult = {
     filters: Array<SearchFilter & FilterItem>;
     hasErrors: boolean;
     shouldShowFiltersBarLoading: boolean;
-    clearFilters: () => void;
+    resetFilters: () => void;
 };
 
 type FilterPopupProps = {
@@ -197,7 +197,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         }),
     );
 
-    const clearFilters = () => {
+    const resetFilters = () => {
         setFilterQueryParams(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}));
         setSearchContext(false);
     };
@@ -206,7 +206,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         filters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading,
-        clearFilters,
+        resetFilters,
     };
 }
 

@@ -6,7 +6,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import React from 'react';
 
 import SearchFilterBar from './SearchFilterBar';
-import SearchFiltersClearButton from './SearchFiltersClearButton';
+import SearchFiltersResetButton from './SearchFiltersResetButton';
 import useSearchFiltersBar from './useSearchFiltersBar';
 
 type SearchFiltersBarWideProps = {
@@ -14,7 +14,7 @@ type SearchFiltersBarWideProps = {
 };
 
 function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
-    const {filters, hasErrors, shouldShowFiltersBarLoading, clearFilters} = useSearchFiltersBar(queryJSON);
+    const {filters, hasErrors, shouldShowFiltersBarLoading, resetFilters} = useSearchFiltersBar(queryJSON);
 
     if (hasErrors) {
         return null;
@@ -41,7 +41,7 @@ function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
                     item={item}
                 />
             ))}
-            {filters.length > 0 && <SearchFiltersClearButton onPress={clearFilters} />}
+            {filters.length > 0 && <SearchFiltersResetButton onPress={resetFilters} />}
         </>
     );
 }

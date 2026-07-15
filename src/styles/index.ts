@@ -5202,7 +5202,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'flex-start',
         },
 
-        searchFiltersClearButton: {
+        searchFiltersResetButton: {
             flexDirection: 'row',
             gap: 4,
             alignItems: 'center',
