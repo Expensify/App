@@ -5990,7 +5990,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     enabledDescription: 'Todos os gastos de viagem neste workspace agora serão centralizados em uma fatura mensal.',
                     sendInvoiceModal: {
                         title: (amount: string) => `Enviar fatura de ${amount}?`,
-                        body: 'Vamos criar uma fatura para os seus gastos atuais de viagem. Seu limite de viagem será liberado assim que a fatura for paga.',
+                        body: 'Vamos criar uma fatura para seus gastos atuais de viagem. Seu limite de viagem é liberado assim que a fatura é paga.',
                     },
                     depositOnly: 'Apenas depósito',
                 },

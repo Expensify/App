@@ -5977,7 +5977,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     enabledDescription: 'Wszystkie wydatki podróżne w tym obszarze roboczym będą teraz scentralizowane na miesięcznym rachunku.',
                     sendInvoiceModal: {
                         title: (amount: string) => `Wysłać fakturę na kwotę ${amount}?`,
-                        body: 'Wystawimy fakturę za Twoje obecne wydatki na podróż. Twój limit na podróże zostanie odblokowany, gdy faktura zostanie opłacona.',
+                        body: 'Utworzymy fakturę za twoje bieżące wydatki na podróż. Twój limit podróży zwolni się, gdy faktura zostanie opłacona.',
                     },
                     depositOnly: 'Tylko wpłata',
                 },

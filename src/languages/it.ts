@@ -6014,7 +6014,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     enabledDescription: 'Tutte le spese di viaggio in questo spazio di lavoro saranno ora accentrate in una fattura mensile.',
                     sendInvoiceModal: {
                         title: (amount: string) => `Inviare la fattura per ${amount}?`,
-                        body: 'Creeremo una fattura per le tue spese di viaggio attuali. Il tuo limite di viaggio si libera una volta pagata la fattura.',
+                        body: 'Creeremo una fattura per le tue spese di viaggio attuali. Il tuo limite di viaggio si libera una volta che la fattura è stata pagata.',
                     },
                     depositOnly: 'Solo deposito',
                 },

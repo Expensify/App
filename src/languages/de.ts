@@ -6026,7 +6026,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     enabledDescription: 'Alle Reisekosten in diesem Workspace werden nun in einer monatlichen Rechnung zentralisiert.',
                     sendInvoiceModal: {
                         title: (amount: string) => `Rechnung über ${amount} senden?`,
-                        body: 'Wir erstellen eine Rechnung für Ihre aktuellen Reisekosten. Ihr Reisekredit wird wieder verfügbar, sobald die Rechnung bezahlt ist.',
+                        body: 'Wir erstellen eine Rechnung für Ihre aktuellen Reisekosten. Ihr Reisebudget wird wieder freigegeben, sobald die Rechnung bezahlt ist.',
                     },
                     depositOnly: 'Nur Einzahlung',
                 },

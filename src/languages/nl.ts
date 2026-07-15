@@ -5960,7 +5960,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         subsections: {
                             currentTravelSpendLabel: 'Huidige reiskosten',
                             currentTravelSpendPaymentQueued: (amount: string) => `Betaling van ${amount} staat in de wachtrij en wordt binnenkort verwerkt.`,
-                            currentTravelSpendInvoicePending: (amount: string) => `Een factuur van ${amount} is verzonden en wacht op betaling.`,
+                            currentTravelSpendInvoicePending: (amount: string) => `Er is een factuur voor ${amount} verzonden en deze wacht op betaling.`,
                             currentTravelSpendCta: 'Saldo betalen',
                             currentTravelLimitLabel: 'Huidige reisl imiet',
                             settlementAccountLabel: 'Verrekeningsrekening',
@@ -5972,7 +5972,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             reduceLimitWarning: 'Als u het limiet verlaagt, kunnen leden die dit bedrag al hebben overschreden geen nieuwe reisboekingen maken tot volgende maand.',
                             provisioningError:
                                 'We konden voor sommige leden van je werkruimte geen toegang instellen tot Geconsolideerde Reisfacturering. Probeer het later opnieuw of neem contact op met Concierge voor ondersteuning.',
-                            sendInvoiceNowCta: 'Verstuur factuur nu',
+                            sendInvoiceNowCta: 'Factuur nu verzenden',
                         },
                     },
                     disableModal: {
@@ -5996,10 +5996,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     enabled: 'Geconsolideerde reiskostenfacturatie ingeschakeld!',
                     enabledDescription: 'Alle reiskosten in deze workspace worden nu gebundeld op één maandelijkse factuur.',
                     sendInvoiceModal: {
-                        title: (amount: string) => `Factuur voor ${amount} verzenden?`,
+                        title: (amount: string) => `Factuur voor ${amount} versturen?`,
                         body: 'We maken een factuur voor je huidige reiskosten. Je reistegoed komt weer vrij zodra de factuur is betaald.',
                     },
-                    depositOnly: 'Alleen stortingen',
+                    depositOnly: 'Alleen storting',
                 },
                 personalDetailsDescription: 'Om een reis te boeken, voer je wettelijke naam in zoals deze op je door de overheid uitgegeven identiteitsbewijs staat.',
             },

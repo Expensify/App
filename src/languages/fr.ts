@@ -6047,8 +6047,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     enabled: 'Facturation de voyage consolidée activée !',
                     enabledDescription: 'Toutes les dépenses de voyage sur cet espace de travail seront désormais centralisées dans une facture mensuelle.',
                     sendInvoiceModal: {
-                        title: (amount: string) => `Envoyer la facture pour ${amount} ?`,
-                        body: 'Nous créerons une facture pour vos dépenses de voyage actuelles. Votre plafond de voyage est à nouveau disponible une fois la facture payée.',
+                        title: (amount: string) => `Envoyer la facture pour ${amount} ?`,
+                        body: 'Nous créerons une facture pour vos dépenses de voyage actuelles. Votre plafond de voyage sera à nouveau disponible une fois la facture payée.',
                     },
                     depositOnly: 'Dépôt uniquement',
                 },

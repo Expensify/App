@@ -5810,7 +5810,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     invalidDateRangeError: '开始日期必须早于结束日期',
                     enabled: '已启用合并差旅账单！',
                     enabledDescription: '此工作区的所有差旅支出现在将统一汇总到一份月度账单中。',
-                    sendInvoiceModal: {title: (amount: string) => `发送金额为 ${amount} 的发票？`, body: '我们会为你当前的差旅行程支出创建一张发票。发票支付后，你的差旅额度将被释放。'},
+                    sendInvoiceModal: {title: (amount: string) => `发送金额为 ${amount} 的发票？`, body: '我们会根据你当前的差旅支出创建一张发票。发票支付后，你的差旅额度将被释放。'},
                     depositOnly: '仅限存款',
                 },
                 personalDetailsDescription: '为预订行程，请输入您在政府签发的身份证件上显示的法定姓名。',
