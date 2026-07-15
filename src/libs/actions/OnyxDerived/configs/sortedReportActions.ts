@@ -43,7 +43,7 @@ function computeForReport(
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
     dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.NETWORK],
-    compute: ([allReportActions, allReports], {sourceValues, currentValue, triggeredKeys}): SortedReportActionsDerivedValue => {
+    compute: ([allReportActions, allReports], {sourceValues, currentValue}): SortedReportActionsDerivedValue => {
         if (!allReportActions) {
             return EMPTY_VALUE;
         }
@@ -53,14 +53,8 @@ export default createOnyxDerivedValueConfig({
 
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
 
-        // The incremental branch only knows how to react to report-action changes; REPORT/NETWORK changes are
-        // handled by the full recompute below. Coalescing can batch REPORT_ACTIONS with REPORT/NETWORK in a
-        // single flush, so only go incremental when report actions are the sole trigger — otherwise a batched
-        // REPORT change (e.g. chatReportID -> transactionThreadReportID) would be silently dropped.
-        const reportActionsIsOnlyTrigger = triggeredKeys?.size === 1;
-
         // Incremental update: only recompute reports whose actions changed
-        if (reportActionsUpdates && currentValue && reportActionsIsOnlyTrigger) {
+        if (reportActionsUpdates && currentValue) {
             const sortedActions = {...currentValue.sortedActions};
             const lastActions = {...currentValue.lastActions};
             const transactionThreadIDs = {...currentValue.transactionThreadIDs};

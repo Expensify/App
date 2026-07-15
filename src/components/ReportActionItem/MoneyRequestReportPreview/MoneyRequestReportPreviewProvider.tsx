@@ -2,6 +2,7 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
+import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,21 +26,21 @@ import {hasPendingUI, isPending} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViolations';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import type {ListRenderItem} from '@shopify/flash-list';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useDeferredValue, useMemo, useState} from 'react';
+import React, {useCallback, useDeferredValue, useState} from 'react';
 
 import type {MoneyRequestReportPreviewStyleType} from './types';
 
 import {
     ReportPreviewActionsContext,
+    ReportPreviewActionStateContext,
     ReportPreviewAnimationStateContext,
     ReportPreviewCarouselListContext,
     ReportPreviewCarouselStateContext,
@@ -49,6 +50,7 @@ import {
     ReportPreviewUIStateContext,
 } from './MoneyRequestReportPreviewContext';
 import usePreviewMessageAnimation from './usePreviewMessageAnimation';
+import useReportPreviewActionDecision from './useReportPreviewActionDecision';
 import useReportPreviewCarousel from './useReportPreviewCarousel';
 
 type MoneyRequestReportPreviewProviderProps = ChildrenProps & {
@@ -127,14 +129,7 @@ function MoneyRequestReportPreviewProvider({
 
     const shouldShowLoading =
         chatReportLoadingState != null && chatReportLoadingState.hasOnceLoadedReportActions !== true && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
-    const transactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
-    const selectTransactionViolations = useCallback(
-        (allViolations: OnyxCollection<TransactionViolations>) => transactionViolationsByIDsSelector(transactionIDs)(allViolations),
-        [transactionIDs],
-    );
-    // Pass `transactionIDs` as a dependency so the selector re-runs once the transactions hydrate (otherwise
-    // it stays closed over the initial empty list and violations would never be selected on first load).
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: selectTransactionViolations}, [transactionIDs]);
+    const [transactionViolations] = useReportTransactionViolations(transactions);
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
     // so we defer the loading state update to ensure transactions are loaded
     const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);
@@ -258,6 +253,23 @@ function MoneyRequestReportPreviewProvider({
     const onHoldMenuClose = useCallback(() => setHoldMenu(null), []);
 
     const shouldShowCarouselArrows = !shouldUseNarrowLayout && !shouldShowAccessPlaceHolder && transactions.length > 2 && reportPreviewStyles.expenseCountVisible;
+    const buttonMaxWidth =
+        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewCarouselStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH
+            ? {maxWidth: reportPreviewStyles.transactionPreviewCarouselStyle.width}
+            : {};
+
+    const actionStateValue = useReportPreviewActionDecision({
+        iouReportID,
+        chatReportID,
+        iouReport,
+        chatReport,
+        invoiceReceiverPolicy,
+        transactions,
+        transactionViolations,
+        isPaidAnimationRunning,
+        isApprovedAnimationRunning,
+        isSubmittingAnimationRunning,
+    });
 
     const dataValue = {
         iouReportID,
@@ -284,6 +296,7 @@ function MoneyRequestReportPreviewProvider({
         carouselReasonAttributes,
         previewMessageStyle,
         reportPreviewStyles,
+        buttonMaxWidth,
     };
     const animationStateValue = {
         isPaidAnimationRunning,
@@ -312,11 +325,13 @@ function MoneyRequestReportPreviewProvider({
                 <ReportPreviewCarouselStateContext.Provider value={carouselStateValue}>
                     <ReportPreviewAnimationStateContext.Provider value={animationStateValue}>
                         <ReportPreviewCarouselListContext.Provider value={carouselList}>
-                            <ReportPreviewActionsContext.Provider value={actionsValue}>
-                                <ReportPreviewHoldMenuContext.Provider value={holdMenu}>
-                                    <ReportPreviewMetaContext.Provider value={metaValue}>{children}</ReportPreviewMetaContext.Provider>
-                                </ReportPreviewHoldMenuContext.Provider>
-                            </ReportPreviewActionsContext.Provider>
+                            <ReportPreviewActionStateContext.Provider value={actionStateValue}>
+                                <ReportPreviewActionsContext.Provider value={actionsValue}>
+                                    <ReportPreviewHoldMenuContext.Provider value={holdMenu}>
+                                        <ReportPreviewMetaContext.Provider value={metaValue}>{children}</ReportPreviewMetaContext.Provider>
+                                    </ReportPreviewHoldMenuContext.Provider>
+                                </ReportPreviewActionsContext.Provider>
+                            </ReportPreviewActionStateContext.Provider>
                         </ReportPreviewCarouselListContext.Provider>
                     </ReportPreviewAnimationStateContext.Provider>
                 </ReportPreviewCarouselStateContext.Provider>

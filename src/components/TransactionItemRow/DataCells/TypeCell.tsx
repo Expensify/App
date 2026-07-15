@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isTravelCard} from '@libs/CardUtils';
+import {isTravelCardTransaction} from '@libs/CardUtils';
 import {getExpenseTypeTranslationKey, getTransactionType, isExpensifyCardTransaction, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -74,7 +74,7 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     const type = getTransactionType(transactionItem, card);
     const isExpensifyCard = isExpensifyCardTransaction(transactionItem);
     const isManagedCard = isManagedCardTransaction(transactionItem);
-    const isTravelInvoicingCard = isTravelCard(card);
+    const isTravelInvoicingCard = isTravelCardTransaction(transactionItem.feedCountry, card);
     const isPendingCardTransaction = isPending(transactionItem);
     const getPendingIcon = () => {
         if (isTravelInvoicingCard) {
