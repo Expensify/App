@@ -227,6 +227,7 @@ function SettlementButton({
                     ),
                     confirmText: translate('bankAccount.unlockBankAccount'),
                     cancelText: translate('common.cancel'),
+                    shouldDisableConfirmButtonWhenOffline: true,
                 }).then(({action}) => {
                     if (action !== ModalActions.CONFIRM) {
                         return;
