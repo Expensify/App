@@ -21,6 +21,9 @@ export default <TOnyxKey extends OnyxKey>(onyxKeyName: TOnyxKey): CreateOnyxCont
 
     Provider.displayName = `${Str.UCFirst(onyxKeyName)}Provider`;
 
+    // OXC's React Compiler does not memoize this generated Provider on web; memoize it explicitly.
+    const MemoizedProvider = React.memo(Provider);
+
     const useOnyxContext = () => {
         const value = useContext(Context);
         if (value === null) {
@@ -29,5 +32,5 @@ export default <TOnyxKey extends OnyxKey>(onyxKeyName: TOnyxKey): CreateOnyxCont
         return value as OnyxValue<TOnyxKey>;
     };
 
-    return [Provider, Context, useOnyxContext];
+    return [MemoizedProvider, Context, useOnyxContext];
 };

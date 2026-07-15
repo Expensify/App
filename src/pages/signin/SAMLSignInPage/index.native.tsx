@@ -11,7 +11,7 @@ import Log from '@libs/Log';
 import {handleSAMLLoginError, postSAMLLogin} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {clearSignInData, setAccountError, signInWithShortLivedAuthToken} from '@userActions/Session';
+import {clearSignInData, setAccountError, setIsAuthenticatingWithShortLivedToken, signInWithShortLivedAuthToken} from '@userActions/Session';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -32,6 +32,8 @@ function SAMLSignInPage() {
     const hasOpenedAuthSession = useRef(false);
 
     const handleExitSAMLFlow = useCallback(() => {
+        // Clear the guard we set before opening the in-app browser so we don't block future reauthentication
+        setIsAuthenticatingWithShortLivedToken(false);
         Navigation.isNavigationReady().then(() => {
             Navigation.goBack();
             clearSignInData();
@@ -51,20 +53,19 @@ function SAMLSignInPage() {
             const searchParams = new URLSearchParams(new URL(url).search);
             const jsonParam = searchParams.get('json');
 
-            if (!jsonParam) {
-                Log.hmmm('SAMLSignInPage - No JSON parameter found in callback URL');
-                return;
-            }
-
             let shortLivedAuthToken: string | null = null;
-            try {
-                const decodedData = JSON.parse(jsonParam) as Record<string, string | null>;
-                shortLivedAuthToken = decodedData.shortLivedAuthToken ?? null;
-                if (decodedData.error) {
-                    Log.hmmm('SAMLSignInPage - SAML login returned error', {error: decodedData.error});
+            if (jsonParam) {
+                try {
+                    const decodedData = JSON.parse(jsonParam) as Record<string, string | null>;
+                    shortLivedAuthToken = decodedData.shortLivedAuthToken ?? null;
+                    if (decodedData.error) {
+                        Log.hmmm('SAMLSignInPage - SAML login returned error', {error: decodedData.error});
+                    }
+                } catch (parseError) {
+                    Log.hmmm('SAMLSignInPage - Failed to parse JSON parameter', {error: parseError});
                 }
-            } catch (parseError) {
-                Log.hmmm('SAMLSignInPage - Failed to parse JSON parameter', {error: parseError});
+            } else {
+                Log.hmmm('SAMLSignInPage - No JSON parameter found in callback URL');
             }
 
             if (!account?.isLoading && credentials?.login && shortLivedAuthToken) {
@@ -73,6 +74,11 @@ function SAMLSignInPage() {
                 return;
             }
 
+            // The browser returned but we couldn't sign in (no JSON parameter, a parse failure, or no token), so clear
+            // the guard we set before opening it and send the user back to a clean state. Otherwise the guard stays
+            // true, and since loginCallback URLs hide the back button and leave account.isLoading true, the user gets
+            // stuck on the loading screen with future reauthenticate() calls aborting.
+            setIsAuthenticatingWithShortLivedToken(false);
             clearSignInData();
             setAccountError(translate('common.error.login'));
             Navigation.isNavigationReady().then(() => {
@@ -90,6 +96,12 @@ function SAMLSignInPage() {
             return;
         }
         hasOpenedAuthSession.current = true;
+        // Opening the in-app browser backgrounds the app. When it returns, the app resumes and fires
+        // reconnectApp() with the expired authToken, which 407s and triggers reauthenticate() -> redirectToSignIn(),
+        // wiping the session before the SAML callback can sign the user back in. Setting this guard up front makes
+        // reauthenticate() abort while the SAML sign-in is in progress. signInWithShortLivedAuthToken() resets it on
+        // success; the cancel/error/failure paths reset it via handleExitSAMLFlow and handleNavigationStateChange.
+        setIsAuthenticatingWithShortLivedToken(true);
         openAuthSessionAsync(SAMLUrl, CONST.SAML_REDIRECT_URL)
             .then((response: WebBrowserAuthSessionResult) => {
                 if (response.type !== 'success') {

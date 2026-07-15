@@ -29,6 +29,7 @@ const CONCIERGE_RESPONSE_DELAY_MS = 4000;
  * @param reportAction - The report action containing the followup-list
  * @param selectedFollowup - The followup object containing the question text and optional pre-generated response
  * @param timezoneParam - The user's timezone
+ * @param conciergeReportID - The Concierge report ID, used to detect whether the comment is posted in the Concierge chat
  * @param ancestors - Array of ancestor reports for proper threading
  */
 function resolveSuggestedFollowup(
@@ -40,6 +41,7 @@ function resolveSuggestedFollowup(
     currentUserAccountID: number,
     currentUserEmail: string | undefined,
     delegateAccountID: number | undefined,
+    conciergeReportID: string | undefined,
     ancestors: Ancestor[] = [],
 ) {
     const reportID = report?.reportID;
@@ -69,29 +71,21 @@ function resolveSuggestedFollowup(
     });
 
     if (!selectedFollowup.response) {
-        addComment({report, notifyReportID: notifyReportID ?? reportID, ancestors, text: selectedFollowup.text, timezoneParam, currentUserAccountID, delegateAccountID});
+        addComment({
+            report,
+            notifyReportID: notifyReportID ?? reportID,
+            ancestors,
+            text: selectedFollowup.text,
+            timezoneParam,
+            currentUserAccountID,
+            delegateAccountID,
+            conciergeReportID,
+        });
         return;
     }
 
     // If there's a pre-generated response, queue it for delayed display.
     const optimisticConciergeReportActionID = rand64();
-
-    // Post user's comment immediately
-    addComment({
-        report,
-        notifyReportID: notifyReportID ?? reportID,
-        ancestors,
-        text: selectedFollowup.text,
-        timezoneParam,
-        currentUserAccountID,
-        shouldPlaySound: false,
-        isInSidePanel: false,
-        pregeneratedResponseParams: {
-            optimisticConciergeReportActionID,
-            pregeneratedResponse: selectedFollowup.response,
-        },
-        delegateAccountID,
-    });
 
     // Use the full delay as createdOffset so the Concierge response timestamp is
     // strictly after the user's comment — a 1ms offset was not enough to guarantee
@@ -106,6 +100,25 @@ function resolveSuggestedFollowup(
         currentUserEmail,
         currentUserAccountID,
         delegateAccountIDParam: delegateAccountID,
+    });
+
+    // Post user's comment immediately
+    addComment({
+        report,
+        notifyReportID: notifyReportID ?? reportID,
+        ancestors,
+        text: selectedFollowup.text,
+        timezoneParam,
+        currentUserAccountID,
+        shouldPlaySound: false,
+        isInSidePanel: false,
+        pregeneratedResponseParams: {
+            optimisticConciergeReportActionID,
+            optimisticConciergeCreated: optimisticConciergeAction.reportAction.created,
+            pregeneratedResponse: selectedFollowup.response,
+        },
+        delegateAccountID,
+        conciergeReportID,
     });
 
     addOptimisticConciergeActionWithDelay(reportID, optimisticConciergeAction);
@@ -177,7 +190,10 @@ function applyPendingConciergeAction(reportID: string | undefined, reportAction:
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`,
-            value: {reportActionID: reportAction.reportActionID, createdAt: Date.now()},
+            value: {
+                reportActionID: reportAction.reportActionID,
+                createdAt: Date.now(),
+            },
         },
     ]);
 }

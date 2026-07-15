@@ -22,6 +22,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
     isActiveRoute: jest.fn(() => false),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
