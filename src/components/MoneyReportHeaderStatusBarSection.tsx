@@ -125,10 +125,11 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
     }
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.PENDING_TRANSACTIONS) {
+        const pendingDescription = transactions.length <= 1 ? translate('iou.transactionPendingDescription') : translate('iou.allTransactionsPendingNextStep');
         return (
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.CreditCardHourglass)}
-                description={translate('iou.allTransactionsPendingNextStep')}
+                description={pendingDescription}
             />
         );
     }
