@@ -738,10 +738,6 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
     return [...workflowMembers, ...additionalMembers];
 }
 
-// These helpers translate the in-app `ApprovalWorkflow` model into the AST rule
-// format the backend stores in the `rules` table (mirrored in `ONYXKEYS.COLLECTION.RULE`),
-// and handle any changes.
-
 type ApprovalWorkflowRulesDiff = Record<string, ApprovalWorkflowRule | null>;
 
 /** Build a comparison filter: `<left> <operator> <right>`. */
@@ -789,18 +785,9 @@ function buildApproveActions(): ApprovalWorkflowActions {
 }
 
 /**
- * Build the AST rule chain for a single `ApprovalWorkflow` (members + ordered approvers).
- *
- * For approvers `[A0, A1, …, A_{n-1}]` and members `M` this produces:
- *   - a `ReportSubmit` rule: `from ∈ M` → forward to `A0`.
- *   - for each approver `A_i`, a `ReportApprove` rule gated on `to == A_i` (the approver who just
- *     approved) describing the next hop:
- *       - normally forward to `A_{i+1}`, or approve the report if `A_i` is the last approver.
- *       - if `A_i` has a positive `approvalLimit` and an `overLimitForwardsTo`, the hop splits:
- *         under the limit → the normal hop above; at/over the limit → forward to `overLimitForwardsTo`,
- *         who then finalizes the report (a terminal `ApproveReport` rule for `to == overLimitForwardsTo`).
- *
- * The `from` filter is always the top-level left of the tree so it can be checked cheaply.
+ * Build the AST rule chain for a single `ApprovalWorkflow`: a `ReportSubmit` rule forwarding members'
+ * reports to the first approver, plus a `ReportApprove` rule per approver describing the next hop
+ * (forward to the next approver, approve if last, or split on the approver's over-limit target).
  */
 function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): ApprovalWorkflowRule[] {
     const memberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
@@ -850,13 +837,12 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
                 filters: buildAnd(fromComparison, buildAnd(toComparison, underAmount)),
                 actions: nextApproverEmail ? buildForwardActions(nextApproverEmail) : buildApproveActions(),
             });
-            // At/over the limit: escalate to the over-limit approver.
+            // At/over the limit: escalate to the over-limit approver, who then finalizes the report.
             rules.push({
                 triggers: buildApproveTriggers(),
                 filters: buildAnd(fromComparison, buildAnd(toComparison, overAmount)),
                 actions: buildForwardActions(limitSplit.overLimitForwardsTo),
             });
-            // The over-limit approver finalizes the report.
             rules.push({
                 triggers: buildApproveTriggers(),
                 filters: buildAnd(fromComparison, buildToComparison(limitSplit.overLimitForwardsTo)),
@@ -906,7 +892,6 @@ function forEachSubmitterFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowF
         return;
     }
     if (isComparisonLeaf(node)) {
-        // A leaf has no children to recurse into; only `from` leaves are reported.
         if (isSubmitterFilter(node)) {
             callback(node);
         }
@@ -935,14 +920,10 @@ function extractSubmitterEmails(rule: ApprovalWorkflowRule): string[] {
 }
 
 /**
- * Recursively normalize a value so two logically-equal structures stringify identically:
- *   - object keys are sorted (order-independent), and
- *   - index-keyed maps (`{"0":x,"1":y}`) are collapsed to arrays (`[x,y]`).
- *
- * The array collapse matters because the API decodes the rules JSON to PHP associative arrays, so a
- * rule's `triggers`/`actions` come back from the backend as JSON arrays while a freshly-built rule
- * uses the `{"0":…}` object form. Without this, the two shapes would never match and the create flow
- * would mint a brand-new rule instead of folding the submitter into the existing one.
+ * Normalize a value so two logically-equal structures stringify identically: object keys are sorted and
+ * index-keyed maps (`{"0":x}`) are collapsed to arrays (`[x]`). The array collapse matters because the API
+ * decodes the rules JSON to PHP arrays, so `triggers`/`actions` come back as JSON arrays while a freshly-built
+ * rule uses the `{"0":…}` object form — without it the two shapes never match and merging fails.
  */
 function canonicalize(value: unknown): unknown {
     if (Array.isArray(value)) {
@@ -955,7 +936,7 @@ function canonicalize(value: unknown): unknown {
         if (isSequentialIndexMap) {
             return entries.map(([, val]) => canonicalize(val));
         }
-        // Byte-order sort is intentional: this is a locale-agnostic structural fingerprint, not user-facing text.
+        // Byte-order sort (not locale-aware): this is a structural fingerprint, not user-facing text.
         const sortedEntries = entries.sort(([a], [b]) => {
             if (a === b) {
                 return 0;
@@ -968,13 +949,9 @@ function canonicalize(value: unknown): unknown {
 }
 
 /**
- * Return a structural fingerprint of a rule with the `right` values of every `from` leaf
- * stripped. Two rules with the same fingerprint differ only in their submitter list, which
- * is what we look for when deciding whether to merge two workflows into a shared rule.
- *
- * Keys are canonicalized (recursively sorted) so a rule hydrated from the server folds into
- * a freshly-built one even when their JSON object-key order differs — otherwise the create
- * flow would mint a brand-new rule instead of adding the submitter to the existing rule.
+ * Return a structural fingerprint of a rule with every `from` leaf's `right` (the submitter list)
+ * stripped and keys canonicalized. Two rules with the same fingerprint differ only in their submitters,
+ * which is what we look for when deciding whether to merge two workflows into a shared rule.
  */
 function structuralFingerprint(rule: ApprovalWorkflowRule): string {
     const stripFromValues = (node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): unknown => {
@@ -982,7 +959,6 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
             return node;
         }
         if (isComparisonLeaf(node)) {
-            // Drop the `right` (submitter list) from `from` leaves so only the structure remains.
             if (isSubmitterFilter(node)) {
                 return {operator: node.operator, left: node.left};
             }
@@ -1082,17 +1058,9 @@ function reconcileApprovalWorkflowRulesForCreate(newRules: ApprovalWorkflowRule[
 }
 
 /**
- * Reconcile an edit to an existing workflow. Returns add/replace/remove instructions to
- * morph the existing rule set into the new chain while preserving rules shared with other
- * workflows.
- *
- * Two passes:
- *   1. Walk every existing rule that contains any of the workflow's members. If a new rule
- *      structurally matches, leave it alone; otherwise either drop this workflow's members
- *      from the rule (when it's shared with other workflows) or remove the rule entirely.
- *   2. For every new rule that didn't already exist, look for a structurally matching rule
- *      under a different membership and fold this workflow into it; failing that, create
- *      a fresh rule with a new ruleID.
+ * Reconcile an edit to an existing workflow into add/replace/remove instructions, preserving rules shared
+ * with other workflows. Pass 1 rewrites/removes existing rules that hold this workflow's members; pass 2
+ * folds each new rule into a structurally-matching foreign rule or creates it under a fresh ruleID.
  */
 function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[], memberEmails: string[], context: ReconcileContext): ApprovalWorkflowRulesDiff {
     const diff: ApprovalWorkflowRulesDiff = {};
@@ -1206,9 +1174,7 @@ function reconcileApprovalWorkflowRulesForMembersChange(previousMemberEmails: st
     return diff;
 }
 
-/**
- * Apply an `ApprovalWorkflowRulesDiff` to a rule map, returning a new map. A `null` value removes
- */
+/** Apply an `ApprovalWorkflowRulesDiff` to a rule map, returning a new map. A `null` value removes the rule. */
 function applyApprovalWorkflowRulesDiff(existingRules: Record<string, ApprovalWorkflowRule>, diff: ApprovalWorkflowRulesDiff): Record<string, ApprovalWorkflowRule> {
     const result: Record<string, ApprovalWorkflowRule> = {...existingRules};
     for (const [ruleID, value] of Object.entries(diff)) {
@@ -1221,10 +1187,8 @@ function applyApprovalWorkflowRulesDiff(existingRules: Record<string, ApprovalWo
     return result;
 }
 
-// Inverse of `buildApprovalWorkflowRules`. Given the policy's rule set we walk
-// each submitter's hop chain and rebuild the same `PolicyConversionResult` the
-// legacy employeeList-based converter produces, so the rest of the workflows UI
-// keeps working unchanged.
+// Inverse of `buildApprovalWorkflowRules`: walk each submitter's hop chain to rebuild the same
+// `PolicyConversionResult` the legacy employeeList-based converter produces.
 
 /** Return the first comparison leaf in the filter tree whose `left` field matches. */
 function findComparisonByLeft(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, leftKey: string): ApprovalWorkflowFilterComparison | undefined {
@@ -1448,9 +1412,7 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
     return result;
 }
 
-/**
- * Map every submitter found in the rules to their workflow's first approver
- */
+/** Map every submitter found in the rules to their workflow's first approver. */
 function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}): Record<string, string> {
     const submitters = new Set<string>();
     for (const rule of Object.values(rules)) {
@@ -1471,10 +1433,8 @@ function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflow
 
 /**
  * Beta-enabled counterpart to `convertPolicyEmployeesToApprovalWorkflows`: rebuild the same
- * `PolicyConversionResult` shape from the `ONYXKEYS.COLLECTION.RULE` rules (passed in via
- * `params.rules`), with per-hop fallback to `employeeList` for any chain step the rules don't
- * cover. Rule-based chains are kept separate from legacy chains even when their shapes match —
- * the legacy ones are expected to disappear as workflows are migrated.
+ * `PolicyConversionResult` from `params.rules`, falling back to `employeeList` for any chain step the
+ * rules don't cover.
  */
 function convertApprovalWorkflowRulesToWorkflows({
     policy,
@@ -1560,11 +1520,9 @@ function convertApprovalWorkflowRulesToWorkflows({
             }
         }
 
-        // Group submitters by their resolved approver chain, so everyone routing through the same chain of
-        // approvers renders as a single workflow card. Grouping by the exact set of ruleIDs instead would
-        // split two same-chain workflows whenever their rules happened to be stored as separate pairs (e.g.
-        // one workflow was created before the other's rules were cached). The `r`/`l` source tag keeps
-        // rule-based chains separate from legacy employeeList chains, which are expected to disappear on re-save.
+        // Group by resolved approver chain (not by ruleID set) so submitters routing through the same chain
+        // render as one card even when their rules are stored as separate pairs. The `r`/`l` tag keeps
+        // rule-based chains separate from legacy employeeList chains.
         const hasRuleBasedChain = getSubmitterRuleIDs(email, rules).length > 0;
         const chainKey = approverChainFingerprint(chain);
         const fingerprint = hasRuleBasedChain ? `r|${chainKey}` : `l|${chainKey}`;

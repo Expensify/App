@@ -1021,9 +1021,8 @@ function setWorkspaceApprovalMode(
         failureData.push(...nextStepFailureData);
     }
 
-    // Disabling approvals removes every approval workflow, which now lives in the `rules_<ruleID>` Onyx
-    // collection. Auth's DisablePolicyApprovals deletes those rows server-side, but we must also clear them
-    // optimistically so the workflows UI doesn't keep rebuilding stale workflows (e.g. after re-enabling).
+    // Auth's DisablePolicyApprovals deletes the policy's rule rows server-side; clear them optimistically too
+    // so the workflows UI doesn't keep rebuilding stale workflows (e.g. after re-enabling).
     if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && allRules) {
         for (const [ruleKey, rule] of Object.entries(allRules)) {
             if (!rule || rule.scope !== CONST.APPROVAL_WORKFLOW_RULE.SCOPE.POLICY || rule.scopeID !== policyID) {

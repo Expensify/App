@@ -359,9 +359,7 @@ function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetAppro
     write(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, parameters, {optimisticData, successData, failureData});
 }
 
-/**
- * Create an approval workflow using the rules-based backend structure,
- */
+/** Create an approval workflow using the rules-based backend structure. */
 function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport}: CreateApprovalWorkflowParams) {
     if (!policy) {
         return;
@@ -396,9 +394,7 @@ type UpdateApprovalWorkflowRulesParams = {
     policy: OnyxEntry<Policy>;
 };
 
-/**
- * Update an existing workflow using the rules-based backend structure
- */
+/** Update an existing workflow using the rules-based backend structure. */
 function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy}: UpdateApprovalWorkflowRulesParams) {
     if (!policy) {
         return;
@@ -427,9 +423,7 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: existingRules});
 }
 
-/**
- * Delete an approval workflow using the rules-based backend structure, gated behind the `multipleApprovers` beta.
- */
+/** Delete an approval workflow using the rules-based backend structure, gated behind the `multipleApprovers` beta. */
 function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
     if (!policy) {
         return;
