@@ -1,20 +1,29 @@
+import type getLastRoute from '@components/Navigation/NavigationTabBar/getLastRoute';
 import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
 
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 import type {NavigationState} from '@react-navigation/native';
 
-const mockGetLastRoute = jest.fn();
+const mockGetLastRoute = jest.fn<ReturnType<typeof getLastRoute>, Parameters<typeof getLastRoute>>();
 
 jest.mock('@components/Navigation/NavigationTabBar/getLastRoute', () => ({
     __esModule: true,
-    default: (...args: unknown[]) => mockGetLastRoute(...args),
+    default: (...args: Parameters<typeof getLastRoute>) => mockGetLastRoute(...args),
 }));
 
-const rootState = {} as NavigationState;
+const rootState: NavigationState = {
+    stale: false,
+    type: 'stack',
+    key: 'root',
+    index: 0,
+    routeNames: [],
+    routes: [],
+};
 
 describe('getSearchTabRoute', () => {
     beforeEach(() => {
@@ -24,7 +33,7 @@ describe('getSearchTabRoute', () => {
     it('restores the last navigation route with its additional parameters', () => {
         const q = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
         const queryJSON = buildSearchQueryJSON(q);
-        mockGetLastRoute.mockReturnValue({params: {q, rawQuery: q, name: 'Expenses'}});
+        mockGetLastRoute.mockReturnValue({key: 'search-root', name: SCREENS.SEARCH.ROOT, params: {q, rawQuery: q, name: 'Expenses'}});
 
         expect(queryJSON).not.toBeUndefined();
         if (!queryJSON) {

@@ -1,9 +1,7 @@
 /**
  * Resolves the route used to restore the latest Spend search.
  */
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-
-import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, isSearchRootParams} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -19,8 +17,8 @@ import getLastRoute from './getLastRoute';
 function getSearchTabRoute(rootState: NavigationState, lastSearchParams: OnyxEntry<LastSearchParams>) {
     const lastSearchRoute = getLastRoute(rootState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT);
 
-    if (lastSearchRoute) {
-        const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+    if (isSearchRootParams(lastSearchRoute?.params)) {
+        const {q, ...rest} = lastSearchRoute.params;
         const queryJSON = buildSearchQueryJSON(q);
         if (queryJSON) {
             return ROUTES.SEARCH_ROOT.getRoute({
