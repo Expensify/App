@@ -6,11 +6,6 @@ import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import type Middleware from './types';
 
-/**
- * Records LAST_FULL_RECONNECT_TIME on every successful full-download response. isFullDownloadRequest
- * is the same rule the queue's reconnect dedup uses, so the two cannot drift apart. See
- * recordFullReconnectTimeFromResponse for why the time comes from the response.
- */
 const recordFullReconnectTime: Middleware = (requestResponse, request) =>
     requestResponse.then((response) => {
         if (!isFullDownloadRequest(request) || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
