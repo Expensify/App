@@ -185,7 +185,7 @@ type SearchWithdrawalIDGroup = {
     /** The feed the settlement belongs to; absent when it spans more than one feed */
     fundID?: number;
 
-    /** Whether the current user may export this settlement as a statement PDF (admin of every card's domain) */
+    /** Whether the current user may export this settlement as a statement PDF (set by the backend, which applies the same admin authorization it uses to generate the PDF) */
     canExportStatement?: boolean;
 };
 
