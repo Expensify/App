@@ -11,13 +11,16 @@ import UserAvatar from './UserAvatar';
 import WorkspaceAvatar from './WorkspaceAvatar';
 
 type AvatarProps = AvatarCommonProps & {
-    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
+    /** ID of the avatar owner: account ID for user avatars, policy ID for workspace avatars. Falls back to the anonymous default when omitted. */
+    avatarID?: number | string;
+
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. Only used for user avatars. */
     fallbackIcon?: AvatarSource;
 
-    /** Used to locate fallback icon in end-to-end tests. */
+    /** Used to locate fallback icon in end-to-end tests. Only used for user avatars. */
     fallbackIconTestID?: string;
 
-    /** Owner of the avatar. If user, displayName. If workspace, policy name */
+    /** Workspace name. Only used for workspace avatars — seeds the default workspace avatar. */
     name?: string;
 
     /** Denotes whether it is an avatar or a workspace avatar */
@@ -27,7 +30,20 @@ type AvatarProps = AvatarCommonProps & {
 /** Renders a user or workspace avatar depending on the `type` prop.
  * This wrapper exists for backward compatibility. If possible use WorkspaceAvatar and UserAvatar directly.
  */
-function Avatar({type, name, fallbackIcon, fallbackIconTestID, source, imageStyles, iconAdditionalStyles, containerStyles, size, fill, testID, avatarID}: AvatarProps) {
+function Avatar({
+    type,
+    name = '',
+    fallbackIcon,
+    fallbackIconTestID,
+    source,
+    imageStyles,
+    iconAdditionalStyles,
+    containerStyles,
+    size,
+    fill,
+    testID,
+    avatarID = CONST.DEFAULT_NUMBER_ID,
+}: AvatarProps) {
     if (type === CONST.ICON_TYPE_WORKSPACE) {
         return (
             <WorkspaceAvatar

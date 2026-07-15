@@ -11,12 +11,15 @@ import useWorkspaceAvatarSource from './hooks/useWorkspaceAvatarSource';
 import AvatarBody from './primitives/AvatarBody';
 
 type WorkspaceAvatarProps = AvatarCommonProps & {
-    /** Owner of the avatar. Policy name */
-    name?: string;
+    /** Workspace name. Seeds the default workspace avatar (icon + test ID) used when `source` is missing. */
+    name: string;
+
+    /** Workspace/policy ID. Picks the background color of the default workspace avatar. */
+    avatarID: number | string;
 };
 
 /** Renders a workspace avatar, falling back to a default icon derived from the workspace name. */
-function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerStyles, size = CONST.AVATAR_SIZE.DEFAULT, fill, name = '', avatarID, testID = 'Avatar'}: WorkspaceAvatarProps) {
+function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerStyles, size = CONST.AVATAR_SIZE.DEFAULT, fill, name, avatarID, testID = 'Avatar'}: WorkspaceAvatarProps) {
     const styles = useThemeStyles();
     const resolvedAvatar = useWorkspaceAvatarSource({source, name, avatarID});
 

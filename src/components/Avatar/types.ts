@@ -13,10 +13,10 @@ type AvatarCommonProps = {
     /** Source for the avatar. Can be a URL or an icon. */
     source?: AvatarSource;
 
-    /** Extra styles to pass to Image */
+    /** Extra styles for the rendered image, or for the container of the rendered icon/initials */
     imageStyles?: StyleProp<ViewStyle & ImageStyle>;
 
-    /** Additional styles to pass to Icon */
+    /** Additional styles for the rendered icon/initials, or for the container of the rendered image */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
 
     /** Extra styles to pass to View wrapper */
@@ -27,15 +27,12 @@ type AvatarCommonProps = {
 
     /**
      * The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'
-     * If the avatar is type === workspace, this fill color will be ignored and decided based on the name prop.
+     * For workspace avatars this fill color is ignored — the colors are derived from the avatarID prop instead.
      */
     fill?: string;
 
     /** Test ID for the Avatar component */
     testID?: string;
-
-    /** Optional account id if it's user avatar */
-    avatarID?: number | string;
 };
 
 type ResolvedAvatarBase = {

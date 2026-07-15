@@ -17,7 +17,7 @@ type UseWorkspaceAvatarSourceParams = {
     name: string;
 
     /** Workspace/policy ID. Picks the background color of the default workspace avatar. */
-    avatarID?: number | string;
+    avatarID: number | string;
 };
 
 /** Resolves a workspace avatar source into a renderable model: a remote image or an SVG icon, never initials. */
@@ -31,7 +31,7 @@ function useWorkspaceAvatarSource({source, name, avatarID}: UseWorkspaceAvatarSo
     const fallbackAvatar = getDefaultWorkspaceAvatar(name);
     const fallbackAvatarTestID = getDefaultWorkspaceAvatarTestID(name);
     const avatarSource = shouldUseFallBackAvatar ? fallbackAvatar : (optimizedSource ?? fallbackAvatar);
-    const iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(avatarID?.toString() ?? '');
+    const iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(avatarID.toString());
 
     if (typeof avatarSource === 'string') {
         return {

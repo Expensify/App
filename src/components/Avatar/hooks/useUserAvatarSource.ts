@@ -13,8 +13,8 @@ type UseUserAvatarSourceParams = {
     /** Avatar to render: an image URL or an SVG icon. Falls back to `fallbackIcon` when missing or it fails to load. */
     source?: AvatarSource;
 
-    /** Owning account/policy ID. Complements `source` — picks the default avatar when `source` is a default or absent. */
-    avatarID?: number | string;
+    /** Owning account ID. Picks the default avatar when `source` is a default or absent. */
+    avatarID: number | string;
 
     /** Icon rendered when `source` is missing or fails to load. Defaults to the shared fallback avatar. */
     fallbackIcon?: AvatarSource;
