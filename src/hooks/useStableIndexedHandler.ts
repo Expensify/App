@@ -1,4 +1,4 @@
-import {useRef} from 'react';
+import {useCallback, useRef} from 'react';
 
 /**
  * Returns a factory that, given an index, returns a referentially-stable
@@ -18,16 +18,22 @@ import {useRef} from 'react';
 function useStableIndexedHandler<Args extends unknown[]>(handler: (index: number, ...args: Args) => void): (index: number) => (...args: Args) => void {
     const cacheRef = useRef<Map<number, (...args: Args) => void>>(new Map());
 
-    return (index: number) => {
-        const cache = cacheRef.current;
-        const cached = cache.get(index);
-        if (cached) {
-            return cached;
-        }
-        const bound = (...args: Args) => handler(index, ...args);
-        cache.set(index, bound);
-        return bound;
-    };
+    // Memoize the factory so its identity is stable across renders (and only changes with `handler`),
+    // matching the documented contract. OXC's React Compiler does not memoize this hook on web, so
+    // without this useCallback the factory would be a fresh reference every render there.
+    return useCallback(
+        (index: number) => {
+            const cache = cacheRef.current;
+            const cached = cache.get(index);
+            if (cached) {
+                return cached;
+            }
+            const bound = (...args: Args) => handler(index, ...args);
+            cache.set(index, bound);
+            return bound;
+        },
+        [handler],
+    );
 }
 
 export default useStableIndexedHandler;

@@ -7,16 +7,16 @@ import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 
-import {addAttachmentWithComment, addComment} from '@libs/actions/Report';
+import {addAttachmentWithComment, addComment, clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
+import {isConciergeChatReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {generateAccountID} from '@libs/UserUtils';
 
 import {useActionListContext} from '@pages/inbox/ActionListContext';
-import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 
 import {setIsComposerFullSize} from '@userActions/Report';
 
@@ -42,7 +42,6 @@ function useComposerSubmit(reportID: string) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const delegateAccountID = useDelegateAccountID();
-    const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
 
     const {composerRef, attachmentFileRef, textRef} = useComposerMeta();
     const {clearComposer} = useComposerActions();
@@ -75,8 +74,15 @@ function useComposerSubmit(reportID: string) {
             return;
         }
 
+        // A new user message supersedes any Concierge processing indicator from a prior turn (e.g. a persisted
+        // "...is working on your chat" while a human is handling it). Clear it optimistically so it disappears
+        // the instant the user sends, instead of lingering until the ProcessAgentZeroRequest job runs; the
+        // backend re-establishes the correct status afterward.
+        if (isConciergeChatReport(report, conciergeReportID)) {
+            clearAgentZeroProcessingIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE);
+        }
+
         if (attachmentFileRef.current) {
-            kickoffWaitingIndicator();
             addAttachmentWithComment({
                 report: targetReport,
                 notifyReportID: reportID,
@@ -160,7 +166,6 @@ function useComposerSubmit(reportID: string) {
                 },
             });
         }
-        kickoffWaitingIndicator();
         addComment({
             report: targetReport,
             notifyReportID: reportID,
