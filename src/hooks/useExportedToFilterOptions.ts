@@ -1,7 +1,6 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import {getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
-import {getExportTemplates} from '@libs/actions/Search';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies, getFilterFromQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -10,7 +9,7 @@ import type {ExportTemplate, Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import useLocalize from './useLocalize';
+import useCombinedExportTemplates from './useCombinedExportTemplates';
 import useOnyx from './useOnyx';
 
 type UseExportedToFilterDataResult = {
@@ -46,28 +45,12 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const policyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
 
-    const {translate, localeCompare} = useLocalize();
-    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
-    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: exportedToPoliciesSelector});
 
     // When search is scoped to workspaces, use only those policies otherwise use all.
     const policiesToUse = getAllPolicyValues(policyIDs, ONYXKEYS.COLLECTION.POLICY, policies);
-    const policyLevelExportTemplates = policiesToUse.flatMap((policy) => {
-        const {customTemplates, defaultTemplates} = getExportTemplates([], {}, translate, localeCompare, policy, false);
-        return [...customTemplates, ...defaultTemplates];
-    });
-    const accountLevelTemplateGroups = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, undefined, true);
-    const combinedExportTemplates = [...accountLevelTemplateGroups.customTemplates, ...accountLevelTemplateGroups.defaultTemplates, ...policyLevelExportTemplates];
+    const {combinedExportTemplates: combinedUniqueExportTemplates} = useCombinedExportTemplates(policiesToUse);
 
-    const uniqueExportTemplatesByName = new Map<string, ExportTemplate>();
-    for (const template of combinedExportTemplates) {
-        if (!uniqueExportTemplatesByName.has(template.templateName)) {
-            uniqueExportTemplatesByName.set(template.templateName, template);
-        }
-    }
-
-    const combinedUniqueExportTemplates = Array.from(uniqueExportTemplatesByName.values());
     const integrationConnectionNamesSet = new Set<string>(CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
 
     const standardAndCustomExportTemplates: string[] = [];

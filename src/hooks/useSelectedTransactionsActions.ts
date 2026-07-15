@@ -34,7 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useMemo, useRef, useState} from 'react';
@@ -401,12 +401,11 @@ function useSelectedTransactionsActions({
                 includeReportLevelExport,
                 true,
             );
-            const orderedTemplates = [...customTemplates, ...defaultTemplates];
-            for (const [index, template] of orderedTemplates.entries()) {
+            // Builds a single export sub-menu item for a template. `isDefaultTemplate` picks the icon and `addSeparatorBefore` draws the divider at the top of each group.
+            const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): PopoverMenuItem => {
                 // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
                 const isBasicExport = template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV;
-                const isDefaultTemplate = index >= customTemplates.length;
-                exportOptions.push({
+                return {
                     text: template.name,
                     icon: isDefaultTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
@@ -429,9 +428,16 @@ function useSelectedTransactionsActions({
                               clearSelectedTransactions(true);
                           }
                         : () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.name, template.policyID),
-                    // Divider at the custom/default group boundary (suppressed when this is the first item)
-                    addSeparatorBefore: index === 0 || index === customTemplates.length,
-                });
+                    addSeparatorBefore,
+                };
+            };
+
+            // Add each group's templates separately so the icon and the group-boundary divider come from the group itself, not from an index into a combined list.
+            for (const [index, template] of customTemplates.entries()) {
+                exportOptions.push(buildExportOption(template, false, index === 0));
+            }
+            for (const [index, template] of defaultTemplates.entries()) {
+                exportOptions.push(buildExportOption(template, true, index === 0));
             }
 
             return exportOptions;

@@ -1112,7 +1112,7 @@ function getSecondaryReportActions({
  * Returns the accounting export actions (export to integration / mark as exported) the user is allowed to perform on the report.
  * The export template options are collated separately via getExportTemplates, which returns them pre-grouped and sorted.
  */
-function getSecondaryExportReportActions(
+function getReportAccountingExportActions(
     currentUserAccountID: number,
     currentUserLogin: string,
     report: Report,
@@ -1213,4 +1213,4 @@ function getSecondaryTransactionThreadActions({
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeActionForSelectedTransactions, getSecondaryExportReportActions, isSplitAction, isChangeWorkspaceAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeActionForSelectedTransactions, getReportAccountingExportActions, isSplitAction, isChangeWorkspaceAction};

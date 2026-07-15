@@ -40,7 +40,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
-import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
+import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
     getAllPolicyExpenseChatReportActions,
@@ -1508,7 +1508,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return false;
                 }
 
-                const reportExportOptions = getSecondaryExportReportActions(accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserLogin ?? '', snapshotReport, bankAccountList, reportPolicy);
+                const reportExportOptions = getReportAccountingExportActions(accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserLogin ?? '', snapshotReport, bankAccountList, reportPolicy);
 
                 return reportExportOptions.includes(exportOption);
             };

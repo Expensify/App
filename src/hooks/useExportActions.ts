@@ -8,7 +8,7 @@ import {getExportTemplates, queueExportSearchWithTemplate} from '@libs/actions/S
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
-import {getSecondaryExportReportActions} from '@libs/ReportSecondaryActionUtils';
+import {getReportAccountingExportActions} from '@libs/ReportSecondaryActionUtils';
 import {getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -221,7 +221,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     // The accounting export actions (export to integration / mark as exported) the user is allowed to perform on the report
     const secondaryExportActions: string[] = moneyRequestReport
-        ? getSecondaryExportReportActions(accountID, currentUserLogin ?? '', moneyRequestReport, bankAccountList, policy ?? undefined)
+        ? getReportAccountingExportActions(accountID, currentUserLogin ?? '', moneyRequestReport, bankAccountList, policy ?? undefined)
         : [];
 
     // Assemble the export submenu from its pre-sorted groups (accounting actions, custom templates, default templates), with a divider between each non-empty group
@@ -229,6 +229,8 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         ? [
               secondaryExportActions,
               customTemplates.map((template) => template.name),
+              // The basic export was skipped in the loop above, so it isn't registered in exportSubmenuOptions under its name.
+              // It's keyed by DOWNLOAD_CSV instead (its dedicated direct-download option), so reference it by that key here so the lookup below resolves it.
               defaultTemplates.map((template) => (template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV ? CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV : template.name)),
           ]
         : [];
