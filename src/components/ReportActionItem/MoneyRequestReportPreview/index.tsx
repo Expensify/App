@@ -17,7 +17,6 @@ import {createTransactionThreadReport, openReport, setOptimisticTransactionThrea
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
-import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -222,29 +221,15 @@ function MoneyRequestReportPreview({
                 // instead leaves the parent report frozen beneath it (freezeNonTopScreens), so hard-backing to that
                 // just-thawed, still-loading report drops the first transaction-row tap.
                 if (getPlatform() === CONST.PLATFORM.WEB) {
-                    const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
-                    // No RHP width hint on narrow: the mobile RHP is always full-screen and the expense screen never
-                    // reads the hint, so marking it 'wide' is inert here — it only forces a WideRHP context-wide
-                    // re-render mid-transition and leaves a stale 'wide' hint for a later wide visit.
+                    // On mobile web, open the pressed expense directly in the RHP over the chat. Pushing the parent
+                    // report as a split screen first (so back stops on it) mounts a fresh, still-hydrating report and
+                    // then suspends it via react-freeze when the RHP opens — that wedges React concurrent rendering on
+                    // iOS Safari (the app freezes on a cold reload, and no frame/timeout reliably outruns the
+                    // hydration). Opening over the already-settled chat avoids it; back returns to the chat. (Native
+                    // still splices the report underneath for back -> report -> chat via openExpenseOverParentReport;
+                    // web can't do that without reintroducing the freeze.)
                     setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID));
-                    // Open the report first, then defer the expense's RHP by one frame so the report lands as its own
-                    // browser-history entry — hard/browser back and the header back both stop on the report, then the
-                    // chat. One frame keeps the report barely visible before the full-screen RHP covers it. (Opening
-                    // both in the same tick removes the flash but drops the report from history, so back would skip it.)
-                    Navigation.navigate(reportRoute);
-                    // Open the expense's RHP only after the freshly-pushed report has committed and painted, and only
-                    // while it is still the active route. Opening the RHP suspends the whole split via react-freeze, and
-                    // suspending a still-hydrating report (cold Onyx cache right after a hard reload) wedges React
-                    // concurrent rendering on iOS Safari — the app freezes. The extra requestAnimationFrame lets the
-                    // report settle before the freeze lands; the isActiveRoute guard bails if the user navigated away.
-                    setNavigationActionToMicrotaskQueue(() =>
-                        requestAnimationFrame(() => {
-                            if (!Navigation.isActiveRoute(reportRoute)) {
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
-                        }),
-                    );
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo}));
                     return;
                 }
 
