@@ -10,7 +10,6 @@ import type {TableHandle} from '@components/Table';
 import type {WorkspaceMemberRowData, WorkspaceMembersTableColumnKey} from '@components/Tables/WorkspaceMembersTable';
 import WorkspaceMembersTable from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -111,7 +110,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const textInputRef = useRef<BaseTextInputRef>(null);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
@@ -188,9 +186,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails]);
 
-    const focusTextInput = useCallback(() => {
-        textInputRef.current?.focus();
-    }, []);
     /**
      * Get members for the current workspace
      */
@@ -276,7 +271,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             prompt: confirmModalPrompt,
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-            onModalHide: focusTextInput,
         }).then(({action}) => {
             if (action !== ModalActions.CONFIRM) {
                 return;
@@ -284,7 +278,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
             removeUsers();
         });
-    }, [confirmModalPrompt, focusTextInput, removeUsers, selectedEmployees.length, showConfirmModal, translate]);
+    }, [confirmModalPrompt, removeUsers, selectedEmployees.length, showConfirmModal, translate]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
