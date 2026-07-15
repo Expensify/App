@@ -57,6 +57,8 @@ type TableBodyProps = ViewProps & {
 function TableBody<DataType extends TableData>({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isListLoaded, setIsListLoaded] = React.useState(false);
+    const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = React.useState(false);
     const {
         processedData: filteredAndSortedData,
         activeSearchString,
@@ -80,6 +82,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         contentContainerStyle: listContentContainerStyle,
         getItemType,
         keyExtractor,
+        onLoad,
         onScroll,
         renderItem,
         stickyHeaderIndices,
@@ -109,6 +112,15 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
+    React.useEffect(() => {
+        if (!tableListMetadata.shouldRenderStickyHeader || !isListLoaded || hasActivatedStickyHeader) {
+            return undefined;
+        }
+
+        const frame = requestAnimationFrame(() => setHasActivatedStickyHeader(true));
+        return () => cancelAnimationFrame(frame);
+    }, [hasActivatedStickyHeader, isListLoaded, tableListMetadata.shouldRenderStickyHeader]);
+
     // Tables without a scrolling page header keep the default contract: an empty table renders
     // nothing here so the declarative Table.EmptyState/Table.NoResultsState siblings take over.
     // With a page header (or a ListEmptyComponent) the list must stay mounted even when empty,
@@ -137,6 +149,12 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
     );
     const listData = buildTableListData<DataType>(filteredAndSortedData, tableListMetadata);
     const adjustedStickyHeaderIndices = getAdjustedStickyHeaderIndices(tableListMetadata, stickyHeaderIndices);
+    const canRenderStickyHeader = !tableListMetadata.shouldRenderStickyHeader || (isListLoaded && hasActivatedStickyHeader);
+
+    const handleLoad: NonNullable<typeof onLoad> = (info) => {
+        setIsListLoaded(true);
+        onLoad?.(info);
+    };
 
     const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
@@ -204,7 +222,8 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
                 ListEmptyComponent={listEmptyComponent}
-                stickyHeaderIndices={adjustedStickyHeaderIndices}
+                onLoad={handleLoad}
+                stickyHeaderIndices={canRenderStickyHeader ? adjustedStickyHeaderIndices : undefined}
                 contentContainerStyle={[
                     filteredAndSortedData.length === 0 && styles.flexGrow1,
                     listContentContainerStyle,

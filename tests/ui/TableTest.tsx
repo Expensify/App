@@ -374,6 +374,27 @@ function createDefaultProps() {
     };
 }
 
+function activateStickyHeadersAfterListLoad() {
+    let animationFrameCallback: FrameRequestCallback | undefined;
+    const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+        animationFrameCallback = callback;
+        return 1;
+    });
+
+    act(() => {
+        mockFlashListProps.at(-1)?.onLoad?.({elapsedTimeInMs: 1});
+    });
+
+    if (!animationFrameCallback) {
+        throw new Error('Expected sticky-header activation to be scheduled after FlashList load');
+    }
+
+    act(() => {
+        animationFrameCallback?.(0);
+    });
+    requestAnimationFrameSpy.mockRestore();
+}
+
 describe('Table', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -546,10 +567,14 @@ describe('Table', () => {
             expect(screen.getByTestId('row-index-1').props.children).toBe(0);
             expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeUndefined();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+
+            activateStickyHeadersAfterListLoad();
+
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
         });
 
-        it('should set sticky table header index from the first data render', () => {
+        it('should activate the sticky table header after the first list layout', () => {
             const props = createDefaultProps();
             const renderTable = (data: TestItem[]) => (
                 <Table<TestItem, TestColumnKey>
@@ -570,8 +595,12 @@ describe('Table', () => {
 
             rerender(renderTable(props.data));
 
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+
+            activateStickyHeadersAfterListLoad();
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
         });
 
         it('should not add a page-header row when no page header is provided', () => {
@@ -591,8 +620,12 @@ describe('Table', () => {
                 </Table>,
             );
 
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+
+            activateStickyHeadersAfterListLoad();
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
             const tableHandle = tableRef.current;
             if (!tableHandle) {
                 throw new Error('Expected table ref to be set');
