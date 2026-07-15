@@ -4,12 +4,17 @@ type UseDiscardChangesConfirmationOptions = {
     onCancel?: () => void;
     onVisibilityChange?: (visible: boolean) => void;
     onConfirm?: () => void | Promise<void>;
+
+    /**
+     * Discard action for confirming a tab switch. Provide it to guard tab switches inside an `OnyxTabNavigator`.
+     * Can differ from `onConfirm` (nav-away)
+     */
     onTabSwitchDiscard?: () => void | Promise<void>;
 };
 
 type DiscardChangesConfirmation = {
-    /** Suppress the discard prompt during an intentional navigation (a save, or a redirect such as the billing restriction). Pass `false` to clear it if that navigation aborts without leaving. */
-    suppressDiscardPrompt: (shouldSuppress?: boolean) => void;
+    /** Suppress the discard prompt while an intentional save navigates away. Pass `false` to clear it if the save aborts without navigating. */
+    notifySaving: (isSaving?: boolean) => void;
 };
 
 export default UseDiscardChangesConfirmationOptions;

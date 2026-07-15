@@ -28,13 +28,14 @@ function useProfileAvatarForm() {
     const [isRemoved, setIsRemoved] = useState(false);
 
     const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
+    const isSavingRef = useRef(false);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isDirty = imageData.uri !== '' || !!selected || isRemoved;
 
-    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => isDirty,
+    useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => !isSavingRef.current && isDirty,
     });
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
@@ -70,7 +71,7 @@ function useProfileAvatarForm() {
     };
 
     const save = () => {
-        suppressDiscardPrompt();
+        isSavingRef.current = true;
 
         if (isRemoved) {
             deleteAvatar(currentUserPersonalDetails);
@@ -107,7 +108,7 @@ function useProfileAvatarForm() {
         }
 
         if (!selected || !avatarCaptureRef.current) {
-            suppressDiscardPrompt(false);
+            isSavingRef.current = false;
             return;
         }
 
@@ -120,7 +121,7 @@ function useProfileAvatarForm() {
                 Navigation.dismissModal();
             })
             .catch(() => {
-                suppressDiscardPrompt(false);
+                isSavingRef.current = false;
             });
     };
 

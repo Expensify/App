@@ -3,6 +3,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 
+import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
 
@@ -16,7 +17,6 @@ import type {DiscardChangesConfirmation} from './types';
 import type UseDiscardChangesConfirmationOptions from './types';
 
 import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
-import runDiscardConfirmation from './runDiscardConfirmation';
 
 function useDiscardChangesConfirmation({
     getHasUnsavedChanges,
@@ -40,7 +40,9 @@ function useDiscardChangesConfirmation({
     });
     const hasUnsavedChanges = () => isFocused && !isSavingRef.current && getHasUnsavedChanges();
 
-    useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
+    // Also guard tab switches when this screen is an OnyxTabNavigator tab.
+    // Self-disables outside a tab navigator or without an onTabSwitchDiscard handler
+    useRegisterTabSwitchGuard(route.name, getHasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
     const showDiscardModal = (blockedAction?: NavigationAction) => {
         blockedNavigationAction.current = blockedAction;
@@ -64,9 +66,13 @@ function useDiscardChangesConfirmation({
                 }
                 isReplayingBlockedNavigation.current = false;
             };
-            runDiscardConfirmation(onConfirm, confirmNavigation, () => {
-                blockedNavigationAction.current = undefined;
-            });
+            Promise.resolve()
+                .then(() => onConfirm?.())
+                .then(confirmNavigation)
+                .catch((error: unknown) => {
+                    Log.warn('[useDiscardChangesConfirmation] Failed to run onConfirm callback', {error});
+                    blockedNavigationAction.current = undefined;
+                });
         });
     };
 
@@ -98,11 +104,11 @@ function useDiscardChangesConfirmation({
         return () => subscription.remove();
     });
 
-    const suppressDiscardPrompt = (shouldSuppress = true) => {
-        isSavingRef.current = shouldSuppress;
+    const notifySaving = (isSaving = true) => {
+        isSavingRef.current = isSaving;
     };
 
-    return {suppressDiscardPrompt};
+    return {notifySaving};
 }
 
 export default useDiscardChangesConfirmation;
