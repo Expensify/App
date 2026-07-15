@@ -246,7 +246,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }
         openPolicyInitialPage(route.params.policyID);
     };
-    useNetwork({onReconnect: fetchPolicyData});
+    const {isOffline} = useNetwork({onReconnect: fetchPolicyData});
     useFocusEffect(
         useCallback(() => {
             fetchPolicyData();
@@ -269,14 +269,14 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [hasConnectionsDataBeenFetched, hasConnectionsDataBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policyID}`);
     const isConnectionsFetchedFlagLoading = isLoadingOnyxValue(hasConnectionsDataBeenFetchedResult);
     useEffect(() => {
-        if (isConnectionsFetchedFlagLoading || !isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) || !policyID || hasConnectionsDataBeenFetched) {
+        if (isConnectionsFetchedFlagLoading || isOffline || !isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) || !policyID || hasConnectionsDataBeenFetched) {
             return;
         }
         if (!policy?.areConnectionsEnabled && isEmptyObject(policy?.connections)) {
             return;
         }
         openPolicyAccountingPage(policyID);
-    }, [policyID, hasConnectionsDataBeenFetched, isConnectionsFetchedFlagLoading, isBetaEnabled, policy?.areConnectionsEnabled, policy?.connections]);
+    }, [policyID, hasConnectionsDataBeenFetched, isConnectionsFetchedFlagLoading, isOffline, isBetaEnabled, policy?.areConnectionsEnabled, policy?.connections]);
 
     const workspaceMenuItems: WorkspaceMenuItem[] = [
         {
