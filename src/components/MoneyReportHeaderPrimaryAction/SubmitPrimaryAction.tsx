@@ -27,7 +27,7 @@ import {isSubmitViaPDFAction} from '@libs/ReportPrimaryActionUtils';
 import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
-import {setPreferredReportSubmissionMethod, submitReport} from '@userActions/IOU/ReportWorkflow';
+import {retractReport, setPreferredReportSubmissionMethod, submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
@@ -73,9 +73,10 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const {isBetaEnabled} = usePermissions();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {openPDFDownload} = useMoneyReportHeaderModals();
+    const {openPDFDownload, showOfflineModal} = useMoneyReportHeaderModals();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)}, [moneyRequestReport?.ownerAccountID]);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
@@ -134,6 +135,13 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
             return;
         }
 
+        // The PDF is rendered server-side, so Submit via PDF can't work offline. Show the offline modal instead of
+        // opening a PDF modal that would spin indefinitely (mirrors the Download PDF action's offline handling).
+        if (shouldExportToPDF && isOffline) {
+            showOfflineModal();
+            return;
+        }
+
         if (hasOnlyPendingCardTransactions(transactions)) {
             showPendingCardTransactionsBlockModal(showConfirmModal, translate);
             return;
@@ -162,7 +170,23 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 onSubmitted: () => {
                     startSubmittingAnimation();
                     if (shouldExportToPDF) {
-                        openPDFDownload();
+                        // If the user cancels while the PDF is still generating, discard the submission (retract it back
+                        // to draft) so they can resubmit — matching the pre-submit-via-PDF behavior.
+                        openPDFDownload({
+                            onCancel: () =>
+                                retractReport(
+                                    moneyRequestReport,
+                                    chatReport,
+                                    policy,
+                                    accountID,
+                                    email ?? '',
+                                    hasViolations,
+                                    isASAPSubmitBetaEnabled,
+                                    nextStep,
+                                    delegateEmail,
+                                    isTrackIntentUser,
+                                ),
+                        });
                     }
                 },
                 ownerBillingGracePeriodEnd,
