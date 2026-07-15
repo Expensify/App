@@ -128,9 +128,6 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
     });
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
-    // Surface the card's issuing country so cards on different programs (e.g. US vs GB) of the same feed are distinguishable.
-    const cardCountryCode = card?.nameValuePairs?.country;
-    const cardCountryName = cardCountryCode ? (CONST.ALL_COUNTRIES as Record<string, string>)[cardCountryCode] : undefined;
     const formattedAvailableSpendAmount = convertToDisplayString(card?.availableSpend, currency);
     const formattedLimit = convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency);
     const displayName = temporaryGetDisplayNameOrDefault({
@@ -384,13 +381,6 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                         interactive={false}
                         titleStyle={styles.walletCardNumber}
                     />
-                    {!!cardCountryName && (
-                        <MenuItemWithTopDescription
-                            description={translate('common.country')}
-                            title={cardCountryName}
-                            interactive={false}
-                        />
-                    )}
                     {spendRulesSummary.length > 0 && (
                         <MenuItemWithTopDescription
                             interactive={false}
