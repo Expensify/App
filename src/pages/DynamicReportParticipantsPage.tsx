@@ -254,7 +254,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                         ref={tableRef}
                         headerComponent={
                             isGroupChat ? (
-                                <View style={[styles.pl5, styles.pr5, styles.mb3, styles.w100]}>
+                                <View style={[styles.pl5, styles.pr5, styles.w100]}>
                                     {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
                                         <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                                             variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -265,7 +265,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                                             onPress={() => null}
                                             isSplitButton={false}
                                             options={bulkActionsButtonOptions}
-                                            style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                                            style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                                             isDisabled={!selectedMembers.length}
                                         />
                                     ) : (
@@ -275,7 +275,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                                             text={translate('workspace.invite.member')}
                                             icon={icons.Plus}
                                             innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                                            style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                                            style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                                         />
                                     )}
                                 </View>
