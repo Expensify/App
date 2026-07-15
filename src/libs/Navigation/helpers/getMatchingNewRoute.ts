@@ -20,7 +20,9 @@ function patternToRegex(pattern: string): RegExp {
         regexStr += StringUtils.escapeRegExp(parts.at(i) ?? '');
         if (i < parts.length - 1) {
             const isTrailing = i === parts.length - 2 && pattern.endsWith('*');
-            regexStr += isTrailing ? '(.*)' : '([^/]+)';
+            // Exclude `?`/`#` from the trailing capture so query strings/fragments aren't swallowed into the
+            // match (which would otherwise displace them from the end of the resulting URL).
+            regexStr += isTrailing ? '([^?#]*)' : '([^/]+)';
         }
     }
 
