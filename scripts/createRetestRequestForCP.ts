@@ -3,6 +3,8 @@ import CONST from '@github/libs/CONST';
 import {getDeployChecklist, NoOpenDeployChecklistError} from '@github/libs/DeployChecklistUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
+import CLI from 'expensify-common/CLI';
+
 // GitHub REST API request fields are snake_case (per_page, commit_sha, pull_number), which this rule would otherwise flag.
 /* eslint-disable @typescript-eslint/naming-convention */
 
@@ -120,7 +122,7 @@ function getLinkedIssueNumbers(prBody: string | null): number[] {
 }
 
 /** Has a retest request for this staging deploy already been filed on this PR? */
-async function alreadyFiled(prNumber: number, deployTag: string): Promise<boolean> {
+async function isRetestAlreadyRequested(prNumber: number, deployTag: string): Promise<boolean> {
     const comments = await GithubUtils.getAllComments(prNumber);
     const marker = getRetestMarker(deployTag);
     return comments.some((comment) => comment?.includes(marker));
@@ -155,12 +157,18 @@ async function fireRetestRequest(hit: RetestHit, webhookURL: string): Promise<vo
 }
 
 async function run(): Promise<void> {
-    const deploySHA = process.env.DEPLOY_SHA;
-    const deployTag = process.env.DEPLOY_TAG;
+    // Gate 1 (this deploy is a cherry-pick to staging, on all platforms) is enforced by the job's `if:` in deploy.yml.
+    const cli = new CLI({
+        namedArgs: {
+            'deploy-sha': {description: 'The deploy commit SHA on the staging branch', required: true},
+            'deploy-tag': {description: 'The staging release tag for this deploy', required: true},
+        },
+    } as const);
+    const deploySHA = cli.namedArgs['deploy-sha'];
+    const deployTag = cli.namedArgs['deploy-tag'];
+
+    // The webhook stays in the env, not a CLI arg: it's a secret, and argv is visible via `ps` and can leak into logs.
     const webhookURL = process.env.SLACK_RETEST_WEBHOOK;
-    if (!deploySHA || !deployTag) {
-        throw new Error('DEPLOY_SHA and DEPLOY_TAG are required');
-    }
     if (!webhookURL) {
         throw new Error('SLACK_RETEST_WEBHOOK is required');
     }

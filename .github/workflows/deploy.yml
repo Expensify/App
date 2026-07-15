@@ -919,11 +919,9 @@ jobs:
           SLACK_RETEST_WEBHOOK: op://${{ vars.OP_VAULT }}/Repository-Secrets/SLACK_RETEST_WEBHOOK
 
       - name: File retest request
-        run: npx bun scripts/createRetestRequestForCP.ts
+        run: npx bun scripts/createRetestRequestForCP.ts --deploy-sha=${{ needs.prep.outputs.DEPLOY_SHA }} --deploy-tag=${{ needs.prep.outputs.TAG }}
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          DEPLOY_SHA: ${{ needs.prep.outputs.DEPLOY_SHA }}
-          DEPLOY_TAG: ${{ needs.prep.outputs.TAG }}
           SLACK_RETEST_WEBHOOK: ${{ steps.loadWebhook.outputs.SLACK_RETEST_WEBHOOK }}
 
   createRelease:
