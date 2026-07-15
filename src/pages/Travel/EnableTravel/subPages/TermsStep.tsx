@@ -82,6 +82,10 @@ function TermsStep({policyID, resolvedDomain, firstIncompletePrerequisitePageNam
             delegateAccountID,
             conciergeReportID,
         });
+        // Close the Book Travel RHP before navigating to the concierge report, or it stays underneath in the
+        // stack and pressing back lands on a stale, already-submitted Terms screen instead of where the user
+        // was before opening Book Travel.
+        Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
     };
 
