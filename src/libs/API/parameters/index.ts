@@ -118,6 +118,7 @@ export type {default as UpdateAutomaticTimezoneParams} from './UpdateAutomaticTi
 export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriorityModeParams';
 export type {default as DuplicateWorkspaceParams} from './DuplicateWorkspaceParams';
 export type {default as CopyPolicySettingsParams} from './CopyPolicySettingsParams';
+export type {default as CopyPolicySettingsNotifyParams} from './CopyPolicySettingsNotifyParams';
 export type {default as UpdateDisplayNameParams} from './UpdateDisplayNameParams';
 export type {default as UpdateChatNameParams} from './UpdateChatNameParams';
 export type {default as UpdateGroupChatMemberRolesParams} from './UpdateGroupChatMemberRolesParams';
