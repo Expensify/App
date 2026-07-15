@@ -43,6 +43,7 @@ function FullstoryUserContextHandler() {
                         return;
                     }
 
+                    // Use the session URL only as a readiness signal so this handler waits for the existing FullStory init path.
                     return FS.getSessionURL().then((sessionURL) => {
                         if (didCancel) {
                             return;
