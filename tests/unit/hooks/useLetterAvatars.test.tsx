@@ -4,7 +4,7 @@ import useLetterAvatars from '@hooks/useLetterAvatars';
 
 import {LETTER_AVATAR_COLOR_KEYS, LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
 
-const mockCurrentUserPersonalDetails = jest.fn();
+const mockCurrentUserPersonalDetails = jest.fn<{firstName?: string; lastName?: string; login?: string}, []>();
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => mockCurrentUserPersonalDetails());
 
 describe('useLetterAvatars', () => {

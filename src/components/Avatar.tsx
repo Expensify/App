@@ -108,7 +108,9 @@ function Avatar({
     const letterAvatarParts = parseLetterAvatarURL(source);
 
     // A picked avatarStyle color is authoritative over the color encoded in the URL.
-    const [pickedColorKey] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: avatarStyleColorSelector(userAccountID)}, [userAccountID]);
+    const [pickedColorKey] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: avatarStyleColorSelector(userAccountID),
+    });
     const letterAvatarColors = pickedColorKey && isLetterAvatarSchemeKey(pickedColorKey) ? LETTER_AVATAR_SCHEMES[pickedColorKey] : letterAvatarParts?.colors;
 
     let optimizedSource = source;
