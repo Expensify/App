@@ -107,6 +107,7 @@ type UpdateSplitTransactionsParams = {
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     isOffline: boolean;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function updateSplitTransactions({
@@ -135,6 +136,7 @@ function updateSplitTransactions({
     transactionReport,
     expenseReport: expenseReportFromParams,
     isOffline,
+    isTrackIntentUser,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
@@ -590,6 +592,9 @@ function updateSplitTransactions({
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
+            // TODO: delegateAccountID will be threaded in PR 11 (https://github.com/Expensify/App/issues/66425)
+            delegateAccountID: undefined,
+            isTrackIntentUser,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -702,6 +707,9 @@ function updateSplitTransactions({
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
+            // TODO: delegateAccountID will be threaded in PR 11 (https://github.com/Expensify/App/issues/66425)
+            delegateAccountID: undefined,
+            isTrackIntentUser,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};
@@ -798,6 +806,7 @@ function updateSplitTransactions({
                     isOffline,
                     // delegateAccountID: will be threaded in PR 11; buildOptimisticModifiedExpenseReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
                     delegateAccountID: undefined,
+                    isTrackIntentUser,
                 });
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;
