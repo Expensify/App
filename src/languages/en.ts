@@ -4743,6 +4743,11 @@ const translations = {
                 title: 'Per diem',
                 subtitle: 'Set per diem rates to control daily employee spend. Import rates from a spreadsheet to get started.',
             },
+            requestEmptyList: {
+                title: 'No per diem rates yet',
+                subtitle: "This workspace doesn't have any per diem rates, ask your Admin to add some.",
+                adminSubtitle: 'Add per diem rates to organize your spend.',
+            },
             importPerDiemRates: 'Import per diem rates',
             editPerDiemRate: 'Edit per diem rate',
             editPerDiemRates: 'Edit per diem rates',

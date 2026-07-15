@@ -19,14 +19,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {
-    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
-    getActivePoliciesWithExpenseChatAndTimeEnabled,
-    getPerDiemCustomUnit,
-    isControlPolicy,
-    isPerDiemEnabled,
-    isTimeTrackingEnabled,
-} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getActivePoliciesWithExpenseChatAndTimeEnabled, isControlPolicy, isPerDiemEnabled, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
@@ -113,23 +106,21 @@ function IOURequestStartPage({
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const policiesWithPerDiemEnabledAndHasRates = useMemo(
-        () => getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(allPolicies, currentUserPersonalDetails.login),
+    const policiesWithPerDiemEnabled = useMemo(
+        () => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserPersonalDetails.login),
         [allPolicies, currentUserPersonalDetails.login],
     );
     const policiesWithTimeEnabled = useMemo(
         () => getActivePoliciesWithExpenseChatAndTimeEnabled(allPolicies, currentUserPersonalDetails.login),
         [allPolicies, currentUserPersonalDetails.login],
     );
-    const doesPerDiemPolicyExist = policiesWithPerDiemEnabledAndHasRates.length > 0;
-    const moreThanOnePerDiemExist = policiesWithPerDiemEnabledAndHasRates.length > 1;
+    const doesPerDiemPolicyExist = policiesWithPerDiemEnabled.length > 0;
+    const moreThanOnePerDiemExist = policiesWithPerDiemEnabled.length > 1;
     const hasCurrentPolicyPerDiemEnabled = isControlPolicy(policy) && isPerDiemEnabled(policy);
     const hasCurrentPolicyTimeTrackingEnabled = policy ? isTimeTrackingEnabled(policy) : false;
-    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-    const hasPolicyPerDiemRates = !isEmptyObject(perDiemCustomUnit?.rates);
-    const hasCurrentPolicyPerDiemWithRates = !isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled && hasPolicyPerDiemRates;
-    const hasAnyPolicyPerDiemWithRates = (iouType === CONST.IOU.TYPE.TRACK || isFromGlobalCreate) && doesPerDiemPolicyExist;
-    const shouldShowPerDiemOption = iouType !== CONST.IOU.TYPE.SPLIT && (hasCurrentPolicyPerDiemWithRates || hasAnyPolicyPerDiemWithRates);
+    const hasCurrentPolicyPerDiem = !isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled;
+    const hasAnyPolicyPerDiem = (iouType === CONST.IOU.TYPE.TRACK || isFromGlobalCreate) && doesPerDiemPolicyExist;
+    const shouldShowPerDiemOption = iouType !== CONST.IOU.TYPE.SPLIT && (hasCurrentPolicyPerDiem || hasAnyPolicyPerDiem);
     const shouldShowTimeOption =
         (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) &&
         ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!policiesWithTimeEnabled.length));
@@ -333,7 +324,7 @@ function IOURequestStartPage({
                                                     <IOURequestStepDestination
                                                         openedFromStartPage
                                                         ref={perDiemInputRef}
-                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabledAndHasRates.at(0)?.id}
+                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabled.at(0)?.id}
                                                         route={route}
                                                         navigation={navigation}
                                                     />

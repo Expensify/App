@@ -1,8 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
 import DestinationPicker from '@components/DestinationPicker';
-import FixedFooter from '@components/FixedFooter';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
@@ -234,25 +232,10 @@ function IOURequestStepDestination({
                         <WorkspaceEmptyStateSection
                             shouldStyleAsCard={false}
                             icon={illustrations.EmptyStateExpenses}
-                            title={translate('workspace.perDiem.emptyList.title')}
-                            subtitle={translate('workspace.perDiem.emptyList.subtitle')}
+                            title={translate('workspace.perDiem.requestEmptyList.title')}
+                            subtitle={translate(isPolicyAdmin(policy) ? 'workspace.perDiem.requestEmptyList.adminSubtitle' : 'workspace.perDiem.requestEmptyList.subtitle')}
                             containerStyle={[styles.flex1, styles.justifyContentCenter]}
                         />
-                        {isPolicyAdmin(policy) && !!policy?.areCategoriesEnabled && (
-                            <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                                <Button
-                                    large
-                                    success
-                                    style={[styles.w100]}
-                                    onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
-                                    }}
-                                    text={translate('workspace.perDiem.editPerDiemRates')}
-                                    pressOnEnter
-                                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_PER_DIEM_RATES_BUTTON}
-                                />
-                            </FixedFooter>
-                        )}
                     </View>
                 )}
                 {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && !!policy?.id && (
