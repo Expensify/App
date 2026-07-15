@@ -1923,8 +1923,7 @@ function isPolicyRelatedReport(report: OnyxEntry<Report>, policyID?: string) {
 }
 
 /**
- * Checks if the supplied report is the workspace's own chat (or concierge). Intentionally limited to cheap field
- * comparisons — do not add policy member lookups here.
+ * Checks if the supplied report is from the given workspace or is the concierge chat.
  */
 function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyID: string | undefined, conciergeReportID: string | undefined) {
     return isConciergeChatReport(report, conciergeReportID) || isPolicyRelatedReport(report, policyID);

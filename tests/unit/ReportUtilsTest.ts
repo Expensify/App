@@ -15600,7 +15600,7 @@ describe('ReportUtils', () => {
             expect(isPolicyRelatedReport(report, policyID)).toBe(false);
         });
 
-        it('should return false for an undefined policyID even when the report has none either', () => {
+        it('should return false for an undefined policyID even when the report policyID is also undefined', () => {
             const report: Report = {
                 reportID: 'report-1',
                 type: CONST.REPORT.TYPE.CHAT,
