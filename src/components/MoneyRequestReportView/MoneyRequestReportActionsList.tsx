@@ -114,7 +114,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             return;
         }
 
-        reportScrollManager.scrollToIndex(lastItemIndexRef.current, {animated: false});
+        reportScrollManager.scrollToIndex(lastItemIndexRef.current, {animated: false, viewPosition: 1});
     }, [reportScrollManager]);
 
     const lastMessageTime = useRef<string | null>(null);
