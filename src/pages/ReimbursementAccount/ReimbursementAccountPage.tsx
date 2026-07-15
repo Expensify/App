@@ -623,10 +623,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }
 
     // Once fresh data has loaded, trust the live value to avoid a one-frame flash from the effect-synced state lagging achData.
-    const shouldShowContinueSetupButtonWhenLoaded = hasLoadedData ? shouldShowContinueSetupButtonValue : shouldShowContinueSetupButton;
-    // On a "change bank account" instance always show the fresh entry (never "continue setup"), since the shared data still
-    // describes the previous account/in-progress setup that this flow is replacing.
-    const shouldShowContinueSetupButtonToDisplay = isChangingBankAccount ? false : shouldShowContinueSetupButtonWhenLoaded;
+    // On a "change bank account" instance never show "continue setup", since the shared data still describes the account being replaced.
+    const shouldShowContinueSetupButtonToDisplay = !isChangingBankAccount && (hasLoadedData ? shouldShowContinueSetupButtonValue : shouldShowContinueSetupButton);
 
     return (
         <VerifiedBankAccountFlowEntryPoint
