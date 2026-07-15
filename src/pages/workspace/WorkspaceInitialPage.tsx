@@ -268,15 +268,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     // don't add an accounting-page fetch to every workspace visit for non-beta users.
     const [hasConnectionsDataBeenFetched, hasConnectionsDataBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policyID}`);
     const isConnectionsFetchedFlagLoading = isLoadingOnyxValue(hasConnectionsDataBeenFetchedResult);
+    const isCurrentUserPolicyAdmin = isPolicyAdmin(policy);
     useEffect(() => {
-        if (isConnectionsFetchedFlagLoading || isOffline || !isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) || !policyID || hasConnectionsDataBeenFetched) {
+        if (isConnectionsFetchedFlagLoading || isOffline || !isCurrentUserPolicyAdmin || !isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) || !policyID || hasConnectionsDataBeenFetched) {
             return;
         }
         if (!policy?.areConnectionsEnabled && isEmptyObject(policy?.connections)) {
             return;
         }
         openPolicyAccountingPage(policyID);
-    }, [policyID, hasConnectionsDataBeenFetched, isConnectionsFetchedFlagLoading, isOffline, isBetaEnabled, policy?.areConnectionsEnabled, policy?.connections]);
+    }, [policyID, hasConnectionsDataBeenFetched, isConnectionsFetchedFlagLoading, isOffline, isCurrentUserPolicyAdmin, isBetaEnabled, policy?.areConnectionsEnabled, policy?.connections]);
 
     const workspaceMenuItems: WorkspaceMenuItem[] = [
         {
