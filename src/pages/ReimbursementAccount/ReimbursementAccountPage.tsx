@@ -96,7 +96,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
-    const [isChangingBusinessBankAccount] = useOnyx(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT);
+    const [isChangingToNewBankAccount] = useOnyx(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT);
 
     const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name ?? '';
@@ -301,7 +301,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
         // Skip while switching the workspace's bank account: the dedicated effect above fetches once the switch
         // finishes, so fetching here would race it and could load the old account.
-        if (isChangingBusinessBankAccount || isLoadingWorkspaceReimbursement) {
+        if (isChangingToNewBankAccount || isLoadingWorkspaceReimbursement) {
             return;
         }
 
@@ -542,7 +542,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
     if (
         (!!policyIDParam || !!bankAccountIDParam) &&
-        !isChangingBusinessBankAccount &&
+        !isChangingToNewBankAccount &&
         (!hasACHDataBeenLoaded || isLoading || isLoadingWorkspaceReimbursement || isSettingBA) &&
         shouldShowOfflineLoader &&
         (shouldReopenOnfido || !requestorStepRef?.current)
