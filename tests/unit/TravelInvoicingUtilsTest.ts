@@ -2,11 +2,13 @@ import CONST from '@src/CONST';
 import {
     getIsTravelBillingPayByInvoice,
     getIsTravelInvoicingEnabled,
+    getPendingTravelInvoiceAmount,
     getTravelInvoicingCard,
     getTravelLimit,
     getTravelSettlementAccount,
     getTravelSettlementFrequency,
     getTravelSpend,
+    hasOutstandingTravelBalance,
     hasTravelInvoicingSettlementAccount,
     isTravelCVVEligible,
 } from '@src/libs/TravelInvoicingUtils';
@@ -142,6 +144,56 @@ describe('TravelInvoicingUtils', () => {
             const travelSettings = {currentBalance: 25000} as ExpensifyCardSettingsBase;
             const result = getTravelSpend(travelSettings);
             expect(result).toBe(25000);
+        });
+    });
+
+    describe('getPendingTravelInvoiceAmount', () => {
+        it('Should return 0 when travelSettings is undefined', () => {
+            const result = getPendingTravelInvoiceAmount(undefined);
+            expect(result).toBe(0);
+        });
+
+        it('Should return 0 when pendingInvoiceAmount is not set', () => {
+            const travelSettings = {currentBalance: 0} as ExpensifyCardSettingsBase;
+            const result = getPendingTravelInvoiceAmount(travelSettings);
+            expect(result).toBe(0);
+        });
+
+        it('Should return the pendingInvoiceAmount value when set', () => {
+            const travelSettings = {pendingInvoiceAmount: 45000} as ExpensifyCardSettingsBase;
+            const result = getPendingTravelInvoiceAmount(travelSettings);
+            expect(result).toBe(45000);
+        });
+    });
+
+    describe('hasOutstandingTravelBalance', () => {
+        it('Should return false when travelSettings is undefined', () => {
+            const result = hasOutstandingTravelBalance(undefined);
+            expect(result).toBe(false);
+        });
+
+        it('Should return false when there is no balance, queued settlement, or pending invoice', () => {
+            const travelSettings = {currentBalance: 0, pendingSettlementAmount: 0, pendingInvoiceAmount: 0} as ExpensifyCardSettingsBase;
+            const result = hasOutstandingTravelBalance(travelSettings);
+            expect(result).toBe(false);
+        });
+
+        it('Should return true when there is unpaid travel spend', () => {
+            const travelSettings = {currentBalance: 25000} as ExpensifyCardSettingsBase;
+            const result = hasOutstandingTravelBalance(travelSettings);
+            expect(result).toBe(true);
+        });
+
+        it('Should return true when a settlement is queued', () => {
+            const travelSettings = {pendingSettlementAmount: 25000} as ExpensifyCardSettingsBase;
+            const result = hasOutstandingTravelBalance(travelSettings);
+            expect(result).toBe(true);
+        });
+
+        it('Should return true when an invoice is awaiting payment even if the balance is 0', () => {
+            const travelSettings = {currentBalance: 0, pendingSettlementAmount: 0, pendingInvoiceAmount: 45000} as ExpensifyCardSettingsBase;
+            const result = hasOutstandingTravelBalance(travelSettings);
+            expect(result).toBe(true);
         });
     });
 

@@ -71,13 +71,23 @@ function getTravelLimit(cardSettings: ExpensifyCardSettingsBase | undefined): nu
 }
 
 /**
+ * Gets the amount (in cents) awaiting payment on a sent Consolidated Travel Billing invoice.
+ * Non-zero for pay-by-invoice customers between the invoice being sent and paid.
+ * Returns 0 if no settings are available.
+ */
+function getPendingTravelInvoiceAmount(cardSettings: ExpensifyCardSettingsBase | undefined): number {
+    return cardSettings?.pendingInvoiceAmount ?? 0;
+}
+
+/**
  * Checks if the workspace has an outstanding Travel Invoicing balance.
- * Returns true if there is unpaid travel spend, blocking disable.
+ * Returns true if there is unpaid travel spend, a queued settlement, or an unpaid invoice, blocking disable.
  */
 function hasOutstandingTravelBalance(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
     const currentBalance = cardSettings?.currentBalance ?? 0;
     const pendingSettlementAmount = cardSettings?.pendingSettlementAmount ?? 0;
-    return currentBalance > 0 || pendingSettlementAmount > 0;
+    const pendingInvoiceAmount = cardSettings?.pendingInvoiceAmount ?? 0;
+    return currentBalance > 0 || pendingSettlementAmount > 0 || pendingInvoiceAmount > 0;
 }
 
 /**
@@ -190,6 +200,7 @@ export {
     hasOutstandingTravelBalance,
     getTravelLimit,
     getTravelSpend,
+    getPendingTravelInvoiceAmount,
     getTravelSettlementAccount,
     getTravelSettlementFrequency,
     getTravelInvoicingCardSettingsKey,

@@ -35,6 +35,7 @@ import {hasInProgressUSDVBBA} from '@libs/ReimbursementAccountUtils';
 import {
     getIsTravelBillingPayByInvoice,
     getIsTravelInvoicingEnabled,
+    getPendingTravelInvoiceAmount,
     getTravelInvoicingCardSettingsKey,
     getTravelLimit,
     getTravelSettlementAccount,
@@ -106,6 +107,10 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     const pendingSettlementAmount = travelSettings?.pendingSettlementAmount ?? 0;
     const hasPendingSettlement = pendingSettlementAmount > 0;
+
+    // Pay-by-invoice customers owe the sent invoice by wire, so it's surfaced separately from a queued ACH settlement
+    const pendingInvoiceAmount = getPendingTravelInvoiceAmount(travelSettings);
+    const hasPendingInvoice = pendingInvoiceAmount > 0;
     const travelLimit = getTravelLimit(travelSettings);
     const settlementAccount = getTravelSettlementAccount(travelSettings, bankAccountList);
     const settlementFrequency = getTravelSettlementFrequency(travelSettings);
@@ -131,6 +136,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     // The pending settlement amount for the "payment queued" subtitle
     const formattedQueuedAmount = convertToDisplayString(pendingSettlementAmount, CONST.CURRENCY.USD);
+    // The outstanding invoice amount for the "awaiting payment" subtitle
+    const formattedPendingInvoiceAmount = convertToDisplayString(pendingInvoiceAmount, CONST.CURRENCY.USD);
     const formattedLimit = convertToDisplayString(travelLimit, CONST.CURRENCY.USD);
 
     // Settlement account display - show empty if no account is selected
@@ -335,7 +342,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     <MenuItemWithTopDescription
                         description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendLabel')}
                         title={formattedSpend}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, hasPendingSettlement && styles.pb1]}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, (hasPendingSettlement || hasPendingInvoice) && styles.pb1]}
                         titleStyle={[styles.textNormalThemeText, styles.headerAnonymousFooter]}
                         descriptionTextStyle={styles.textLabelSupportingNormal}
                         interactive={false}
@@ -343,6 +350,11 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     {hasPendingSettlement && (
                         <Text style={[styles.textLabelSupporting, styles.pb3]}>
                             {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendPaymentQueued', formattedQueuedAmount)}
+                        </Text>
+                    )}
+                    {hasPendingInvoice && (
+                        <Text style={[styles.textLabelSupporting, styles.pb3]}>
+                            {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendInvoicePending', formattedPendingInvoiceAmount)}
                         </Text>
                     )}
                 </View>

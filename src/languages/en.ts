@@ -6074,6 +6074,7 @@ const translations = {
                         subsections: {
                             currentTravelSpendLabel: 'Current travel spend',
                             currentTravelSpendPaymentQueued: (amount: string) => `Payment of ${amount} is queued and will be processed soon.`,
+                            currentTravelSpendInvoicePending: (amount: string) => `An invoice for ${amount} has been sent and is awaiting payment.`,
                             currentTravelSpendCta: 'Pay balance',
                             sendInvoiceNowCta: 'Send invoice now',
                             currentTravelLimitLabel: 'Current travel limit',
