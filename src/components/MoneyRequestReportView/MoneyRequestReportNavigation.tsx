@@ -22,6 +22,7 @@ import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useIsFocused} from '@react-navigation/native';
 import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -115,6 +116,7 @@ function MoneyRequestReportNavigationStandalone({onReportsChange}: MoneyRequestR
 function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, contextReports}: MoneyRequestReportNavigationContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isFocused = useIsFocused();
 
     // Lightweight subscriptions only: the current search query and its loading flag. These never mount
     // the heavy useSearchSections subscription set, so the fast context path stays cheap.
@@ -153,7 +155,14 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     const shouldDisplayNavigationArrows = effectiveAllReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
 
     useEffect(() => {
-        if (!lastSearchQuery?.queryJSON) {
+        // Only the focused screen's carousel may reconcile previousLengthOfResults. Multiple report screens
+        // can be mounted at once (react-navigation keeps stacked screens alive, each with its own header
+        // carousel) and their lists can differ in length (e.g. a background screen frozen on its cached
+        // lastValidReports while a newly created report is added to the live list). Since every instance
+        // subscribes to lastSearchQuery, two unfocused writers that disagree on the length would re-trigger
+        // each other forever — an infinite Onyx write loop that re-renders the whole app until React throws
+        // "Maximum update depth exceeded" (seen when creating a report on top of an open report view).
+        if (!isFocused || !lastSearchQuery?.queryJSON) {
             return;
         }
 
@@ -183,7 +192,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             ...lastSearchQuery,
             previousLengthOfResults: effectiveAllReports.length,
         });
-    }, [currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
+    }, [isFocused, currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
 
     const goToReportId = (reportId?: string) => {
         if (!reportId) {

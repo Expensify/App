@@ -60,6 +60,9 @@ function areDescriptorMapsEqual(a: Record<string, TransactionThreadNavigationDes
 function setActiveTransactionIDs(ids: string[], snapshotHash?: number, siblingDescriptorsByTransactionID?: Record<string, TransactionThreadNavigationDescriptor>) {
     const nextSnapshotHash = snapshotHash ?? null;
     const nextDescriptors = siblingDescriptorsByTransactionID ?? null;
+    // The comparison is positional on purpose: the array order defines the carousel's prev/next order,
+    // so the same IDs in a different order (e.g. after the source list is re-sorted) are a real change
+    // and must be written to Onyx.
     const areIDsUnchanged = lastSetIDs?.length === ids.length && lastSetIDs.every((id, i) => id === ids.at(i));
     if (areIDsUnchanged && lastSetSnapshotHash === nextSnapshotHash && areDescriptorMapsEqual(lastSetDescriptors, nextDescriptors)) {
         return Promise.resolve();

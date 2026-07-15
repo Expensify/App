@@ -18,7 +18,7 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import HeaderLoadingBar from './HeaderLoadingBar';
@@ -87,32 +87,13 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     // other one-tx parents) or the transaction thread (for multi-tx parents).
     const singleTransactionID = transactions.length === 1 ? transactions.at(0)?.transactionID : undefined;
 
-    // For multi-tx parents we don't have a single transaction to anchor on, but if the parent was
-    // navigated to from a broader carousel (the no-thread fallback in MoneyRequestReportTransactionsNavigation
-    // passes `anchorTransactionID`), use that transaction as the carousel anchor so the user can keep paging
-    // the broader list.
-    //
-    // We intentionally do NOT fall back to "the first of this report's transactions in the active list". The
-    // transaction carousel is a single-expense (SEARCH_REPORT) concept: its ◄/► handlers navigate the current
-    // screen via Navigation.setParams. When the user opens a full multi-transaction report from the header, the
-    // report renders on SEARCH_MONEY_REQUEST_REPORT; a generic fallback there would surface the carousel and
-    // paging would setParams to a sibling that renders empty ("No expenses yet"). Viewing a full report is a
-    // report-level context, so we leave carousel navigation to MoneyRequestReportNavigation. This fallback is
-    // also unnecessary now that the carousel's no-thread path opens a single-expense thread (never a full
-    // report body), so we only ever reach a multi-transaction report body by opening it explicitly.
+    // For multi-tx parents reached from a broader carousel, the no-thread fallback in
+    // MoneyRequestReportTransactionsNavigation passes `anchorTransactionID`; anchor on it (when it's part of
+    // the active carousel list) so the user can keep paging. We deliberately don't fall back to "the first of
+    // this report's transactions in the active list": viewing a full report is a report-level context handled
+    // by MoneyRequestReportNavigation, and a generic anchor here would page siblings into an empty report body.
     const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
-    const multiTxAnchorTransactionID = useMemo(() => {
-        if (singleTransactionID) {
-            return undefined;
-        }
-        // Trust the route hint as long as it's part of the active carousel list. We don't also require it to be in
-        // this report's `transactions` because when arriving from a search-based carousel the parent report's
-        // transactions may not be in the live collection yet, which would otherwise hide the carousel entirely.
-        if (anchorTransactionIDFromRoute && activeTransactionIDs?.includes(anchorTransactionIDFromRoute)) {
-            return anchorTransactionIDFromRoute;
-        }
-        return undefined;
-    }, [singleTransactionID, anchorTransactionIDFromRoute, activeTransactionIDs]);
+    const multiTxAnchorTransactionID = anchorTransactionIDFromRoute && activeTransactionIDs?.includes(anchorTransactionIDFromRoute) ? anchorTransactionIDFromRoute : undefined;
     const carouselAnchorTransactionID = singleTransactionID ?? multiTxAnchorTransactionID;
     const shouldShowTransactionNavigation = !!carouselAnchorTransactionID && !!activeTransactionIDs?.includes(carouselAnchorTransactionID);
 
