@@ -38,5 +38,6 @@ export default function withViewportOffsetTop<TProps extends ViewportOffsetTopPr
 
     WithViewportOffsetTop.displayName = `WithViewportOffsetTop(${getComponentDisplayName(WrappedComponent)})`;
 
-    return WithViewportOffsetTop;
+    // OXC's React Compiler does not memoize this component on web; memoize it explicitly.
+    return React.memo(WithViewportOffsetTop);
 }

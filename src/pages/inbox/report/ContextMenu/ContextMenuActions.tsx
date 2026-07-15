@@ -340,6 +340,7 @@ type ContextMenuActionPayload = {
     harvestReportOriginalID?: string;
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     isDelegateAccessRestricted?: boolean;
@@ -647,7 +648,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails},
+            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails, isTrackIntentUser},
         ) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
@@ -663,6 +664,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         currentUserPersonalDetails?.login ?? '',
                         currentUserPersonalDetails.accountID,
                         iouTransactionViolations,
+                        isTrackIntentUser,
                     ),
                 );
                 return;
@@ -676,6 +678,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 currentUserPersonalDetails?.login ?? '',
                 currentUserPersonalDetails.accountID,
                 iouTransactionViolations,
+                isTrackIntentUser,
             );
         },
         getDescription: () => {},
@@ -694,7 +697,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails},
+            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails, isTrackIntentUser},
         ) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
@@ -710,6 +713,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         currentUserPersonalDetails?.login ?? '',
                         currentUserPersonalDetails.accountID,
                         iouTransactionViolations,
+                        isTrackIntentUser,
                     ),
                 );
                 return;
@@ -723,6 +727,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 currentUserPersonalDetails?.login ?? '',
                 currentUserPersonalDetails.accountID,
                 iouTransactionViolations,
+                isTrackIntentUser,
             );
         },
         getDescription: () => {},
@@ -753,7 +758,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas, personalDetails}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -765,6 +770,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         originalReport,
                         introSelected,
                         isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
                         betas,
                         childReportNotificationPreference,
                         personalDetails,
@@ -781,6 +787,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 introSelected,
                 isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
                 betas,
                 childReportNotificationPreference,
                 personalDetails,
@@ -812,7 +819,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas, personalDetails}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -824,6 +831,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         originalReport,
                         introSelected,
                         isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
                         betas,
                         childReportNotificationPreference,
                         personalDetails,
@@ -840,6 +848,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 introSelected,
                 isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
                 betas,
                 childReportNotificationPreference,
                 personalDetails,
