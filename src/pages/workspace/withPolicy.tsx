@@ -89,36 +89,49 @@ const policyDefaultProps: WithPolicyOnyxProps = {
     isLoadingPolicy: false,
 };
 
+type WithPolicyImplProps<TProps extends WithPolicyProps> = {
+    WrappedComponent: ComponentType<TProps>;
+} & Omit<TProps, keyof WithPolicyOnyxProps>;
+
+function WithPolicyImpl<TProps extends WithPolicyProps>({WrappedComponent, ...props}: WithPolicyImplProps<TProps>) {
+    const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+    const isLoadingPolicy = !hasLoadedApp || (!!policyID && isLoadingOnyxValue(policyResults, policyDraftResults));
+
+    useEffect(() => {
+        if (!policyID) {
+            return;
+        }
+        updateLastAccessedWorkspace(policyID);
+    }, [policyID]);
+
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            policy={policy}
+            policyDraft={policyDraft}
+            isLoadingPolicy={isLoadingPolicy}
+        />
+    );
+}
+
 /*
  * HOC for connecting a policy in Onyx corresponding to the policyID in route params
  */
 export default function <TProps extends WithPolicyProps>(WrappedComponent: ComponentType<TProps>): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps>> {
     function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>) {
-        const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
-        const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
-
-        const isLoadingPolicy = !hasLoadedApp || (!!policyID && isLoadingOnyxValue(policyResults, policyDraftResults));
-
-        useEffect(() => {
-            if (!policyID) {
-                return;
-            }
-            updateLastAccessedWorkspace(policyID);
-        }, [policyID]);
-
         return (
-            <WrappedComponent
-                {...(props as TProps)}
-                policy={policy}
-                policyDraft={policyDraft}
-                isLoadingPolicy={isLoadingPolicy}
+            <WithPolicyImpl
+                WrappedComponent={WrappedComponent}
+                {...props}
             />
         );
     }
 
-    return React.memo(WithPolicy);
+    return WithPolicy;
 }
 
 export {policyDefaultProps};

@@ -7,7 +7,6 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import type {ComponentType} from 'react';
 
 import isBoolean from 'lodash/isBoolean';
-import React from 'react';
 
 import type {WithPolicyProps} from './withPolicy';
 
@@ -16,6 +15,11 @@ import withPolicy from './withPolicy';
 type WithPolicyConnectionsProps = WithPolicyProps & {
     isConnectionDataFetchNeeded: boolean;
 };
+
+type WithPolicyConnectionsImplProps<TProps extends WithPolicyConnectionsProps> = {
+    WrappedComponent: ComponentType<TProps>;
+    shouldBlockView: boolean;
+} & TProps;
 
 /**
  * Higher-order component that fetches the connections data and populates
@@ -27,35 +31,43 @@ type WithPolicyConnectionsProps = WithPolicyProps & {
  * Only the active policy gets the complete policy data upon app start that includes the connections data.
  * For other policies, the connections data needs to be fetched when it's needed.
  */
+function WithPolicyConnectionsImpl<TProps extends WithPolicyConnectionsProps>({WrappedComponent, shouldBlockView, ...props}: WithPolicyConnectionsImplProps<TProps>) {
+    const {
+        isFetchNeeded: isConnectionDataFetchNeeded,
+        isLoadingFetchedFlag: isOnyxDataLoading,
+        hasBeenFetched: hasConnectionsDataBeenFetched,
+    } = usePolicyConnectionsPrefetch(props.policy, true);
+    const isFetchingData = isConnectionDataFetchNeeded && !!props.policy?.id && !isBoolean(hasConnectionsDataBeenFetched);
+
+    if ((isFetchingData || isOnyxDataLoading) && shouldBlockView) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'withPolicyConnections',
+            isFetchingData,
+            isOnyxDataLoading,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
+
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            isConnectionDataFetchNeeded={isConnectionDataFetchNeeded}
+        />
+    );
+}
+
 function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(WrappedComponent: ComponentType<TProps>, shouldBlockView = true) {
     function WithPolicyConnections(props: TProps) {
-        const {
-            isFetchNeeded: isConnectionDataFetchNeeded,
-            isLoadingFetchedFlag: isOnyxDataLoading,
-            hasBeenFetched: hasConnectionsDataBeenFetched,
-        } = usePolicyConnectionsPrefetch(props.policy, true);
-        const isFetchingData = isConnectionDataFetchNeeded && !!props.policy?.id && !isBoolean(hasConnectionsDataBeenFetched);
-
-        if ((isFetchingData || isOnyxDataLoading) && shouldBlockView) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'withPolicyConnections',
-                isFetchingData,
-                isOnyxDataLoading,
-            };
-            return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
-        }
-
         return (
-            <WrappedComponent
+            <WithPolicyConnectionsImpl
+                WrappedComponent={WrappedComponent}
+                shouldBlockView={shouldBlockView}
                 {...props}
-                isConnectionDataFetchNeeded={isConnectionDataFetchNeeded}
             />
         );
     }
 
-    // OXC's React Compiler does not memoize this component on web; memoize it before wrapping so it is
-    // memoized on both platforms.
-    return withPolicy(React.memo(WithPolicyConnections));
+    return withPolicy(WithPolicyConnections);
 }
 
 export default withPolicyConnections;

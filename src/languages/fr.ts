@@ -4499,6 +4499,7 @@ ${amount} pour ${merchant} - ${date}`,
             deleteConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ?',
             deleteWithCardsConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ? Cela supprimera tous les flux de cartes et les cartes assignées.',
             deleteOpenExpensifyCardsError: 'Votre entreprise a encore des Cartes Expensify. Veuillez <concierge-link>contacter Concierge</concierge-link> pour les supprimer.',
+            deleteTravelInvoicingError: 'Votre entreprise a toujours la facturation de voyages consolidée activée.',
             outstandingBalanceWarning:
                 'Vous avez un solde impayé qui doit être réglé avant de supprimer votre dernier espace de travail. Veuillez accéder à vos paramètres d’abonnement pour résoudre le paiement.',
             settleBalance: 'Aller à l’abonnement',
@@ -7685,7 +7686,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
-                defaultRuleSummary: 'Catégories incluant les services pour adultes, les distributeurs automatiques, les jeux d’argent, et...',
+                defaultRuleSummary: 'Catégories incluant les services pour adultes, les distributeurs automatiques, les jeux d’argent et les transferts d’argent',
                 findRule: 'Trouver une règle',
                 defaultSection: 'Par défaut',
                 customRulesSection: 'Règles personnalisées',
