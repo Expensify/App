@@ -181,6 +181,9 @@ function getTransactionsForMerging({
     cardList?: CardList;
 }) {
     const transactionID = targetTransaction.transactionID;
+    if (!transactionID) {
+        return;
+    }
 
     // Collect/Control workspaces:
     // - Admins and approvers: The list of eligible expenses will only contain the expenses from the report that the admin/approver triggered the merge from. This is intentionally limited since they’ll only be reviewing one report at a time.
