@@ -217,12 +217,12 @@ function trackFullstoryEvent<TEventName extends FullstoryEventName>(eventName: T
     );
 }
 
-function buildPageViewedEvent(screenName: string, entryPoint: string): FullstoryEventPropertiesMap['Page_viewed'] {
+function buildPageViewedEvent(screenName: string, currentPath: string, entryPoint?: string): FullstoryEventPropertiesMap['Page_viewed'] {
     /* eslint-disable @typescript-eslint/naming-convention -- FullStory schema uses external snake_case keys. */
     return {
         screen_name: screenName,
         entry_point: entryPoint,
-        onb_step: getOnboardingStep(entryPoint),
+        onb_step: getOnboardingStep(currentPath),
     };
     /* eslint-enable @typescript-eslint/naming-convention */
 }
