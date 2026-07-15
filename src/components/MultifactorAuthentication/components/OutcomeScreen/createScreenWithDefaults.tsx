@@ -31,7 +31,7 @@ import React from 'react';
  * // Override only the title (illustration and subtitle keep their defaults):
  * <DefaultClientFailureScreen title="multifactorAuthentication.customTitle" />
  */
-function createScreenWithDefaults<P extends Record<string, unknown>>(Component: React.ComponentType<P>, defaultProps: NoInfer<P>, displayName: string): React.FC<Partial<P>> {
+function createScreenWithDefaults<P extends Record<string, unknown>>(Component: React.ComponentType<P>, defaultProps: NoInfer<P>, displayName: string): React.ComponentType<Partial<P>> {
     function Screen(overrideProps: Partial<P>) {
         const mergedProps: P = {...defaultProps, ...overrideProps};
 
@@ -40,7 +40,8 @@ function createScreenWithDefaults<P extends Record<string, unknown>>(Component: 
 
     Screen.displayName = displayName;
 
-    return Screen;
+    // OXC's React Compiler does not memoize this generated component on web; memoize it explicitly.
+    return React.memo(Screen);
 }
 
 export default createScreenWithDefaults;
