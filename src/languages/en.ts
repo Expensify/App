@@ -8873,7 +8873,7 @@ const translations = {
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         expensifyCardStatementPDF: {
-            title: 'Download Statement PDF',
+            title: 'Download statement',
             oneFeedAtATime: 'Please select settlements from one Expensify Card feed at a time.',
         },
         filtersHeader: 'Filters',

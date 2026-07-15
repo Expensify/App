@@ -8741,7 +8741,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             duplicateReport: ({count}: {count: number}) => `Duplica ${count === 1 ? 'report' : 'report'}`,
         },
         expensifyCardStatementPDF: {
-            title: 'Scarica estratto conto PDF',
+            title: 'Scarica estratto conto',
             oneFeedAtATime: 'Seleziona le liquidazioni di un solo feed Expensify Card alla volta.',
         },
         filtersHeader: 'Filtri',

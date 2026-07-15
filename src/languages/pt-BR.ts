@@ -8698,7 +8698,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             duplicateReport: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'relatório' : 'relatórios'}`,
         },
         expensifyCardStatementPDF: {
-            title: 'Baixar extrato em PDF',
+            title: 'Baixar extrato',
             oneFeedAtATime: 'Selecione liquidações de um único feed do Expensify Card por vez.',
         },
         filtersHeader: 'Filtros',

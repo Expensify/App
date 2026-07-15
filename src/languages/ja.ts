@@ -8623,7 +8623,7 @@ ${reportName}`,
             duplicateReport: ({count}: {count: number}) => `${count === 1 ? 'レポート' : 'レポート'} を複製`,
         },
         expensifyCardStatementPDF: {
-            title: '明細書PDFをダウンロード',
+            title: '明細書をダウンロード',
             oneFeedAtATime: '一度に1つのExpensify Cardフィードからのみ決済を選択してください。',
         },
         filtersHeader: 'フィルター',

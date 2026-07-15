@@ -8788,7 +8788,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             duplicateReport: ({count}: {count: number}) => `Dupliquer ${count === 1 ? 'note de frais' : 'notes de frais'}`,
         },
         expensifyCardStatementPDF: {
-            title: 'Télécharger le relevé PDF',
+            title: 'Télécharger le relevé',
             oneFeedAtATime: 'Veuillez sélectionner les règlements d’un seul flux Expensify Card à la fois.',
         },
         filtersHeader: 'Filtres',

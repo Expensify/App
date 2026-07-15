@@ -8710,7 +8710,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             duplicateReport: ({count}: {count: number}) => `Duplicaat ${count === 1 ? 'rapport' : 'rapporten'}`,
         },
         expensifyCardStatementPDF: {
-            title: 'Afschrift als PDF downloaden',
+            title: 'Afschrift downloaden',
             oneFeedAtATime: 'Selecteer afrekeningen van telkens slechts één Expensify Card-feed.',
         },
         filtersHeader: 'Filters',

@@ -8562,7 +8562,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
         expensifyCardStatementPDF: {
-            title: 'Descargar extracto en PDF',
+            title: 'Descargar extracto',
             oneFeedAtATime: 'Selecciona liquidaciones de un solo feed de Expensify Card a la vez.',
         },
         filtersHeader: 'Filtros',

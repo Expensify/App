@@ -8437,7 +8437,7 @@ ${reportName}`,
             duplicateReport: ({count}: {count: number}) => `重复 ${count === 1 ? '报表' : '报表'}`,
         },
         expensifyCardStatementPDF: {
-            title: '下载账单 PDF',
+            title: '下载对账单',
             oneFeedAtATime: '请一次只选择来自一个 Expensify Card 数据源的结算。',
         },
         filtersHeader: '筛选器',

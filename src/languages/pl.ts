@@ -8689,7 +8689,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             duplicateReport: ({count}: {count: number}) => `Duplikat ${count === 1 ? 'raport' : 'raporty'}`,
         },
         expensifyCardStatementPDF: {
-            title: 'Pobierz wyciąg PDF',
+            title: 'Pobierz wyciąg',
             oneFeedAtATime: 'Wybieraj rozliczenia z jednego feedu Expensify Card na raz.',
         },
         filtersHeader: 'Filtry',
