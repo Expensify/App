@@ -247,4 +247,4 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
     );
 }
 
-export default TableBody;
+export default React.memo(TableBody);
