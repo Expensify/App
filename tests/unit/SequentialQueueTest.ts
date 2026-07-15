@@ -728,10 +728,11 @@ describe('SequentialQueue - offline read reconciliation', () => {
         }
     });
 
-    it('documents a known boundary: a read already queued ahead of the offline comment is not bumped', async () => {
+    it('defers a read queued ahead of a same-report offline comment so the comment processes first and the read still gets bumped', async () => {
         // readNewestAction dedupes via replace-in-place (resolveDuplicationConflictAction), so a read that was
-        // queued before the comment keeps its original position ahead of it. The comment's timestamp is
-        // recorded too late for this read to benefit — this is a known limitation, not a crash/regression.
+        // queued before the comment keeps its original position ahead of it. Without reordering, the comment's
+        // timestamp would be recorded too late for this read to benefit. process() moves the offline read
+        // behind the same-report offline comment(s) before sending, so the bump fires in this ordering too.
         const staleReadTime = '2026-01-01 09:00:00.000';
         const commentServerTime = '2026-01-01 10:00:00.000';
         const {spy: processSpy, capture} = mockProcessWithMiddleware(commentServerTime);
@@ -743,7 +744,55 @@ describe('SequentialQueue - offline read reconciliation', () => {
             await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
+            expect(capture.readLastReadTime).toBe(commentServerTime);
+        } finally {
+            processSpy.mockRestore();
+        }
+    });
+
+    it('does not defer an offline read when the only queued comments belong to a different report', async () => {
+        const staleReadTime = '2026-01-01 09:00:00.000';
+        const commentServerTime = '2026-01-01 10:00:00.000';
+        const otherReportComment: AnyRequest = {command: WRITE_COMMANDS.ADD_COMMENT, data: {reportID: '999999', reportActionID: 'other-report-comment-1'}, initiatedOffline: true};
+        const {spy: processSpy, capture} = mockProcessWithMiddleware(commentServerTime);
+        try {
+            SequentialQueue.pause();
+            await SequentialQueue.push(buildRead(staleReadTime));
+            await SequentialQueue.push(otherReportComment);
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            // The read keeps its original position and stale time — the other report's comment must not affect it.
             expect(capture.readLastReadTime).toBe(staleReadTime);
+        } finally {
+            processSpy.mockRestore();
+        }
+    });
+
+    it('records the bumped window in report metadata so unread logic can verify it against actual report actions', async () => {
+        const staleReadTime = '2026-01-01 09:00:00.000';
+        const commentServerTime = '2026-01-01 10:00:00.000';
+        const {spy: processSpy} = mockProcessWithMiddleware(commentServerTime);
+        try {
+            SequentialQueue.pause();
+            await SequentialQueue.push(buildComment());
+            await SequentialQueue.push(buildRead(staleReadTime));
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const metadata = await new Promise<{unconfirmedReadWindow?: {from: string; to: string} | null} | undefined>((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(metadata?.unconfirmedReadWindow).toEqual({from: staleReadTime, to: commentServerTime});
         } finally {
             processSpy.mockRestore();
         }
