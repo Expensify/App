@@ -91,14 +91,4 @@ type ApprovalWorkflowRule = {
     actions: ApprovalWorkflowActions;
 };
 
-export type {
-    ApprovalWorkflowAction,
-    ApprovalWorkflowActionName,
-    ApprovalWorkflowActions,
-    ApprovalWorkflowFilter,
-    ApprovalWorkflowFilterComparison,
-    ApprovalWorkflowFilterOperand,
-    ApprovalWorkflowRule,
-    ApprovalWorkflowTrigger,
-    ApprovalWorkflowTriggers,
-};
+export type {ApprovalWorkflowAction, ApprovalWorkflowActions, ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule, ApprovalWorkflowTriggers};

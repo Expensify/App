@@ -32,8 +32,4 @@ type Rule = OnyxValueWithOfflineFeedback<
     }
 >;
 
-/** A collection of rules keyed by their `ONYXKEYS.COLLECTION.RULE` key (`rules_<ruleID>`). */
-type RuleCollection = Record<string, Rule>;
-
 export default Rule;
-export type {RuleCollection, RuleScope};
