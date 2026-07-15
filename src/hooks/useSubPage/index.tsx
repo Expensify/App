@@ -4,7 +4,7 @@ import {findLastPageIndex, findPageIndex} from '@libs/SubPageUtils';
 import type {ComponentType} from 'react';
 
 import {useNavigation, useRoute} from '@react-navigation/native';
-import {useEffect} from 'react';
+import {useCallback, useEffect} from 'react';
 
 import type {SubPageProps, UseSubPageProps} from './types';
 
@@ -23,6 +23,7 @@ export default function useSubPage<TProps extends SubPageProps, TPageName extend
     skipPages = [],
     onPageChange = () => {},
     buildRoute,
+    shouldReplaceRoute = false,
 }: UseSubPageProps<TProps, TPageName>) {
     const navigation = useNavigation();
     const route = useRoute();
@@ -46,15 +47,18 @@ export default function useSubPage<TProps extends SubPageProps, TPageName extend
     const lastPageIndex = findLastPageIndex(pages, skipPages);
     const lastPageName = pages.at(lastPageIndex)?.pageName;
 
-    const navigateToPage = (pageName: TPageName, action?: 'edit') => {
-        Navigation.navigate(buildRoute(pageName, action));
-    };
+    const navigateToPage = useCallback(
+        (pageName: TPageName, action?: 'edit') => {
+            if (shouldReplaceRoute) {
+                Navigation.navigate(buildRoute(pageName, action), {forceReplace: true});
+                return;
+            }
+            Navigation.navigate(buildRoute(pageName, action));
+        },
+        [buildRoute, shouldReplaceRoute],
+    );
 
-    if (pages.length === skipPages.length) {
-        throw new Error('All pages are skipped');
-    }
-
-    const prevPage = () => {
+    const prevPage = useCallback(() => {
         let targetIndex = pageIndex - 1;
         while (targetIndex >= 0) {
             const targetIndexPageName = pages.at(targetIndex)?.pageName;
@@ -70,51 +74,70 @@ export default function useSubPage<TProps extends SubPageProps, TPageName extend
 
         const targetPage = pages.at(targetIndex);
         if (targetPage) {
+            // When routes are replaced (dynamic routes), the flow keeps a single screen in the stack,
+            // so there is nothing to pop back to - navigate (replacing) to the previous page instead.
+            if (shouldReplaceRoute) {
+                Navigation.navigate(buildRoute(targetPage.pageName), {forceReplace: true});
+                return;
+            }
             Navigation.goBack(buildRoute(targetPage.pageName));
         }
-    };
+    }, [pageIndex, pages, skipPages, buildRoute, shouldReplaceRoute]);
 
-    const nextPage = (finishData?: unknown) => {
-        if (isEditing && lastPageName) {
-            navigateToPage(lastPageName);
-            return;
-        }
-
-        let targetIndex = pageIndex + 1;
-        while (targetIndex < pages.length) {
-            const targetIndexPageName = pages.at(targetIndex)?.pageName;
-            if (!targetIndexPageName || !skipPages.includes(targetIndexPageName)) {
-                break;
+    const nextPage = useCallback(
+        (finishData?: unknown) => {
+            if (isEditing && lastPageName) {
+                navigateToPage(lastPageName);
+                return;
             }
-            targetIndex += 1;
-        }
 
-        if (targetIndex > lastPageIndex) {
-            onFinished(finishData);
-        } else {
-            const targetPage = pages.at(targetIndex);
+            let targetIndex = pageIndex + 1;
+            while (targetIndex < pages.length) {
+                const targetIndexPageName = pages.at(targetIndex)?.pageName;
+                if (!targetIndexPageName || !skipPages.includes(targetIndexPageName)) {
+                    break;
+                }
+                targetIndex += 1;
+            }
+
+            if (targetIndex > lastPageIndex) {
+                onFinished(finishData);
+            } else {
+                const targetPage = pages.at(targetIndex);
+                if (targetPage) {
+                    onPageChange();
+                    navigateToPage(targetPage.pageName);
+                }
+            }
+        },
+        [isEditing, lastPageName, navigateToPage, pageIndex, pages, skipPages, lastPageIndex, onFinished, onPageChange],
+    );
+
+    const moveTo = useCallback(
+        (step: number, turnOnEditMode?: boolean) => {
+            const pageName = pages.at(step)?.pageName;
+            if (!pageName) {
+                return;
+            }
+            const shouldEdit = !(turnOnEditMode !== undefined && !turnOnEditMode);
+            navigateToPage(pageName, shouldEdit ? 'edit' : undefined);
+        },
+        [pages, navigateToPage],
+    );
+
+    const resetToPage = useCallback(
+        (pageName?: TPageName) => {
+            const targetPage = pageName ?? pages.at(0)?.pageName;
             if (targetPage) {
-                onPageChange();
-                navigateToPage(targetPage.pageName);
+                navigateToPage(targetPage);
             }
-        }
-    };
+        },
+        [pages, navigateToPage],
+    );
 
-    const moveTo = (step: number, turnOnEditMode?: boolean) => {
-        const pageName = pages.at(step)?.pageName;
-        if (!pageName) {
-            return;
-        }
-        const shouldEdit = !(turnOnEditMode !== undefined && !turnOnEditMode);
-        navigateToPage(pageName, shouldEdit ? 'edit' : undefined);
-    };
-
-    const resetToPage = (pageName?: TPageName) => {
-        const targetPage = pageName ?? pages.at(0)?.pageName;
-        if (targetPage) {
-            navigateToPage(targetPage);
-        }
-    };
+    if (pages.length === skipPages.length) {
+        throw new Error('All pages are skipped');
+    }
 
     const currentPage = pages.at(pageIndex);
 
