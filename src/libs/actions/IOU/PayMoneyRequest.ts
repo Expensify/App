@@ -71,6 +71,7 @@ type PayInvoiceArgs = {
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type PayMoneyRequestData = {
@@ -120,6 +121,7 @@ type PayMoneyRequestFunctionParams = {
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function mergeAdditionalPayOnyxData<
@@ -164,6 +166,7 @@ function getPayMoneyRequestParams({
     currentUserLocalCurrency,
     delegateAccountID,
     chatReportActions,
+    isTrackIntentUser,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -188,6 +191,7 @@ function getPayMoneyRequestParams({
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    isTrackIntentUser: boolean | undefined;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -295,7 +299,7 @@ function getPayMoneyRequestParams({
         currentNextStepDeprecated = iouReportCurrentNextStepDeprecated ?? null;
         // buildOptimisticNextStep is used in parallel
         optimisticNextStepDeprecated = buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
-        optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
+        optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser});
     }
 
     const optimisticChatReport = {
@@ -535,6 +539,7 @@ function cancelPayment(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     hasViolations: boolean,
+    isTrackIntentUser: boolean | undefined,
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -576,6 +581,7 @@ function cancelPayment(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
     const iouReportActions = getAllReportActions(chatReport.iouReportID);
     const expenseReportActions = getAllReportActions(expenseReport.reportID);
@@ -668,6 +674,7 @@ function cancelPayment(
                     buildOptimisticNextStep({
                         report: expenseReport,
                         predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                        isTrackIntentUser,
                     }) ?? null,
                 pendingFields: {
                     nextStep: null,
@@ -814,6 +821,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         shouldPlaySuccessSound = true,
         delegateAccountID,
         chatReportActions,
+        isTrackIntentUser,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -848,6 +856,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
         delegateAccountID,
         chatReportActions,
+        isTrackIntentUser,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -870,6 +879,7 @@ function markReportPaymentReceived(
     currentUserAccountID: number,
     currentUserEmail: string,
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
+    isTrackIntentUser: boolean | undefined,
 ) {
     if (!chatReport || !iouReport) {
         return;
@@ -906,7 +916,7 @@ function markReportPaymentReceived(
         // buildOptimisticNextStep is used in parallel
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
-    const optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
+    const optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
         {
@@ -1063,6 +1073,7 @@ function payInvoice({
     chatReportActions,
     additionalOnyxData,
     shouldPlaySuccessSound = true,
+    isTrackIntentUser,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -1098,6 +1109,7 @@ function payInvoice({
         isSelfTourViewed,
         defaultWorkspaceName,
         chatReportActions,
+        isTrackIntentUser,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
