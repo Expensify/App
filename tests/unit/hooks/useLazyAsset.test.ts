@@ -337,6 +337,21 @@ describe('useMemoizedLazyAsset', () => {
         expect(result.current.asset).toBe(mockAsset);
         expect(importFn).toHaveBeenCalled();
     });
+
+    it('wraps OXC-memoized host SVG elements as components instead of PlaceholderIcon', async () => {
+        // Host elements have type === 'svg'; unwrapping .type cannot recover a component.
+        const hostSvgElement = React.createElement('svg', {viewBox: '0 0 10 10'});
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- fixture: OXC can cache a host <svg> element as the loaded asset
+        const hostSvgAsAsset = hostSvgElement as unknown as IconAsset;
+        const importFn = jest.fn(() => Promise.resolve({default: hostSvgAsAsset}));
+
+        const {result} = renderHook(() => useMemoizedLazyAsset(importFn));
+
+        await waitFor(() => {
+            expect(result.current.asset).not.toBe(hostSvgAsAsset);
+            expect(typeof result.current.asset).toBe('function');
+        });
+    });
 });
 
 describe('useMemoizedLazyExpensifyIcons', () => {

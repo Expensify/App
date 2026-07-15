@@ -6,11 +6,36 @@ import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
 
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import {isValidElement, useEffect, useMemo, useRef, useState} from 'react';
+import type {ReactElement} from 'react';
+import type {SvgProps} from 'react-native-svg';
+
+import {cloneElement, isValidElement, useEffect, useMemo, useRef, useState} from 'react';
+
+/**
+ * OXC can cache SVG assets as pre-rendered elements (including host `<svg>` nodes).
+ * ImageSVG expects a component, so wrap those elements. Replacing them with PlaceholderIcon
+ * blanks illustrations; unwrapping `.type` fails when type is the string `'svg'`.
+ */
+const wrappedElementIconCache = new WeakMap<ReactElement, IconAsset>();
+
+function wrapElementAsIcon(element: ReactElement): IconAsset {
+    const cached = wrappedElementIconCache.get(element);
+    if (cached) {
+        return cached;
+    }
+
+    const WrappedIcon = (props: SvgProps) => cloneElement(element, props);
+    wrappedElementIconCache.set(element, WrappedIcon);
+    return WrappedIcon;
+}
 
 function resolveIconComponent(asset: IconAsset | undefined, fallback: IconAsset = PlaceholderIcon): IconAsset {
-    if (asset == null || isValidElement(asset)) {
+    if (asset == null) {
         return fallback;
+    }
+
+    if (isValidElement(asset)) {
+        return wrapElementAsIcon(asset);
     }
 
     return asset;
@@ -168,13 +193,12 @@ function useMemoizedLazyIllustrationsImpl(names: readonly IllustrationName[]): R
         };
     }, [namesList, cachedChunk]);
 
-    return useMemo(() => {
-        const icons: Record<string, IconAsset> = {};
-        for (const name of namesList) {
-            icons[name] = resolveIconComponent(assets[name]);
-        }
-        return icons;
-    }, [assets, namesList]);
+    // Do not wrap this mapping in useMemo — OXC can fuse it into pre-rendered elements (#96158).
+    const icons: Record<string, IconAsset> = {};
+    for (const name of namesList) {
+        icons[name] = resolveIconComponent(assets[name]);
+    }
+    return icons;
 }
 
 /**
@@ -245,13 +269,12 @@ function useMemoizedLazyExpensifyIconsImpl(names: readonly ExpensifyIconName[]):
         };
     }, [namesList, cachedChunk]);
 
-    return useMemo(() => {
-        const icons: Record<string, IconAsset> = {};
-        for (const name of namesList) {
-            icons[name] = resolveIconComponent(assets[name]);
-        }
-        return icons;
-    }, [assets, namesList]);
+    // Do not wrap this mapping in useMemo — OXC can fuse it into pre-rendered elements (#96158).
+    const icons: Record<string, IconAsset> = {};
+    for (const name of namesList) {
+        icons[name] = resolveIconComponent(assets[name]);
+    }
+    return icons;
 }
 
 /**
