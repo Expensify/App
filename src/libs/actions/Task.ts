@@ -1100,8 +1100,9 @@ function getAssignee(
     assigneeAccountID: number | undefined,
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     translate: LocalizedTranslate,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'],
 ): Assignee | undefined {
+    const formatPhone = formatPhoneNumber ?? ((n: string) => n);
     if (!assigneeAccountID) {
         return;
     }
@@ -1118,7 +1119,7 @@ function getAssignee(
 
     return {
         icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
-        displayName: formatPhoneNumber(PersonalDetailsUtils.temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+        displayName: formatPhone(PersonalDetailsUtils.temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
         subtitle: details.login ?? '',
     };
 }
@@ -1133,9 +1134,10 @@ function getShareDestination(
     policy: OnyxEntry<OnyxTypes.Policy>,
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'],
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): ShareDestination {
+    const formatPhone = formatPhoneNumber ?? ((n: string) => n);
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
     const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report);
@@ -1145,7 +1147,7 @@ function getShareDestination(
         OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails),
         isMultipleParticipant,
         localeCompare,
-        formatPhoneNumber,
+        formatPhone,
     );
 
     let subtitle = '';
@@ -1154,12 +1156,12 @@ function getShareDestination(
 
         const displayName = personalDetails?.[participantAccountID]?.displayName ?? '';
         const login = personalDetails?.[participantAccountID]?.login ?? '';
-        subtitle = formatPhoneNumber(login || displayName);
+        subtitle = formatPhone(login || displayName);
     } else {
         subtitle = ReportUtils.getChatRoomSubtitle(report, policy, conciergeReportID, translate) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(report, formatPhoneNumber, translate, personalDetails, FallbackAvatar),
+        icons: ReportUtils.getIcons(report, formatPhone, translate, personalDetails, FallbackAvatar),
         displayName: getReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,

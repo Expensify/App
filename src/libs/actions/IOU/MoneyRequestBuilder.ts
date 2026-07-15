@@ -226,7 +226,7 @@ type MoneyRequestInformationParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 };
 
 type MoneyRequestOptimisticParams = {
@@ -1295,6 +1295,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isTrackIntentUser,
         formatPhoneNumber,
     } = moneyRequestInformation;
+    const formatPhone = formatPhoneNumber ?? ((n: string) => n);
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
 
@@ -1617,7 +1618,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         ? {
               [payerAccountID]: {
                   accountID: payerAccountID,
-                  displayName: formatPhoneNumber(optimisticPersonalDetailDisplayName),
+                  displayName: formatPhone(optimisticPersonalDetailDisplayName),
                   firstName: optimisticPersonalDetailFirstName,
                   lastName: optimisticPersonalDetailLastName,
                   login: participant.login,

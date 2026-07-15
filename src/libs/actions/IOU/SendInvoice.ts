@@ -88,7 +88,7 @@ type SendInvoiceOptions = {
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -595,6 +595,7 @@ function getSendInvoiceInformation({
     delegateAccountID,
     formatPhoneNumber,
 }: SendInvoiceOptions): SendInvoiceInformation {
+    const formatPhone = formatPhoneNumber ?? ((n: string) => n);
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
@@ -663,7 +664,7 @@ function getSendInvoiceInformation({
         const receiverLogin = receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '';
         receiver = {
             accountID: receiverAccountID,
-            displayName: formatPhoneNumber(receiverLogin),
+            displayName: formatPhone(receiverLogin),
             login: receiverLogin,
             isOptimisticPersonalDetail: true,
         };

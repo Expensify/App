@@ -144,7 +144,7 @@ type CreateDistanceRequestInformation = {
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -171,7 +171,7 @@ type CreateSplitsAndOnyxDataParams = {
     // TODO: delegateAccountID will be made required in PR 11 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 };
 
 type StartSplitBilActionParams = {
@@ -197,7 +197,7 @@ type StartSplitBilActionParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SplitBillActionsParams = {
@@ -233,7 +233,7 @@ type SplitBillActionsParams = {
     // TODO: delegateAccountID will be made required in PR 11 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 };
 
 type CompleteSplitBillInformation = {
@@ -512,6 +512,7 @@ function startSplitBill({
     shouldDeferForSearch = false,
     formatPhoneNumber,
 }: StartSplitBilActionParams) {
+    const formatPhone = formatPhoneNumber ?? ((n: string) => n);
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
     const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
@@ -770,7 +771,7 @@ function startSplitBill({
                         accountID,
                         // Disabling this line since participant.displayName can be an empty string
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: formatPhoneNumber(participant.displayName || email),
+                        displayName: formatPhone(participant.displayName || email),
                         // Disabling this line since participant.login can be an empty string
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         login: participant.login || participant.text,
@@ -1437,6 +1438,7 @@ function createSplitsAndOnyxData({
     isTrackIntentUser,
     formatPhoneNumber,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
+    const formatPhone = formatPhoneNumber ?? ((n: string) => n);
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
 
@@ -1818,7 +1820,7 @@ function createSplitsAndOnyxData({
                       accountID,
                       // Disabling this line since participant.displayName can be an empty string
                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                      displayName: formatPhoneNumber(participant.displayName || email),
+                      displayName: formatPhone(participant.displayName || email),
                       login: participant.login,
                       isOptimisticPersonalDetail: true,
                   },
