@@ -18,6 +18,13 @@ import useOnyx from './useOnyx';
 
 const CROP_SUFFIX = `/${DYNAMIC_ROUTES.AVATAR_CROP.path}`;
 
+/**
+ * Token of the crop the opener started in this session. Adoption below exists only to recover a draft
+ * orphaned by a page refresh, which resets this back to null. While the opener is still alive it holds
+ * the token in its own ref, so any other mounted instance seeing this token must not adopt the draft.
+ */
+let sessionOwnedToken: string | null = null;
+
 /** The opener's route, used to tie a persisted crop draft back to the opener that started it. */
 function getOpenerKey(route: string): string {
     return splitPathAndQuery(route).at(0) ?? '';
@@ -43,6 +50,8 @@ function useAvatarCrop({maskType, buttonLabelKey, onCropped}: UseAvatarCropParam
     const openCropper = (image: FileObject) => {
         const token = rand64();
         tokenRef.current = token;
+        // Claim the token synchronously, before the draft is written, so no other mounted instance can adopt it.
+        sessionOwnedToken = token;
         // Capture the opener's route now: serialization below is async (slow on web) and the active
         // route can change if the user navigates away before it resolves.
         const baseRoute = Navigation.getActiveRoute();
@@ -61,7 +70,7 @@ function useAvatarCrop({maskType, buttonLabelKey, onCropped}: UseAvatarCropParam
     // draft's token if it was opened from this opener's route (the focused crop route minus the
     // `/avatar-crop` suffix), so the cropped result is still delivered to this opener when the user saves.
     useEffect(() => {
-        if (tokenRef.current || !draft?.token || !draft.openerKey) {
+        if (tokenRef.current || !draft?.token || !draft.openerKey || draft.token === sessionOwnedToken) {
             return;
         }
         const draftToken = draft.token;
