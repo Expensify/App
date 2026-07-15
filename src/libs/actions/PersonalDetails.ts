@@ -336,10 +336,18 @@ function openPublicProfilePage(accountID: number) {
 
     const parameters: OpenPublicProfilePageParams = {accountID};
 
-    API.read(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
-type DefaultAvatarResult = {uri: string; name: string; customExpensifyAvatarID: string};
+type DefaultAvatarResult = {
+    uri: string;
+    name: string;
+    customExpensifyAvatarID: string;
+};
 
 /**
  * Type guard to check if a file object is a DefaultAvatarResult
@@ -411,7 +419,11 @@ function updateAvatar(
 
     const parameters: UpdateUserAvatarParams = isDefaultAvatarResult(file) ? {customExpensifyAvatarID: file.customExpensifyAvatarID} : {file};
 
-    API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 /**
@@ -436,7 +448,10 @@ function updateAvatarStyle(color: LetterAvatarSchemeKey, currentUserPersonalDeta
                         avatarStyle: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                     ...(willClearUploadedAvatar && {
-                        avatar: UserAvatarUtils.getDefaultAvatarURL({accountID: currentUserPersonalDetails.accountID, accountEmail: currentUserPersonalDetails.email}),
+                        avatar: UserAvatarUtils.getDefaultAvatarURL({
+                            accountID: currentUserPersonalDetails.accountID,
+                            accountEmail: currentUserPersonalDetails.email,
+                        }),
                         fallbackIcon: null,
                     }),
                 },
@@ -470,14 +485,18 @@ function updateAvatarStyle(color: LetterAvatarSchemeKey, currentUserPersonalDeta
                         avatar: currentUserPersonalDetails.avatar,
                         fallbackIcon: currentUserPersonalDetails.fallbackIcon,
                     }),
-                } as OnyxEntry<Partial<PersonalDetails>>,
+                },
             },
         },
     ];
 
     const parameters: UpdateUserAvatarParams = {color};
 
-    API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 /**
@@ -489,7 +508,10 @@ function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetail
     }
 
     // We want to use the old dot avatar here as this affects both platforms.
-    const defaultAvatar = UserAvatarUtils.getDefaultAvatarURL({accountID: currentUserPersonalDetails.accountID, accountEmail: currentUserPersonalDetails.email});
+    const defaultAvatar = UserAvatarUtils.getDefaultAvatarURL({
+        accountID: currentUserPersonalDetails.accountID,
+        accountEmail: currentUserPersonalDetails.email,
+    });
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
@@ -516,7 +538,10 @@ function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetail
         },
     ];
 
-    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {
+        optimisticData,
+        failureData,
+    });
 }
 
 /**
@@ -572,7 +597,9 @@ function updatePrivatePersonalDetails(values: FormOnyxValues<typeof ONYXKEYS.FOR
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
                     isLoading: false,
-                    errorFields: {personalDetails: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                    errorFields: {
+                        personalDetails: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
                 },
             },
         ],
