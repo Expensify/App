@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {OptionData} from '@libs/ReportUtils';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ValueOf} from 'type-fest';
@@ -70,7 +70,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         src={item.singleIcon}
                         fill={item.shouldIconApplyFill !== false ? theme.icon : undefined}
                         additionalStyles={styles.mr3}
-                        medium
+                        size={CONST.ICON_SIZE.MEDIUM}
                     />
                 )}
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>

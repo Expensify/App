@@ -1,8 +1,9 @@
 import {close} from '@libs/actions/Modal';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
 
@@ -34,7 +35,7 @@ function usePayAndDowngrade(continueAction: () => void) {
         if (!shouldBillWhenDowngrading) {
             close(continueActionRef.current);
         } else {
-            Navigation.navigate(ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.getRoute(Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.path));
         }
 
         isDeletingPaidWorkspaceRef.current = false;

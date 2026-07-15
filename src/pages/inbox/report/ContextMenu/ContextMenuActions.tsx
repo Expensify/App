@@ -266,6 +266,16 @@ function setClipboardMessage(content: string | undefined) {
     }
 }
 
+/** Sets the HTML string to Clipboard after stripping the SMS domain from any user mentions */
+function setClipboardMessageWithCleanedMentions(value: string) {
+    setClipboardMessage(
+        value.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
+            const modifiedContent = Str.removeSMSDomain(innerContent) || '';
+            return openTag + modifiedContent + closeTag || '';
+        }),
+    );
+}
+
 type ShouldShow = (args: {
     type: string;
     reportAction: OnyxEntry<ReportAction>;
@@ -330,6 +340,7 @@ type ContextMenuActionPayload = {
     harvestReportOriginalID?: string;
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     isDelegateAccessRestricted?: boolean;
@@ -637,7 +648,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails},
+            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails, isTrackIntentUser},
         ) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
@@ -653,6 +664,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         currentUserPersonalDetails?.login ?? '',
                         currentUserPersonalDetails.accountID,
                         iouTransactionViolations,
+                        isTrackIntentUser,
                     ),
                 );
                 return;
@@ -666,6 +678,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 currentUserPersonalDetails?.login ?? '',
                 currentUserPersonalDetails.accountID,
                 iouTransactionViolations,
+                isTrackIntentUser,
             );
         },
         getDescription: () => {},
@@ -684,7 +697,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails},
+            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails, isTrackIntentUser},
         ) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
@@ -700,6 +713,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         currentUserPersonalDetails?.login ?? '',
                         currentUserPersonalDetails.accountID,
                         iouTransactionViolations,
+                        isTrackIntentUser,
                     ),
                 );
                 return;
@@ -713,6 +727,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 currentUserPersonalDetails?.login ?? '',
                 currentUserPersonalDetails.accountID,
                 iouTransactionViolations,
+                isTrackIntentUser,
             );
         },
         getDescription: () => {},
@@ -743,7 +758,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas, personalDetails}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -755,6 +770,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         originalReport,
                         introSelected,
                         isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
                         betas,
                         childReportNotificationPreference,
                         personalDetails,
@@ -771,6 +787,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 introSelected,
                 isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
                 betas,
                 childReportNotificationPreference,
                 personalDetails,
@@ -802,7 +819,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas, personalDetails}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -814,6 +831,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         originalReport,
                         introSelected,
                         isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
                         betas,
                         childReportNotificationPreference,
                         personalDetails,
@@ -830,6 +848,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 introSelected,
                 isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
                 betas,
                 childReportNotificationPreference,
                 personalDetails,
@@ -927,7 +946,11 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isAttachment = isReportActionAttachment(reportAction);
             if (!isAttachment) {
                 const content = selection || messageHtml;
-                if (isReportPreviewAction) {
+                if (selection) {
+                    // When the user has highlighted part of a message, always copy exactly what's selected,
+                    // regardless of the report action type (including system messages like "marked as paid").
+                    setClipboardMessageWithCleanedMentions(selection);
+                } else if (isReportPreviewAction) {
                     const iouReportID = getIOUReportIDFromReportActionPreview(reportAction);
                     const displayMessage = getReportPreviewMessageForCopy({
                         reportOrID: iouReportID,
@@ -1317,12 +1340,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const missingFields = getOriginalMessage(reportAction)?.missingFields;
                     setClipboardMessage(translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields}));
                 } else if (content) {
-                    setClipboardMessage(
-                        content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
-                            const modifiedContent = Str.removeSMSDomain(innerContent) || '';
-                            return openTag + modifiedContent + closeTag || '';
-                        }),
-                    );
+                    setClipboardMessageWithCleanedMentions(content);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
                     setClipboardMessage(getSettlementAccountLockedMessage(translate, reportAction));
                 } else if (messageText) {
