@@ -15,17 +15,24 @@ function isDelegateOnlySubmitter(account: OnyxEntry<Account>): boolean {
 
 /**
  * Whether the required-2FA overlay should be shown for the current account state.
+ * Once 2FA is enabled (`requiresTwoFactorAuth`), never show the overlay just because
+ * `twoFactorAuthSetupInProgress` is still set (post-complete handoff window).
  */
 function shouldShowRequire2FAPage(account: OnyxEntry<Account>, hasCompletedGuidedSetupFlow: boolean): boolean {
-    return (!!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth) || (!!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlow);
+    return (
+        (!!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth) ||
+        (!!account?.twoFactorAuthSetupInProgress && !account?.requiresTwoFactorAuth && !hasCompletedGuidedSetupFlow)
+    );
 }
 
 /**
  * Whether the user is in the forced 2FA setup flow during incomplete onboarding
  * (domain-migration / required-2FA-before-onboarding scenario).
+ * Detected via setup-in-progress alone so verify-submit can keep the RHP open before
+ * `requiresTwoFactorAuth` becomes true.
  */
 function isForced2FAOnboardingSetup(account: OnyxEntry<Account>, hasCompletedGuidedSetupFlow: boolean): boolean {
-    return !!account?.requiresTwoFactorAuth && !!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlow;
+    return !!account?.twoFactorAuthSetupInProgress && hasCompletedGuidedSetupFlow === false;
 }
 
 /**

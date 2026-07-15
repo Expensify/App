@@ -545,10 +545,11 @@ describe('OnboardingGuard', () => {
     });
 
     describe('required 2FA setup exception', () => {
+        // Pre-verify required-2FA state: overlay is active and setup wizard is open.
         const required2FAAccount = {
             twoFactorAuthSetupInProgress: true,
-            requiresTwoFactorAuth: true,
-            needsTwoFactorAuthSetup: false,
+            requiresTwoFactorAuth: false,
+            needsTwoFactorAuthSetup: true,
         };
 
         const onboardingRootState: NavigationState = {

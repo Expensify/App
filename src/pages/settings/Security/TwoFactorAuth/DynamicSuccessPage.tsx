@@ -53,28 +53,10 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
-    const isForced2FAOnboardingSetup = AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow);
-
-    // Clear 2FA progress only after the RHP dismisses so useOnboardingFlow stays paused and does not
-    // race the dismiss animation (which briefly re-shows the 2FA modal before onboarding starts).
-    const completeForced2FAOnboardingHandoff = () => {
-        Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
-            afterTransition: () => {
-                clearTwoFactorAuthData(true);
-                const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
-                startOnboardingFlow({
-                    ...onboardingFlowParams,
-                    onboardingInitialPath: getRequired2FAOnboardingResumePath(onboardingFlowParams),
-                });
-            },
-        });
-    };
+    // Forced onboarding 2FA always enters via Settings > Security (from the require-2FA overlay).
+    const shouldReturnToOnboardingAfter2FA = isSecuritySettingsFlow && AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow);
 
     const goBack = () => {
-        if (isForced2FAOnboardingSetup) {
-            completeForced2FAOnboardingHandoff();
-            return;
-        }
         if (isUSDBankAccountFlow) {
             Navigation.goBack(dynamicBackPath, {
                 afterTransition: () => {
@@ -96,8 +78,17 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
             closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
             return;
         }
-        if (isForced2FAOnboardingSetup) {
-            completeForced2FAOnboardingHandoff();
+        if (shouldReturnToOnboardingAfter2FA) {
+            clearTwoFactorAuthData(true);
+            Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
+                afterTransition: () => {
+                    const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
+                    startOnboardingFlow({
+                        ...onboardingFlowParams,
+                        onboardingInitialPath: getRequired2FAOnboardingResumePath(onboardingFlowParams),
+                    });
+                },
+            });
             return;
         }
         // For the Settings > Security entry, keep the 2FA RHP open on the Enabled page instead of dismissing it

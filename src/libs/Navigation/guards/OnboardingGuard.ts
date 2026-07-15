@@ -121,8 +121,11 @@ function getOnboardingRoute(): Route {
     }) as Route;
 }
 
-function getShouldShowRequire2FAPage(): boolean {
-    return AccountUtils.shouldShowRequire2FAPage(account, hasCompletedGuidedSetupFlowSelector(onboarding) ?? false);
+function isRequiredTwoFactorSetupExceptionActive(): boolean {
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
+    // Allow 2FA setup while the blocking overlay is up, and also through the post-verify
+    // handoff window when the overlay is intentionally hidden but setup is still in progress.
+    return AccountUtils.shouldShowRequire2FAPage(account, hasCompletedGuidedSetupFlow) || AccountUtils.isForced2FAOnboardingSetup(account, hasCompletedGuidedSetupFlow);
 }
 
 type DeepestFocusedScreenInput = NonNullable<Parameters<typeof getDeepestFocusedScreen>[0]>;
@@ -162,7 +165,7 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
     const targetFocusedRoute = findFocusedRoute(action?.payload as NavigationState);
 
     // Allow required 2FA setup navigation even when the user is currently on onboarding.
-    if (getShouldShowRequire2FAPage() && isTargetTwoFactorSetupRoute(action)) {
+    if (isRequiredTwoFactorSetupExceptionActive() && isTargetTwoFactorSetupRoute(action)) {
         return false;
     }
 
@@ -209,7 +212,7 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'BLOCK', reason: 'Cannot reset to non-onboarding screen while on onboarding'};
         }
 
-        if (getShouldShowRequire2FAPage() && (isTargetTwoFactorSetupRoute(action) || isCurrentlyOnTwoFactorSetupRoute(state))) {
+        if (isRequiredTwoFactorSetupExceptionActive() && (isTargetTwoFactorSetupRoute(action) || isCurrentlyOnTwoFactorSetupRoute(state))) {
             return {type: 'ALLOW'};
         }
 
