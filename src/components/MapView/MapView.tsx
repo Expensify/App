@@ -1,6 +1,5 @@
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
-import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';

@@ -151,7 +151,7 @@
 "../../src/components/DelegateNoAccessModalProvider/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/DialogLabelContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/DisplayNames/DisplayNamesWithTooltip.tsx"	"react-hooks/refs"	6
-"../../src/components/DistanceRequest/DistanceRequestFooter.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/components/DistanceRequest/DistanceRequestFooter.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/DistanceRequest/DistanceRequestFooter.tsx"	"no-restricted-imports"	1
 "../../src/components/DistanceRequest/DistanceRequestRenderItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Domain/CopyableTextField.tsx"	"no-restricted-imports"	1

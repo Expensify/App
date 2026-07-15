@@ -30,8 +30,6 @@ function Direction({coordinates, belowLayerID, isSelected = true, id, onPress}: 
             <>
                 {validSegments.map((segmentCoordinates, index) => (
                     <Mapbox.ShapeSource
-                        // Using index as key is safe because we are not reordering the routes
-                        // eslint-disable-next-line react/no-array-index-key
                         key={getId(`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`, id)}
                         id={getId(`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`, id)}
                         shape={{
