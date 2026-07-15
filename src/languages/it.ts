@@ -10344,17 +10344,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         positiveButton: 'Sì!',
         negativeButton: 'Non proprio',
     },
-    trialPaymentReminder: {
-        title: 'Anticipa la scadenza',
-        subtitle: "Non aspettare l'ultimo minuto, aggiungi il tuo metodo di pagamento oggi per garantire l'accesso continuo alle tue spese su Expensify.",
-        trialEndsInDays: () => ({
-            one: 'Il periodo di prova termina tra 1 giorno',
-            other: (pluralCount: number) => `Il periodo di prova termina tra ${pluralCount} giorni`,
-        }),
-        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Il periodo di prova termina tra ${hours}h : ${minutes}m : ${seconds}s`,
-        closeButton: 'Chiudi',
-        addPaymentCardButton: 'Aggiungi carta di pagamento',
-    },
     monthPickerPage: {month: 'Mese', selectMonth: 'Seleziona un mese'},
     aiFeaturesPromoModal: {
         subtitle: 'Nuovo in Concierge AI',
