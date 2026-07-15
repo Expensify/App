@@ -3,6 +3,7 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 
+import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -54,8 +55,8 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
                 }
 
                 const perDiemUnit = getPerDiemCustomUnit(policy);
-                if (!perDiemUnit) {
-                    return;
+                if (!perDiemUnit && policy?.id) {
+                    fetchPerDiemRates(policy.id);
                 }
 
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
