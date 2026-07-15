@@ -47,7 +47,13 @@ function InteractiveStepButton({stepNumber, stepLabel, currentStepDescription, i
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const accessibilityLabel = isCurrentStep && currentStepDescription ? `${stepLabel}, ${currentStepDescription}` : stepLabel;
-    const accessibilityState = {selected: isCurrentStep};
+    // Display-only steps are never actionable. Mark them disabled so TalkBack announces
+    // "Disabled" (production behavior) instead of "Double tap to activate". Keep selected
+    // for the current step. Web stays focusable via tabIndex so JAWS can still read labels.
+    const accessibilityState = {
+        selected: isCurrentStep,
+        ...(!onPress ? {disabled: true} : {}),
+    };
     const stepButtonStyle = [
         styles.interactiveStepHeaderStepButton,
         isLockedStep && styles.interactiveStepHeaderLockedStepButton,
