@@ -2299,7 +2299,6 @@
 "../../tests/unit/useTransactionViolationsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	21
 "../../tests/unit/useWorkspacesTabIndicatorStatusTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/waitForPreviousRunsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../tests/unit/withAgentAccessDenied.test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/utils/TestHelper.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/utils/collections/card.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/utils/collections/paymentMethods.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
