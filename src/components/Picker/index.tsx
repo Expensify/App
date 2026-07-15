@@ -1,3 +1,5 @@
+import genericMemo from '@libs/genericMemo';
+
 import React from 'react';
 
 import type {AdditionalPickerEvents, BasePickerProps, OnChange, OnMouseDown} from './types';
@@ -32,4 +34,4 @@ function Picker<TPickerValue>({ref, ...props}: BasePickerProps<TPickerValue>) {
     );
 }
 
-export default Picker;
+export default genericMemo(Picker);

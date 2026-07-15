@@ -109,7 +109,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                 return;
             }
 
-            navigateToBankAccountRoute({policyID, backTo, navigationOptions: {forceReplace: true}, policyCurrency: policy?.outputCurrency, bankAccountState: accountData?.state});
+            navigateToBankAccountRoute({policyID, backTo, navigationOptions: {forceReplace: true}});
         });
     };
 

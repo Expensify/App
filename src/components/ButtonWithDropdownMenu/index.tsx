@@ -12,6 +12,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import genericMemo from '@libs/genericMemo';
 import mergeRefs from '@libs/mergeRefs';
 
 import variables from '@styles/variables';
@@ -387,4 +388,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     );
 }
 
-export default ButtonWithDropdownMenu;
+// OXC's React Compiler bails on this file (refs accessed during render), so it is not memoized on
+// web. Memoize it explicitly (genericMemo preserves the generic call signature).
+export default genericMemo(ButtonWithDropdownMenu);
