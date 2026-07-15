@@ -1,13 +1,16 @@
 import {renderHook} from '@testing-library/react-native';
 
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
 
 import useHoldRejectActions from '@hooks/useHoldRejectActions';
+
+import {changeMoneyRequestHoldStatus, isDM} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -116,6 +119,8 @@ describe('useHoldRejectActions - report-level reject', () => {
         jest.clearAllMocks();
         getMockUseDelegateNoAccessState().mockReturnValue({isDelegateAccessRestricted: false});
         getMockUseDelegateNoAccessActions().mockReturnValue({showDelegateNoAccessModal: mockShowDelegateNoAccessModal});
+        jest.mocked(useMoneyReportTransactionThread).mockReturnValue({iouTransactionID: undefined, requestParentReportAction: undefined});
+        jest.mocked(isDM).mockReturnValue(false);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_REPORT_ID}`, mockReport);
     });
 
@@ -152,5 +157,22 @@ describe('useHoldRejectActions - report-level reject', () => {
         expect(mockShowDelegateNoAccessModal).toHaveBeenCalled();
         expect(onRejectModalOpen).not.toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('opens the hold educational modal for DM expenses instead of bypassing it', async () => {
+        jest.mocked(useMoneyReportTransactionThread).mockReturnValue({
+            iouTransactionID: undefined,
+            requestParentReportAction: {reportActionID: 'parent-action-1'} as ReportAction,
+        });
+        jest.mocked(isDM).mockReturnValue(true);
+        await Onyx.merge(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, false);
+        await waitForBatchedUpdates();
+
+        const {result, onHoldEducationalOpen, onRejectModalOpen} = renderRejectActions();
+        result.current[CONST.REPORT.SECONDARY_ACTIONS.HOLD].onSelected?.();
+
+        expect(onHoldEducationalOpen).toHaveBeenCalled();
+        expect(onRejectModalOpen).not.toHaveBeenCalled();
+        expect(changeMoneyRequestHoldStatus).not.toHaveBeenCalled();
     });
 });
