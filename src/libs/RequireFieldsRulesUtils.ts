@@ -237,15 +237,14 @@ function hasRequireFieldsRuleChanges(
     clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
 ): boolean {
     const initialForm = getRequireFieldsFormFromCategory(category);
+    const settingFieldKeys = [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const;
 
-    if (
-        ([INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const).some((fieldKey) =>
-            hasClearedRequireFieldsSetting(category, fieldKey, clearedFields),
-        )
-    ) {
+    if (settingFieldKeys.some((fieldKey) => hasClearedRequireFieldsSetting(category, fieldKey, clearedFields))) {
         return true;
     }
 
+    // Compare against the category snapshot so Require → Don't require is always a real edit.
+    // (Do not key this off touchedFields alone — a seeded edit form already holds the prior Require value.)
     if (!clearedFields?.has(INPUT_IDS.DESCRIPTION_SETTING) && effectiveForm[INPUT_IDS.DESCRIPTION_SETTING] !== initialForm[INPUT_IDS.DESCRIPTION_SETTING]) {
         return true;
     }
@@ -924,11 +923,13 @@ function getRequireFieldsFieldCouplingTooltipKey(
         return undefined;
     }
 
-    if (fieldKey === INPUT_IDS.RECEIPT_SETTING) {
+    // Keep the control locked from existing category state, but only teach after the user
+    // causes the coupling — otherwise edit opens with a tooltip immediately.
+    if (fieldKey === INPUT_IDS.RECEIPT_SETTING && touchedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING)) {
         return 'receiptDisabledWhenItemizedRequired';
     }
 
-    if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING) {
+    if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING && touchedFields?.has(INPUT_IDS.RECEIPT_SETTING)) {
         return 'itemizedDisabledWhenReceiptWaived';
     }
 

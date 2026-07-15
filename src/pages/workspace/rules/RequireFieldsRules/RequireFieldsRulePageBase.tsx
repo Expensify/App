@@ -81,7 +81,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     const selectedCategory = selectedCategoryName ? policyCategories?.[selectedCategoryName] : undefined;
     const effectiveForm = form && selectedCategory ? getEffectiveRequireFieldsRuleForm(selectedCategory, form) : form;
     const categoryDisplayName = selectedCategoryName ? getDecodedCategoryName(selectedCategoryName) : undefined;
-    const formCategory = form?.[INPUT_IDS.CATEGORY];
     const activeRuleKey = isEditing && categoryName ? getRequireFieldsRuleKey(categoryName) : ROUTES.NEW;
     const [selectionStateForRuleKey, setSelectionStateForRuleKey] = useState(activeRuleKey);
     const [selectionCategoryName, setSelectionCategoryName] = useState(selectedCategoryName);
@@ -123,17 +122,15 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
             return;
         }
 
-        if (formCategory === categoryName) {
-            initializedDraftForRuleKeyRef.current = ruleKey;
-            return;
-        }
-
+        // Always reseed from the category so a leftover new-rule draft cannot leave a stale Require/Don't require.
         initializedDraftForRuleKeyRef.current = ruleKey;
+        setTouchedFields(new Set());
+        setClearedFields(new Set());
         setDraftRequireFieldsRule({
             [INPUT_IDS.CATEGORY]: categoryName,
             ...getRequireFieldsFormFromCategory(category),
         });
-    }, [category, categoryName, formCategory, isEditing]);
+    }, [category, categoryName, isEditing]);
 
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
@@ -177,13 +174,17 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         },
     ];
 
-    const errorMessage = getRequireFieldsRuleValidationError(form, selectedCategory, translate, isEditing, touchedFields, clearedFields);
+    // Prefer the selected category, but fall back to the route category so edit validation
+    // still sees areCommentsRequired / receipt overrides if the draft category is briefly missing.
+    const categoryForRule = selectedCategory ?? category;
+
+    const errorMessage = getRequireFieldsRuleValidationError(form, categoryForRule, translate, isEditing, touchedFields, clearedFields);
 
     const getFieldDisplaySetting = (fieldKey: RequireFieldsRuleSettingFieldKey): FieldRequirementsDirection | undefined =>
         getRequireFieldsDisplayedSetting({
             fieldKey,
-            category: selectedCategory,
-            effectiveForm,
+            category: categoryForRule,
+            effectiveForm: form && categoryForRule ? getEffectiveRequireFieldsRuleForm(categoryForRule, form) : effectiveForm,
             touchedFields,
             clearedFields,
             isEditing,
@@ -294,6 +295,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
             isAlertVisible={shouldShowError && !!errorMessage}
             message={errorMessage}
             onSubmit={handleSubmit}
+            shouldShowLoadingImmediatelyOnPress={false}
             enabledWhenOffline
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_SAVE}
         />
