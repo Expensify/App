@@ -7541,7 +7541,7 @@ ${reportName}`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'ブロック済み' : '許可されています'} ${shownCount > 1 ? 'カテゴリ' : 'カテゴリ'}: ${categories}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
-                defaultRuleSummary: 'アダルトサービス、ATM、ギャンブルなどを含むカテゴリ',
+                defaultRuleSummary: 'アダルトサービス、ATM、ギャンブル、送金を含むカテゴリ',
                 findRule: 'ルールを検索',
                 defaultSection: 'デフォルト',
                 customRulesSection: 'カスタムルール',

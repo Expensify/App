@@ -7635,7 +7635,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloccato' : 'Consentito'} ${shownCount > 1 ? 'categorie' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} in più` : ''}`,
-                defaultRuleSummary: 'Categorie che includono servizi per adulti, sportelli bancomat, gioco d’azzardo e...',
+                defaultRuleSummary: 'Categorie che includono servizi per adulti, bancomat, gioco d’azzardo e trasferimenti di denaro',
                 findRule: 'Trova regola',
                 defaultSection: 'Predefinito',
                 customRulesSection: 'Regole personalizzate',
