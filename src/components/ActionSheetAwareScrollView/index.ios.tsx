@@ -1,5 +1,3 @@
-import type {StyleProp, ViewStyle} from 'react-native';
-
 import React from 'react';
 import {KeyboardChatScrollView} from 'react-native-keyboard-controller';
 import Reanimated, {useAnimatedStyle} from 'react-native-reanimated';
@@ -15,13 +13,6 @@ import {Actions, ActionSheetAwareScrollViewProvider, useActionSheetAwareScrollVi
 import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
 import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
-
-const ReanimatedScrollView = React.forwardRef<Reanimated.ScrollView, React.ComponentProps<typeof Reanimated.ScrollView>>((props, ref) => (
-    <Reanimated.ScrollView
-        {...props}
-        ref={ref}
-    />
-));
 
 function ActionSheetAwareScrollView({style, children, ref, ...restProps}: ActionSheetAwareScrollViewProps) {
     const {onRef, animatedRef} = useActionSheetAwareScrollViewRef(ref);
@@ -47,22 +38,18 @@ function ActionSheetAwareScrollView({style, children, ref, ...restProps}: Action
 function ActionSheetAwareKeyboardScrollView({style, children, inverted, ref, ...restProps}: ActionSheetAwareKeyboardScrollViewProps) {
     const {onRef, animatedRef} = useActionSheetAwareScrollViewRef(ref);
 
-    const spacing = useActionSheetKeyboardSpacing(animatedRef);
-    const animatedStyle = useAnimatedStyle(() => ({
-        paddingTop: spacing.get(),
-    }));
-
     usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});
 
     return (
         <KeyboardChatScrollView
             {...restProps}
             ref={onRef}
-            style={[style, animatedStyle as StyleProp<ViewStyle>]}
-            ScrollViewComponent={ReanimatedScrollView}
+            style={style}
             automaticallyAdjustContentInsets={false}
             contentInsetAdjustmentBehavior="never"
             inverted={inverted}
+            keyboardDismissMode="interactive"
+            keyboardLiftBehavior="never"
         >
             {children}
         </KeyboardChatScrollView>

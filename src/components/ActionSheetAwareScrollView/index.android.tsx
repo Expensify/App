@@ -13,13 +13,6 @@ import {Actions, ActionSheetAwareScrollViewProvider, useActionSheetAwareScrollVi
 import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
 
-const ReanimatedScrollView = React.forwardRef<Reanimated.ScrollView, React.ComponentProps<typeof Reanimated.ScrollView>>((props, ref) => (
-    <Reanimated.ScrollView
-        {...props}
-        ref={ref}
-    />
-));
-
 function ActionSheetAwareScrollView({style, children, ref, ...restProps}: ActionSheetAwareScrollViewProps) {
     const {onRef, animatedRef} = useActionSheetAwareScrollViewRef(ref);
 
@@ -46,10 +39,11 @@ function ActionSheetAwareKeyboardScrollView({style, children, inverted, ref, ...
             {...restProps}
             ref={onRef}
             style={style}
-            ScrollViewComponent={ReanimatedScrollView}
             automaticallyAdjustContentInsets={false}
             contentInsetAdjustmentBehavior="never"
             inverted={inverted}
+            keyboardDismissMode="interactive"
+            keyboardLiftBehavior="never"
         >
             {children}
         </KeyboardChatScrollView>
