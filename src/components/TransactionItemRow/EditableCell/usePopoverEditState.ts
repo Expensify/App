@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 type PopoverPosition = {
     horizontal: number;
@@ -66,7 +66,7 @@ function usePopoverEditState<T>({
     const [popoverPosition, setPopoverPosition] = useState<PopoverPosition>({horizontal: 0, vertical: 0});
     const [isInverted, setIsInverted] = useState(false);
 
-    const openPopover = () => {
+    const openPopover = useCallback(() => {
         anchorRef.current?.measureInWindow((x, y, width, height) => {
             const wouldExceedBottom = y + popoverHeight + padding > windowHeight;
             setIsInverted(wouldExceedBottom);
@@ -76,35 +76,38 @@ function usePopoverEditState<T>({
             });
             setIsPopoverVisible(true);
         });
-    };
+    }, [anchorEdge, padding, popoverHeight, windowHeight]);
 
-    const startEditing = () => {
+    const startEditing = useCallback(() => {
         setIsEditing(true);
         // EditableCell renders conditionally based on isEditing, defer measurement until that render completes and the anchor is laid out
         requestAnimationFrame(() => {
             openPopover();
         });
-    };
+    }, [openPopover]);
 
-    const cancelEditing = () => {
+    const cancelEditing = useCallback(() => {
         setIsPopoverVisible(false);
         setIsEditing(false);
-    };
+    }, []);
 
     /**
      * Handles saving a new value.
      * Compares the new value with the original value and only calls onSave if they differ.
      * Always closes the popover after handling.
      */
-    const handleSave = (newValue: T) => {
-        if (value !== undefined && onSave) {
-            const shouldSave = isEqual ? !isEqual(newValue, value) : !Object.is(newValue, value);
-            if (shouldSave) {
-                onSave(newValue);
+    const handleSave = useCallback(
+        (newValue: T) => {
+            if (value !== undefined && onSave) {
+                const shouldSave = isEqual ? !isEqual(newValue, value) : !Object.is(newValue, value);
+                if (shouldSave) {
+                    onSave(newValue);
+                }
             }
-        }
-        cancelEditing();
-    };
+            cancelEditing();
+        },
+        [value, onSave, isEqual, cancelEditing],
+    );
 
     // Cancel editing when permission is revoked (e.g., transaction status changed)
     useEffect(() => {
