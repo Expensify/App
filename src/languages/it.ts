@@ -1080,6 +1080,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Personalizza i controlli e semplifica le spese',
             setupRules: 'Configura le regole di spesa',
             inviteAccountant: 'Invita il tuo commercialista',
+            configureApprovals: 'Configura il flusso di approvazione',
             begin: 'Inizia',
             done: 'Fatto',
             createWorkspaceSubText: 'Spazio di lavoro pronto per la configurazione',
@@ -1092,6 +1093,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Parla con Concierge',
             talkToAccountExecutive: 'Parla con il tuo account executive',
             forGuidedSetup: 'per la configurazione guidata.',
+            configureApprovalsSubText: 'Definisci le approvazioni dei report',
         },
         yourSpend: {
             title: 'Le tue spese',
@@ -2891,6 +2893,14 @@ ${amount} per ${merchant} - ${date}`,
         title: 'Agenti',
         subtitle: `<muted-text>Gli agenti gestiscono i tuoi flussi di lavoro al posto tuo, così ti ritrovi ore in più nella tua giornata. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Scopri di più</a>.</muted-text>`,
         findAgent: 'Trova agente',
+        deleteAgentsTitle: () => ({
+            one: 'Elimina agente',
+            other: 'Elimina agenti',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Sei sicuro di voler eliminare questo agente? Questa azione non può essere annullata.',
+            other: 'Sei sicuro di voler eliminare questi agenti? Questa azione non può essere annullata.',
+        }),
         newAgent: 'Nuovo agente',
         emptyAgents: {
             title: 'Nessun agente creato',
