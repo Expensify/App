@@ -18,7 +18,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
-import cleanupAfterExpenseCreate from '../../src/libs/Navigation/helpers/cleanupAfterExpenseCreate';
+import cleanupAndNavigateAfterExpenseCreate from '../../src/libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import createRandomTransaction from '../utils/collections/transaction';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -105,8 +105,9 @@ jest.mock('@libs/Navigation/Navigation', () => {
 
 jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual('../__mocks__/submitWithDismissFirst'));
 
-// Action-assertion test: post-create navigation is exercised elsewhere; keep the cleanup helper inert here.
+// Action-assertion test: post-create navigation is exercised elsewhere; keep the cleanup helpers inert here.
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => jest.fn());
 
 jest.mock('@react-navigation/native', () => {
     const mockRef = {
@@ -263,10 +264,10 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
             }),
         );
 
-        // The action receives the UI-resolved optimistic id (it owns post-create navigation/growl);
-        // cleanup is cleanup-only and no longer takes transaction ids beyond the draft list.
+        // The action receives the UI-resolved optimistic id; the view owns post-create navigation, so on the
+        // shouldHandleNavigation=true fast path the feedback runs through cleanupAndNavigateAfterExpenseCreate.
         const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0];
         expect(typeof requestMoneyArg?.optimisticTransactionID).toBe('string');
-        expect(cleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
+        expect(cleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
     });
 });
