@@ -9277,6 +9277,7 @@ describe('actions/Report', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
                 },
                 bankAccountList: undefined,
+                isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
             });
             await waitForBatchedUpdates();
@@ -9342,6 +9343,7 @@ describe('actions/Report', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
                 },
                 bankAccountList: undefined,
+                isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
             });
             await waitForBatchedUpdates();
@@ -9397,6 +9399,7 @@ describe('actions/Report', () => {
                 },
                 hash: SNAPSHOT_HASH,
                 bankAccountList: undefined,
+                isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
             });
             await waitForBatchedUpdates();

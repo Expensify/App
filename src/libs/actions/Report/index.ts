@@ -440,6 +440,7 @@ type MergeReportsProps = {
     allReportsTransactions?: Record<string, Transaction[]>;
     hash?: number;
     bankAccountList: OnyxEntry<BankAccountList>;
+    isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
 };
 
@@ -8095,6 +8096,7 @@ function mergeReports({
     allReportsTransactions,
     bankAccountList,
     allReports: allReportsParam,
+    isTrackIntentUser,
     personalPolicyOutputCurrency,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
@@ -8122,6 +8124,7 @@ function mergeReports({
         allTransactionViolation,
         allReports: reports,
         skippedReportIDs: sourceReportIDs,
+        isTrackIntentUser,
         personalPolicyOutputCurrency,
     });
 
