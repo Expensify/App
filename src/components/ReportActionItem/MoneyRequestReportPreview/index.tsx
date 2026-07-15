@@ -256,6 +256,11 @@ function MoneyRequestReportPreview({
                     // Let the report's wide RHP settle before opening the pressed expense on top, so the two
                     // panels open as a cascade rather than at once.
                     setTimeout(() => {
+                        // The user may have closed the report's wide RHP or navigated away during the cascade delay;
+                        // don't reopen the expense over whatever screen is now active.
+                        if (!Navigation.isActiveRoute(reportRoute)) {
+                            return;
+                        }
                         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
                     }, PRESSED_EXPENSE_CASCADE_DELAY);
                 });

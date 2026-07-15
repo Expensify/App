@@ -498,6 +498,9 @@ describe('MoneyRequestReportPreview', () => {
         beforeEach(() => {
             navigateSpy.mockImplementation(() => {});
             jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('');
+            // The wide-layout cascade guards its delayed expense navigation on isActiveRoute(reportRoute); default to
+            // "still on the report" so the happy-path cascade fires.
+            jest.spyOn(Navigation, 'isActiveRoute').mockReturnValue(true);
             // The narrow path delegates to openExpenseOverParentReport (its native-stack mechanics are covered by
             // on-device testing); mock it so the component's delegation can be asserted directly.
             openExpenseOverParentReportSpy.mockImplementation(() => {});
@@ -530,6 +533,27 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).toHaveBeenCalledTimes(2);
             expect(navigateSpy).toHaveBeenNthCalledWith(1, reportRoute);
             expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
+        });
+
+        it('does not reopen the pressed expense if the user leaves the report during the wide-layout cascade delay', async () => {
+            // Regression: the report opens, but if the user dismisses its wide RHP (or navigates away) before the
+            // cascade timer fires, the delayed callback must not reopen the expense over whatever screen is now active.
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            jest.spyOn(Navigation, 'isActiveRoute').mockReturnValue(false);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''});
+            expect(navigateSpy).toHaveBeenCalledWith(reportRoute);
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
         });
 
         it('opens the pressed expense with the parent report beneath it so OS/swipe back returns to the report on narrow layouts', async () => {
