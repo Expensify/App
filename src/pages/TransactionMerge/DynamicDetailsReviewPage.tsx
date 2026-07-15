@@ -154,9 +154,9 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION.getRoute(transactionID)));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION.getRoute(transactionID), backTo));
         }
-    }, [mergeTransaction, conflictFields, transactionID]);
+    }, [mergeTransaction, conflictFields, transactionID, backTo]);
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(
