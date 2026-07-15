@@ -18,6 +18,7 @@ function XeroSetupPage({route}: XeroSetupPageProps) {
             uri={getXeroSetupLink(policyID)}
             testID="XeroSetupPage"
             context="XeroSetupPage"
+            shouldAppendShortLivedAuthToken
         />
     );
 }
