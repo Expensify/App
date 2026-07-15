@@ -1,17 +1,21 @@
 import type {OnyxDerivedKey, OnyxKey} from '@src/ONYXKEYS';
 
 import type {OnyxInput} from 'react-native-onyx';
+import type {NonEmptyTuple} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import type {DerivedValueContext} from './types';
+
 /**
- * Check whether a specific dependency key triggered the current OnyxDerived compute.
- *
- * This reads `triggeredKeys` (every dependency that fired) rather than `sourceValues` (only the ones
- * that produced a non-empty delta), so a dependency cleared to `undefined` — or a collection with no
- * changed members — is still correctly reported as having triggered.
+ * Check if a specific key exists in sourceValue from OnyxDerived
  */
-const hasKeyTriggeredCompute = (key: OnyxKey, triggeredKeys: Set<OnyxKey> | undefined): boolean => triggeredKeys?.has(key) ?? false;
+const hasKeyTriggeredCompute = <TKey extends OnyxKey, Deps extends NonEmptyTuple<Exclude<OnyxKey, TKey>>>(key: TKey, sourceValues: DerivedValueContext<TKey, Deps>['sourceValues']) => {
+    if (!sourceValues) {
+        return false;
+    }
+    return Object.keys(sourceValues).some((sourceKey) => sourceKey === key);
+};
 
 /**
  * Set a derived value in Onyx
