@@ -441,14 +441,21 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         return <ReportActionsSkeletonView />;
     }
 
+    // The FIX badge points at the errored child (the just-failed expense), which is the newest action at the
+    // bottom of the chat — never above the viewport — so it must surface regardless of scroll position, but only
+    // when it has a resolved, rendered target (actionBadgeTargetIndex >= 0) so pressing the pill scrolls to it
+    // instead of being a no-op (some RBR sources leave actionTargetReportActionID undefined). Green badges stay a
+    // "scroll up to your queue" affordance and remain gated to the above-viewport case.
+    const shouldShowActionBadge = !isProduction && (isActionBadgeAboveViewport || (reportAttributes?.actionBadge === CONST.REPORT.ACTION_BADGE.FIX && actionBadgeTargetIndex >= 0));
+
     return (
         <>
             <FloatingMessageCounter
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
-                actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
-                actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
+                actionBadge={shouldShowActionBadge ? reportAttributes?.actionBadge : undefined}
+                actionBadgeBrickRoadStatus={shouldShowActionBadge ? reportAttributes?.brickRoadStatus : undefined}
                 onActionBadgePress={scrollToActionBadgeTarget}
                 isMarkAsDone={shouldUseMarkAsDoneCopy}
             />
