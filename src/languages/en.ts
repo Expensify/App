@@ -1147,6 +1147,8 @@ const translations = {
             linkCompanyCardsSubText: 'Import expenses automatically',
             issueExpensifyCards: 'Issue Expensify cards',
             issueExpensifyCardsSubtitle: 'Customize controls and streamline spending',
+            configureApprovals: 'Configure approval workflow',
+            configureApprovalsSubText: 'Define report approvals',
             setupRules: 'Set up spend rules',
             setupRulesSubText: 'Require receipts, flag high spend, and more',
             needHelp: 'Need help?',
@@ -2966,6 +2968,14 @@ const translations = {
         title: 'Agents',
         subtitle: `<muted-text>Agents handle your workflows for you, so you get hours back in your day. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Learn more</a>.</muted-text>`,
         findAgent: 'Find agent',
+        deleteAgentsTitle: () => ({
+            one: 'Delete agent',
+            other: 'Delete agents',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Are you sure you want to delete this agent? This action cannot be undone.',
+            other: 'Are you sure you want to delete these agents? This action cannot be undone.',
+        }),
         newAgent: 'New agent',
         emptyAgents: {
             title: 'No agents created',
@@ -4519,17 +4529,6 @@ const translations = {
         description: 'Let us know so we can help make your expensing experience even better.',
         positiveButton: 'Yeah!',
         negativeButton: 'Not really',
-    },
-    trialPaymentReminder: {
-        title: 'Stay ahead of the deadline',
-        subtitle: "Don't wait until the last minute, add your payment method today to ensure continuous access to your expenses on Expensify.",
-        trialEndsInDays: () => ({
-            one: 'Trial ends in 1 day',
-            other: (pluralCount: number) => `Trial ends in ${pluralCount} days`,
-        }),
-        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Trial ends in ${hours}h : ${minutes}m : ${seconds}s`,
-        closeButton: 'Close',
-        addPaymentCardButton: 'Add payment card',
     },
     workspace: {
         common: {

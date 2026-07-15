@@ -1065,6 +1065,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Kontrollen anpassen und Ausgaben optimieren',
             setupRules: 'Ausgabelimits einrichten',
             inviteAccountant: 'Lade deine:n Steuerberater:in ein',
+            configureApprovals: 'Genehmigungsworkflow konfigurieren',
             begin: 'Beginnen',
             done: 'Fertig',
             createWorkspaceSubText: 'Workspace bereit für die Einrichtung',
@@ -1077,6 +1078,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Mit Concierge chatten',
             talkToAccountExecutive: 'Sprechen Sie mit Ihrer Kundenbetreuung',
             forGuidedSetup: 'für die geführte Einrichtung.',
+            configureApprovalsSubText: 'Berichtsfreigaben festlegen',
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Kostenlose Testversion: Noch ${days} ${days === 1 ? 'Tag' : 'Tage'}!`,
@@ -2896,6 +2898,14 @@ ${amount} für ${merchant} – ${date}`,
         title: 'Agenten',
         subtitle: `<muted-text>Agents übernehmen Ihre Workflows für Sie, sodass Sie täglich Stunden zurückgewinnen. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Mehr erfahren</a>.</muted-text>`,
         findAgent: 'Agent suchen',
+        deleteAgentsTitle: () => ({
+            one: 'Agent:in löschen',
+            other: 'Agent:innen löschen',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Sind Sie sicher, dass Sie diese Vermittlerin/diesen Vermittler löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+            other: 'Sind Sie sicher, dass Sie diese Vermittlerinnen/diese Vermittler löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+        }),
         newAgent: 'Neue:r Agent:in',
         emptyAgents: {
             title: 'Keine Agenten erstellt',
@@ -10357,17 +10367,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         description: 'Lass es uns wissen, damit wir dir helfen können, deine Abrechnungserfahrung noch besser zu machen.',
         positiveButton: 'Ja!',
         negativeButton: 'Nicht wirklich',
-    },
-    trialPaymentReminder: {
-        title: 'Bleib der Frist voraus',
-        subtitle: 'Warte nicht bis zur letzten Minute – füge noch heute deine Zahlungsmethode hinzu, um den kontinuierlichen Zugang zu deinen Ausgaben auf Expensify sicherzustellen.',
-        trialEndsInDays: () => ({
-            one: 'Testphase endet in 1 Tag',
-            other: (pluralCount: number) => `Testphase endet in ${pluralCount} Tagen`,
-        }),
-        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Testphase endet in ${hours}h : ${minutes}m : ${seconds}s`,
-        closeButton: 'Schließen',
-        addPaymentCardButton: 'Zahlungskarte hinzufügen',
     },
     monthPickerPage: {month: 'Monat', selectMonth: 'Bitte wählen Sie einen Monat aus'},
     aiFeaturesPromoModal: {

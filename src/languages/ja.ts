@@ -1061,6 +1061,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'コントロールをカスタマイズして支出を効率化',
             setupRules: '支出ルールを設定',
             inviteAccountant: '会計士を招待',
+            configureApprovals: '承認ワークフローを設定',
             begin: '開始',
             done: '完了',
             createWorkspaceSubText: 'ワークスペースのセットアップを開始できます',
@@ -1073,6 +1074,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Concierge に問い合わせる',
             talkToAccountExecutive: 'アカウントエグゼクティブに相談する',
             forGuidedSetup: 'ガイド付きセットアップ用です。',
+            configureApprovalsSubText: 'レポート承認を定義する',
         },
         yourSpend: {
             title: 'あなたの支出',
@@ -2859,6 +2861,14 @@ ${date} の ${merchant} への ${amount}`,
         title: '担当者',
         subtitle: `<muted-text>エージェントがワークフローを代わりに処理するので、毎日の時間を数時間取り戻せます。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">詳しく見る</a>。</muted-text>`,
         findAgent: '担当者を探す',
+        deleteAgentsTitle: () => ({
+            one: 'エージェントを削除',
+            other: 'エージェントを削除',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'このエージェントを削除してもよろしいですか？この操作は元に戻せません。',
+            other: 'これらのエージェントを削除してもよろしいですか？この操作は元に戻せません。',
+        }),
         newAgent: '新しいエージェント',
         emptyAgents: {
             title: 'エージェントは作成されていません',
@@ -10198,17 +10208,6 @@ ${reportName}`,
         description: '経費精算の体験をさらに良くできるよう、お知らせください。',
         positiveButton: 'やった！',
         negativeButton: 'そうでもありません',
-    },
-    trialPaymentReminder: {
-        title: '期限に遅れないようにしましょう',
-        subtitle: 'ぎりぎりまで待たずに、今日お支払い方法を追加して、Expensify での経費への継続的なアクセスを確保しましょう。',
-        trialEndsInDays: () => ({
-            one: 'トライアル終了まであと1日',
-            other: (pluralCount: number) => `トライアル終了まであと${pluralCount}日`,
-        }),
-        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `トライアル終了まで ${hours}時間 : ${minutes}分 : ${seconds}秒`,
-        closeButton: '閉じる',
-        addPaymentCardButton: '支払いカードを追加',
     },
     monthPickerPage: {month: '月', selectMonth: '月を選択してください'},
     aiFeaturesPromoModal: {
