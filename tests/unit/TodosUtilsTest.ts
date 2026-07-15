@@ -48,8 +48,7 @@ const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): Po
 });
 
 // Admin policy with a QBO connection whose auto-sync is disabled, so a report on it is manually exportable.
-// `Policy['connections']` is typed as the full integration map, so the single-integration literal goes through
-// `createMock`, which type-checks the partial and isolates the one unavoidable assertion in that helper.
+// The literal sets only the QBO config fields this test needs; `createMock` deep-partials the rest.
 const createPolicyWithQBOConnection = (policyID: string, {policyExporter, connectionExporter}: {policyExporter: string; connectionExporter: string}): Policy =>
     createMock<Policy>({
         ...createMockPolicy(policyID, {role: CONST.POLICY.ROLE.ADMIN, exporter: policyExporter}),
@@ -251,6 +250,25 @@ describe('TodosUtils', () => {
             expect(result.reportsToSubmit).toEqual([]);
         });
 
+        it('excludes a report whose expenses are all pending card transactions', () => {
+            const pendingOverride: Partial<Transaction> = {status: CONST.TRANSACTION.STATUS.PENDING, bank: CONST.EXPENSIFY_CARD.BANK};
+            const submitReport = createMockReport('pending_submit', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                allReports: toReportsCollection([submitReport]),
+                allTransactions: toTransactionsCollection([createMockTransaction('trans_pending', 'pending_submit', pendingOverride)]),
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit).toEqual([]);
+        });
+
         it('ignores non-expense reports', () => {
             const chatReport = createMockReport('chat_report', {type: CONST.REPORT.TYPE.CHAT, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
             const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
@@ -317,6 +335,25 @@ describe('TodosUtils', () => {
                 ...baseParams,
                 allReports: toReportsCollection([submitReport]),
                 allTransactions: toTransactionsCollection([createMockTransaction('trans_held', 'held_submit', heldOverride)]),
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reports).toEqual([]);
+        });
+
+        it('excludes a report whose expenses are all pending card transactions from its bucket', () => {
+            const pendingOverride: Partial<Transaction> = {status: CONST.TRANSACTION.STATUS.PENDING, bank: CONST.EXPENSIFY_CARD.BANK};
+            const submitReport = createMockReport('pending_submit', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = getTodoReportsForSearchKey(CONST.SEARCH.SEARCH_KEYS.SUBMIT, {
+                ...baseParams,
+                allReports: toReportsCollection([submitReport]),
+                allTransactions: toTransactionsCollection([createMockTransaction('trans_pending', 'pending_submit', pendingOverride)]),
                 allPolicies: toPoliciesCollection([policy]),
             });
 

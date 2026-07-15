@@ -193,6 +193,9 @@ function MoneyRequestReceiptView({
     // While the receipt is regenerating (e.g. after an offline waypoint edit) the stored map is stale and can't be
     // redrawn locally, so don't surface the e-receipt overlay — the receipt box already shows the pending map.
     const canShowDistanceEReceipt = isMapDistanceRequest && !isPendingReceiptRegeneration;
+    // The Expand button opens the full-screen receipt on the stored map. While regeneration is pending that map is
+    // stale and can't be redrawn locally, so disable Expand for map distance requests until the refreshed receipt arrives.
+    const shouldDisableExpandReceipt = isMapDistanceRequest && isPendingReceiptRegeneration;
     const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
     const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
@@ -237,13 +240,22 @@ function MoneyRequestReceiptView({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
     const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
 
     const canEditReceipt =
         isEditable &&
-        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, isChatReportArchived, transaction, report: moneyRequestReport, policy});
+        canEditFieldOfMoneyRequest({
+            reportAction: parentReportAction,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+            isChatReportArchived,
+            reportNameValuePairs,
+            transaction,
+            report: moneyRequestReport,
+            policy,
+        });
 
     const onAttachmentFilesValidated = (files: FileObject[]) => {
         if (!report?.reportID) {
@@ -258,6 +270,7 @@ function MoneyRequestReceiptView({
             currentUserAccountID,
             timezone: currentUserTimezone,
             delegateAccountID,
+            conciergeReportID,
         });
     };
 
@@ -472,6 +485,7 @@ function MoneyRequestReceiptView({
                     isChatIOUReportArchived,
                     originalReportID,
                     true,
+                    policy,
                 );
                 return;
             }
@@ -524,7 +538,8 @@ function MoneyRequestReceiptView({
 
     const showBorderlessLoading = isLoading && fillSpace;
 
-    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !isMapDistanceRequest && !mergeTransactionID;
+    // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.
+    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !mergeTransactionID;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
@@ -728,7 +743,9 @@ function MoneyRequestReceiptView({
                                                     ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly || !canEditReceipt),
                                                 )
                                             }
+                                            disabled={shouldDisableExpandReceipt}
                                             style={styles.receiptActionButton}
+                                            disabledStyle={styles.buttonOpacityDisabled}
                                             hoverStyle={styles.buttonDefaultHovered}
                                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                                             role={CONST.ROLE.BUTTON}

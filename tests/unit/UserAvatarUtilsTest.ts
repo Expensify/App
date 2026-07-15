@@ -72,6 +72,13 @@ describe('UserAvatarUtils', () => {
 
             expect(avatarUrl).toEqual('https://test.com/images/some_avatar.png');
         });
+
+        it('should return the canonical CDN URL for an agent avatar', () => {
+            const avatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/bot-avatar--blue.png';
+            const avatarUrl = UserAvatarUtils.getAvatarURL({avatarSource: avatarURL, accountID: 1});
+
+            expect(avatarUrl).toBe('https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/bot-avatar--blue.png');
+        });
     });
 
     describe('getPresetAvatarURL', () => {
@@ -176,7 +183,7 @@ describe('UserAvatarUtils', () => {
         });
 
         it('should return true for agent catalog avatar URLs', () => {
-            const botURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/bots/bot-avatar--blue.png';
+            const botURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/bot-avatar--blue.png';
             expect(UserAvatarUtils.isCatalogAvatar(botURL)).toBe(true);
         });
 
@@ -288,7 +295,7 @@ describe('UserAvatarUtils', () => {
         });
 
         it('should extract agent catalog avatar name from CloudFront URL', () => {
-            const url = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/bots/bot-avatar--blue.png';
+            const url = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/bot-avatar--blue.png';
             const result = UserAvatarUtils.getCatalogAvatarNameFromURL(url);
             expect(result).toBe('bot-avatar--blue');
         });
@@ -386,7 +393,7 @@ describe('UserAvatarUtils', () => {
             const url = UserAvatarUtils.getLetterAvatarURL(42, 'Dave', 'Lee', 'dave@example.com');
             const parsed = UserAvatarUtils.parseLetterAvatarURL(url);
             expect(parsed?.initials).toBe('DL');
-            expect(parsed?.colors).toEqual(UserAvatarUtils.getLetterAvatarScheme('blue100'));
+            expect(parsed?.colors).toEqual({backgroundColor: '#B0D9FF', fillColor: '#0164BF'});
         });
     });
 });

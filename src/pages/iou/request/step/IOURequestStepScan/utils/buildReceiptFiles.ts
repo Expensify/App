@@ -1,3 +1,5 @@
+import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
+import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import {shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -26,6 +28,9 @@ type BuildReceiptFilesParams = {
      * IDs of stale draft transactions to wipe before building new ones.
      */
     draftTransactionIDsToCleanUp?: string[];
+
+    /** How the receipt entered the app, recorded on the capture log. */
+    captureSource?: ReceiptCaptureSource;
 };
 
 /**
@@ -44,6 +49,7 @@ function buildReceiptFiles({
     isMultiScanEnabled,
     transactions,
     draftTransactionIDsToCleanUp,
+    captureSource = 'file',
 }: BuildReceiptFilesParams): ReceiptFile[] {
     if (files.length === 0) {
         return [];
@@ -66,8 +72,10 @@ function buildReceiptFiles({
               });
 
         const transactionID = transaction?.transactionID ?? initialTransactionID;
+        const receiptTraceId = mintAndStampReceiptTraceId(file);
+        logReceiptCaptured({file, captureSource, receiptTraceId});
         receiptFiles.push({file, source, transactionID});
-        setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
+        setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type, false, false, undefined, receiptTraceId);
     }
 
     return receiptFiles;
