@@ -21,6 +21,7 @@ import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate, {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
@@ -932,7 +933,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const invoiceChatReport = !isEmptyObject(report) && report?.reportID ? report : existingInvoiceReport;
             const invoiceChatReportID = invoiceChatReport ? undefined : reportID;
 
-            sendInvoice({
+            const invoiceResult = sendInvoice({
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 transaction,
                 policyRecentlyUsedCurrencies,
@@ -943,7 +944,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 policyTagList: policyTags,
                 policyCategories,
                 policyRecentlyUsedCategories,
-                isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
             });
@@ -952,13 +952,23 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     report: undefined,
                     action,
                     draftTransactionIDs,
-                    transactionID: transaction?.transactionID,
+                    transactionID: invoiceResult?.transactionID ?? transaction?.transactionID,
+                    iouReportID: invoiceResult?.invoiceReportID,
+                    transactionThreadReportID: invoiceResult?.transactionThreadReportID,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                     optimisticChatReportID: invoiceChatReport?.reportID ?? invoiceChatReportID,
                     isInvoice: true,
                 });
             } else {
                 cleanupAfterExpenseCreate({draftTransactionIDs});
+                // Dismiss-first paths (orchestrator owns navigation); still surface the growl wherever the
+                // user lands. Invoices go to an invoice room (no expense-report table), so this resolves to the growl.
+                surfaceExpenseCreatedFeedback({
+                    iouReportID: invoiceResult?.invoiceReportID,
+                    transactionID: invoiceResult?.transactionID,
+                    transactionThreadReportID: invoiceResult?.transactionThreadReportID,
+                    isInvoice: true,
+                });
             }
             markSubmitExpenseEnd();
             return;

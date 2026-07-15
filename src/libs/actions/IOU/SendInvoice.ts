@@ -6,9 +6,6 @@ import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -43,7 +40,6 @@ import type BasePolicyParams from './types/BasePolicyParams';
 
 import {getAllPersonalDetails} from '.';
 import {getReceiptError, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
-import {handleNavigateAfterExpenseCreate} from './NavigationHelpers';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 
 type SendInvoiceInformation = {
@@ -86,7 +82,6 @@ type SendInvoiceOptions = {
     companyWebsite?: string;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags?: OnyxEntry<OnyxTypes.RecentlyUsedTags>;
-    isFromGlobalCreate?: boolean;
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
@@ -740,7 +735,6 @@ function sendInvoice({
     companyWebsite,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
-    isFromGlobalCreate = false,
     senderPolicyTags,
     delegateAccountID,
 }: SendInvoiceOptions) {
@@ -816,29 +810,9 @@ function sendInvoice({
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    if (shouldHandleNavigation) {
-        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
-        handleNavigateAfterExpenseCreate({
-            activeReportID: invoiceRoom.reportID,
-            iouReportID: invoiceReportID,
-            transactionID,
-            transactionThreadReportID,
-            isFromGlobalCreate,
-            isInvoice: true,
-        });
-    } else {
-        // Dismiss-first paths (orchestrator owns navigation); still surface feedback wherever the user
-        // lands. Invoices go to an invoice room (no expense-report table), so this resolves to the growl.
-        surfaceExpenseCreatedFeedback({
-            iouReportID: invoiceReportID,
-            transactionID,
-            transactionThreadReportID,
-            isInvoice: true,
-        });
-        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-    }
-
     notifyNewAction(invoiceRoom.reportID, undefined, true);
+
+    return {invoiceReportID, transactionID, transactionThreadReportID};
 }
 
 export {getReceiverType, getSendInvoiceInformation, sendInvoice};

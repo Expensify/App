@@ -105,7 +105,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
         );
         reserveSearchChannelIfGlobalCreate(!!isFromGlobalCreate);
         const invoiceChatReportID = report?.reportID ? undefined : reportID;
-        sendInvoice({
+        const invoiceResult = sendInvoice({
             currentUserAccountID: currentUserPersonalDetails.accountID,
             transaction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
@@ -118,14 +118,15 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             companyWebsite,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
-            isFromGlobalCreate,
             senderPolicyTags: policyTags ?? {},
         });
         cleanupAndNavigateAfterExpenseCreate({
             report: undefined,
             action: CONST.IOU.ACTION.CREATE,
             draftTransactionIDs,
-            transactionID: transaction?.transactionID,
+            transactionID: invoiceResult?.transactionID ?? transaction?.transactionID,
+            iouReportID: invoiceResult?.invoiceReportID,
+            transactionThreadReportID: invoiceResult?.transactionThreadReportID,
             isFromGlobalCreate,
             optimisticChatReportID: report?.reportID ?? reportID,
             isInvoice: true,
