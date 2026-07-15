@@ -2214,18 +2214,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Afmelden',
         restoreStashed: 'Opgeslagen login herstellen',
         signOutConfirmationText: 'Je verliest alle offline wijzigingen als je je afmeldt.',
-        saveReceiptsConfirmation: {
-            title: 'Bonnen opslaan?',
-            prompt: ({count}: {count: number}) =>
-                `Er ${count === 1 ? 'wordt nog 1 bon' : `worden nog ${count} bonnen`} geüpload. Als je je nu afmeldt, slaan we ${count === 1 ? 'deze' : 'ze'} op in je foto's zodat je ${count === 1 ? 'deze' : 'ze'} later aan een nieuwe uitgave kunt toevoegen.`,
-            confirm: 'Opslaan en afmelden',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Bonnen opslaan?',
-            prompt: ({count}: {count: number}) =>
-                `Er ${count === 1 ? 'wordt nog 1 bon' : `worden nog ${count} bonnen`} geüpload. Als je je nu afmeldt, slaan we ${count === 1 ? 'deze' : 'ze'} op in je foto's zodat je ${count === 1 ? 'deze' : 'ze'} later aan een nieuwe uitgave kunt toevoegen. Je verliest alle andere offline wijzigingen.`,
-            confirm: 'Opslaan en afmelden',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Lees de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Servicevoorwaarden</a> en het <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacybeleid</a>.`,
         help: 'Help',
@@ -10026,6 +10014,18 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             search: 'Krachtigere zoekfunctie op mobiel, web en desktop',
             concierge: 'Ingebouwde Concierge-AI om je onkosten te automatiseren',
             chat: 'Chat over elke uitgave om vragen snel op te lossen',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: 'Wil je een GRATIS werknemersabonnement?',
+        description: 'Wacht niet tot je bedrijf Expensify gaat gebruiken. We hebben een gratis abonnement speciaal voor jou gemaakt:',
+        confirmText: 'Kies het gratis abonnement',
+        dismissText: 'Nee, bedankt',
+        features: {
+            getReimbursed: 'Krijg sneller terugbetaald, direct in Expensify',
+            buildReports: 'Maak onkostenrapporten in enkele seconden',
+            categorize: 'Categoriseer je uitgaven',
+            inviteBoss: 'Nodig je baas uit wanneer je er klaar voor bent',
         },
     },
     productTrainingTooltip: {

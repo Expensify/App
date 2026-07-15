@@ -2210,18 +2210,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Wyloguj się',
         restoreStashed: 'Przywróć zapisane logowanie',
         signOutConfirmationText: 'Utracisz wszystkie zmiany w trybie offline, jeśli się wylogujesz.',
-        saveReceiptsConfirmation: {
-            title: 'Zapisać paragony?',
-            prompt: ({count}: {count: number}) =>
-                `${count === 1 ? 'Nadal przesyłany jest 1 paragon' : `Nadal przesyłane są paragony (${count})`}. Jeśli wylogujesz się teraz, zapiszemy ${count === 1 ? 'go' : 'je'} w Twoich zdjęciach, abyś ${count === 1 ? 'mógł go dodać' : 'mógł je dodać'} później do nowego wydatku.`,
-            confirm: 'Zapisz i wyloguj',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Zapisać paragony?',
-            prompt: ({count}: {count: number}) =>
-                `${count === 1 ? 'Nadal przesyłany jest 1 paragon' : `Nadal przesyłane są paragony (${count})`}. Jeśli wylogujesz się teraz, zapiszemy ${count === 1 ? 'go' : 'je'} w Twoich zdjęciach, abyś ${count === 1 ? 'mógł go dodać' : 'mógł je dodać'} później do nowego wydatku. Utracisz wszystkie pozostałe zmiany w trybie offline.`,
-            confirm: 'Zapisz i wyloguj',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Przeczytaj <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Warunki korzystania z usługi</a> i <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politykę prywatności</a>.`,
         help: 'Pomoc',
@@ -9997,6 +9985,18 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             search: 'Potężniejsze wyszukiwanie w aplikacji mobilnej, w przeglądarce i na komputerze',
             concierge: 'Wbudowana Concierge AI, która pomaga zautomatyzować Twoje wydatki',
             chat: 'Czatuj przy każdym wydatku, aby szybko rozwiązać wątpliwości',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: 'Chcesz DARMOWY plan dla pracownika?',
+        description: 'Nie czekaj, aż Twoja firma zacznie korzystać z Expensify. Stworzyliśmy darmowy plan specjalnie dla Ciebie:',
+        confirmText: 'Wybierz darmowy plan',
+        dismissText: 'Nie, dziękuję',
+        features: {
+            getReimbursed: 'Szybciej otrzymuj zwroty kosztów, bezpośrednio w Expensify',
+            buildReports: 'Twórz raporty wydatków w kilka sekund',
+            categorize: 'Kategoryzuj swoje wydatki',
+            inviteBoss: 'Zaproś swojego szefa, gdy będziesz gotowy',
         },
     },
     productTrainingTooltip: {
