@@ -566,9 +566,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const {hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+    // Use currentSearchResults, not the lastNonEmpty fallback: the export scope must reflect the query on screen now,
+    // so an empty current result yields no selection rather than one derived from the previous query's settlements.
     const expensifyCardStatementSelection = useMemo(
-        () => getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchResults?.data),
-        [queryJSON, searchResults?.data, selectedTransactions],
+        () => getExpensifyCardStatementSelection(queryJSON, selectedTransactions, currentSearchResults?.data),
+        [queryJSON, currentSearchResults?.data, selectedTransactions],
     );
 
     // PopoverMenu snapshots its items, so onSelected can run detached from the current render. Read the
@@ -606,8 +608,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const {entryIDs} = statementParams;
         const requestID = ++expensifyCardStatementRequestIDRef.current;
 
-        // Only surface the failure while this is still the latest export. If the user started another one in
-        // the meantime, this older request must not close the newer modal.
+        // Only surface the failure while this is still the latest export, so a superseded request can't close a newer modal.
         const showStatementError = () => {
             if (requestID !== expensifyCardStatementRequestIDRef.current) {
                 return;
