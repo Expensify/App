@@ -105,7 +105,6 @@ function IOURequestStepUpgrade({
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    // The destination is an optimistic report created at click time, so it isn't yet in Onyx.
     const transactionsCollection: OnyxCollection<Transaction> = Object.fromEntries(
         transactions.map((transactionItem) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, transactionItem]),
     );

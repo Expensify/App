@@ -123,7 +123,6 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
             const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
-            // Include the optimistic report (totals/counts zeroed) so changeTransactionsReport can restore them if the move fails.
             const reportsForCall = {
                 ...reports,
                 [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},

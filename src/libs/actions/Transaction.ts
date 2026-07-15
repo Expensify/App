@@ -826,7 +826,6 @@ type ChangeTransactionsReportProps = {
     policyTagList: OnyxEntry<PolicyTagLists>;
     transactions: Transaction[];
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
-    /** Subset of the REPORT collection containing every report this call may look up (resolved by `useChangeTransactionsReportReports`). */
     reports: OnyxCollection<Report>;
 };
 

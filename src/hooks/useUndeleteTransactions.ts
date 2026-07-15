@@ -16,7 +16,6 @@ function useUndeleteTransactions() {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    // Transactions are only known at click time, so we can't pre-resolve the REPORT subset at render — full collection it is.
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     return (transactions: Transaction[]) => {

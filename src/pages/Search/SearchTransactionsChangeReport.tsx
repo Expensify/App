@@ -251,9 +251,7 @@ function SearchTransactionsChangeReport() {
             allTransactionViolation: transactionViolations,
             reports: reportsForCall,
         });
-        Navigation.goBack(undefined, {
-            afterTransition: clearSelectedTransactions,
-        });
+        Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
 
     const removeFromReport = () => {
