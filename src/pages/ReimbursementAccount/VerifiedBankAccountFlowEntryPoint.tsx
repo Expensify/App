@@ -169,6 +169,7 @@ function VerifiedBankAccountFlowEntryPoint({
         }
 
         if (reimbursementAccountOptionPressed === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
+            removeExistingBankAccountDetails();
             if (isNonUSDWorkspace) {
                 if (isComingFromExpensifyCard) {
                     setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isComingFromExpensifyCard});
@@ -178,7 +179,6 @@ function VerifiedBankAccountFlowEntryPoint({
                 return;
             }
 
-            removeExistingBankAccountDetails();
             prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
         } else if (reimbursementAccountOptionPressed === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
@@ -196,6 +196,8 @@ function VerifiedBankAccountFlowEntryPoint({
             return;
         }
 
+        removeExistingBankAccountDetails();
+
         if (isNonUSDWorkspace) {
             if (isComingFromExpensifyCard) {
                 setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isComingFromExpensifyCard});
@@ -204,7 +206,6 @@ function VerifiedBankAccountFlowEntryPoint({
             return;
         }
 
-        removeExistingBankAccountDetails();
         prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
     };
 
