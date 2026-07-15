@@ -66,7 +66,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(appendParam(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo}), 'stepToOpen', REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW));
+            Navigation.navigate(appendParam(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo, isChangingBankAccount}), 'stepToOpen', REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW));
         });
     };
 
