@@ -209,6 +209,7 @@ import {
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
+    getTransactionViolations,
     hasDisplayableMCC,
     isDeletedTransaction,
     isPending,
@@ -1641,21 +1642,6 @@ function getIOUReportName(
     return translate('iou.payerOwesAmount', formattedAmount, payerName);
 }
 
-function getTransactionViolations(
-    allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
-    transaction: OnyxTypes.Transaction,
-    currentUserEmail: string,
-    currentUserAccountID: number,
-    report: OnyxEntry<OnyxTypes.Report>,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-): OnyxTypes.TransactionViolation[] {
-    const transactionViolations = allViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
-    if (!transactionViolations) {
-        return [];
-    }
-    return transactionViolations.filter((violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy));
-}
-
 /**
  * @private
  * Creates optimized lookup maps:
@@ -2155,7 +2141,15 @@ function getTransactionsSections({
             const reportAction = moneyRequestReportActionsByTransactionID.get(transactionItem.transactionID);
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
-            const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
+            const transactionViolations = getTransactionViolations(
+                transactionItem,
+                allViolations,
+                currentUserEmail,
+                currentAccountID,
+                report,
+                getLoginByAccountID(report?.ownerAccountID, data.personalDetailsList),
+                policy,
+            );
             // Use Map.get() for faster lookups with default values
             const fromAccountID = reportAction?.actorAccountID ?? report?.ownerAccountID;
             const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
@@ -2470,7 +2464,8 @@ function getActions(
 
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isScanning(t) || isPending(t));
 
-    const submitToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report.ownerAccountID, data.personalDetailsList));
+    const ownerLogin = getLoginByAccountID(report.ownerAccountID, data.personalDetailsList);
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
 
     // We're not supporting approve partial amount on search page now
@@ -2481,7 +2476,7 @@ function getActions(
     // We check submit eligibility separately from approve: on Submit workspaces the popover picks
     // the manager, so don't block Submit when the default submit-to route is the owner.
     if (
-        canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived, currentUserLogin, currentUserAccountID) &&
+        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived, currentUserLogin, currentUserAccountID) &&
         isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)
     ) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
@@ -2964,7 +2959,15 @@ function getReportSections({
             const report = (getReportOrDraftReport(transactionItem.reportID) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`]) as OnyxTypes.Report | undefined;
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
-            const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
+            const transactionViolations = getTransactionViolations(
+                transactionItem,
+                allViolations,
+                currentUserEmail,
+                currentAccountID,
+                report,
+                getLoginByAccountID(report?.ownerAccountID, data.personalDetailsList),
+                policy,
+            );
             const actions = Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
             const from = reportAction?.actorAccountID ? (mergedPersonalDetails?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, mergedPersonalDetails, reportAction);
@@ -3937,8 +3940,8 @@ function getSortedTransactionData(
             const aIsUnreported = a.report?.type !== CONST.REPORT.TYPE.EXPENSE && a.report?.type !== CONST.REPORT.TYPE.INVOICE;
             const bIsUnreported = b.report?.type !== CONST.REPORT.TYPE.EXPENSE && b.report?.type !== CONST.REPORT.TYPE.INVOICE;
 
-            const aValue = !aIsUnreported ? getPolicyName({report: a.report, policy: a.policy}) : '';
-            const bValue = !bIsUnreported ? getPolicyName({report: b.report, policy: b.policy}) : '';
+            const aValue = !aIsUnreported ? getPolicyName({report: a.report, policy: a.policy, unavailableTranslation: translate('workspace.common.unavailable')}) : '';
+            const bValue = !bIsUnreported ? getPolicyName({report: b.report, policy: b.policy, unavailableTranslation: translate('workspace.common.unavailable')}) : '';
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
@@ -4122,8 +4125,8 @@ function getSortedReportData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
         return data.sort((a, b) => {
-            const aValue = getPolicyName({report: a});
-            const bValue = getPolicyName({report: b});
+            const aValue = getPolicyName({report: a, unavailableTranslation: translate('workspace.common.unavailable')});
+            const bValue = getPolicyName({report: b, unavailableTranslation: translate('workspace.common.unavailable')});
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }

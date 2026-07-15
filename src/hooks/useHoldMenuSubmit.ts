@@ -1,5 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 
 import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
@@ -44,6 +45,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, paymentType, methodI
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -82,6 +84,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, paymentType, methodI
                 methodID,
                 onPaid: animationCallback,
                 chatReportActions: getChatReportActions(false),
+                isTrackIntentUser,
             });
         }
         onClose();

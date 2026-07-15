@@ -35,7 +35,6 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -69,7 +68,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const {environmentURL} = useEnvironment();
@@ -297,7 +296,19 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return acc;
         }, []);
-    }, [categories, isOffline, shouldShowApproverColumn, categoryApproverEmails, canWriteCategories, policy, policyCategories, navigateToCategory, handleCategoryToggle, policyId]);
+    }, [
+        categories,
+        isOffline,
+        shouldShowApproverColumn,
+        categoryApproverEmails,
+        canWriteCategories,
+        policy,
+        policyCategories,
+        navigateToCategory,
+        handleCategoryToggle,
+        policyId,
+        formatPhoneNumber,
+    ]);
 
     const navigateToCategoriesSettings = useCallback(() => {
         Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path));
