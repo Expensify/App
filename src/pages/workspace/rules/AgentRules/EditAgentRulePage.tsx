@@ -133,7 +133,6 @@ function EditAgentRulePage({
                     style={[styles.flex1, styles.ph5]}
                     shouldUseScrollView={shouldUseScrollableLayout}
                     submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
-                    shouldSubmitButtonStickToBottom={shouldUseExpandedRevampFormLayout}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     shouldValidateOnChange
