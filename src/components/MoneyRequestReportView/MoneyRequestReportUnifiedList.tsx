@@ -304,7 +304,9 @@ function MoneyRequestReportUnifiedList({
             onViewableItemsChanged={onViewableItemsChangedAdjusted}
             onLayout={handleLayout}
             onEndReached={onEndReached}
+            onEndReachedThreshold={0.75}
             onStartReached={onStartReached}
+            onStartReachedThreshold={0.75}
             ListHeaderComponent={
                 isHorizontalTable ? (
                     <>
