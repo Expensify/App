@@ -1031,6 +1031,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCards: 'Emitir tarjetas Expensify',
             issueExpensifyCardsSubtitle: 'Personaliza los controles y agiliza el gasto',
             setupRules: 'Configurar reglas de gasto',
+            configureApprovals: 'Configura el flujo de aprobación',
             talkToAccountExecutive: 'Habla con tu ejecutivo de cuenta',
             begin: 'Empezar',
             done: 'Hecho',
@@ -1043,6 +1044,7 @@ const translations: TranslationDeepObject<typeof en> = {
             needHelp: '¿Necesitas ayuda?',
             talkToConcierge: 'Habla con Concierge',
             forGuidedSetup: 'para la configuración guiada.',
+            configureApprovalsSubText: 'Definir aprobaciones de informes',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {
@@ -2757,6 +2759,14 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Agentes',
         subtitle: `<muted-text>Los agentes gestionan tus flujos de trabajo por ti, para que recuperes horas en tu día. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Más información</a>.</muted-text>`,
         findAgent: 'Buscar agente',
+        deleteAgentsTitle: () => ({
+            one: 'Eliminar agente',
+            other: 'Eliminar agentes',
+        }),
+        deleteAgentsMessage: () => ({
+            one: '¿Seguro que quieres eliminar a este agente? Esta acción no se puede deshacer.',
+            other: '¿Seguro que quieres eliminar a estos agentes? Esta acción no se puede deshacer.',
+        }),
         newAgent: 'Nuevo agente',
         emptyAgents: {
             title: 'No se han creado agentes.',
@@ -4292,17 +4302,6 @@ ${amount} para ${merchant} - ${date}`,
         description: 'Dínoslo para que podamos ayudarte a mejorar tu experiencia de gestión de gastos.',
         positiveButton: '¡Sí!',
         negativeButton: 'No mucho',
-    },
-    trialPaymentReminder: {
-        title: 'Adelántate al plazo',
-        subtitle: 'No esperes hasta el último momento, añade tu método de pago hoy para asegurar el acceso continuo a tus gastos en Expensify.',
-        trialEndsInDays: () => ({
-            one: 'La prueba termina en 1 día',
-            other: (pluralCount: number) => `La prueba termina en ${pluralCount} días`,
-        }),
-        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `La prueba termina en ${hours}h : ${minutes}m : ${seconds}s`,
-        closeButton: 'Cerrar',
-        addPaymentCardButton: 'Añadir tarjeta de pago',
     },
     workspace: {
         common: {

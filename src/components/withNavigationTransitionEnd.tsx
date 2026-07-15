@@ -33,7 +33,8 @@ export default function <TProps>(WrappedComponent: ComponentType<TProps>): React
 
     WithNavigationTransitionEnd.displayName = `WithNavigationTransitionEnd(${getComponentDisplayName(WrappedComponent)})`;
 
-    return WithNavigationTransitionEnd;
+    // OXC's React Compiler does not memoize this component on web; memoize it explicitly.
+    return React.memo(WithNavigationTransitionEnd);
 }
 
 export type {WithNavigationTransitionEndProps};
