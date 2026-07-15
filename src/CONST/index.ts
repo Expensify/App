@@ -3588,6 +3588,8 @@ const CONST = {
                 MINIMUM_FEE: 0,
             },
         },
+        // Error field used by the magic code prompt shown when changing the phone number protected for card 3DS verification
+        VALIDATE_CODE_ERROR_FIELD: 'walletPhoneNumber',
         ERROR: {
             // If these get updated, we need to update the codes on the Web side too
             SSN: 'ssnError',
