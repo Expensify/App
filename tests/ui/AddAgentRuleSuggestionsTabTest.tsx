@@ -9,9 +9,6 @@ import type SuggestedAgentRule from '@src/types/onyx/SuggestedAgentRule';
 
 import React from 'react';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns an untyped module object
-const {View: MockView, Pressable: MockPressable, Text: MockText, TextInput: MockTextInput} = jest.requireActual('react-native');
-
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
         ThumbsUp: 'ThumbsUp',
@@ -40,50 +37,72 @@ jest.mock('@hooks/useThemeStyles', () =>
             ),
     ),
 );
-jest.mock('@components/ActivityIndicator', () => jest.fn(() => <MockView testID="suggestions-loading-indicator" />));
+jest.mock('@components/ActivityIndicator', () => {
+    const ReactModule = require('react');
+    const {View} = require('react-native');
+    return jest.fn(() => ReactModule.createElement(View, {testID: 'suggestions-loading-indicator'}));
+});
 jest.mock('@components/Icon', () => jest.fn(() => null));
-jest.mock('@components/TextInput', () => ({value, onChangeText, label}: {value?: string; onChangeText?: (text: string) => void; label?: string}) => (
-    <MockTextInput
-        value={value}
-        onChangeText={onChangeText}
-        accessibilityLabel={label}
-    />
-));
-jest.mock('@components/BlockingViews/BlockingView', () => ({title, subtitle}: {title: string; subtitle?: string}) => (
-    <>
-        <MockText>{title}</MockText>
-        {!!subtitle && <MockText>{subtitle}</MockText>}
-    </>
-));
+jest.mock('@components/TextInput', () => {
+    const ReactModule = require('react');
+    const {TextInput} = require('react-native');
+    return ({value, onChangeText, label}: {value?: string; onChangeText?: (text: string) => void; label?: string}) =>
+        ReactModule.createElement(TextInput, {
+            value,
+            onChangeText,
+            accessibilityLabel: label,
+        });
+});
+jest.mock('@components/BlockingViews/BlockingView', () => {
+    const ReactModule = require('react');
+    const {Text} = require('react-native');
+    return ({title, subtitle}: {title: string; subtitle?: string}) =>
+        ReactModule.createElement(ReactModule.Fragment, null, ReactModule.createElement(Text, null, title), subtitle ? ReactModule.createElement(Text, null, subtitle) : null);
+});
 jest.mock('@components/ButtonComposed', () => {
+    const ReactModule = require('react');
+    const {Pressable, Text} = require('react-native');
     function MockButton({children, onPress, isDisabled}: {children: React.ReactNode; onPress?: () => void; isDisabled?: boolean}) {
-        return (
-            <MockPressable
-                accessibilityRole="button"
-                accessibilityState={{disabled: !!isDisabled}}
-                disabled={isDisabled}
-                onPress={onPress}
-            >
-                {children}
-            </MockPressable>
+        return ReactModule.createElement(
+            Pressable,
+            {
+                accessibilityRole: 'button',
+                accessibilityState: {disabled: !!isDisabled},
+                disabled: isDisabled,
+                onPress,
+            },
+            children,
         );
     }
-    MockButton.Text = ({children}: {children: React.ReactNode}) => <MockText>{children}</MockText>;
+    MockButton.Text = ({children}: {children: React.ReactNode}) => ReactModule.createElement(Text, null, children);
     return MockButton;
 });
-jest.mock('@components/FixedFooter', () => ({children}: {children: React.ReactNode}) => <MockView>{children}</MockView>);
-jest.mock('@components/Pressable', () => ({
-    PressableWithFeedback: ({children, onPress, accessibilityLabel}: {children: React.ReactNode; onPress?: () => void; accessibilityLabel?: string}) => (
-        <MockPressable
-            onPress={onPress}
-            accessibilityLabel={accessibilityLabel}
-            accessibilityRole="button"
-        >
-            {children}
-        </MockPressable>
-    ),
-}));
-jest.mock('@components/Text', () => ({children}: {children: React.ReactNode}) => <MockText>{children}</MockText>);
+jest.mock('@components/FixedFooter', () => {
+    const ReactModule = require('react');
+    const {View} = require('react-native');
+    return ({children}: {children: React.ReactNode}) => ReactModule.createElement(View, null, children);
+});
+jest.mock('@components/Pressable', () => {
+    const ReactModule = require('react');
+    const {Pressable} = require('react-native');
+    return {
+        PressableWithFeedback: ({children, onPress, accessibilityLabel}: {children: React.ReactNode; onPress?: () => void; accessibilityLabel?: string}) =>
+            ReactModule.createElement(
+                Pressable,
+                {
+                    onPress,
+                    accessibilityLabel,
+                    accessibilityRole: 'button',
+                },
+                children,
+            ),
+    };
+});
+jest.mock('@components/Text', () => {
+    const ReactModule = require('react');
+    const {Text} = require('react-native');
+    return ({children}: {children: React.ReactNode}) => ReactModule.createElement(Text, null, children);
+});
 
 const mockedUseSuggestedAgentRules = jest.mocked(useSuggestedAgentRules);
 const mockedUseNetwork = jest.mocked(useNetwork);
