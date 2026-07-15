@@ -170,7 +170,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
         act(() => document.dispatchEvent(event));
 
-        expect(textInputRef.current?.textContent).toBe('Normal Text. 🎉 *Bold*');
+        expect(textInputRef.current?.textContent).toBe('Normal Text. 🎉  *Bold*');
     });
 
     it('converts iOS Safari blob emoji image filenames to Unicode emoji', async () => {
@@ -197,5 +197,18 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         act(() => document.dispatchEvent(event));
 
         expect(textInputRef.current?.textContent).toBe('Normal Text. ![0200.png](https://example.com/image.png) Bold');
+    });
+
+    it('does not replace normal images whose alt text is an emoji shortcode', async () => {
+        const html = '<p>Copy image below:</p><img src="https://example.com/image.png" alt=":smile:">';
+        const event = createMockClipboardEvent('Copy image below:', html);
+        mockWindowSelection('');
+
+        renderUseHtmlPaste(true);
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => document.dispatchEvent(event));
+
+        expect(textInputRef.current?.textContent).toBe('Copy image below:\n![:smile:](https://example.com/image.png)');
     });
 });
