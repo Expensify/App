@@ -47,7 +47,7 @@ function WorkspaceEditTaxPage({
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const {canWrite: canWriteTaxes, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAXES);
-    const canEditTaxFields = !!canWriteTaxes && !!policy;
+    const canEditTaxFields = canWriteTaxes;
     const canDisableOrDeleteTaxRate = !!canWriteTaxes && !!policy && canDisableOrDeleteTaxRateUtil(policy, currentTaxID ?? taxID);
 
     const shouldShowDeleteMenuItem = canDisableOrDeleteTaxRate && !hasAccountingConnections(policy);
