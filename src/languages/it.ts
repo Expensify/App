@@ -1079,6 +1079,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Personalizza i controlli e semplifica le spese',
             setupRules: 'Configura le regole di spesa',
             inviteAccountant: 'Invita il tuo commercialista',
+            configureApprovals: 'Configura il flusso di approvazione',
             begin: 'Inizia',
             done: 'Fatto',
             createWorkspaceSubText: 'Spazio di lavoro pronto per la configurazione',
@@ -1091,6 +1092,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Parla con Concierge',
             talkToAccountExecutive: 'Parla con il tuo account executive',
             forGuidedSetup: 'per la configurazione guidata.',
+            configureApprovalsSubText: 'Definisci le approvazioni dei report',
         },
         yourSpend: {
             title: 'Le tue spese',
@@ -2219,18 +2221,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Esci',
         restoreStashed: 'Ripristina accesso nascosto',
         signOutConfirmationText: 'Perderai tutte le modifiche offline se esci.',
-        saveReceiptsConfirmation: {
-            title: 'Salvare le tue ricevute?',
-            prompt: ({count}: {count: number}) =>
-                `${count === 1 ? "C'è ancora 1 ricevuta" : `Ci sono ancora ${count} ricevute`} in fase di caricamento. Se esci ora, ${count === 1 ? 'la salveremo' : 'le salveremo'} nelle tue foto così potrai ${count === 1 ? 'aggiungerla' : 'aggiungerle'} a una nuova spesa più tardi.`,
-            confirm: 'Salva ed esci',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Salvare le tue ricevute?',
-            prompt: ({count}: {count: number}) =>
-                `${count === 1 ? "C'è ancora 1 ricevuta" : `Ci sono ancora ${count} ricevute`} in fase di caricamento. Se esci ora, ${count === 1 ? 'la salveremo' : 'le salveremo'} nelle tue foto così potrai ${count === 1 ? 'aggiungerla' : 'aggiungerle'} a una nuova spesa più tardi. Perderai tutte le altre modifiche offline.`,
-            confirm: 'Salva ed esci',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leggi i <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termini di servizio</a> e l’<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Informativa sulla privacy</a>.`,
         help: 'Aiuto',
@@ -2902,6 +2892,14 @@ ${amount} per ${merchant} - ${date}`,
         title: 'Agenti',
         subtitle: `<muted-text>Gli agenti gestiscono i tuoi flussi di lavoro al posto tuo, così ti ritrovi ore in più nella tua giornata. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Scopri di più</a>.</muted-text>`,
         findAgent: 'Trova agente',
+        deleteAgentsTitle: () => ({
+            one: 'Elimina agente',
+            other: 'Elimina agenti',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Sei sicuro di voler eliminare questo agente? Questa azione non può essere annullata.',
+            other: 'Sei sicuro di voler eliminare questi agenti? Questa azione non può essere annullata.',
+        }),
         newAgent: 'Nuovo agente',
         emptyAgents: {
             title: 'Nessun agente creato',
@@ -4475,6 +4473,7 @@ ${amount} per ${merchant} - ${date}`,
             deleteConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro?',
             deleteWithCardsConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro? Questa azione rimuoverà tutti i feed delle carte e le carte assegnate.',
             deleteOpenExpensifyCardsError: 'La tua azienda ha ancora delle Carte Expensify. Per favore, <concierge-link>contatta Concierge</concierge-link> per rimuoverle.',
+            deleteTravelInvoicingError: 'La tua azienda ha ancora la Fatturazione Viaggi Consolidata attivata.',
             outstandingBalanceWarning:
                 'Hai un saldo in sospeso che deve essere saldato prima di eliminare il tuo ultimo workspace. Vai alle impostazioni dell’abbonamento per risolvere il pagamento.',
             settleBalance: 'Vai all’abbonamento',
@@ -10049,6 +10048,18 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             search: 'Ricerca più potente su mobile, web e desktop',
             concierge: 'Concierge AI integrato per aiutarti ad automatizzare le tue spese',
             chat: 'Chatta su qualsiasi spesa per risolvere rapidamente i dubbi',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: 'Vuoi un piano dipendente GRATUITO?',
+        description: 'Non aspettare che la tua azienda adotti Expensify. Abbiamo creato un piano gratuito apposta per te:',
+        confirmText: 'Ottieni il piano gratuito',
+        dismissText: 'No, grazie',
+        features: {
+            getReimbursed: 'Ottieni il rimborso più velocemente, direttamente in Expensify',
+            buildReports: 'Crea report di spesa in pochi secondi',
+            categorize: 'Categorizza le tue spese',
+            inviteBoss: 'Invita il tuo capo quando sei pronto',
         },
     },
     productTrainingTooltip: {

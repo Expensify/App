@@ -1147,6 +1147,8 @@ const translations = {
             linkCompanyCardsSubText: 'Import expenses automatically',
             issueExpensifyCards: 'Issue Expensify cards',
             issueExpensifyCardsSubtitle: 'Customize controls and streamline spending',
+            configureApprovals: 'Configure approval workflow',
+            configureApprovalsSubText: 'Define report approvals',
             setupRules: 'Set up spend rules',
             setupRulesSubText: 'Require receipts, flag high spend, and more',
             needHelp: 'Need help?',
@@ -2309,18 +2311,6 @@ const translations = {
         signOut: 'Sign out',
         restoreStashed: 'Restore stashed login',
         signOutConfirmationText: "You'll lose any offline changes if you sign out.",
-        saveReceiptsConfirmation: {
-            title: 'Save your receipts?',
-            prompt: ({count}: {count: number}) =>
-                `You have ${count} ${count === 1 ? 'receipt' : 'receipts'} still uploading. Sign out now and we'll save ${count === 1 ? 'it' : 'them'} to your photos so you can add ${count === 1 ? 'it' : 'them'} to a new expense later.`,
-            confirm: 'Save and sign out',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Save your receipts?',
-            prompt: ({count}: {count: number}) =>
-                `You have ${count} ${count === 1 ? 'receipt' : 'receipts'} still uploading. Sign out now and we'll save ${count === 1 ? 'it' : 'them'} to your photos so you can add ${count === 1 ? 'it' : 'them'} to a new expense later. You'll lose any other offline changes.`,
-            confirm: 'Save and sign out',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.`,
         help: 'Help',
@@ -2978,6 +2968,14 @@ const translations = {
         title: 'Agents',
         subtitle: `<muted-text>Agents handle your workflows for you, so you get hours back in your day. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Learn more</a>.</muted-text>`,
         findAgent: 'Find agent',
+        deleteAgentsTitle: () => ({
+            one: 'Delete agent',
+            other: 'Delete agents',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Are you sure you want to delete this agent? This action cannot be undone.',
+            other: 'Are you sure you want to delete these agents? This action cannot be undone.',
+        }),
         newAgent: 'New agent',
         emptyAgents: {
             title: 'No agents created',
@@ -4587,6 +4585,7 @@ const translations = {
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             deleteOpenExpensifyCardsError: 'Your company still has Expensify Cards. Please <concierge-link>reach out to Concierge</concierge-link> to remove them.',
+            deleteTravelInvoicingError: 'Your company still has Consolidated Travel Billing enabled.',
             outstandingBalanceWarning:
                 'You have an outstanding balance that must be settled before deleting your last workspace. Please go to your subscription settings to resolve the payment.',
             settleBalance: 'Go to subscription',
@@ -10172,6 +10171,18 @@ const translations = {
             search: 'More powerful search on mobile, web, and desktop',
             concierge: 'Built-in Concierge AI to help automate your expenses',
             chat: 'Chat on any expense to resolve questions quickly',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: 'Want a FREE employee plan?',
+        description: "Don't wait for your company to get Expensify. We built a free plan just for you:",
+        confirmText: 'Get the free plan',
+        dismissText: 'No thanks',
+        features: {
+            getReimbursed: 'Get reimbursed faster, right in Expensify',
+            buildReports: 'Build expense reports in seconds',
+            categorize: 'Categorize your expenses',
+            inviteBoss: "Invite your boss when you're ready",
         },
     },
     aiFeaturesPromoModal: {

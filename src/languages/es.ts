@@ -1031,6 +1031,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCards: 'Emitir tarjetas Expensify',
             issueExpensifyCardsSubtitle: 'Personaliza los controles y agiliza el gasto',
             setupRules: 'Configurar reglas de gasto',
+            configureApprovals: 'Configura el flujo de aprobación',
             talkToAccountExecutive: 'Habla con tu ejecutivo de cuenta',
             begin: 'Empezar',
             done: 'Hecho',
@@ -1043,6 +1044,7 @@ const translations: TranslationDeepObject<typeof en> = {
             needHelp: '¿Necesitas ayuda?',
             talkToConcierge: 'Habla con Concierge',
             forGuidedSetup: 'para la configuración guiada.',
+            configureApprovalsSubText: 'Definir aprobaciones de informes',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {
@@ -2099,18 +2101,6 @@ const translations: TranslationDeepObject<typeof en> = {
         restoreStashed: 'Restablecer login guardado',
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
-        saveReceiptsConfirmation: {
-            title: '¿Guardar tus recibos?',
-            prompt: ({count}: {count: number}) =>
-                `Tienes ${count} ${count === 1 ? 'recibo' : 'recibos'} subiéndose todavía. Si cierras sesión ahora, ${count === 1 ? 'lo guardaremos' : 'los guardaremos'} en tus fotos para que ${count === 1 ? 'puedas añadirlo' : 'puedas añadirlos'} a un nuevo gasto más tarde.`,
-            confirm: 'Guardar y cerrar sesión',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: '¿Guardar tus recibos?',
-            prompt: ({count}: {count: number}) =>
-                `Tienes ${count} ${count === 1 ? 'recibo' : 'recibos'} subiéndose todavía. Si cierras sesión ahora, ${count === 1 ? 'lo guardaremos' : 'los guardaremos'} en tus fotos para que ${count === 1 ? 'puedas añadirlo' : 'puedas añadirlos'} a un nuevo gasto más tarde. Perderás los demás cambios hechos mientras estabas desconectado.`,
-            confirm: 'Guardar y cerrar sesión',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.`,
         help: 'Ayuda',
@@ -2769,6 +2759,14 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Agentes',
         subtitle: `<muted-text>Los agentes gestionan tus flujos de trabajo por ti, para que recuperes horas en tu día. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Más información</a>.</muted-text>`,
         findAgent: 'Buscar agente',
+        deleteAgentsTitle: () => ({
+            one: 'Eliminar agente',
+            other: 'Eliminar agentes',
+        }),
+        deleteAgentsMessage: () => ({
+            one: '¿Seguro que quieres eliminar a este agente? Esta acción no se puede deshacer.',
+            other: '¿Seguro que quieres eliminar a estos agentes? Esta acción no se puede deshacer.',
+        }),
         newAgent: 'Nuevo agente',
         emptyAgents: {
             title: 'No se han creado agentes.',
@@ -4358,6 +4356,7 @@ ${amount} para ${merchant} - ${date}`,
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             deleteWithCardsConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo? Se eliminarán todos los datos de las tarjetas y las tarjetas asignadas.',
             deleteOpenExpensifyCardsError: 'Tu empresa todavía tiene Tarjetas Expensify. Por favor, <concierge-link>contacta con Concierge</concierge-link> para eliminarlas.',
+            deleteTravelInvoicingError: 'Tu empresa todavía tiene habilitada la Facturación Consolidada de Viajes.',
             outstandingBalanceWarning:
                 'Tienes un saldo pendiente que debe liquidarse antes de eliminar tu último espacio de trabajo. Por favor, ve a la configuración de tu suscripción para resolver el pago.',
             settleBalance: 'Ir a Suscripción',
@@ -10209,6 +10208,18 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             search: 'Búsqueda más potente en móviles, web y ordenadores',
             concierge: 'Concierge AI integrada para ayudarte a automatizar tus gastos',
             chat: 'Chatea en tus gastos para resolver cualquier duda rápidamente.',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: '¿Quieres un plan de empleado GRATIS?',
+        description: 'No esperes a que tu empresa use Expensify. Creamos un plan gratuito solo para ti:',
+        confirmText: 'Obtener el plan gratuito',
+        dismissText: 'No, gracias',
+        features: {
+            getReimbursed: 'Recibe tus reembolsos más rápido, directamente en Expensify',
+            buildReports: 'Crea informes de gastos en segundos',
+            categorize: 'Clasifica tus gastos',
+            inviteBoss: 'Invita a tu jefe cuando estés listo',
         },
     },
     productTrainingTooltip: {

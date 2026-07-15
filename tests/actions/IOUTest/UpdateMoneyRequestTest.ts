@@ -166,6 +166,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID,
                 transactionThreadReport,
                 parentReport: undefined,
+                reportPolicyTags: undefined,
                 category,
                 policy: fakePolicy,
                 policyTagList: undefined,
@@ -176,6 +177,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -248,6 +250,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     transactionID,
                     transactionThreadReport: {reportID: '3'},
                     parentReport: undefined,
+                    reportPolicyTags: undefined,
                     category,
                     policy: fakePolicy,
                     policyTagList: undefined,
@@ -258,6 +261,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     isASAPSubmitBetaEnabled: false,
                     parentReportNextStep: undefined,
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
 
                 await waitForBatchedUpdates();
@@ -296,6 +300,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     transactionID,
                     transactionThreadReport: {reportID: '3'},
                     parentReport: undefined,
+                    reportPolicyTags: undefined,
                     category,
                     policy: fakePolicy,
                     policyTagList: undefined,
@@ -306,6 +311,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     isASAPSubmitBetaEnabled: false,
                     parentReportNextStep: undefined,
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
 
                 await waitForBatchedUpdates();
@@ -355,6 +361,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID,
                 transactionThreadReport,
                 parentReport: undefined,
+                reportPolicyTags: undefined,
                 category,
                 policy: fakePolicy,
                 policyTagList: undefined,
@@ -365,6 +372,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -435,6 +443,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -506,6 +515,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policyRecentlyUsedCurrencies: [],
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -652,6 +662,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policyRecentlyUsedCurrencies: [],
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -690,6 +701,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -725,6 +737,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -779,6 +792,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 tag: newTag,
                 policy,
                 policyTagList: policyTags,
+                reportPolicyTags: policyTags,
                 policyRecentlyUsedTags,
                 policyCategories: undefined,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
@@ -787,6 +801,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             waitForBatchedUpdates();
@@ -838,6 +853,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 tag: '',
                 policy: fakePolicy,
                 policyTagList: undefined,
+                reportPolicyTags: undefined,
                 policyRecentlyUsedTags: undefined,
                 policyCategories: undefined,
                 currentUserAccountIDParam: 123,
@@ -846,6 +862,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -904,6 +921,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updating the date
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport,
                 parentReport,
@@ -919,6 +937,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isOffline: false,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -978,6 +997,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isOffline: false,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1012,6 +1032,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isOffline: false,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1101,6 +1122,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 odometerEnd: 15000,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             mockFetch?.resume?.();
@@ -1200,6 +1222,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1311,6 +1334,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 odometerEnd: 50350,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             mockFetch?.resume?.();
@@ -1384,6 +1408,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1438,6 +1463,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1501,6 +1527,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1535,6 +1562,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1587,6 +1615,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionThreadReport,
                 parentReport,
                 value: newMerchant,
+                reportPolicyTags: undefined,
                 policy: fakePolicy,
                 policyTagList: {},
                 policyCategories: {},
@@ -1596,6 +1625,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1641,6 +1671,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionThreadReport,
                 parentReport,
                 value: 'Track Merchant',
+                reportPolicyTags: undefined,
                 policy: undefined,
                 policyTagList: {},
                 policyCategories: {},
@@ -1650,6 +1681,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1746,6 +1778,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     transactionThreadReport,
                     parentReport,
                     value: `Updated_${String(isOffline)}`,
+                    reportPolicyTags: undefined,
                     policy: fakePolicy,
                     policyTagList: {},
                     policyCategories: {},
@@ -1755,6 +1788,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     parentReportNextStep: undefined,
                     isOffline,
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
 
                 await waitForBatchedUpdates();
@@ -1997,6 +2031,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2012,6 +2047,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
@@ -2124,6 +2160,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2139,6 +2176,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2025-06-15'}), expect.anything());
@@ -2220,6 +2258,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2235,6 +2274,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
@@ -2337,6 +2377,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2352,6 +2393,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2027-06-15'}), expect.anything());
@@ -2455,6 +2497,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: selfDMReport,
@@ -2471,6 +2514,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
