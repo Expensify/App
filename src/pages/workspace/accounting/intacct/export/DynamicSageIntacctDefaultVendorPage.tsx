@@ -30,6 +30,9 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
+// Sage Intacct's default-vendor fields hold a raw vendor ID; sending this empty string clears the default.
+const CLEAR_DEFAULT_VENDOR = '';
+
 function DynamicSageIntacctDefaultVendorPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -77,7 +80,7 @@ function DynamicSageIntacctDefaultVendorPage() {
 
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
-            const newValue = value === defaultVendor ? '' : value;
+            const newValue = value === defaultVendor ? CLEAR_DEFAULT_VENDOR : value;
             updateSageIntacctDefaultVendor(policyID, settingName, newValue, defaultVendor);
             goBack();
         },

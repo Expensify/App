@@ -26,6 +26,9 @@ type VendorListItem = ListItem & {
     value: string;
 };
 
+// Certinia's vendorAccount field holds a raw vendor ID; sending this empty string clears the default.
+const CLEAR_DEFAULT_VENDOR = '';
+
 function CertiniaDefaultVendorPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -55,7 +58,7 @@ function CertiniaDefaultVendorPage({policy}: WithPolicyConnectionsProps) {
 
     const selectVendor = (row: VendorListItem) => {
         if (policyID) {
-            const newValue = row.value === exportConfig?.vendorAccount ? '' : row.value;
+            const newValue = row.value === exportConfig?.vendorAccount ? CLEAR_DEFAULT_VENDOR : row.value;
             updateFinancialForceDefaultVendor(policyID, newValue, exportConfig?.vendorAccount ?? null);
         }
         Navigation.goBack(backPath);

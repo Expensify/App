@@ -28,6 +28,9 @@ import type SCREENS from '@src/SCREENS';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 
+// NetSuite's defaultVendor field holds a raw vendor ID; sending this empty string clears the default.
+const CLEAR_DEFAULT_VENDOR = '';
+
 function DynamicNetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -52,7 +55,7 @@ function DynamicNetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConne
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
             if (policyID) {
-                const newValue = value === config?.defaultVendor ? '' : value;
+                const newValue = value === config?.defaultVendor ? CLEAR_DEFAULT_VENDOR : value;
                 updateNetSuiteDefaultVendor(policyID, newValue, config?.defaultVendor);
             }
             goBack();
