@@ -497,6 +497,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
+            canNonPayerAdminPay: true,
         }) && allExpensesHeld;
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID);
 
