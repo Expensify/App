@@ -4,7 +4,7 @@ import useTodoCounts from '@hooks/useTodoCounts';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
@@ -96,6 +96,31 @@ const setTransactions = (transactions: Transaction[]) =>
     Promise.all(transactions.map((transaction) => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction)));
 const setPolicies = (policies: Policy[]) => Promise.all(policies.map((policy) => Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy)));
 
+const HOLD_ACTION_ID = 'HOLD_ACTION_ID';
+
+// A money-request (IOU) action whose child report is the transaction thread that carries the HOLD action.
+const createMoneyRequestAction = (reportActionID: string, transactionID: string, transactionThreadReportID: string): ReportAction => ({
+    reportActionID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-01-01 00:00:00.000',
+    actorAccountID: OTHER_USER_ACCOUNT_ID,
+    childReportID: transactionThreadReportID,
+    originalMessage: {
+        IOUTransactionID: transactionID,
+        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        amount: 100,
+        currency: 'USD',
+    },
+});
+
+// The HOLD action lives on the transaction thread; its actor is whoever placed the hold.
+const createHoldAction = (holderAccountID: number): ReportAction => ({
+    reportActionID: HOLD_ACTION_ID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+    created: '2024-01-01 00:00:00.000',
+    actorAccountID: holderAccountID,
+});
+
 const renderTodoCounts = async (enabled = true) => {
     const hook = renderHook(({isEnabled}: {isEnabled: boolean}) => useTodoCounts(isEnabled), {initialProps: {isEnabled: enabled}});
     await act(async () => {
@@ -181,6 +206,84 @@ describe('useTodoCounts', () => {
 
             expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.SUBMIT]).toBe(0);
             expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.APPROVE]).toBe(0);
+            expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.PAY]).toBe(0);
+        });
+    });
+
+    describe('keeps an all-held approve/pay report only for the user who placed the hold', () => {
+        const HELD_APPROVE_REPORT_ID = 'held_hold_approve';
+        const HELD_PAY_REPORT_ID = 'held_hold_pay';
+
+        // Seeds a single all-held report plus the money-request action and the thread's HOLD action (whose actor is the
+        // holder), so the derivation can resolve whether the current user placed the hold.
+        const seedScenario = async (report: Report, holderAccountID: number) => {
+            const transactionID = `trans_${report.reportID}`;
+            const transactionThreadReportID = `thread_${report.reportID}`;
+            const moneyRequestActionID = `mr_${report.reportID}`;
+            const policy = createMockPolicy(POLICY_ID, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                role: CONST.POLICY.ROLE.ADMIN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            });
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
+            await setPolicies([policy]);
+            await setReports([report]);
+            await setTransactions([createMockTransaction(transactionID, report.reportID, {comment: {hold: HOLD_ACTION_ID}})]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [moneyRequestActionID]: createMoneyRequestAction(moneyRequestActionID, transactionID, transactionThreadReportID),
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {[HOLD_ACTION_ID]: createHoldAction(holderAccountID)});
+            await waitForBatchedUpdates();
+        };
+
+        const approveReport = () =>
+            createMockReport(HELD_APPROVE_REPORT_ID, {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+            });
+
+        const payReport = () =>
+            createMockReport(HELD_PAY_REPORT_ID, {
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                total: -100,
+            });
+
+        it('counts an all-held approve report when the current user placed the hold', async () => {
+            await seedScenario(approveReport(), CURRENT_USER_ACCOUNT_ID);
+
+            const {result} = await renderTodoCounts();
+
+            expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.APPROVE]).toBe(1);
+        });
+
+        it('does not count an all-held approve report when another user placed the hold', async () => {
+            await seedScenario(approveReport(), OTHER_USER_ACCOUNT_ID);
+
+            const {result} = await renderTodoCounts();
+
+            expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.APPROVE]).toBe(0);
+        });
+
+        it('counts an all-held pay report when the current user placed the hold', async () => {
+            await seedScenario(payReport(), CURRENT_USER_ACCOUNT_ID);
+
+            const {result} = await renderTodoCounts();
+
+            expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.PAY]).toBe(1);
+        });
+
+        it('does not count an all-held pay report when another user placed the hold', async () => {
+            await seedScenario(payReport(), OTHER_USER_ACCOUNT_ID);
+
+            const {result} = await renderTodoCounts();
+
             expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.PAY]).toBe(0);
         });
     });
