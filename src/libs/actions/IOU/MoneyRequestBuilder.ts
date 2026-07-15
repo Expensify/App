@@ -207,6 +207,7 @@ type RequestMoneyInformation = {
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
     shouldDeferAutoSubmit?: boolean;
     delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type MoneyRequestInformationParams = {
@@ -240,6 +241,7 @@ type MoneyRequestInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
 };
 
@@ -294,6 +296,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     isSelfDMSplit?: boolean;
     /** The selfDM report ID for split transactions */
     selfDMReportID?: string;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type BuildOnyxDataForTestDriveIOUParams = {
@@ -456,6 +459,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         isSelfDMSplit,
         isReverseSplitOperation,
         selfDMReportID,
+        isTrackIntentUser,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -1161,6 +1165,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             currentUserEmailParam,
             hasViolations,
             isASAPSubmitBetaEnabled,
+            isTrackIntentUser,
         });
         onyxData.optimisticData?.push(violationsOnyxData, {
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
@@ -1303,6 +1308,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         personalDetails,
         betas,
         delegateAccountID,
+        isTrackIntentUser,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -1657,6 +1663,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
 
     // STEP 5: Build Onyx Data
@@ -1709,6 +1716,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         delegateAccountID,
         isSelfDMSplit,
         selfDMReportID,
+        isTrackIntentUser,
     });
 
     return {

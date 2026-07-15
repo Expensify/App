@@ -66,9 +66,10 @@ import type {ValueOf} from 'type-fest';
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
+import type BasePolicyParams from './types/BasePolicyParams';
 import type {GPSPoint as GpsPoint} from './types/TrackExpenseTransactionParams';
 
-import {getAllTransactionDrafts, getMoneyRequestPolicyTags} from './index';
+import {getAllTransactionDrafts} from './index';
 import {requestMoney, trackExpense} from './TrackExpense';
 
 type CreateTransactionParams = {
@@ -86,7 +87,7 @@ type CreateTransactionParams = {
     files: ReceiptFile[];
     participant: Participant;
     gpsPoint?: GpsPoint;
-    policyParams?: {policy: OnyxEntry<Policy>};
+    policyParams?: BasePolicyParams;
     billable?: boolean;
     reimbursable?: boolean;
     allTransactionDrafts: OnyxCollection<Transaction>;
@@ -97,6 +98,7 @@ type CreateTransactionParams = {
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
     currentUserLocalCurrency: string | undefined;
+    isTrackIntentUser: boolean | undefined;
     /** Whether the created action should own post-creation navigation. Skip-confirm orchestrators that dismiss/reveal first pass `false` so navigation isn't run twice. */
     shouldHandleNavigation?: boolean;
     /** Report the flow started from; post-create navigation returns there instead of the written-to report. */
@@ -130,20 +132,12 @@ function createTransaction({
     optimisticTransactionIDs,
     optimisticChatReportID,
     currentUserLocalCurrency,
+    isTrackIntentUser,
     shouldHandleNavigation = true,
     backToReport,
     delegateAccountID,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
-    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : undefined;
-    const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyTagList = getMoneyRequestPolicyTags({
-        moneyRequestReportID,
-        parentChatReport,
-        participant,
-    });
 
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -185,7 +179,7 @@ function createTransaction({
                     taxAmount,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 },
-                ...(policyParams ?? {}),
+                policyParams: policyParams ?? {},
                 draftTransactionIDs,
                 isASAPSubmitBetaEnabled,
                 currentUser: {
@@ -218,7 +212,7 @@ function createTransaction({
                     payeeAccountID: currentUserAccountID,
                     participant,
                 },
-                policyParams: {...(policyParams ?? {}), policyTagList},
+                policyParams: policyParams ?? {},
                 gpsPoint,
                 transactionParams: {
                     amount: 0,
@@ -248,6 +242,7 @@ function createTransaction({
                 introSelected,
                 optimisticChatReportID,
                 optimisticTransactionID,
+                isTrackIntentUser,
                 // Navigation/growl must fire once per multi-receipt batch, on its final transaction: silence
                 // every non-final write so the action surfaces feedback only for the last one.
                 shouldHandleNavigation: shouldHandleNavigation && index === files.length - 1,
@@ -352,7 +347,7 @@ function initMoneyRequest({
     }
 
     const comment: Comment = {
-        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID),
+        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails),
     };
     let requestCategory: string | null = null;
 

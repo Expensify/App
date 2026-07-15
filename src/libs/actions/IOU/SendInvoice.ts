@@ -25,7 +25,6 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
-import {removeDraftTransaction} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -89,7 +88,6 @@ type SendInvoiceOptions = {
     policyRecentlyUsedTags?: OnyxEntry<OnyxTypes.RecentlyUsedTags>;
     isFromGlobalCreate?: boolean;
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    shouldHandleNavigation?: boolean;
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
 };
@@ -744,7 +742,6 @@ function sendInvoice({
     policyRecentlyUsedTags,
     isFromGlobalCreate = false,
     senderPolicyTags,
-    shouldHandleNavigation = true,
     delegateAccountID,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
@@ -814,7 +811,7 @@ function sendInvoice({
     };
 
     deferOrExecuteWrite(apiWrite, {
-        shouldDeferForSearch: shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator(),
+        shouldDeferForSearch: false,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });

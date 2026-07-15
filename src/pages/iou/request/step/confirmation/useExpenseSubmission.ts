@@ -18,13 +18,14 @@ import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
-import {getExistingTransactionID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
+import {getExistingTransactionID, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate, {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {
     findSelfDMReportID,
@@ -249,6 +250,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         );
     }
     const selectedParticipantsForRequest = iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants;
+
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
+
     const firstSelectedParticipantReportID = selectedParticipantsForRequest.at(0)?.reportID;
     const [selectedParticipantsReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${firstSelectedParticipantReportID}`);
     const iouReportPolicyID = (moneyRequestReportID ? moneyRequestReport?.policyID : undefined) ?? currentChatReport?.policyID ?? selectedParticipantsReport?.policyID;
@@ -276,6 +280,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const delegateAccountID = useDelegateAccountID();
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     // Onboarding task data
     const {
         taskReport: viewTourTaskReport,
@@ -293,7 +298,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const customUnitRateID = getRateID(transaction) ?? '';
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
+    const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense || isSelfDMDestination, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
         ? ((transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '')
         : '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -463,6 +468,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                isTrackIntentUser,
                 introSelected,
                 delegateAccountID,
             });
@@ -504,6 +510,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 quickAction,
                 optimisticChatReportID,
+                isTrackIntentUser,
             });
             if (shouldHandleNavigation) {
                 dismissModalAndOpenReportInInboxTabHelper(optimisticChatReportID, false, false);
@@ -576,6 +583,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                isTrackIntentUser,
             });
             const targetReportID = backToReport ?? activeReportID;
             // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
@@ -623,6 +631,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
+        // When the destination resolved to the current user/self-DM, force the self-DM as the chat (clearing any
+        // non-self route report) so getTrackExpenseInformation defaults to the self-DM instead of the route report.
+        const trackReport = isSelfDMDestination ? undefined : report;
         const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         for (const [index, item] of transactions.entries()) {
             const optimisticTransactionID = rand64();
@@ -632,7 +643,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
             const email = currentUserPersonalDetails.email ?? '';
             trackExpenseIOUActions({
-                report,
+                report: trackReport,
                 isDraftPolicy,
                 isDraftChatReport,
                 action,
@@ -766,6 +777,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             shouldHandleNavigation,
             shouldDeferForSearch,
             previousOdometerDraft: odometerDraft,
+            isTrackIntentUser,
             delegateAccountID,
         });
     }
@@ -785,7 +797,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
-        if (!isTrackExpense && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
+        if (!isTrackExpense && !isSelfDMDestination && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
             const shouldDeferDistanceForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
             createDistanceRequest(trimmedComment, shouldHandleNavigation, shouldDeferDistanceForSearch);
             markSubmitExpenseEnd();
@@ -871,6 +883,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     personalDetails,
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
+                    isTrackIntentUser,
                 });
             }
             markSubmitExpenseEnd();
@@ -908,6 +921,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     personalDetails,
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
+                    isTrackIntentUser,
                 });
             }
             markSubmitExpenseEnd();
@@ -932,8 +946,20 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
-                shouldHandleNavigation,
             });
+            if (shouldHandleNavigation) {
+                cleanupAndNavigateAfterExpenseCreate({
+                    report: undefined,
+                    action,
+                    draftTransactionIDs,
+                    transactionID: transaction?.transactionID,
+                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                    optimisticChatReportID: invoiceChatReport?.reportID ?? invoiceChatReportID,
+                    isInvoice: true,
+                });
+            } else {
+                cleanupAfterExpenseCreate({draftTransactionIDs});
+            }
             markSubmitExpenseEnd();
             return;
         }
@@ -944,7 +970,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         // Scoped to submit2026 drafts only so other (team/corporate) draft flows keep their existing behavior.
         const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy && policy?.type === CONST.POLICY.TYPE.SUBMIT;
 
-        if (!isPerDiemRequest && (isTrackExpense || isCategorizingTrackExpense || isSharingTrackExpense || isSubmittingExpenseToDraftWorkspace)) {
+        if (!isPerDiemRequest && (isTrackExpense || isCategorizingTrackExpense || isSharingTrackExpense || isSelfDMDestination || isSubmittingExpenseToDraftWorkspace)) {
             if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && !isSubmittingExpenseToDraftWorkspace && locationPermissionGranted) {
