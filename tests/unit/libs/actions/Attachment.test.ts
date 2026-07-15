@@ -1,8 +1,11 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {Attachment} from '@src/types/onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Attachment} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../../../utils/TestHelper';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
@@ -109,9 +112,7 @@ describe('Attachment actions (native)', () => {
     it('should throw and clean up when copyFile fails', async () => {
         RNFS.copyFile.mockRejectedValueOnce(new Error('disk full'));
 
-        await expect(cacheAttachment({uri: 'file:///mock/documents/upload.jpg', attachmentID: 'fail-1'})).rejects.toThrow(
-            '[AttachmentCache] Failed to cache attachment',
-        );
+        await expect(cacheAttachment({uri: 'file:///mock/documents/upload.jpg', attachmentID: 'fail-1'})).rejects.toThrow('[AttachmentCache] Failed to cache attachment');
         expect(getAttachmentLocalSource('fail-1')).toBeUndefined();
     });
 
