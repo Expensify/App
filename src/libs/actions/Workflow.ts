@@ -11,6 +11,7 @@ import {
     convertApprovalWorkflowToPolicyEmployees,
     getApprovalWorkflowRulesForPolicy,
     getOverLimitForwardsToDisplayName,
+    getWorkflowMemberEmails,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
     reconcileApprovalWorkflowRulesForEdit,
@@ -366,7 +367,7 @@ function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprov
     }
 
     const existingRules = getApprovalWorkflowRulesForPolicy(allRules, policy.id);
-    const memberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
+    const memberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
 
     // A submitter can only belong to one workflow, so first drop these members from any OTHER
     // workflow's rules, then add them to the new workflow.
@@ -401,8 +402,8 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     }
 
     const existingRules = getApprovalWorkflowRulesForPolicy(allRules, policy.id);
-    const previousMemberEmails = initialApprovalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
-    const newMemberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
+    const previousMemberEmails = getWorkflowMemberEmails(initialApprovalWorkflow.members);
+    const newMemberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
 
     // 1. A submitter can only belong to one workflow, so drop joining members (those not previously in
     // this workflow) from any OTHER workflow's rules first.
@@ -430,7 +431,7 @@ function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy:
     }
 
     const existingRules = getApprovalWorkflowRulesForPolicy(allRules, policy.id);
-    const memberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
+    const memberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
     const rulesDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules});
 
     setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: existingRules});

@@ -786,8 +786,12 @@ function buildApproveActions(): ApprovalWorkflowActions {
  * reports to the first approver, plus a `ReportApprove` rule per approver describing the next hop
  * (forward to the next approver, approve if last, or split on the approver's over-limit target).
  */
+function getWorkflowMemberEmails(members: Member[]): string[] {
+    return members.map((member) => member.email).filter((email): email is string => !!email);
+}
+
 function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): ApprovalWorkflowRule[] {
-    const memberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
+    const memberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
     const approvers = approvalWorkflow.approvers;
 
     if (memberEmails.length === 0 || approvers.length === 0) {
@@ -1613,6 +1617,7 @@ export {
     getApprovalWorkflowRulesForPolicy,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
+    getWorkflowMemberEmails,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,
