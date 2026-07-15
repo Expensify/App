@@ -53,7 +53,9 @@ function useAutoCreateSubmitWorkspace() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const autoCreateSubmitWorkspace = useCallback(
-        async (firstName: string, lastName: string) => {
+        // Callers that already finished onboarding (e.g. the Submit plan welcome modal) don't need to
+        // run guided setup again, so they can skip the CompleteGuidedSetup request by passing `false`.
+        async (firstName: string, lastName: string, shouldCompleteOnboarding = true) => {
             const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasEditableGroupPolicy;
             const displayName = createDisplayName(currentUserEmail, {firstName, lastName}, formatPhoneNumber);
 
@@ -79,20 +81,25 @@ function useAutoCreateSubmitWorkspace() {
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
-            try {
-                await completeOnboarding({
-                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
-                    onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.EMPLOYER],
-                    firstName,
-                    lastName,
-                    adminsChatReportID: newAdminsChatReportID,
-                    onboardingPolicyID: newPolicyID,
-                    introSelected,
-                    isSelfTourViewed,
-                    conciergeChat,
-                });
-            } catch (error) {
-                Log.warn('[useAutoCreateSubmitWorkspace] Error completing onboarding', {error});
+            if (shouldCompleteOnboarding) {
+                try {
+                    await completeOnboarding({
+                        engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                        onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.EMPLOYER],
+                        firstName,
+                        lastName,
+                        adminsChatReportID: newAdminsChatReportID,
+                        onboardingPolicyID: newPolicyID,
+                        introSelected,
+                        isSelfTourViewed,
+                        conciergeChat,
+                    });
+                } catch (error) {
+                    // Swallow onboarding completion failures so a network error doesn't block workspace
+                    // creation or the follow-up navigation; the optimistic Onyx data is already applied.
+                    // Still log so the failure remains diagnosable.
+                    Log.warn('[useAutoCreateSubmitWorkspace] Error completing onboarding', {error});
+                }
             }
 
             setOnboardingAdminsChatReportID();

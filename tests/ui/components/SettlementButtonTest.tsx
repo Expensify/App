@@ -81,6 +81,16 @@ jest.mock('@libs/actions/Policy/Policy', () => ({
     createWorkspace: jest.fn(() => ({policyID: 'mock-created-policy-id'})),
 }));
 
+const mockVerifyAccountAndResume = jest.fn();
+
+jest.mock('@hooks/useVerifyAccountAndResume', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+        isUserValidated: true,
+        verifyAccountAndResume: mockVerifyAccountAndResume,
+    })),
+}));
+
 const ACCOUNT_ID = 1;
 const ACCOUNT_LOGIN = 'test@user.com';
 const REPORT_ID = '100';

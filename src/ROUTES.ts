@@ -144,6 +144,10 @@ const DYNAMIC_ROUTES = {
         path: 'migrated-user-welcome',
         entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
     },
+    SUBMIT_PLAN_WELCOME: {
+        path: 'submit-plan-welcome',
+        entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
+    },
     AI_FEATURES_PROMO: {
         path: 'ai-features-promo',
         entryScreens: ['*'],
@@ -198,6 +202,39 @@ const DYNAMIC_ROUTES = {
         ],
         getRoute: (policyID: string, fieldID: string) => `edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const,
     },
+    MISSING_PERSONAL_DETAILS: {
+        path: 'missing-personal-details/:cardID/:subPage?/:action?',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.HOME,
+            SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.SETTINGS.WALLET.DOMAIN_CARD,
+            SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
+        ],
+        getRoute: (cardID: string, subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                return `missing-personal-details/${cardID}` as const;
+            }
+            return `missing-personal-details/${cardID}/${subPage}${action ? `/${action}` : ''}` as const;
+        },
+    },
+    MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: {
+        path: 'missing-personal-details/:cardID/confirm-magic-code',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.HOME,
+            SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.SETTINGS.WALLET.DOMAIN_CARD,
+            SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
+        ],
+        getRoute: (cardID: string) => `missing-personal-details/${cardID}/confirm-magic-code` as const,
+    },
     PROFILE: {
         path: 'a/:accountID',
         entryScreens: ['*'],
@@ -208,6 +245,17 @@ const DYNAMIC_ROUTES = {
         path: 'avatar/:accountID',
         entryScreens: ['*'],
         getRoute: (accountID: number) => `avatar/${accountID}` as const,
+    },
+    SPLIT_EXPENSE_EDIT: {
+        path: 'edit/split-expense/:reportID/:transactionID/:splitExpenseTransactionID?',
+        entryScreens: [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH],
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, splitExpenseTransactionID?: string) => {
+            if (!reportID || !transactionID) {
+                Log.warn(`Invalid ${reportID}(reportID) or ${transactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT dynamic route`);
+            }
+
+            return `edit/split-expense/${reportID}/${transactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}` as const;
+        },
     },
     AVATAR_CROP: {
         path: 'avatar-crop',
@@ -1738,16 +1786,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`create/split-expense/create-date-range/${reportID}/${transactionID}`, backTo);
         },
     },
-    SPLIT_EXPENSE_EDIT: {
-        route: 'edit/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
-        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
-            if (!reportID || !originalTransactionID) {
-                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT route`);
-            }
-
-            return getUrlWithBackToParam(`edit/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
-        },
-    },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?/:searchHash?',
         getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string | undefined, backTo: string, searchHash?: number) => {
@@ -2075,8 +2113,10 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
         route: ':action/:iouType/participants/:transactionID/:reportID',
-        getRoute: (iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', action: IOUAction = 'create') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}`, backTo),
+        getRoute: (iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', action: IOUAction = 'create', isWorkspacesOnly = false) => {
+            const queryParams = isWorkspacesOnly ? '?isWorkspacesOnly=true' : '';
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}${queryParams}`, backTo);
+        },
     },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',
@@ -3677,19 +3717,6 @@ const ROUTES = {
     RESTRICTED_ACTION: {
         route: 'restricted-action/workspace/:policyID',
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
-    },
-    MISSING_PERSONAL_DETAILS: {
-        route: 'missing-personal-details/:cardID/:subPage?/:action?',
-        getRoute: (cardID: string, subPage?: string, action?: 'edit') => {
-            if (!subPage) {
-                return `missing-personal-details/${cardID}` as const;
-            }
-            return `missing-personal-details/${cardID}/${subPage}${action ? `/${action}` : ''}` as const;
-        },
-    },
-    MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: {
-        route: 'missing-personal-details/:cardID/confirm-magic-code',
-        getRoute: (cardID: string) => `missing-personal-details/${cardID}/confirm-magic-code` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
         route: 'workspaces/:policyID/accounting/netsuite/subsidiary-selector',

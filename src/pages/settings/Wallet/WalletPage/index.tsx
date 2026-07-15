@@ -630,7 +630,6 @@ function WalletPage() {
                             ROUTES.SEARCH_ROOT.getRoute({
                                 query: buildCannedSearchQuery({
                                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                                    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                                     cardID: String(paymentMethod.methodID),
                                 }),
                             }),
