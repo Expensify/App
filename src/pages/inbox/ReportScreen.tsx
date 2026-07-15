@@ -108,65 +108,73 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     useClearReportActionDraftsOnReportChange(reportIDFromRoute);
 
     return (
-        <ReportScreenEditMessageProvider reportID={reportIDFromRoute}>
-            <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
-                <ActionListContextProvider>
-                    <ReactionListWrapper>
-                        <ScreenWrapper
-                            navigation={navigation}
-                            style={screenWrapperStyle}
-                            shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
-                            testID={`report-screen-${reportIDFromRoute}`}
-                        >
-                            {!shouldDeferNonEssentials && (
-                                <>
-                                    <DeleteTransactionNavigateBackHandler />
-                                    <ReportRouteParamHandler />
-                                    <ReportFetchHandler />
-                                    <ReportNavigateAwayHandler />
-                                </>
-                            )}
-                            <ReportNotFoundGuard>
-                                <LinkedActionNotFoundGuard>
-                                    <ReportDragAndDropProvider>
-                                        {!shouldDeferNonEssentials && <ReportLifecycleHandler reportID={reportIDFromRoute} />}
-                                        <CollapsibleHeaderOnKeyboard>
-                                            <ReportHeader />
-                                            {!shouldDeferNonEssentials && <AccountManagerBanner reportID={reportIDFromRoute} />}
-                                        </CollapsibleHeaderOnKeyboard>
-                                        <OfflineWithFeedback
-                                            pendingAction={reportPendingAction}
-                                            errors={reportErrors}
-                                            onClose={dismissReportCreationError}
-                                            needsOffscreenAlphaCompositing
-                                            style={styles.flex1}
-                                            contentContainerStyle={styles.flex1}
-                                            errorRowStyles={[styles.ph5, styles.mv2]}
-                                        >
-                                            <View style={[styles.flex1, styles.flexRow]}>
-                                                {!shouldDeferNonEssentials && <WideRHPReceiptPanel />}
-                                                <AgentZeroStatusProvider reportID={reportIDFromRoute}>
-                                                    <ConciergeDraftProvider reportID={reportIDFromRoute}>
-                                                        <View
-                                                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                                            testID="report-actions-view-wrapper"
-                                                        >
-                                                            <ReportActions />
-                                                            {shouldDeferNonEssentials ? <ReportActionCompose.Placeholder /> : <ReportFooter />}
-                                                        </View>
-                                                    </ConciergeDraftProvider>
-                                                </AgentZeroStatusProvider>
-                                            </View>
-                                        </OfflineWithFeedback>
-                                        <PortalHost name="suggestions" />
-                                    </ReportDragAndDropProvider>
-                                </LinkedActionNotFoundGuard>
-                            </ReportNotFoundGuard>
-                        </ScreenWrapper>
-                    </ReactionListWrapper>
-                </ActionListContextProvider>
-            </WideRHPOverlayWrapper>
-        </ReportScreenEditMessageProvider>
+        <KeyboardGestureArea
+            style={styles.flex1}
+            offset={0}
+            interpolator="ios"
+            textInputNativeID={CONST.COMPOSER.NATIVE_ID}
+            // enableSwipeToDismiss={!isComposerFullSize}
+        >
+            <ReportScreenEditMessageProvider reportID={reportIDFromRoute}>
+                <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
+                    <ActionListContextProvider>
+                        <ReactionListWrapper>
+                            <ScreenWrapper
+                                navigation={navigation}
+                                style={screenWrapperStyle}
+                                shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
+                                testID={`report-screen-${reportIDFromRoute}`}
+                            >
+                                {!shouldDeferNonEssentials && (
+                                    <>
+                                        <DeleteTransactionNavigateBackHandler />
+                                        <ReportRouteParamHandler />
+                                        <ReportFetchHandler />
+                                        <ReportNavigateAwayHandler />
+                                    </>
+                                )}
+                                <ReportNotFoundGuard>
+                                    <LinkedActionNotFoundGuard>
+                                        <ReportDragAndDropProvider>
+                                            {!shouldDeferNonEssentials && <ReportLifecycleHandler reportID={reportIDFromRoute} />}
+                                            <CollapsibleHeaderOnKeyboard>
+                                                <ReportHeader />
+                                                {!shouldDeferNonEssentials && <AccountManagerBanner reportID={reportIDFromRoute} />}
+                                            </CollapsibleHeaderOnKeyboard>
+                                            <OfflineWithFeedback
+                                                pendingAction={reportPendingAction}
+                                                errors={reportErrors}
+                                                onClose={dismissReportCreationError}
+                                                needsOffscreenAlphaCompositing
+                                                style={styles.flex1}
+                                                contentContainerStyle={styles.flex1}
+                                                errorRowStyles={[styles.ph5, styles.mv2]}
+                                            >
+                                                <View style={[styles.flex1, styles.flexRow]}>
+                                                    {!shouldDeferNonEssentials && <WideRHPReceiptPanel />}
+                                                    <AgentZeroStatusProvider reportID={reportIDFromRoute}>
+                                                        <ConciergeDraftProvider reportID={reportIDFromRoute}>
+                                                            <View
+                                                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                                                testID="report-actions-view-wrapper"
+                                                            >
+                                                                <ReportActions />
+                                                                {shouldDeferNonEssentials ? <ReportActionCompose.Placeholder /> : <ReportFooter />}
+                                                            </View>
+                                                        </ConciergeDraftProvider>
+                                                    </AgentZeroStatusProvider>
+                                                </View>
+                                            </OfflineWithFeedback>
+                                            <PortalHost name="suggestions" />
+                                        </ReportDragAndDropProvider>
+                                    </LinkedActionNotFoundGuard>
+                                </ReportNotFoundGuard>
+                            </ScreenWrapper>
+                        </ReactionListWrapper>
+                    </ActionListContextProvider>
+                </WideRHPOverlayWrapper>
+            </ReportScreenEditMessageProvider>
+        </KeyboardGestureArea>
     );
 }
 
