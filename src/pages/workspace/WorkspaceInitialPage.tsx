@@ -66,6 +66,7 @@ import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
@@ -265,16 +266,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     // menu row would otherwise never render on a non-active workspace until the user visited its
     // Accounting tab. Mirror the fetch trigger from withPolicyConnections, gated on the beta so we
     // don't add an accounting-page fetch to every workspace visit for non-beta users.
-    const [hasConnectionsDataBeenFetched] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policyID}`);
+    const [hasConnectionsDataBeenFetched, hasConnectionsDataBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policyID}`);
+    const isConnectionsFetchedFlagLoading = isLoadingOnyxValue(hasConnectionsDataBeenFetchedResult);
     useEffect(() => {
-        if (!isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) || !policyID || hasConnectionsDataBeenFetched) {
+        if (isConnectionsFetchedFlagLoading || !isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) || !policyID || hasConnectionsDataBeenFetched) {
             return;
         }
         if (!policy?.areConnectionsEnabled && isEmptyObject(policy?.connections)) {
             return;
         }
         openPolicyAccountingPage(policyID);
-    }, [policyID, hasConnectionsDataBeenFetched, isBetaEnabled, policy?.areConnectionsEnabled, policy?.connections]);
+    }, [policyID, hasConnectionsDataBeenFetched, isConnectionsFetchedFlagLoading, isBetaEnabled, policy?.areConnectionsEnabled, policy?.connections]);
 
     const workspaceMenuItems: WorkspaceMenuItem[] = [
         {
