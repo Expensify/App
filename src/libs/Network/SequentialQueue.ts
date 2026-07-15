@@ -191,6 +191,11 @@ function process(): Promise<void> {
                     ...requestToProcess.data,
                     lastReadTime: recordedTime,
                 };
+                // The read's optimisticData already merged the stale lastReadTime into Onyx when this
+                // request was queued (while offline). That merge only ran once, so it never sees this bump —
+                // mirror it into Onyx now so the origin device's own report also reflects the corrected read
+                // time immediately, instead of only sending the corrected value to the server.
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastReadTime: recordedTime});
             }
             reportsWithProcessedOfflineComments.delete(reportID);
         }
@@ -208,24 +213,32 @@ function process(): Promise<void> {
             // Track offline comments so we can reconcile the following ReadNewestAction.
             if (requestToProcess.initiatedOffline && OFFLINE_COMMENT_COMMANDS.has(requestToProcess.command)) {
                 const reportID = requestToProcess.data?.reportID;
-                if (typeof reportID === 'string') {
+                const reportActionID = requestToProcess.data?.reportActionID;
+                if (typeof reportID === 'string' && typeof reportActionID === 'string') {
                     let serverTimestamp = '';
-                    // For ADD_COMMENT/ADD_ATTACHMENT/ADD_TEXT_AND_ATTACHMENT the just-created comment is the
-                    // newest action, so the report update in the server response carries the comment's
-                    // server-assigned timestamp in lastVisibleActionCreated — exactly what we need to reconcile
-                    // the following read. We read only the report key (not report actions) because it already
-                    // reflects this value, and we intentionally do NOT fall back to a local "now" when it's
-                    // absent: "now" can be later than the true comment time and over-bump past another user's
-                    // message that arrived while offline.
+                    // Read the server-assigned `created` of the specific action we just sent (matched by our
+                    // own reportActionID) rather than the report's aggregate lastVisibleActionCreated. The
+                    // aggregate reflects the newest action on the whole report — if another user's message
+                    // reached the server first, it can be later than our own comment, and using it would
+                    // over-bump lastReadTime past a message we never saw. Scoping to our own action ID
+                    // guarantees we only ever record our own comment's time. We intentionally do NOT fall back
+                    // to a local "now" or to the aggregate report time when this entry is absent: a missing or
+                    // ambiguous signal should mean no bump, not a risky guess.
                     for (const update of response?.onyxData ?? []) {
-                        if (update.key !== `${ONYXKEYS.COLLECTION.REPORT}${reportID}`) {
+                        if (update.key !== `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`) {
                             continue;
                         }
                         const value: unknown = update.value;
-                        if (value && typeof value === 'object' && 'lastVisibleActionCreated' in value) {
-                            const lastVisibleActionCreated = value.lastVisibleActionCreated;
-                            if (typeof lastVisibleActionCreated === 'string' && lastVisibleActionCreated > serverTimestamp) {
-                                serverTimestamp = lastVisibleActionCreated;
+                        if (!value || typeof value !== 'object') {
+                            continue;
+                        }
+                        for (const [actionID, actionValue] of Object.entries(value)) {
+                            if (actionID !== reportActionID || !actionValue || typeof actionValue !== 'object' || !('created' in actionValue)) {
+                                continue;
+                            }
+                            const created = actionValue.created;
+                            if (typeof created === 'string' && created > serverTimestamp) {
+                                serverTimestamp = created;
                             }
                         }
                     }

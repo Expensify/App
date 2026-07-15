@@ -552,19 +552,27 @@ describe('SequentialQueue - reconnect coverage collapse', () => {
 
 describe('SequentialQueue - offline read reconciliation', () => {
     const reportID = '123456';
+    const reportActionID = 'own-comment-1';
+    const otherUserActionID = 'other-user-comment-1';
 
     /**
-     * Mocks the network layer so that an offline AddComment resolves with a report onyxData update carrying
-     * the given server-assigned lastVisibleActionCreated, and every other command resolves with no data.
-     * Returns the spy alongside a capture object recording the lastReadTime the queue sends for the
-     * ReadNewestAction, for assertions.
+     * Mocks the network layer so that an offline AddComment resolves with a reportActions onyxData update
+     * carrying the given server-assigned `created` time for reportActionID, and every other command resolves
+     * with no data. `otherActionCreated`, if provided, adds a second, unrelated report action to the same
+     * response (simulating another user's message reaching the server around the same time) to verify it's
+     * never picked up. Returns the spy alongside a capture object recording the lastReadTime the queue sends
+     * for the ReadNewestAction, for assertions.
      */
-    function mockProcessWithMiddleware(commentServerTime: string | undefined) {
+    function mockProcessWithMiddleware(commentServerTime: string | undefined, otherActionCreated?: string) {
         const capture: {readLastReadTime?: string} = {};
         const mockImpl = (mockedRequest: AnyRequest): Promise<Response<OnyxKey> | void> => {
             if (mockedRequest.command === WRITE_COMMANDS.ADD_COMMENT && commentServerTime !== undefined) {
+                const reportActionsValue: Record<string, {created: string}> = {[reportActionID]: {created: commentServerTime}};
+                if (otherActionCreated !== undefined) {
+                    reportActionsValue[otherUserActionID] = {created: otherActionCreated};
+                }
                 return Promise.resolve({
-                    onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: {lastVisibleActionCreated: commentServerTime}}],
+                    onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, value: reportActionsValue}],
                 });
             }
             if (mockedRequest.command === WRITE_COMMANDS.READ_NEWEST_ACTION) {
@@ -580,7 +588,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
         return {spy, capture};
     }
 
-    const buildComment = (): AnyRequest => ({command: WRITE_COMMANDS.ADD_COMMENT, data: {reportID}, initiatedOffline: true});
+    const buildComment = (): AnyRequest => ({command: WRITE_COMMANDS.ADD_COMMENT, data: {reportID, reportActionID}, initiatedOffline: true});
     const buildRead = (lastReadTime: string): AnyRequest => ({command: WRITE_COMMANDS.READ_NEWEST_ACTION, data: {reportID, lastReadTime}, initiatedOffline: true});
 
     let offlineSpy: jest.SpyInstance;
@@ -605,6 +613,37 @@ describe('SequentialQueue - offline read reconciliation', () => {
             await waitForBatchedUpdates();
 
             expect(capture.readLastReadTime).toBe(commentServerTime);
+        } finally {
+            processSpy.mockRestore();
+        }
+    });
+
+    it('mirrors the bump into Onyx so the origin device also sees the report as read, not just the outgoing request', async () => {
+        const staleReadTime = '2026-01-01 09:00:00.000';
+        const commentServerTime = '2026-01-01 10:00:00.000';
+        const {spy: processSpy} = mockProcessWithMiddleware(commentServerTime);
+        try {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, lastReadTime: staleReadTime});
+            await waitForBatchedUpdates();
+
+            SequentialQueue.pause();
+            await SequentialQueue.push(buildComment());
+            await SequentialQueue.push(buildRead(staleReadTime));
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const report = await new Promise<{lastReadTime?: string} | undefined>((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(report?.lastReadTime).toBe(commentServerTime);
         } finally {
             processSpy.mockRestore();
         }
@@ -646,6 +685,27 @@ describe('SequentialQueue - offline read reconciliation', () => {
         }
     });
 
+    it('ignores a later timestamp from another user action in the same response, bumping only to its own comment time', async () => {
+        const staleReadTime = '2026-01-01 09:00:00.000';
+        const ownCommentServerTime = '2026-01-01 10:00:00.000';
+        // Another user's message reached the server after our own comment, in the same AddComment response.
+        const otherUserServerTime = '2026-01-01 12:00:00.000';
+        const {spy: processSpy, capture} = mockProcessWithMiddleware(ownCommentServerTime, otherUserServerTime);
+        try {
+            SequentialQueue.pause();
+            await SequentialQueue.push(buildComment());
+            await SequentialQueue.push(buildRead(staleReadTime));
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            // Bumped to our own comment's time only — never to the other user's later message.
+            expect(capture.readLastReadTime).toBe(ownCommentServerTime);
+        } finally {
+            processSpy.mockRestore();
+        }
+    });
+
     it('does not leak a recorded comment time across queue flushes (map is cleared on drain)', async () => {
         const commentServerTime = '2026-01-01 12:00:00.000';
         const earlierReadTime = '2026-01-01 08:00:00.000';
@@ -663,6 +723,27 @@ describe('SequentialQueue - offline read reconciliation', () => {
             await waitForBatchedUpdates();
 
             expect(capture.readLastReadTime).toBe(earlierReadTime);
+        } finally {
+            processSpy.mockRestore();
+        }
+    });
+
+    it('documents a known boundary: a read already queued ahead of the offline comment is not bumped', async () => {
+        // readNewestAction dedupes via replace-in-place (resolveDuplicationConflictAction), so a read that was
+        // queued before the comment keeps its original position ahead of it. The comment's timestamp is
+        // recorded too late for this read to benefit — this is a known limitation, not a crash/regression.
+        const staleReadTime = '2026-01-01 09:00:00.000';
+        const commentServerTime = '2026-01-01 10:00:00.000';
+        const {spy: processSpy, capture} = mockProcessWithMiddleware(commentServerTime);
+        try {
+            SequentialQueue.pause();
+            await SequentialQueue.push(buildRead(staleReadTime));
+            await SequentialQueue.push(buildComment());
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            expect(capture.readLastReadTime).toBe(staleReadTime);
         } finally {
             processSpy.mockRestore();
         }
