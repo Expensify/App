@@ -657,6 +657,45 @@ describe('Session', () => {
         });
     });
 
+    describe('validateTwoFactorAuth', () => {
+        test('forced onboarding path clears Onyx then updates auth token without openApp', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- spy setup for asserts below
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
+                authToken: 'newAuthToken',
+                encryptedAuthToken: 'newEncryptedAuthToken',
+            });
+            const multiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+            const clearSpy = jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- assert openApp (API.write) was not chained
+            const writeWithNoDuplicatesSpy = jest.spyOn(API, 'writeWithNoDuplicatesConflictAction').mockResolvedValue(undefined);
+
+            SessionUtil.validateTwoFactorAuth('123456', false, {shouldKeepTwoFactorAuthFlowOpen: true});
+            await waitForBatchedUpdates();
+
+            expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, {twoFactorAuthCode: '123456'}, expect.any(Object));
+            expect(multiSetSpy).toHaveBeenCalled();
+            expect(clearSpy).toHaveBeenCalled();
+            expect(clearSpy.mock.calls.at(0)?.at(0)).toEqual(
+                expect.arrayContaining([
+                    ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    ONYXKEYS.NVP_ONBOARDING,
+                    ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
+                    ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+                    ONYXKEYS.ONBOARDING_COMPANY_SIZE,
+                    ONYXKEYS.ACCOUNT,
+                    ONYXKEYS.SESSION,
+                ]),
+            );
+            // openApp must stay deferred until DynamicSuccessPage Got it
+            expect(writeWithNoDuplicatesSpy).not.toHaveBeenCalled();
+
+            makeRequestSpy.mockRestore();
+            multiSetSpy.mockRestore();
+            clearSpy.mockRestore();
+            writeWithNoDuplicatesSpy.mockRestore();
+        });
+    });
+
     describe('clearTwoFactorAuthSecretKey', () => {
         test('removes twoFactorAuthSecretKey from account state', async () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthSecretKey: 'SOMESECRETKEY123'});

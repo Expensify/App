@@ -12,6 +12,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
+import {openApp} from '@userActions/App';
 import {openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openLink} from '@userActions/Link';
@@ -82,10 +83,14 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
             clearTwoFactorAuthData(true);
             Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
                 afterTransition: () => {
-                    const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
-                    startOnboardingFlow({
-                        ...onboardingFlowParams,
-                        onboardingInitialPath: getRequired2FAOnboardingResumePath(onboardingFlowParams),
+                    // Reload app data under the post-2FA auth token (deferred from validateTwoFactorAuth so
+                    // the RHP could stay open), then resume onboarding.
+                    openApp().finally(() => {
+                        const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
+                        startOnboardingFlow({
+                            ...onboardingFlowParams,
+                            onboardingInitialPath: getRequired2FAOnboardingResumePath(onboardingFlowParams),
+                        });
                     });
                 },
             });

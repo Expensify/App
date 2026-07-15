@@ -1379,8 +1379,20 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
             return;
         }
 
+        // Forced onboarding 2FA: clear stale pre-2FA Onyx under the new token, but defer openApp()
+        // until DynamicSuccessPage Got it so the 2FA RHP stays open through verify → success.
+        // Preserve list matches login-required 2FA reconnect baseline plus onboarding resume keys
+        // so Got it can still call getRequired2FAOnboardingResumePath() after dismiss.
         if (options.shouldKeepTwoFactorAuthFlowOpen) {
-            updateAuthToken(response.authToken, response.encryptedAuthToken);
+            const keysToPreserveForForcedOnboarding2FA = [
+                ...KEYS_TO_PRESERVE,
+                ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                ONYXKEYS.NVP_ONBOARDING,
+                ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
+                ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+                ONYXKEYS.ONBOARDING_COMPANY_SIZE,
+            ];
+            clearOnyxAndSeedFullReconnect(keysToPreserveForForcedOnboarding2FA).then(() => updateAuthToken(response.authToken, response.encryptedAuthToken));
             return;
         }
 
