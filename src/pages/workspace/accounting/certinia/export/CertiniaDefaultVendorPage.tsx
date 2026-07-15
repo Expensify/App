@@ -54,8 +54,9 @@ function CertiniaDefaultVendorPage({policy}: WithPolicyConnectionsProps) {
     );
 
     const selectVendor = (row: VendorListItem) => {
-        if (row.value !== exportConfig?.vendorAccount && policyID) {
-            updateFinancialForceDefaultVendor(policyID, row.value, exportConfig?.vendorAccount ?? null);
+        if (policyID) {
+            const newValue = row.value === exportConfig?.vendorAccount ? '' : row.value;
+            updateFinancialForceDefaultVendor(policyID, newValue, exportConfig?.vendorAccount ?? null);
         }
         Navigation.goBack(backPath);
     };

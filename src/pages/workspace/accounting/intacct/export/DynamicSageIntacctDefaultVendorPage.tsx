@@ -77,9 +77,8 @@ function DynamicSageIntacctDefaultVendorPage() {
 
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
-            if (value !== defaultVendor) {
-                updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
-            }
+            const newValue = value === defaultVendor ? '' : value;
+            updateSageIntacctDefaultVendor(policyID, settingName, newValue, defaultVendor);
             goBack();
         },
         [defaultVendor, policyID, settingName, goBack],

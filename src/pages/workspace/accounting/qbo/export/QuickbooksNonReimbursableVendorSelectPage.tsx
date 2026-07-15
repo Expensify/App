@@ -59,9 +59,8 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
         })) ?? [];
 
     const selectVendor = (row: CardListItem) => {
-        if (row.value !== currentVendor) {
-            updateVendor(policyID, row.value, currentVendor);
-        }
+        const newValue = row.value === currentVendor ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : row.value;
+        updateVendor(policyID, newValue, currentVendor);
         Navigation.goBack();
     };
 
