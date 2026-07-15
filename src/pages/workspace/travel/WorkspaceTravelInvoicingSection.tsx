@@ -12,7 +12,6 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -74,7 +73,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {isBetaEnabled} = usePermissions();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const {showConfirmModal, closeModal} = useConfirmModal();
@@ -164,7 +162,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     // Bank account eligibility for toggle handler
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
-    const eligibleBankAccounts = getEligibleBankAccountsForTravelInvoicing(bankAccountList, isBetaEnabled(CONST.BETAS.TRAVEL_BILLING_DEPOSIT_ONLY));
+    const eligibleBankAccounts = getEligibleBankAccountsForTravelInvoicing(bankAccountList, isPayByInvoice);
 
     // Determine if Travel Invoicing is enabled based on isEnabled field
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);

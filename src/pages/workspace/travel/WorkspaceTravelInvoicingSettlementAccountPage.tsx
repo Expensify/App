@@ -9,7 +9,6 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
@@ -17,7 +16,7 @@ import {configureTravelInvoicingForPolicy, setTravelInvoicingSettlementAccount} 
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardSettings, getEligibleBankAccountsForTravelInvoicing, isDepositOnlyBankAccount} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+import {getIsTravelBillingPayByInvoice, getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -37,7 +36,6 @@ type WorkspaceTravelInvoicingSettlementAccountPageProps = PlatformStackScreenPro
 function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelInvoicingSettlementAccountPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const policyID = route.params?.policyID;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
@@ -50,7 +48,7 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
     const isSuccess = !!cardSettings?.isSuccess;
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
     const paymentBankAccountID = travelSettings?.paymentBankAccountID;
-    const canUseDepositOnlyAccounts = isBetaEnabled(CONST.BETAS.TRAVEL_BILLING_DEPOSIT_ONLY);
+    const canUseDepositOnlyAccounts = getIsTravelBillingPayByInvoice(travelSettings);
     const eligibleBankAccounts = getEligibleBankAccountsForTravelInvoicing(bankAccountsList, canUseDepositOnlyAccounts);
 
     const getVerificationState = () => {
