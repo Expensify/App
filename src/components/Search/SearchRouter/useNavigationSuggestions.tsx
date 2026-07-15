@@ -1,3 +1,6 @@
+/**
+ * Builds the top-level navigation suggestions shown in the Search Router.
+ */
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';

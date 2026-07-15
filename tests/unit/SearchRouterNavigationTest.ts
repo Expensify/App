@@ -51,6 +51,20 @@ describe('Search Router navigation query helpers', () => {
         expect(buildNavigationSuggestions('ab', source, localeCompare)).toEqual([]);
     });
 
+    it('matches short queries only when they exactly match a localized destination', () => {
+        const source = [
+            [
+                {text: '前往支出', keyForList: 'spend', matchTerms: ['支出']},
+                {text: '前往账户', keyForList: 'account', matchTerms: ['账户']},
+            ],
+        ];
+
+        expect(buildNavigationSuggestions('支出', source, localeCompare).map((item) => item.keyForList)).toEqual(['spend']);
+        expect(buildNavigationSuggestions('go to 账户', source, localeCompare).map((item) => item.keyForList)).toEqual(['account']);
+        expect(buildNavigationSuggestions('支', source, localeCompare)).toEqual([]);
+        expect(buildNavigationSuggestions('go 支', source, localeCompare)).toEqual([]);
+    });
+
     it.each(['inbox', 'go inbox', 'go to inbox', 'Go To Inbox'])('matches the Inbox destination for "%s"', (query) => {
         const source = [
             [

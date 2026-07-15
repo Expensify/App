@@ -25,6 +25,7 @@ type SearchQueryItem = ListItem & {
     autocompleteID?: string;
     roomType?: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
     mapKey?: string;
+    /** Navigates to the destination represented by this suggestion. */
     action?: () => void;
 };
 

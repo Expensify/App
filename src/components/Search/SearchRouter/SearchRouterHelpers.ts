@@ -1,3 +1,6 @@
+/**
+ * Helpers for matching, sorting, and building Search Router navigation suggestions.
+ */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 
@@ -40,6 +43,11 @@ function matchesNavigationQuery(query: string, ...values: Array<string | undefin
     );
 }
 
+function matchesNavigationQueryExactly(query: string, ...values: Array<string | undefined>) {
+    const normalizedQuery = StringUtils.normalizeAccents(query).toLowerCase();
+    return values.some((value) => StringUtils.normalizeAccents(value ?? '').toLowerCase() === normalizedQuery);
+}
+
 function sortNavigationSuggestionItems<T extends NavigationSuggestionSourceItem>(items: T[], localeCompare: LocaleContextProps['localeCompare']): T[] {
     return [...items].sort((firstItem, secondItem) => {
         const firstText = StringUtils.normalizeAccents(firstItem.text ?? '').toLowerCase();
@@ -61,13 +69,17 @@ function buildNavigationSuggestions(query: string, sources: NavigationSuggestion
     const trimmedQuery = query.trim();
     const isNavigationIntentOnly = isNavigationIntentOnlyQuery(trimmedQuery);
     const matchQuery = stripNavigationIntentPrefix(trimmedQuery) || trimmedQuery;
-    if (matchQuery.length < MIN_NAVIGATION_QUERY_LENGTH && !isNavigationIntentOnly) {
-        return [];
-    }
+    const shouldMatchExactDestination = matchQuery.length < MIN_NAVIGATION_QUERY_LENGTH && !isNavigationIntentOnly;
 
     return sources
         .flatMap((source) => sortNavigationSuggestionItems(source, localeCompare))
-        .filter((item) => isNavigationIntentOnly || matchesNavigationQuery(matchQuery, item.text, ...(item.matchTerms ?? [])))
+        .filter(
+            (item) =>
+                isNavigationIntentOnly ||
+                (shouldMatchExactDestination
+                    ? matchesNavigationQueryExactly(matchQuery, ...(item.matchTerms ?? []))
+                    : matchesNavigationQuery(matchQuery, item.text, ...(item.matchTerms ?? []))),
+        )
         .map((item) => ({
             ...item,
             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
