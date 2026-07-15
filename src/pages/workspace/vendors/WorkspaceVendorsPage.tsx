@@ -8,7 +8,6 @@ import type {ListItem} from '@components/SelectionList/types';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
-import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -19,6 +18,8 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getMatchingVendors, hasVendorFeature} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
 import variables from '@styles/variables';
 
@@ -31,13 +32,10 @@ type VendorListItem = ListItem & {
     value: string;
 };
 
-type WorkspaceVendorsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.VENDORS>;
+type WorkspaceVendorsPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.VENDORS>;
 
-function WorkspaceVendorsPage({
-    route: {
-        params: {policyID},
-    },
-}: WorkspaceVendorsPageProps) {
+function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
+    const {policyID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -45,7 +43,6 @@ function WorkspaceVendorsPage({
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const [searchValue, setSearchValue] = useState('');
 
-    const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.vendors');
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
@@ -118,4 +115,4 @@ function WorkspaceVendorsPage({
 
 WorkspaceVendorsPage.displayName = 'WorkspaceVendorsPage';
 
-export default WorkspaceVendorsPage;
+export default withPolicyConnections(WorkspaceVendorsPage);
