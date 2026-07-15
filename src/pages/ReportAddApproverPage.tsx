@@ -31,6 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -53,6 +54,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const employeeList = policy?.employeeList;
     const allApprovers = (() => {
@@ -78,7 +80,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 }
 
                 const {avatar} = personalDetails?.[accountID] ?? {};
-                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber});
+                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, translate});
                 return {
                     text: displayName,
                     alternateText: email,
@@ -109,6 +111,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 reportNextStep,
+                isTrackIntentUser,
             );
             Navigation.dismissToPreviousRHP();
         });

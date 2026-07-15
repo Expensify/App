@@ -27,7 +27,9 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps>(Wra
 
     WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
 
-    return WithCurrentUserPersonalDetails;
+    // OXC's React Compiler does not memoize this component on web, so memoize it explicitly to keep
+    // parent-driven re-renders cheap on both platforms.
+    return React.memo(WithCurrentUserPersonalDetails);
 }
 
 export type {WithCurrentUserPersonalDetailsProps};
