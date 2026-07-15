@@ -2,12 +2,20 @@
 /**
  * React Compiler Compliance Check
  *
- * Checks whether React components and hooks compile with React Compiler.
- * Two modes:
- *   - `check <files...>` -- check specific files, report per-file status
- *   - `check-changed`    -- check files changed in a PR, enforce two rules:
- *       1. New files with components/hooks must compile
- *       2. Modified files must not regress (compiled on main -> must compile on PR)
+ * Checks how React components and hooks fare under BOTH React Compilers: Babel
+ * (babel-plugin-react-compiler, used by Metro/Jest) and OXC (oxc-transform, used
+ * by the web build). Two modes:
+ *   - `check <files...>` -- check specific files, report per-file dual status
+ *   - `check-changed`    -- check files changed in a PR, enforce:
+ *       1. New files with components/hooks must compile under both compilers
+ *       2. Modified files must not regress (compiled on main -> must compile on PR) under either compiler
+ *       3. Changed files must not introduce new memoization divergence (one compiler memoizes, the
+ *          other does not) that did not already exist on main
+ *
+ * The Babel analysis lives inline here (kept OXC-free at module scope) because this module's
+ * `checkReactCompilerCompliance` export is imported by a Jest unit test, and oxc-transform is
+ * excluded from Jest's transform. The OXC analysis is loaded via a dynamic import that only runs
+ * in the (bun) CLI paths, so importing this module in Jest never pulls in oxc-transform.
  */
 import {transformSync} from '@babel/core';
 import CLI from 'expensify-common/CLI';
@@ -35,6 +43,7 @@ type CompilerError = {
 
 type CompilationResult = {
     status: 'compiled' | 'failed' | 'no-components';
+    memoized: boolean;
     errors: CompilerError[];
 };
 
@@ -42,6 +51,7 @@ type CompilerLogEvent = {
     kind: string;
     fnLoc?: SourceLocation;
     fnName?: string;
+    memoBlocks?: number;
     detail?: {
         severity?: string;
         reason?: string;
@@ -49,20 +59,32 @@ type CompilerLogEvent = {
     };
 };
 
+type OxcChecker = (source: string, filename: string) => CompilationResult;
+
+type DualResult = {
+    babel: CompilationResult;
+    oxc: CompilationResult;
+    isDivergent: boolean;
+};
+
 const FILE_EXTENSIONS = ['.ts', '.tsx'];
 
 const IS_CI = process.env.CI === 'true';
 
 /**
- * Check if a source string compiles with React Compiler.
- * Returns the compilation status and any errors with their details.
+ * Check a source string with the Babel React Compiler.
+ * Returns the compile-health status, whether the compiler actually memoized anything, and any errors.
  */
 function checkReactCompilerCompliance(source: string, filename: string): CompilationResult {
     let hasError = false;
     let hasSuccess = false;
+    let memoBlocks = 0;
     const errors: CompilerError[] = [];
 
     try {
+        // Analyze with noEmit (no code generation) -- cheap, and the CompileSuccess event's
+        // memoBlocks count tells us whether memoization was actually applied. With panicThreshold
+        // 'none', Rules-of-React violations are reported via the logger rather than thrown.
         transformSync(source, {
             filename,
             ast: false,
@@ -94,6 +116,7 @@ function checkReactCompilerCompliance(source: string, filename: string): Compila
                                 }
                                 if (event.kind === 'CompileSuccess') {
                                     hasSuccess = true;
+                                    memoBlocks += event.memoBlocks ?? 0;
                                 }
                             },
                         },
@@ -109,13 +132,36 @@ function checkReactCompilerCompliance(source: string, filename: string): Compila
         });
     }
 
+    const memoized = memoBlocks > 0;
+
     if (hasError) {
-        return {status: 'failed', errors};
+        return {status: 'failed', memoized, errors};
     }
     if (hasSuccess) {
-        return {status: 'compiled', errors: []};
+        return {status: 'compiled', memoized, errors: []};
     }
-    return {status: 'no-components', errors: []};
+    return {status: 'no-components', memoized, errors: []};
+}
+
+/**
+ * Run both compilers against a single file and report whether they disagree on memoization.
+ * A file is divergent when exactly one compiler emits memoization (`memoized` XOR).
+ */
+function checkBoth(source: string, filename: string, checkOxc: OxcChecker): DualResult {
+    const babel = checkReactCompilerCompliance(source, filename);
+    const oxc = checkOxc(source, filename);
+    return {
+        babel,
+        oxc,
+        isDivergent: babel.memoized !== oxc.memoized,
+    };
+}
+
+function divergenceLabel(result: DualResult): string {
+    if (result.babel.memoized) {
+        return `Babel memoizes this file but OXC does not (oxc=${result.oxc.status}) -- it will not be memoized on web`;
+    }
+    return `OXC memoizes this file but Babel does not (babel=${result.babel.status}) -- it will not be memoized on native`;
 }
 
 function formatErrorLocation(filename: string, error: CompilerError): string {
@@ -126,13 +172,13 @@ function formatErrorLocation(filename: string, error: CompilerError): string {
     return filename;
 }
 
-function printErrors(filename: string, errors: CompilerError[]): void {
+function printErrors(filename: string, label: string, errors: CompilerError[]): void {
     if (IS_CI) {
-        console.log(`::group::${filename} (${errors.length} error${errors.length === 1 ? '' : 's'})`);
+        console.log(`::group::${filename} ${label} (${errors.length} error${errors.length === 1 ? '' : 's'})`);
     }
     for (const error of errors) {
         const location = formatErrorLocation(filename, error);
-        logErrorDetail(`${location}: ${error.reason}`);
+        logErrorDetail(`${label} ${location}: ${error.reason}`);
     }
     if (IS_CI) {
         console.log('::endgroup::');
@@ -140,9 +186,9 @@ function printErrors(filename: string, errors: CompilerError[]): void {
 }
 
 /**
- * Check specific files and report per-file status.
+ * Check specific files and report per-file status for both compilers.
  */
-function checkFiles(inputs: string[], verbose: boolean): boolean {
+function checkFiles(inputs: string[], verbose: boolean, checkOxc: OxcChecker): boolean {
     const files = FileUtils.resolveFilePaths(inputs, FILE_EXTENSIONS);
 
     if (files.length === 0) {
@@ -154,23 +200,29 @@ function checkFiles(inputs: string[], verbose: boolean): boolean {
 
     for (const file of files) {
         const source = fs.readFileSync(file, 'utf8');
-        const result = checkReactCompilerCompliance(source, file);
+        const {babel, oxc, isDivergent} = checkBoth(source, file, checkOxc);
 
-        switch (result.status) {
-            case 'compiled':
-                logSuccess(`COMPILED  ${file}`);
-                break;
-            case 'failed':
-                logError(`FAILED  ${file}`);
-                printErrors(file, result.errors);
-                hasFailure = true;
-                break;
-            case 'no-components':
-            default:
-                if (verbose) {
+        if (babel.status === 'failed') {
+            logError(`FAILED (babel)  ${file}`);
+            printErrors(file, '[babel]', babel.errors);
+            hasFailure = true;
+        }
+        if (oxc.status === 'failed') {
+            logError(`FAILED (oxc)  ${file}`);
+            printErrors(file, '[oxc]', oxc.errors);
+            hasFailure = true;
+        }
+
+        if (babel.status !== 'failed' && oxc.status !== 'failed') {
+            if (isDivergent) {
+                logWarn(`DIVERGENT  ${file}: ${divergenceLabel({babel, oxc, isDivergent})}`);
+            } else if (verbose) {
+                if (babel.status === 'compiled' || oxc.status === 'compiled') {
+                    logSuccess(`COMPILED  ${file} (babel=${babel.status}, oxc=${oxc.status})`);
+                } else {
                     logInfo(`SKIPPED  ${file} (no components or hooks)`);
                 }
-                break;
+            }
         }
     }
 
@@ -178,11 +230,23 @@ function checkFiles(inputs: string[], verbose: boolean): boolean {
 }
 
 /**
- * Check files changed in a PR for React Compiler compliance.
- * Rule 1: New files with components/hooks must compile.
- * Rule 2: Modified files must not regress (compiled on main -> must compile on PR).
+ * Resolve the source of a file on the base branch, returning undefined if it did not exist.
  */
-async function checkChangedFiles(remote: string, verbose: boolean): Promise<boolean> {
+function getMainSource(ref: string, mainPath: string): string | undefined {
+    try {
+        return Git.show(ref, mainPath);
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Check files changed in a PR for React Compiler compliance under both compilers.
+ * Rule 1: New files with components/hooks must compile under both compilers.
+ * Rule 2: Modified files must not regress (compiled on main -> must compile on PR) under either compiler.
+ * Rule 3: Changed files must not introduce new memoization divergence that did not exist on main.
+ */
+async function checkChangedFiles(remote: string, verbose: boolean, checkOxc: OxcChecker): Promise<boolean> {
     const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
     const changedFiles = await Git.getChangedFilesWithStatus(mainBaseCommitHash);
 
@@ -193,13 +257,9 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
         return true;
     }
 
-    logInfo(`Checking ${reactFiles.length} changed React files...`);
+    logInfo(`Checking ${reactFiles.length} changed React files with both compilers (Babel + OXC)...`);
 
-    const failures: Array<{
-        file: string;
-        reason: string;
-        errors: CompilerError[];
-    }> = [];
+    const failures: Array<{file: string; reason: string}> = [];
 
     for (const {filename, status, previousFilename} of reactFiles) {
         const absolutePath = path.resolve(filename);
@@ -208,49 +268,57 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
         }
 
         const source = fs.readFileSync(absolutePath, 'utf8');
-        const result = checkReactCompilerCompliance(source, absolutePath);
+        const branchResult = checkBoth(source, absolutePath, checkOxc);
 
-        if (status === 'added') {
-            if (result.status === 'failed') {
-                failures.push({
-                    file: filename,
-                    reason: 'New file contains components/hooks that fail to compile with React Compiler',
-                    errors: result.errors,
-                });
-                logError(`FAILED   ${filename} (new file must compile)`);
-                printErrors(filename, result.errors);
-            } else if (verbose) {
-                const label = result.status === 'compiled' ? 'COMPILED' : 'SKIPPED ';
-                logSuccess(`${label} ${filename}`);
+        // Resolve the file's state on the base branch once, reused by the regression + divergence rules.
+        // Use the resolved base commit hash (which honors GITHUB_BASE_REF) rather than a hardcoded `main`,
+        // so grandfathering/regression detection works for PRs targeting any base branch.
+        const mainPath = previousFilename ?? filename;
+        const mainSource = status === 'added' ? undefined : getMainSource(mainBaseCommitHash, mainPath);
+        const mainResult = mainSource !== undefined ? checkBoth(mainSource, mainPath, checkOxc) : undefined;
+
+        // Rule 1 + 2: compile failures.
+        for (const [compiler, result] of [
+            ['babel', branchResult.babel],
+            ['oxc', branchResult.oxc],
+        ] as const) {
+            if (result.status !== 'failed') {
+                continue;
             }
-            continue;
+
+            if (status === 'added') {
+                failures.push({file: filename, reason: `New file fails to compile with the ${compiler} React Compiler`});
+                logError(`FAILED   ${filename} (new file must compile, ${compiler})`);
+                printErrors(filename, `[${compiler}]`, result.errors);
+                continue;
+            }
+
+            // Modified/renamed: only a regression from the base branch counts.
+            const mainCompiledHere = compiler === 'babel' ? mainResult?.babel.status === 'compiled' : mainResult?.oxc.status === 'compiled';
+
+            if (mainCompiledHere) {
+                failures.push({file: filename, reason: `File compiled on main but fails to compile on this branch with the ${compiler} React Compiler (regression)`});
+                logError(`FAILED  ${filename} (regression: compiled on main, ${compiler})`);
+                printErrors(filename, `[${compiler}]`, result.errors);
+            } else if (verbose) {
+                logWarn(`WARNING  ${filename} (fails to compile with ${compiler}, but also failed on main)`);
+            }
         }
 
-        // Modified or renamed files: check for regression
-        if (result.status === 'failed') {
-            let mainStatus: CompilationResult['status'] = 'no-components';
-            const mainPath = previousFilename ?? filename;
-            try {
-                const mainSource = Git.show('origin/main', mainPath);
-                mainStatus = checkReactCompilerCompliance(mainSource, mainPath).status;
-            } catch {
-                mainStatus = 'no-components';
-            }
+        // Rule 3: newly-introduced memoization divergence. Existing base-branch divergences are grandfathered.
+        if (branchResult.isDivergent) {
+            const wasDivergentOnMain = mainResult?.isDivergent ?? false;
 
-            if (mainStatus === 'compiled') {
-                failures.push({
-                    file: filename,
-                    reason: 'File compiled on main but fails to compile on this branch (regression)',
-                    errors: result.errors,
-                });
-                logError(`FAILED  ${filename} (regression: compiled on main)`);
-                printErrors(filename, result.errors);
+            if (!wasDivergentOnMain) {
+                const introduced = status === 'added' ? 'new file is memoization-divergent' : 'introduces new memoization divergence';
+                failures.push({file: filename, reason: `${introduced}: ${divergenceLabel(branchResult)}`});
+                logError(`FAILED  ${filename} (${introduced})`);
+                logErrorDetail(divergenceLabel(branchResult));
             } else if (verbose) {
-                logWarn(`WARNING  ${filename} (fails to compile, but also failed on main)`);
+                logWarn(`WARNING  ${filename} (memoization-divergent, but was already divergent on main)`);
             }
         } else if (verbose) {
-            const label = result.status === 'compiled' ? 'COMPILED' : 'SKIPPED ';
-            logSuccess(`${label} ${filename}`);
+            logSuccess(`OK  ${filename} (babel=${branchResult.babel.status}, oxc=${branchResult.oxc.status})`);
         }
     }
 
@@ -307,6 +375,12 @@ async function main() {
     const {remote} = cli.namedArgs;
     const {verbose} = cli.flags;
 
+    // Dynamically import the OXC checker so that importing this module in Jest (where oxc-transform
+    // is not transformable) never pulls it in -- the CLI paths below are never executed under Jest.
+    // The explicit .mjs extension is required for Node/bun ESM resolution of this JS module.
+    // eslint-disable-next-line import/extensions
+    const checkReactCompilerWithOxc = ((await import('../config/reactCompiler/checkWithOxc.mjs')) as {default: OxcChecker}).default;
+
     let passed = false;
 
     switch (command) {
@@ -315,10 +389,10 @@ async function main() {
                 logError('No paths specified. Usage: npm run react-compiler-compliance-check check <files|dirs|globs...>');
                 process.exit(1);
             }
-            passed = checkFiles(files, verbose);
+            passed = checkFiles(files, verbose, checkReactCompilerWithOxc);
             break;
         case 'check-changed':
-            passed = await checkChangedFiles(remote ?? 'origin', verbose);
+            passed = await checkChangedFiles(remote ?? 'origin', verbose, checkReactCompilerWithOxc);
             break;
         default:
             logError(`Unknown command: ${String(command)}`);
