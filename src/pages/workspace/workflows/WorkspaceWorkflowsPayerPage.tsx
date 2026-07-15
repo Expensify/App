@@ -50,7 +50,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -83,7 +83,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const isAccountInSetupState = isBankAccountPartiallySetup(bankAccountState);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -396,7 +396,15 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                     return;
                                 }
                                 setShowErrorModal(false);
-                                navigateToAndOpenReportWithAccountIDs([policy.ownerAccountID], currentUserPersonalDetails.accountID, introSelected, isSelfTourViewed, betas, personalDetails);
+                                navigateToAndOpenReportWithAccountIDs(
+                                    [policy.ownerAccountID],
+                                    currentUserPersonalDetails.accountID,
+                                    introSelected,
+                                    guidedSetupAndTourStatus?.isSelfTourViewed,
+                                    guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                                    betas,
+                                    personalDetails,
+                                );
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.errorDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',
