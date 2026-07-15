@@ -193,7 +193,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     } = params;
 
     // Localization
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
 
     // Permissions
     const {isBetaEnabled} = usePermissions();
@@ -612,6 +612,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 personalDetails,
                 optimisticChatReportID,
                 isTrackIntentUser,
+                formatPhoneNumber,
             });
             const targetReportID = backToReport ?? activeReportID;
             // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
@@ -874,6 +875,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         participantsPolicyTags,
                         shouldHandleNavigation,
                         shouldDeferForSearch: shouldDeferSplitForSearch,
+                        formatPhoneNumber,
                     });
                 }
             }
@@ -915,6 +917,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
                     isTrackIntentUser,
+                    formatPhoneNumber,
                 });
             }
             markSubmitExpenseEnd();
@@ -953,6 +956,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
                     isTrackIntentUser,
+                    formatPhoneNumber,
                 });
             }
             markSubmitExpenseEnd();
@@ -977,6 +981,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
+                formatPhoneNumber,
             });
             if (shouldHandleNavigation) {
                 cleanupAndNavigateAfterExpenseCreate({

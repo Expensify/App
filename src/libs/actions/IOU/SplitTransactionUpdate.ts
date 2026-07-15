@@ -1,3 +1,4 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
 
 import {write as apiWrite} from '@libs/API';
@@ -108,6 +109,7 @@ type UpdateSplitTransactionsParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     isOffline: boolean;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function updateSplitTransactions({
@@ -137,6 +139,7 @@ function updateSplitTransactions({
     expenseReport: expenseReportFromParams,
     isOffline,
     isTrackIntentUser,
+    formatPhoneNumber,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
@@ -710,6 +713,7 @@ function updateSplitTransactions({
             // TODO: delegateAccountID will be threaded in PR 11 (https://github.com/Expensify/App/issues/66425)
             delegateAccountID: undefined,
             isTrackIntentUser,
+            formatPhoneNumber,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};

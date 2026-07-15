@@ -1,5 +1,7 @@
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 
+import useLocalize from '@hooks/useLocalize';
+
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
@@ -71,6 +73,7 @@ function redistributeRemainingPerDiemSplitExpenses(splitExpenses: SplitExpense[]
  * All data must be provided through function parameters
  */
 function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransactionsParams) {
+    const {formatPhoneNumber} = useLocalize();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -323,6 +326,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     expenseReport,
                     isOffline,
                     isTrackIntentUser,
+                    formatPhoneNumber,
                 });
             }
 
