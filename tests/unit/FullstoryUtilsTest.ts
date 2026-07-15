@@ -62,9 +62,9 @@ describe('FullstoryUtils', () => {
     });
 
     it('builds page viewed event metadata', () => {
-        expect(buildPageViewedEvent('OnboardingWorkspaces', ROUTES.ONBOARDING_WORKSPACES.route)).toEqual({
+        expect(buildPageViewedEvent('OnboardingWorkspaces', ROUTES.ONBOARDING_WORKSPACES.route, ROUTES.HOME)).toEqual({
             screen_name: 'OnboardingWorkspaces',
-            entry_point: ROUTES.ONBOARDING_WORKSPACES.route,
+            entry_point: ROUTES.HOME,
             onb_step: 'registration',
         });
     });

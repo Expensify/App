@@ -60,6 +60,8 @@ type NavigationRootProps = {
     onReady: () => void;
 };
 
+let previousFullstoryPath: string | undefined;
+
 /**
  * Intercept navigation state changes and log it
  */
@@ -109,7 +111,8 @@ function parseAndLogRoute(state: NavigationState) {
     const focusedRouteName = focusedRoute?.name;
     if (focusedRouteName && !isTransitionRoute) {
         new FS.Page(focusedRouteName, {path: currentPath}).start();
-        trackFullstoryEvent('Page_viewed', buildPageViewedEvent(focusedRouteName, currentPath));
+        trackFullstoryEvent('Page_viewed', buildPageViewedEvent(focusedRouteName, currentPath, previousFullstoryPath));
+        previousFullstoryPath = currentPath;
     }
 }
 
