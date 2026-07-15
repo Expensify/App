@@ -1581,7 +1581,7 @@ function getAllTaxRatesNamesAndValues(policies: OnyxCollection<Policy>): Record<
 /**
  * Whether the tax rate can be deleted and disabled
  */
-function canEditTaxRate(policy: Policy, taxID: string): boolean {
+function canDisableOrDeleteTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
@@ -2785,7 +2785,7 @@ function isTaxCodeCustomized(taxCode: string | undefined, policy: OnyxEntry<Poli
 }
 
 export {
-    canEditTaxRate,
+    canDisableOrDeleteTaxRate,
     canPolicyAccessFeature,
     escapeTagName,
     getActivePolicies,

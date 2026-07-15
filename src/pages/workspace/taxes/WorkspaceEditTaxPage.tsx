@@ -18,7 +18,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canEditTaxRate as canEditTaxRateUtil, getCurrentTaxID, hasAccountingConnections, isControlPolicy, isTaxCodeCustomized} from '@libs/PolicyUtils';
+import {canDisableOrDeleteTaxRate as canDisableOrDeleteTaxRateUtil, getCurrentTaxID, hasAccountingConnections, isControlPolicy, isTaxCodeCustomized} from '@libs/PolicyUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -48,7 +48,7 @@ function WorkspaceEditTaxPage({
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const {canWrite: canWriteTaxes, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAXES);
     const canEditTaxFields = !!canWriteTaxes && !!policy;
-    const canDisableOrDeleteTaxRate = !!canWriteTaxes && !!policy && canEditTaxRateUtil(policy, currentTaxID ?? taxID);
+    const canDisableOrDeleteTaxRate = !!canWriteTaxes && !!policy && canDisableOrDeleteTaxRateUtil(policy, currentTaxID ?? taxID);
 
     const shouldShowDeleteMenuItem = canDisableOrDeleteTaxRate && !hasAccountingConnections(policy);
 
