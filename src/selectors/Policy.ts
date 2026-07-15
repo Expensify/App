@@ -256,6 +256,18 @@ const createFilteredPoliciesInfoSelector =
         return {filteredPoliciesCount, firstPolicyID};
     };
 
+/**
+ * Creates a selector returning whether international deposit details (IBAN/SWIFT) should be collected for the given
+ * bank country.
+ */
+const createShouldCollectInternationalDepositDetailsSelector =
+    (bankCountry: string) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        Object.values(policies ?? {}).some((policy) => {
+            const countries = Object.keys(policy?.reimbursement?.countries ?? {});
+            return countries.length > 0 && !countries.includes(bankCountry);
+        });
+
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 };
@@ -385,6 +397,7 @@ export {
     hasReusablePoliciesConnectedToSelector,
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
+    createShouldCollectInternationalDepositDetailsSelector,
     policyNameSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,

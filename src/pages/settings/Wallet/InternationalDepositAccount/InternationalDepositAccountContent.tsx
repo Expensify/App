@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubPage from '@hooks/useSubPage';
 
@@ -22,14 +23,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {createShouldCollectInternationalDepositDetailsSelector} from '@src/selectors/Policy';
 import type {InternationalBankAccountForm} from '@src/types/form';
-import type {BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
+import type {BankAccountList, CorpayFields, Policy, PrivatePersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useCallback} from 'react';
 
 import type CustomSubPageProps from './types';
 
@@ -39,6 +41,7 @@ import BankAccountDetails from './subPages/BankAccountDetails';
 import BankInformation from './subPages/BankInformation';
 import Confirmation from './subPages/Confirmation';
 import CountrySelection from './subPages/CountrySelection';
+import InternationalBankAccountDetails from './subPages/InternationalBankAccountDetails';
 import Success from './subPages/Success';
 import {getFieldsMap, getInitialPersonalDetailsValues, getInitialSubstep, getSubstepValues, testValidation} from './utils';
 
@@ -55,6 +58,7 @@ type InternationalDepositAccountContentProps = {
 const pages = [
     {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.COUNTRY, component: CountrySelection},
     {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS, component: BankAccountDetails},
+    {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.INTERNATIONAL_BANK_ACCOUNT_DETAILS, component: InternationalBankAccountDetails},
     {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE, component: AccountType},
     {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION, component: BankInformation},
     {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS, component: AccountHolderInformation},
@@ -62,8 +66,11 @@ const pages = [
     {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.SUCCESS, component: Success},
 ];
 
-function getSkippedPages(skipAccountTypeStep: boolean, skipAccountHolderInformationStep: boolean) {
+function getSkippedPages(skipAccountTypeStep: boolean, skipAccountHolderInformationStep: boolean, skipInternationalBankAccountDetailsStep: boolean) {
     const skippedSteps = [];
+    if (skipInternationalBankAccountDetailsStep) {
+        skippedSteps.push(CONST.CORPAY_FIELDS.PAGE_NAME.INTERNATIONAL_BANK_ACCOUNT_DETAILS);
+    }
     if (skipAccountTypeStep) {
         skippedSteps.push(CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE);
     }
@@ -87,6 +94,12 @@ function InternationalDepositAccountContent({
     const fieldsMap = getFieldsMap(corpayFields);
 
     const values = getSubstepValues(privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, fieldsMap);
+    const bankCountry = values.bankCountry;
+    const shouldCollectInternationalDepositDetailsSelector = useCallback(
+        (policies: OnyxCollection<Policy>) => createShouldCollectInternationalDepositDetailsSelector(bankCountry)(policies),
+        [bankCountry],
+    );
+    const [shouldCollectInternationalDepositDetails] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: shouldCollectInternationalDepositDetailsSelector});
 
     const initialAccountHolderDetailsValues = getInitialPersonalDetailsValues(privatePersonalDetails);
 
@@ -96,7 +109,11 @@ function InternationalDepositAccountContent({
 
     const skipAccountHolderInformationStep = testValidation(initialAccountHolderDetailsValues, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]);
 
-    const skippedPages = getSkippedPages(skipAccountTypeStep, skipAccountHolderInformationStep);
+    // Skip the international bank account details step when no collecting policy needs international details for the
+    // selected bank country, or once we already have both the IBAN and SWIFT/BIC code.
+    const skipInternationalBankAccountDetailsStep = !shouldCollectInternationalDepositDetails || (!!values.iban && !!values.swiftCode);
+
+    const skippedPages = getSkippedPages(skipAccountTypeStep, skipAccountHolderInformationStep, skipInternationalBankAccountDetailsStep);
 
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT>>();
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((r) => isFullScreenName(r.name)));

@@ -14,11 +14,16 @@ import {addPersonalBankAccount} from '@userActions/BankAccounts';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {createShouldCollectInternationalDepositDetailsSelector} from '@src/selectors/Policy';
+import type {Policy} from '@src/types/onyx';
 
-import React, {useEffect, useRef} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React, {useCallback, useEffect, useRef} from 'react';
 
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
+import InternationalBankAccountDetails from './substeps/InternationalBankAccountDetailsStep';
 import LegalName from './substeps/LegalNameStep';
 import ManualBankAccountDetails from './substeps/ManualBankAccountDetailsStep';
 import PhoneNumber from './substeps/PhoneNumberStep';
@@ -26,8 +31,8 @@ import PlaidBankAccount from './substeps/PlaidBankAccountStep';
 import getSkippedStepsPersonalInfo from './utils/getSkippedStepsPersonalInfo';
 
 const bodyContentInfoSet: Array<React.ComponentType<SubStepProps>> = [LegalName, Address, PhoneNumber, Confirmation];
-const bodyContentWithPlaid: Array<React.ComponentType<SubStepProps>> = [PlaidBankAccount, ...bodyContentInfoSet];
-const bodyContentWithManualSetup: Array<React.ComponentType<SubStepProps>> = [ManualBankAccountDetails, ...bodyContentInfoSet];
+const bodyContentWithPlaid: Array<React.ComponentType<SubStepProps>> = [PlaidBankAccount, InternationalBankAccountDetails, ...bodyContentInfoSet];
+const bodyContentWithManualSetup: Array<React.ComponentType<SubStepProps>> = [ManualBankAccountDetails, InternationalBankAccountDetails, ...bodyContentInfoSet];
 
 const DEFAULT_OBJECT = {};
 const ACCOUNT_OWNERSHIP_ERROR_SUBSTRING = 'account ownership';
@@ -45,6 +50,11 @@ function PersonalInfoPage() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
+    const shouldCollectInternationalDepositDetailsSelector = useCallback(
+        (policies: OnyxCollection<Policy>) => createShouldCollectInternationalDepositDetailsSelector(CONST.COUNTRY.US)(policies),
+        [],
+    );
+    const [shouldCollectInternationalDepositDetails] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: shouldCollectInternationalDepositDetailsSelector});
 
     const submitBankAccountForm = () => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
@@ -69,7 +79,10 @@ function PersonalInfoPage() {
         addPersonalBankAccount(accountData, personalPolicyID);
     };
 
-    const skipSteps = getSkippedStepsPersonalInfo(privatePersonalDetails);
+    const isAccountNumberIBAN = CONST.BANK_ACCOUNT.REGEX.IBAN.test((personalBankAccount?.accountNumber ?? '').trim());
+    const shouldSkipInternationalBankAccountDetails = !shouldCollectInternationalDepositDetails || (isAccountNumberIBAN && !!personalBankAccount?.swiftCode);
+
+    const skipSteps = getSkippedStepsPersonalInfo(privatePersonalDetails, shouldSkipInternationalBankAccountDetails);
 
     const {
         componentToRender: SubStep,

@@ -738,6 +738,8 @@ const CONST = {
             // The back-end is always returning account number with 4 last digits and mask the rest with X
             MASKED_US_ACCOUNT_NUMBER: /^[X]{0,13}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
+            IBAN: /^[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}$/,
+            INTERNATIONAL_SWIFT_CODE: /^.{1,12}$/,
         },
         STATE: {
             VERIFYING: 'VERIFYING',
@@ -7972,6 +7974,7 @@ const CONST = {
         PAGE_NAME: {
             COUNTRY: 'country',
             ACCOUNT_DETAILS: 'account-details',
+            INTERNATIONAL_BANK_ACCOUNT_DETAILS: 'international-bank-account-details',
             ACCOUNT_TYPE: 'account-type',
             BANK_INFORMATION: 'bank-information',
             ACCOUNT_HOLDER_DETAILS: 'account-holder-details',
@@ -7982,11 +7985,12 @@ const CONST = {
             MAPPING: {
                 COUNTRY_SELECTOR: 0,
                 BANK_ACCOUNT_DETAILS: 1,
-                ACCOUNT_TYPE: 2,
-                BANK_INFORMATION: 3,
-                ACCOUNT_HOLDER_INFORMATION: 4,
-                CONFIRMATION: 5,
-                SUCCESS: 6,
+                INTERNATIONAL_BANK_ACCOUNT_DETAILS: 2,
+                ACCOUNT_TYPE: 3,
+                BANK_INFORMATION: 4,
+                ACCOUNT_HOLDER_INFORMATION: 5,
+                CONFIRMATION: 6,
+                SUCCESS: 7,
             },
         },
     },
