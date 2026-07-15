@@ -1,4 +1,3 @@
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 
 import type {UpdatePersonalDetailsForWalletParams} from '@libs/API/parameters';
@@ -19,7 +18,6 @@ import {useEffect, useRef, useState} from 'react';
 function useWalletPhoneMagicCode() {
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const [formData] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     // The details the user submitted, held while we prompt for a magic code to confirm a phone number change
     const submittedPersonalDetailsRef = useRef<UpdatePersonalDetailsForWalletParams | null>(null);
@@ -45,12 +43,11 @@ function useWalletPhoneMagicCode() {
     }, [formData?.isLoading, walletAdditionalDetails?.errorCode]);
 
     // Submits the personal details, first prompting for a magic code when an existing phone number is being changed.
-    const submitPersonalDetails = (personalDetails: UpdatePersonalDetailsForWalletParams) => {
+    const submitPersonalDetails = (personalDetails: UpdatePersonalDetailsForWalletParams, storedPhoneNumber: string | undefined) => {
         submittedPersonalDetailsRef.current = personalDetails;
 
         // The stored phone number keeps its country code, so normalize it the same way as the submitted one before
         // comparing, otherwise an unchanged phone would look like a change and wrongly prompt for a magic code.
-        const storedPhoneNumber = currentUserPersonalDetails.phoneNumber;
         const normalizedStoredPhoneNumber = (storedPhoneNumber && parsePhoneNumber(storedPhoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '';
         const hasPhoneNumberChanged = !!normalizedStoredPhoneNumber && personalDetails.phoneNumber !== normalizedStoredPhoneNumber;
         if (hasPhoneNumberChanged) {

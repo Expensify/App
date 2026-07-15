@@ -67,7 +67,7 @@ function PersonalInfoPage() {
             dob: values?.[PERSONAL_INFO_STEP_KEYS.DOB] ?? '',
             ssn: values?.[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4] ?? '',
         };
-        submitPersonalDetails(personalDetails);
+        submitPersonalDetails(personalDetails, walletAdditionalDetails?.phoneNumber);
     };
 
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);

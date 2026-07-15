@@ -135,7 +135,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
             dob: values.dob ?? '',
             ssn: values.ssn ?? '',
         };
-        submitPersonalDetails(personalDetails);
+        submitPersonalDetails(personalDetails, currentUserPersonalDetails.phoneNumber);
     };
 
     if (isMagicCodeRequired) {
