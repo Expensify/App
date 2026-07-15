@@ -33,6 +33,9 @@ type Args = {
 
     /** Whether the report is aligned to the top. When true, the "Latest messages" pill should never be shown. */
     shouldBeAlignedToTop?: boolean;
+
+    /** If pill tracking should be disabled, used during initial linked message positioning */
+    shouldDisablePillTracking?: boolean;
 };
 
 export default function useReportUnreadMessageScrollTracking({
@@ -45,6 +48,7 @@ export default function useReportUnreadMessageScrollTracking({
     isInverted,
     actionBadgeTargetIndex = -1,
     shouldBeAlignedToTop = false,
+    shouldDisablePillTracking = false,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const [isActionBadgeAboveViewport, setIsActionBadgeAboveViewport] = useState(false);
@@ -80,14 +84,9 @@ export default function useReportUnreadMessageScrollTracking({
     }, [onUnreadActionVisible]);
 
     /**
-     * On every scroll event we want to:
      * Show/hide the latest message pill when user is scrolling back/forth in the history of messages.
-     * Call any other callback that the component might need
      */
-    const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => {
-        if (event) {
-            onTrackScrolling(event);
-        }
+    const updatePillVisibility = () => {
         const hasUnreadMarkerReportAction = unreadMarkerReportActionIndex !== -1;
 
         // display floating button if we're scrolled more than the offset
@@ -109,6 +108,23 @@ export default function useReportUnreadMessageScrollTracking({
         ) {
             setIsFloatingMessageCounterVisible(false);
         }
+    };
+
+    /**
+     * On every scroll event we want to:
+     * Update the current scroll offset ref
+     * Show/hide the latest message pill, if it's not disabled
+     */
+    const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => {
+        if (event) {
+            onTrackScrolling(event);
+        }
+
+        if (shouldDisablePillTracking) {
+            return;
+        }
+
+        updatePillVisibility();
     };
 
     const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
@@ -181,5 +197,6 @@ export default function useReportUnreadMessageScrollTracking({
         isActionBadgeAboveViewport,
         trackVerticalScrolling,
         onViewableItemsChanged,
+        updatePillVisibility,
     };
 }

@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 import type {InputType} from 'storybook/internal/csf';
 import type {ValueOf} from 'type-fest';
 

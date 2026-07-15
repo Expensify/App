@@ -79,6 +79,7 @@ type TransactionEditPermissions = {
 let allTransactions: NonNullable<OnyxCollection<Transaction>> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allTransactions = value ?? {};
     },
@@ -87,6 +88,7 @@ Onyx.connectWithoutView({
 let allTransactionViolations: NonNullable<OnyxCollection<TransactionViolations>> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allTransactionViolations = value ?? {};
     },
@@ -95,6 +97,7 @@ Onyx.connectWithoutView({
 let allReports: NonNullable<OnyxCollection<Report>> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value ?? {};
     },
@@ -103,6 +106,7 @@ Onyx.connectWithoutView({
 let allReportActions: NonNullable<OnyxCollection<ReportActions>> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allReportActions = value ?? {};
     },
@@ -162,6 +166,8 @@ type TransactionEditPermissionsParams = {
 
     chatReportNVP?: OnyxEntry<ReportNameValuePairs>;
 
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+
     originalTransaction?: OnyxEntry<Transaction>;
 
     /** When true, all editing is disabled regardless of permissions. */
@@ -180,12 +186,14 @@ type GetIouParamsInput = {
     policyForTrackExpense?: OnyxEntry<Policy>;
     policyCategories: OnyxEntry<PolicyCategories>;
     policyTags: OnyxEntry<PolicyTagLists>;
+    reportPolicyTags: OnyxEntry<PolicyTagLists>;
     policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     parentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
     distanceOriginalPolicy?: OnyxEntry<Policy>;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -209,11 +217,13 @@ function getIouParamsForTransaction({
     policyForTrackExpense,
     policyCategories,
     policyTags,
+    reportPolicyTags,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     parentReportNextStep,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
+    isTrackIntentUser,
 }: GetIouParamsInput) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -275,8 +285,10 @@ function getIouParamsForTransaction({
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserEmail,
         isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas),
+        isTrackIntentUser,
         // delegateAccountID: will be threaded in PR 11; updateMoneyRequest* falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
         delegateAccountID: undefined,
+        reportPolicyTags,
         // Field-specific extras
         transaction,
         policyTagList: policyTags,
@@ -288,6 +300,7 @@ function getIouParamsForTransaction({
 /** Updates the date of an expense from the Search results table or the Expense Report page. */
 function editTransactionDateInline(params: TransactionInlineEditParams, newDate: string, personalPolicyOutputCurrency: string | undefined) {
     const iouParams = getIouParamsForTransaction(params);
+
     updateMoneyRequestDate({
         ...iouParams,
         // updateMoneyRequestDate uses 'policyTags' (not policyTagList)
@@ -311,6 +324,7 @@ function editTransactionMerchantInline(params: TransactionInlineEditParams, newM
     }
 
     const iouParams = getIouParamsForTransaction(params);
+
     updateMoneyRequestMerchant({
         ...iouParams,
         value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
@@ -402,6 +416,7 @@ function getTransactionEditPermissions({
     policyTags,
     transactionThreadNVP,
     chatReportNVP,
+    reportNameValuePairs,
     originalTransaction,
     disabled,
     shouldSelectPolicyForUnreported,
@@ -496,6 +511,7 @@ function getTransactionEditPermissions({
                 reportAction: parentReportAction,
                 fieldToEdit: field,
                 isChatReportArchived,
+                reportNameValuePairs,
                 transaction,
                 report: parentReport,
                 policy,

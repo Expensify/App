@@ -104,6 +104,7 @@ function isHarvestCreatedExpenseReport(origin?: string, originalID?: string): bo
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
     callback: (actions) => {
         if (!actions) {
             return;
@@ -115,6 +116,7 @@ Onyx.connect({
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
@@ -141,6 +143,7 @@ Onyx.connect({
 let allReportNameValuePair: OnyxCollection<ReportNameValuePairs>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             return;
@@ -2801,8 +2804,7 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
                     url = nonReimbursableUrls.at(0)?.substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3) ?? '';
                     break;
                 case CONST.EXPORT_LABELS.RILLET:
-                    // TODO Test in R3 https://github.com/Expensify/App/issues/94848
-                    url = '';
+                    url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
                 default:
                     url = QBO_EXPENSES_URL;
@@ -4854,7 +4856,6 @@ export {
     isReportActionAttachment,
     isReportPreviewAction,
     isReversedTransaction,
-    getMentionedAccountIDsFromAction,
     isSentMoneyReportAction,
     isSplitBillAction,
     isTaskAction,
