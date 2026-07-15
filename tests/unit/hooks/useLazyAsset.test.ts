@@ -335,6 +335,21 @@ describe('useMemoizedLazyAsset', () => {
         expect(result.current.asset).toBe(mockAsset);
         expect(importFn).toHaveBeenCalled();
     });
+
+    it('unwraps OXC-memoized SVG elements to their component type', async () => {
+        function MockIllustration(_props: SvgProps) {
+            return null;
+        }
+        // OXC can cache a pre-rendered element instead of the component reference.
+        const memoizedElement = React.createElement(MockIllustration);
+        const importFn = jest.fn(() => Promise.resolve({default: memoizedElement as unknown as IconAsset}));
+
+        const {result} = renderHook(() => useMemoizedLazyAsset(importFn));
+
+        await waitFor(() => {
+            expect(result.current.asset).toBe(MockIllustration);
+        });
+    });
 });
 
 describe('useMemoizedLazyExpensifyIcons', () => {

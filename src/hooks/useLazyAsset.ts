@@ -9,8 +9,18 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import {isValidElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 function resolveIconComponent(asset: IconAsset | undefined, fallback: IconAsset = PlaceholderIcon): IconAsset {
-    if (asset == null || isValidElement(asset)) {
+    if (asset == null) {
         return fallback;
+    }
+
+    // OXC may memoize SVG assets into pre-rendered elements. ImageSVG needs a component
+    // reference, so unwrap the element type instead of dropping to the empty placeholder.
+    if (isValidElement(asset)) {
+        const componentType = asset.type;
+        if (typeof componentType === 'string' || componentType == null) {
+            return fallback;
+        }
+        return componentType as IconAsset;
     }
 
     return asset;
