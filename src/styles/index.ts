@@ -4205,7 +4205,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         alternativeDistanceLabelWrapper: {
-            backgroundColor: colors.green200,
+            backgroundColor: colors.green100,
             paddingHorizontal: 8,
             paddingVertical: 4,
             borderRadius: 4,
@@ -4214,7 +4214,7 @@ const staticStyles = (theme: ThemeColors) =>
         alternativeDistanceLabelText: {
             fontSize: 13,
             fontWeight: FontUtils.fontWeight.bold,
-            color: colors.productLight900,
+            color: colors.green800,
         },
 
         productTrainingTooltipWrapper: {
@@ -6944,12 +6944,6 @@ const plainStyles = (theme: ThemeColors) =>
         alternativeMapDirection: {
             lineColor: colors.green200,
             lineWidth: 6,
-            lineCap: 'round',
-        },
-
-        alternativeMapDirectionBorder: {
-            lineColor: colors.green600,
-            lineWidth: 8,
             lineCap: 'round',
         },
 

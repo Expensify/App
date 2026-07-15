@@ -129,15 +129,20 @@ type DirectionProps = {
     onPress?: () => void;
 };
 
+type AlternativeDirection = {
+    // List of coordinates which together forms a direction.
+    coordinates: Coordinate[] | Coordinate[][];
+    // Whether the alternative direction is selected
+    isSelected: boolean;
+    // Distance displayed on the map in meters.
+    distanceInMeters: number;
+};
+
 type DirectionsProps = {
     // List of coordinates which together forms a direction.
     directionCoordinates?: Coordinate[] | Coordinate[][];
     // List of coordinates which together forms an alternative direction.
-    alternativeDirection?: {
-        coordinates: Coordinate[] | Coordinate[][];
-        isSelected: boolean;
-        distanceInMeters: number;
-    };
+    alternativeDirection?: AlternativeDirection;
     // Callback to call when the alternative direction is selected
     setIsAlternativeDirectionSelected?: (isAlternativeDirectionSelected: boolean) => void;
     // Distance displayed on the map in meters.
@@ -184,4 +189,16 @@ type MapViewHandle = {
     fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-export type {WayPoint, MapViewProps, GPSMapViewProps, DirectionProps, PendingMapViewProps, Coordinate, GPSDirectionProps, CompassProps, DistanceSymbolProps, DirectionsProps};
+export type {
+    WayPoint,
+    MapViewProps,
+    GPSMapViewProps,
+    DirectionProps,
+    PendingMapViewProps,
+    Coordinate,
+    GPSDirectionProps,
+    CompassProps,
+    DistanceSymbolProps,
+    DirectionsProps,
+    AlternativeDirection,
+};

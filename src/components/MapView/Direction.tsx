@@ -50,7 +50,7 @@ function Direction({coordinates, belowLayerID, isSelected = true, id, onPress}: 
                         <Mapbox.LineLayer
                             belowLayerID={getId(`${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}-segment-${index}`, id)}
                             id={getId(`${CONST.MAP_VIEW_LAYERS.ROUTE_BORDER}-segment-${index}`, id)}
-                            style={isSelected ? styles.mapDirectionBorder : styles.alternativeMapDirectionBorder}
+                            style={styles.mapDirectionBorder}
                         />
                     </Mapbox.ShapeSource>
                 ))}
@@ -83,7 +83,7 @@ function Direction({coordinates, belowLayerID, isSelected = true, id, onPress}: 
             <Mapbox.LineLayer
                 belowLayerID={getId(CONST.MAP_VIEW_LAYERS.ROUTE_FILL, id)}
                 id={getId(CONST.MAP_VIEW_LAYERS.ROUTE_BORDER, id)}
-                style={isSelected ? styles.mapDirectionBorder : styles.alternativeMapDirectionBorder}
+                style={styles.mapDirectionBorder}
             />
         </Mapbox.ShapeSource>
     );

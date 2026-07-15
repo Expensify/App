@@ -42,7 +42,7 @@ function MapView({
     pitchEnabled,
     initialState,
     waypoints,
-    directionCoordinates: directionCoordinatesProp,
+    directionCoordinates,
     alternativeDirection,
     setIsAlternativeDirectionSelected,
     onMapReady,
@@ -53,12 +53,6 @@ function MapView({
     shouldDisplayCurrentLocation = true,
     shouldDisplayCompass = true,
 }: MapViewProps) {
-    const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
-    const alternativeDirectionCoordinates = alternativeDirection?.coordinates;
-    const alternativeDirectionCoordinatesFlattened =
-        !alternativeDirectionCoordinates || utils.isSingleSegmentRoute(alternativeDirectionCoordinates) ? alternativeDirectionCoordinates : alternativeDirectionCoordinates.flat();
-    const allDirectionCoordinates = [...(directionCoordinates ?? []), ...(alternativeDirectionCoordinatesFlattened ?? [])];
-
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const navigation = useNavigation();
     const {isOffline} = useNetwork();
@@ -159,6 +153,8 @@ function MapView({
         }),
         [],
     );
+
+    const allDirectionCoordinates = utils.getCoordinatesFromAllDirections(directionCoordinates, alternativeDirection);
 
     // When the page loses focus, we temporarily set the "idled" state to false.
     // When the page regains focus, the onIdled method of the map will set the actual "idled" state,
@@ -325,7 +321,7 @@ function MapView({
                 })}
 
                 <Directions
-                    directionCoordinates={directionCoordinatesProp}
+                    directionCoordinates={directionCoordinates}
                     alternativeDirection={alternativeDirection}
                     setIsAlternativeDirectionSelected={setIsAlternativeDirectionSelected}
                     distanceInMeters={distanceInMeters}

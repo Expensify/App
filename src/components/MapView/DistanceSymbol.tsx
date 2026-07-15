@@ -43,8 +43,6 @@ function DistanceSymbol({distanceInMeters, unit, directionCoordinates, waypoints
     return (
         <MarkerView
             coordinate={distanceSymbolCoordinate}
-            id="distance-label"
-            key="distance-label"
             allowOverlap
         >
             <View style={{zIndex: 1}}>
