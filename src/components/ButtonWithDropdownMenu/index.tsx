@@ -1,5 +1,6 @@
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
+import InlineIcon from '@components/Icon/InlineIcon';
 import PopoverMenu from '@components/PopoverMenu';
 import Text from '@components/Text';
 
@@ -12,9 +13,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import genericMemo from '@libs/genericMemo';
 import mergeRefs from '@libs/mergeRefs';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -117,12 +117,12 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(size);
     const isButtonSizeLarge = size === CONST.BUTTON_SIZE.LARGE;
     const isButtonSizeSmall = size === CONST.BUTTON_SIZE.SMALL;
-    // Large → MEDIUM, otherwise SMALL — except in short form (and not large), where the icon dimensions come from the explicit width/height (extra-small), so leave size unset.
-    let dropdownArrowIconSize: ValueOf<typeof CONST.ICON_SIZE> | undefined;
-    if (isButtonSizeLarge) {
+    // Short form → EXTRA_SMALL (compact inline chevron), large → MEDIUM, otherwise SMALL.
+    let dropdownArrowIconSize: ValueOf<typeof CONST.ICON_SIZE> = CONST.ICON_SIZE.SMALL;
+    if (shouldUseShortForm) {
+        dropdownArrowIconSize = CONST.ICON_SIZE.EXTRA_SMALL;
+    } else if (isButtonSizeLarge) {
         dropdownArrowIconSize = CONST.ICON_SIZE.MEDIUM;
-    } else if (!shouldUseShortForm) {
-        dropdownArrowIconSize = CONST.ICON_SIZE.SMALL;
     }
     const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
     const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
@@ -212,6 +212,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         setIsMenuVisible,
     }));
 
+    const IconComponent = shouldUseShortForm ? InlineIcon : Icon;
+
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
@@ -286,11 +288,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                         isButtonSizeSmall && shouldUseShortForm ? styles.dropDownSmallButtonArrowContain : styles.dropDownMediumButtonArrowContain,
                                     ]}
                                 >
-                                    <Icon
+                                    <IconComponent
                                         size={dropdownArrowIconSize}
-                                        inline={shouldUseShortForm}
-                                        width={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
-                                        height={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
                                         src={icons.DownArrow}
                                         additionalStyles={[...(shouldUseShortForm ? [styles.pRelative, styles.t0] : []), isMenuVisible ? styles.flipUpsideDown : undefined]}
                                         fill={variant === CONST.BUTTON_VARIANT.SUCCESS ? theme.buttonSuccessText : theme.buttonIcon}
@@ -387,4 +386,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     );
 }
 
-export default ButtonWithDropdownMenu;
+// OXC's React Compiler bails on this file (refs accessed during render), so it is not memoized on
+// web. Memoize it explicitly (genericMemo preserves the generic call signature).
+export default genericMemo(ButtonWithDropdownMenu);
