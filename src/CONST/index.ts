@@ -5154,6 +5154,8 @@ const CONST = {
     STANDARD_LENGTH_LIMIT: 100,
     STANDARD_LIST_ITEM_LIMIT: 12,
     SEARCH_BAR_THRESHOLD: 3,
+    // Minimum number of domain groups required before the search bar is shown on the Domain → Groups table.
+    DOMAIN_GROUPS_SEARCH_BAR_THRESHOLD: 15,
     // Number of approval workflow cards rendered before the "Load more" affordance on Workspace → Workflows.
     WORKFLOW_APPROVALS_INITIAL_BATCH: 5,
     LOGIN_CHARACTER_LIMIT: 254,

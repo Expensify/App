@@ -15,14 +15,18 @@ import TableSearchBar from './TableSearchBar';
 type TableFilterBarProps = PropsWithChildren<{
     /** Label and accessibility label for the search input. */
     label: string;
+
+    /** The minimum number of items (before searching/filtering) required to render the search bar. Defaults to 0 so the search bar always shows. */
+    minItemsForSearchBar?: number;
 }>;
 
-export default function TableFilterBar({label, children}: TableFilterBarProps) {
+export default function TableFilterBar({label, minItemsForSearchBar = 0, children}: TableFilterBarProps) {
     const styles = useThemeStyles();
     const {filterConfig, tableMethods, activeFilters, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
 
     const hasFiltersAvailable = Object.keys(filterConfig ?? {}).length > 0;
     const actionColumnVisible = hasFiltersAvailable || !!children;
+    const shouldShowSearchBar = originalDataLength >= minItemsForSearchBar;
 
     const appliedFilters = Object.entries(activeFilters ?? {})
         .filter(([, value]) => !!value?.length)
@@ -57,7 +61,9 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
         </View>
     );
 
-    if (!originalDataLength) {
+    const hasVisibleContent = shouldShowSearchBar || !!appliedFilters.length || actionColumnVisible;
+
+    if (!originalDataLength || !hasVisibleContent) {
         return null;
     }
 
@@ -65,7 +71,7 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
         <View style={[styles.w100, styles.gap3, styles.pb3, styles.ph5]}>
             <View style={[styles.flexRow, styles.gap3, styles.justifyContentBetween, shouldUseNarrowTableLayout && styles.alignItemsCenter]}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.gap2, styles.alignItemsCenter]}>
-                    <TableSearchBar label={label} />
+                    {shouldShowSearchBar && <TableSearchBar label={label} />}
                     {!shouldUseNarrowTableLayout && ActiveFilterChipsComponent}
                 </View>
 

@@ -9,6 +9,8 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React, {useRef} from 'react';
@@ -87,7 +89,10 @@ export default function DomainGroupsTable({domainAccountID, groups}: DomainGroup
             title={translate('domain.groups.title')}
             keyExtractor={(item) => item.keyForList}
         >
-            <Table.FilterBar label={translate('domain.groups.findGroup')} />
+            <Table.FilterBar
+                label={translate('domain.groups.findGroup')}
+                minItemsForSearchBar={CONST.DOMAIN_GROUPS_SEARCH_BAR_THRESHOLD}
+            />
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
