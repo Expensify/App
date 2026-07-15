@@ -250,6 +250,30 @@ function firstLetterAvatarCharacter(name: string): string {
 }
 
 /**
+ * Returns the 1-2 letter-avatar initials for a user, or '' when no letter avatar applies.
+ * Initials come from the first alphanumeric character of the first and last name, falling back to the login
+ * for non-SMS logins.
+ *
+ * @param firstName - The user's first name
+ * @param lastName - The user's last name
+ * @param login - The user's login (email or SMS), or '' when unknown
+ */
+function getLetterAvatarInitials(firstName: string, lastName: string, login: string): string {
+    // The displayed login has the merge prefix stripped, so derive the initial from the
+    // stripped form to match what users see. This is a no-op for non-merged logins.
+    const normalizedLogin = login.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    const initials = firstLetterAvatarCharacter(firstName) + firstLetterAvatarCharacter(lastName);
+    if (initials !== '') {
+        return initials;
+    }
+    // Only a real email seeds the initial. Phone numbers (raw or @expensify.sms) fall back to the illustrated default.
+    if (!normalizedLogin.endsWith(CONST.SMS.DOMAIN) && Str.isValidEmail(normalizedLogin)) {
+        return firstLetterAvatarCharacter(normalizedLogin);
+    }
+    return '';
+}
+
+/**
  * Builds the generated letter-avatar URL for an account from its name and login.
  * Initials come from the first alphanumeric character of the first and last name, falling back to the login
  * for non-SMS logins. The color key is picked by hashing the login, or by accountID modulo when there is no login.
@@ -261,7 +285,7 @@ function firstLetterAvatarCharacter(name: string): string {
  * @returns The generated letter-avatar URL, or '' when no letter avatar applies
  */
 function getLetterAvatarURL(accountID: number, firstName: string, lastName: string, login: string): string {
-    // The displayed login has the merge prefix stripped, so derive the initial and color from the
+    // The displayed login has the merge prefix stripped, so derive the color from the
     // stripped form to match what users see. This is a no-op for non-merged logins.
     const normalizedLogin = login.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     if (
@@ -273,11 +297,7 @@ function getLetterAvatarURL(accountID: number, firstName: string, lastName: stri
         return '';
     }
 
-    let initials = firstLetterAvatarCharacter(firstName) + firstLetterAvatarCharacter(lastName);
-    // Only a real email seeds the initial. Phone numbers (raw or @expensify.sms) fall back to the illustrated default.
-    if (initials === '' && !normalizedLogin.endsWith(CONST.SMS.DOMAIN) && Str.isValidEmail(normalizedLogin)) {
-        initials = firstLetterAvatarCharacter(normalizedLogin);
-    }
+    const initials = getLetterAvatarInitials(firstName, lastName, login);
     if (initials === '') {
         return '';
     }
@@ -435,6 +455,7 @@ export {
     getCatalogAvatarNameFromURL,
     getFullSizeAvatar,
     getSmallSizeAvatar,
+    getLetterAvatarInitials,
     getLetterAvatarURL,
     parseLetterAvatarURL,
     isCatalogAvatar,

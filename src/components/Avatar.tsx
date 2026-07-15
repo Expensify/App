@@ -1,10 +1,12 @@
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {findLocalAvatarForURL} from '@libs/Avatars/AvatarLookup';
+import {isLetterAvatarSchemeKey, LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
 import {getDefaultWorkspaceAvatar, getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {getAvatar, parseLetterAvatarURL} from '@libs/UserAvatarUtils';
@@ -12,6 +14,8 @@ import {getAvatar, parseLetterAvatarURL} from '@libs/UserAvatarUtils';
 import type {AvatarSizeName} from '@styles/utils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {avatarStyleColorSelector} from '@src/selectors/PersonalDetails';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
 
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
@@ -92,10 +96,20 @@ function Avatar({
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const userAccountID = isWorkspace ? undefined : (avatarID as number);
 
-    const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID: userAccountID, defaultAvatars});
+    const source = isWorkspace
+        ? originalSource
+        : getAvatar({
+              avatarSource: originalSource,
+              accountID: userAccountID,
+              defaultAvatars,
+          });
 
     // Read the color and initials directly from the generated letter-avatar URL.
     const letterAvatarParts = parseLetterAvatarURL(source);
+
+    // A picked avatarStyle color is authoritative over the color encoded in the URL.
+    const [pickedColorKey] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: avatarStyleColorSelector(userAccountID)}, [userAccountID]);
+    const letterAvatarColors = pickedColorKey && isLetterAvatarSchemeKey(pickedColorKey) ? LETTER_AVATAR_SCHEMES[pickedColorKey] : letterAvatarParts?.colors;
 
     let optimizedSource = source;
     const localFromCatalog = findLocalAvatarForURL(source);
@@ -132,7 +146,7 @@ function Avatar({
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
                     <UserInitialsAvatar
                         text={letterAvatarParts.initials}
-                        colors={letterAvatarParts.colors}
+                        colors={letterAvatarColors ?? letterAvatarParts.colors}
                         size={iconSize}
                     />
                 </View>

@@ -4,26 +4,39 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import useProfileAvatarForm from '@pages/settings/Profile/Avatar/useProfileAvatarForm';
 
-import {deleteAvatar} from '@userActions/PersonalDetails';
+import {deleteAvatar, updateAvatar, updateAvatarStyle} from '@userActions/PersonalDetails';
 
-const currentUserPersonalDetails = {
+const UPLOADED_AVATAR_URL = 'https://example.com/avatar.jpg';
+const GENERATED_LETTER_AVATAR_URL = 'https://example.com/images/avatars/generated/letter/v1/blue100/GM.png';
+
+const currentUserPersonalDetails: {
+    accountID: number;
+    email: string;
+    avatar: string;
+    avatarStyle?: {color: string};
+} = {
     accountID: 1,
     email: 'user@example.com',
-    avatar: 'https://example.com/avatar.jpg',
+    avatar: UPLOADED_AVATAR_URL,
 };
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => currentUserPersonalDetails);
-jest.mock('@hooks/useDiscardChangesConfirmation', () => () => ({suppressDiscardPrompt: jest.fn()}));
+jest.mock('@hooks/useDiscardChangesConfirmation', () => () => ({
+    suppressDiscardPrompt: jest.fn(),
+}));
 jest.mock('@hooks/useAvatarCrop', () => () => ({openCropper: jest.fn()}));
 jest.mock('@libs/Navigation/Navigation', () => ({dismissModal: jest.fn()}));
 jest.mock('@userActions/PersonalDetails', () => ({
     deleteAvatar: jest.fn(),
     updateAvatar: jest.fn(),
+    updateAvatarStyle: jest.fn(),
 }));
 
 describe('useProfileAvatarForm', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        currentUserPersonalDetails.avatar = UPLOADED_AVATAR_URL;
+        currentUserPersonalDetails.avatarStyle = undefined;
     });
 
     it('marks the form dirty when the photo is removed', () => {
@@ -56,5 +69,43 @@ describe('useProfileAvatarForm', () => {
 
         expect(result.current.isRemoved).toBe(false);
         expect(result.current.selected).toBe('default-avatar_1');
+    });
+
+    it('saves a letter avatar color and removes the uploaded photo', () => {
+        const {result} = renderHook(() => useProfileAvatarForm());
+
+        act(() => result.current.onSelectPreset('green400'));
+        act(() => result.current.save());
+
+        expect(deleteAvatar).toHaveBeenCalledWith(currentUserPersonalDetails);
+        expect(updateAvatarStyle).toHaveBeenCalledWith('green400', currentUserPersonalDetails);
+        expect(updateAvatar).not.toHaveBeenCalled();
+        expect(Navigation.dismissModal).toHaveBeenCalled();
+        expect(result.current.selected).toBeUndefined();
+    });
+
+    it('saves a letter avatar color without deleting a generated letter avatar', () => {
+        currentUserPersonalDetails.avatar = GENERATED_LETTER_AVATAR_URL;
+        const {result} = renderHook(() => useProfileAvatarForm());
+
+        act(() => result.current.onSelectPreset('green400'));
+        act(() => result.current.save());
+
+        expect(deleteAvatar).not.toHaveBeenCalled();
+        expect(updateAvatarStyle).toHaveBeenCalledWith('green400', currentUserPersonalDetails);
+        expect(Navigation.dismissModal).toHaveBeenCalled();
+    });
+
+    it('does not resend a letter avatar color that is already set', () => {
+        currentUserPersonalDetails.avatar = GENERATED_LETTER_AVATAR_URL;
+        currentUserPersonalDetails.avatarStyle = {color: 'green400'};
+        const {result} = renderHook(() => useProfileAvatarForm());
+
+        act(() => result.current.onSelectPreset('green400'));
+        act(() => result.current.save());
+
+        expect(deleteAvatar).not.toHaveBeenCalled();
+        expect(updateAvatarStyle).not.toHaveBeenCalled();
+        expect(Navigation.dismissModal).toHaveBeenCalled();
     });
 });

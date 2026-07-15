@@ -5,8 +5,8 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import {LETTER_AVATAR_COLOR_KEYS, LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
-import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -15,29 +15,10 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+const mockUseLetterAvatars = jest.fn();
 jest.mock('@hooks/useLetterAvatars', () => ({
     __esModule: true,
-    default: (name?: string) => {
-        if (!name) {
-            return {avatarList: [], avatarMap: {}};
-        }
-
-        const firstChar = name.at(0)?.toLowerCase();
-        const avatarList = [
-            {backgroundColor: '#B0D9FF', fillColor: '#0164BF'},
-            {backgroundColor: '#0185FF', fillColor: '#003C73'},
-            {backgroundColor: '#003C73', fillColor: '#8DC8FF'},
-        ].map(({fillColor, backgroundColor}) => {
-            const id = `letter-avatar-${backgroundColor}-${fillColor}-${firstChar}`;
-            function StyledLetterAvatar() {
-                // eslint-disable-next-line react/jsx-no-useless-fragment
-                return <>{id}</>;
-            }
-            return {id, StyledLetterAvatar};
-        });
-
-        return {avatarList, avatarMap: {}};
-    },
+    default: () => mockUseLetterAvatars() as unknown,
 }));
 
 const mockIsBetaEnabled = jest.fn<boolean, [string]>();
@@ -46,7 +27,15 @@ jest.mock('@hooks/usePermissions', () => ({
     default: () => ({isBetaEnabled: mockIsBetaEnabled}),
 }));
 
-const mockName = 'Alice';
+const letterAvatarsResult = {
+    initials: 'AB',
+    options: LETTER_AVATAR_COLOR_KEYS.map((id) => ({
+        id,
+        colors: LETTER_AVATAR_SCHEMES[id],
+    })),
+};
+
+const emptyLetterAvatarsResult = {initials: '', options: []};
 
 describe('AvatarSelector', () => {
     const onSelectMock = jest.fn();
@@ -58,6 +47,7 @@ describe('AvatarSelector', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockIsBetaEnabled.mockReturnValue(false);
+        mockUseLetterAvatars.mockReturnValue(emptyLetterAvatarsResult);
     });
 
     const renderAvatarSelector = (props = {}) => {
@@ -74,7 +64,8 @@ describe('AvatarSelector', () => {
     describe('Common behavior', () => {
         it('renders with label when provided', async () => {
             const label = 'Choose an avatar';
-            renderAvatarSelector({label, name: mockName});
+            mockUseLetterAvatars.mockReturnValue(letterAvatarsResult);
+            renderAvatarSelector({label});
             await waitForBatchedUpdates();
 
             expect(screen.getByText(label)).toBeOnTheScreen();
@@ -135,99 +126,76 @@ describe('AvatarSelector', () => {
         });
     });
 
-    describe('avatarList (letter avatars)', () => {
-        const firstChar = getFirstAlphaNumericCharacter(mockName).toLowerCase();
-
+    describe('letter avatars', () => {
         beforeEach(() => {
             mockIsBetaEnabled.mockReturnValue(true);
+            mockUseLetterAvatars.mockReturnValue(letterAvatarsResult);
         });
 
-        it('letter avatars have correct ID format when they are rendered', async () => {
-            renderAvatarSelector({name: mockName});
-            await waitForBatchedUpdates();
-
-            const allAvatars = screen.queryAllByTestId(/^AvatarSelector_/);
-            const letterAvatars = allAvatars.filter((node) => (node.props.testID as string)?.includes('letter-avatar'));
-
-            expect(letterAvatars).toHaveLength(3);
-
-            for (const avatar of letterAvatars) {
-                expect(avatar.props.testID).toMatch(/^AvatarSelector_letter-avatar-#[0-9A-F]{6}-#[0-9A-F]{6}-[a-z0-9]$/i);
-                expect(avatar.props.testID).toContain(firstChar);
-            }
-        });
-
-        it('does not render letter avatars when firstName is not provided', async () => {
+        it('renders one option per palette scheme with the user initials', async () => {
             renderAvatarSelector();
             await waitForBatchedUpdates();
 
-            const allAvatars = screen.queryAllByTestId(/^AvatarSelector_/);
-            const letterAvatars = allAvatars.filter((node) => (node.props.testID as string)?.includes('letter-avatar'));
-
-            expect(letterAvatars).toHaveLength(0);
+            for (const schemeKey of LETTER_AVATAR_COLOR_KEYS) {
+                expect(screen.getByTestId(`AvatarSelector_${schemeKey}`)).toBeOnTheScreen();
+            }
+            expect(screen.getAllByText(letterAvatarsResult.initials)).toHaveLength(LETTER_AVATAR_COLOR_KEYS.length);
         });
 
-        it('calls onSelect when letter avatar is pressed (if rendered)', async () => {
-            renderAvatarSelector({name: mockName});
+        it('does not render letter avatars when there are no initials', async () => {
+            mockUseLetterAvatars.mockReturnValue(emptyLetterAvatarsResult);
+            renderAvatarSelector();
             await waitForBatchedUpdates();
 
-            const allAvatars = screen.queryAllByTestId(/^AvatarSelector_/);
-            const letterAvatars = allAvatars.filter((node) => (node.props.testID as string)?.includes('letter-avatar'));
+            for (const schemeKey of LETTER_AVATAR_COLOR_KEYS) {
+                expect(screen.queryByTestId(`AvatarSelector_${schemeKey}`)).not.toBeOnTheScreen();
+            }
+        });
 
-            const firstLetterAvatar = letterAvatars.at(0);
+        it('calls onSelect with the scheme key when a letter avatar is pressed', async () => {
+            renderAvatarSelector();
+            await waitForBatchedUpdates();
+
+            const firstSchemeKey = LETTER_AVATAR_COLOR_KEYS.at(0);
+            const firstLetterAvatar = screen.getByTestId(`AvatarSelector_${firstSchemeKey}`);
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-            fireEvent.press(firstLetterAvatar?.parent?.parent!);
+            fireEvent.press(firstLetterAvatar.parent?.parent!);
             await waitForBatchedUpdates();
 
-            const expectedId = (firstLetterAvatar?.props.testID as string)?.replace('AvatarSelector_', '');
-            expect(onSelectMock).toHaveBeenCalledWith(expectedId);
+            expect(onSelectMock).toHaveBeenCalledWith(firstSchemeKey);
             expect(onSelectMock).toHaveBeenCalledTimes(1);
         });
 
-        it('shows selected letter avatar with border styling (if rendered)', async () => {
-            renderAvatarSelector({name: mockName});
+        it('shows selected letter avatar with border styling', async () => {
+            const selectedSchemeKey = LETTER_AVATAR_COLOR_KEYS.at(2);
+
+            renderAvatarSelector({selectedID: selectedSchemeKey});
             await waitForBatchedUpdates();
 
-            const allAvatars = screen.queryAllByTestId(/^AvatarSelector_/);
-            const letterAvatars = allAvatars.filter((node) => (node.props.testID as string)?.includes('letter-avatar'));
-
-            const letterAvatarId = (letterAvatars.at(2)?.props.testID as string).replace('AvatarSelector_', '');
-
-            screen.unmount();
-
-            renderAvatarSelector({
-                name: mockName,
-                selectedID: letterAvatarId,
-            });
-            await waitForBatchedUpdates();
-
-            const selectedAvatar = screen.getByTestId(`AvatarSelector_${letterAvatarId}`);
+            const selectedAvatar = screen.getByTestId(`AvatarSelector_${selectedSchemeKey}`);
             expect(selectedAvatar).toBeOnTheScreen();
         });
 
-        it('renders both custom and letter avatars when firstName is provided', async () => {
-            renderAvatarSelector({name: mockName});
+        it('renders both custom and letter avatars', async () => {
+            renderAvatarSelector();
             await waitForBatchedUpdates();
 
             const firstUserAvatarId = USER_AVATARS.ordered.at(0)?.id;
             expect(screen.getByTestId(`AvatarSelector_${firstUserAvatarId}`)).toBeOnTheScreen();
-
-            const allAvatars = screen.queryAllByTestId(/^AvatarSelector_/);
-            const letterAvatars = allAvatars.filter((node) => (node.props.testID as string)?.includes('letter-avatar'));
-
-            expect(letterAvatars.at(0)?.props.testID).toMatch(/^AvatarSelector_letter-avatar-/);
+            expect(screen.getByTestId(`AvatarSelector_${LETTER_AVATAR_COLOR_KEYS.at(0)}`)).toBeOnTheScreen();
         });
     });
 
     describe('when LETTER_AVATARS beta is disabled', () => {
-        it('does not render any letter avatars even with a name', async () => {
-            renderAvatarSelector({name: mockName});
+        it('does not render any letter avatars even when options exist', async () => {
+            mockUseLetterAvatars.mockReturnValue(letterAvatarsResult);
+            renderAvatarSelector();
             await waitForBatchedUpdates();
 
-            const letterAvatars = screen.queryAllByTestId(/^AvatarSelector_letter-avatar/);
-
-            expect(letterAvatars).toHaveLength(0);
+            for (const schemeKey of LETTER_AVATAR_COLOR_KEYS) {
+                expect(screen.queryByTestId(`AvatarSelector_${schemeKey}`)).not.toBeOnTheScreen();
+            }
         });
     });
 });

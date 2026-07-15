@@ -2,17 +2,18 @@ import useAvatarCrop from '@hooks/useAvatarCrop';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 
+import {isLetterAvatarSchemeKey} from '@libs/Avatars/letterAvatarPalette';
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
+import {isCatalogAvatar, isDefaultAvatar, isGeneratedLetterAvatarURL} from '@libs/UserAvatarUtils';
 
-import {deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
+import {deleteAvatar, updateAvatar, updateAvatarStyle} from '@userActions/PersonalDetails';
 
 import type {TranslationPaths} from '@src/languages/types';
 
-import {useRef, useState} from 'react';
+import {useState} from 'react';
 
-import type {AvatarCaptureHandle} from './AvatarCapture/types';
 import type {ErrorData, ImageData} from './types';
 
 const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
@@ -26,8 +27,6 @@ function useProfileAvatarForm() {
     const [selected, setSelected] = useState<string | undefined>();
     const [imageData, setImageData] = useState<ImageData>({...EMPTY_FILE});
     const [isRemoved, setIsRemoved] = useState(false);
-
-    const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -106,29 +105,28 @@ function useProfileAvatarForm() {
             return;
         }
 
-        if (!selected || !avatarCaptureRef.current) {
-            suppressDiscardPrompt(false);
+        if (selected && isLetterAvatarSchemeKey(selected)) {
+            const currentAvatar = currentUserPersonalDetails?.avatar;
+            const hasUploadedAvatar =
+                typeof currentAvatar === 'string' && currentAvatar !== '' && !isDefaultAvatar(currentAvatar) && !isCatalogAvatar(currentAvatar) && !isGeneratedLetterAvatarURL(currentAvatar);
+            if (hasUploadedAvatar) {
+                deleteAvatar(currentUserPersonalDetails);
+            }
+            if (currentUserPersonalDetails?.avatarStyle?.color !== selected) {
+                updateAvatarStyle(selected, currentUserPersonalDetails);
+            }
+            setSelected(undefined);
+            Navigation.dismissModal();
             return;
         }
 
-        avatarCaptureRef.current
-            .capture()
-            ?.then((file) => {
-                updateAvatar(file, previousAvatar);
-                setSelected(undefined);
-                setImageData({...EMPTY_FILE});
-                Navigation.dismissModal();
-            })
-            .catch(() => {
-                suppressDiscardPrompt(false);
-            });
+        suppressDiscardPrompt(false);
     };
 
     return {
         errorData,
         selected,
         imageData,
-        avatarCaptureRef,
         isDirty,
         isRemoved,
         setError,

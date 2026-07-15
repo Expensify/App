@@ -16,6 +16,7 @@ import type {
     UpdateUserAvatarParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type {LetterAvatarSchemeKey} from '@libs/Avatars/letterAvatarPalette';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -414,6 +415,61 @@ function updateAvatar(
 }
 
 /**
+ * Updates the color of the user's letter avatar
+ */
+function updateAvatarStyle(color: LetterAvatarSchemeKey, currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'avatarStyle' | 'accountID'>) {
+    if (!currentUserPersonalDetails.accountID) {
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [currentUserPersonalDetails.accountID]: {
+                    avatarStyle: {color},
+                    pendingFields: {
+                        avatarStyle: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [currentUserPersonalDetails.accountID]: {
+                    pendingFields: {
+                        avatarStyle: null,
+                    },
+                },
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [currentUserPersonalDetails.accountID]: {
+                    avatarStyle: currentUserPersonalDetails.avatarStyle ?? null,
+                    pendingFields: {
+                        avatarStyle: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdateUserAvatarParams = {color};
+
+    API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {optimisticData, successData, failureData});
+}
+
+/**
  * Replaces the user's avatar image with a default avatar
  */
 function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID' | 'email'>) {
@@ -606,6 +662,7 @@ export {
     updateAddress,
     updateAutomaticTimezone,
     updateAvatar,
+    updateAvatarStyle,
     setDisplayName,
     updateDisplayName,
     updateLegalName,
