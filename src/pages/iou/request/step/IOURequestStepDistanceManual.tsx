@@ -29,6 +29,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {getStringFieldHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
@@ -153,10 +154,10 @@ function IOURequestStepDistanceManual({
     const distanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ? transaction.comment.customUnit.distanceUnit : unit);
     const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)) : undefined;
 
-    const {notifySaving} = useDiscardChangesConfirmation({
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
             const typedDistance = numberFormRef.current?.getNumber() ?? '';
-            return typedDistance !== (distance?.toString() ?? '');
+            return getStringFieldHasUnsavedChanges(typedDistance, distance?.toString() ?? '', isCreatingNewRequest);
         },
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -308,7 +309,7 @@ function IOURequestStepDistanceManual({
             return;
         }
 
-        notifySaving();
+        suppressDiscardPrompt();
         navigateToNextPage(value);
     };
 
