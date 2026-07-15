@@ -36,16 +36,6 @@ import Onyx from 'react-native-onyx';
 
 import {completeTask} from './Task';
 
-/** Cache of every approval-workflow rule (`ONYXKEYS.COLLECTION.RULE`) so actions can read the current rule set. */
-let allRules: OnyxCollection<Rule> = {};
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.RULE,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allRules = value ?? {};
-    },
-});
-
 type CreateApprovalWorkflowParams = {
     approvalWorkflow: ApprovalWorkflow;
     policy: OnyxEntry<Policy>;
@@ -360,13 +350,17 @@ function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetAppro
     write(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, parameters, {optimisticData, successData, failureData});
 }
 
+type CreateApprovalWorkflowRulesParams = CreateApprovalWorkflowParams & {
+    rules: OnyxCollection<Rule>;
+};
+
 /** Create an approval workflow using the rules-based backend structure. */
-function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport}: CreateApprovalWorkflowParams) {
+function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport, rules}: CreateApprovalWorkflowRulesParams) {
     if (!policy) {
         return;
     }
 
-    const existingRules = getApprovalWorkflowRulesForPolicy(allRules, policy.id);
+    const existingRules = getApprovalWorkflowRulesForPolicy(rules, policy.id);
     const memberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
 
     // A submitter can only belong to one workflow, so first drop these members from any OTHER
@@ -393,15 +387,16 @@ type UpdateApprovalWorkflowRulesParams = {
     approvalWorkflow: ApprovalWorkflow;
     initialApprovalWorkflow: ApprovalWorkflow;
     policy: OnyxEntry<Policy>;
+    rules: OnyxCollection<Rule>;
 };
 
 /** Update an existing workflow using the rules-based backend structure. */
-function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy}: UpdateApprovalWorkflowRulesParams) {
+function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules}: UpdateApprovalWorkflowRulesParams) {
     if (!policy) {
         return;
     }
 
-    const existingRules = getApprovalWorkflowRulesForPolicy(allRules, policy.id);
+    const existingRules = getApprovalWorkflowRulesForPolicy(rules, policy.id);
     const previousMemberEmails = getWorkflowMemberEmails(initialApprovalWorkflow.members);
     const newMemberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
 
@@ -425,12 +420,12 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
 }
 
 /** Delete an approval workflow using the rules-based backend structure. */
-function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
+function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>) {
     if (!policy) {
         return;
     }
 
-    const existingRules = getApprovalWorkflowRulesForPolicy(allRules, policy.id);
+    const existingRules = getApprovalWorkflowRulesForPolicy(rules, policy.id);
     const memberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
     const rulesDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules});
 

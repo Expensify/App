@@ -80,7 +80,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
                 Navigation.dismissModal({
                     afterTransition: () => {
-                        updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy});
+                        updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules: rulesCollection});
                     },
                 });
                 return;
@@ -109,7 +109,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             afterTransition: () => {
                 // Remove the approval workflow using the initial data as it could be already edited
                 if (useRulesBackend) {
-                    removeApprovalWorkflowRules(initialApprovalWorkflow, policy);
+                    removeApprovalWorkflowRules(initialApprovalWorkflow, policy, rulesCollection);
                 } else {
                     removeApprovalWorkflow(initialApprovalWorkflow, policy);
                 }

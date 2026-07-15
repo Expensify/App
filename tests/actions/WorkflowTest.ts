@@ -59,7 +59,7 @@ const ownerEmail = 'owner@gmail.com';
  * Reads every rule in the `ONYXKEYS.COLLECTION.RULE` collection that belongs to the given policy and is
  * not optimistically pending deletion. This mirrors what the app treats as the policy's live rule set.
  */
-async function getActivePolicyRules(policyID: string): Promise<Rule[]> {
+async function getRulesCollection(): Promise<OnyxCollection<Rule>> {
     let collection: OnyxCollection<Rule> = {};
     await getOnyxData({
         key: ONYXKEYS.COLLECTION.RULE,
@@ -68,7 +68,12 @@ async function getActivePolicyRules(policyID: string): Promise<Rule[]> {
             collection = value ?? {};
         },
     });
-    return Object.values(collection).filter(
+    return collection;
+}
+
+async function getActivePolicyRules(policyID: string): Promise<Rule[]> {
+    const collection = await getRulesCollection();
+    return Object.values(collection ?? {}).filter(
         (rule): rule is Rule => !!rule && rule.scope === CONST.RULES.SCOPE.POLICY && rule.scopeID === policyID && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
 }
@@ -925,7 +930,7 @@ describe('actions/Workflow', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
             await waitForBatchedUpdates();
 
-            createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport: undefined});
+            createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport: undefined, rules: await getRulesCollection()});
             await waitForBatchedUpdates();
 
             // A one-approver workflow produces a submit rule (forward to the approver) and a terminal approve rule.
@@ -974,7 +979,7 @@ describe('actions/Workflow', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
             await waitForBatchedUpdates();
 
-            createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport: undefined});
+            createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport: undefined, rules: await getRulesCollection()});
             await waitForBatchedUpdates();
 
             const rules = await getActivePolicyRules(policyID);
@@ -1015,6 +1020,7 @@ describe('actions/Workflow', () => {
                 },
                 policy,
                 addExpenseApprovalsTaskReport: undefined,
+                rules: await getRulesCollection(),
             });
             await waitForBatchedUpdates();
 
@@ -1030,6 +1036,7 @@ describe('actions/Workflow', () => {
                 },
                 policy,
                 addExpenseApprovalsTaskReport: undefined,
+                rules: await getRulesCollection(),
             });
             await waitForBatchedUpdates();
 
@@ -1078,7 +1085,7 @@ describe('actions/Workflow', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
             await waitForBatchedUpdates();
 
-            updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy});
+            updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules: await getRulesCollection()});
             await waitForBatchedUpdates();
 
             // The old rules (forwarding to the owner) are removed and new rules forwarding to employee2 are created.
@@ -1124,7 +1131,7 @@ describe('actions/Workflow', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
             await waitForBatchedUpdates();
 
-            removeApprovalWorkflowRules(approvalWorkflow, policy);
+            removeApprovalWorkflowRules(approvalWorkflow, policy, await getRulesCollection());
             await waitForBatchedUpdates();
 
             // Both rules belonged only to the removed member, so no live rules remain for the policy.

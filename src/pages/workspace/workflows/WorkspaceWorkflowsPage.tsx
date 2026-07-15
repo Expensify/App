@@ -253,12 +253,20 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, []);
 
     const confirmDisableApprovals = useCallback(() => {
-        setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, {
-            reportNextSteps: allReportNextSteps,
-            transactionViolations,
-            betas,
-        });
-    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail]);
+        setWorkspaceApprovalMode(
+            policy,
+            policy?.owner ?? '',
+            CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            currentUserAccountID,
+            currentUserEmail,
+            {
+                reportNextSteps: allReportNextSteps,
+                transactionViolations,
+                betas,
+            },
+            rulesCollection,
+        );
+    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, rulesCollection]);
 
     const navigateToHRSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(route.params.policyID));
@@ -529,11 +537,19 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         });
                         return;
                     }
-                    setWorkspaceApprovalMode(policy, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, {
-                        reportNextSteps: allReportNextSteps,
-                        transactionViolations,
-                        betas,
-                    });
+                    setWorkspaceApprovalMode(
+                        policy,
+                        policy?.owner ?? '',
+                        isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                        currentUserAccountID,
+                        currentUserEmail,
+                        {
+                            reportNextSteps: allReportNextSteps,
+                            transactionViolations,
+                            betas,
+                        },
+                        rulesCollection,
+                    );
                 },
                 subMenuItems: (
                     <>
@@ -902,6 +918,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         withPaymentsReadOnlyFallback,
         withWorkflowsReadOnlyFallback,
         showReadOnlyModal,
+        rulesCollection,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (

@@ -45,6 +45,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const addExpenseApprovalsTaskReportID = introSelected?.addExpenseApprovals;
     const [addExpenseApprovalsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`);
@@ -66,13 +67,13 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
 
         startWithLoading(() => {
             if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
-                createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
+                createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport, rules: rulesCollection});
             } else {
                 createApprovalWorkflowAction({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
             }
             Navigation.dismissModal();
         });
-    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport, isBetaEnabled, startWithLoading]);
+    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport, rulesCollection, isBetaEnabled, startWithLoading]);
 
     const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
 

@@ -319,13 +319,6 @@ Onyx.connect({
     callback: (val) => (deprecatedAllPersonalDetails = val),
 });
 
-let allRules: OnyxCollection<Rule>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.RULE,
-    waitForCollectionCallback: true,
-    callback: (val) => (allRules = val),
-});
-
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
@@ -896,6 +889,7 @@ function setWorkspaceApprovalMode(
     currentUserAccountID: number,
     currentUserEmail: string,
     additionalData?: SetWorkspaceApprovalModeAdditionalData,
+    rules?: OnyxCollection<Rule>,
 ) {
     if (!policy) {
         return;
@@ -1023,8 +1017,8 @@ function setWorkspaceApprovalMode(
 
     // Auth's DisablePolicyApprovals deletes the policy's rule rows server-side; clear them optimistically too
     // so the workflows UI doesn't keep rebuilding stale workflows (e.g. after re-enabling).
-    if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && allRules) {
-        for (const [ruleKey, rule] of Object.entries(allRules)) {
+    if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && rules) {
+        for (const [ruleKey, rule] of Object.entries(rules)) {
             if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policyID) {
                 continue;
             }
