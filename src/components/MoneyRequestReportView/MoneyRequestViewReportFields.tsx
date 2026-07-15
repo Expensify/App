@@ -116,7 +116,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
             });
     }, [policy, report, currentUserAccountID]);
 
-    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
+    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report, policy?.type);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
     const shouldDisplayReportFields = (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled;

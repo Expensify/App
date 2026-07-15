@@ -166,6 +166,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID,
                 transactionThreadReport,
                 parentReport: undefined,
+                reportPolicyTags: undefined,
                 category,
                 policy: fakePolicy,
                 policyTagList: undefined,
@@ -249,6 +250,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     transactionID,
                     transactionThreadReport: {reportID: '3'},
                     parentReport: undefined,
+                    reportPolicyTags: undefined,
                     category,
                     policy: fakePolicy,
                     policyTagList: undefined,
@@ -298,6 +300,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     transactionID,
                     transactionThreadReport: {reportID: '3'},
                     parentReport: undefined,
+                    reportPolicyTags: undefined,
                     category,
                     policy: fakePolicy,
                     policyTagList: undefined,
@@ -358,6 +361,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID,
                 transactionThreadReport,
                 parentReport: undefined,
+                reportPolicyTags: undefined,
                 category,
                 policy: fakePolicy,
                 policyTagList: undefined,
@@ -415,6 +419,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID: fakeTransaction.transactionID,
                 transactionThreadReport: fakeReport,
                 parentReport: undefined,
+                reportPolicyTags: undefined,
                 amount: 20000,
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
@@ -487,6 +492,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID: fakeTransaction.transactionID,
                 transactionThreadReport: fakeReport,
                 parentReport: undefined,
+                reportPolicyTags: undefined,
                 amount: 20000,
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
@@ -642,6 +648,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
+                reportPolicyTags: undefined,
                 amount: 20000,
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
@@ -788,6 +795,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 tag: newTag,
                 policy,
                 policyTagList: policyTags,
+                reportPolicyTags: policyTags,
                 policyRecentlyUsedTags,
                 policyCategories: undefined,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
@@ -848,6 +856,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 tag: '',
                 policy: fakePolicy,
                 policyTagList: undefined,
+                reportPolicyTags: undefined,
                 policyRecentlyUsedTags: undefined,
                 policyCategories: undefined,
                 currentUserAccountIDParam: 123,
@@ -915,6 +924,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updating the date
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport,
                 parentReport,
@@ -1608,6 +1618,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionThreadReport,
                 parentReport,
                 value: newMerchant,
+                reportPolicyTags: undefined,
                 policy: fakePolicy,
                 policyTagList: {},
                 policyCategories: {},
@@ -1663,6 +1674,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionThreadReport,
                 parentReport,
                 value: 'Track Merchant',
+                reportPolicyTags: undefined,
                 policy: undefined,
                 policyTagList: {},
                 policyCategories: {},
@@ -1769,6 +1781,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     transactionThreadReport,
                     parentReport,
                     value: `Updated_${String(isOffline)}`,
+                    reportPolicyTags: undefined,
                     policy: fakePolicy,
                     policyTagList: {},
                     policyCategories: {},
@@ -2021,6 +2034,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2149,6 +2163,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2246,6 +2261,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2364,6 +2380,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -2483,6 +2500,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: selfDMReport,

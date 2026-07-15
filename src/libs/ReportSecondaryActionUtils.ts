@@ -963,6 +963,7 @@ function getSecondaryReportActions({
             isChatReportArchived,
             reportActions,
             isSecondaryAction: true,
+            canNonPayerAdminPay: true,
         }) &&
         (hasOnlyHeldExpenses(reportTransactions) || didExportFail)
     ) {
