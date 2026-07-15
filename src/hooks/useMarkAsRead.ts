@@ -152,6 +152,12 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             return;
         }
 
+        // readNewestAction marks everything up to now as read, so newer actions outside the loaded slice would be
+        // consumed without ever being seen. Mirrors the !hasNewerActions guard on the report-change path.
+        if (hasNewerActions) {
+            return;
+        }
+
         const newMessageTimeReference = lastMessageTime.current && report?.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report?.lastReadTime;
         lastMessageTime.current = null;
 

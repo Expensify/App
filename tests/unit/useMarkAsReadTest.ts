@@ -183,4 +183,36 @@ describe('useMarkAsRead', () => {
 
         expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, true);
     });
+
+    it('does not mark the report as read when the window regains focus while newer actions are still unloaded', () => {
+        const readReport = {reportID: REPORT_ID, lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
+        const reportWithNewMessage = {...readReport, lastVisibleActionCreated: '2023-01-01 11:00:00.000'} as OnyxTypes.Report;
+        const incomingAction: OnyxTypes.ReportAction = {...createRandomReportAction(2), created: '2023-01-01 11:00:00.000', actorAccountID: 2};
+
+        // The user is at the end of an older paginated slice, so newer actions exist but are not loaded yet.
+        mockIsUnread = false;
+        const {rerender} = renderHook(
+            (props: {report: OnyxTypes.Report; actions: OnyxTypes.ReportAction[]}) =>
+                useMarkAsRead({
+                    reportID: REPORT_ID,
+                    report: props.report as OnyxEntry<OnyxTypes.Report>,
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: props.actions,
+                    isScrolledToEnd: true,
+                    hasNewerActions: true,
+                }),
+            {initialProps: {report: readReport, actions: [] as OnyxTypes.ReportAction[]}},
+        );
+        readNewestAction.mockClear();
+
+        mockHasFocus = false;
+        mockIsUnread = true;
+        rerender({report: reportWithNewMessage, actions: [incomingAction]});
+
+        // Regaining focus must not consume the unread state of the newer actions the user has never seen.
+        mockHasFocus = true;
+        act(() => mockTriggerAppFocus?.());
+
+        expect(readNewestAction).not.toHaveBeenCalled();
+    });
 });
