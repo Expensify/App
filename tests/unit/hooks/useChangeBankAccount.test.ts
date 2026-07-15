@@ -96,8 +96,7 @@ describe('useChangeBankAccount', () => {
 
         act(() => result.current());
 
-        expect(mockPrepareNewBankAccountSetup).toHaveBeenCalledWith(CURRENCY);
-        expect(mockNavigateToBankAccountRoute).toHaveBeenCalledWith({policyID: POLICY_ID});
+        expect(mockNavigateToBankAccountRoute).toHaveBeenCalledWith({policyID: POLICY_ID, isChangingBankAccount: true});
         expect(mockNavigate).not.toHaveBeenCalled();
     });
 
