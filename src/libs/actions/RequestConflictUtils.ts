@@ -150,8 +150,7 @@ function reconnectCoverageFrom(request: AnyRequest): number {
 
 /**
  * A request whose success means the app downloaded everything: OpenApp, or a ReconnectApp without
- * `updateIDFrom` (a partial one fetches updates from that ID instead). This is the same rule the
- * reconnect dedup above expresses as coverage 0.
+ * `updateIDFrom`. Same rule reconnectCoverageFrom expresses as coverage 0.
  */
 function isFullDownloadRequest(request: AnyRequest): boolean {
     return isReconnectFamilyRequest(request) && reconnectCoverageFrom(request) === 0;
