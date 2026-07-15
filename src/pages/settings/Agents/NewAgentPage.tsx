@@ -62,7 +62,7 @@ function AgentTemplateCard({template, onAdd}: AgentTemplateCardProps) {
                     size={CONST.AVATAR_SIZE.DEFAULT}
                     name={template.name}
                 />
-                <View style={[styles.flex1]}>
+                <View style={[styles.flex1, styles.gapHalf]}>
                     <Text style={[styles.textStrong]}>{template.name}</Text>
                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{translate('newAgentPage.role')}</Text>
                 </View>
