@@ -172,6 +172,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const currentStep = getInitialCurrentStep();
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
     const [isNonUSDSetup, setIsNonUSDSetup] = useState(policy ? isNonUSDWorkspace : achData?.currency !== CONST.CURRENCY.USD || reimbursementAccountDraft?.currency !== CONST.CURRENCY.USD);
+    const isConnectedVerifiedBankAccountData = isNonUSDSetup ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE;
 
     useEffect(() => {
         const isChangingBankAccountInstance = isChangingBankAccountRef.current;
@@ -280,17 +281,16 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     // returns to this connected (non-changing) screen and the shared data has been clobbered, reload it so the
     // "you're all set" page is shown again instead of the setup entry.
     useEffect(() => {
-        const isConnectedBankAccount = isNonUSDSetup ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE;
-        if (isConnectedBankAccount && !isChangingBankAccount) {
+        if (isConnectedVerifiedBankAccountData && !isChangingBankAccount) {
             hasShownConnectedBankAccountRef.current = true;
             return;
         }
-        if (isFocused && !isChangingBankAccount && hasShownConnectedBankAccountRef.current && !isConnectedBankAccount) {
+        if (isFocused && !isChangingBankAccount && hasShownConnectedBankAccountRef.current && !isConnectedVerifiedBankAccountData) {
             fetchData();
         }
         // fetchData is intentionally omitted; this must react to the connected data being clobbered, not to fetchData's identity.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, isChangingBankAccount, isNonUSDSetup, achData?.state, achData?.currentStep]);
+    }, [isFocused, isChangingBankAccount, isConnectedVerifiedBankAccountData]);
 
     useEffect(() => {
         // Consume this route intent only once so the response changing isPreviousPolicy does not trigger another request.
@@ -589,8 +589,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             </ScreenWrapper>
         );
     }
-
-    const isConnectedVerifiedBankAccountData = isNonUSDSetup ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE;
 
     // While this instance is starting a fresh setup (change bank account), show the setup entry instead of the connected
     // account, even though the shared data still describes the currently connected account.
