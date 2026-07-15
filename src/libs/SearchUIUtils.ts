@@ -5505,7 +5505,7 @@ function getLabelValue(key: SearchAdvancedFiltersKey, labelKey: TranslationPaths
     }
 
     if (isFilterNegatable(key)) {
-        const prefix = isFilterNegated(key) ? '-' : '';
+        const prefix = isFilterNegated(key) ? CONST.SEARCH.NOT_PREFIX : '';
         return `${prefix}${translate(labelKey)}`;
     }
     return translate(labelKey);
