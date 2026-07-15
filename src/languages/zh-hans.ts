@@ -9768,7 +9768,7 @@ ${reportName}`,
 这里有一张*测试收据*，来展示它是如何运作的：`,
     },
     export: {
-        downloadStatementPDF: '下载对账单 PDF',
+        downloadStatementPDF: '下载对账单',
         basicExport: '基本导出',
         reportLevelExport: '所有数据 - 报告级别',
         expenseLevelExport: '所有数据 - 报销级别',
