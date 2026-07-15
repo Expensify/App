@@ -22,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getStringifiedGPSCoordinates, getTrimmedGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import {getGpsPoints, getGPSWaypoints, getStringifiedGPSCoordinates, getTrimmedGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
@@ -118,9 +118,11 @@ function IOURequestStepDistanceGPS({
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
     const navigateToNextStep = () => {
         const gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
-        const distance = getGPSConvertedDistance(gpsDraftDetails, unit);
+        const originalDistance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit);
+        const modifiedDistance = gpsDraftDetails?.modifiedDistance !== undefined ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.modifiedDistance, unit) : undefined;
+        const distanceForDisplay = modifiedDistance ?? originalDistance;
 
-        setGPSTransactionDraftData(transactionID, gpsDraftDetails, distance);
+        setGPSTransactionDraftData(transactionID, gpsDraftDetails, distanceForDisplay, modifiedDistance === undefined ? null : originalDistance);
 
         const waypoints = getGPSWaypoints(gpsDraftDetails);
         const optimisticTransactionID = rand64();
@@ -153,7 +155,8 @@ function IOURequestStepDistanceGPS({
             policyRecentlyUsedCurrencies,
             introSelected,
             gpsCoordinates,
-            gpsDistance: distance,
+            gpsDistance: originalDistance,
+            gpsModifiedDistance: modifiedDistance,
             selfDMReport,
             policyForMovingExpenses,
             betas,

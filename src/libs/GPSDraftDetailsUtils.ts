@@ -3,7 +3,6 @@ import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDis
 
 import type {GpsDraftDetails} from '@src/types/onyx';
 import type {GPSPoint, TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
-import type {Unit} from '@src/types/onyx/Policy';
 import type {Routes, Waypoint} from '@src/types/onyx/Transaction';
 import geodesicDistance from '@src/utils/geodesicDistance';
 
@@ -12,7 +11,6 @@ import type {SetRequired} from 'type-fest';
 import {hasStartedLocationUpdatesAsync, reverseGeocodeAsync, stopLocationUpdatesAsync} from 'expo-location';
 
 import {removeLastSegment, setEndWaypointAddress, setIsTracking} from './actions/GPSDraftDetails';
-import DistanceRequestUtils from './DistanceRequestUtils';
 import {roundToTwoDecimalPlaces} from './NumberUtils';
 
 type GPSWaypointCollection = Record<string, SetRequired<Waypoint, 'keyForList' | 'lat' | 'lng' | 'address'>>;
@@ -113,15 +111,6 @@ function getStringifiedGPSCoordinates(gpsDraftDetails: GpsDraftDetails | undefin
         .concat(gpsPoints.slice(trimmedEndPointSegment + 1));
 
     return JSON.stringify(updatedGpsPoints.map((points) => points.map(({lat, long}) => ({lng: long, lat}))));
-}
-
-function calculateGPSDistance(distanceInMeters: number, unit: Unit): number {
-    return DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
-}
-
-function getGPSConvertedDistance(gpsDraftDetails: GpsDraftDetails | undefined, unit: Unit): number {
-    const distanceInMeters = gpsDraftDetails?.modifiedDistance ?? gpsDraftDetails?.distanceInMeters ?? 0;
-    return calculateGPSDistance(distanceInMeters, unit);
 }
 
 async function addressFromGpsPoint(gpsPoint: {lat: number; long: number}): Promise<string | null> {
@@ -289,7 +278,6 @@ export {
     getGPSRoutes,
     getGPSWaypoints,
     stopGpsTrip,
-    getGPSConvertedDistance,
     getStringifiedGPSCoordinates,
     addressFromGpsPoint,
     coordinatesToString,

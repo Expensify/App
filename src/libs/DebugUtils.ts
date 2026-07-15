@@ -1093,6 +1093,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     customUnitID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     customUnitRateID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     quantity: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    originalQuantity: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     defaultP2PRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     distanceUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
