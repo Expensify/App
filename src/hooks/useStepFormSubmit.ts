@@ -8,7 +8,7 @@ import type {SubStepProps} from './useSubStep/types';
 
 type UseStepFormSubmitParams = Pick<SubStepProps, 'onNext'> & {
     formId: OnyxFormKey;
-    fieldIds: readonly (string | number | symbol)[];
+    fieldIds: ReadonlyArray<string | number | symbol>;
     shouldSaveDraft: boolean;
 };
 

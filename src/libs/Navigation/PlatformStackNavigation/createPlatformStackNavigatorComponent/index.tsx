@@ -146,12 +146,12 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     options?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>,
 ) {
     const PlatformNavigatorImpl = createPlatformNavigatorImpl<RouterOptions>({
-        createRouter: (options?.createRouter ?? StackRouter) as NonNullable<CreatePlatformStackNavigatorComponentOptions<RouterOptions>['createRouter']>,
+        createRouter: options?.createRouter ?? StackRouter,
         useCustomState: (options?.useCustomState ?? (() => undefined)) as NonNullable<CreatePlatformStackNavigatorComponentOptions<RouterOptions>['useCustomState']>,
         defaultScreenOptions: options?.defaultScreenOptions,
         ExtraContent: options?.ExtraContent,
         NavigationContentWrapper: options?.NavigationContentWrapper,
-        useCustomEffects: (options?.useCustomEffects ?? (() => undefined)) as NonNullable<CreatePlatformStackNavigatorComponentOptions<RouterOptions>['useCustomEffects']>,
+        useCustomEffects: options?.useCustomEffects ?? (() => undefined),
         freezeNonTopScreens: options?.freezeNonTopScreens,
         displayName,
     });

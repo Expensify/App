@@ -69,12 +69,15 @@ function WithReportAndPrivateNotesOrNotFoundImpl<TProps extends WithReportAndPri
 
     const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchFinished;
 
-    const shouldShowNotFoundPage =
-        isArchivedReport(reportNameValuePairs) || isOtherUserNote || isSelfDM(report)
-            ? true
-            : shouldShowFullScreenLoadingIndicator || !isPrivateNotesUndefined || isReconnecting
-              ? false
-              : isOffline;
+    // Show not found view if the report is archived, or if the note is not of current user or if report is a self DM.
+    // Don't show not found view if the notes are still loading, or if the notes are non-empty.
+    // As notes being empty and not loading is a valid case, show not found view only in offline mode.
+    let shouldShowNotFoundPage = isOffline;
+    if (isArchivedReport(reportNameValuePairs) || isOtherUserNote || isSelfDM(report)) {
+        shouldShowNotFoundPage = true;
+    } else if (shouldShowFullScreenLoadingIndicator || !isPrivateNotesUndefined || isReconnecting) {
+        shouldShowNotFoundPage = false;
+    }
 
     if (shouldShowFullScreenLoadingIndicator) {
         if (isOffline) {

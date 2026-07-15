@@ -46,7 +46,7 @@ type PushRowFieldWidened = {
 };
 
 type PushRowFieldsStepPropsWidened = Omit<PushRowFieldsStepProps<keyof OnyxFormValuesMapping>, 'pushRowFields'> & {
-    pushRowFields: Array<PushRowFieldWidened>;
+    pushRowFields: PushRowFieldWidened[];
 };
 
 /**

@@ -69,7 +69,6 @@ type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatList
  * Non-generic implementation so OXC's React Compiler can memoize the component.
  * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function FlatListRenderImpl(props: AnimatedFlatListWithCellRendererProps<unknown>) {
     const {itemLayoutAnimation, skipEnteringExitingAnimations, ref, CellRendererComponent: outerCellRenderer, ...restProps} = props;
 

@@ -9,8 +9,7 @@ import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
 
-import type {ForwardedRef} from 'react';
-import type {RefObject} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 import type {ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
 
 import {createElement, useEffect, useMemo, useRef, useState} from 'react';
