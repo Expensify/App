@@ -1061,6 +1061,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'コントロールをカスタマイズして支出を効率化',
             setupRules: '支出ルールを設定',
             inviteAccountant: '会計士を招待',
+            configureApprovals: '承認ワークフローを設定',
             begin: '開始',
             done: '完了',
             createWorkspaceSubText: 'ワークスペースのセットアップを開始できます',
@@ -1073,6 +1074,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Concierge に問い合わせる',
             talkToAccountExecutive: 'アカウントエグゼクティブに相談する',
             forGuidedSetup: 'ガイド付きセットアップ用です。',
+            configureApprovalsSubText: 'レポート承認を定義する',
         },
         yourSpend: {
             title: 'あなたの支出',

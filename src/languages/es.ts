@@ -1031,6 +1031,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCards: 'Emitir tarjetas Expensify',
             issueExpensifyCardsSubtitle: 'Personaliza los controles y agiliza el gasto',
             setupRules: 'Configurar reglas de gasto',
+            configureApprovals: 'Configura el flujo de aprobación',
             talkToAccountExecutive: 'Habla con tu ejecutivo de cuenta',
             begin: 'Empezar',
             done: 'Hecho',
@@ -1043,6 +1044,7 @@ const translations: TranslationDeepObject<typeof en> = {
             needHelp: '¿Necesitas ayuda?',
             talkToConcierge: 'Habla con Concierge',
             forGuidedSetup: 'para la configuración guiada.',
+            configureApprovalsSubText: 'Definir aprobaciones de informes',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {

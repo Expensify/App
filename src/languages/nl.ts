@@ -1077,6 +1077,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Pas controles aan en stroomlijn uitgaven',
             setupRules: 'Uitgavenregels instellen',
             inviteAccountant: 'Nodig je accountant uit',
+            configureApprovals: 'Goedkeuringsworkflow instellen',
             begin: 'Begin',
             done: 'Klaar',
             createWorkspaceSubText: 'Werkruimte klaar voor configuratie',
@@ -1089,6 +1090,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Praat met Concierge',
             talkToAccountExecutive: 'Praat met je accountmanager',
             forGuidedSetup: 'voor begeleide installatie.',
+            configureApprovalsSubText: 'Definieer rapportgoedkeuringen',
         },
         yourSpend: {
             title: 'Je uitgaven',
