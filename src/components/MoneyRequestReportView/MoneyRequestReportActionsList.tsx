@@ -1,6 +1,7 @@
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import ScrollView from '@components/ScrollView';
 
+import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsReportActionsLoaded from '@hooks/useIsReportActionsLoaded';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -355,6 +356,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         return unsubscribe;
     }, []);
 
+    // A visible browser window can regain OS focus without any visibility change, and nothing else re-runs the
+    // read catch-up in that case, so bump a counter on app focus to re-run it.
+    const [appFocusCount, setAppFocusCount] = useState(0);
+    useAppFocusEvent(useCallback(() => setAppFocusCount((count) => count + 1), []));
+
     useEffect(() => {
         if (!isFocused) {
             return;
@@ -412,7 +418,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // This effect should only run when app visibility/focus changes; the helper reads the latest report/action values without making every action update mark the report as read.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, isVisible]);
+    }, [isFocused, isVisible, appFocusCount]);
 
     /**
      * The index of the earliest message that was received while offline
