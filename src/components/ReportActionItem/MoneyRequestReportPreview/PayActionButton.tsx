@@ -37,7 +37,6 @@ import React from 'react';
 import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 import useConfirmApproveReportAction from './useConfirmApproveReportAction';
 import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
-import useReportPreviewFilteredTransactions from './useReportPreviewFilteredTransactions';
 
 function PayActionButton() {
     const {isOffline} = useNetwork();
@@ -50,7 +49,7 @@ function PayActionButton() {
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const {iouReportID, chatReportID, chatReport} = useReportPreviewData();
+    const {iouReportID, chatReportID, chatReport, transactions} = useReportPreviewData();
     const {isPaidAnimationRunning, isApprovedAnimationRunning} = useReportPreviewAnimationState();
     const {stopAnimation, startAnimation, onPaymentOptionsShow, onPaymentOptionsHide, onHoldMenuOpen} = useReportPreviewActions();
     const {buttonMaxWidth} = useReportPreviewUIState();
@@ -64,8 +63,6 @@ function PayActionButton() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-
-    const transactions = useReportPreviewFilteredTransactions(iouReportID);
 
     const [transactionViolations] = useReportTransactionViolations(transactions);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
