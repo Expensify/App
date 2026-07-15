@@ -1608,8 +1608,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Nur genehmigen',
         holdEducationalTitle: 'Soll diese Ausgabe zurückgestellt werden?',
         whatIsHoldExplain: 'Hold ist wie ein „Pause“-Knopf für eine Ausgabe, bis du bereit bist, sie einzureichen.',
+        whatIsHoldExplainDM: 'Hold ist wie ein „Pause“-Knopf für eine Ausgabe, bis du bereit bist, sie zu senden.',
         holdIsLeftBehind: 'Zurückgehaltene Ausgaben werden ausgelassen, selbst wenn du einen gesamten Bericht einreichst.',
+        holdIsLeftBehindDM: 'Zurückgehaltene Ausgaben werden erst gesendet, wenn du die Zurückstellung aufhebst.',
         unholdWhenReady: 'Gib Ausgaben wieder frei, wenn du bereit bist, sie einzureichen.',
+        unholdWhenReadyDM: 'Hebe die Zurückstellung auf, wenn du bereit bist, die Ausgaben zu senden.',
         changePolicyEducational: {
             title: 'Du hast diesen Bericht verschoben!',
             description: 'Überprüfe diese Punkte sorgfältig, da sie sich beim Verschieben von Berichten in einen neuen Workspace häufig ändern.',

@@ -1333,6 +1333,28 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         );
     }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID, currentSearchResults?.data, allReports]);
 
+    const areAllTransactionsFromDMReports = useMemo(() => {
+        const searchData = currentSearchResults?.data;
+        const reports: Report[] = searchData
+            ? Object.keys(searchData)
+                  .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+                  .map((key) => searchData[key as keyof typeof searchData] as Report)
+                  .filter((report): report is Report => report != null && 'reportID' in report)
+            : [];
+
+        return (
+            selectedTransactionReportIDs.length > 0 &&
+            selectedTransactionReportIDs.every((id) => {
+                const iouReport = getReportOrDraftReport(id, reports, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]);
+                if (!iouReport?.chatReportID) {
+                    return false;
+                }
+                const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
+                return isDM(chatReport);
+            })
+        );
+    }, [selectedTransactionReportIDs, currentSearchResults?.data, allReports]);
+
     const duplicateHandlerRef = useRef<() => void>(() => {});
     const setDuplicateHandler = useCallback((handler: () => void) => {
         duplicateHandlerRef.current = handler;
@@ -2286,6 +2308,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
         isHoldEducationalModalVisible,
+        areAllTransactionsFromDMReports,
         rejectModalAction,
         emptyReportsCount,
         handleOfflineModalClose,
