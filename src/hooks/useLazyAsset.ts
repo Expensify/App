@@ -19,9 +19,9 @@ type LazyAssetResult<T> = {
  * Hook for lazy loading any type of asset
  */
 function useLazyAsset<T>(importFn: () => {default: T} | Promise<{default: T}>, fallback?: T): LazyAssetResult<T> {
-    const assetRef = useRef<T | undefined>(undefined);
     const versionRef = useRef(0);
 
+    const [asset, setAsset] = useState<T | undefined>(undefined);
     const [isLoaded, setIsLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
@@ -36,7 +36,7 @@ function useLazyAsset<T>(importFn: () => {default: T} | Promise<{default: T}>, f
 
         // Handle synchronous imports
         if (!isResultPromise) {
-            assetRef.current = importFnResult.default;
+            setAsset(importFnResult.default);
             setIsLoaded(true);
             setIsLoading(false);
             return;
@@ -48,7 +48,7 @@ function useLazyAsset<T>(importFn: () => {default: T} | Promise<{default: T}>, f
                 if (!isMounted || currentVersion !== versionRef.current) {
                     return;
                 }
-                assetRef.current = module.default;
+                setAsset(module.default);
                 setIsLoaded(true);
                 setIsLoading(false);
             })
@@ -62,7 +62,7 @@ function useLazyAsset<T>(importFn: () => {default: T} | Promise<{default: T}>, f
 
                 // Use fallback if available
                 if (fallback) {
-                    assetRef.current = fallback;
+                    setAsset(fallback);
                     setIsLoaded(true);
                 }
             });
@@ -73,7 +73,7 @@ function useLazyAsset<T>(importFn: () => {default: T} | Promise<{default: T}>, f
     }, [importFn, fallback]);
 
     return {
-        asset: isLoaded ? assetRef?.current : undefined,
+        asset: isLoaded ? asset : undefined,
         isLoaded,
         isLoading,
         hasError,

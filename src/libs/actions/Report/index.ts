@@ -3682,6 +3682,7 @@ function updateReportField({
     hasViolationsParam,
     recentlyUsedReportFields,
     shouldFixViolations = false,
+    isTrackIntentUser,
 }: {
     report: Report;
     reportField: PolicyReportField;
@@ -3693,6 +3694,7 @@ function updateReportField({
     hasViolationsParam: boolean;
     recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
     shouldFixViolations: boolean | undefined;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
@@ -3721,6 +3723,7 @@ function updateReportField({
         currentUserEmailParam: email,
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
 
     const optimisticData: Array<
@@ -4042,6 +4045,7 @@ function buildNewReportOptimisticData(
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     betas: OnyxEntry<Beta[]>,
+    isTrackIntentUser: boolean | undefined,
     reportName?: string,
 ) {
     const {accountID, login, email} = ownerPersonalDetails;
@@ -4061,6 +4065,7 @@ function buildNewReportOptimisticData(
         currentUserEmailParam: email ?? '',
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
     if (optimisticNextStep) {
         optimisticReportData.nextStep = optimisticNextStep;
@@ -4285,6 +4290,7 @@ function createNewReport(
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
     betas: OnyxEntry<Beta[]>,
+    isTrackIntentUser: boolean | undefined,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
     reportName?: string,
@@ -4302,6 +4308,7 @@ function createNewReport(
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         betas,
+        isTrackIntentUser,
         reportName,
     );
 
@@ -7272,6 +7279,7 @@ function buildOptimisticChangePolicyData({
     reportNextStep,
     optimisticPolicyExpenseChatReport,
     reportPreviewAction,
+    isTrackIntentUser,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7286,6 +7294,7 @@ function buildOptimisticChangePolicyData({
     reportNextStep?: ReportNextStepDeprecated;
     optimisticPolicyExpenseChatReport?: Report;
     reportPreviewAction: OnyxEntry<ReportAction>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -7406,6 +7415,7 @@ function buildOptimisticChangePolicyData({
             hasViolations: hasViolationsParam,
             isASAPSubmitBetaEnabled,
             bypassNextApproverID: shouldResetApprovalChain ? newManagerAccountID : undefined,
+            isTrackIntentUser,
         });
 
         optimisticData.push({
@@ -7784,6 +7794,7 @@ function changeReportPolicy({
     reportNextStep,
     isReportLastVisibleArchived = false,
     reportPreviewAction,
+    isTrackIntentUser,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7798,6 +7809,7 @@ function changeReportPolicy({
     reportNextStep?: ReportNextStepDeprecated;
     isReportLastVisibleArchived?: boolean;
     reportPreviewAction: OnyxEntry<ReportAction>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
@@ -7816,6 +7828,7 @@ function changeReportPolicy({
         isReportLastVisibleArchived,
         reportNextStep,
         reportPreviewAction,
+        isTrackIntentUser,
     });
 
     const params = {
@@ -7851,6 +7864,7 @@ function changeReportPolicyAndInviteSubmitter({
     reportNextStep,
     reportActionsList,
     reportPreviewAction,
+    isTrackIntentUser,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7868,6 +7882,7 @@ function changeReportPolicyAndInviteSubmitter({
     reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     reportActionsList: OnyxCollection<ReportActions>;
     reportPreviewAction: OnyxEntry<ReportAction>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID || !submitterLogin) {
         return;
@@ -7919,6 +7934,7 @@ function changeReportPolicyAndInviteSubmitter({
         reportNextStep,
         optimisticPolicyExpenseChatReport: membersChats.reportCreationData[submitterLogin],
         reportPreviewAction,
+        isTrackIntentUser,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];

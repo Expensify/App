@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
+import genericMemo from '@libs/genericMemo';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
@@ -624,4 +625,4 @@ function TransactionGroupListItem<TItem extends ListItem>({
     );
 }
 
-export default TransactionGroupListItem;
+export default genericMemo(TransactionGroupListItem);
