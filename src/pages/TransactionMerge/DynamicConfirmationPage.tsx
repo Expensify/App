@@ -48,7 +48,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const styles = useThemeStyles();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
-    const {transactionID, isOnSearch} = route.params;
+    const {transactionID} = route.params;
     const backTo = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION.path);
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionReport, targetTransactionPolicy} = useMergeTransactions({mergeTransaction});
@@ -109,7 +109,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         const searchReportIDToOpen = targetTransactionThreadReportID ?? reportIDToDismiss;
 
         // If we're in search (or the topmost route is search), dismiss the modal and open the expense in the RHP
-        if ((isOnSearch || isSearchTopmostFullScreenRoute()) && searchReportIDToOpen) {
+        if (isSearchTopmostFullScreenRoute() && searchReportIDToOpen) {
             Navigation.dismissModal();
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));
