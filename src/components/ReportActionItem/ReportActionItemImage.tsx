@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
-import getPlatform from '@libs/getPlatform';
 import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
@@ -36,9 +35,10 @@ import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {StyleSheet, View} from 'react-native';
 
+import deferReceiptNavigation from './deferReceiptNavigation';
 import ReceiptPDFOverlay from './ReceiptPDFOverlay';
 
 type ReportActionItemImageProps = {
@@ -142,8 +142,8 @@ function ReportActionItemImage({
     // While the receipt is regenerating its stored URL is stale, so draw the live route from `routes.coordinates`
     // (via `ConfirmedRoute`) instead of loading the now-404'd image.
     const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingDistanceReceiptRegeneration(transaction));
-    const navigateToReceipt = useCallback(() => {
-        const navigate = () => {
+    const navigateToReceipt = () => {
+        deferReceiptNavigation(() => {
             Navigation.navigate(
                 ROUTES.TRANSACTION_RECEIPT.getRoute(
                     transactionThreadReport?.reportID ?? contextReport?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
@@ -152,17 +152,8 @@ function ReportActionItemImage({
                     mergeTransactionID,
                 ),
             );
-        };
-
-        if (getPlatform() !== CONST.PLATFORM.WEB) {
-            navigate();
-            return;
-        }
-
-        requestAnimationFrame(() => {
-            requestAnimationFrame(navigate);
         });
-    }, [contextReport?.reportID, mergeTransactionID, readonly, reportProp?.reportID, transaction, transactionThreadReport?.reportID]);
+    };
 
     if (showMapAsImage) {
         return (
