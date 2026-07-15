@@ -31,6 +31,11 @@ type DismissedProductTraining = {
      */
     [CONST.MIGRATED_USER_WELCOME_MODAL]: DismissedProductTrainingElement;
 
+    /**
+     * When user dismisses the AI features promo modal, we store the timestamp here.
+     */
+    [CONST.AI_FEATURES_PROMO_MODAL]: DismissedProductTrainingElement;
+
     // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
     // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
     /**

@@ -1,5 +1,11 @@
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchStatus} from '@components/Search/types';
+import type {
+    ReportActionListItemType,
+    TaskListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionReportGroupListItemType,
+} from '@components/Search/SearchList/ListItem/types';
+import type {SearchGroupBy} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -22,13 +28,15 @@ import type {TransactionViolation} from './TransactionViolation';
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 
 /** Model of search list item data type */
-type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
+type ListItemDataType<C extends SearchDataTypes, G extends SearchGroupBy | undefined> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? ReportActionListItemType[]
     : C extends typeof CONST.SEARCH.DATA_TYPES.TASK
       ? TaskListItemType[]
-      : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-        ? TransactionListItemType[]
-        : TransactionGroupListItemType[];
+      : C extends typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT
+        ? TransactionReportGroupListItemType[]
+        : G extends SearchGroupBy
+          ? TransactionGroupListItemType[]
+          : TransactionListItemType[];
 
 /** Model of search result state */
 type SearchResultsInfo = {
@@ -38,8 +46,8 @@ type SearchResultsInfo = {
     /** Type of search */
     type: SearchDataTypes;
 
-    /** The status filter for the current search */
-    status: SearchStatus;
+    /** The hash of the current search */
+    hash: number;
 
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;

@@ -648,7 +648,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails},
+            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails, isTrackIntentUser},
         ) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
@@ -664,6 +664,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         currentUserPersonalDetails?.login ?? '',
                         currentUserPersonalDetails.accountID,
                         iouTransactionViolations,
+                        isTrackIntentUser,
                     ),
                 );
                 return;
@@ -677,6 +678,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 currentUserPersonalDetails?.login ?? '',
                 currentUserPersonalDetails.accountID,
                 iouTransactionViolations,
+                isTrackIntentUser,
             );
         },
         getDescription: () => {},
@@ -695,7 +697,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails},
+            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails, isTrackIntentUser},
         ) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
@@ -711,6 +713,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         currentUserPersonalDetails?.login ?? '',
                         currentUserPersonalDetails.accountID,
                         iouTransactionViolations,
+                        isTrackIntentUser,
                     ),
                 );
                 return;
@@ -724,6 +727,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 currentUserPersonalDetails?.login ?? '',
                 currentUserPersonalDetails.accountID,
                 iouTransactionViolations,
+                isTrackIntentUser,
             );
         },
         getDescription: () => {},

@@ -10,6 +10,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import genericMemo from '@libs/genericMemo';
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
@@ -172,4 +173,4 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-export default DocusignFullStep;
+export default genericMemo(DocusignFullStep);
