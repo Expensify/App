@@ -8,6 +8,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import genericMemo from '@libs/genericMemo';
 import {getCountryZipRegexDetails, getFieldRequiredErrors, getInvalidAddressErrorTranslationPath, isValidZipCode, isValidZipCodeForCountry} from '@libs/ValidationUtils';
 
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
@@ -216,4 +217,4 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-export default AddressStep;
+export default genericMemo(AddressStep);
