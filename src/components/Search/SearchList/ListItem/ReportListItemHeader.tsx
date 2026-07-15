@@ -38,6 +38,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {ColorValue} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
@@ -278,6 +279,8 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const [chatReportActions] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? snapshotReport?.chatReportID ?? snapshotReport.parentReportID)}`,
     );
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
     const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail} = useReportPaymentContext({
         reportID: reportItem.reportID,
         chatReportPolicyID: chatReport?.policyID,
@@ -326,6 +329,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             searchData: snapshot?.data,
             chatReportActions,
             delegateEmail,
+            isTrackIntentUser,
         });
     };
     return !isLargeScreenWidth ? (
