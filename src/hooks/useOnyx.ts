@@ -48,6 +48,29 @@ const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResu
 };
 
 /**
+ * Resolves the final `useOnyx` result, extracting the specific key's data out of the search snapshot
+ * when applicable.
+ *
+ * This is a standalone top-level function (rather than being inlined in the `useMemo` callback) because
+ * OXC's React Compiler currently fails to compile a hook when a generic type cast referencing the hook's
+ * own type parameters (e.g. `as UseOnyxResult<TReturnValue>`) appears inside a nested closure. That
+ * bailout is silent (no build warning) and disables automatic memoization for the entire file.
+ */
+function resolveSnapshotAwareResult<TKey extends OnyxKey, TReturnValue>(
+    shouldUseSnapshot: boolean,
+    hasSelector: boolean,
+    originalResult: UseOnyxResult<OnyxValue<OnyxKey>>,
+    key: TKey,
+): UseOnyxResult<TReturnValue> {
+    if (!shouldUseSnapshot || hasSelector) {
+        return originalResult as UseOnyxResult<TReturnValue>;
+    }
+
+    const keyData = getKeyData(originalResult[0] as SearchResults, key);
+    return [keyData, originalResult[1]] as UseOnyxResult<TReturnValue>;
+}
+
+/**
  * Custom hook for accessing and subscribing to Onyx data with search snapshot support
  */
 const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(key: TKey, options?: UseOnyxOptions<TKey, TReturnValue>, dependencies?: DependencyList) => {
@@ -84,15 +107,7 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     const originalResult = originalUseOnyx(snapshotKey, onyxOptions, dependencies);
 
     // Extract and memoize the specific key data from snapshot if in search mode
-    const result = useMemo((): UseOnyxResult<TReturnValue> => {
-        // if it has selector, we don't need to use snapshot here
-        if (!shouldUseSnapshot || selector) {
-            return originalResult as UseOnyxResult<TReturnValue>;
-        }
-
-        const keyData = getKeyData(originalResult[0] as SearchResults, key);
-        return [keyData, originalResult[1]] as UseOnyxResult<TReturnValue>;
-    }, [shouldUseSnapshot, originalResult, key, selector]);
+    const result = useMemo(() => resolveSnapshotAwareResult<TKey, TReturnValue>(shouldUseSnapshot, !!selector, originalResult, key), [shouldUseSnapshot, originalResult, key, selector]);
 
     return result;
 };

@@ -56,23 +56,34 @@ type UseFilteringResult<DataType extends TableData, FilterKey extends string = s
 };
 
 /**
+ * Builds the initial filters state, defaulting every configured filter key to an empty selection.
+ *
+ * This is a standalone top-level function (rather than being inlined in the `useState` lazy initializer)
+ * because OXC's React Compiler currently fails to compile a component/hook when a generic type cast
+ * referencing the function's own type parameters (e.g. `as Record<FilterKey, string[]>`) appears inside
+ * a nested closure. That bailout is silent (no build warning) and disables automatic memoization for the
+ * entire file.
+ */
+function buildInitialFilters<FilterKey extends string = string>(filters?: FilterConfig<FilterKey>): Record<FilterKey, string[]> {
+    const initialFilters = {} as Record<FilterKey, string[]>;
+
+    if (filters) {
+        for (const key of getObjectKeys(filters)) {
+            initialFilters[key] = [];
+        }
+    }
+
+    return initialFilters;
+}
+
+/**
  * Provides functionality to filter table data.
  */
 function useFiltering<DataType extends TableData, FilterKey extends string = string>({
     filters,
     isItemInFilter,
 }: UseFilteringProps<DataType, FilterKey>): UseFilteringResult<DataType, FilterKey> {
-    const [currentFilters, setCurrentFilters] = useState<Record<FilterKey, string[]>>(() => {
-        const initialFilters = {} as Record<FilterKey, string[]>;
-
-        if (filters) {
-            for (const key of getObjectKeys(filters)) {
-                initialFilters[key] = [];
-            }
-        }
-
-        return initialFilters;
-    });
+    const [currentFilters, setCurrentFilters] = useState<Record<FilterKey, string[]>>(() => buildInitialFilters(filters));
 
     const updateFilter: FilteringMethods<FilterKey>['updateFilter'] = useCallback(({key, value}) => {
         setCurrentFilters((previousFilters) => ({

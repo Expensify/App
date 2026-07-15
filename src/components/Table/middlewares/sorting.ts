@@ -78,6 +78,30 @@ type UseSortingResult<T, ColumnKey extends string = string> = MiddlewareHookResu
 };
 
 /**
+ * Resolves the sorting configuration that should actually be applied, forcing `narrowLayoutSortColumn`
+ * when the table is in narrow layout.
+ *
+ * This is a standalone top-level function (rather than being inlined in the `useMemo` callback) because
+ * OXC's React Compiler currently fails to compile a component/hook when a generic type expression
+ * referencing the function's own type parameters (e.g. `satisfies ActiveSorting<ColumnKey>`) appears
+ * inside a nested closure. That bailout is silent (no build warning) and disables automatic memoization
+ * for the entire file.
+ *
+ * @template ColumnKey - The type of column keys.
+ */
+function resolveActiveSorting<ColumnKey extends string = string>(
+    shouldUseNarrowTableLayout: boolean | undefined,
+    narrowLayoutSortColumn: ColumnKey | undefined,
+    userSorting: ActiveSorting<ColumnKey>,
+): ActiveSorting<ColumnKey> {
+    if (shouldUseNarrowTableLayout && narrowLayoutSortColumn) {
+        return {columnKey: narrowLayoutSortColumn, order: 'asc'};
+    }
+
+    return userSorting;
+}
+
+/**
  * Provides functionality to sort table data.
  *
  * @template T - The type of items in the data array.
@@ -98,7 +122,7 @@ function useSorting<T, ColumnKey extends string = string>({
     });
 
     const activeSorting = useMemo(
-        () => (shouldUseNarrowTableLayout && narrowLayoutSortColumn ? ({columnKey: narrowLayoutSortColumn, order: 'asc'} satisfies ActiveSorting<ColumnKey>) : userSorting),
+        () => resolveActiveSorting(shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting),
         [shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting],
     );
 
