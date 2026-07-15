@@ -7862,7 +7862,7 @@ const translations = {
                 defaultRuleDescription: 'All cards',
                 block: 'Block',
                 defaultRuleTitle: 'Categories: Adult services, ATMs, gambling, money transfers',
-                defaultRuleSummary: 'Categories including adult services, ATMs, gambling, and...',
+                defaultRuleSummary: 'Categories including adult services, ATMs, gambling, and money transfers',
                 findRule: 'Find rule',
                 defaultSection: 'Default',
                 customRulesSection: 'Custom rules',
