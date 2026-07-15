@@ -5,6 +5,8 @@ import useNetwork from '@hooks/useNetwork';
 
 import {markRejectViolationAsResolved} from '@userActions/IOU/RejectMoneyRequest';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 import type {SimpleActionProps} from './types';
@@ -19,7 +21,7 @@ function MarkAsResolvedPrimaryAction({reportID, chatReportID}: SimpleActionProps
 
     return (
         <Button
-            variant="success"
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => {
                 if (!transaction?.transactionID) {
                     return;
