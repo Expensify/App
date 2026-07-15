@@ -1,9 +1,11 @@
+import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import useSuggestedSearches from '@hooks/useSuggestedSearches';
 
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {getSuggestedSearches} from '@libs/SearchUIUtils';
 
 import SCREENS from '@src/SCREENS';
 
@@ -39,9 +41,10 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
     const currentSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
 
-    // Build the suggested searches with the exact same scoping the type menu uses
-    // (`createTypeMenuSections`), so the current query resolves to its search key. See `useSuggestedSearches`.
-    const suggestedSearches = useSuggestedSearches();
+    const {defaultCardFeed} = useCardFeedsForDisplay();
+    const {accountID} = useCurrentUserPersonalDetails();
+    const defaultCardFeedID = defaultCardFeed?.id;
+    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID);
 
     const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;
