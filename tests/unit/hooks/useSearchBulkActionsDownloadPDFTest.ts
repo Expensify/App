@@ -198,9 +198,9 @@ const unscopedExpensifyCardStatementQueryJSON: SearchQueryJSON = {
     ],
 };
 
-function makeCurrentSearchResults(groups: Record<string, SearchWithdrawalIDGroup>, extraData: Record<string, unknown> = {}): SearchResults {
+function makeCurrentSearchResults(groups: Record<string, SearchWithdrawalIDGroup>): SearchResults {
     return {
-        data: {...makeSearchData(groups), ...extraData} as SearchResults['data'],
+        data: makeSearchData(groups),
         search: {
             offset: 0,
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -627,15 +627,14 @@ describe('useSearchBulkActions - Download as PDF', () => {
         mockSelectedTransactions = {
             firstTxn: makeSelectedTransaction({groupKey, reportID: undefined}),
         };
-        mockCurrentSearchResults = makeCurrentSearchResults(
-            {
-                // A cross-workspace settlement has no single policyID; it is still exportable as the whole settlement.
-                [groupKey]: makeSettlementGroup({total: 100, policyID: undefined}),
-            },
-            // The export is admin-only, so a cross-workspace settlement is offered only when the user is an admin of
-            // every workspace in the snapshot.
-            {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}},
-        );
+        mockCurrentSearchResults = makeCurrentSearchResults({
+            // A cross-workspace settlement has no single policyID; it is still exportable as the whole settlement. The
+            // settlement's feed (fundID) resolves to a domain the current user administers - see the domain_ merge below.
+            [groupKey]: makeSettlementGroup({total: 100, policyID: undefined, fundID: 1}),
+        });
+        // The export is admin-only. For a cross-workspace settlement it is offered only when the user is an admin of
+        // the feed's domain; the feed fundID 1 maps to domain_1, admin'd by the current user.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}1`, {[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${CURRENT_USER_ACCOUNT_ID}`]: CURRENT_USER_ACCOUNT_ID});
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: unscopedExpensifyCardStatementQueryJSON}));
 

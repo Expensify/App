@@ -108,17 +108,8 @@ function isWithdrawalIDGroup(value: SearchResultDataType[keyof SearchResultDataT
     return typeof value === 'object' && value !== null && 'entryID' in value && typeof value.entryID === 'number';
 }
 
-// Whether the current user may export the given settlement group as a statement. The statement is admin-only (Auth
-// gates GetExpensifyCardPayments on domain/workspace admin), so only offer it for a settlement the user administers:
-//   - single-workspace settlement (has a policyID): the user must be an admin of that workspace.
-//   - cross-workspace settlement (no single policyID): the whole settlement spans every workspace in view, so the
-//     user must be an admin of all of them - approximated by isAdminOfAllWorkspaces from the search snapshot.
-function canExportSettlementGroup(settlementGroup: SearchWithdrawalIDGroup, isAdminOfPolicy: (policyID: string) => boolean, isAdminOfAllWorkspaces: boolean): boolean {
-    if (settlementGroup.policyID) {
-        return isAdminOfPolicy(settlementGroup.policyID);
-    }
-    return isAdminOfAllWorkspaces;
-}
+/** Decides whether the current user may export a settlement's feed, given the settlement's workspace and feed. */
+type CanExportSettlementFeed = (policyID: string | undefined, fundID: number | undefined) => boolean;
 
 function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchWithdrawalIDGroup[] {
     if (!searchData) {
@@ -164,8 +155,7 @@ function getExpensifyCardStatementSelection(
     queryJSON: SearchQueryJSON | undefined,
     selectedTransactions: SelectedTransactions | undefined,
     searchData: SearchResultDataType | undefined,
-    isAdminOfPolicy: (policyID: string) => boolean,
-    isAdminOfAllWorkspaces: boolean,
+    canExportSettlementFeed: CanExportSettlementFeed,
 ): ExpensifyCardStatementSelection | undefined {
     if (!isExpensifyCardStatementSearch(queryJSON) || !selectedTransactions) {
         return undefined;
@@ -183,11 +173,12 @@ function getExpensifyCardStatementSelection(
         return undefined;
     }
 
-    // The statement export is admin-only, so drop any selected settlement the user does not administer. This keeps the
-    // action from being offered for a settlement the backend would reject with a 401 (e.g. a cardholder who can see the
-    // settlement in search but is not an admin of its workspace).
+    // The statement export is admin-only, so drop any selected settlement the user cannot export. This keeps the
+    // action from being offered for a settlement the backend would reject with a 401 (e.g. a cardholder who can see
+    // the settlement in search but does not administer its feed). A settlement scoped to one workspace is gated on
+    // that workspace's card permission; a cross-workspace settlement is gated on being an admin of the feed's domain.
     const selectedSettlementGroups = getSelectedSettlementGroups(selectedTransactions, searchData).filter((settlementGroup) =>
-        canExportSettlementGroup(settlementGroup, isAdminOfPolicy, isAdminOfAllWorkspaces),
+        canExportSettlementFeed(settlementGroup.policyID, settlementGroup.fundID),
     );
     if (selectedSettlementGroups.length === 0) {
         return undefined;
@@ -255,5 +246,5 @@ function downloadExpensifyCardStatementPDF(
     fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
 }
 
-export type {ExpensifyCardStatementParams};
+export type {CanExportSettlementFeed, ExpensifyCardStatementParams};
 export {downloadExpensifyCardStatementPDF, getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch};
