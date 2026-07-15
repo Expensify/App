@@ -429,6 +429,7 @@ function MoneyRequestConfirmationList({
 
     const sections = useConfirmationSections({
         isTypeSplit,
+        isTypeInvoice,
         shouldHideToSection,
         shouldForceTopEmptySections,
         participantRowErrors,

@@ -4952,6 +4952,14 @@ const staticStyles = (theme: ThemeColors) =>
 
         receiptEmptyStateFullHeight: {height: '100%', borderRadius: 12},
 
+        receiptEmptyStateCompact: {
+            ...spacing.mh5,
+            overflow: 'hidden',
+            borderRadius: variables.componentBorderRadiusLarge,
+            height: 52,
+            maxWidth: '100%',
+        },
+
         moneyRequestAttachReceiptThumbnailIcon: {
             position: 'absolute',
             bottom: -4,
