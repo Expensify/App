@@ -7,7 +7,7 @@ import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
-import type {Connections, NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
+import type {NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -402,6 +402,39 @@ describe('actions/PolicyMember', () => {
                 });
             });
             await mockFetch?.resume?.();
+        });
+
+        it('uses the explicit personal details list to decide new-member success-data participants instead of the deprecated copy', () => {
+            const policyID = '1';
+            const policy = {...createRandomPolicy(Number(policyID))};
+
+            const presentMemberEmail = 'present@example.com';
+            const presentMemberAccountID = 4321;
+            const absentMemberEmail = 'absent@example.com';
+            const absentMemberAccountID = 8765;
+
+            // The personal details list knows the "present" member but not the "absent" one.
+            const personalDetailsList = {[presentMemberAccountID]: {accountID: presentMemberAccountID, login: presentMemberEmail}};
+
+            const {membersChats} = Member.buildAddMembersToWorkspaceOnyxData(
+                {[presentMemberEmail]: presentMemberAccountID, [absentMemberEmail]: absentMemberAccountID},
+                policy,
+                [],
+                CONST.POLICY.ROLE.USER,
+                TestHelper.formatPhoneNumber,
+                personalDetailsList,
+                currentUser,
+                undefined,
+            );
+
+            const findSuccessReportUpdate = (email: string) => {
+                const reportID = membersChats.reportCreationData[email]?.reportID;
+                return membersChats.onyxSuccessData.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            };
+
+            // The known member keeps their optimistic participant ({}); the unknown member's participant is removed (null).
+            expect(findSuccessReportUpdate(presentMemberEmail)).toHaveProperty(['value', 'participants', `${presentMemberAccountID}`], {});
+            expect(findSuccessReportUpdate(absentMemberEmail)).toHaveProperty(['value', 'participants', `${absentMemberAccountID}`], null);
         });
 
         it('Add new members with admin/scoped admin role to the #admins room', async () => {
@@ -893,7 +926,7 @@ describe('actions/PolicyMember', () => {
                             successfulDate: '',
                         },
                     } as NetSuiteConnection,
-                } as Connections,
+                },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
