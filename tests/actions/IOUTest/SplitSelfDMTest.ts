@@ -220,6 +220,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             expenseReport: undefined,
             isOffline: false,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -309,6 +310,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             expenseReport: undefined,
             isOffline: false,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -419,6 +421,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             expenseReport: undefined,
             isOffline: false,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -514,6 +517,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             expenseReport: undefined,
             isOffline: false,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -575,6 +579,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             expenseReport: undefined,
             isOffline: false,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -667,6 +672,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             expenseReport: undefined,
             isOffline: false,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();

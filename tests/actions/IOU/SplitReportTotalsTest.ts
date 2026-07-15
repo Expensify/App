@@ -506,6 +506,7 @@ describe('actions/IOU', () => {
             personalDetails: mockPersonalDetails,
             participantsPolicyTags: overrides.participantsPolicyTags ?? {},
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         it('returns valid splitData with chatReportID, transactionID, and reportActionID', () => {
@@ -770,6 +771,7 @@ describe('actions/IOU', () => {
                 expenseReport: {reportID: EXPENSE_REPORT_ID, parentReportID: 'parent-report-1', chatReportID: 'chat-report-1'},
                 isOffline: false,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
                 ...overrides,
             };
         }

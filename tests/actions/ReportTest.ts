@@ -2673,7 +2673,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL]);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -2746,7 +2746,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL]);
+        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await new Promise<void>((resolve) => {
@@ -2784,7 +2784,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL]);
+        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -2820,7 +2820,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL]);
+        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
 
         await waitForBatchedUpdates();
         // Then the report's status should be draft.
@@ -2862,7 +2862,7 @@ describe('actions/Report', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL]);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await waitForBatchedUpdates();
@@ -3447,6 +3447,7 @@ describe('actions/Report', () => {
                 ownerLogin: undefined,
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -3506,6 +3507,7 @@ describe('actions/Report', () => {
                 ownerLogin: undefined,
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -3575,6 +3577,7 @@ describe('actions/Report', () => {
                 ownerLogin: undefined,
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -3670,6 +3673,7 @@ describe('actions/Report', () => {
                 ownerLogin: undefined,
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -3753,6 +3757,7 @@ describe('actions/Report', () => {
                 ownerLogin: undefined,
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -3811,6 +3816,7 @@ describe('actions/Report', () => {
                 reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -3902,6 +3908,7 @@ describe('actions/Report', () => {
                 reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -3948,6 +3955,7 @@ describe('actions/Report', () => {
                 reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -3980,6 +3988,7 @@ describe('actions/Report', () => {
                 reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -4011,6 +4020,7 @@ describe('actions/Report', () => {
                 reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -4042,6 +4052,7 @@ describe('actions/Report', () => {
                 reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -4075,6 +4086,7 @@ describe('actions/Report', () => {
                 reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -4129,6 +4141,7 @@ describe('actions/Report', () => {
                 reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -4588,6 +4601,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
             expect(buildNextStepNew).toHaveBeenCalledWith({
                 report,
@@ -4640,6 +4654,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
 
             // Find the transaction optimistic data
@@ -4700,6 +4715,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
 
             // Should NOT find transaction optimistic data when currencies are the same
@@ -4747,6 +4763,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
@@ -4807,6 +4824,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
+                isTrackIntentUser: false,
             });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
@@ -4869,6 +4887,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction,
+                isTrackIntentUser: false,
             });
 
             const parentReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`;

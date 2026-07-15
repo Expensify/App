@@ -108,6 +108,7 @@ type UpdateSplitTransactionsParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     isOffline: boolean;
     delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function updateSplitTransactions({
@@ -137,6 +138,7 @@ function updateSplitTransactions({
     expenseReport: expenseReportFromParams,
     isOffline,
     delegateAccountID,
+    isTrackIntentUser,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
@@ -593,6 +595,7 @@ function updateSplitTransactions({
             betas,
             personalDetails,
             delegateAccountID,
+            isTrackIntentUser,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -706,6 +709,7 @@ function updateSplitTransactions({
             betas,
             personalDetails,
             delegateAccountID,
+            isTrackIntentUser,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};
@@ -801,6 +805,7 @@ function updateSplitTransactions({
                     isSelfDMSplit,
                     isOffline,
                     delegateAccountID,
+                    isTrackIntentUser,
                 });
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;

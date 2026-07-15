@@ -25,6 +25,7 @@ import type {SplitExpense} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useCallback} from 'react';
 
@@ -92,6 +93,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
@@ -323,6 +325,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     expenseReport,
                     isOffline,
                     delegateAccountID,
+                    isTrackIntentUser,
                 });
             }
 
@@ -398,6 +401,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             isProduction,
             personalPolicy?.outputCurrency,
             delegateAccountID,
+            isTrackIntentUser,
         ],
     );
 

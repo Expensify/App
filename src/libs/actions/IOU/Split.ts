@@ -142,6 +142,7 @@ type CreateDistanceRequestInformation = {
     shouldDeferAutoSubmit?: boolean;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -166,6 +167,7 @@ type CreateSplitsAndOnyxDataParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
     delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type StartSplitBilActionParams = {
@@ -205,6 +207,7 @@ type CompleteSplitBillActionParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
     sessionEmail?: string;
 };
 
@@ -239,6 +242,7 @@ type SplitBillActionsParams = {
     shouldHandleNavigation?: boolean;
     shouldDeferForSearch?: boolean;
     delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 /**
@@ -275,6 +279,7 @@ function splitBill({
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
     delegateAccountID,
+    isTrackIntentUser,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -309,6 +314,7 @@ function splitBill({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         participantsPolicyTags: buildParticipantsPolicyTags(participants),
         delegateAccountID,
+        isTrackIntentUser,
     });
 
     const parameters: SplitBillParams = {
@@ -387,6 +393,7 @@ function splitBillAndOpenReport({
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
     delegateAccountID,
+    isTrackIntentUser,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -421,6 +428,7 @@ function splitBillAndOpenReport({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         participantsPolicyTags: buildParticipantsPolicyTags(participants),
         delegateAccountID,
+        isTrackIntentUser,
     });
 
     const parameters: SplitBillParams = {
@@ -864,7 +872,14 @@ function startSplitBill({
     return {splitTransactionID: splitTransaction.transactionID};
 }
 
-/** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above. */
+/** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above.
+ *
+ * @param chatReportID - The group chat or workspace reportID
+ * @param reportAction - The split action that lives in the chatReport above
+ * @param updatedTransaction - The updated **draft** split transaction
+ * @param sessionAccountID - accountID of the current user
+ * @param sessionEmail - email of the current user
+ */
 function completeSplitBill({
     chatReportID,
     reportAction,
@@ -876,6 +891,7 @@ function completeSplitBill({
     betas,
     personalDetails,
     delegateAccountID,
+    isTrackIntentUser,
     sessionEmail,
 }: CompleteSplitBillActionParams) {
     if (!reportAction) {
@@ -1124,6 +1140,7 @@ function completeSplitBill({
             quickAction,
             personalDetails,
             delegateAccountID,
+            isTrackIntentUser,
         });
 
         splits.push({
@@ -1406,6 +1423,7 @@ function createSplitsAndOnyxData({
     personalDetails,
     participantsPolicyTags,
     delegateAccountID,
+    isTrackIntentUser,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -1859,6 +1877,7 @@ function createSplitsAndOnyxData({
             quickAction,
             personalDetails,
             delegateAccountID,
+            isTrackIntentUser,
         });
 
         const individualSplit = {
@@ -1938,6 +1957,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         shouldDeferAutoSubmit,
         previousOdometerDraft,
         delegateAccountID,
+        isTrackIntentUser,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2029,6 +2049,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             participantsPolicyTags: buildParticipantsPolicyTags(participants),
             delegateAccountID,
+            isTrackIntentUser,
         });
         onyxData = splitOnyxData;
 
@@ -2121,6 +2142,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             betas,
             optimisticReportPreviewActionID,
             delegateAccountID,
+            isTrackIntentUser,
         });
 
         onyxData = moneyRequestOnyxData;
