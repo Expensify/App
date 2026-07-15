@@ -7,6 +7,7 @@ import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -76,13 +77,20 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
 
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
+    const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policy?.id);
+    const hasAccessibleFeeds = allFeeds.length > 0;
 
     const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountList);
     const shouldStartBankAccountSetup = !eligibleBankAccounts.length || isSetupUnfinished;
     const canStartBankAccountSetup = canEditWorkspaceSettings(policy, currentUserLogin);
-    const shouldDisableCTA = !canWriteExpensifyCard || (shouldStartBankAccountSetup && !canStartBankAccountSetup);
+    const shouldDisableCTA = !canWriteExpensifyCard || (!hasAccessibleFeeds && shouldStartBankAccountSetup && !canStartBankAccountSetup);
 
     const startFlow = () => {
+        if (hasAccessibleFeeds && policy?.id) {
+            clearIssueNewCardFormData();
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy.id)));
+            return;
+        }
         if (shouldStartBankAccountSetup) {
             Navigation.navigate(
                 ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
@@ -90,7 +98,9 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id),
                 }),
             );
-        } else if (policy?.id) {
+            return;
+        }
+        if (policy?.id) {
             clearIssueNewCardFormData();
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy.id)));
         }
@@ -144,14 +154,14 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     menuItems={isUkEuCurrencySupported ? expensifyCardFeatures.slice(1) : expensifyCardFeatures}
                     title={translate('workspace.moreFeatures.expensifyCard.feed.title')}
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
-                    ctaText={translate(isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
+                    ctaText={translate(isSetupUnfinished && !hasAccessibleFeeds ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
                     ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
                     onCtaPress={() => {
                         if (!canWriteExpensifyCard) {
                             showReadOnlyModal();
                             return;
                         }
-                        if (shouldStartBankAccountSetup && !canStartBankAccountSetup) {
+                        if (!hasAccessibleFeeds && shouldStartBankAccountSetup && !canStartBankAccountSetup) {
                             showReadOnlyModal();
                             return;
                         }

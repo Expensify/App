@@ -29,7 +29,6 @@ import type {Credentials, Session} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {openAuthSessionAsync} from 'expo-web-browser';
-import {clearTokenRefresh, removeFromAutoPrefetch} from 'react-native-nitro-fetch';
 import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';
@@ -106,6 +105,36 @@ describe('Session', () => {
         redirectToSignInSpy.mockRestore();
     });
 
+    test('setIsAuthenticatingWithShortLivedToken(true) makes reauthenticate abort (blocks the SAML resume race)', async () => {
+        let isAuthenticatingWithShortLivedToken: OnyxEntry<boolean>;
+        Onyx.connect({
+            key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            callback: (val) => (isAuthenticatingWithShortLivedToken = val),
+        });
+
+        // Given the SAML sign-in flow set the guard before opening the in-app browser
+        SessionUtil.setIsAuthenticatingWithShortLivedToken(true);
+        await waitForBatchedUpdates();
+        expect(isAuthenticatingWithShortLivedToken).toBe(true);
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        // When the app resumes and reconnectApp's 407 triggers reauthenticate
+        const result = await reauthenticate('TestCommand');
+        await waitForBatchedUpdates();
+
+        // Then reauthenticate aborts without redirecting to sign in, so the SAML callback can complete
+        expect(result).toBe(false);
+        expect(redirectToSignInSpy).not.toHaveBeenCalled();
+
+        // When the browser is cancelled/fails, the guard is cleared so future reauthentication isn't blocked
+        SessionUtil.setIsAuthenticatingWithShortLivedToken(false);
+        await waitForBatchedUpdates();
+        expect(isAuthenticatingWithShortLivedToken).toBe(false);
+
+        redirectToSignInSpy.mockRestore();
+    });
+
     test('reauthenticate proceeds even when a legacy session.isAuthenticatingWithShortLivedToken=true is persisted (recovers stuck users)', async () => {
         // Given a session in Onyx that still carries the legacy stuck flag from before the RAM-only migration.
         // The Session type no longer declares the field, so cast to write the legacy shape.
@@ -123,6 +152,66 @@ describe('Session', () => {
         expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
 
         redirectToSignInSpy.mockRestore();
+    });
+
+    describe('SAML reauthentication redirect coalescing', () => {
+        beforeEach(async () => {
+            // Reset the module-level coalescing guard between tests. Setting the short-lived-token flag to
+            // true is what clears the guard, so toggle it on and back off to start each test from a clean state.
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, false);
+            await waitForBatchedUpdates();
+        });
+
+        test('coalesces a burst of concurrent SAML reauthentication calls into a single sign-in redirect', async () => {
+            // Given a SAML-required account whose session token has expired
+            await Onyx.set(ONYXKEYS.ACCOUNT, {isSAMLRequired: true, isLoading: true});
+            await waitForBatchedUpdates();
+
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            // When several requests fail with 407 in the same tick and each triggers reauthenticate
+            const results = await Promise.all([reauthenticate('ReconnectApp'), reauthenticate('OpenApp'), reauthenticate('AuthenticatePusher')]);
+            await waitForBatchedUpdates();
+
+            // Then only the first request redirects to the SAML sign-in page; the rest are skipped, so the page
+            // is not torn down and re-mounted (and SAML re-initiated) once per concurrent 407
+            expect(results).toEqual([false, false, false]);
+            expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
+            expect(redirectToSignInSpy).toHaveBeenCalledWith(undefined, true);
+
+            redirectToSignInSpy.mockRestore();
+        });
+
+        test('allows a fresh SAML sign-in redirect once a new short-lived-token exchange has begun', async () => {
+            // Given a SAML-required account that has already been redirected to sign in
+            await Onyx.set(ONYXKEYS.ACCOUNT, {isSAMLRequired: true, isLoading: true});
+            await waitForBatchedUpdates();
+
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            await reauthenticate('ReconnectApp');
+            await waitForBatchedUpdates();
+            expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
+
+            // A later 407 in the same burst is still coalesced and does not redirect again
+            await reauthenticate('OpenApp');
+            await waitForBatchedUpdates();
+            expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
+
+            // When the user begins a new SAML sign-in, the short-lived-token exchange starts and then settles
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
+            await waitForBatchedUpdates();
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, false);
+            await waitForBatchedUpdates();
+
+            // Then a later token expiry is allowed to redirect to SAML again
+            await reauthenticate('ReconnectApp');
+            await waitForBatchedUpdates();
+            expect(redirectToSignInSpy).toHaveBeenCalledTimes(2);
+
+            redirectToSignInSpy.mockRestore();
+        });
     });
 
     test('Authenticate is called with saved credentials when a session expires', async () => {
@@ -334,20 +423,6 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);
-    });
-
-    test('SignOut should clear native startup prefetch state', async () => {
-        await TestHelper.signInWithTestUser();
-        setHasRadio(false);
-        await waitForBatchedUpdates();
-
-        await SessionUtil.signOut({authToken: 'testAuthToken'});
-
-        expect(clearTokenRefresh).toHaveBeenCalledWith('fetch');
-        expect(removeFromAutoPrefetch).toHaveBeenCalledWith(WRITE_COMMANDS.RECONNECT_APP);
-
-        setHasRadio(true);
-        await waitForBatchedUpdates();
     });
 
     describe('SignOutAndRedirectToSignIn', () => {

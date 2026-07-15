@@ -269,6 +269,8 @@ function AmountField({
             // User cleared the field — mark amount as unset so the field stays empty
             // and submission is blocked until a value is re-entered.
             clearMoneyRequestAmount(transactionID);
+            // Recalculate split shares to 0 so each participant's individual amount reflects the cleared total.
+            buildAndSaveSplitShares(0, effectiveCurrency);
             return;
         }
 

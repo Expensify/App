@@ -1,13 +1,13 @@
 import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
 
 import CONST from '@src/CONST';
-import type {Card, CardList} from '@src/types/onyx';
+import type {Card, CardList, WorkspaceCardsList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 /* eslint-disable @typescript-eslint/naming-convention */
-import {areAllExpensifyCardsShipped, defaultExpensifyCardSelector, filterCardsHiddenFromSearch, filterOutPersonalCards} from '@selectors/Card';
+import {areAllExpensifyCardsShipped, defaultExpensifyCardSelector, filterCardsHiddenFromSearch, filterOutPersonalCards, hasIssuedExpensifyCardSelector} from '@selectors/Card';
 
 import createRandomCard, {createRandomCompanyCard, createRandomExpensifyCard} from '../../utils/collections/card';
 
@@ -863,5 +863,57 @@ describe('filterOutPersonalCards', () => {
     it('should handle empty card list', () => {
         const result = filterOutPersonalCards({});
         expect(result).toEqual({});
+    });
+});
+
+describe('hasIssuedExpensifyCardSelector', () => {
+    it('returns false when the workspace cards list is undefined or empty', () => {
+        expect(hasIssuedExpensifyCardSelector(undefined)).toBe(false);
+        expect(hasIssuedExpensifyCardSelector({})).toBe(false);
+    });
+
+    it('returns true when the workspace has an active Expensify Card', () => {
+        const cardsList: WorkspaceCardsList = {
+            '1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
+        };
+
+        expect(hasIssuedExpensifyCardSelector(cardsList)).toBe(true);
+    });
+
+    it('returns false when the workspace only has non-Expensify (company) cards', () => {
+        const cardsList: WorkspaceCardsList = {
+            '1': createRandomCompanyCard(1, {bank: 'vcf'}),
+            '2': createRandomCompanyCard(2, {bank: 'stripe'}),
+        };
+
+        expect(hasIssuedExpensifyCardSelector(cardsList)).toBe(false);
+    });
+
+    it('returns false when the only Expensify Cards are inactive (closed or deactivated)', () => {
+        const cardsList: WorkspaceCardsList = {
+            '1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.CLOSED}),
+            '2': createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED}),
+        };
+
+        expect(hasIssuedExpensifyCardSelector(cardsList)).toBe(false);
+    });
+
+    it('ignores the cardList of cards still available to assign and only counts assigned cards', () => {
+        // `cardList` (a Record<string, string>) clashes with the WorkspaceCardsList index signature in a typed literal, so attach it via Object.assign to avoid an unsafe type assertion.
+        const cardsList: WorkspaceCardsList = {};
+        Object.assign(cardsList, {cardList: {'1111': 'Card 1', '2222': 'Card 2'}});
+
+        expect(hasIssuedExpensifyCardSelector(cardsList)).toBe(false);
+    });
+
+    it('returns true when an active Expensify Card is mixed with company and inactive cards', () => {
+        const cardsList: WorkspaceCardsList = {
+            '1': createRandomCompanyCard(1, {bank: 'vcf'}),
+            '2': createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.CLOSED}),
+            '3': createRandomExpensifyCard(3, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
+        };
+        Object.assign(cardsList, {cardList: {'9999': 'Card to assign'}});
+
+        expect(hasIssuedExpensifyCardSelector(cardsList)).toBe(true);
     });
 });

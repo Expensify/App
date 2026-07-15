@@ -43,14 +43,13 @@ import {
 } from '@libs/actions/Policy/Member';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
-import {getConnectedHRProvider} from '@libs/HRUtils';
-import Log from '@libs/Log';
+import {getConnectedHRProvider, showMergeHRManualSyncLimitModalIfReached} from '@libs/HRUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
     canMemberAssignRole,
@@ -166,8 +165,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
             return translate(
                 'workspace.people.removeMembersWarningPrompt',
-                getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
-                getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
+                getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber, translate}),
+                getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber, translate}),
             );
         }
 
@@ -177,8 +176,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         if (userExporter) {
             const exporterAccountID = policyMemberEmailsToAccountIDs[userExporter];
             return translate('workspace.people.removeMemberPromptExporter', {
-                memberName: getDisplayNameForParticipant({accountID: exporterAccountID, formatPhoneNumber}),
-                workspaceOwner: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
+                memberName: getDisplayNameForParticipant({accountID: exporterAccountID, formatPhoneNumber, translate}),
+                workspaceOwner: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber, translate}),
             });
         }
 
@@ -338,7 +337,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const details = personalDetails?.[accountID];
 
             if (!details) {
-                Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
                 continue;
             }
 
@@ -370,7 +368,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
             const login = details.login ?? '';
             const memberEmail = formatPhoneNumber(login);
-            const memberName = formatPhoneNumber(getDisplayNameOrDefault(details));
+            const memberName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate}));
 
             return {
                 keyForList: login,
@@ -406,6 +404,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         policy,
         isSubmitWorkspace,
         formatPhoneNumber,
+        translate,
         session?.accountID,
         shouldShowCustomField1Column,
         shouldShowCustomField2Column,
@@ -558,10 +557,17 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             icon: icons.MakeAdmin,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.PEOPLE_ADMIN),
         };
+        const paymentsAdminOption = {
+            text: translate('workspace.people.makePaymentsAdmin', {count: selectedEmployees.length}),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_PAYMENTS_ADMIN,
+            icon: icons.MakeAdmin,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.PAYMENTS_ADMIN),
+        };
 
         const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
         const hasAtLeastOneNonCardAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.CARD_ADMIN);
         const hasAtLeastOneNonPeopleAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PEOPLE_ADMIN);
+        const hasAtLeastOneNonPaymentsAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PAYMENTS_ADMIN);
         const hasAtLeastOneNonMemberRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.USER);
         const hasAtLeastOneNonAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.ADMIN);
         const isReimbursementEnabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -591,6 +597,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         if (hasAtLeastOneNonPeopleAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
             options.push(peopleAdminOption);
+        }
+
+        if (hasAtLeastOneNonPaymentsAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
+            options.push(paymentsAdminOption);
         }
 
         return options;
@@ -662,6 +672,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         return;
                     }
 
+                    if (showMergeHRManualSyncLimitModalIfReached(policy, hrProvider.connectionName, translate, showConfirmModal)) {
+                        return;
+                    }
+
                     close(() => syncConnection(policy, hrProvider.connectionName));
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.SYNC_WITH_HR,
@@ -681,6 +695,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         policyID,
         showLockedAccountModal,
         showRequiresInternetModal,
+        showConfirmModal,
         isHRSyncInProgress,
         policy,
     ]);
@@ -693,9 +708,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
         return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
             <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
                 customText={translate('workspace.common.selected', {count: selectedEmployees.length})}
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                size={CONST.BUTTON_SIZE.MEDIUM}
                 onPress={() => null}
                 options={getBulkActionsButtonOptions()}
                 isSplitButton={false}
@@ -716,7 +732,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 />
                 <ButtonWithDropdownMenu
-                    success={false}
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}

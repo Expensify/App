@@ -1,4 +1,3 @@
-import {AUTHENTICATION_COMMAND} from '@libs/API/types';
 import * as Environment from '@libs/Environment/Environment';
 import getPlatform from '@libs/getPlatform';
 
@@ -51,38 +50,34 @@ Onyx.connectWithoutView({
  * Does this command require an authToken?
  */
 function isAuthTokenRequired(command: string): boolean {
-    return !['Log', AUTHENTICATION_COMMAND, 'BeginSignIn', 'SetPassword'].includes(command);
-}
-
-/**
- * Returns request metadata shared by every API call (including Authenticate).
- */
-function getBaseRequestParameters(email?: unknown) {
-    return {
-        referer: CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER,
-        platform: getPlatform(),
-        // This application does not save its authToken in cookies like the classic Expensify app.
-        // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
-        // and prevents interfering with the cookie authToken that Expensify classic uses.
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        api_setCookie: false,
-        // Include current user's email in every request and the server logs
-        email: email ?? getCurrentUserEmail(),
-        isFromDevEnv: Environment.isDevelopment(),
-        appversion: pkg.version,
-    };
+    return !['Log', 'Authenticate', 'BeginSignIn', 'SetPassword'].includes(command);
 }
 
 /**
  * Adds default values to our request data
  */
 export default function enhanceParameters(command: string, parameters: Record<string, unknown>): Record<string, unknown> {
-    const finalParameters: Record<string, unknown> = {...parameters, ...getBaseRequestParameters(parameters.email)};
+    const finalParameters = {...parameters};
 
     if (isAuthTokenRequired(command) && !parameters.authToken) {
         finalParameters.authToken = getAuthToken() ?? null;
     }
 
+    finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
+
+    // In addition to the referer (ecash), we pass the platform to help differentiate what device type
+    // is sending the request.
+    finalParameters.platform = getPlatform();
+
+    // This application does not save its authToken in cookies like the classic Expensify app.
+    // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
+    // and prevents interfering with the cookie authToken that Expensify classic uses.
+    finalParameters.api_setCookie = false;
+
+    // Include current user's email in every request and the server logs
+    finalParameters.email = parameters.email ?? getCurrentUserEmail();
+    finalParameters.isFromDevEnv = Environment.isDevelopment();
+    finalParameters.appversion = pkg.version;
     finalParameters.clientUpdateID = lastUpdateIDAppliedToClient;
     if (delegate) {
         finalParameters.delegate = delegate;
@@ -93,5 +88,3 @@ export default function enhanceParameters(command: string, parameters: Record<st
 
     return finalParameters;
 }
-
-export {getBaseRequestParameters};

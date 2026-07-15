@@ -66,7 +66,7 @@ function useResetBankAccountModal({
     const achData = reimbursementAccount?.achData;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const isInOpenState = achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
-    const bankAccountID = achData?.bankAccountID;
+    const bankAccountID = achData?.bankAccountID ?? policy?.achAccount?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
 
     const lastPaymentMethodSelector = useCallback(
@@ -83,7 +83,7 @@ function useResetBankAccountModal({
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {
-            resetNonUSDBankAccount(policyID, policy?.achAccount, achData?.bankAccountID, lastPaymentMethod);
+            resetNonUSDBankAccount(policyID, policy?.achAccount, bankAccountID, lastPaymentMethod, policy?.owner);
 
             if (setShouldShowConnectedVerifiedBankAccount) {
                 setShouldShowConnectedVerifiedBankAccount(false);
@@ -97,7 +97,7 @@ function useResetBankAccountModal({
                 ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? CONST.POLICY.ID_FAKE, page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.CURRENCY_AND_COUNTRY, backTo}),
             );
         } else {
-            resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod);
+            resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod, policy?.owner);
 
             if (setShouldShowContinueSetupButton) {
                 setShouldShowContinueSetupButton(false);

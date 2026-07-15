@@ -752,6 +752,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBeNull();
         });
@@ -763,6 +764,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: 'Hello world!',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });
@@ -777,6 +779,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasGBR');
         });
@@ -790,6 +793,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
         });
@@ -807,6 +811,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasAddWorkspaceRoomErrors');
         });
@@ -832,6 +837,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
@@ -850,6 +856,7 @@ describe('DebugUtils', () => {
                 isReportArchived: isReportArchived.current,
                 doesReportHaveViolations: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
@@ -863,6 +870,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isSelfDM');
         });
@@ -873,6 +881,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
@@ -932,6 +941,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: true,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -991,6 +1001,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: true,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1002,6 +1013,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
