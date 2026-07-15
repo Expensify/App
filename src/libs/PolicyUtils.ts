@@ -1627,6 +1627,38 @@ function getDefaultApprover(policy: OnyxEntry<Policy>): string {
     return policy?.approver || policy?.owner || '';
 }
 
+/**
+ * Whether the policy has at least one custom approval workflow. A workflow is considered custom when either:
+ * - the default workflow was modified by changing its first approver or adding an "Approves to" user, or
+ * - a new workflow was created (a member submits to an approver other than the default approver).
+ */
+function hasCustomApprovalWorkflow(policy: OnyxEntry<Policy>): boolean {
+    if (!policy) {
+        return false;
+    }
+
+    const defaultApprover = getDefaultApprover(policy);
+
+    // The default workflow's first approver was changed away from the workspace owner.
+    if (!!policy.approver && !!policy.owner && policy.approver !== policy.owner) {
+        return true;
+    }
+
+    const employees = policy.employeeList ?? {};
+
+    // The default approver forwards approvals to someone, i.e. an "Approves to" user was added,
+    // either unconditionally (forwardsTo) or above an approval limit (overLimitForwardsTo).
+    const defaultApproverEmployee = employees[defaultApprover];
+    if (!!defaultApprover && (!!defaultApproverEmployee?.forwardsTo || !!defaultApproverEmployee?.overLimitForwardsTo)) {
+        return true;
+    }
+
+    // A new workflow exists when a member submits to an approver other than the default approver.
+    return Object.values(employees).some(
+        (employee) => employee?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!employee?.submitsTo && employee.submitsTo !== defaultApprover,
+    );
+}
+
 function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>) {
     const categoryApprovers: string[] = [];
     const tagApprovers: string[] = [];
@@ -2393,7 +2425,9 @@ function hasUnsupportedIntegration(policy: Policy | undefined) {
 }
 
 function hasSupportedOnlyOnOldDotIntegration(policy: Policy | undefined) {
-    return Object.values(CONST.POLICY.CONNECTIONS.SUPPORTED_ONLY_ON_OLDDOT).some((integration) => !!(policy?.connections as Record<string, unknown>)?.[integration]);
+    return Object.values(CONST.POLICY.CONNECTIONS.SUPPORTED_ONLY_ON_OLDDOT as Record<string, string>).some(
+        (integration) => !!(policy?.connections as Record<string, unknown>)?.[integration],
+    );
 }
 
 function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
@@ -2887,6 +2921,7 @@ export {
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
     getDefaultApprover,
+    hasCustomApprovalWorkflow,
     getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,

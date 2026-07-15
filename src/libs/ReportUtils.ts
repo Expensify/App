@@ -162,6 +162,7 @@ import {
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
     isExpensifyTeam,
+    isGroupPolicyByType,
     isGroupPolicy as isGroupPolicyPolicyUtils,
     isInstantSubmitEnabled,
     isPendingDeletePolicy,
@@ -1728,16 +1729,6 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>, currentUserAcco
 }
 
 /**
- * Whether the report belongs to a group policy (Collect, Control, or Submit). Report-based counterpart
- * of `PolicyUtils.isGroupPolicy`. Prefer this over `isPaidGroupPolicy(report)` for feature gating
- * (violations, report fields, etc.) so free group plans like Submit are not excluded.
- */
-// TODO: Remove this function and use isGroupPolicy directly after https://github.com/Expensify/App/issues/66415 is done
-function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): boolean {
-    return isGroupPolicyPolicyUtils(policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
-}
-
-/**
  * Whether the report belongs to a paid policy (Collect/Control) only. Report-based counterpart of
  * `PolicyUtils.isPaidGroupPolicy`. For group-feature gating use `isReportInGroupPolicy` instead,
  * otherwise Submit workspaces are wrongly excluded.
@@ -1752,8 +1743,8 @@ function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
  * Use for report-field-style features that Submit workspaces also support, so the free Submit plan isn't
  * incorrectly excluded.
  */
-function isGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
-    return isExpenseReport(report) && isReportInGroupPolicy(report);
+function isGroupPolicyExpenseReport(report: OnyxEntry<Report>, policyType: string | undefined): boolean {
+    return isExpenseReport(report) && isGroupPolicyByType(policyType);
 }
 
 /**
@@ -5740,11 +5731,11 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
 
     const formattedAmount = convertToDisplayString(totalAmount, report.currency);
 
-    if (isReportApproved({report}) && isReportInGroupPolicy(report)) {
+    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+
+    if (isReportApproved({report}) && isGroupPolicyByType(policy?.type ?? reportPolicy?.type)) {
         return translateLocal('iou.managerApprovedAmount', payerName ?? '', formattedAmount);
     }
-
-    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
     let linkedTransaction;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
@@ -6256,18 +6247,18 @@ function getParsedComment(
     currentUserEmailParam?: string,
 ): string {
     let isGroupPolicyReport = false;
+    const currentReport = getReportOrDraftReport(parsingDetails?.reportID);
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    const policy = getPolicy(parsingDetails?.policyID ?? currentReport?.policyID);
     if (parsingDetails?.reportID) {
         if (isGroupPolicyReportParam !== undefined) {
             isGroupPolicyReport = isGroupPolicyReportParam;
         } else {
-            const currentReport = getReportOrDraftReport(parsingDetails.reportID);
-            isGroupPolicyReport = isReportInGroupPolicy(currentReport);
+            isGroupPolicyReport = isGroupPolicyByType(policy?.type);
         }
     }
 
     if (parsingDetails?.policyID) {
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        const policy = getPolicy(parsingDetails?.policyID);
         if (policy?.type) {
             isGroupPolicyReport = isGroupPolicyPolicyUtils(policy);
         }
@@ -13746,7 +13737,6 @@ export {
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
-    isReportInGroupPolicy,
     isReportManager,
     isReportOwner,
     isReportParticipant,

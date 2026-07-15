@@ -1079,6 +1079,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Personalizza i controlli e semplifica le spese',
             setupRules: 'Configura le regole di spesa',
             inviteAccountant: 'Invita il tuo commercialista',
+            configureApprovals: 'Configura il flusso di approvazione',
             begin: 'Inizia',
             done: 'Fatto',
             createWorkspaceSubText: 'Spazio di lavoro pronto per la configurazione',
@@ -1091,6 +1092,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Parla con Concierge',
             talkToAccountExecutive: 'Parla con il tuo account executive',
             forGuidedSetup: 'per la configurazione guidata.',
+            configureApprovalsSubText: 'Definisci le approvazioni dei report',
         },
         yourSpend: {
             title: 'Le tue spese',
@@ -2890,6 +2892,14 @@ ${amount} per ${merchant} - ${date}`,
         title: 'Agenti',
         subtitle: `<muted-text>Gli agenti gestiscono i tuoi flussi di lavoro al posto tuo, così ti ritrovi ore in più nella tua giornata. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Scopri di più</a>.</muted-text>`,
         findAgent: 'Trova agente',
+        deleteAgentsTitle: () => ({
+            one: 'Elimina agente',
+            other: 'Elimina agenti',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Sei sicuro di voler eliminare questo agente? Questa azione non può essere annullata.',
+            other: 'Sei sicuro di voler eliminare questi agenti? Questa azione non può essere annullata.',
+        }),
         newAgent: 'Nuovo agente',
         emptyAgents: {
             title: 'Nessun agente creato',
@@ -10342,17 +10352,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         description: 'Facci sapere così possiamo aiutarti a rendere ancora migliore la tua esperienza di gestione delle spese.',
         positiveButton: 'Sì!',
         negativeButton: 'Non proprio',
-    },
-    trialPaymentReminder: {
-        title: 'Anticipa la scadenza',
-        subtitle: "Non aspettare l'ultimo minuto, aggiungi il tuo metodo di pagamento oggi per garantire l'accesso continuo alle tue spese su Expensify.",
-        trialEndsInDays: () => ({
-            one: 'Il periodo di prova termina tra 1 giorno',
-            other: (pluralCount: number) => `Il periodo di prova termina tra ${pluralCount} giorni`,
-        }),
-        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Il periodo di prova termina tra ${hours}h : ${minutes}m : ${seconds}s`,
-        closeButton: 'Chiudi',
-        addPaymentCardButton: 'Aggiungi carta di pagamento',
     },
     monthPickerPage: {month: 'Mese', selectMonth: 'Seleziona un mese'},
     aiFeaturesPromoModal: {
