@@ -5,7 +5,7 @@ import {getObjectKeys, getObjectValues} from '@src/libs/ObjectUtils';
 
 import type {ValueOf} from 'type-fest';
 
-import {useCallback, useMemo, useState} from 'react';
+import {useState} from 'react';
 
 import type {Middleware, MiddlewareHookResult} from './types';
 
@@ -85,24 +85,21 @@ function useFiltering<DataType extends TableData, FilterKey extends string = str
 }: UseFilteringProps<DataType, FilterKey>): UseFilteringResult<DataType, FilterKey> {
     const [currentFilters, setCurrentFilters] = useState<Record<FilterKey, string[]>>(() => buildInitialFilters(filters));
 
-    const updateFilter: FilteringMethods<FilterKey>['updateFilter'] = useCallback(({key, value}) => {
+    const updateFilter: FilteringMethods<FilterKey>['updateFilter'] = ({key, value}) => {
         setCurrentFilters((previousFilters) => ({
             ...previousFilters,
             [key]: value,
         }));
-    }, []);
+    };
 
-    const getActiveFilters: FilteringMethods<FilterKey>['getActiveFilters'] = useCallback(() => currentFilters, [currentFilters]);
+    const getActiveFilters: FilteringMethods<FilterKey>['getActiveFilters'] = () => currentFilters;
 
-    const middleware: Middleware<DataType> = useCallback((data) => filter({data, filters, currentFilters, isItemInFilter}), [filters, currentFilters, isItemInFilter]);
+    const middleware: Middleware<DataType> = (data) => filter({data, filters, currentFilters, isItemInFilter});
 
-    const methods: FilteringMethods<FilterKey> = useMemo(
-        () => ({
-            updateFilter,
-            getActiveFilters,
-        }),
-        [updateFilter, getActiveFilters],
-    );
+    const methods: FilteringMethods<FilterKey> = {
+        updateFilter,
+        getActiveFilters,
+    };
 
     const hasActiveFilters = getObjectValues(currentFilters).some((filterValues) => filterValues.length > 0);
 
