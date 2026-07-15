@@ -1,3 +1,5 @@
+import genericMemo from '@libs/genericMemo';
+
 /**
  * This is a copy of the FlatList implementation from 'react-native-reanimated' in order to implement a custom CellRendererComponent.
  * This should be updated when the original implementation updates
@@ -101,7 +103,7 @@ function FlatListRender<Item = any>(props: AnimatedFlatListWithCellRendererProps
     );
 }
 
-const AnimatedFlatListWithCellRenderer = FlatListRender as <
+const AnimatedFlatListWithCellRenderer = genericMemo(FlatListRender) as <
     // We need explicit any here, because this is the exact same type that is used in React Native types.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ItemT = any,
