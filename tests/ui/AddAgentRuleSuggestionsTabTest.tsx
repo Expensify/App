@@ -38,14 +38,16 @@ jest.mock('@hooks/useThemeStyles', () =>
     ),
 );
 jest.mock('@components/ActivityIndicator', () => {
-    const ReactModule = require('react');
-    const {View} = require('react-native');
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {View} = jest.requireActual<{View: React.ComponentType<{testID?: string}>}>('react-native');
     return jest.fn(() => ReactModule.createElement(View, {testID: 'suggestions-loading-indicator'}));
 });
 jest.mock('@components/Icon', () => jest.fn(() => null));
 jest.mock('@components/TextInput', () => {
-    const ReactModule = require('react');
-    const {TextInput} = require('react-native');
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {TextInput} = jest.requireActual<{
+        TextInput: React.ComponentType<{value?: string; onChangeText?: (text: string) => void; accessibilityLabel?: string}>;
+    }>('react-native');
     return ({value, onChangeText, label}: {value?: string; onChangeText?: (text: string) => void; label?: string}) =>
         ReactModule.createElement(TextInput, {
             value,
@@ -54,14 +56,23 @@ jest.mock('@components/TextInput', () => {
         });
 });
 jest.mock('@components/BlockingViews/BlockingView', () => {
-    const ReactModule = require('react');
-    const {Text} = require('react-native');
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<{Text: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
     return ({title, subtitle}: {title: string; subtitle?: string}) =>
         ReactModule.createElement(ReactModule.Fragment, null, ReactModule.createElement(Text, null, title), subtitle ? ReactModule.createElement(Text, null, subtitle) : null);
 });
 jest.mock('@components/ButtonComposed', () => {
-    const ReactModule = require('react');
-    const {Pressable, Text} = require('react-native');
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {Pressable, Text} = jest.requireActual<{
+        Pressable: React.ComponentType<{
+            accessibilityRole?: string;
+            accessibilityState?: {disabled?: boolean};
+            disabled?: boolean;
+            onPress?: () => void;
+            children?: React.ReactNode;
+        }>;
+        Text: React.ComponentType<{children?: React.ReactNode}>;
+    }>('react-native');
     function MockButton({children, onPress, isDisabled}: {children: React.ReactNode; onPress?: () => void; isDisabled?: boolean}) {
         return ReactModule.createElement(
             Pressable,
@@ -78,13 +89,20 @@ jest.mock('@components/ButtonComposed', () => {
     return MockButton;
 });
 jest.mock('@components/FixedFooter', () => {
-    const ReactModule = require('react');
-    const {View} = require('react-native');
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {View} = jest.requireActual<{View: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
     return ({children}: {children: React.ReactNode}) => ReactModule.createElement(View, null, children);
 });
 jest.mock('@components/Pressable', () => {
-    const ReactModule = require('react');
-    const {Pressable} = require('react-native');
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {Pressable} = jest.requireActual<{
+        Pressable: React.ComponentType<{
+            onPress?: () => void;
+            accessibilityLabel?: string;
+            accessibilityRole?: string;
+            children?: React.ReactNode;
+        }>;
+    }>('react-native');
     return {
         PressableWithFeedback: ({children, onPress, accessibilityLabel}: {children: React.ReactNode; onPress?: () => void; accessibilityLabel?: string}) =>
             ReactModule.createElement(
@@ -99,8 +117,8 @@ jest.mock('@components/Pressable', () => {
     };
 });
 jest.mock('@components/Text', () => {
-    const ReactModule = require('react');
-    const {Text} = require('react-native');
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<{Text: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
     return ({children}: {children: React.ReactNode}) => ReactModule.createElement(Text, null, children);
 });
 
