@@ -27,10 +27,6 @@ runs:
         cache: 'npm'
         cache-dependency-path: normalized-package-lock.json
 
-    - name: Install the npm version required by package.json engines
-      shell: bash
-      run: npm install -g "npm@$(jq -r '.engines.npm' package.json)"
-
     - id: cache-node-modules
       # v5.0.1
       uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
