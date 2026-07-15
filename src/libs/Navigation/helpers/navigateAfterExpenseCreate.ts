@@ -1,6 +1,7 @@
 import {addPendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {runAfterDeferredWrite} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Growl from '@libs/Growl';
 import {translateLocal} from '@libs/Localize';
@@ -14,12 +15,9 @@ import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpActi
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Beta, IntroSelected, Transaction} from '@src/types/onyx';
-
-import Onyx from 'react-native-onyx';
 
 import dismissModalAndOpenReportInInboxTab from './dismissModalAndOpenReportInInboxTab';
 import getTopmostFullScreenRoute from './getTopmostFullScreenRoute';
@@ -98,9 +96,8 @@ type ShowExpenseAddedGrowlParams = {
  *
  * The IOU action's optimistic data is typically not yet in the Onyx cache when this runs — the
  * `API.write` is deferred (deferred-for-search pattern) until Search's content layout flushes the
- * channel. We subscribe to the iouReport's reportActions and wait for the optimistic iouAction
- * to land, then show the growl. A safety timeout falls back to a growl without the "View" link
- * if the iouAction never appears.
+ * channel. `runAfterDeferredWrite` shows the growl right after that write applies (its channel's own
+ * safety timeout guarantees it fires). If no write is pending, the growl shows immediately.
  *
  * The transaction thread itself is only materialized (context merge, or optimistic creation with
  * its OpenReport write) when the user actually presses "View" — matching how every other thread
@@ -219,66 +216,11 @@ function showExpenseAddedGrowl({
         Growl.success(growlMessage, CONST.GROWL.DURATION_WITH_ACTION, {label: translateLocal('common.view'), onPress: navigateToExpenseRHP});
     };
 
-    // Fast path: the thread is already resolvable, so show the growl immediately instead of waiting on
-    // the reportActions subscription (which would otherwise hit the 8s safety timeout). This covers:
-    // - personal tracked expenses (unreported/self-DM): there's no iouReportID to subscribe to, and the
-    //   thread ID passed in directly is the only handle we'll ever get;
-    // - the iouAction already being in Onyx (retry / non-deferred edge cases).
-    // When an iouReportID exists but the iouAction hasn't landed yet (deferred write), a provided thread
-    // ID is NOT enough - its optimistic report data is inside the deferred write too, so "View" would
-    // open a broken RHP. Fall through to the subscription and wait for the action instead.
-    if ((providedTransactionThreadReportID && !iouReportID) || (iouReportID && getIOUActionForReportID(iouReportID, transactionID)?.reportActionID)) {
-        showGrowl();
-        return;
-    }
-
-    // No iouReportID to subscribe to (and no thread ID was passed): the reportActions key would be
-    // `reportActions_undefined`, so the subscription below could never resolve an iouAction and would only
-    // fire via the safety timeout. Resolve immediately with the same fallback the timeout would produce
-    // (a growl without "View" when no thread is resolvable).
-    if (!iouReportID) {
-        showGrowl();
-        return;
-    }
-
-    // Slow path: wait for Search to render → flushDeferredWrite('search') → API.write applies
-    // optimistic data → iouAction lands → we show the growl.
-    // Unlike the params threaded in above, this can't be passed down: it awaits a *future* write, not
-    // current state. Onyx has no promise-based get, so a transient, self-disconnecting subscription is
-    // the only way to wait for it.
-    let resolved = false;
-    let safetyTimeoutID: ReturnType<typeof setTimeout> | undefined;
-    const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}` as const;
-    const connectionId = Onyx.connectWithoutView({
-        key: reportActionsKey,
-        callback: () => {
-            if (resolved) {
-                return;
-            }
-            const iouAction = getIOUActionForReportID(iouReportID, transactionID);
-            if (!iouAction?.reportActionID) {
-                return;
-            }
-            resolved = true;
-            clearTimeout(safetyTimeoutID);
-            Onyx.disconnect(connectionId);
-            showGrowl();
-        },
-    });
-
-    safetyTimeoutID = setTimeout(() => {
-        if (resolved) {
-            return;
-        }
-        resolved = true;
-        Onyx.disconnect(connectionId);
-        showGrowl();
-    }, CONST.TIMING.EXPENSE_ADDED_GROWL_SAFETY_TIMEOUT);
-
-    // If the connect callback somehow resolved before the timeout was assigned, its clearTimeout was a no-op - drop the now-useless timer.
-    if (resolved) {
-        clearTimeout(safetyTimeoutID);
-    }
+    // The optimistic IOU action may still be sitting inside a deferred write (the deferred-for-search
+    // pattern), in which case a provided thread ID isn't enough yet - its report data is in that same
+    // write, so "View" would open a broken RHP. Show the growl once the pending write has applied,
+    // if nothing is pending, this runs synchronously.
+    runAfterDeferredWrite(showGrowl);
 }
 
 type SurfaceExpenseCreatedFeedbackParams = {

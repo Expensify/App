@@ -56,6 +56,12 @@ type DeferredChannel = {
      * instead of creating a new deferred channel.
      */
     flushRequested?: boolean;
+
+    /**
+     * One-shot callbacks registered via `runAfterDeferredWrite`, run right after `write()` applies the
+     * optimistic data. Lets consumers sequence work that needs the data to exist.
+     */
+    onFlush?: Array<() => void>;
 };
 
 const channels = new Map<string, DeferredChannel>();
@@ -140,6 +146,25 @@ function flushDeferredWrite(key: string) {
     clearChannelTimeout(channel);
     channels.delete(key);
     channel.write();
+    if (channel.onFlush) {
+        for (const cb of channel.onFlush) {
+            cb();
+        }
+    }
+}
+
+/**
+ * Run `callback` once the pending optimistic write has been applied to Onyx, after the next flush of the
+ * most-recently-registered active channel or immediately if nothing is pending.
+ * Used to sequence work that depends on the optimistic data existing.
+ */
+function runAfterDeferredWrite(callback: () => void) {
+    const channel = [...channels.values()].reverse().find((c) => !c.isReserved);
+    if (!channel) {
+        callback();
+        return;
+    }
+    channel.onFlush = [...(channel.onFlush ?? []), callback];
 }
 
 /**
@@ -292,5 +317,6 @@ export {
     hasDeferredWriteForReport,
     getOptimisticWatchKey,
     deferOrExecuteWrite,
+    runAfterDeferredWrite,
     resetForTesting,
 };

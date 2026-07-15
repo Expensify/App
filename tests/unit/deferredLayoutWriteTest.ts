@@ -8,6 +8,7 @@ import {
     registerDeferredWrite,
     reserveDeferredWriteChannel,
     resetForTesting,
+    runAfterDeferredWrite,
 } from '@libs/deferredLayoutWrite';
 
 import CONST from '@src/CONST';
@@ -328,6 +329,55 @@ describe('deferredLayoutWrite', () => {
 
             flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(false);
+        });
+    });
+
+    describe('runAfterDeferredWrite', () => {
+        it('runs the callback immediately when no write is pending', () => {
+            const callback = jest.fn();
+            runAfterDeferredWrite(callback);
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
+
+        it('runs the callback after the pending write flushes, not before', () => {
+            const apiWrite = jest.fn();
+            registerDeferredWrite('test', apiWrite);
+
+            const callback = jest.fn();
+            runAfterDeferredWrite(callback);
+            expect(callback).not.toHaveBeenCalled();
+
+            flushDeferredWrite('test');
+            expect(apiWrite).toHaveBeenCalledTimes(1);
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
+
+        it('runs the callback when the pending write fires via its safety timeout', () => {
+            registerDeferredWrite('test', jest.fn(), {safetyTimeoutMs: 3000});
+
+            const callback = jest.fn();
+            runAfterDeferredWrite(callback);
+            expect(callback).not.toHaveBeenCalled();
+
+            jest.advanceTimersByTime(3000);
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
+
+        it('runs the callback only once even across multiple flushes', () => {
+            registerDeferredWrite('test', jest.fn());
+            const callback = jest.fn();
+            runAfterDeferredWrite(callback);
+
+            flushDeferredWrite('test');
+            flushDeferredWrite('test');
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
+
+        it('ignores reserved-but-unregistered channels (runs immediately)', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            const callback = jest.fn();
+            runAfterDeferredWrite(callback);
+            expect(callback).toHaveBeenCalledTimes(1);
         });
     });
 });
