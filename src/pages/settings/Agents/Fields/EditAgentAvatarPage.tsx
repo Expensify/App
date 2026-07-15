@@ -34,7 +34,7 @@ import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type EditAgentAvatarPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_AVATAR>;
@@ -75,15 +75,6 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
     const [imageData, setImageData] = useState<ImageData>(EMPTY_IMAGE_DATA);
     const [errorData, setErrorData] = useState<{validationError: TranslationPaths | null; phraseParam: Record<string, unknown>}>({validationError: null, phraseParam: {}});
 
-    // Adopt the draft's preset if it loads after mount, but never clobber a selection the user already made here.
-    const hasUserEditedAvatar = useRef(false);
-    useEffect(() => {
-        if (hasUserEditedAvatar.current || !initialBotAvatar) {
-            return;
-        }
-        setSelectedBotAvatar(initialBotAvatar);
-    }, [initialBotAvatar]);
-
     const isDirty = selectedBotAvatar !== initialBotAvatar || imageData.uri !== '';
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
@@ -98,7 +89,6 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
     }
 
     const onImageSelected = (file: File | CustomRNImageManipulatorResult) => {
-        hasUserEditedAvatar.current = true;
         setSelectedBotAvatar(null);
         setImageData({
             uri: file?.uri ?? '',
@@ -207,7 +197,6 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                                     accessibilityLabel={translate('avatarPage.selectAvatar')}
                                     sentryLabel="EditAgentAvatar-BotAvatarSelector"
                                     onPress={() => {
-                                        hasUserEditedAvatar.current = true;
                                         setSelectedBotAvatar(() => id);
                                         setImageData(EMPTY_IMAGE_DATA);
                                     }}
