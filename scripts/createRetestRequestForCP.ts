@@ -214,7 +214,7 @@ async function run(): Promise<void> {
             continue;
         }
 
-        if (await alreadyFiled(prNumber, deployTag)) {
+        if (await isRetestAlreadyRequested(prNumber, deployTag)) {
             console.log(`Retest for PR #${prNumber} on ${deployTag} was already filed, skipping.`);
             continue;
         }
