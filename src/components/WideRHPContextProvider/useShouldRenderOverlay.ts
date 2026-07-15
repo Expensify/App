@@ -22,7 +22,13 @@ function useShouldRenderOverlay(condition: boolean, overlayProgress: Animated.Va
                 toValue: 0,
                 duration: OVERLAY_TIMING_DURATION,
                 useNativeDriver: false,
-            }).start(() => {
+            }).start(({finished}) => {
+                // When the hide animation is interrupted by a new show animation (the condition flipped back to true
+                // before the animation completed), this callback still fires with finished=false. Setting the state
+                // to false in that case would permanently hide the overlay that should be visible.
+                if (!finished) {
+                    return;
+                }
                 setShouldRenderOverlay(false);
             });
         }

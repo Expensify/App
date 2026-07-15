@@ -254,10 +254,11 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                         <View style={styles.w100}>
                             {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
                                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     shouldAlwaysShowDropdownMenu
                                     pressOnEnter
                                     customText={translate('workspace.common.selected', {count: selectedMembers.length})}
-                                    buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+                                    size={CONST.BUTTON_SIZE.MEDIUM}
                                     onPress={() => null}
                                     isSplitButton={false}
                                     options={bulkActionsButtonOptions}

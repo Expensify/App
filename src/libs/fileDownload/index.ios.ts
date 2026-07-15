@@ -12,7 +12,6 @@ import Share from 'react-native-share';
 import type {FileDownload} from './types';
 
 import {appendTimeToFileName, getFileName, getFileType, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
-import saveLocalFileToGallery from './saveLocalFileToGallery';
 
 const isUserCancelled = (err: unknown) => {
     let msg = '';
@@ -95,8 +94,7 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
  * Download the image to photo lib in iOS
  */
 function downloadImage(fileUrl: string) {
-    // Resolve to a truthy value so the shared success alert below still fires (the raw native result is unused).
-    return saveLocalFileToGallery(fileUrl).then(() => true);
+    return CameraRoll.saveAsset(fileUrl);
 }
 
 /**
