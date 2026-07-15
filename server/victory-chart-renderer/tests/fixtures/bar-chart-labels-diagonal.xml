@@ -1,0 +1,15 @@
+<victorychart width="680" height="480" domain="{x: [0.5, 8.5], y: [0, 6000]}" domainpadding="{x: 12, y: 0}" padding="{top: 92, bottom: 140, left: 96, right: 32}" style="{parent: {backgroundColor: '#F7F2EF', borderRadius: 16}}">
+    <victorylabel x="32" y="40" text="Top merchants" style="{fill: '#002E22', fontSize: 17, fontWeight: 700, fontFamily: 'Expensify Neue'}" />
+    <victorylabel x="32" y="62" text="As of: May 6, 12:49 PM PT" style="{fill: '#76847E', fontSize: 11, fontWeight: 400, fontFamily: 'Expensify Neue'}" />
+    <victoryaxis tickvalues="[1,2,3,4,5,6,7,8]" tickformat="['','','','','','','','']" style="{axis: {stroke: '#E6E1DA', strokeWidth: 1}, ticks: {stroke: 'transparent'}, tickLabels: {fill: 'transparent'}}" />
+    <victoryaxis dependentaxis tickvalues="[0,1500,3000,4500,6000]" tickformat="['$0','$1,500','$3,000','$4,500','$6,000']" style="{axis: {stroke: 'transparent'}, ticks: {stroke: 'transparent'}, grid: {stroke: '#E6E1DA', strokeWidth: 1}, tickLabels: {fill: '#76847E', fontSize: 11, fontWeight: 500, fontFamily: 'Expensify Neue', padding: 28}}" />
+    <victorybar barwidth="18" cornerradius="{top: 8, bottom: 8}" style="{data: {fill: '#13C96B'}}" data="[{x: 1, y: 5200},{x: 2, y: 4800},{x: 3, y: 4100},{x: 4, y: 3600},{x: 5, y: 2900},{x: 6, y: 2400},{x: 7, y: 1800},{x: 8, y: 1200}]" />
+    <victorylabel x="141" y="360" angle="45" text="Amazon Marketplace" textanchor="end" style="{fill: '#76847E', fontSize: 11, fontWeight: 500, fontFamily: 'Expensify Neue'}" />
+    <victorylabel x="207" y="360" angle="45" text="Whole Foods Market" textanchor="end" style="{fill: '#76847E', fontSize: 11, fontWeight: 500, fontFamily: 'Expensify Neue'}" />
+    <victorylabel x="273" y="360" angle="45" text="Delta Airlines Inc" textanchor="end" style="{fill: '#76847E', fontSize: 11, fontWeight: 500, fontFamily: 'Expensify Neue'}" />
+    <victorylabel x="339" y="360" angle="45" text="Marriott Hotels" textanchor="end" style="{fill: '#76847E', fontSize: 11, fontWeight: 500, fontFamily: 'Expensify Neue'}" />
+    <victorylabel x="405" y="360" angle="45" text="Uber Technologies" textanchor="end" style="{fill: '#76847E', fontSize: 11, fontWeight: 500, fontFamily: 'Expensify Neue'}" />
+    <victorylabel x="471" y="360" angle="45" text="Office Depot LLC" textanchor="end" style="{fill: '#76847E', fontSize: 11, fontWeight: 500, fontFamily: 'Expensify Neue'}" />
+    <victorylabel x="537" y="360" angle="45" text="Staples Business" textanchor="end" style="{fill: '#76847E', fontSize: 11, fontWeight: 500, fontFamily: 'Expensify Neue'}" />
+    <victorylabel x="603" y="360" angle="45" text="FedEx Shipping" textanchor="end" style="{fill: '#76847E', fontSize: 11, fontWeight: 500, fontFamily: 'Expensify Neue'}" />
+</victorychart>

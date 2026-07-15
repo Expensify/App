@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import {findClosestPoint, useChartInteractions} from '@components/Charts/hooks/useChartInteractions';
+import {findClosestPoint, findClosestPointAnyOrder, getRightTooltipAnchorX, TOOLTIP_BAR_GAP, useChartInteractions} from '@components/Charts/hooks/useChartInteractions';
 
 import {useSharedValue} from 'react-native-reanimated';
 
@@ -91,6 +91,34 @@ describe('findClosestPoint', () => {
 });
 
 /**
+ * findClosestPointAnyOrder — linear scan for the nearest value regardless of sort order
+ */
+describe('findClosestPointAnyOrder', () => {
+    it('returns -1 for an empty array', () => {
+        expect(findClosestPointAnyOrder([], 50)).toBe(-1);
+    });
+
+    it('returns the closest index for ascending values', () => {
+        expect(findClosestPointAnyOrder([10, 50, 90], 48)).toBe(1);
+    });
+
+    it('returns the closest index for descending values', () => {
+        expect(findClosestPointAnyOrder([90, 50, 10], 48)).toBe(1);
+    });
+
+    it('keeps the first index when two values are equally close', () => {
+        expect(findClosestPointAnyOrder([0, 100], 50)).toBe(0);
+    });
+});
+
+describe('getRightTooltipAnchorX', () => {
+    it('anchors to the right of the bar end with the tooltip gap', () => {
+        expect(getRightTooltipAnchorX(120)).toBe(120 + TOOLTIP_BAR_GAP);
+        expect(getRightTooltipAnchorX(40)).toBe(40 + TOOLTIP_BAR_GAP);
+    });
+});
+
+/**
  * useChartInteractions hook
  */
 describe('useChartInteractions', () => {
@@ -157,5 +185,42 @@ describe('useChartInteractions', () => {
         );
 
         expect(result.current.customGestures).toBeTruthy();
+    });
+
+    it('returns tooltipPlacement from hook options', () => {
+        const {result} = renderHook(() =>
+            useChartInteractions({
+                ...defaultProps,
+                tooltipPlacement: 'right',
+            }),
+        );
+
+        expect(result.current.tooltipPlacement).toBe('right');
+    });
+
+    it('returns right-placed tooltip coordinates from initialTooltipPosition', () => {
+        const {result} = renderHook(() =>
+            useChartInteractions({
+                ...defaultProps,
+                tooltipPlacement: 'right',
+            }),
+        );
+
+        expect(result.current.initialTooltipPosition.get()).toEqual({
+            x: TOOLTIP_BAR_GAP,
+            y: 0,
+        });
+    });
+
+    it('returns above-placed tooltip coordinates from initialTooltipPosition', () => {
+        const {result} = renderHook(() => {
+            const yZero = useSharedValue(120);
+            return useChartInteractions({...defaultProps, yZero});
+        });
+
+        expect(result.current.initialTooltipPosition.get()).toEqual({
+            x: 0,
+            y: -TOOLTIP_BAR_GAP,
+        });
     });
 });

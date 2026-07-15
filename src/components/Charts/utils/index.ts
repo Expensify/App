@@ -1,9 +1,20 @@
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
-import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    ELLIPSIS,
+    GLYPH_PADDING,
+    LABEL_PADDING,
+    LABEL_ROTATIONS,
+    MAX_X_AXIS_LABEL_WIDTH,
+    MAX_Y_AXIS_LABEL_WIDTH,
+    SIN_45,
+} from '@components/Charts/VictoryTheme';
 
 import variables from '@styles/variables';
 
-import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {NonUniformRRect, SkParagraph, SkParagraphBuilder, SkPath, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {RoundedCorners} from 'victory-native';
 
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
@@ -218,7 +229,12 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
  */
 function processDataIntoSlices(
     data: ChartDataPoint[],
-    pieGeometry: {centerX: number; centerY: number; radius: number; innerRadius: number},
+    pieGeometry: {
+        centerX: number;
+        centerY: number;
+        radius: number;
+        innerRadius: number;
+    },
     startAngle: number = VictoryTheme.pie.startAngle,
 ): PieSlice[] {
     const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
@@ -230,7 +246,11 @@ function processDataIntoSlices(
     const tooltipRadius = (pieGeometry.innerRadius + pieGeometry.radius) / 2;
 
     return data
-        .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index}))
+        .map((point, index) => ({
+            label: point.label,
+            absTotal: Math.abs(point.total),
+            originalIndex: index,
+        }))
         .sort((a, b) => b.absTotal - a.absTotal)
         .reduce<{slices: PieSlice[]; angle: number}>(
             (acc, slice, index) => {
@@ -425,6 +445,77 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
     return scaleLinear().domain([paddedMin, paddedMax]).nice().ticks(tickCount);
 }
 
+/** Returns truncated category labels for horizontal bar chart Y-axis rendering. */
+function truncateCategoryLabels(labels: string[], labelWidths: number[], ellipsisWidth: number): string[] {
+    return labels.map((label, index) => truncateLabel(label, labelWidths.at(index) ?? 0, MAX_Y_AXIS_LABEL_WIDTH, ellipsisWidth));
+}
+
+/** Returns the pixel width needed for truncated category labels on the Y axis in horizontal bar charts. */
+function getCategoryLabelWidth(truncatedLabels: string[], fontManager: SkTypefaceFontProvider | null, fontSize: number): number {
+    if (!fontManager || truncatedLabels.length === 0) {
+        return 0;
+    }
+
+    return Math.max(0, ...truncatedLabels.map((label) => measureTextWidth(label, fontManager, fontSize)));
+}
+
+type VerticalBarChartGeometry = {
+    barAreaWidth: number;
+    boundsLeft: number;
+    boundsRight: number;
+    domainPadding: {top: number; bottom: number; left: number; right: number};
+};
+
+/** Default domain padding for vertical bar charts (matches BarChartContent). */
+const VERTICAL_BAR_BASE_DOMAIN_PADDING = {
+    top: 32,
+    bottom: 0,
+    left: 0,
+    right: 0,
+};
+
+/**
+ * Estimates vertical bar chart plot geometry from container width.
+ * Used to decide label orientation when the vertical CartesianChart is not mounted (e.g. horizontal-bar fallback).
+ */
+function estimateVerticalBarChartGeometry(
+    chartWidth: number,
+    data: ChartDataPoint[],
+    fontManager: SkTypefaceFontProvider | null,
+    fontSize: number,
+    formatValue: (value: number) => string,
+    innerPadding: number,
+    baseDomainPadding: {
+        top: number;
+        bottom: number;
+        left: number;
+        right: number;
+    } = VERTICAL_BAR_BASE_DOMAIN_PADDING,
+): VerticalBarChartGeometry {
+    if (chartWidth === 0) {
+        return {
+            barAreaWidth: 0,
+            boundsLeft: 0,
+            boundsRight: 0,
+            domainPadding: baseDomainPadding,
+        };
+    }
+
+    const horizontalPadding = calculateMinDomainPadding(chartWidth, data.length, innerPadding);
+    const domainPadding = {
+        ...baseDomainPadding,
+        left: horizontalPadding,
+        right: horizontalPadding,
+    };
+
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, fontSize, baseDomainPadding);
+    const boundsLeft = yAxisLabelWidth + GLYPH_PADDING;
+    const boundsRight = chartWidth - VictoryTheme.axis.padding.right;
+    const barAreaWidth = Math.max(0, boundsRight - boundsLeft);
+
+    return {barAreaWidth, boundsLeft, boundsRight, domainPadding};
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -445,6 +536,37 @@ function getYAxisLabelWidth(
             measureTextWidth(formatValue(tick), fontManager, fontSize),
         ),
     );
+}
+
+/**
+ * Builds a Skia rounded-rect path for a single horizontal bar segment.
+ *
+ * victory-native's `Bar` component (`useBarPath`) always measures bar height as `yScale(0) - y`
+ * and positions bars centered on `x` — i.e. it only knows how to draw vertical bars. Horizontal,
+ * per-point-colored bars therefore can't use that component and must build their own path,
+ * extending from the zero value (`xZero`) to the data point along the x-axis and centered on `y`.
+ */
+function createHorizontalBarPath(x: number, y: number, xZero: number, barThickness: number, roundedCorners: RoundedCorners): SkPath {
+    const path = Skia.Path.Make();
+    const left = Math.min(x, xZero);
+    const width = Math.abs(x - xZero);
+    const rect: NonUniformRRect = {
+        rect: {x: left, y: y - barThickness / 2, width, height: barThickness},
+        topLeft: {x: roundedCorners.topLeft ?? 0, y: roundedCorners.topLeft ?? 0},
+        topRight: {x: roundedCorners.topRight ?? 0, y: roundedCorners.topRight ?? 0},
+        bottomRight: {x: roundedCorners.bottomRight ?? 0, y: roundedCorners.bottomRight ?? 0},
+        bottomLeft: {x: roundedCorners.bottomLeft ?? 0, y: roundedCorners.bottomLeft ?? 0},
+    };
+    path.addRRect(rect);
+    return path;
+}
+
+/**
+ * Resolves the fill color for a bar at the given data index: a single shared color when
+ * `useSingleColor` is set, otherwise a distinct color per bar from the chart's palette.
+ */
+function getBarColor(useSingleColor: boolean, dataIndex: number): string {
+    return useSingleColor ? VictoryTheme.colors.default : VictoryTheme.colors.getColor(dataIndex);
 }
 
 export {
@@ -470,7 +592,13 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceYAxisTicks,
+    getCategoryLabelWidth,
     getYAxisLabelWidth,
+    truncateCategoryLabels,
+    estimateVerticalBarChartGeometry,
+    createHorizontalBarPath,
+    getBarColor,
+    VERTICAL_BAR_BASE_DOMAIN_PADDING,
 };
 
-export type {ChartLabelHitTestParams};
+export type {ChartLabelHitTestParams, VerticalBarChartGeometry};

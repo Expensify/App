@@ -21,6 +21,10 @@ const FIXTURE_EXPECTED_SIZES = new Map<string, {width: number; height: number}>(
     ['top-categories-10', {width: 680, height: 610}],
     ['top-employees-by-spend', {width: 680, height: 464}],
     ['top-employees-by-spend-truncated-labels', {width: 680, height: 464}],
+    ['bar-chart-labels-fit', {width: 680, height: 430}],
+    ['bar-chart-labels-diagonal', {width: 680, height: 480}],
+    ['bar-chart-labels-horizontal', {width: 680, height: 720}],
+    ['search-merchants-by-spend-horizontal', {width: 680, height: 936}],
 ]);
 
 type PngPixel = {

@@ -1,6 +1,7 @@
 import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {CartesianChartData, PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
+import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseRawChartData from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawChartData';
 import resolveCategoryIndex from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveCategoryIndex';
 
@@ -21,9 +22,12 @@ function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootP
         if (isHorizontal) {
             // Even though the X-Axis is going to hold the y values on horizontal mode, it's not the independent axis
             // thus we cannot use `point.y` as the key since two points can have the same y value.
+            const categoryIndex = typeof point.x === 'number' ? point.x : resolveCategoryIndex(categories, String(point.x));
+            const categoryCount = categories?.length ?? 0;
+            const invertedCategoryIndex = categoryIndex >= 0 && categoryCount > 0 ? categoryCount - 1 - categoryIndex : categoryIndex;
             data[`${point.y}-${point.x}`] = {
                 [X_KEY]: point.y,
-                [yKey]: typeof point.x === 'number' ? point.x : resolveCategoryIndex(categories, String(point.x)),
+                [yKey]: invertedCategoryIndex,
             } as CartesianChartData;
         } else {
             data[point.x] = {
@@ -32,7 +36,13 @@ function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootP
             } as CartesianChartData;
         }
     }
-    return {data, yKeys: [yKey]};
+    const barWidth = tnode.tagName === 'victorybar' ? parseAttributeAsNumber(tnode.attributes.barwidth) : undefined;
+
+    return {
+        data,
+        yKeys: [yKey],
+        ...(barWidth !== undefined ? {barWidth} : {}),
+    };
 }
 
 export default parseVictorySeriesNode;

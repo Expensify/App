@@ -1,0 +1,7 @@
+<victorychart width="680" height="430" domain="{x: [0.5, 6.5], y: [0, 5000]}" domainpadding="{x: 18, y: 0}" padding="{top: 92, bottom: 108, left: 96, right: 32}" style="{parent: {backgroundColor: '#F7F2EF', borderRadius: 16}}">
+    <victorylabel x="32" y="40" text="Top categories" style="{fill: '#002E22', fontSize: 17, fontWeight: 700, fontFamily: 'Expensify Neue'}" />
+    <victorylabel x="32" y="62" text="As of: May 6, 12:49 PM PT" style="{fill: '#76847E', fontSize: 11, fontWeight: 400, fontFamily: 'Expensify Neue'}" />
+    <victoryaxis tickvalues="[1,2,3,4,5,6]" tickformat="['Airfare','Meals','Hotels','Taxi','Supplies','Other']" style="{axis: {stroke: '#E6E1DA', strokeWidth: 1}, ticks: {stroke: 'transparent'}, tickLabels: {fill: '#76847E', fontSize: 11, fontWeight: 500, fontFamily: 'Expensify Neue', padding: 16}}" />
+    <victoryaxis dependentaxis tickvalues="[0,1000,2000,3000,4000,5000]" tickformat="['$0','$1,000','$2,000','$3,000','$4,000','$5,000']" style="{axis: {stroke: 'transparent'}, ticks: {stroke: 'transparent'}, grid: {stroke: '#E6E1DA', strokeWidth: 1}, tickLabels: {fill: '#76847E', fontSize: 11, fontWeight: 500, fontFamily: 'Expensify Neue', padding: 28}}" />
+    <victorybar barwidth="24" cornerradius="{top: 8, bottom: 8}" style="{data: {fill: '#13C96B'}}" data="[{x: 1, y: 4200},{x: 2, y: 3100},{x: 3, y: 2800},{x: 4, y: 1900},{x: 5, y: 1500},{x: 6, y: 900}]" />
+</victorychart>
