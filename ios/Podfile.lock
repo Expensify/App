@@ -397,15 +397,14 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - MapboxCommon (23.11.4)
-  - MapboxCoreMaps (10.19.2):
-    - MapboxCommon (~> 23.11)
-  - MapboxMaps (10.19.4):
-    - MapboxCommon (= 23.11.4)
-    - MapboxCoreMaps (= 10.19.2)
-    - MapboxMobileEvents (= 2.0.0)
-    - Turf (= 2.8.0)
-  - MapboxMobileEvents (2.0.0)
+  - MapboxCommon (24.23.1):
+    - Turf (= 4.0.0)
+  - MapboxCoreMaps (11.23.1):
+    - MapboxCommon (= 24.23.1)
+  - MapboxMaps (11.23.1):
+    - MapboxCommon (= 24.23.1)
+    - MapboxCoreMaps (= 11.23.1)
+    - Turf (= 4.0.0)
   - nanopb (3.30910.0):
     - nanopb/decode (= 3.30910.0)
     - nanopb/encode (= 3.30910.0)
@@ -515,6 +514,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -540,6 +540,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -564,6 +565,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -590,6 +592,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -615,6 +618,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -640,6 +644,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -665,6 +670,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -690,6 +696,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -715,6 +722,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -740,6 +748,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -765,6 +774,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -790,6 +800,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -815,6 +826,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -840,6 +852,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -3771,19 +3784,19 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - rnmapbox-maps (10.1.44):
-    - MapboxMaps (~> 10.19.0)
+  - rnmapbox-maps (10.3.2):
+    - MapboxMaps (~> 11.23.1)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.1.44)
+    - rnmapbox-maps/DynamicLibrary (= 10.3.2)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.1.44):
+  - rnmapbox-maps/DynamicLibrary (10.3.2):
     - boost
     - DoubleConversion
     - fast_float
     - fmt
     - hermes-engine
-    - MapboxMaps (~> 10.19.0)
+    - MapboxMaps (~> 11.23.1)
     - RCT-Folly
     - RCT-Folly/Fabric
     - RCTRequired
@@ -4260,7 +4273,7 @@ PODS:
   - SocketRocket (0.7.1)
   - SwiftUIIntrospect (1.3.0)
   - TrustKit (3.0.7)
-  - Turf (2.8.0)
+  - Turf (4.0.0)
   - TweetNacl (1.0.2)
   - UMAppLoader (56.0.1)
   - VisionCamera (4.7.2):
@@ -4453,7 +4466,6 @@ SPEC REPOS:
     - MapboxCommon
     - MapboxCoreMaps
     - MapboxMaps
-    - MapboxMobileEvents
     - nanopb
     - NWWebSocket
     - Onfido
@@ -4784,7 +4796,7 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 50d11b2f62c4a490d4e81a1c36f70e2ecb70a27e
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXConstants: 1c400bb9969f4c9e5ab324553138b74ae47b9efe
   expensify-react-native-background-task: 03c640e1f5649692d058cba48c0a138f024a6dd3
@@ -4825,16 +4837,15 @@ SPEC CHECKSUMS:
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  hermes-engine: 1b6b62bc3b37e6f2d15ec9933061afd80cb15351
+  hermes-engine: 1a37d030ed54575ddb733c6484f4b70fbcda5d87
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
   lottie-react-native: 7696ee54db539844f215c7e1f37372ae3138f37d
-  MapboxCommon: cc47fafe3fe5408ca49240aa80fa64f27f275711
-  MapboxCoreMaps: 35685edba03e44468aed57c3dfd7f8795edafda8
-  MapboxMaps: f87023cf0d72b180b40ea0b6fb4b2d7db6b73b71
-  MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
+  MapboxCommon: d006256c4643860a7b3046af45d1671569b6c5ac
+  MapboxCoreMaps: de1a4461d0ab5d65d907f06e8d82fdbe06bb3213
+  MapboxMaps: 22340ae0e0d47b2e4761019b1d6c569ab04e088d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   NitroModules: f8c2cc3025e4550aee15ff77c525622bf98e774a
   NWWebSocket: b4741420f1976e1dff4da3edad00c401e4f1d769
@@ -4852,7 +4863,7 @@ SPEC CHECKSUMS:
   RCTTypeSafety: 47f936a87875e1a08ccf1ffe34e8bf29f1d85567
   React: e2dc35338068bbd299c66f043ae0d7f25de8499e
   React-callinvoker: d3163d80425735b095cff517da3b8631691fd734
-  React-Core: 821522bb86acc8bbe37698e87a6862a1f0504b05
+  React-Core: 4b12e8863a200ff319a724cdf3f7bb461ac30fbd
   React-CoreModules: f732869c77b076b962a4e3ee5becd704a87d2817
   React-cxxreact: 84b7c9400c1c84bde649d06755b9c64b48114904
   React-debug: f6293d03b643d4bcc487c7da7c745a75fd48ad7d
@@ -4903,7 +4914,7 @@ SPEC CHECKSUMS:
   React-NativeModulesApple: 67c09c715a8763a07a8a241a3019661ffc3f71d6
   React-networking: 72b8973a280b6a54e46930717e6c15f7c389d76e
   React-oscompat: 563c536fc2d9cece1f54442fa2a3d9f68a9621e3
-  React-perflogger: 69b12c83ec90d61e9fc8055bdce33f3fed9978b3
+  React-perflogger: 5bfe39e71aa4432d197003142eaef4158c03b69d
   React-performancecdpmetrics: dc08b5f87fa0c9c43915bfcd58b8124d2d07c8f9
   React-performancetimeline: 773a4631cf1a12499d25e5afe356c0d4934cb509
   React-RCTActionSheet: ea8200cac284d410090bd780baf729903912e4e6
@@ -4919,7 +4930,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: 1ba76e945f541c1c246618d2775caea0c6a76e26
   React-RCTText: 1d7a4f263266efbd5fa5335a107fbd00ff94ba9e
   React-RCTVibration: 0de7b5cc470892e4a65358ae7853f117fe5c2173
-  React-rendererconsistency: e90b9e1bab21c3fabbaa220c3fab820ee81c59d9
+  React-rendererconsistency: 88c6e0d56897a13f9254a1fd14d909a99d29486c
   React-renderercss: 41759ec6208f3afe6f7cd0205d4358a983f7ac6d
   React-rendererdebug: 0ddb9d40c7e40d47b03e7ef76b8ea02157ccf83c
   React-RuntimeApple: 345c69430aba5a1f958962e7ea03d2bd88f017d0
@@ -4946,7 +4957,7 @@ SPEC CHECKSUMS:
   RNGoogleSignin: 89877c73f0fbf6af2038fbdb7b73b5a25b8330cc
   RNLiveMarkdown: a368618d21adf1269daf840645f0fc1b6b141003
   RNLocalize: 05e367a873223683f0e268d0af9a8a8e6aed3b26
-  rnmapbox-maps: 392ac61c42a9ff01a51d4c2f6775d9131b5951fb
+  rnmapbox-maps: 8b7629ef3ae59dd96340470e568cbc7c08c54ff9
   RNNitroSQLite: a9b5965d511ed6e99ce903380e64934d043a0d2c
   RNPermissions: 518f0a0c439acc74e2b9937e0e7d29e5031ae949
   RNReactNativeHapticFeedback: 5f1542065f0b24c9252bd8cf3e83bc9c548182e4
@@ -4964,7 +4975,7 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
   TrustKit: 1050f3ce0595f8ed775f1237b7f590e3a4f93e91
-  Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
+  Turf: c9eb11a65d96af58cac523460fd40fec5061b081
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
   UMAppLoader: b7d22886a244871c20b5a8f2fcea13c18534e677
   VisionCamera: 30b358b807324c692064f78385e9a732ce1bebfe

@@ -16,7 +16,7 @@ import Onyx from 'react-native-onyx';
 
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
-import isTrackOnboardingChoice from './OnboardingUtils';
+import {isTrackOnboardingChoice} from './OnboardingUtils';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
@@ -91,7 +91,7 @@ function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
     return (report?.transactionCount ?? 0) > 0;
 }
 
-function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
+function buildOptimisticNextStep(params: BuildNextStepNewParams & {isTrackIntentUser: boolean | undefined}): ReportNextStep | null {
     const {
         report,
         policy,
@@ -105,6 +105,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         isReopen,
         isRejectedReport: isRejectedReportParam,
         bypassNextApproverID,
+        isTrackIntentUser,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -156,7 +157,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy})
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy})
                         ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
                         : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -220,7 +221,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             if (hasTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
                     messageKey: shouldShowMarkAsDone({
-                        isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
+                        isTrackIntentUser,
                         report,
                         policy,
                     })
@@ -503,7 +504,6 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         isRejectedReport,
         bypassNextApproverID,
     } = params;
-
     if (!isExpenseReport(report)) {
         return null;
     }
