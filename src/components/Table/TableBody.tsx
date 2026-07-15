@@ -54,7 +54,7 @@ type TableBodyProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableBody<DataType extends TableData>({contentContainerStyle, style, ...props}: TableBodyProps) {
+function TableBody({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isListLoaded, setIsListLoaded] = React.useState(false);
@@ -75,7 +75,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         isEmptyResult,
         originalDataLength,
         tableListMetadata,
-    } = useTableContext<DataType>();
+    } = useTableContext<TableData>();
     const {
         ListEmptyComponent,
         ListHeaderComponent,
@@ -147,7 +147,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
             {headerComponent}
         </>
     );
-    const listData = buildTableListData<DataType>(filteredAndSortedData, tableListMetadata);
+    const listData = buildTableListData<TableData>(filteredAndSortedData, tableListMetadata);
     const adjustedStickyHeaderIndices = getAdjustedStickyHeaderIndices(tableListMetadata, stickyHeaderIndices);
     const canRenderStickyHeader = !tableListMetadata.shouldRenderStickyHeader || (isListLoaded && hasActivatedStickyHeader);
 
@@ -171,7 +171,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         listEmptyComponent = undefined;
     }
 
-    const renderListItem = (info: ListRenderItemInfo<DataType>) => {
+    const renderListItem = (info: ListRenderItemInfo<TableData>) => {
         const rowKind = getSyntheticRowKind(info.index, tableListMetadata);
 
         switch (rowKind) {
@@ -189,7 +189,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         }
     };
 
-    const keyExtractorForList = (item: DataType, index: number) => {
+    const keyExtractorForList = (item: TableData, index: number) => {
         const rowKind = getSyntheticRowKind(index, tableListMetadata);
 
         if (rowKind !== 'data') {
@@ -199,7 +199,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         return keyExtractor?.(item, getDataIndex(index, tableListMetadata)) ?? item.keyForList;
     };
 
-    const getItemTypeForList = (item: DataType, index: number, extraData: unknown) => {
+    const getItemTypeForList = (item: TableData, index: number, extraData: unknown) => {
         const rowKind = getSyntheticRowKind(index, tableListMetadata);
 
         if (rowKind !== 'data') {
@@ -215,7 +215,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
             style={[styles.flex1, styles.mnh0, style]}
             {...props}
         >
-            <FlashList<DataType>
+            <FlashList<TableData>
                 ref={listRef}
                 data={listData}
                 style={[styles.flex1, styles.mnh0]}
@@ -247,4 +247,4 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
     );
 }
 
-export default TableBody;
+export default React.memo(TableBody);
