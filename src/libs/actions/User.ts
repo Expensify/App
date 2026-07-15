@@ -9,7 +9,6 @@ import type {
     GetStatementPDFParams,
     PusherPingParams,
     RequestContactMethodValidateCodeParams,
-    ResendValidateCodeParams,
     RevokeDeviceParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
@@ -205,8 +204,8 @@ function closeAccount(reason: string) {
 /**
  * Resend a validation link to a given login
  */
-function resendValidateCode(reasonParams: ResendValidateCodeParams, login: string) {
-    sessionResendValidateCode(reasonParams, login);
+function resendValidateCode(login: string) {
+    sessionResendValidateCode(login);
 }
 
 /**
@@ -515,7 +514,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
 /**
  * Requests a magic code to verify current user
  */
-function requestValidateCodeAction(params?: ResendValidateCodeParams) {
+function requestValidateCodeAction() {
     const requestedAt = Date.now();
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
@@ -567,7 +566,7 @@ function requestValidateCodeAction(params?: ResendValidateCodeParams) {
         },
     ];
 
-    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, params ?? null, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
 }
 
 /**
