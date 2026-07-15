@@ -8919,8 +8919,8 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should collect Top Spenders-eligible policy IDs and scope the suggested search query to them', () => {
-            const eligiblePolicyID = 'GROUPWS01';
-            const ineligiblePolicyID = 'PERSONALWS02';
+            const eligiblePolicyID = 'GROUP_POLICY_01';
+            const ineligiblePolicyID = 'PERSONAL_POLICY_02';
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`policy_${eligiblePolicyID}`]: {
