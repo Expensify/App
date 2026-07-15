@@ -2574,6 +2574,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     policy: fakePolicy,
                     policyCategories: {},
                     policyTags: {},
+                    reportPolicyTags: undefined,
                     policyRecentlyUsedCategories: [],
                     policyRecentlyUsedTags: undefined,
                     parentReportNextStep: undefined,
@@ -2583,6 +2584,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     distanceOriginalPolicy: undefined,
                     policyForTrackExpense: undefined,
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
+                    isTrackIntentUser: false,
                 },
                 newMerchant,
             );
