@@ -15,6 +15,22 @@ import DateUtils from './DateUtils';
  * so comparing them as strings is correct.
  */
 
+// The cutoff the client currently holds. Consumers that only need the value (not the change event,
+// which subscribeToFullReconnect owns) read it through getServerReconnectCutoff instead of opening
+// their own connection. Nothing in the UI shows it, so connectWithoutView is correct here. Do not
+// copy this into a component: use useOnyx there so the UI updates when the value changes.
+let currentServerReconnectCutoff = '';
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
+    callback: (value) => {
+        currentServerReconnectCutoff = value ?? '';
+    },
+});
+
+function getServerReconnectCutoff(): string {
+    return currentServerReconnectCutoff;
+}
+
 /**
  * An empty last reconnect time means the app has never reconnected, so this returns true. An empty
  * cutoff means the server has not asked for one, so this returns false.
@@ -39,35 +55,30 @@ function getLastFullReconnectTimeToRecord(serverReconnectCutoff: string): string
 
 /**
  * The response of an OpenApp or full-ReconnectApp request can itself deliver a newer server cutoff
- * than the one known when the request was built. The reconnect time in the request's successData was
- * computed from that build-time cutoff, so it can land below the delivered one and the app would read
- * itself as stale right after downloading everything. This recomputes the time from the cutoff the
- * response actually carries and writes it to both places that matter, in place:
- * - into the response's onyxData, right before the cutoff entry, so the two values are saved together
- *   and the reconnect subscription never sees a new cutoff next to an old reconnect time;
- * - into the successData entry (raising it, never lowering), so the later successData write cannot
- *   undo the value seeded above.
+ * than the one known when the request was built, so the reconnect time must be recorded from the
+ * response, not computed up front. A build-time value can land below the delivered cutoff (a device
+ * clock behind the server makes this real) and the app would read itself as stale right after
+ * downloading everything. This records a time that satisfies every cutoff the client can see: the
+ * one the response delivers and the one already held in Onyx. The held one can be newer (a Pusher
+ * update can overtake an in-flight response) or the only one (a response that delivers no cutoff
+ * while an older one is held); recording below it would read as stale and fire an extra reconnect.
  *
- * The "saved together" claim assumes Onyx broadcasts a batch's merges in array order — true today
- * because both keys are cache-resident (see subscribeToFullReconnect.ts) and pinned by the
+ * The recorded entry is placed right before the delivered cutoff entry, so the two values are saved
+ * together and the reconnect subscription never sees a new cutoff next to an old reconnect time. A
+ * response with no cutoff still records the time: the full download happened either way.
+ *
+ * The "saved together" claim assumes Onyx broadcasts a batch's merges in array order. That holds
+ * today because both keys are cache-resident (see subscribeToFullReconnect.ts) and is pinned by the
  * SubscribeToFullReconnect e2e test. If it ever stopped holding, the worst case is one transient
- * extra reconnect, never a loop — the recorded time still settles at or above the delivered cutoff.
+ * extra reconnect, never a loop: the recorded time still settles at or above both cutoffs.
  */
-function recordFullReconnectTimeFromResponse(responseOnyxData: AnyOnyxUpdate[], successData: AnyOnyxUpdate[] | undefined): void {
+function recordFullReconnectTimeFromResponse(responseOnyxData: AnyOnyxUpdate[], knownServerReconnectCutoff: string): void {
     const cutoffIndex = responseOnyxData.findIndex((update) => update.key === ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE);
-    const recordedTimeEntry = successData?.find((update) => update.key === ONYXKEYS.LAST_FULL_RECONNECT_TIME);
-    if (cutoffIndex === -1 || !recordedTimeEntry) {
-        return;
-    }
-
-    const deliveredCutoffValue: unknown = responseOnyxData.at(cutoffIndex)?.value;
+    const deliveredCutoffValue: unknown = cutoffIndex === -1 ? undefined : responseOnyxData.at(cutoffIndex)?.value;
     const deliveredCutoff = typeof deliveredCutoffValue === 'string' ? deliveredCutoffValue : '';
-    const timeForDeliveredCutoff = getLastFullReconnectTimeToRecord(deliveredCutoff);
-    const buildTimeValue = typeof recordedTimeEntry.value === 'string' ? recordedTimeEntry.value : '';
-    const valueToRecord = timeForDeliveredCutoff >= buildTimeValue ? timeForDeliveredCutoff : buildTimeValue;
-
-    recordedTimeEntry.value = valueToRecord;
-    responseOnyxData.splice(cutoffIndex, 0, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.LAST_FULL_RECONNECT_TIME, value: valueToRecord});
+    const cutoffToSatisfy = deliveredCutoff > knownServerReconnectCutoff ? deliveredCutoff : knownServerReconnectCutoff;
+    const insertionIndex = cutoffIndex === -1 ? responseOnyxData.length : cutoffIndex;
+    responseOnyxData.splice(insertionIndex, 0, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.LAST_FULL_RECONNECT_TIME, value: getLastFullReconnectTimeToRecord(cutoffToSatisfy)});
 }
 
-export {shouldTriggerFullReconnect, getLastFullReconnectTimeToRecord, recordFullReconnectTimeFromResponse};
+export {shouldTriggerFullReconnect, getLastFullReconnectTimeToRecord, getServerReconnectCutoff, recordFullReconnectTimeFromResponse};

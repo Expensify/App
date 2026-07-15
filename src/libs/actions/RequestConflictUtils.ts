@@ -149,6 +149,15 @@ function reconnectCoverageFrom(request: AnyRequest): number {
 }
 
 /**
+ * A request whose success means the app downloaded everything: OpenApp, or a ReconnectApp without
+ * `updateIDFrom` (a partial one fetches updates from that ID instead). This is the same rule the
+ * reconnect dedup above expresses as coverage 0.
+ */
+function isFullDownloadRequest(request: AnyRequest): boolean {
+    return isReconnectFamilyRequest(request) && reconnectCoverageFrom(request) === 0;
+}
+
+/**
  * Coverage-based duplicate resolver for an incoming ReconnectApp. See the Conflict Resolution section of
  * contributingGuides/SEQUENTIAL_QUEUE.md for how coverage and the ongoing-request check decide the outcome.
  * Preserve it in the SequentialQueue refactor.
@@ -353,6 +362,7 @@ export {
     resolveOpenReportDuplicationConflictAction,
     resolveReconnectDuplicationConflictAction,
     readUpdateIDFrom,
+    isFullDownloadRequest,
     resolveCommentDeletionConflicts,
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,

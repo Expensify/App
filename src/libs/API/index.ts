@@ -67,7 +67,7 @@ addMiddleware(Pagination);
 // SentryServerTiming - Tracks server round-trip time for configured command groups via Sentry spans.
 addMiddleware(SentryServerTiming);
 
-// RecordFullReconnectTime - Recomputes the reconnect time in an OpenApp/ReconnectApp request's successData from the cutoff its response delivered, so the app doesn't read itself as stale right after a full download. Must run before SaveResponseInOnyx applies the response.
+// RecordFullReconnectTime - Records the full-reconnect time into an OpenApp/full-ReconnectApp response, computed from the cutoff the response delivered, so the app doesn't read itself as stale right after a full download. Must run before SaveResponseInOnyx applies the response.
 addMiddleware(RecordFullReconnectTime);
 
 // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data

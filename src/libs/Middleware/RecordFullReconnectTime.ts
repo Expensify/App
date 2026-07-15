@@ -1,5 +1,5 @@
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {recordFullReconnectTimeFromResponse} from '@libs/FullReconnectUtils';
+import {isFullDownloadRequest} from '@libs/actions/RequestConflictUtils';
+import {getServerReconnectCutoff, recordFullReconnectTimeFromResponse} from '@libs/FullReconnectUtils';
 
 import CONST from '@src/CONST';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
@@ -7,23 +7,19 @@ import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import type Middleware from './types';
 
 /**
- * An OpenApp or full-ReconnectApp response can deliver a newer "reconnect if older than X" cutoff
- * than the one known when the request was built. The reconnect time waiting in the request's
- * successData was computed from that older cutoff, so the app would save a time below the delivered
- * cutoff, read itself as stale, and fire an extra full reconnect right after downloading everything
- * (a device clock behind the server makes this real; see recordFullReconnectTimeFromResponse).
- * Recompute the time from the cutoff the response actually carries before the response is applied.
+ * Records LAST_FULL_RECONNECT_TIME whenever a full download finishes: on every successful OpenApp
+ * and full-ReconnectApp response (isFullDownloadRequest is the same rule the queue's reconnect
+ * dedup uses, so the two cannot drift apart). The time is recorded from the response, not computed
+ * when the request is built; see recordFullReconnectTimeFromResponse for why.
  */
 const recordFullReconnectTime: Middleware = (requestResponse, request) =>
     requestResponse.then((response) => {
-        if (request.command !== WRITE_COMMANDS.OPEN_APP && request.command !== SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP) {
-            return response;
-        }
-        if (!response?.onyxData || response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+        if (!isFullDownloadRequest(request) || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
             return response;
         }
 
-        recordFullReconnectTimeFromResponse(response.onyxData as AnyOnyxUpdate[], request.successData as AnyOnyxUpdate[] | undefined);
+        response.onyxData ??= [];
+        recordFullReconnectTimeFromResponse(response.onyxData as AnyOnyxUpdate[], getServerReconnectCutoff());
         return response;
     });
 

@@ -21,8 +21,8 @@ function recordedTimeEntry(time: string): AnyOnyxUpdate {
     return {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.LAST_FULL_RECONNECT_TIME, value: time};
 }
 
-function buildRequest(command: string): Request<OnyxKey> {
-    return {command, successData: [recordedTimeEntry(CLIENT_NOW)], data: {}};
+function buildRequest(command: string, data: Record<string, unknown> = {}): Request<OnyxKey> {
+    return {command, data};
 }
 
 function buildResponse(jsonCode: number): Response<OnyxKey> {
@@ -45,27 +45,42 @@ describe('RecordFullReconnectTime middleware', () => {
         await recordFullReconnectTime(Promise.resolve(response), request, false);
 
         expect(response.onyxData).toEqual([recordedTimeEntry(DELIVERED_CUTOFF), cutoffEntry(DELIVERED_CUTOFF)]);
-        expect(request.successData).toEqual([recordedTimeEntry(DELIVERED_CUTOFF)]);
     });
 
-    it('leaves other commands untouched', async () => {
-        const request = buildRequest('OpenReport');
+    it('records nothing for a partial ReconnectApp, one that fetches from an update ID', async () => {
+        const request = buildRequest('ReconnectApp', {updateIDFrom: 123});
         const response = buildResponse(200);
 
         await recordFullReconnectTime(Promise.resolve(response), request, false);
 
         expect(response.onyxData).toEqual([cutoffEntry(DELIVERED_CUTOFF)]);
-        expect(request.successData).toEqual([recordedTimeEntry(CLIENT_NOW)]);
     });
 
-    it('leaves failed responses untouched, since their successData never applies', async () => {
+    it('records client-now when a successful response carries no onyxData at all', async () => {
+        const request = buildRequest('OpenApp');
+        const response: Response<OnyxKey> = {jsonCode: 200};
+
+        await recordFullReconnectTime(Promise.resolve(response), request, false);
+
+        expect(response.onyxData).toEqual([recordedTimeEntry(CLIENT_NOW)]);
+    });
+
+    test.each(['OpenReport', 'GetMissingOnyxMessages'])('leaves a %s response untouched', async (command) => {
+        const request = buildRequest(command, {updateIDFrom: 5, updateIDTo: 9});
+        const response = buildResponse(200);
+
+        await recordFullReconnectTime(Promise.resolve(response), request, false);
+
+        expect(response.onyxData).toEqual([cutoffEntry(DELIVERED_CUTOFF)]);
+    });
+
+    it('leaves failed responses untouched', async () => {
         const request = buildRequest('OpenApp');
         const response = buildResponse(407);
 
         await recordFullReconnectTime(Promise.resolve(response), request, false);
 
         expect(response.onyxData).toEqual([cutoffEntry(DELIVERED_CUTOFF)]);
-        expect(request.successData).toEqual([recordedTimeEntry(CLIENT_NOW)]);
     });
 
     it('passes the response through unchanged as the middleware result', async () => {
