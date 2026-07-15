@@ -27,11 +27,10 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-import {getAllReports, getAllTransactions} from '.';
 import {getReceiptError} from './MoneyRequestBuilder';
 
 type ReplaceReceipt = {
-    transactionID: string;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
     file?: File;
     source: string;
     state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
@@ -42,20 +41,20 @@ type ReplaceReceipt = {
     transactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
 };
+type ReplaceReceiptRetryParams = Omit<ReplaceReceipt, 'transaction'> & {transactionID: string};
 
 function detachReceipt(
-    transactionID: string | undefined,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
     transactionPolicy: OnyxEntry<OnyxTypes.Policy>,
     transactionPolicyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
     transactionReport: OnyxEntry<OnyxTypes.Report>,
     transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
+    const transactionID = transaction?.transactionID;
     if (!transactionID) {
         return;
     }
-    const allTransactions = getAllTransactions();
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const newTransaction = transaction
         ? {
               ...transaction,
@@ -180,7 +179,7 @@ function detachReceipt(
 }
 
 function replaceReceipt({
-    transactionID,
+    transaction,
     file,
     source,
     state,
@@ -191,16 +190,15 @@ function replaceReceipt({
     transactionViolations,
     transactionReport,
 }: ReplaceReceipt) {
-    if (!file) {
+    const transactionID = transaction?.transactionID;
+
+    if (!file || !transactionID) {
         return;
     }
 
     const receiptTraceId = mintAndStampReceiptTraceId(file);
     logReceiptCaptured({file, captureSource: 'replace', receiptTraceId});
 
-    const allTransactions = getAllTransactions();
-
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const oldReceipt = transaction?.receipt ?? {};
     const receiptOptimistic = {
         source,
@@ -210,8 +208,8 @@ function replaceReceipt({
         receiptTraceId,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
-    const retryParams: ReplaceReceipt = {
-        transactionID,
+    const retryParams: ReplaceReceiptRetryParams = {
+        transactionID: transaction.transactionID,
         file: undefined,
         source,
         transactionPolicy,
@@ -382,4 +380,4 @@ function checkIfLocalFileIsAccessible(
 }
 
 export {checkIfLocalFileIsAccessible, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
-export type {ReplaceReceipt};
+export type {ReplaceReceiptRetryParams};

@@ -47,7 +47,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
 
     const {prevTransactionID, nextTransactionID} = useMemo(() => {
         if (!transactionIDsList || transactionIDsList.length < 2) {
@@ -142,7 +142,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         if (nextDescriptor) {
             requestAnimationFrame(() => {
                 const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {introSelected, betas, currentUserEmail, currentUserAccountID});
-                markReportIDAsExpense(nextReportID);
+                markReportRHPWidth(nextReportID, 'wide');
                 requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: nextReportID, reportActionID: undefined, backTo})));
             });
             return;
@@ -153,7 +153,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
         requestAnimationFrame(() => {
             if (nextThreadReportID) {
-                markReportIDAsExpense(nextThreadReportID);
+                markReportRHPWidth(nextThreadReportID, 'wide');
             }
             // We know that the next thread report exists, it just wasn't fetched to Onyx yet, so we set it optimistically.
             if (!nextThreadReport && nextThreadReportID) {
@@ -192,7 +192,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         if (prevDescriptor) {
             requestAnimationFrame(() => {
                 const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {introSelected, betas, currentUserEmail, currentUserAccountID});
-                markReportIDAsExpense(prevReportID);
+                markReportRHPWidth(prevReportID, 'wide');
                 requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: prevReportID, reportActionID: undefined, backTo})));
             });
             return;
@@ -203,7 +203,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
         requestAnimationFrame(() => {
             if (prevThreadReportID) {
-                markReportIDAsExpense(prevThreadReportID);
+                markReportRHPWidth(prevThreadReportID, 'wide');
             }
             // We know that the previous thread report exists, it just wasn't fetched to Onyx yet, so we set it optimistically.
             if (!prevThreadReport && prevThreadReportID) {

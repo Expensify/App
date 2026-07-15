@@ -4,33 +4,46 @@
 
 [React Compiler](https://react.dev/learn/react-compiler) is a tool designed to enhance the performance of React applications by automatically memoizing components that lack optimizations.
 
-React Compiler is enabled in both the Rspack (web) and metro (mobile) build pipelines via `babel-plugin-react-compiler`.
+React Compiler is enabled in the web build pipeline via `oxc-transform` (the Rust React Compiler) and in the Metro (mobile) build pipeline via `babel-plugin-react-compiler`. Because these are two different implementations, they don't always memoize a file the same way: a file can be auto-memoized on native but not on web, or vice versa. To catch that, both the CI check and the ESLint processor run BOTH compilers, via the shared helpers in `config/reactCompiler/` (`checkWithBabel.mjs`, `checkWithOxc.mjs`, and `checkBoth.mjs`).
 
 ## React Compiler CI check
 
-A CI check runs on every PR that modifies `.ts` or `.tsx` files. It uses `@babel/core`'s `transformSync` with `babel-plugin-react-compiler` to check whether each changed file's components and hooks compile successfully.
+A CI check runs on every PR that modifies `.ts` or `.tsx` files. For each changed file it runs both `babel-plugin-react-compiler` and `oxc-transform` and reports, for each, whether the file compiles and whether it is actually memoized.
 
 ### What the CI check enforces
 
-The check enforces two rules:
+The check enforces three rules, evaluated against **both** compilers:
 
-1. **New files must compile.** If you add a new file containing React components or hooks, they must all compile with React Compiler. This prevents new Rules of React violations from entering the codebase.
-2. **No regressions.** If a file already compiles on `main` and your PR breaks that, the check fails. This prevents introducing violations into files that were previously compliant.
+1. **New files must compile.** If you add a new file containing React components or hooks, they must all compile with both React Compilers. This prevents new Rules of React violations from entering the codebase.
+2. **No regressions.** If a file compiles on `main` with a given compiler and your PR breaks that, the check fails. This prevents introducing violations into files that were previously compliant.
+3. **No new memoization divergence.** If your change makes a file divergent -- one compiler memoizes it while the other does not -- and it was not already divergent on `main`, the check fails. Divergent files ship without memoization on one platform, which reintroduces the performance issues React Compiler is meant to fix.
 
 The check does **not** fail if:
 - A file has no React components or hooks (utilities, types, constants are silently skipped)
 - A file was already failing to compile on `main` and still fails on your branch (not a regression)
+- A file was already divergent on `main` (existing divergences are grandfathered; fix them opportunistically by adding manual memoization)
 
 ### What to do when the check fails
 
-The CI output shows which files failed, with the compiler error reason, file path, and line number for each failure. Look for lines like:
+The CI output shows which files failed, which compiler flagged them, and the reason. Look for lines like:
 
 ```
-FAILED   src/components/MyComponent.tsx (new file must compile)
-    src/components/MyComponent.tsx:42:8: Hooks must always be called in a consistent order...
+FAILED   src/components/MyComponent.tsx (new file must compile, oxc)
+    [oxc] 42:8: Hooks must always be called in a consistent order...
+
+FAILED  src/components/MyComponent.tsx (introduces new memoization divergence)
+    Babel memoizes this file but OXC does not (oxc=no-components) -- it will not be memoized on web
 ```
 
-The error messages come directly from React Compiler and describe which [Rule of React](https://react.dev/reference/rules) was violated. See the ["How to fix a particular problem?"](#how-to-fix-a-particular-problem) section below for common fixes.
+Compile-failure messages come directly from React Compiler and describe which [Rule of React](https://react.dev/reference/rules) was violated; see the ["How to fix a particular problem?"](#how-to-fix-a-particular-problem) section below for common fixes.
+
+A **memoization divergence** failure means one compiler auto-memoizes the file and the other does not. Fix it by adding the missing manual memoization so the file behaves the same on both platforms:
+
+- Wrap objects/arrays/callbacks passed as props (or into hook dependency arrays) in `useMemo`/`useCallback` -- especially React Context `value` objects.
+- Extract inline `useOnyx` selectors into a stable `useCallback`.
+- If a whole file bails out under OXC (`oxc=failed`), fixing the underlying Rule of React violation usually restores memoization on web.
+
+You can reproduce the exact list locally with `bun scripts/react-compiler-divergence-audit.ts`, which runs both compilers over `src` and lists every divergent file grouped by direction.
 
 ### Local usage
 
