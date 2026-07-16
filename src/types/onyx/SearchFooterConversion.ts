@@ -36,6 +36,13 @@ type SearchFooterConversion = {
     searchTotals?: Record<string, ConvertedTotalByCurrency>;
 
     /**
+     * Target currencies whose most recent conversion request failed. Set when a `GetTransactionsConvertedAmount` read
+     * errors and cleared when a fresh request for that currency is issued; lets the footer drop the loading state and
+     * fall back to the default total instead of a skeleton that would never resolve.
+     */
+    errors?: Record<string, boolean>;
+
+    /**
      * Source figures the above conversions were stamped against, mirroring their keys (transaction ID / report ID /
      * group key / search hash, then target currency). The footer sends these and the command echoes them back in the
      * same merge as the converted values. Compared to the live snapshot to detect stale conversions.

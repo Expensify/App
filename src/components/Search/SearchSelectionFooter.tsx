@@ -101,6 +101,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const convertedReports = footerConversion?.reports;
     const convertedGroups = footerConversion?.groups;
     const convertedSearchTotal = footerConversion?.searchTotals?.[currentSearchHash];
+    const conversionErrors = footerConversion?.errors;
     // Source figures each conversion was stamped against. A conversion is "fresh" only while its stamped source
     // still equals the live snapshot value; an inline edit moves the live value and makes the conversion stale.
     const conversionSources = footerConversion?.sources;
@@ -199,6 +200,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const selectedTransactionDefaultCurrency = firstSelectedTransaction?.groupCurrency ?? firstSelectedTransaction?.currency;
     const effectiveDefaultCurrency = defaultFooterCurrency ?? metadataCurrency ?? selectedTransactionDefaultCurrency;
     const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== effectiveDefaultCurrency;
+    // The most recent conversion request for this currency failed, so stop waiting on a converted value that isn't coming.
+    const hasConversionError = hasCustomFooterCurrency && !!selectedCurrency && !!conversionErrors?.[selectedCurrency];
 
     const selectedCurrencyConvertedTotal = hasCustomFooterCurrency && selectedCurrency ? convertedSearchTotal?.[selectedCurrency] : undefined;
     // The whole-search grand total is fresh only while its stamped source still equals the live snapshot total.
@@ -225,8 +228,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // the footer keeps showing the default-currency total behind a skeleton until the cache catches up — but only when
     // there's something to convert, so a selection with nothing convertible stays on the default total rather than a
     // skeleton that never resolves. Offline no conversion can complete, so keep the last-known/default total instead
-    // of a skeleton that would stay until connectivity returns.
-    const isFooterTotalConverting = !isOffline && hasCustomFooterCurrency && (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh);
+    // of a skeleton that would stay until connectivity returns; likewise drop the skeleton once a request has errored.
+    const isFooterTotalConverting =
+        !isOffline && !hasConversionError && hasCustomFooterCurrency && (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh);
 
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
