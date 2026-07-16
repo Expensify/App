@@ -1,3 +1,5 @@
+import type {SearchKey} from '@libs/SearchUIUtils';
+
 import type {ValueOf} from 'type-fest';
 
 import type CONST from './CONST';
@@ -649,6 +651,9 @@ const ONYXKEYS = {
 
     /** Stores the information about the recent searches */
     RECENT_SEARCHES: 'nvp_recentSearches',
+
+    /** The currently selected search key */
+    RAM_ONLY_CURRENT_SEARCH_KEY: 'currentSearchKey',
 
     /** Stores the current search page context (e.g., whether to show the search query) */
     SEARCH_CONTEXT: 'searchContext',
@@ -1476,6 +1481,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_TRY_NEW_DOT]: OnyxTypes.TryNewDot;
     [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
+    [ONYXKEYS.RAM_ONLY_CURRENT_SEARCH_KEY]: SearchKey;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];

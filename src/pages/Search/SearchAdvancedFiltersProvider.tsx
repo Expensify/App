@@ -3,10 +3,11 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import useOnyx from '@hooks/useOnyx';
 
-import {setSearchContext} from '@libs/actions/Search';
+import {setCurrentSearchKey, setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -59,6 +60,7 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
         Navigation.dismissModal({
             afterTransition: () => {
                 setFilterQueryParams(advancedFiltersToReset);
+                setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
                 setSearchContext(false);
             },
         });

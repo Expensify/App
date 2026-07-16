@@ -1,6 +1,5 @@
-import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
+import {createTypeMenuSections} from '@libs/SearchUIUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import type {Policy, Session} from '@src/types/onyx';
@@ -48,20 +47,10 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     accountID: session?.accountID,
 });
 
-type UseSearchTypeMenuSectionsParams = {
-    hash?: number;
-    similarSearchHash?: number;
-    sortBy?: string;
-    sortOrder?: string;
-    type?: string;
-};
-
 /**
- * Get a list of all search groupings, along with their search items. Also returns the
- * currently focused search, based on the hash
+ * Get a list of all search groupings, along with their search items.
  */
-const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams) => {
-    const {hash, similarSearchHash, sortBy, sortOrder, type} = queryParams ?? {};
+const useSearchTypeMenuSections = () => {
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
@@ -130,54 +119,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         ],
     );
 
-    const activeItemIndex = useMemo(() => {
-        const isSavedSearchActive = hash !== undefined && !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash);
-
-        if (isSavedSearchActive) {
-            return -1;
-        }
-
-        let index = 0;
-        for (const section of typeMenuSections) {
-            const found = section.menuItems.findIndex((item) => {
-                if (item.similarSearchHash !== similarSearchHash) {
-                    return false;
-                }
-                return doesSearchItemMatchSort(item.key, item.searchQueryJSON?.sortBy, item.searchQueryJSON?.sortOrder, sortBy, sortOrder);
-            });
-            if (found !== -1) {
-                return index + found;
-            }
-            index += section.menuItems.length;
-        }
-
-        // Fallback: if no exact match found, select the generic search key matching the type
-        const typeToGenericKey: Record<string, string> = {
-            [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-            [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
-        };
-        const fallbackKey = type ? typeToGenericKey[type] : undefined;
-        if (fallbackKey) {
-            let fallbackIndex = 0;
-            for (const section of typeMenuSections) {
-                const found = section.menuItems.findIndex((item) => item.key === fallbackKey);
-                if (found !== -1) {
-                    return fallbackIndex + found;
-                }
-                fallbackIndex += section.menuItems.length;
-            }
-        }
-
-        return -1;
-    }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
-
-    const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
-
-    return {
-        typeMenuSections,
-        activeItemIndex,
-        activeKey,
-    };
+    return typeMenuSections;
 };
 
 export default useSearchTypeMenuSections;

@@ -8,17 +8,20 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
+import {useSearchQueryContext} from '../SearchContext';
+
 type SearchPageHeaderWideProps = {
     queryJSON: SearchQueryJSON;
 };
 
 function SearchPageHeaderWide({queryJSON}: SearchPageHeaderWideProps) {
     const {translate} = useLocalize();
-    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections(queryJSON);
-    const selectedItem = typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex);
+    const typeMenuSections = useSearchTypeMenuSections();
+    const {currentSearchKey} = useSearchQueryContext();
+    const selectedItem = typeMenuSections.flatMap((section) => section.menuItems).find((item) => item.key === currentSearchKey);
 
     let title = translate('common.spend');
-    if (activeItemIndex >= 0 && selectedItem) {
+    if (selectedItem) {
         title = translate(selectedItem.translationPath);
     } else {
         const {type} = queryJSON;

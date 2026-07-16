@@ -43,7 +43,7 @@ import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 
 import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
-import {setSearchContext} from '@userActions/Search';
+import {setCurrentSearchKey, setSearchContext} from '@userActions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -359,6 +359,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             backHistory(() => {
                 onRouterClose();
                 setSearchContext(true);
+                setCurrentSearchKey(null);
                 Navigation.navigate(
                     ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions}),
                 );
