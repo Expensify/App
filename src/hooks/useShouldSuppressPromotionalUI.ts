@@ -1,17 +1,19 @@
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import shouldSuppressPromotionalUISelector from '@selectors/PromotionalUI';
+import {isActingAsDelegateSelector} from '@selectors/Account';
+import {isSupportalSessionSelector} from '@selectors/Session';
 
 import useOnyx from './useOnyx';
 
 /**
  * Returns true when promo, training, and onboarding UI should be hidden (supportal or copilot session).
+ * Each subscription is narrowed to the derived boolean so consumers only re-render when suppression actually changes.
  */
 function useShouldSuppressPromotionalUI(): boolean {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [isSupportalSession = false] = useOnyx(ONYXKEYS.SESSION, {selector: isSupportalSessionSelector});
+    const [isActingAsDelegate = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
 
-    return shouldSuppressPromotionalUISelector(session, account);
+    return isSupportalSession || isActingAsDelegate;
 }
 
 export default useShouldSuppressPromotionalUI;
