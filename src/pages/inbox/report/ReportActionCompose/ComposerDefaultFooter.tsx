@@ -15,7 +15,7 @@ function ComposerDefaultFooter() {
 
     return (
         <ComposerFooter>
-            {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+            <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
             <ComposerTypingIndicator />
             <ComposerExceededLength />
         </ComposerFooter>
