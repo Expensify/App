@@ -1414,6 +1414,54 @@ describe('getPrimaryAction', () => {
         ).toBe('');
     });
 
+    it('should return SUBMIT for a multi-expense draft when at least one expense is valid and another has a smartscan failed violation', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        };
+        const VALID_TRANSACTION_ID = 'VALID_TRANSACTION_ID';
+        const FAILED_TRANSACTION_ID = 'FAILED_TRANSACTION_ID';
+        const validTransaction = {
+            transactionID: VALID_TRANSACTION_ID,
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+        const scanFailedTransaction = {
+            transactionID: FAILED_TRANSACTION_ID,
+            reportID: `${REPORT_ID}`,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            merchant: '',
+        } as unknown as Transaction;
+
+        const violation = {
+            name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
+            type: CONST.VIOLATION_TYPES.WARNING,
+            showInReview: true,
+        } as unknown as TransactionViolation;
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                ownerLogin: '',
+                reportTransactions: [validTransaction, scanFailedTransaction],
+                violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${FAILED_TRANSACTION_ID}`]: [violation]},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+    });
+
     it('should return an empty string for invoice report when the chat report is archived', async () => {
         // Given the invoice data
         const {policy, convertedInvoiceChat: invoiceChatReport}: InvoiceTestData = InvoiceData;
