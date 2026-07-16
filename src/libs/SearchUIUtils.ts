@@ -5505,15 +5505,12 @@ function getLabelValue(key: SearchAdvancedFiltersKey, labelKey: TranslationPaths
         return undefined;
     }
 
-    if (isFilterNegatable(key)) {
-        const prefix = isFilterNegated(key) ? CONST.SEARCH.NOT_PREFIX : '';
-        return `${prefix}${translate(labelKey)}`;
-    }
-    return translate(labelKey);
+    const prefix = isFilterNegated(key) ? CONST.SEARCH.NOT_PREFIX : '';
+    return `${prefix}${translate(labelKey)}`;
 }
 
 function shouldShowFilter(skipFilters: Set<SearchAdvancedFiltersKey> | undefined, key: SearchAdvancedFiltersKey, value: ValueOf<SearchAdvancedFiltersForm>, type: SearchDataTypes) {
-    return !skipFilters?.has(key) && (isFilterNegatable(key) || !isFilterNegated(key)) && isFilterSupported(key, type) && value && (!Array.isArray(value) || value.length > 0);
+    return !skipFilters?.has(key) && isFilterSupported(key, type) && value && (!Array.isArray(value) || value.length > 0);
 }
 
 function isTextFilterKey(key: string): key is SearchTextFilterKeys {
