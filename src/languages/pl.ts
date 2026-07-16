@@ -1159,6 +1159,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `Dodano ${tags} tagów.` : 'Dodano 1 znacznik.'),
         importMultiLevelTagsSuccessfulDescription: 'Dodano wielopoziomowe tagi.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `Dodano stawki diety: ${rates}.` : 'Dodano 1 stawkę diety.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'Nie dodano żadnych reguł sprzedawcy, ponieważ wszystkie już istnieją.';
+            }
+            return rules > 1 ? `Dodano reguły sprzedawcy: ${rules}.` : 'Dodano 1 regułę sprzedawcy.';
+        },
+        importMerchantRulesRequiredColumns:
+            'Ups! Musisz zmapować co najmniej jedną kolumnę „Sprzedawca to” lub „Sprzedawca zawiera” oraz co najmniej jedno pole do aktualizacji. Sprawdź i spróbuj ponownie.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `Zaimportowano ${transactions} transakcje.` : 'Zaimportowano 1 transakcję.'),
         importFailedTitle: 'Import nieudany',
         importFailedDescription: 'Upewnij się, że wszystkie pola zostały poprawnie wypełnione i spróbuj ponownie. Jeśli problem będzie się powtarzał, skontaktuj się z Concierge.',
@@ -7447,6 +7455,15 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 addRule: 'Dodaj regułę dla sprzedawcy',
                 addRuleTitle: 'Dodaj regułę',
                 editRuleTitle: 'Edytuj regułę',
+                importRulesTitle: 'Importuj reguły sprzedawcy',
+                importRulesSupportingText:
+                    'Zmapuj każdą kolumnę w arkuszu kalkulacyjnym do pola reguły sprzedawcy. Jeśli wszystko wygląda dobrze, kliknij poniżej, aby zaimportować swoje reguły.',
+                importColumnMerchantIs: 'Sprzedawca to',
+                importColumnMerchantContains: 'Sprzedawca zawiera',
+                importColumnUpdatedMerchant: 'Zaktualizowany sprzedawca',
+                importColumnUpdatedCategory: 'Zaktualizowana kategoria',
+                importColumnUpdatedTag: 'Zaktualizowany tag',
+                importColumnUpdatedDescription: 'Zaktualizowany opis',
                 expensesWith: 'Dla wydatków z:',
                 expensesExactlyMatching: 'Dla wydatków dokładnie pasujących do:',
                 applyUpdates: 'Zastosuj te aktualizacje:',
