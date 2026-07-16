@@ -6,7 +6,6 @@ import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelec
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {searchUserInServer} from '@libs/actions/Report';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {filterOption, getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 
@@ -56,7 +55,7 @@ function BaseVacationDelegateSelectionComponent({
     additionalExcludeLogins,
     includeCurrentUser = true,
 }: BaseVacationDelegateSelectionComponentProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
