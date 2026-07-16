@@ -1,7 +1,10 @@
+import {deviceVerificationType} from '@components/MultifactorAuthentication/biometrics/operations';
 import {navigate as mfaNavigate, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 
 import {createUnhandledExceptionMFAError, getMFAFailureError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import Navigation from '@libs/Navigation/Navigation';
+
+import {hasEverAcceptedSoftPrompt, markHasAcceptedSoftPrompt} from '@userActions/MultifactorAuthentication';
 
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
@@ -14,15 +17,20 @@ import createActors from './mfaActors';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
-// Absolute target for the outcome branch. The device check runs under `preparing`, so reaching the
-// sibling `outcome` branch needs an id target rather than a relative one.
+// Absolute targets for the screen branches. The device check runs under `preparing`, so reaching a
+// sibling branch needs an id target rather than a relative one.
 const OUTCOME_TARGET = `#${MFA_STATE.OUTCOME}` as const;
+const PROMPT_TARGET = `#${MFA_STATE.PROMPT}` as const;
+
+// Which prompt variant the screen renders is a device property, resolved once per platform.
+const PROMPT_TYPE = CONST.MULTIFACTOR_AUTHENTICATION.PROMPT_TYPE_MAP[deviceVerificationType];
 
 const DEFAULT_CONTEXT: MfaContext = {
     error: undefined,
     scenarioName: undefined,
     scenario: undefined,
     payload: undefined,
+    softPromptApproved: false,
     isCancelConfirmVisible: false,
 };
 
@@ -69,6 +77,13 @@ const MFAMachine = setup({
         navigateToFailureOutcome: () => {
             Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE));
         },
+        navigateToPrompt: () => {
+            Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT, {promptType: PROMPT_TYPE}));
+        },
+        approveSoftPrompt: assign({softPromptApproved: true}),
+        // The durable "asked once" flag lives in Onyx, so future flows on this device can skip the
+        // prompt. Owned by the machine so every sender of SOFT_PROMPT_APPROVED persists it.
+        persistSoftPromptAcceptance: () => markHasAcceptedSoftPrompt(),
         // Runs on CLOSE_MODAL: drops the cancel-confirmation modal so it cannot linger over the
         // closing navigator (CLOSE_MODAL can fire without the flow completing, e.g. an offline cancel).
         hideCancelConfirmModal: assign({isCancelConfirmVisible: false}),
@@ -119,11 +134,16 @@ const MFAMachine = setup({
                                     }
                                     return {allowedAuthenticationMethods: context.scenario.allowedAuthenticationMethods};
                                 },
-                                // Every result enters the outcome resolver. A refusal stores its
-                                // blocking MFAError first, so the resolver selects failure from that
-                                // error, while an eligible device with no error selects success.
+                                // An eligible device moves on to the soft prompt, with two overrides.
+                                // A stored error always wins: the flow goes straight to the outcome
+                                // resolver, which selects failure. A user who already accepted the
+                                // soft prompt on this device (read from Onyx at decision time) skips
+                                // it. A refusal stores its blocking MFAError first and resolves the
+                                // same way as a stored error.
                                 onDone: [
-                                    {guard: ({event}) => event.output.success, target: OUTCOME_TARGET},
+                                    {guard: ({context, event}) => event.output.success && context.error !== undefined, target: OUTCOME_TARGET},
+                                    {guard: ({event}) => event.output.success && hasEverAcceptedSoftPrompt(), target: OUTCOME_TARGET},
+                                    {guard: ({event}) => event.output.success, target: PROMPT_TARGET},
                                     {target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
                                 ],
                                 // Expected refusals travel as failed results through onDone, so a
@@ -134,6 +154,24 @@ const MFAMachine = setup({
                                 },
                             },
                         },
+                    },
+                },
+                // The soft-prompt screen: asks the user to consent to biometric verification before
+                // the flow continues. Entered only when the user has never accepted the prompt on
+                // this device; the registration vs reinstall variants arrive with the registration
+                // decision.
+                [MFA_STATE.PROMPT]: {
+                    id: MFA_STATE.PROMPT,
+                    entry: ['navigateToPrompt'],
+                    initial: MFA_STATE.AWAITING_SOFT_PROMPT,
+                    on: {
+                        SOFT_PROMPT_APPROVED: {
+                            target: MFA_STATE.OUTCOME,
+                            actions: ['approveSoftPrompt', 'persistSoftPromptAcceptance'],
+                        },
+                    },
+                    states: {
+                        [MFA_STATE.AWAITING_SOFT_PROMPT]: {},
                     },
                 },
                 [MFA_STATE.OUTCOME]: {

@@ -25,8 +25,6 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             return {...state, registrationChallenge: action.payload};
         case 'SET_AUTHORIZATION_CHALLENGE':
             return {...state, authorizationChallenge: action.payload};
-        case 'SET_SOFT_PROMPT_APPROVED':
-            return {...state, softPromptApproved: action.payload};
         case 'SET_REGISTRATION_COMPLETE':
             return {...state, isRegistrationComplete: action.payload};
         case 'SET_AUTHORIZATION_COMPLETE':

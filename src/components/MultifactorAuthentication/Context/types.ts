@@ -12,7 +12,6 @@ type Action =
     | {type: 'SET_VALIDATE_CODE'; payload: string | undefined}
     | {type: 'SET_REGISTRATION_CHALLENGE'; payload: RegistrationChallenge | undefined}
     | {type: 'SET_AUTHORIZATION_CHALLENGE'; payload: AuthenticationChallenge | undefined}
-    | {type: 'SET_SOFT_PROMPT_APPROVED'; payload: boolean}
     | {type: 'SET_REGISTRATION_COMPLETE'; payload: boolean}
     | {type: 'SET_AUTHORIZATION_COMPLETE'; payload: boolean}
     | {type: 'SET_FLOW_COMPLETE'; payload: boolean}

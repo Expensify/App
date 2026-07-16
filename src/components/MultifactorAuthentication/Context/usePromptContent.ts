@@ -14,6 +14,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import {hasAcceptedSoftPromptSelector} from '@selectors/DeviceBiometrics';
 import {useEffect, useRef, useState} from 'react';
 
+import {useMultifactorAuthenticationInternal} from './MultifactorAuthenticationInternalApiContext';
 import {useMultifactorAuthenticationState} from './MultifactorAuthenticationStateContext';
 
 type PromptContent = {
@@ -35,6 +36,9 @@ type PromptContent = {
  */
 function usePromptContent(promptType: MultifactorAuthenticationPromptType): PromptContent {
     const state = useMultifactorAuthenticationState();
+    // The soft-prompt approval was migrated to the state machine, so it is read from the
+    // machine-derived state while the remaining flow fields still live in the legacy reducer.
+    const {state: machineState} = useMultifactorAuthenticationInternal();
     const {areLocalCredentialsKnownToServer} = useBiometrics();
     const {accountID} = useCurrentUserPersonalDetails();
     const [serverHasCredentials, setServerHasCredentials] = useState(false);
@@ -72,7 +76,7 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
     const contentData = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[promptType];
 
     // Returning user: server has credentials, but user hasn't approved soft prompt yet
-    const isReturningUser = wasPreviouslyRegisteredRef.current || (hasEverAcceptedSoftPrompt && serverHasCredentials && !state.softPromptApproved);
+    const isReturningUser = wasPreviouslyRegisteredRef.current || (hasEverAcceptedSoftPrompt && serverHasCredentials && !machineState.softPromptApproved);
 
     useEffect(() => {
         if (!isReturningUser) {
@@ -101,7 +105,7 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
     // Hide it for: users who already approved the soft prompt, users who finished registration,
     // or returning users with existing server credentials. The button prompts users to enable biometrics.
     const shouldDisplayConfirmButton =
-        !hasEverAcceptedSoftPrompt || (!state.softPromptApproved && !state.isRegistrationComplete && !serverHasCredentials && !wasPreviouslyRegisteredRef.current);
+        !hasEverAcceptedSoftPrompt || (!machineState.softPromptApproved && !state.isRegistrationComplete && !serverHasCredentials && !wasPreviouslyRegisteredRef.current);
 
     return {
         illustration: contentData.illustration,

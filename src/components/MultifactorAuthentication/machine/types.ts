@@ -29,6 +29,12 @@ type MfaContext = {
     /** Additional parameters for the current scenario */
     payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
 
+    /**
+     * Whether the user approved the soft prompt during this flow. The durable acceptance lives in
+     * Onyx under the device-biometrics key; this flag only tracks the current flow.
+     */
+    softPromptApproved: boolean;
+
     /** Whether the cancel-confirmation modal triggered by a back press is currently visible */
     isCancelConfirmVisible: boolean;
 };
@@ -59,9 +65,10 @@ type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScena
  *
  * CLOSE_MODAL requests the close so the flow moves to `closing`. MODAL_CLOSED is the navigator's
  * notification that the close animation fully finished, which moves `closing` to `closed` and wipes
- * the context.
+ * the context. SOFT_PROMPT_APPROVED is sent by the prompt screen's confirm button and moves the flow
+ * past the soft prompt.
  */
-type MfaEvent = MultifactorAuthenticationInitEvent | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'};
+type MfaEvent = MultifactorAuthenticationInitEvent | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'} | {type: 'SOFT_PROMPT_APPROVED'};
 
 /** Describes the input the machine passes to the device-check actor. */
 type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationMethods};

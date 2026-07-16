@@ -10,10 +10,11 @@ import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthenticat
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LocallyProcessed3DSChallengeReviews} from '@src/types/onyx';
+import type {DeviceBiometrics, LocallyProcessed3DSChallengeReviews} from '@src/types/onyx';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
+import {hasAcceptedSoftPromptSelector} from '@selectors/DeviceBiometrics';
 // These functions use makeRequestWithSideEffects because challenge data must be returned immediately
 // for security and timing requirements (see detailed explanation below)
 import Onyx from 'react-native-onyx';
@@ -54,6 +55,33 @@ function cleanUpLocallyProcessed3DSTransactionReviews(entriesToDelete: string[])
         value[entry] = null;
     }
     Onyx.merge(ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS, value);
+}
+
+// Non-reactive session read so callers outside React (the MFA state machine's actions and guards)
+// can address per-account keys without threading accountID through their inputs.
+let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    },
+});
+
+// The device-biometrics key is per-account, so this subscribes to the whole collection and the
+// getter picks the current user's entry at decision time. A member-key subscription would go stale
+// when the session's account changes.
+let deviceBiometricsCollection: OnyxCollection<DeviceBiometrics>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
+    waitForCollectionCallback: true,
+    callback: (collection) => {
+        deviceBiometricsCollection = collection;
+    },
+});
+
+/** Whether the current user has ever accepted the biometrics soft prompt on this device. */
+function hasEverAcceptedSoftPrompt(): boolean {
+    return hasAcceptedSoftPromptSelector(deviceBiometricsCollection?.[getDeviceBiometricsOnyxKey(currentUserAccountID)]) ?? false;
 }
 
 /**
@@ -431,8 +459,8 @@ function getDeviceBiometricsOnyxKey(accountID: number): `${typeof ONYXKEYS.COLLE
     return `${ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS}${accountID}`;
 }
 
-function markHasAcceptedSoftPrompt(accountID: number) {
-    Onyx.merge(getDeviceBiometricsOnyxKey(accountID), {
+function markHasAcceptedSoftPrompt() {
+    Onyx.merge(getDeviceBiometricsOnyxKey(currentUserAccountID), {
         hasAcceptedSoftPrompt: true,
     });
 }
@@ -450,6 +478,7 @@ export {
     troubleshootMultifactorAuthentication,
     revokeMultifactorAuthenticationCredentials,
     getDeviceBiometricsOnyxKey,
+    hasEverAcceptedSoftPrompt,
     markHasAcceptedSoftPrompt,
     clearLocalMFAPublicKeyList,
     setPersonalDetailsAndShipExpensifyCardsWithPIN,

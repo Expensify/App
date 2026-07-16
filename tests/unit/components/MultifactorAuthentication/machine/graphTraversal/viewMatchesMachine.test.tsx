@@ -12,6 +12,7 @@ import SCREENS from '@src/SCREENS';
 import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
 import type {SnapshotFrom} from 'xstate';
 
+import Onyx from 'react-native-onyx';
 import getWalkedPaths, {isAutoDrivenEvent, VALIDATE_DEVICE_DONE_EVENT_TYPE, VALIDATE_DEVICE_ERROR_EVENT_TYPE} from 'tests/utils/mfa/flowPaths';
 import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
@@ -109,6 +110,10 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             act(() => pendingModalClose.run());
             await waitForBatchedUpdatesWithAct();
         },
+        SOFT_PROMPT_APPROVED: async () => {
+            fireEvent.press(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON));
+            await waitForBatchedUpdatesWithAct();
+        },
         [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step) => settleValidateDevice(() => resolveValidateDevice(step.event.output)),
         [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => settleValidateDevice(rejectValidateDevice),
     } satisfies MfaEventExecutors & ValidateDeviceActorEventExecutors;
@@ -126,6 +131,16 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
+        },
+        // The confirm button and the route are the screen's stable markers. The copy is not asserted
+        // because it depends on the platform the operations module resolves to under jest.
+        [`${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AWAITING_SOFT_PROMPT}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
+            expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT);
+            expect(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).toBeOnTheScreen();
+            expect(state.context.error).toBeUndefined();
+            expect(state.context.softPromptApproved).toBe(false);
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
@@ -180,9 +195,14 @@ const walkedPathTestCases = walkedPaths.map((path) => ({
 describe('the real MFA modal matches the machine at every step of every generated path', () => {
     // The navigation buffer is deliberately not reset here. The machine resets it when it enters
     // `closed`, which also runs when each test's fresh actor starts, so a reset here would hide a
-    // machine that stopped doing that cleanup.
-    beforeEach(() => {
+    // machine that stopped doing that cleanup. Onyx is cleared because approving the soft prompt
+    // persists the acceptance, and no path may depend on what an earlier path stored.
+    beforeEach(async () => {
         resetMfaUiMocks();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
     });
 
     afterEach(() => {

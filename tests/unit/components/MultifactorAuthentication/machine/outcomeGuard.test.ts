@@ -22,6 +22,7 @@ describe('MFA outcome guard', () => {
                 scenarioName: initEvent.scenarioName,
                 scenario: initEvent.scenario,
                 payload: initEvent.payload,
+                softPromptApproved: false,
                 isCancelConfirmVisible: false,
             },
         });

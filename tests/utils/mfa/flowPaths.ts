@@ -63,6 +63,7 @@ const MFA_GRAPH_EVENT_FIXTURES = {
     INIT: [createInitEvent()],
     CLOSE_MODAL: [{type: 'CLOSE_MODAL'}],
     MODAL_CLOSED: [{type: 'MODAL_CLOSED'}],
+    SOFT_PROMPT_APPROVED: [{type: 'SOFT_PROMPT_APPROVED'}],
 } satisfies MfaEventFixtures;
 
 function hasMfaEventFixtures(type: string): type is MfaEvent['type'] {
