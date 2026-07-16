@@ -18,10 +18,24 @@ import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import React, {useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 const loadReportScreen = () => require<ReactComponentModule>('@pages/inbox/ReportScreen').default;
 const loadSidebarScreen = () => require<ReactComponentModule>('@pages/inbox/sidebar/BaseSidebarScreen').default;
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
+
+// Track the pending signed-out public-room deeplink reportID via a module-level listener rather than useOnyx.
+// The initialReportID useState initializer below runs on the first render and must pick the initial report
+// synchronously; useOnyx returns undefined on that first render (its value arrives a render later), which is too
+// late — the initializer would already have fallen back to the last-accessed (Concierge) report. A module-level
+// connectWithoutView keeps the value in scope so the initializer can read it synchronously.
+let pendingPublicRoomDeepLinkReportID: string | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID,
+    callback: (value) => {
+        pendingPublicRoomDeepLinkReportID = value ?? undefined;
+    },
+});
 
 /**
  * This SplitNavigator includes the HOME screen (<BaseSidebarScreen /> component) with a list of reports as a sidebar screen and the REPORT screen displayed as a central one.
@@ -52,6 +66,14 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<TabNavigatorPar
         // Returning an empty string here will cause ReportScreen to skip the `openReport` call initially.
         if (isTransitioning) {
             return '';
+        }
+
+        // While a signed-out public-room deeplink is being opened, keep that room focused
+        // instead of defaulting to the last-accessed report (which is Concierge for a fresh anonymous
+        // user). Without this, once OpenApp/auth settle and this navigator re-resolves without the
+        // reportID in its route params, findLastAccessedReport() picks Concierge and overrides the room.
+        if (pendingPublicRoomDeepLinkReportID) {
+            return pendingPublicRoomDeepLinkReportID;
         }
 
         const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), isOpenOnAdminRoom, undefined, reportNameValuePairs);

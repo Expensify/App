@@ -1,6 +1,7 @@
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
+import useIsPendingPublicRoomDeeplink from '@hooks/useIsPendingPublicRoomDeeplink';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
@@ -77,6 +78,7 @@ function ReportNavigateAwayHandler() {
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isSelfTourViewed = onboarding?.selfTourViewed;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const isPendingPublicRoomDeeplink = useIsPendingPublicRoomDeeplink(reportIDFromRoute);
 
     const parentReportAction = useParentReportAction(report);
     const deletedParentAction = isDeletedParentAction(parentReportAction);
@@ -98,6 +100,13 @@ function ReportNavigateAwayHandler() {
 
     // Navigation action that reads non-reactive context (concierge params, modal state, etc.)
     const navigateAwayFromReport = useEffectEvent((prevOnyxReportID: string | undefined, prevParentReportID: string | undefined) => {
+        // Never navigate away from a signed-out public-room deeplink while it is still being
+        // opened. The anonymous OpenApp settling can briefly make this report look removed/closed and
+        // spuriously trigger a navigate-away to Concierge ~tens of seconds after the room is shown
+        // ("room flashes then Concierge"). The pending key is cleared once the user signs in.
+        if (isPendingPublicRoomDeeplink) {
+            return;
+        }
         const currentRoute = navigationRef.getCurrentRoute();
         const topmostReportIDInSearchRHP = Navigation.getTopmostSearchReportID();
         const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
@@ -203,6 +212,11 @@ function ReportNavigateAwayHandler() {
             return;
         }
 
+        // Don't navigate away from a public-room deeplink being opened (see navigateAwayFromReport).
+        if (isPendingPublicRoomDeeplink) {
+            return;
+        }
+
         // Only redirect if focused
         if (!isFocused) {
             return;
@@ -236,7 +250,7 @@ function ReportNavigateAwayHandler() {
             // Fallback to Concierge
             navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, reportIDFromRoute]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, isPendingPublicRoomDeeplink, reportIDFromRoute]);
 
     return null;
 }

@@ -1,4 +1,5 @@
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
@@ -11,10 +12,30 @@ import Onyx from 'react-native-onyx';
 let queuedOnyxUpdates: AnyOnyxUpdate[] = [];
 let currentAccountID: number | undefined;
 
+// A signed-out public-room deeplink is served by OpenReport, which returns the anonymous SESSION and the room's
+// data in one batch. flushQueue() processes that batch while there's still no account, where the stale-data filter
+// below would otherwise drop the room's data and leave the deeplink stuck. These are the collections OpenReport
+// delivers for the room — the report, its actions/metadata/name-value-pairs, and its policy (plus PERSONAL_DETAILS_LIST
+// for participants) — so they're allow-listed to survive the filter and let the room render. Add a key here only if
+// OpenReport starts returning another collection the room needs; everything that isn't the room's own data stays filtered.
+const ANONYMOUS_SESSION_ALLOWED_COLLECTIONS: OnyxKey[] = [
+    ONYXKEYS.COLLECTION.REPORT,
+    ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    ONYXKEYS.COLLECTION.REPORT_METADATA,
+    ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    ONYXKEYS.COLLECTION.POLICY,
+];
+
 // We use `connectWithoutView` because it is not connected to any UI component.
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
+        // When the account is lost (sign-out / session cleared), drop any buffered updates so old-account
+        // data can't ride through the anonymous-session allow-list in flushQueue() on a later signed-out deeplink.
+        // Doing it in this SESSION listener covers every path that clears the account (sign-out, forced reauth).
+        if (currentAccountID !== undefined && session?.accountID === undefined) {
+            clear();
+        }
         currentAccountID = session?.accountID;
     },
 });
@@ -53,7 +74,33 @@ function flushQueue(): Promise<void> {
             ONYXKEYS.PRESERVED_USER_SESSION,
         ]);
 
-        copyUpdates = copyUpdates.filter((update) => preservedKeys.has(update.key as OnyxKey));
+        // The signed-out public-room deeplink flow flushes while currentAccountID is still undefined,
+        // because OpenReport returns the anonymous SESSION and the room's data in the same batch. When the batch
+        // itself establishes the anonymous session we keep the stale-data filter (#48427/#52822) active for every
+        // unrelated key, but additionally allow the report-family + personal-details + policy keys the room needs —
+        // instead of dropping the filter for the whole batch. (The buffer is cleared on account-loss above, so no
+        // stale cross-account data can be present when this anonymous batch flushes.)
+        const establishesAnonymousSession = copyUpdates.some((update) => {
+            if (update.key !== ONYXKEYS.SESSION) {
+                return false;
+            }
+            // `update.value` is `any`; narrow through `unknown` and check the anonymous authTokenType. This mirrors
+            // Session.isAnonymousUser — we don't import it here because it lives in the heavy Session action module,
+            // and pulling that whole module into this low-level queue file breaks module init (and even the unit test).
+            const sessionValue: unknown = update.value;
+            return typeof sessionValue === 'object' && sessionValue !== null && 'authTokenType' in sessionValue && sessionValue.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
+        });
+
+        copyUpdates = copyUpdates.filter((update) => {
+            const key = update.key as OnyxKey;
+            if (preservedKeys.has(key)) {
+                return true;
+            }
+            if (!establishesAnonymousSession) {
+                return false;
+            }
+            return key === ONYXKEYS.PERSONAL_DETAILS_LIST || ANONYMOUS_SESSION_ALLOWED_COLLECTIONS.some((collectionKey) => key.startsWith(collectionKey));
+        });
     }
     return Onyx.update(copyUpdates);
 }
@@ -62,4 +109,14 @@ function isEmpty() {
     return queuedOnyxUpdates.length === 0;
 }
 
-export {queueOnyxUpdates, flushQueue, isEmpty};
+/**
+ * Discard any queued updates without applying them. Called from the SESSION listener above whenever the
+ * account is lost, so the buffer cannot carry stale, old-account updates into a later anonymous session (the
+ * signed-out public-room deeplink flow), where flushQueue() widens the stale-data allow-list for the batch that
+ * establishes the anonymous session. Also exported for unit tests.
+ */
+function clear() {
+    queuedOnyxUpdates = [];
+}
+
+export {queueOnyxUpdates, flushQueue, isEmpty, clear};

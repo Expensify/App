@@ -3,12 +3,24 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import type {LinkingOptions} from '@react-navigation/native';
 
 import {findFocusedRoute} from '@react-navigation/native';
 import {Linking} from 'react-native';
+import Onyx from 'react-native-onyx';
+
+// Track the session authToken so we can detect a signed-out user without importing the
+// Session action module (which would create a circular dependency through the navigation layer).
+let sessionAuthToken: string | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        sessionAuthToken = session?.authToken;
+    },
+});
 
 /**
  * Rules for dropping a deep link that would re-navigate to a screen the user is already on.
@@ -50,6 +62,19 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             continuePlaidOAuth(url);
             return;
         }
+
+        // When the user is signed out, a public-room (report) deeplink is handled by
+        // DeepLinkHandler → openReportFromDeepLink(), which opens the room as an anonymous user once the
+        // session establishes the protected (auth) routes. Forwarding the same URL to React Navigation
+        // here makes it dispatch a NAVIGATE into TabNavigator, which doesn't exist in the PublicScreens
+        // tree yet → "The action 'NAVIGATE' ... was not handled by any navigator", leaving the user stuck
+        // on the sign-in screen. So skip the React Navigation dispatch for report deeplinks while signed out.
+        // We match the report route with a lightweight path regex instead of getReportIDFromLink() to avoid the
+        // circular import ReportUtils -> linkingConfig -> subscribe -> ReportUtils.
+        if (!sessionAuthToken && CONST.REGEX.REPORT_ID_FROM_PATH.test(url)) {
+            return;
+        }
+
         listener(url);
     });
     return () => subscription.remove();

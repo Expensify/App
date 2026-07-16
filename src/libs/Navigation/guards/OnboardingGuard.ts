@@ -10,7 +10,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Account, Onboarding} from '@src/types/onyx';
+import type {Account, Onboarding, Session} from '@src/types/onyx';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -27,12 +27,19 @@ type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
 
 /**
- * Module-level Onyx subscriptions for OnboardingGuard
- * These provide synchronous access to onboarding-related data
+ * Module-level Onyx subscriptions for OnboardingGuard.
+ * The guard's evaluate() runs in the navigation layer as a plain function, not inside a React component, so it
+ * can't use useOnyx. connectWithoutView keeps these values in module scope for synchronous reads during evaluate().
  */
 let onboarding: OnyxEntry<Onboarding>;
 let account: OnyxEntry<Account>;
-let tryNewDot: {isHybridAppOnboardingCompleted: boolean | undefined; hasBeenAddedToNudgeMigration: boolean} | undefined;
+let session: OnyxEntry<Session>;
+let tryNewDot:
+    | {
+          isHybridAppOnboardingCompleted: boolean | undefined;
+          hasBeenAddedToNudgeMigration: boolean;
+      }
+    | undefined;
 let hybridApp: {isSingleNewDotEntry?: boolean} | undefined;
 let onboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
 let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
@@ -55,6 +62,13 @@ Onyx.connectWithoutView({
 });
 
 Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        session = value;
+    },
+});
+
+Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (value) => {
         tryNewDot = value ? tryNewDotOnyxSelector(value) : undefined;
@@ -64,7 +78,9 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.HYBRID_APP,
     callback: (value) => {
-        hybridApp = {isSingleNewDotEntry: value ? isSingleNewDotEntrySelector(value) : undefined};
+        hybridApp = {
+            isSingleNewDotEntry: value ? isSingleNewDotEntrySelector(value) : undefined,
+        };
     },
 });
 
@@ -167,7 +183,10 @@ const OnboardingGuard: NavigationGuard = {
 
     evaluate: (state, action, context): GuardResult => {
         if (shouldPreventReset(state, action)) {
-            return {type: 'BLOCK', reason: 'Cannot reset to non-onboarding screen while on onboarding'};
+            return {
+                type: 'BLOCK',
+                reason: 'Cannot reset to non-onboarding screen while on onboarding',
+            };
         }
 
         const isTransitioning = context.currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
@@ -177,6 +196,12 @@ const OnboardingGuard: NavigationGuard = {
         const isFirstTimeHybridAppTransition = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
+        // Onboarding can only be completed by a real, authenticated account. A signed-out user (no auth
+        // token, e.g. right after signOut while a public-room deeplink is resolving) or an anonymous user (a public-room
+        // deeplink viewer) must never be redirected into the onboarding flow. Without this, a stale
+        // `hasCompletedGuidedSetupFlow: false` left over from a previous session pushes the signed-out/anonymous deeplink
+        // user through onboarding → navigateAfterOnboarding → Concierge, overriding the public room they opened.
+        const isOnboardableUser = !!session?.authToken && session.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link)
         // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
@@ -198,7 +223,8 @@ const OnboardingGuard: NavigationGuard = {
             isInvitedOrGroupMember ||
             isSingleEntry ||
             isFirstTimeHybridAppTransition ||
-            isNavigatingWithReplace;
+            isNavigatingWithReplace ||
+            !isOnboardableUser;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
@@ -226,6 +252,7 @@ const OnboardingGuard: NavigationGuard = {
             isFirstTimeHybridAppTransition,
             isInvitedOrGroupMember,
             isNavigatingWithReplace,
+            isOnboardableUser,
         });
 
         return {

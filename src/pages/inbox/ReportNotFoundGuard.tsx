@@ -1,5 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 
+import useIsPendingPublicRoomDeeplink from '@hooks/useIsPendingPublicRoomDeeplink';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
@@ -48,6 +49,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+    const isPendingPublicRoomDeeplink = useIsPendingPublicRoomDeeplink(reportIDFromRoute);
 
     const reportID = report?.reportID;
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
@@ -70,7 +72,12 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         setHasSeenLoadingForCurrentReportID(true);
     }
 
-    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && hasSeenLoadingForCurrentReportID && !reportExists));
+    // While a signed-out public-room deeplink is being opened anonymously, the report data can be
+    // transiently missing as the anonymous session and OpenApp settle (a release-build timing race that does not
+    // surface in dev). It is a valid public room being fetched, so don't declare it "not found" — the data settles
+    // shortly after. The RAM-only key is set in openReportFromDeepLink and cleared once a real account signs in.
+    const shouldShowNotFoundPage =
+        !isPendingPublicRoomDeeplink && !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && hasSeenLoadingForCurrentReportID && !reportExists));
 
     useEffect(() => {
         if (!shouldShowNotFoundPage) {
