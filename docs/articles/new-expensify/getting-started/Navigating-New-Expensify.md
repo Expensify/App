@@ -152,7 +152,7 @@ Paid Workspace Admins may have dedicated support contacts assigned to their acco
 4. Below **Concierge**, look for your assigned support contacts.
 5. Click a contact to open a direct message with them.
 
-If your Account Manager has a scheduling link set up, a **Book a call** button appears next to them on the **Help** page. Click **Book a call** to open their calendar in a new tab and schedule a call.
+If your Account Manager has a scheduling link set up, a **Book a call** button also appears next to them here. See **How to book a call with your Account Manager** below for details.
 
 ---
 
@@ -228,4 +228,4 @@ Account Managers are typically assigned to accounts with subscriptions that incl
 
 ## Why don't I see the Book a call button?
 
-The **Book a call** button only appears if you have an assigned Account Manager who has a scheduling link configured. If your Account Manager doesn't have a scheduling link set up, the button won't appear. You can still message your Account Manager directly or ask **Concierge** to help schedule a call.
+You'll only see the **Book a call** button if you have an assigned Account Manager who has a scheduling link configured. If either isn't set up, the button won't appear.
