@@ -24,6 +24,32 @@ type BaseHTMLEngineProviderProps = ChildrenProps & {
     enableExperimentalBRCollapsing?: boolean;
 };
 
+/**
+ * Brand font family names allowed through react-native-render-html's whitelist.
+ * The library only keeps the first supported face from a CSS font stack, so without
+ * {@link HTML_FALLBACK_FONTS} the system fallbacks we add for non-Latin scripts are dropped.
+ */
+const HTML_SYSTEM_FONTS = Object.values(FontUtils.fontFamily.single).map((font) => font.fontFamily);
+
+/**
+ * Remap brand faces to their full platform stacks (with system fallbacks).
+ *
+ * react-native-render-html's font-family validator returns only the first whitelisted
+ * face (e.g. "Expensify Neue"), which has no Greek/Cyrillic glyphs. Returning the full
+ * multi-font stack here restores emoji + system sans-serif fallbacks for those scripts.
+ *
+ * Extra keys beyond sans-serif/serif/monospace are supported at runtime by the library
+ * even though the published TS type is narrower.
+ */
+const HTML_FALLBACK_FONTS = {
+    'sans-serif': FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+    serif: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM.fontFamily,
+    monospace: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
+    [FontUtils.fontFamily.single.EXP_NEUE.fontFamily]: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+    [FontUtils.fontFamily.single.MONOSPACE.fontFamily]: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
+    [FontUtils.fontFamily.single.EXP_NEW_KANSAS_MEDIUM.fontFamily]: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM.fontFamily,
+};
+
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
 // context to RenderHTMLSource components. See https://git.io/JRcZb
@@ -218,7 +244,8 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
-            systemFonts={Object.values(FontUtils.fontFamily.single).map((font) => font.fontFamily)}
+            systemFonts={HTML_SYSTEM_FONTS}
+            fallbackFonts={HTML_FALLBACK_FONTS}
             htmlParserOptions={{
                 recognizeSelfClosing: true,
             }}
