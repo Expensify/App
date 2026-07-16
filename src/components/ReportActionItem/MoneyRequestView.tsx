@@ -675,6 +675,7 @@ function MoneyRequestView({
             parentReportNextStep,
             isOffline,
             delegateAccountID,
+            reportPolicyTags,
             isTrackIntentUser,
         });
     };

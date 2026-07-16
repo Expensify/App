@@ -84,7 +84,6 @@ import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PhoneNumber from '@libs/PhoneNumber';
 import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
@@ -2126,13 +2125,14 @@ function prepareOnyxDataForCleanUpOptimisticParticipants(
     reportID: string,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     currentUserAccountID: number | undefined,
-): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined {
+): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>; missingLoginParticipants: number[]} | undefined {
     const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!existingReport?.participants) {
         return undefined;
     }
     const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
     const redundantParticipants: Record<number, null> = {};
+    const missingLoginParticipants: number[] = [];
     for (const accountID in existingReport.participants) {
         // Never clean up the current user's own personal details. Removing them here (even momentarily) drops the
         // current user's avatar down to the fallback avatar until the real details settle, which is what caused the
@@ -2140,13 +2140,14 @@ function prepareOnyxDataForCleanUpOptimisticParticipants(
         if (Number(accountID) === currentUserAccountID) {
             continue;
         }
-        if (!personalDetails?.[accountID]?.isOptimisticPersonalDetail) {
-            continue;
+        if (personalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+            settledPersonalDetails[accountID] = null;
+            redundantParticipants[accountID] = null;
+        } else if (personalDetails?.[accountID] && !Object.hasOwn(personalDetails[accountID], 'login')) {
+            missingLoginParticipants.push(Number(accountID));
         }
-        settledPersonalDetails[accountID] = null;
-        redundantParticipants[accountID] = null;
     }
-    return {settledPersonalDetails, redundantParticipants};
+    return {settledPersonalDetails, redundantParticipants, missingLoginParticipants};
 }
 
 /**
@@ -4971,7 +4972,8 @@ function leaveRoom(
 function buildInviteToRoomOnyxData(
     report: Report,
     inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    newAccountIDs: number[],
+    newLogins: string[],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     const reportID = report.reportID;
@@ -4982,9 +4984,6 @@ function buildInviteToRoomOnyxData(
 
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
     const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
-
-    const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, inviteeAccountIDs, personalDetailsList);
 
     const participantsAfterInvitation = inviteeAccountIDs.reduce(
         (reportParticipants: Participants, accountID: number) => {
@@ -5068,22 +5067,18 @@ function buildInviteToRoomOnyxData(
         },
     ];
 
-    return {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs};
+    return {optimisticData, successData, failureData, isGroupChat, inviteeEmails};
 }
 
 /** Invites people to a room */
 function inviteToRoom(
     report: Report,
     inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    newAccountIDs: number[],
+    newLogins: string[],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
-    const {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs} = buildInviteToRoomOnyxData(
-        report,
-        inviteeEmailsToAccountIDs,
-        personalDetailsList,
-        formatPhoneNumber,
-    );
+    const {optimisticData, successData, failureData, isGroupChat, inviteeEmails} = buildInviteToRoomOnyxData(report, inviteeEmailsToAccountIDs, newAccountIDs, newLogins, formatPhoneNumber);
 
     if (isGroupChat) {
         const parameters: InviteToGroupChatParams = {
@@ -5191,10 +5186,11 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
 function inviteToGroupChat(
     report: Report,
     inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    newAccountIDs: number[],
+    newLogins: string[],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
-    inviteToRoom(report, inviteeEmailsToAccountIDs, personalDetailsList, formatPhoneNumber);
+    inviteToRoom(report, inviteeEmailsToAccountIDs, newAccountIDs, newLogins, formatPhoneNumber);
 }
 
 /** Removes people from a room
@@ -6776,7 +6772,6 @@ function moveIOUReportToPolicy(
 function moveIOUReportToPolicyAndInviteSubmitter(
     iouReport: OnyxEntry<Report>,
     policy: Policy,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportActions: OnyxCollection<ReportActions>,
     reportPreviewAction: OnyxEntry<ReportAction>,
     currentUserAccountID: number,
@@ -6846,10 +6841,6 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     // Set up new member optimistic data
     const role = CONST.POLICY.ROLE.USER;
 
-    // Get personal details onyx data (similar to addMembersToWorkspace)
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins([submitterLogin], [submitterAccountID], {[submitterAccountID]: {accountID: submitterAccountID}});
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
-
     // Build announce room members data for the new member
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, [submitterAccountID]);
 
@@ -6908,8 +6899,8 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         },
     });
 
-    optimisticData.push(...(newPersonalDetailsOnyxData.optimisticData ?? []), ...policyExpenseChats.onyxOptimisticData, ...(announceRoomMembers.optimisticData ?? []));
-    successData.push(...(newPersonalDetailsOnyxData.finallyData ?? []), ...policyExpenseChats.onyxSuccessData, ...(announceRoomMembers.successData ?? []));
+    optimisticData.push(...policyExpenseChats.onyxOptimisticData, ...(announceRoomMembers.optimisticData ?? []));
+    successData.push(...policyExpenseChats.onyxSuccessData, ...(announceRoomMembers.successData ?? []));
     failureData.push(...policyExpenseChats.onyxFailureData, ...(announceRoomMembers.failureData ?? []));
 
     const {
@@ -7787,7 +7778,6 @@ function changeReportPolicyAndInviteSubmitter({
     report,
     parentReport,
     policy,
-    personalDetails,
     currentUser,
     submitterLogin,
     managerLogin,
@@ -7795,7 +7785,6 @@ function changeReportPolicyAndInviteSubmitter({
     isChangePolicyTrainingModalDismissed,
     isASAPSubmitBetaEnabled,
     employeeList,
-    formatPhoneNumber,
     isReportLastVisibleArchived,
     reportNextStep,
     reportActionsList,
@@ -7805,7 +7794,6 @@ function changeReportPolicyAndInviteSubmitter({
     report: Report;
     parentReport: OnyxEntry<Report>;
     policy: Policy;
-    personalDetails: OnyxEntry<PersonalDetailsList>;
     currentUser: CurrentUser;
     submitterLogin: string | undefined;
     managerLogin: string | undefined;
@@ -7813,7 +7801,6 @@ function changeReportPolicyAndInviteSubmitter({
     isChangePolicyTrainingModalDismissed: boolean;
     isASAPSubmitBetaEnabled: boolean;
     employeeList: PolicyEmployeeList | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isReportLastVisibleArchived: boolean | undefined;
     reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     reportActionsList: OnyxCollection<ReportActions>;
@@ -7833,11 +7820,13 @@ function changeReportPolicyAndInviteSubmitter({
         membersChats,
     } = buildAddMembersToWorkspaceOnyxData(
         {[submitterLogin]: report.ownerAccountID},
+        // We pass empty new personal details here because we already retrieved the submitter login
+        // from the personal details and returned early above if submitter login is falsy.
+        // Reaching this point means the submitter's personal details already exist.
+        {},
         policy,
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
-        formatPhoneNumber,
-        personalDetails,
         currentUser,
         reportActionsList,
         undefined,
