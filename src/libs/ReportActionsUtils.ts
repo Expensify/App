@@ -626,6 +626,10 @@ function isTravelUpdate(reportAction: OnyxInputOrEntry<ReportAction>): reportAct
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE);
 }
 
+function isTravelNudge(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE);
+}
+
 /**
  * We are in the process of deprecating reportAction.originalMessage and will be setting the db version of "message" to reportAction.message in the future see: https://github.com/Expensify/App/issues/39797
  * In the interim, we must check to see if we have an object or array for the reportAction.message, if we have an array we will use the originalMessage as this means we have not yet migrated.
@@ -1293,7 +1297,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    if (isTripPreview(reportAction) || isTravelUpdate(reportAction)) {
+    if (isTripPreview(reportAction) || isTravelUpdate(reportAction) || isTravelNudge(reportAction)) {
         return true;
     }
 
