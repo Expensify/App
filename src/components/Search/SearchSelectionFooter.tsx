@@ -99,7 +99,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const convertedReports = footerConversion?.reports;
     const convertedGroups = footerConversion?.groups;
     const convertedSearchTotal = footerConversion?.searchTotals?.[currentSearchHash];
-    // Source figures the footer stamped each conversion against. A conversion is "fresh" only while its stamped source
+    // Source figures each conversion was stamped against. A conversion is "fresh" only while its stamped source
     // still equals the live snapshot value; an inline edit moves the live value and makes the conversion stale.
     const conversionSources = footerConversion?.sources;
 

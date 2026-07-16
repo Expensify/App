@@ -1028,17 +1028,15 @@ function getFooterConvertedAmounts({
         filters: queryJSONWithoutFlatFilters.filters ?? null,
     });
 
-    // Stamp the source figures this request converts, so a later edit that moves them is detected as stale. The
-    // command merges its converted figures into the same key, so the two halves live side by side.
-    if (sources) {
-        Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {sources});
-    }
-
+    // Send the source figures this request converts so the command echoes them back in the same onyxData merge as
+    // the converted values. Writing the stamp and its converted value together keeps a stale conversion from
+    // looking fresh in the window between an inline edit and this command's response (or if the response never lands).
     read(READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT, {
         jsonQuery,
         targetCurrency,
         ...(transactionIDList && {transactionIDList}),
         ...(reportIDList && {reportIDList}),
+        ...(sources && {sources: JSON.stringify(sources)}),
     });
 }
 

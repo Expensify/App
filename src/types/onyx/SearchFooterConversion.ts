@@ -15,8 +15,9 @@ type ConvertedTotalByCurrency = Record<string, ConvertedTotal>;
 
 /**
  * The default-currency source figure a cached conversion was computed from, keyed by target currency code. The
- * footer writes this when it requests a conversion and compares it to the live snapshot value on every render; a
- * mismatch (e.g. after an inline edit) means the cached conversion is stale and must be fetched again.
+ * footer sends this to the command, which echoes it back alongside the converted value, and the footer compares it
+ * to the live snapshot value on every render; a mismatch (e.g. after an inline edit) means the cached conversion is
+ * stale and must be fetched again.
  */
 type SourceByCurrency = Record<string, number>;
 
@@ -35,8 +36,9 @@ type SearchFooterConversion = {
     searchTotals?: Record<string, ConvertedTotalByCurrency>;
 
     /**
-     * Source figures the App stamps the above conversions against, mirroring their keys (transaction ID / report ID /
-     * group key / search hash, then target currency). Compared to the live snapshot to detect stale conversions.
+     * Source figures the above conversions were stamped against, mirroring their keys (transaction ID / report ID /
+     * group key / search hash, then target currency). The footer sends these and the command echoes them back in the
+     * same merge as the converted values. Compared to the live snapshot to detect stale conversions.
      */
     sources?: {
         /** Source figure each transaction conversion was computed from */
