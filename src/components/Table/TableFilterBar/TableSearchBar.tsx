@@ -29,6 +29,7 @@ function TableSearchBar({label}: TableSearchBarProps) {
     const {
         activeSearchString,
         shouldUseNarrowTableLayout,
+        onSearchStringChange,
         tableMethods: {updateSearchString},
     } = useTableContext();
 
@@ -47,6 +48,11 @@ function TableSearchBar({label}: TableSearchBarProps) {
         // We only want the cleanup to run on unmount to reset the search state
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const handleSearchStringChange = (text: string) => {
+        updateSearchString(text);
+        onSearchStringChange?.(text);
+    };
 
     const containerStyles = shouldUseNarrowTableLayout && styles.flex1;
 
@@ -76,7 +82,7 @@ function TableSearchBar({label}: TableSearchBarProps) {
             clearButtonIconSize={shouldUseNarrowTableLayout ? undefined : variables.iconSizeSmall}
             onBlur={() => setInputFocused(false)}
             onFocus={() => setInputFocused(true)}
-            onChangeText={(text) => updateSearchString(text)}
+            onChangeText={handleSearchStringChange}
         />
     );
 }
