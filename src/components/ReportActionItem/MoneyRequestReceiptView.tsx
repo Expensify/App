@@ -36,6 +36,7 @@ import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
@@ -44,7 +45,6 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getCreationReportErrors,
     isInvoiceReport,
-    isReportInGroupPolicy,
     isTrackExpenseReportNew,
 } from '@libs/ReportUtils';
 import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
@@ -214,7 +214,6 @@ function MoneyRequestReceiptView({
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
 
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
-
     // Browsers don't fire mouseenter when an element mounts under the cursor
     useEffect(() => {
         if (isLoading) {
@@ -380,7 +379,7 @@ function MoneyRequestReceiptView({
         !isTransactionScanning &&
         (hasReceipt || !!receiptRequiredViolation || !!itemizedReceiptRequiredViolation || !!customRulesViolation) &&
         !!(receiptViolations.length || didReceiptScanSucceed) &&
-        isReportInGroupPolicy(report);
+        isGroupPolicyByType(policy?.type);
     const shouldShowReceiptAudit = !isInvoice && (shouldShowReceiptEmptyState || hasReceipt || hasReceiptUploadError);
 
     const fallbackReceiptError = useMemo(() => {
