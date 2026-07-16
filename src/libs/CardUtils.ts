@@ -2007,12 +2007,12 @@ function getDisplayableThirdPartyCards(cardList: CardList | undefined, cardFeedE
  * Determines the currency of a feed. Data sources are prioritized as follows:
  * 1. Feed settings currency, if settings are passed and have a currency
  * 2. Use USD for US program keys
- * 3. For UK/EU feeds, default to GBP
+ * 3. For UK/EU feeds, determine currency based on the feed's country, defaulting to GBP
  * 4. Finally, if all else fails, fallback to USD
  */
 function getFeedCurrency(cardSettings?: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): string {
     const settings = getCardSettings(cardSettings, programKey);
-    return getExpensifyCardProgramCurrency(programKey, undefined, settings?.currency);
+    return getExpensifyCardProgramCurrency(programKey, settings?.country, settings?.currency);
 }
 
 /**
