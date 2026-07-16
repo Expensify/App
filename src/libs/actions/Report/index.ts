@@ -2136,13 +2136,14 @@ function prepareOnyxDataForCleanUpOptimisticParticipants(
     reportID: string,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     currentUserAccountID: number | undefined,
-): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined {
+): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>; missingLoginParticipants: number[]} | undefined {
     const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!existingReport?.participants) {
         return undefined;
     }
     const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
     const redundantParticipants: Record<number, null> = {};
+    const missingLoginParticipants: number[] = [];
     for (const accountID in existingReport.participants) {
         // Never clean up the current user's own personal details. Removing them here (even momentarily) drops the
         // current user's avatar down to the fallback avatar until the real details settle, which is what caused the
@@ -2150,13 +2151,14 @@ function prepareOnyxDataForCleanUpOptimisticParticipants(
         if (Number(accountID) === currentUserAccountID) {
             continue;
         }
-        if (!personalDetails?.[accountID]?.isOptimisticPersonalDetail) {
-            continue;
+        if (personalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+            settledPersonalDetails[accountID] = null;
+            redundantParticipants[accountID] = null;
+        } else if (personalDetails?.[accountID] && !Object.hasOwn(personalDetails[accountID], 'login')) {
+            missingLoginParticipants.push(Number(accountID));
         }
-        settledPersonalDetails[accountID] = null;
-        redundantParticipants[accountID] = null;
     }
-    return {settledPersonalDetails, redundantParticipants};
+    return {settledPersonalDetails, redundantParticipants, missingLoginParticipants};
 }
 
 /**
