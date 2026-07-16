@@ -1,46 +1,67 @@
-import runAfterPredictedTransition from '@libs/Navigation/runAfterPredictedTransition';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 
 type NavigationListener = (event: {data: Record<string, unknown>}) => void;
+type RunAfterPredictedTransitionModule = {
+    default: (callback: () => void | Promise<void>) => CancelHandle;
+};
 
 const UNSAFE_ACTION_EVENT = '__unsafe_action__';
-const navigationListeners: Partial<Record<string, NavigationListener[]>> = {};
+
+const mockNavigationRef = {
+    currentRouteKey: undefined as string | undefined,
+    listeners: {} as Partial<Record<string, NavigationListener[]>>,
+    isReady: () => true,
+    getCurrentRoute: () => (mockNavigationRef.currentRouteKey ? {key: mockNavigationRef.currentRouteKey, name: 'Screen'} : undefined),
+    getRootState: () =>
+        mockNavigationRef.currentRouteKey
+            ? {
+                  stale: false,
+                  type: 'stack',
+                  key: 'root',
+                  index: 0,
+                  routeNames: ['Screen'],
+                  routes: [{key: mockNavigationRef.currentRouteKey, name: 'Screen', params: {}}],
+              }
+            : undefined,
+    addListener: (event: string, listener: NavigationListener) => {
+        mockNavigationRef.listeners[event] ??= [];
+        mockNavigationRef.listeners[event]?.push(listener);
+        return () => {
+            mockNavigationRef.listeners[event] = mockNavigationRef.listeners[event]?.filter((cb) => cb !== listener);
+        };
+    },
+};
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
-    default: {
-        addListener: (event: string, listener: NavigationListener) => {
-            navigationListeners[event] ??= [];
-            navigationListeners[event].push(listener);
-            return () => {
-                navigationListeners[event] = navigationListeners[event]?.filter((cb) => cb !== listener);
-            };
-        },
-    },
+    default: mockNavigationRef,
 }));
 
-function createNavState(focusedRouteKey: string) {
-    return {
-        stale: false,
-        type: 'stack',
-        key: 'root',
-        index: 0,
-        routeNames: ['Screen'],
-        routes: [{key: focusedRouteKey, name: 'Screen', params: {}}],
-    };
-}
+// Load after the mock object exists - module side effects register navigation listeners.
+const {default: runAfterPredictedTransition} = jest.requireActual<RunAfterPredictedTransitionModule>('@libs/Navigation/runAfterPredictedTransition');
 
 function emitAction(type: string, noop = false): void {
-    for (const listener of navigationListeners[UNSAFE_ACTION_EVENT] ?? []) {
+    for (const listener of mockNavigationRef.listeners[UNSAFE_ACTION_EVENT] ?? []) {
         listener({data: {noop, action: {type}}});
     }
 }
 
-function emitState(focusedRouteKey: string): void {
-    for (const listener of navigationListeners.state ?? []) {
-        listener({data: {state: createNavState(focusedRouteKey)}});
+function emitState(focusedRouteKey: string | undefined): void {
+    mockNavigationRef.currentRouteKey = focusedRouteKey;
+    for (const listener of mockNavigationRef.listeners.state ?? []) {
+        // Event payload may be partial (keys omitted), the helper must use the hydrated ref instead.
+        listener({
+            data: {
+                state: {
+                    stale: true,
+                    routes: [{name: 'Screen'}],
+                    index: 0,
+                },
+            },
+        });
     }
 }
 
@@ -49,6 +70,7 @@ describe('runAfterPredictedTransition', () => {
 
     beforeEach(() => {
         jest.useFakeTimers();
+        mockNavigationRef.currentRouteKey = undefined;
         runAfterTransitionsSpy = jest.spyOn(TransitionTracker, 'runAfterTransitions');
         resetPredictionModuleState();
     });
@@ -99,6 +121,23 @@ describe('runAfterPredictedTransition', () => {
 
         TransitionTracker.endTransition(transitionHandle);
         expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not treat a missing hydrated route key as an unchanged focus', () => {
+        emitState('route-a');
+        emitAction('NAVIGATE');
+        emitState(undefined);
+
+        const callback = jest.fn();
+        runAfterPredictedTransition(callback);
+        flushPredictionTick();
+
+        expect(callback).not.toHaveBeenCalled();
+
+        emitState('route-b');
+        flushPredictionTick();
+
+        expect(runAfterTransitionsSpy).toHaveBeenCalledWith(expect.objectContaining({callback, waitForUpcomingTransition: true}));
     });
 
     it('does not wait when an action does not change the focused route', () => {

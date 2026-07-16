@@ -64,8 +64,26 @@ navigationRef.addListener('__unsafe_action__', (event) => {
     pendingClearTimeout = setTimeout(clearPending, CONST.NAVIGATION_PREDICTION_WINDOW_MS);
 });
 
-navigationRef.addListener('state', (event) => {
-    const focusedRouteKey = event.data.state ? findFocusedRoute(event.data.state)?.key : undefined;
+/**
+ * Container `state` events can carry a partial root state with route keys omitted.
+ * Read the hydrated focused key from the ref instead of `event.data.state`.
+ */
+function getHydratedFocusedRouteKey(): string | undefined {
+    if (!navigationRef.isReady()) {
+        return undefined;
+    }
+
+    return navigationRef.getCurrentRoute()?.key ?? findFocusedRoute(navigationRef.getRootState())?.key;
+}
+
+navigationRef.addListener('state', () => {
+    const focusedRouteKey = getHydratedFocusedRouteKey();
+
+    // Missing keys are inconclusive - do not confirm a focus move or clear a pending prediction.
+    if (focusedRouteKey === undefined) {
+        return;
+    }
+
     const didFocusedRouteChange = focusedRouteKey !== lastFocusedRouteKey;
     lastFocusedRouteKey = focusedRouteKey;
 
