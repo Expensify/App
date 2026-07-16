@@ -102,7 +102,7 @@ describe('artifactsResolver', () => {
         it('resolves a matching version and does not build from source', async () => {
             mockResolveExec();
             mockVersions(['0.85.3-nomatch', '0.85.3-match']);
-            mockFetchBodies(['<properties><patchesHash>differenthash</patchesHash></properties>', `<properties><patchesHash>${LOCAL_HASH}</patchesHash></properties>`]);
+            mockFetchBodies(['<properties><patchesHash>differentHash</patchesHash></properties>', `<properties><patchesHash>${LOCAL_HASH}</patchesHash></properties>`]);
 
             const result = await resolveArtifacts({platform: 'ios', packageName: 'react-hybrid', newDotRoot: NEW_DOT_ROOT, isHybrid: true});
 
