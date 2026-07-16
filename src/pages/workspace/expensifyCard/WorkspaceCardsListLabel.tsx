@@ -1,28 +1,20 @@
 import Button from '@components/Button';
-import Icon from '@components/Icon';
-import Popover from '@components/Popover';
-import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import WorkspaceCardLabel, {useWorkspaceCardLabelPopover} from '@components/WorkspaceCardLabel';
 
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getCardSettings} from '@libs/CardUtils';
-import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
-
-import variables from '@styles/variables';
 
 import {queueExpensifyCardForBilling} from '@userActions/Card';
 import {requestExpensifyCardLimitIncrease} from '@userActions/Policy/Policy';
@@ -38,7 +30,7 @@ import type {ValueOf} from 'type-fest';
 import {useRoute} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {addDays, format} from 'date-fns';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceCardsListLabelProps = {
@@ -52,14 +44,38 @@ type WorkspaceCardsListLabelProps = {
     style?: StyleProp<ViewStyle>;
 };
 
+type RequestLimitIncreaseButtonProps = {
+    /** Localized button text */
+    text: string;
+
+    /** Optional style applied to the button */
+    buttonStyle?: StyleProp<ViewStyle>;
+
+    /** Invoked with a callback to close the popover when the button is pressed */
+    onRequest: (closePopover: () => void) => void;
+};
+
+function RequestLimitIncreaseButton({text, buttonStyle, onRequest}: RequestLimitIncreaseButtonProps) {
+    const styles = useThemeStyles();
+    const {closePopover} = useWorkspaceCardLabelPopover();
+
+    return (
+        <View style={[styles.flexRow, styles.mt3]}>
+            <Button
+                onPress={() => onRequest(closePopover)}
+                text={text}
+                style={buttonStyle}
+            />
+        </View>
+    );
+}
+
 function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelProps) {
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
     const policyID = route.params.policyID;
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -67,9 +83,6 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const [isVisible, setVisible] = useState(false);
-    const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
-    const anchorRef = useRef(null);
 
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -77,7 +90,6 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const settings = getCardSettings(cardSettings);
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${defaultFundID}`);
-    const icons = useMemoizedLazyExpensifyIcons(['Info']);
     const paymentBankAccountID = settings?.paymentBankAccountID;
 
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
@@ -90,26 +102,6 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         return !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
     }, [bankAccountList, paymentBankAccountID]);
 
-    useEffect(() => {
-        if (!anchorRef.current || !isVisible) {
-            return;
-        }
-
-        const position = getClickedTargetLocation(anchorRef.current);
-        const BOTTOM_MARGIN_OFFSET = 3;
-
-        setAnchorPosition({
-            top: position.top + position.height + BOTTOM_MARGIN_OFFSET,
-            left: position.left,
-        });
-    }, [isVisible, windowWidth]);
-
-    const requestLimitIncrease = () => {
-        requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID);
-        setVisible(false);
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
-    };
-
     const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
     const settlementFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const isSettleBalanceButtonDisplayed = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && !cardManualBilling && isCurrentBalanceType;
@@ -121,72 +113,42 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         queueExpensifyCardForBilling(CONST.COUNTRY.US, defaultFundID);
     };
 
-    return (
-        <View style={styles.flex1}>
-            <View style={styles.flex1}>
-                <View
-                    ref={anchorRef}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, style]}
-                >
-                    <Text style={[styles.mutedNormalTextLabel, styles.mr1]}>{translate(`workspace.expensifyCard.${type}`)}</Text>
-                    <PressableWithFeedback
-                        accessibilityLabel={translate(`workspace.expensifyCard.${type}`)}
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                        onPress={() => setVisible(true)}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_CARDS_LIST.INFO_BUTTON}
-                    >
-                        <Icon
-                            src={icons.Info}
-                            width={variables.iconSizeExtraSmall}
-                            height={variables.iconSizeExtraSmall}
-                            fill={theme.icon}
-                        />
-                    </PressableWithFeedback>
-                </View>
-                <View style={[styles.flexRow, styles.flexWrap]}>
-                    <Text style={[styles.shortTermsHeadline, isSettleBalanceButtonDisplayed && [styles.mb2, styles.mr3]]}>{convertToDisplayString(value, settlementCurrency)}</Text>
-                    {isSettleBalanceButtonDisplayed && (
-                        <View style={[styles.mr2, isLessThanMediumScreen && styles.mb3]}>
-                            <Button
-                                onPress={handleSettleBalanceButtonClick}
-                                text={translate('workspace.expensifyCard.settleBalance')}
-                                innerStyles={[styles.buttonSmall]}
-                                textStyles={[styles.buttonSmallText]}
-                            />
-                        </View>
-                    )}
-                </View>
-            </View>
-            {isSettleDateTextDisplayed && <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{translate('workspace.expensifyCard.balanceWillBeSettledOn', settlementDate)}</Text>}
-            <Popover
-                onClose={() => setVisible(false)}
-                isVisible={isVisible}
-                outerStyle={!shouldUseNarrowLayout ? styles.pr5 : undefined}
-                innerContainerStyle={!shouldUseNarrowLayout ? {maxWidth: variables.modalContentMaxWidth} : undefined}
-                anchorRef={anchorRef}
-                anchorPosition={anchorPosition}
-            >
-                <View style={styles.p4}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.optionDisplayName, styles.textStrong, styles.mb2]}
-                    >
-                        {translate(`workspace.expensifyCard.${type}`)}
-                    </Text>
-                    <Text style={[styles.textLabelSupporting, styles.lh16]}>{translate(`workspace.expensifyCard.${type}Description`)}</Text>
+    const isLimitIncreaseDisplayed = !isConnectedWithPlaid && type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT;
 
-                    {!isConnectedWithPlaid && type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT && (
-                        <View style={[styles.flexRow, styles.mt3]}>
-                            <Button
-                                onPress={requestLimitIncrease}
-                                text={translate('workspace.expensifyCard.requestLimitIncrease')}
-                                style={shouldUseNarrowLayout && styles.flex1}
-                            />
-                        </View>
-                    )}
-                </View>
-            </Popover>
-        </View>
+    return (
+        <WorkspaceCardLabel
+            style={style}
+            containerStyle={styles.flex1}
+            title={translate(`workspace.expensifyCard.${type}`)}
+            description={translate(`workspace.expensifyCard.${type}Description`)}
+            displayValue={convertToDisplayString(value, settlementCurrency)}
+            valueStyle={isSettleBalanceButtonDisplayed && [styles.mb2, styles.mr3]}
+            valueAccessory={
+                isSettleBalanceButtonDisplayed && (
+                    <View style={[styles.mr2, isLessThanMediumScreen && styles.mb3]}>
+                        <Button
+                            onPress={handleSettleBalanceButtonClick}
+                            text={translate('workspace.expensifyCard.settleBalance')}
+                            innerStyles={[styles.buttonSmall]}
+                            textStyles={[styles.buttonSmallText]}
+                        />
+                    </View>
+                )
+            }
+            footer={isSettleDateTextDisplayed && <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{translate('workspace.expensifyCard.balanceWillBeSettledOn', settlementDate)}</Text>}
+        >
+            {isLimitIncreaseDisplayed && (
+                <RequestLimitIncreaseButton
+                    text={translate('workspace.expensifyCard.requestLimitIncrease')}
+                    buttonStyle={shouldUseNarrowLayout && styles.flex1}
+                    onRequest={(closePopover) => {
+                        requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID);
+                        closePopover();
+                        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+                    }}
+                />
+            )}
+        </WorkspaceCardLabel>
     );
 }
 
