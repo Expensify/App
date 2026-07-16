@@ -1427,7 +1427,7 @@ function getConfiguredExpensifyCardProgramKeys(cardSettings: OnyxEntry<Expensify
  * (US program, or pre-2024 cards that omit `feedCountry`/use the deprecated `CURRENT` value) is treated as US.
  */
 function getProgramKeyForCard(card: Card | undefined): CardProgramKey {
-    return card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB ? CONST.COUNTRY.GB : CONST.COUNTRY.US;
+    return isUkEuExpensifyCard(card) ? CONST.COUNTRY.GB : CONST.COUNTRY.US;
 }
 
 /**
