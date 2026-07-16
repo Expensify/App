@@ -79,9 +79,6 @@ function AgentsPage() {
         }
     };
 
-    const shouldShowErrors = (pendingAction: PendingAction | null | undefined) =>
-        pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
     const agents: AgentRowData[] = Object.entries(agentPrompts ?? {}).flatMap(([key, agentPrompt]) => {
         const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
         const details = personalDetailsList?.[accountID];
@@ -96,7 +93,7 @@ function AgentsPage() {
         }
 
         const mergedErrors = {
-            ...(shouldShowErrors(pendingAction) ? getLatestError(agentPrompt?.errors ?? undefined) : {}),
+            ...getLatestError(agentPrompt?.errors ?? undefined),
             ...getLatestError(agentPrompt?.nameErrors ?? undefined),
             ...getLatestError(agentPrompt?.promptErrors ?? undefined),
             ...getLatestError(agentPrompt?.avatarErrors ?? undefined),

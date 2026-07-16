@@ -74,6 +74,7 @@ function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSele
         searchTokens: [],
         action: showBuiltInProtectionModal,
     };
+
     const customSpendRules: SpendRuleTableItem[] = cardRules.map((rule) => {
         const ruleSummary = rule.summaryParts.map((part) => part.text).join(', ');
         return {
@@ -90,6 +91,7 @@ function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSele
             action: () => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID)),
         };
     });
+
     const spendRulesTableData: SpendRuleTableItem[] = [defaultSpendRule, ...customSpendRules];
 
     const handleGetExpensifyCardPress = () => {

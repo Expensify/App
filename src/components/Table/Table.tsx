@@ -9,7 +9,6 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import genericMemo from '@libs/genericMemo';
 
 import CONST from '@src/CONST';
 
@@ -19,7 +18,7 @@ import type {ReactElement} from 'react';
 import React, {useImperativeHandle, useRef} from 'react';
 
 import type {TableContextValue} from './TableContext';
-import type {TableData, TableHandle, TableMethods, TableProps} from './types';
+import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
 import {getTableListMetadata} from './buildTableListData';
 import useFiltering from './middlewares/filtering';
@@ -30,6 +29,48 @@ import useSorting from './middlewares/sorting';
 import TableContext from './TableContext';
 import TableEmptyState from './TableEmptyStates/TableEmptyState';
 import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
+
+/**
+ * Builds the Proxy exposed through the Table's ref, forwarding to `tableMethods` first and
+ * falling back to FlashList's own methods (e.g. `scrollToIndex`).
+ *
+ * This is a standalone top-level function (rather than being inlined in the `useImperativeHandle`
+ * callback) because OXC's React Compiler currently fails to compile a component when a generic type
+ * cast referencing the component's own type parameters (e.g. `as TableHandle<DataType, ColumnKey, FilterKey>`)
+ * appears inside a nested closure. That bailout is silent (no build warning) and disables automatic
+ * memoization for the entire file, which is what previously caused an infinite FlashList re-render.
+ */
+function createTableHandle<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>(
+    tableMethods: TableMethods<ColumnKey, FilterKey>,
+    listRef: React.RefObject<FlashListRef<DataType> | null>,
+    getProcessedData: () => Array<TableRow<DataType>>,
+    listDataRowOffset: number,
+): TableHandle<DataType, ColumnKey, FilterKey> {
+    return new Proxy(tableMethods, {
+        get: (target, property) => {
+            if (property in target) {
+                return target[property as keyof typeof target];
+            }
+
+            if (property === 'getProcessedData') {
+                return getProcessedData;
+            }
+
+            if (property === 'scrollToIndex') {
+                const scrollToIndex = listRef.current?.scrollToIndex;
+                if (listDataRowOffset === 0 || !scrollToIndex) {
+                    return scrollToIndex;
+                }
+
+                return (params: Parameters<FlashListRef<DataType>['scrollToIndex']>[0]) => {
+                    scrollToIndex({...params, index: params.index + listDataRowOffset});
+                };
+            }
+
+            return listRef.current?.[property as keyof FlashListRef<DataType>];
+        },
+    }) as TableHandle<DataType, ColumnKey, FilterKey>;
+}
 
 /**
  * A composable table component that provides filtering, search, and sorting functionality.
@@ -255,32 +296,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
      * Exposes table control methods through the ref.
      * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
      */
-    useImperativeHandle(ref, () => {
-        return new Proxy(tableMethods, {
-            get: (target, property) => {
-                if (property in target) {
-                    return target[property as keyof typeof target];
-                }
-
-                if (property === 'getProcessedData') {
-                    return () => processedData;
-                }
-
-                if (property === 'scrollToIndex') {
-                    const scrollToIndex = listRef.current?.scrollToIndex;
-                    if (tableListMetadata.listDataRowOffset === 0 || !scrollToIndex) {
-                        return scrollToIndex;
-                    }
-
-                    return (params: Parameters<FlashListRef<DataType>['scrollToIndex']>[0]) => {
-                        scrollToIndex({...params, index: params.index + tableListMetadata.listDataRowOffset});
-                    };
-                }
-
-                return listRef.current?.[property as keyof FlashListRef<DataType>];
-            },
-        }) as TableHandle<DataType, ColumnKey, FilterKey>;
-    });
+    useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData, tableListMetadata.listDataRowOffset));
 
     const handleMobileSelectionPress = () => {
         turnOnMobileSelectionMode();
@@ -343,4 +359,4 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     );
 }
 
-export default genericMemo(Table);
+export default Table;
