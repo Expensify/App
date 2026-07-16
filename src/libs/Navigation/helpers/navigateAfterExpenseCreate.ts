@@ -78,7 +78,7 @@ type ShowExpenseAddedGrowlParams = {
     /** IOU report the transaction landed in, used to resolve the growl's "View" deep link. */
     iouReportID?: string;
 
-    /** The created transaction. */
+    /** The created transaction's ID. */
     transactionID?: string;
 
     /** Transaction thread report the growl's "View" action opens. */
@@ -87,7 +87,7 @@ type ShowExpenseAddedGrowlParams = {
     /** Whether this confirmation is for an invoice (changes the toast copy from "Expense added"). */
     isInvoice?: boolean;
 
-    /** Data the "View" action needs to build the transaction thread. */
+    /** Data the "View" action needs to build the transaction thread when no thread ID is known yet. */
     buildTransactionThreadParams?: BuildTransactionThreadParams;
 };
 
@@ -178,9 +178,6 @@ function showExpenseAddedGrowl({
     // eslint-disable-next-line @typescript-eslint/no-deprecated -- imperative module (not a React component); no useLocalize hook available here
     const growlMessage = isInvoice ? translateLocal('iou.invoiceSent') : translateLocal('iou.expenseAdded');
 
-    const getTransaction = (): Transaction | undefined =>
-        buildTransactionThreadParams?.transaction ?? (iouReportID ? getReportTransactions(iouReportID).find((transaction) => transaction.transactionID === transactionID) : undefined);
-
     const buildThreadFromOnyx = (): string | undefined => {
         const iouReport = iouReportID ? getReportOrDraftReport(iouReportID) : undefined;
         const iouAction = iouReportID ? getIOUActionForReportID(iouReportID, transactionID) : undefined;
@@ -193,7 +190,7 @@ function showExpenseAddedGrowl({
                 betas: buildTransactionThreadParams?.betas,
                 iouReport,
                 iouReportAction: iouAction,
-                transaction: getTransaction(),
+                transaction: buildTransactionThreadParams?.transaction,
             });
             threadReportID = optimisticThread?.reportID;
         } else {
@@ -210,7 +207,7 @@ function showExpenseAddedGrowl({
         if (providedTransactionThreadReportID ?? iouAction?.childReportID) {
             return true;
         }
-        return !!(iouReportID && getReportOrDraftReport(iouReportID)) || !!getTransaction();
+        return !!(iouReportID && getReportOrDraftReport(iouReportID)) || !!buildTransactionThreadParams?.transaction;
     };
 
     const showGrowl = () => {
