@@ -39,6 +39,14 @@ const useScrollEventEmitter = () => {
                 return;
             }
             clearTimeout(timeoutRef.current);
+
+            // Unmounting mid-scroll drops the pending "scrolling ended" event, leaving every listener
+            // stuck as if the scroll never finished. The scroll is over either way, so say so.
+            if (!isScrollingRef.current) {
+                return;
+            }
+            DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, false);
+            isScrollingRef.current = false;
         };
     }, []);
 

@@ -36,6 +36,30 @@ describe('isTooltipTargetOutOfBounds', () => {
         expect(isTooltipTargetOutOfBounds(bounds, NO_INSETS, PORTRAIT_WINDOW)).toBe(true);
     });
 
+    it('should keep a target that sits flush against the left edge in bounds', () => {
+        // Regression: the mileage rate tooltip did not reappear after scrolling because a target resting
+        // at the left edge was treated as out of bounds. Only a target that has actually moved past the
+        // edge counts as out.
+        const bounds = {x: 0, y: 300, width: 70, height: 28};
+
+        expect(isTooltipTargetOutOfBounds(bounds, NO_INSETS, PORTRAIT_WINDOW)).toBe(false);
+    });
+
+    it('should report a target that scrolled past the left edge as out of bounds', () => {
+        const bounds = {x: -20, y: 300, width: 70, height: 28};
+
+        expect(isTooltipTargetOutOfBounds(bounds, NO_INSETS, PORTRAIT_WINDOW)).toBe(true);
+    });
+
+    it('should report a target that scrolled horizontally out of view as out of bounds', () => {
+        // Regression: the horizontal checks exist so the Outstanding filter tooltip hides when its
+        // anchor scrolls sideways out of the status bar. That must still happen in landscape, where the
+        // window excludes the cutout inset.
+        const bounds = {x: 1200, y: 122.66667175292969, width: 69.33331298828125, height: 27.80950927734375};
+
+        expect(isTooltipTargetOutOfBounds(bounds, LANDSCAPE_INSETS, LANDSCAPE_WINDOW)).toBe(true);
+    });
+
     it('should keep a right-aligned target in bounds in landscape, where the window excludes the cutout inset', () => {
         // The settled position of the Switch button after rotating to landscape. Its right edge is
         // 842.28, comfortably inside the 862.48 window, so the tooltip must stay visible. Counting the

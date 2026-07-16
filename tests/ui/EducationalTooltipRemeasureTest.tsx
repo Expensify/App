@@ -19,6 +19,13 @@ jest.mock('@react-navigation/native', () => {
     return {...actual, useIsFocused: () => true};
 });
 
+// useIsResizing is a constant false on native, so drive it explicitly to cover the web resize path.
+let mockIsResizing = false;
+jest.mock('@hooks/useIsResizing', () => ({
+    __esModule: true,
+    default: () => mockIsResizing,
+}));
+
 const INITIAL_METRICS = {
     frame: {x: 0, y: 0, width: 411, height: 914},
     insets: {top: 24, left: 0, right: 0, bottom: 24},
@@ -37,8 +44,8 @@ function layoutEvent(target: ReturnType<typeof createTarget>) {
     return {target, nativeEvent: {layout: {x: 0, y: 300, width: 70, height: 28}, target}};
 }
 
-function renderTooltip(shouldHideOnScroll = false) {
-    return render(
+function tooltipTree(shouldHideOnScroll = false) {
+    return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <SafeAreaProvider initialMetrics={INITIAL_METRICS}>
                 <PortalProvider>
@@ -51,8 +58,12 @@ function renderTooltip(shouldHideOnScroll = false) {
                     </EducationalTooltip>
                 </PortalProvider>
             </SafeAreaProvider>
-        </ComposeProviders>,
+        </ComposeProviders>
     );
+}
+
+function renderTooltip(shouldHideOnScroll = false) {
+    return render(tooltipTree(shouldHideOnScroll));
 }
 
 /** Drive the tooltip through its first display so it is measured and shown. */
@@ -66,6 +77,7 @@ function displayTooltip(anchor: ReturnType<typeof screen.getByTestId>, target: R
 describe('EducationalTooltip', () => {
     beforeEach(() => {
         jest.useFakeTimers();
+        mockIsResizing = false;
     });
 
     afterEach(() => {
@@ -103,6 +115,26 @@ describe('EducationalTooltip', () => {
 
         // Nothing has displayed yet, so the delayed onLayout path still owns the first measurement.
         expect(target.measureInWindow).not.toHaveBeenCalled();
+    });
+
+    describe('when the window is resizing', () => {
+        it('should re-measure the wrapped component once resizing settles', () => {
+            const {rerender} = renderTooltip();
+            const target = createTarget(270);
+            displayTooltip(screen.getByTestId('anchor'), target);
+
+            // While resizing, the tooltip is hidden rather than measured against a moving layout.
+            mockIsResizing = true;
+            rerender(tooltipTree());
+            target.measureInWindow.mockClear();
+
+            // Once resizing settles the tooltip has to measure again, otherwise it stays anchored to
+            // where the component sat before the window changed size.
+            mockIsResizing = false;
+            rerender(tooltipTree());
+
+            expect(target.measureInWindow).toHaveBeenCalled();
+        });
     });
 
     describe('when shouldHideOnScroll is set', () => {
