@@ -16,12 +16,16 @@ type LogParams = string | Record<string, unknown> | Array<Record<string, unknown
 type LogConfig = {
     /** Syslog identifier in the LOG_DIRECT_PREFIX (e.g. php-fpm, victory-chart-renderer). */
     processName: string;
+
     /** Mirrors Log.php's SCRIPT_NAME field (typically the same as processName for CLIs). */
     scriptName: string;
+
     /** Mirrors Log.php's source tag (e.g. script, api). */
     sourceTag: string;
+
     /** Mirrors Log.php's caller tag stack entry (e.g. vcr, Search). */
     callerTag: string;
+
     /** Mirrors Log.php's email field; empty for headless subprocesses with no user session. */
     email?: string;
 };
