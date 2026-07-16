@@ -2978,7 +2978,7 @@ const CONST = {
         SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
     },
 
-    CERTINIA_PSA_BUNDLE_VERSION: '1.3',
+    CERTINIA_PSA_BUNDLE_VERSION: '1.2',
     CERTINIA_FFA_BUNDLE_VERSION: '1.4',
 
     CERTINIA_CONFIG: {
