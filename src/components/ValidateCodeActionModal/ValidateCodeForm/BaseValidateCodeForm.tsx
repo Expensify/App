@@ -151,7 +151,7 @@ function BaseValidateCodeForm({
     const isFirstCountdownRunRef = useRef(true);
 
     const clearDefaultValidationCodeError = useCallback(() => {
-        // Clear "Failed to send security code" error
+        // Clear "Failed to send validateCode" error
 
         if (isEmptyObject(defaultValidateCodeError)) {
             return;
@@ -285,7 +285,7 @@ function BaseValidateCodeForm({
                 // Clear flow specific error
                 clearError();
 
-                // Clear "incorrect security code" error
+                // Clear "incorrect validateCode code" error
                 clearValidateCodeActionError(validateCodeActionErrorField);
             }
         },
@@ -299,7 +299,7 @@ function BaseValidateCodeForm({
         // Clear flow specific error
         clearError();
 
-        // Clear "incorrect security code" error
+        // Clear "incorrect validateCode code" error
         clearValidateCodeActionError(validateCodeActionErrorField);
 
         clearDefaultValidationCodeError();

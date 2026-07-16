@@ -51,7 +51,7 @@ type ValidateCodeActionFormProps = {
     /** Skip the call to sendValidateCode fn on initial render */
     shouldSkipInitialValidation?: boolean;
 
-    /** Ref for validateCode form */
+    /** Ref for validate code form */
     ref?: ForwardedRef<ValidateCodeFormHandle>;
 };
 

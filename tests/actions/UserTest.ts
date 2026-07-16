@@ -343,7 +343,7 @@ describe('actions/User', () => {
 
     describe('addNewContactMethod', () => {
         it('should call API.write with correct parameters when validateCode is provided', async () => {
-            // Given a contact method and validateCode
+            // Given a contact method and validate code
             const contactMethod = 'test@example.com';
             const validateCode = '123456';
 
@@ -364,7 +364,7 @@ describe('actions/User', () => {
         });
 
         it('should call API.write with empty validateCode when validateCode is not provided', async () => {
-            // Given a contact method without validateCode
+            // Given a contact method without validate code
             const contactMethod = 'test@example.com';
 
             // When addNewContactMethod is called without validateCode
