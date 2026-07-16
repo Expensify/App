@@ -14,6 +14,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
+import {getCountryCode} from './CountryUtils';
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -568,19 +569,6 @@ const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined
 };
 
 /**
- * Creates a lookup map from an array of PersonalDetails for O(1) access by accountID.
- * This is useful when you need to look up personal details by accountID multiple times
- * to avoid O(n) .find() calls in loops.
- */
-function createPersonalDetailsLookupByAccountID(details: PersonalDetails[]): Record<number, PersonalDetails> {
-    const map: Record<number, PersonalDetails> = {};
-    for (const detail of details) {
-        map[detail.accountID] = detail;
-    }
-    return map;
-}
-
-/**
  * Checks whether any personal details are missing
  */
 function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
@@ -606,7 +594,12 @@ function areAddressAndPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<P
         return true;
     }
     const currentAddress = getCurrentAddress(privatePersonalDetails);
-    return !currentAddress?.street || !currentAddress?.city || !currentAddress?.state || !currentAddress?.zip || !currentAddress?.country;
+    // For US addresses the state is required; non-US addresses use a province (also stored under `state`) that only
+    // recently became required, so legacy non-US users may not have it. This check backs the home/wallet "add details"
+    // prompts, which intentionally ignore a missing state/province for non-US addresses so those legacy users aren't
+    // flagged (the personal-details form still requires it when actually entering details).
+    const isStateMissing = getCountryCode(currentAddress?.country) === CONST.COUNTRY.US && !currentAddress?.state;
+    return !currentAddress?.street || !currentAddress?.city || isStateMissing || !currentAddress?.zip || !currentAddress?.country;
 }
 
 /**
@@ -645,6 +638,5 @@ export {
     arePersonalDetailsMissing,
     areAddressAndPersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
-    createPersonalDetailsLookupByAccountID,
     temporaryGetDisplayNameOrDefault,
 };
