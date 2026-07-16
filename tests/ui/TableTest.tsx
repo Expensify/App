@@ -850,7 +850,7 @@ describe('Table', () => {
             expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
             expect(within(screen.getByTestId('flash-list')).getByTestId('generic-empty-state')).toBeTruthy();
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(2);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(3);
             expect(mockFlashListProps.at(-1)?.ListEmptyComponent).toBeUndefined();
         });
 
@@ -879,7 +879,7 @@ describe('Table', () => {
             expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
             expect(within(screen.getByTestId('flash-list')).getByTestId('generic-empty-state')).toBeTruthy();
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(2);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(3);
         });
 
         it('should render Table.EmptyState as a sibling when no page header is present', () => {

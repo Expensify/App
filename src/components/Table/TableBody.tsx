@@ -73,8 +73,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, style, ...props}: T
         headerComponent,
         emptyStateElement,
         noResultsStateElement,
-        isEmptyResult,
-        originalDataLength,
         tableListMetadata,
     } = useTableContext<TableData>();
     const {
