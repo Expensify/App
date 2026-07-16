@@ -1,6 +1,3 @@
-import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
-import type {MfaContext, MfaEvent} from '@components/MultifactorAuthentication/machine/types';
-
 import {getDeviceBiometricsOnyxKey} from '@libs/actions/MultifactorAuthentication';
 
 import CONST from '@src/CONST';
@@ -8,10 +5,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 import getOnyxValue from 'tests/utils/getOnyxValue';
-import createInitEvent from 'tests/utils/mfa/flowFixtures';
-import {VALIDATE_DEVICE_DONE_EVENT_TYPE} from 'tests/utils/mfa/flowPaths';
+import {createActorAtState, sendValidateDeviceDone} from 'tests/utils/mfa/flowActors';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
-import {createActor} from 'xstate';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 const TEST_ACCOUNT_ID = 12345;
@@ -20,40 +15,6 @@ const TEST_ACCOUNT_ID = 12345;
 // a wrong target adjusts those expectations and still passes. This suite pins the soft-prompt hops by
 // hand: eligible device -> soft prompt, and approval -> success outcome plus the persisted acceptance.
 
-function createCleanContext(): MfaContext {
-    const initEvent = createInitEvent();
-    return {
-        error: undefined,
-        scenarioName: initEvent.scenarioName,
-        scenario: initEvent.scenario,
-        payload: initEvent.payload,
-        softPromptApproved: false,
-        isCancelConfirmVisible: false,
-    };
-}
-
-function createAwaitingSoftPromptActor() {
-    const awaitingSoftPromptSnapshot = mfaMachine.resolveState({
-        value: {[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}},
-        context: createCleanContext(),
-    });
-    return createActor(mfaMachine, {snapshot: awaitingSoftPromptSnapshot});
-}
-
-function createValidatingDeviceActor() {
-    const validatingDeviceSnapshot = mfaMachine.resolveState({
-        value: {[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.VALIDATING_DEVICE}},
-        context: createCleanContext(),
-    });
-    return createActor(mfaMachine, {snapshot: validatingDeviceSnapshot});
-}
-
-function settleEligibleDevice(actor: ReturnType<typeof createValidatingDeviceActor>) {
-    // Framework actor events are not part of the application's MfaEvent union.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    actor.send({type: VALIDATE_DEVICE_DONE_EVENT_TYPE, output: {success: true}} as unknown as MfaEvent);
-}
-
 describe('MFA soft prompt', () => {
     afterEach(async () => {
         await Onyx.clear();
@@ -61,10 +22,10 @@ describe('MFA soft prompt', () => {
     });
 
     it('moves an eligible device to the soft prompt without approving it', () => {
-        const actor = createValidatingDeviceActor();
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.VALIDATING_DEVICE}});
 
         actor.start();
-        settleEligibleDevice(actor);
+        sendValidateDeviceDone(actor, {success: true});
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}})).toBe(true);
@@ -79,10 +40,10 @@ describe('MFA soft prompt', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
         await Onyx.merge(getDeviceBiometricsOnyxKey(TEST_ACCOUNT_ID), {hasAcceptedSoftPrompt: true});
         await waitForBatchedUpdates();
-        const actor = createValidatingDeviceActor();
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.VALIDATING_DEVICE}});
 
         actor.start();
-        settleEligibleDevice(actor);
+        sendValidateDeviceDone(actor, {success: true});
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.SUCCESS}})).toBe(true);
@@ -93,7 +54,7 @@ describe('MFA soft prompt', () => {
     });
 
     it('reaches the success outcome when the user approves the soft prompt', () => {
-        const actor = createAwaitingSoftPromptActor();
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}});
 
         actor.start();
         actor.send({type: 'SOFT_PROMPT_APPROVED'});
@@ -110,7 +71,7 @@ describe('MFA soft prompt', () => {
         // the session must settle before the event fires.
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
         await waitForBatchedUpdates();
-        const actor = createAwaitingSoftPromptActor();
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}});
 
         actor.start();
         actor.send({type: 'SOFT_PROMPT_APPROVED'});
