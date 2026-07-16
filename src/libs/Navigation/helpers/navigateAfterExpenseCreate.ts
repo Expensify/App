@@ -91,6 +91,62 @@ type ShowExpenseAddedGrowlParams = {
     buildTransactionThreadParams?: BuildTransactionThreadParams;
 };
 
+type NavigateToTransactionThreadParams = {
+    /** The transaction thread report to open. */
+    threadReportID: string;
+
+    /** The created transaction's ID. */
+    transactionID: string;
+
+    /** IOU report the transaction landed in, used to decide whether to stack the expense report underneath. */
+    iouReportID?: string;
+};
+
+/**
+ * Navigates to a just-created transaction thread, choosing the destination from the surface the user
+ * is currently looking at (they may have switched tabs while the growl was up)
+ * - Spend tab: the transaction thread RHP within Spend (report shown underneath via the wide RHP)
+ * - Inbox tab, narrow layout: the transaction thread as a full report view
+ * - Inbox tab, wide layout, multi-transaction report: the expense report with the thread RHP stacked on top
+ * - Inbox tab, wide layout, single-transaction report: the transaction thread as a wide RHP overlaying the
+ * Inbox tab (a single-transaction report does not use the super wide RHP, so stacking would surface as two RHP panels).
+ */
+function navigateToTransactionThread({threadReportID, transactionID, iouReportID}: NavigateToTransactionThreadParams) {
+    const backTo = Navigation.getActiveRoute();
+    const openOnInbox = isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute();
+
+    if (!openOnInbox) {
+        setActiveTransactionIDs([transactionID]).then(() => {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
+        });
+        return;
+    }
+
+    if (getIsNarrowLayout()) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(threadReportID, undefined, undefined, backTo));
+        return;
+    }
+
+    // See SearchMoneyRequestReportPage's `shouldShowSuperWideRHP`: only multi-transaction reports use the
+    // super wide RHP, so only then do we open the expense report underneath and stack the thread RHP on top.
+    const hasMultipleReportTransactions = getReportTransactions(iouReportID).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1;
+
+    if (iouReportID && hasMultipleReportTransactions) {
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
+        // Defer so the thread RHP stacks on top of the expense report navigation above.
+        setNavigationActionToMicrotaskQueue(() => {
+            setActiveTransactionIDs([transactionID]).then(() => {
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: Navigation.getActiveRoute()}));
+            });
+        });
+        return;
+    }
+
+    setActiveTransactionIDs([transactionID]).then(() => {
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
+    });
+}
+
 /**
  * Shows the "Expense added" growl with a "View" action that deep-links to the new expense's RHP.
  *
@@ -169,48 +225,7 @@ function showExpenseAddedGrowl({
                 Log.warn('[showExpenseAddedGrowl] Unable to resolve transaction thread reportID on View press.');
                 return;
             }
-            const backTo = Navigation.getActiveRoute();
-            const openOnInbox = isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute();
-
-            if (!openOnInbox) {
-                // Spend context: open the transaction thread RHP within Search (the report is shown
-                // underneath via the Wide RHP machinery).
-                setActiveTransactionIDs([transactionID]).then(() => {
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
-                });
-                return;
-            }
-
-            // Inbox + narrow layout: super wide RHP is unavailable, so open the transaction thread
-            // as a full report view (matches MoneyRequestReportPreview's narrow-screen behavior).
-            if (getIsNarrowLayout()) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(threadReportID, undefined, undefined, backTo));
-                return;
-            }
-
-            // Inbox + wide layout. A report with multiple transactions opens in a super wide RHP, so
-            // we open the expense report underneath and stack the transaction thread RHP on top of it -
-            // the super wide RHP keeps both visible as one cohesive surface. A single-transaction report
-            // does NOT use the super wide RHP (see SearchMoneyRequestReportPage's `shouldShowSuperWideRHP`),
-            // so stacking would surface as two separate RHP panels (RHP appears to open twice). In that
-            // case navigate straight to the transaction thread instead; the report still shows underneath
-            // via the Wide RHP machinery, matching the Spend-context path above.
-            const hasMultipleReportTransactions =
-                getReportTransactions(iouReportID).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1;
-
-            if (iouReportID && hasMultipleReportTransactions) {
-                Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
-                // Defer so the thread RHP stacks on top of the expense report navigation above.
-                setNavigationActionToMicrotaskQueue(() => {
-                    setActiveTransactionIDs([transactionID]).then(() => {
-                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: Navigation.getActiveRoute()}));
-                    });
-                });
-                return;
-            }
-            setActiveTransactionIDs([transactionID]).then(() => {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
-            });
+            navigateToTransactionThread({threadReportID, transactionID, iouReportID});
         };
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- imperative module (not a React component); no useLocalize hook available here
         Growl.success(growlMessage, CONST.GROWL.DURATION_WITH_ACTION, {label: translateLocal('common.view'), onPress: navigateToExpenseRHP});
@@ -379,5 +394,5 @@ function navigateAfterExpenseCreate({
 }
 
 export default navigateAfterExpenseCreate;
-export {surfaceExpenseCreatedFeedback};
+export {surfaceExpenseCreatedFeedback, navigateToTransactionThread};
 export type {BuildTransactionThreadParams};

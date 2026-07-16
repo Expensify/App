@@ -1,9 +1,12 @@
 import Growl from '@libs/Growl';
-import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import navigateAfterExpenseCreate, {navigateToTransactionThread} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Transaction} from '@src/types/onyx';
+
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockIsReportTopmostSplitNavigator = jest.fn<boolean, []>();
 const mockIsSearchTopmostFullScreenRoute = jest.fn<boolean, []>();
@@ -13,6 +16,7 @@ const mockGetTrackingState = jest.fn<boolean, unknown[]>();
 // Declared but assigned after jest.mock hoisting - use require() to access the mock in tests
 let mockSetPendingSubmitFollowUpAction: jest.Mock;
 const mockGetCurrentSearchQueryJSON = jest.fn<undefined, []>();
+const mockGetReportTransactions = jest.fn<Transaction[], [string | undefined]>();
 
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => () => mockIsReportTopmostSplitNavigator());
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute());
@@ -31,6 +35,12 @@ jest.mock('@libs/SearchQueryUtils', () => ({
     buildCannedSearchQuery: jest.fn(({type}: {type: string}) => `type:${type}`),
     getCurrentSearchQueryJSON: () => mockGetCurrentSearchQueryJSON(),
 }));
+jest.mock('@libs/ReportUtils', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- partial mock of the real module
+    const actual = jest.requireActual('@libs/ReportUtils');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- spread the real module and override one export
+    return {...actual, __esModule: true, getReportTransactions: (reportID: string | undefined) => mockGetReportTransactions(reportID)};
+});
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
@@ -80,6 +90,7 @@ describe('navigateAfterExpenseCreate', () => {
         mockIsReportOpenInRHP.mockReturnValue(false);
         mockGetTrackingState.mockReturnValue(false);
         mockGetCurrentSearchQueryJSON.mockReturnValue(undefined);
+        mockGetReportTransactions.mockReturnValue([]);
     });
 
     it('should dismiss to report when not from global create', () => {
@@ -213,5 +224,57 @@ describe('navigateAfterExpenseCreate', () => {
         expect(Navigation.clearFullscreenPreInsertedFlag).toHaveBeenCalled();
         expect(Navigation.dismissModal).toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    describe('navigateToTransactionThread', () => {
+        it('should open the transaction thread in the Spend RHP when the user is on the Spend tab', async () => {
+            mockIsReportTopmostSplitNavigator.mockReturnValue(false);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+
+            navigateToTransactionThread({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: ''}));
+        });
+
+        it('should open the transaction thread as a full report when the user is on the Inbox tab on a narrow layout', () => {
+            mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            mockGetIsNarrowLayout.mockReturnValue(true);
+
+            navigateToTransactionThread({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('thread-1', undefined, undefined, ''));
+        });
+
+        it('should open the expense report then stack the thread RHP when the user is on the Inbox tab on a wide layout and the report has multiple transactions', async () => {
+            mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            mockGetIsNarrowLayout.mockReturnValue(false);
+            mockGetReportTransactions.mockReturnValue([{transactionID: 'txn-1'}, {transactionID: 'txn-2'}] as Transaction[]);
+
+            navigateToTransactionThread({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenNthCalledWith(1, ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'iou-1', backTo: ''}));
+            expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: ''}));
+        });
+
+        // SEARCH_REPORT is the only wide-RHP screen that renders a transaction thread with its report
+        // underneath; on the Inbox tab it overlays the current tab rather than switching to Spend.
+        it('should open the transaction thread as a wide RHP when the user is on the Inbox tab on a wide layout and the report has a single transaction', async () => {
+            mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            mockGetIsNarrowLayout.mockReturnValue(false);
+            mockGetReportTransactions.mockReturnValue([{transactionID: 'txn-1'}] as Transaction[]);
+
+            navigateToTransactionThread({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: ''}));
+        });
     });
 });
