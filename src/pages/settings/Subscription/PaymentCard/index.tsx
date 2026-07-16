@@ -35,7 +35,7 @@ import SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 function AddPaymentCard() {
@@ -51,6 +51,8 @@ function AddPaymentCard() {
     const subscriptionPrice = useSubscriptionPrice();
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
+    // Keep the valid add-card flow visible when the new billing card reaches Onyx before this screen navigates back.
+    const [hasSubmittedPaymentCard, setHasSubmittedPaymentCard] = useState(false);
 
     const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
@@ -97,6 +99,7 @@ function AddPaymentCard() {
                 addressZip: values.addressZipCode,
                 currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
             };
+            setHasSubmittedPaymentCard(true);
             addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData, fundList, route.name);
         },
         [accountID, fundList, route.name],
@@ -116,7 +119,7 @@ function AddPaymentCard() {
     return (
         <ScreenWrapper testID="AddPaymentCard">
             <FullPageNotFoundView
-                shouldShow={shouldShowBlockingView}
+                shouldShow={shouldShowBlockingView && !hasSubmittedPaymentCard}
                 onBackButtonPress={Navigation.goBack}
             >
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
