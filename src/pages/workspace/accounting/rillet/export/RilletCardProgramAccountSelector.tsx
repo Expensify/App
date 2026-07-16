@@ -3,13 +3,17 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
+import useCardFeeds from '@hooks/useCardFeeds';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearRilletErrorField, updateRilletCreditCardAccount} from '@libs/actions/connections/Rillet';
+import {clearRilletErrorField, updateRilletCardProgramAccount} from '@libs/actions/connections/Rillet';
+import {getCustomOrFormattedFeedName, splitCardFeedWithDomainID} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -19,6 +23,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {RilletAccount} from '@src/types/onyx/Policy';
 
 import React from 'react';
@@ -28,15 +33,29 @@ type AccountListItem = ListItem & {
     value: RilletAccount['code'];
 };
 
-function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
+type RilletCardProgramAccountSelectorProps = WithPolicyConnectionsProps &
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR>;
+
+function RilletCardProgramAccountSelector({
+    policy,
+    route: {
+        params: {feed: feedWithDomainID},
+    },
+}: RilletCardProgramAccountSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
+    const [cardFeeds] = useCardFeeds(policyID);
+    const cardFeed = cardFeeds?.[feedWithDomainID];
+    const feedKey = splitCardFeedWithDomainID(feedWithDomainID)?.feedName;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
     const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
-    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID) : undefined;
+    const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
+    const cardProgramAccountCode = (feedKey ? cardProgramsUsingCustomAccounts?.[feedKey] : undefined) ?? creditCardAccountCode;
+    const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.getRoute(policyID) : undefined;
 
     const data: AccountListItem[] =
         rilletData?.accounts
@@ -48,14 +67,14 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             )
             .map((accountItem) => ({
                 value: accountItem.code,
-                text: `${accountItem.code} ${accountItem.name}`,
+                text: `${creditCardAccountCode === accountItem.code ? `${translate('common.default')} - ` : ''}${accountItem.code} ${accountItem.name}`,
                 keyForList: accountItem.code,
-                isSelected: creditCardAccountCode === accountItem.code,
+                isSelected: cardProgramAccountCode === accountItem.code,
             })) ?? [];
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.companyCardAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.cardProgramAccount.descriptionLevel2')}</Text>
         </View>
     );
 
@@ -71,8 +90,11 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
     );
 
     const selectCreditCardAccount = (item: AccountListItem) => {
-        if (item.value !== creditCardAccountCode && policyID) {
-            updateRilletCreditCardAccount(policyID, item.value, creditCardAccountCode);
+        if (item.value !== cardProgramAccountCode && policyID && feedKey) {
+            // Choosing the default account clears the custom account
+            const value = item.value === creditCardAccountCode ? '' : item.value;
+            const oldValue = cardProgramAccountCode === creditCardAccountCode ? undefined : cardProgramAccountCode;
+            updateRilletCardProgramAccount(policyID, feedKey, value, oldValue);
         }
         Navigation.goBack(backPath);
     };
@@ -82,22 +104,22 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="RilletCompanyCardAccountPage"
-            title="workspace.rillet.companyCardAccount.label"
+            displayName="RilletCardProgramAccountSelector"
+            headerTitleAlreadyTranslated={title}
             data={data}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
             onSelectRow={selectCreditCardAccount}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={creditCardAccountCode}
+            initiallyFocusedOptionKey={cardProgramAccountCode}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
-            pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE], rilletConfig?.pendingFields)}
-            errors={getLatestErrorField(rilletConfig, CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE)}
+            pendingAction={settingsPendingAction([`${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], rilletConfig?.pendingFields)}
+            errors={getLatestErrorField(rilletConfig, `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE)}
+            onClose={() => policyID && clearRilletErrorField(policyID, `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`)}
         />
     );
 }
 
-export default withPolicyConnections(RilletCompanyCardAccountPage);
+export default withPolicyConnections(RilletCardProgramAccountSelector);
