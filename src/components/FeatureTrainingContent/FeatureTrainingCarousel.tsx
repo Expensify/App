@@ -266,6 +266,8 @@ function FeatureTrainingCarousel({
                         helpSentryLabel={helpSentryLabel}
                         confirmSentryLabel={confirmSentryLabel}
                         onConfirm={confirmPage}
+                        // On non-last pages Next only scrolls the carousel locally and nothing resets the press-loading state
+                        shouldShowLoadingImmediatelyOnPress={currentPage < pages.length - 1 ? false : undefined}
                         shouldShowBackButton={currentPage > 0}
                         onBack={goBack}
                         titleStyles={titleStyles}

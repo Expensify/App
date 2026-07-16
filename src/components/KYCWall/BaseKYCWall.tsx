@@ -10,7 +10,7 @@ import {openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuc
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU/PayMoneyRequest';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
@@ -228,12 +228,9 @@ function KYCWall({
                     return;
                 }
 
-                if (policy?.id !== undefined) {
-                    const bankAccount = Object.values(bankAccountList).find((account) => account.accountData?.policyIDs?.includes(policy.id));
-                    if (isBankAccountPartiallySetup(bankAccount?.accountData?.state)) {
-                        navigateToBankAccountRoute({policyID: policy.id, policyCurrency: policy.outputCurrency, bankAccountState: bankAccount?.accountData?.state});
-                        return;
-                    }
+                if (policy?.id !== undefined && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy.id)) {
+                    navigateToBankAccountRoute({policyID: policy.id});
+                    return;
                 }
 
                 // If user has existing bank accounts that he can connect we show the list of these accounts
