@@ -76,7 +76,7 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
             setLoading(true);
             linkCardFeedToPolicy(Number(fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD, feedCountry)
                 .then(() => {
-                    updateSelectedExpensifyCardFeed(Number(fundID), policyID, getSelectableCardProgramKey(feedCountry));
+                    updateSelectedExpensifyCardFeed(Number(fundID), policyID, getSelectableCardProgramKey(feedCountry) ?? CONST.COUNTRY.US);
                     Navigation.closeRHPFlow();
                 })
                 .catch((error: TranslationPaths) => {

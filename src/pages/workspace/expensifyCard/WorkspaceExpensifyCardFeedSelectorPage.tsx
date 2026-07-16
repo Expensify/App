@@ -118,7 +118,10 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
             showDelegateNoAccessModal();
             return;
         }
-        updateSelectedExpensifyCardFeed(issueCardFundID, policyID);
+        // `issueCardFundID` can resolve to a primary feed other than the last-selected one, so use that feed's own
+        // program rather than `selectedProgramKey` (which tracks `lastSelectedExpensifyCardFeedID`) to keep them in sync.
+        const issueCardProgramKey = primaryFeeds.find((entry) => entry.fundID === issueCardFundID)?.programKey ?? selectedProgramKey;
+        updateSelectedExpensifyCardFeed(issueCardFundID, policyID, issueCardProgramKey);
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };

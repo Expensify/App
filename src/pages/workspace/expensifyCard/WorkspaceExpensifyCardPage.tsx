@@ -43,9 +43,9 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const cardsList = filterCardsListByProgram(allProgramsCardsList, selectedProgramKey);
 
     const fetchExpensifyCards = useCallback(() => {
-        updateSelectedExpensifyCardFeed(defaultFundID, policyID);
+        updateSelectedExpensifyCardFeed(defaultFundID, policyID, selectedProgramKey);
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
-    }, [policyID, defaultFundID]);
+    }, [policyID, defaultFundID, selectedProgramKey]);
 
     const {isOffline} = useNetwork({onReconnect: fetchExpensifyCards});
 
