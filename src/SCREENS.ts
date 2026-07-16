@@ -673,6 +673,10 @@ const SCREENS = {
             RILLET_VENDOR_BILL_DATE: 'Policy_Accounting_Rillet_Vendor_Bill_Date',
             RILLET_COMPANY_CARD_ACCOUNT: 'Policy_Accounting_Rillet_Company_Card_Account',
             RILLET_DEFAULT_COMPANY_CARD_VENDOR: 'Policy_Accounting_Rillet_Default_Company_Card_Vendor',
+            RILLET_CARD_PROGRAM_ACCOUNT: 'Policy_Accounting_Rillet_Card_Program_Account',
+            RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR: 'Policy_Accounting_Rillet_Card_Program_Account_Selector',
+            RILLET_CARD_ACCOUNT: 'Policy_Accounting_Rillet_Card_Account',
+            RILLET_CARD_ACCOUNT_CARD_LIST: 'Policy_Accounting_Rillet_Card_Account_Card_List',
             RILLET_ADVANCED: 'Policy_Accounting_Rillet_Advanced',
             RILLET_EXPORT_METHOD: 'Policy_Accounting_Rillet_Export_Method',
             RILLET_BILL_PAYMENT_ACCOUNT: 'Policy_Accounting_Rillet_Bill_Payment_Account',
@@ -967,6 +971,10 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_MigratedUserWelcomeModal_Root',
     },
 
+    SUBMIT_PLAN_WELCOME_MODAL: {
+        DYNAMIC_ROOT: 'Dynamic_SubmitPlanWelcomeModal_Root',
+    },
+
     AI_FEATURES_PROMO_MODAL: {
         DYNAMIC_ROOT: 'Dynamic_AIFeaturesPromoModal_Root',
     },
@@ -1021,8 +1029,8 @@ const SCREENS = {
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
-    MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
-    MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'MissingPersonalDetails_ConfirmMagicCode',
+    DYNAMIC_MISSING_PERSONAL_DETAILS: 'Dynamic_MissingPersonalDetails',
+    DYNAMIC_MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'Dynamic_MissingPersonalDetails_ConfirmMagicCode',
     ADD_EXISTING_EXPENSES_ROOT: 'AddExistingExpenses_Root',
     DEBUG: {
         REPORT: 'Debug_Report',

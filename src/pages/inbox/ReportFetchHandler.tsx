@@ -12,7 +12,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
@@ -20,6 +22,7 @@ import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTr
 import {
     isChatThread,
     isHiddenForCurrentUser,
+    isMoneyRequestReport,
     isOneTransactionThread,
     isPolicyExpenseChat,
     isPublicRoom,
@@ -45,6 +48,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 
@@ -78,6 +82,7 @@ function ReportFetchHandler() {
     const route = useRoute<ReportScreenRoute>();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const reportActionIDFromRoute = route?.params?.reportActionID;
+    const shouldReplaceWithExpenseReportRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && route.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP] === 'true';
 
     const navigation = useNavigation();
     const isFocused = useIsFocused();
@@ -92,6 +97,7 @@ function ReportFetchHandler() {
     const didSubscribeToReportLeavingEvents = useRef(false);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
     const [reportDraftOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
@@ -104,6 +110,7 @@ function ReportFetchHandler() {
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
     const [viewingPublicRoomReportID] = useOnyx(ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID);
+    const [hasViewingPublicRoomReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${viewingPublicRoomReportID}`, {selector: Boolean});
 
     const reportID = reportOnyx?.reportID;
     const report = reportOnyx;
@@ -166,7 +173,7 @@ function ReportFetchHandler() {
             return;
         }
 
-        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas});
+        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas, hasReportActions});
     });
 
     const createOneTransactionThread = useEffectEvent(() => {
@@ -198,7 +205,7 @@ function ReportFetchHandler() {
         if (!shouldUseNarrowLayout || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport({reportID, introSelected, betas});
+        openReport({reportID, introSelected, betas, hasReportActions});
     });
 
     const joinPublicRoomIfNeeded = useEffectEvent(() => {
@@ -206,7 +213,7 @@ function ReportFetchHandler() {
         if (!viewingPublicRoomReportID || viewingPublicRoomReportID === reportIDFromRoute) {
             return;
         }
-        openReport({reportID: viewingPublicRoomReportID, introSelected, betas});
+        openReport({reportID: viewingPublicRoomReportID, introSelected, betas, hasReportActions: hasViewingPublicRoomReportActions});
     });
 
     // Effect order below matches the original declaration order in ReportScreen.tsx.
@@ -309,6 +316,23 @@ function ReportFetchHandler() {
         }
         updateLoadingInitialReportAction(reportIDFromRoute, true);
     }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
+
+    useEffect(() => {
+        // Both `Navigation.setParams` and `forceReplace` below act on the currently focused route, but this effect
+        // can fire late (after a slow `OpenReport`) while this SearchReport RHP has been blurred but is still mounted.
+        // Bail while blurred so we never clear the flag on, or replace, whatever route the user has since navigated
+        // to; the effect re-runs if focus returns to this screen.
+        if (!shouldReplaceWithExpenseReportRHP || !report || !reportIDFromRoute || !isFocused) {
+            return;
+        }
+
+        if (!isMoneyRequestReport(report)) {
+            Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP]: undefined});
+            return;
+        }
+
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: reportIDFromRoute, backTo: route.params?.backTo}), {forceReplace: true});
+    }, [isFocused, report, reportIDFromRoute, route.params?.backTo, shouldReplaceWithExpenseReportRHP]);
 
     useEffect(() => {
         // This function is triggered when a user clicks on a link to navigate to a report.

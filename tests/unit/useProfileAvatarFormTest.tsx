@@ -13,7 +13,7 @@ const currentUserPersonalDetails = {
 };
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => currentUserPersonalDetails);
-jest.mock('@hooks/useDiscardChangesConfirmation', () => jest.fn());
+jest.mock('@hooks/useDiscardChangesConfirmation', () => () => ({suppressDiscardPrompt: jest.fn()}));
 jest.mock('@hooks/useAvatarCrop', () => () => ({openCropper: jest.fn()}));
 jest.mock('@libs/Navigation/Navigation', () => ({dismissModal: jest.fn()}));
 jest.mock('@userActions/PersonalDetails', () => ({

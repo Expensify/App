@@ -517,6 +517,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Beperkingen',
+        tryAgain: 'Probeer het opnieuw',
         tagGLCode: 'GL-code labelen',
         off: 'Uit',
         noResultsFoundSubtitle: 'Geen resultaten. Probeer je filters of zoekopdracht aan te passen',
@@ -1077,6 +1078,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Pas controles aan en stroomlijn uitgaven',
             setupRules: 'Uitgavenregels instellen',
             inviteAccountant: 'Nodig je accountant uit',
+            configureApprovals: 'Goedkeuringsworkflow instellen',
             begin: 'Begin',
             done: 'Klaar',
             createWorkspaceSubText: 'Werkruimte klaar voor configuratie',
@@ -1089,6 +1091,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Praat met Concierge',
             talkToAccountExecutive: 'Praat met je accountmanager',
             forGuidedSetup: 'voor begeleide installatie.',
+            configureApprovalsSubText: 'Definieer rapportgoedkeuringen',
         },
         yourSpend: {
             title: 'Je uitgaven',
@@ -1614,6 +1617,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: 'gewijzigd',
         removed: 'verwijderd',
         transactionPending: 'Transactie in behandeling.',
+        transactionPendingDescription: 'Transactie in behandeling. Het kan een paar dagen duren voordat deze wordt geboekt.',
         chooseARate: 'Selecteer een workspace-vergoeding per mijl of kilometer',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} tot ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Geldig vanaf ${startDate}`,
@@ -2213,18 +2217,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Afmelden',
         restoreStashed: 'Opgeslagen login herstellen',
         signOutConfirmationText: 'Je verliest alle offline wijzigingen als je je afmeldt.',
-        saveReceiptsConfirmation: {
-            title: 'Bonnen opslaan?',
-            prompt: ({count}: {count: number}) =>
-                `Er ${count === 1 ? 'wordt nog 1 bon' : `worden nog ${count} bonnen`} geüpload. Als je je nu afmeldt, slaan we ${count === 1 ? 'deze' : 'ze'} op in je foto's zodat je ${count === 1 ? 'deze' : 'ze'} later aan een nieuwe uitgave kunt toevoegen.`,
-            confirm: 'Opslaan en afmelden',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Bonnen opslaan?',
-            prompt: ({count}: {count: number}) =>
-                `Er ${count === 1 ? 'wordt nog 1 bon' : `worden nog ${count} bonnen`} geüpload. Als je je nu afmeldt, slaan we ${count === 1 ? 'deze' : 'ze'} op in je foto's zodat je ${count === 1 ? 'deze' : 'ze'} later aan een nieuwe uitgave kunt toevoegen. Je verliest alle andere offline wijzigingen.`,
-            confirm: 'Opslaan en afmelden',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Lees de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Servicevoorwaarden</a> en het <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacybeleid</a>.`,
         help: 'Help',
@@ -2899,6 +2891,14 @@ ${amount} voor ${merchant} - ${date}`,
         title: 'Agenten',
         subtitle: `<muted-text>Agents verwerken je workflows voor je, zodat je uren per dag terugkrijgt. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Meer informatie</a>.</muted-text>`,
         findAgent: 'Agent zoeken',
+        deleteAgentsTitle: () => ({
+            one: 'Agent verwijderen',
+            other: 'Agents verwijderen',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Weet je zeker dat je deze agent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
+            other: 'Weet je zeker dat je deze agents wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
+        }),
         newAgent: 'Nieuwe medewerker',
         emptyAgents: {
             title: 'Geen agents aangemaakt',
@@ -3752,7 +3752,6 @@ ${amount} voor ${merchant} - ${date}`,
         facialScan: 'Beleid en toestemming voor gezichts­scan van Onfido',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfido’s beleid en toestemming voor gezichtsherkenning</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Privacybeleid</a> en <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Servicevoorwaarden</a>.</muted-text-micro>`,
-        tryAgain: 'Probeer het opnieuw',
         verifyIdentity: 'Identiteit verifiëren',
         letsVerifyIdentity: 'Laten we je identiteit verifiëren',
         butFirst: `Maar eerst het saaie gedeelte. Lees de juridische tekst in de volgende stap en klik op ‘Accepteren’ wanneer je klaar bent.`,
@@ -4470,6 +4469,7 @@ ${amount} voor ${merchant} - ${date}`,
             deleteConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen?',
             deleteWithCardsConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen? Hiermee worden alle kaartfeeds en toegewezen kaarten verwijderd.',
             deleteOpenExpensifyCardsError: 'Je bedrijf heeft nog Expensify Kaarten. <concierge-link>Neem contact op met Concierge</concierge-link> om ze te verwijderen.',
+            deleteTravelInvoicingError: 'Je bedrijf heeft nog steeds Geconsolideerde Reisfacturering ingeschakeld.',
             outstandingBalanceWarning:
                 'Je hebt een openstaand saldo dat moet worden vereffend voordat je je laatste werkruimte kunt verwijderen. Ga naar je abonnementsinstellingen om de betaling af te ronden.',
             settleBalance: 'Ga naar abonnement',
@@ -5594,6 +5594,35 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 label: 'Rekening voor verrekening van reiskostenfacturen',
                 description: 'Kies je vereffeningsrekening en we maken de betaling voor je aan in Rillet.',
             },
+            exportToMultipleAccounts: 'Export naar meerdere rekeningen instellen',
+            cardProgramAccount: {
+                label: 'Kaartprogramma-account',
+                description: "Overschrijf de werkruimte-account voor deze kaartprogramma's.",
+                descriptionLevel2: 'Overschrijf het werkruimteaccount voor dit kaartprogramma.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle programma’s gebruiken de standaardrekening';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programma met aangepaste rekening`;
+                    }
+                    return `${customAccountsCount} programma's met aangepaste rekeningen`;
+                },
+            },
+            cardAccount: {
+                label: 'Account per kaart',
+                description: 'Overschrijf de programmarekening voor individuele kaarten.',
+                descriptionLevel2: 'Stel een andere programmarekening in voor deze kaarten.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle kaarten gebruiken programmarekeningen';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} kaart met aangepaste rekening`;
+                    }
+                    return `${customAccountsCount} kaarten met aangepaste rekeningen`;
+                },
+            },
         },
         type: {
             free: 'Gratis',
@@ -5612,7 +5641,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 workspaceFeedsCouldNotBeLoadedMessage: 'Er is een fout opgetreden bij het laden van workspacekaartfeeds. Probeer het opnieuw of neem contact op met je beheerder.',
                 feedCouldNotBeLoadedTitle: 'Deze feed kon niet worden geladen',
                 feedCouldNotBeLoadedMessage: 'Er is een fout opgetreden bij het laden van deze feed. Probeer het opnieuw of neem contact op met je beheerder.',
-                tryAgain: 'Probeer het opnieuw',
             },
             addNewCard: {
                 other: 'Anders',
@@ -6405,6 +6433,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 conciergeNotificationTitle: 'Concierge laat je het weten',
                 conciergeNotificationDescription: 'Wanneer het proces is afgerond, stuurt Concierge je een bericht.',
                 copyCompleted: 'Je werkruimte-instellingen zijn gekopieerd.',
+                copyFailedTitle: 'Kopiëren mislukt',
             },
             upgrade: {
                 title: 'Voor sommige functies is een Control-abonnement vereist',
@@ -7614,7 +7643,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Geblokkeerd' : 'Toegestaan'} ${shownCount > 1 ? 'categorieën' : 'categorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
-                defaultRuleSummary: 'Categorieën zoals erotische diensten, geldautomaten, gokken en...',
+                defaultRuleSummary: 'Categorieën zoals diensten voor volwassenen, geldautomaten, gokken en geldoverdrachten',
                 findRule: 'Regel zoeken',
                 defaultSection: 'Standaard',
                 customRulesSection: 'Aangepaste regels',
@@ -10017,6 +10046,18 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             search: 'Krachtigere zoekfunctie op mobiel, web en desktop',
             concierge: 'Ingebouwde Concierge-AI om je onkosten te automatiseren',
             chat: 'Chat over elke uitgave om vragen snel op te lossen',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: 'Wil je een GRATIS werknemersabonnement?',
+        description: 'Wacht niet tot je bedrijf Expensify gaat gebruiken. We hebben een gratis abonnement speciaal voor jou gemaakt:',
+        confirmText: 'Kies het gratis abonnement',
+        dismissText: 'Nee, bedankt',
+        features: {
+            getReimbursed: 'Krijg sneller terugbetaald, direct in Expensify',
+            buildReports: 'Maak onkostenrapporten in enkele seconden',
+            categorize: 'Categoriseer je uitgaven',
+            inviteBoss: 'Nodig je baas uit wanneer je er klaar voor bent',
         },
     },
     productTrainingTooltip: {

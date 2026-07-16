@@ -517,6 +517,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'アバター',
         editor: '編集者',
         restrictions: '制限',
+        tryAgain: '再試行',
         tagGLCode: 'GL コードにタグを付ける',
         off: 'オフ',
         noResultsFoundSubtitle: '結果がありません。フィルターや検索キーワードを調整してお試しください',
@@ -1061,6 +1062,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'コントロールをカスタマイズして支出を効率化',
             setupRules: '支出ルールを設定',
             inviteAccountant: '会計士を招待',
+            configureApprovals: '承認ワークフローを設定',
             begin: '開始',
             done: '完了',
             createWorkspaceSubText: 'ワークスペースのセットアップを開始できます',
@@ -1073,6 +1075,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Concierge に問い合わせる',
             talkToAccountExecutive: 'アカウントエグゼクティブに相談する',
             forGuidedSetup: 'ガイド付きセットアップ用です。',
+            configureApprovalsSubText: 'レポート承認を定義する',
         },
         yourSpend: {
             title: 'あなたの支出',
@@ -1598,6 +1601,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: '変更済み',
         removed: '削除済み',
         transactionPending: '取引は保留中です。',
+        transactionPendingDescription: '取引は保留中です。処理に数日かかる場合があります。',
         chooseARate: 'ワークスペースの払い戻しレートをマイルまたはキロメートルごとに選択してください',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate}から${endDate}まで有効`,
         rateValidFrom: ({startDate}: {startDate: string}) => `${startDate}から有効`,
@@ -2196,17 +2200,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'サインアウト',
         restoreStashed: '保存済みログインを復元',
         signOutConfirmationText: 'サインアウトすると、オフライン中の変更内容はすべて失われます。',
-        saveReceiptsConfirmation: {
-            title: 'レシートを保存しますか？',
-            prompt: ({count}: {count: number}) => `${count}件のレシートがまだアップロード中です。今サインアウトすると、写真に保存され、後で新しい経費に追加できます。`,
-            confirm: '保存してサインアウト',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'レシートを保存しますか？',
-            prompt: ({count}: {count: number}) =>
-                `${count}件のレシートがまだアップロード中です。今サインアウトすると、写真に保存され、後で新しい経費に追加できます。その他のオフライン中の変更内容はすべて失われます。`,
-            confirm: '保存してサインアウト',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">利用規約</a>と<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシーポリシー</a>をお読みください。`,
         help: 'ヘルプ',
@@ -2869,6 +2862,14 @@ ${date} の ${merchant} への ${amount}`,
         title: '担当者',
         subtitle: `<muted-text>エージェントがワークフローを代わりに処理するので、毎日の時間を数時間取り戻せます。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">詳しく見る</a>。</muted-text>`,
         findAgent: '担当者を探す',
+        deleteAgentsTitle: () => ({
+            one: 'エージェントを削除',
+            other: 'エージェントを削除',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'このエージェントを削除してもよろしいですか？この操作は元に戻せません。',
+            other: 'これらのエージェントを削除してもよろしいですか？この操作は元に戻せません。',
+        }),
         newAgent: '新しいエージェント',
         emptyAgents: {
             title: 'エージェントは作成されていません',
@@ -3721,7 +3722,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         facialScan: 'Onfido 顔認証ポリシーおよび同意書',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfidoの顔スキャンポリシーおよび同意</a>、<a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>プライバシー</a>、および<a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>利用規約</a>。</muted-text-micro>`,
-        tryAgain: '再試行',
         verifyIdentity: '本人確認',
         letsVerifyIdentity: '本人確認を行いましょう',
         butFirst: `その前に、ちょっと退屈な話です。次のステップで法律関連の内容をよく読んで、準備ができたら「同意」をクリックしてください。`,
@@ -4438,6 +4438,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
             deleteOpenExpensifyCardsError: '御社にはまだ Expensify カードが残っています。削除するには、<concierge-link>Concierge までお問い合わせください</concierge-link>。',
+            deleteTravelInvoicingError: 'お客様の会社では、統合トラベル請求がまだ有効になっています。',
             outstandingBalanceWarning: '最後のワークスペースを削除する前に精算する必要がある未払残高があります。支払いを解決するには、サブスクリプション設定に移動してください。',
             settleBalance: 'サブスクリプションに移動',
             unavailable: '利用できないワークスペース',
@@ -5543,6 +5544,35 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
             syncTravelInvoicingSettlements: '出張請求の精算を同期',
             travelInvoicingSettlementAccount: {label: '出張請求の精算口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
+            exportToMultipleAccounts: '複数アカウントへのエクスポートを設定',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペース口座を上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのプログラムがデフォルトアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム勘定科目付きプログラム：${customAccountsCount}`;
+                    }
+                    return `${customAccountsCount} 件のカスタムアカウントを含むプログラム`;
+                },
+            },
+            cardAccount: {
+                label: 'カード単位のアカウント',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム口座のカードが ${customAccountsCount} 枚`;
+                    }
+                    return `${customAccountsCount} 枚のカスタムアカウント付きカード`;
+                },
+            },
         },
         type: {
             free: '無料',
@@ -5561,7 +5591,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースカードフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者にお問い合わせください。',
                 feedCouldNotBeLoadedTitle: 'このフィードを読み込めませんでした',
                 feedCouldNotBeLoadedMessage: 'このフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者にお問い合わせください。',
-                tryAgain: '再試行',
             },
             addNewCard: {
                 other: 'その他',
@@ -6340,6 +6369,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 conciergeNotificationTitle: 'Concierge からお知らせします',
                 conciergeNotificationDescription: '処理が完了すると、Concierge からメッセージが送信されます。',
                 copyCompleted: 'ワークスペースの設定がコピーされました。',
+                copyFailedTitle: 'コピーに失敗しました',
             },
             upgrade: {
                 title: '一部の機能は Control プランへの加入が必要です',
@@ -7541,7 +7571,7 @@ ${reportName}`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'ブロック済み' : '許可されています'} ${shownCount > 1 ? 'カテゴリ' : 'カテゴリ'}: ${categories}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
-                defaultRuleSummary: 'アダルトサービス、ATM、ギャンブルなどを含むカテゴリ',
+                defaultRuleSummary: 'アダルトサービス、ATM、ギャンブル、送金を含むカテゴリ',
                 findRule: 'ルールを検索',
                 defaultSection: 'デフォルト',
                 customRulesSection: 'カスタムルール',
@@ -9906,6 +9936,18 @@ ${reportName}`,
             search: 'モバイル、Web、デスクトップでさらに強力な検索',
             concierge: '経費処理を自動化する内蔵のConcierge AI',
             chat: 'あらゆる経費でチャットして、疑問をすばやく解決しましょう',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: '無料の従業員プランはいかがですか？',
+        description: '会社がExpensifyを導入するのを待つ必要はありません。あなたのために無料プランを用意しました。',
+        confirmText: '無料プランを利用する',
+        dismissText: 'いいえ、結構です',
+        features: {
+            getReimbursed: 'Expensifyで、より早く精算を受けられます',
+            buildReports: '数秒で経費レポートを作成',
+            categorize: '経費を分類する',
+            inviteBoss: '準備ができたら上司を招待しましょう',
         },
     },
     productTrainingTooltip: {

@@ -518,6 +518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Éditeur',
         restrictions: 'Restrictions',
+        tryAgain: 'Réessayer',
         tagGLCode: 'Taguer le code GL',
         off: 'Désactivé',
         noResultsFoundSubtitle: 'Aucun résultat. Veuillez essayer de modifier vos filtres ou votre requête de recherche',
@@ -1081,6 +1082,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Personnalisez les contrôles et simplifiez les dépenses',
             setupRules: 'Configurer les règles de dépense',
             inviteAccountant: 'Inviter votre comptable',
+            configureApprovals: 'Configurer le flux d’approbation',
             begin: 'Commencer',
             done: 'Terminé',
             createWorkspaceSubText: 'Espace de travail prêt pour la configuration',
@@ -1093,6 +1095,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Parler à Concierge',
             talkToAccountExecutive: 'Parlez à votre chargé de compte',
             forGuidedSetup: 'pour la configuration guidée.',
+            configureApprovalsSubText: 'Définir les approbations de notes de frais',
         },
         yourSpend: {
             title: 'Vos dépenses',
@@ -1624,6 +1627,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: 'modifié',
         removed: 'supprimé',
         transactionPending: 'Transaction en attente.',
+        transactionPendingDescription: "Transaction en attente. L'enregistrement peut prendre quelques jours.",
         chooseARate: 'Sélectionnez un taux de remboursement par mile ou kilomètre pour l’espace de travail',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} au ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Valide à partir du ${startDate}`,
@@ -2226,18 +2230,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Se déconnecter',
         restoreStashed: 'Restaurer la connexion mise de côté',
         signOutConfirmationText: 'Vous perdrez toutes les modifications hors ligne si vous vous déconnectez.',
-        saveReceiptsConfirmation: {
-            title: 'Enregistrer vos reçus ?',
-            prompt: ({count}: {count: number}) =>
-                `${count} ${count === 1 ? 'reçu est' : 'reçus sont'} encore en cours de téléchargement. Si vous vous déconnectez maintenant, nous ${count === 1 ? "l'enregistrerons" : 'les enregistrerons'} dans vos photos pour que vous puissiez ${count === 1 ? "l'ajouter" : 'les ajouter'} à une nouvelle dépense plus tard.`,
-            confirm: 'Enregistrer et se déconnecter',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Enregistrer vos reçus ?',
-            prompt: ({count}: {count: number}) =>
-                `${count} ${count === 1 ? 'reçu est' : 'reçus sont'} encore en cours de téléchargement. Si vous vous déconnectez maintenant, nous ${count === 1 ? "l'enregistrerons" : 'les enregistrerons'} dans vos photos pour que vous puissiez ${count === 1 ? "l'ajouter" : 'les ajouter'} à une nouvelle dépense plus tard. Vous perdrez toutes les autres modifications hors ligne.`,
-            confirm: 'Enregistrer et se déconnecter',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Lisez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation</a> et la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politique de confidentialité</a>.`,
         help: 'Aide',
@@ -2913,6 +2905,14 @@ ${amount} pour ${merchant} - ${date}`,
         title: 'Agents',
         subtitle: `<muted-text>Les agents gèrent vos workflows pour vous, afin que vous gagniez des heures dans votre journée. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">En savoir plus</a>.</muted-text>`,
         findAgent: 'Trouver un agent',
+        deleteAgentsTitle: () => ({
+            one: 'Supprimer l’agent',
+            other: 'Supprimer les agents',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Voulez-vous vraiment supprimer cet agent ? Cette action est irréversible.',
+            other: 'Voulez-vous vraiment supprimer ces agents ? Cette action est irréversible.',
+        }),
         newAgent: 'Nouvel agent',
         emptyAgents: {
             title: 'Aucun agent créé',
@@ -3777,7 +3777,6 @@ ${amount} pour ${merchant} - ${date}`,
         facialScan: 'Politique et autorisation relatives à la reconnaissance faciale d’Onfido',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Politique et autorisation de numérisation faciale d’Onfido</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Confidentialité</a> et <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Conditions d’utilisation</a>.</muted-text-micro>`,
-        tryAgain: 'Réessayer',
         verifyIdentity: 'Vérifier l’identité',
         letsVerifyIdentity: 'Vérifions votre identité',
         butFirst: `Mais d’abord, les choses ennuyeuses. Lisez le jargon juridique à l’étape suivante et cliquez sur « Accepter » quand vous êtes prêt.`,
@@ -4500,6 +4499,7 @@ ${amount} pour ${merchant} - ${date}`,
             deleteConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ?',
             deleteWithCardsConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ? Cela supprimera tous les flux de cartes et les cartes assignées.',
             deleteOpenExpensifyCardsError: 'Votre entreprise a encore des Cartes Expensify. Veuillez <concierge-link>contacter Concierge</concierge-link> pour les supprimer.',
+            deleteTravelInvoicingError: 'Votre entreprise a toujours la facturation de voyages consolidée activée.',
             outstandingBalanceWarning:
                 'Vous avez un solde impayé qui doit être réglé avant de supprimer votre dernier espace de travail. Veuillez accéder à vos paramètres d’abonnement pour résoudre le paiement.',
             settleBalance: 'Aller à l’abonnement',
@@ -5635,6 +5635,35 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 label: 'Compte de règlement de facturation de voyage',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Rillet.',
             },
+            exportToMultipleAccounts: 'Configurer l’export vers plusieurs comptes',
+            cardProgramAccount: {
+                label: 'Compte de programme de carte',
+                description: 'Remplacer le compte d’espace de travail pour ces programmes de cartes.',
+                descriptionLevel2: 'Remplacer le compte d’espace de travail pour ce programme de carte.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Tous les programmes utilisent le compte par défaut';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programme avec compte personnalisé`;
+                    }
+                    return `${customAccountsCount} programmes avec comptes personnalisés`;
+                },
+            },
+            cardAccount: {
+                label: 'Compte par carte',
+                description: 'Remplacez le compte de programme pour des cartes individuelles.',
+                descriptionLevel2: 'Remplacer le compte de programme pour ces cartes.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Toutes les cartes utilisent des comptes de programme';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} carte avec compte personnalisé`;
+                    }
+                    return `${customAccountsCount} cartes avec comptes personnalisés`;
+                },
+            },
         },
         type: {
             free: 'Gratuit',
@@ -5654,7 +5683,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     'Une erreur s’est produite lors du chargement des flux de cartes de l’espace de travail. Veuillez réessayer ou contacter votre administrateur.',
                 feedCouldNotBeLoadedTitle: 'Impossible de charger ce flux',
                 feedCouldNotBeLoadedMessage: 'Une erreur s’est produite lors du chargement de ce flux. Veuillez réessayer ou contacter votre administrateur.',
-                tryAgain: 'Réessayer',
             },
             addNewCard: {
                 other: 'Autre',
@@ -6463,6 +6491,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 conciergeNotificationTitle: 'Concierge vous en informera',
                 conciergeNotificationDescription: 'Une fois le processus terminé, Concierge vous enverra un message.',
                 copyCompleted: 'Les paramètres de votre espace de travail ont été copiés.',
+                copyFailedTitle: 'Échec de la copie',
             },
             upgrade: {
                 title: 'Certaines fonctionnalités nécessitent un forfait Control',
@@ -7682,7 +7711,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
-                defaultRuleSummary: 'Catégories incluant les services pour adultes, les distributeurs automatiques, les jeux d’argent, et...',
+                defaultRuleSummary: 'Catégories incluant les services pour adultes, les distributeurs automatiques, les jeux d’argent et les transferts d’argent',
                 findRule: 'Trouver une règle',
                 defaultSection: 'Par défaut',
                 customRulesSection: 'Règles personnalisées',
@@ -10095,6 +10124,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             search: 'Recherche plus puissante sur mobile, sur le web et sur ordinateur',
             concierge: 'IA Concierge intégrée pour vous aider à automatiser vos dépenses',
             chat: 'Discutez sur chaque dépense pour résoudre les questions rapidement',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: 'Vous voulez un forfait employé GRATUIT ?',
+        description: "N'attendez pas que votre entreprise adopte Expensify. Nous avons créé un forfait gratuit rien que pour vous :",
+        confirmText: 'Obtenir le forfait gratuit',
+        dismissText: 'Non merci',
+        features: {
+            getReimbursed: 'Soyez remboursé plus vite, directement dans Expensify',
+            buildReports: 'Créez des rapports de dépenses en quelques secondes',
+            categorize: 'Catégorisez vos dépenses',
+            inviteBoss: 'Invitez votre responsable quand vous êtes prêt',
         },
     },
     productTrainingTooltip: {
