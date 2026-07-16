@@ -4,11 +4,23 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {generatePolicyID} from '@src/libs/actions/Policy/Policy';
 import * as Task from '@src/libs/actions/Task';
-import {clearApprovalWorkflowApprover, createApprovalWorkflow, removeApprovalWorkflow, setApprovalWorkflowApprover, updateApprovalWorkflow} from '@src/libs/actions/Workflow';
-import {calculateApprovers} from '@src/libs/WorkflowUtils';
+import {
+    clearApprovalWorkflowApprover,
+    createApprovalWorkflow,
+    createApprovalWorkflowRules,
+    removeApprovalWorkflow,
+    removeApprovalWorkflowRules,
+    setApprovalWorkflowApprover,
+    updateApprovalWorkflow,
+    updateApprovalWorkflowRules,
+} from '@src/libs/actions/Workflow';
+import {calculateApprovers, extractSubmitterEmails} from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType, Report} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
+import type Rule from '@src/types/onyx/Rule';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -42,6 +54,56 @@ const employee1Email = 'test1@gmail.com';
 const employee2Email = 'test2@gmail.com';
 const employee3Email = 'test3@gmail.com';
 const ownerEmail = 'owner@gmail.com';
+
+/**
+ * Reads every rule in the `ONYXKEYS.COLLECTION.RULE` collection that belongs to the given policy and is
+ * not optimistically pending deletion. This mirrors what the app treats as the policy's live rule set.
+ */
+async function getRulesCollection(): Promise<OnyxCollection<Rule>> {
+    let collection: OnyxCollection<Rule> = {};
+    await getOnyxData({
+        key: ONYXKEYS.COLLECTION.RULE,
+        waitForCollectionCallback: true,
+        callback: (value) => {
+            collection = value ?? {};
+        },
+    });
+    return collection;
+}
+
+async function getActivePolicyRules(policyID: string): Promise<Rule[]> {
+    const collection = await getRulesCollection();
+    return Object.values(collection ?? {}).filter(
+        (rule): rule is Rule => !!rule && rule.scope === CONST.RULES.SCOPE.POLICY && rule.scopeID === policyID && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
+}
+
+/** Build the index-keyed object shape the rules API uses for lists (`['a'] -> {'0': 'a'}`). */
+function indexMap<T>(...values: T[]): Record<string, T> {
+    return Object.fromEntries(values.map((value, index) => [String(index), value]));
+}
+
+/** Seed the two rules (submit -> forward, approve -> finalize) that describe a `submitters -> approver` workflow. */
+async function seedForwardApproveRules(policyID: string, submitters: string[], approver: string) {
+    await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule1`, {
+        scope: CONST.RULES.SCOPE.POLICY,
+        scopeID: policyID,
+        triggers: indexMap(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT),
+        filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitters},
+        actions: indexMap({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}),
+    });
+    await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule2`, {
+        scope: CONST.RULES.SCOPE.POLICY,
+        scopeID: policyID,
+        triggers: indexMap(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE),
+        filters: {
+            operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+            left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitters},
+            right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approver},
+        },
+        actions: indexMap({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}),
+    });
+}
 
 describe('actions/Workflow', () => {
     function getApprovalWorkflowState(): Promise<ApprovalWorkflowOnyx | null> {
@@ -836,6 +898,245 @@ describe('actions/Workflow', () => {
             // Then approvalMode should stay ADVANCED because forwardsTo chain still exists
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
             expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+    });
+
+    describe('createApprovalWorkflowRules', () => {
+        it('writes a new rule-based approval workflow to the rules collection', async () => {
+            mockFetch.pause();
+
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                rules: {},
+            };
+
+            const approvalWorkflow = {
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+                action: 'create',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport: undefined, rules: await getRulesCollection()});
+            await waitForBatchedUpdates();
+
+            // A one-approver workflow produces a submit rule (forward to the approver) and a terminal approve rule.
+            const rules = await getActivePolicyRules(policyID);
+            expect(rules).toHaveLength(2);
+
+            const submitRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT));
+            expect(submitRule?.scope).toBe(CONST.RULES.SCOPE.POLICY);
+            expect(submitRule?.scopeID).toBe(policyID);
+            expect(submitRule?.filters).toEqual({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employee1Email]});
+            expect(submitRule?.actions[0]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: ownerEmail});
+
+            const approveRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE));
+            expect(approveRule?.actions[0]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT});
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('folds a new submitter into the existing same-chain rules instead of creating a new pair', async () => {
+            mockFetch.pause();
+
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                rules: {},
+            };
+
+            // Existing workflow: employee1 (A) and employee2 (B) submit to owner (C).
+            await seedForwardApproveRules(policyID, [employee1Email, employee2Email], ownerEmail);
+
+            // New workflow: employee3 (D) submits to owner (C) — same chain as the existing workflow.
+            const approvalWorkflow = {
+                members: [{email: employee3Email, displayName: employee3Email}],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+                action: 'create',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport: undefined, rules: await getRulesCollection()});
+            await waitForBatchedUpdates();
+
+            const rules = await getActivePolicyRules(policyID);
+            // D should be folded into the two existing rules, not create a third/fourth rule.
+            expect(rules).toHaveLength(2);
+            for (const rule of rules) {
+                expect(extractSubmitterEmails(rule)).toEqual([employee1Email, employee2Email, employee3Email]);
+            }
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('E2E: creating A,B→C then D→C via two successive create calls folds D into the same rules', async () => {
+            mockFetch.pause();
+
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                rules: {},
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // First: A and B submit to C.
+            createApprovalWorkflowRules({
+                approvalWorkflow: {
+                    members: [
+                        {email: employee1Email, displayName: employee1Email},
+                        {email: employee2Email, displayName: employee2Email},
+                    ],
+                    approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                    isDefault: false,
+                },
+                policy,
+                addExpenseApprovalsTaskReport: undefined,
+                rules: await getRulesCollection(),
+            });
+            await waitForBatchedUpdates();
+
+            const rulesAfterFirst = await getActivePolicyRules(policyID);
+            expect(rulesAfterFirst).toHaveLength(2);
+
+            // Second: D submits to C (same approver chain).
+            createApprovalWorkflowRules({
+                approvalWorkflow: {
+                    members: [{email: employee3Email, displayName: employee3Email}],
+                    approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                    isDefault: false,
+                },
+                policy,
+                addExpenseApprovalsTaskReport: undefined,
+                rules: await getRulesCollection(),
+            });
+            await waitForBatchedUpdates();
+
+            const rulesAfterSecond = await getActivePolicyRules(policyID);
+            // Still only two rules, each now listing all three submitters.
+            expect(rulesAfterSecond).toHaveLength(2);
+            for (const rule of rulesAfterSecond) {
+                expect(extractSubmitterEmails(rule)).toEqual([employee1Email, employee2Email, employee3Email]);
+            }
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+    });
+
+    describe('updateApprovalWorkflowRules', () => {
+        it('replaces the approver chain when the workflow approver changes', async () => {
+            mockFetch.pause();
+
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                rules: {},
+            };
+
+            // Seed the existing [employee1] → [owner] workflow as rules in the collection.
+            await seedForwardApproveRules(policyID, [employee1Email], ownerEmail);
+
+            const initialApprovalWorkflow = {
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+                action: 'update',
+                originalApprovers: [],
+            };
+            const approvalWorkflow = {
+                ...initialApprovalWorkflow,
+                approvers: [{email: employee2Email, displayName: employee2Email, isCircularReference: false}],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules: await getRulesCollection()});
+            await waitForBatchedUpdates();
+
+            // The old rules (forwarding to the owner) are removed and new rules forwarding to employee2 are created.
+            const rules = await getActivePolicyRules(policyID);
+            const forwardApprovers = rules
+                .flatMap((rule) => Object.values(rule.actions))
+                .filter((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)
+                .map((action) => action.approver);
+            expect(forwardApprovers).toContain(employee2Email);
+            expect(forwardApprovers).not.toContain(ownerEmail);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+    });
+
+    describe('removeApprovalWorkflowRules', () => {
+        it('removes the rules that belong only to the workflow members', async () => {
+            mockFetch.pause();
+
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                rules: {},
+            };
+
+            // Seed the existing [employee1] → [owner] workflow as rules in the collection.
+            await seedForwardApproveRules(policyID, [employee1Email], ownerEmail);
+
+            const approvalWorkflow = {
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+                action: 'remove',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            removeApprovalWorkflowRules(approvalWorkflow, policy, await getRulesCollection());
+            await waitForBatchedUpdates();
+
+            // Both rules belonged only to the removed member, so no live rules remain for the policy.
+            const rules = await getActivePolicyRules(policyID);
+            expect(rules).toHaveLength(0);
 
             await mockFetch.resume();
             await waitForBatchedUpdates();

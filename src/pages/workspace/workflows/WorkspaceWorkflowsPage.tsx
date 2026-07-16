@@ -60,7 +60,13 @@ import {
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import {
+    convertApprovalWorkflowRulesToWorkflows,
+    convertPolicyEmployeesToApprovalWorkflows,
+    getApprovalWorkflowRulesForPolicy,
+    getEligibleExistingBusinessBankAccounts,
+    INITIAL_APPROVAL_WORKFLOW,
+} from '@libs/WorkflowUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -182,16 +188,18 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, email: currentUserEmail = '', login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const isUserReimburser = account?.primaryLogin !== undefined && (policy?.achAccount?.reimburser ?? policy?.owner) === account?.primaryLogin;
-    const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
-        () =>
-            convertPolicyEmployeesToApprovalWorkflows({
-                policy,
-                personalDetails: personalDetails ?? {},
-                localeCompare,
-                currentUserLogin,
-            }),
-        [policy, personalDetails, localeCompare, currentUserLogin],
-    );
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(() => {
+        const params = {
+            policy,
+            personalDetails: personalDetails ?? {},
+            localeCompare,
+            currentUserLogin,
+            rules: getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID),
+        };
+        return isMultipleApproversBetaEnabled ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
+    }, [policy, personalDetails, localeCompare, currentUserLogin, rulesCollection, route.params.policyID, isMultipleApproversBetaEnabled]);
 
     const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
@@ -245,12 +253,20 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, []);
 
     const confirmDisableApprovals = useCallback(() => {
-        setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, {
-            reportNextSteps: allReportNextSteps,
-            transactionViolations,
-            betas,
-        });
-    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail]);
+        setWorkspaceApprovalMode(
+            policy,
+            policy?.owner ?? '',
+            CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            currentUserAccountID,
+            currentUserEmail,
+            {
+                reportNextSteps: allReportNextSteps,
+                transactionViolations,
+                betas,
+            },
+            rulesCollection,
+        );
+    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, rulesCollection]);
 
     const navigateToHRSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(route.params.policyID));
@@ -313,7 +329,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
 
     const filteredApprovalWorkflows =
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL || isHRAdvancedModeEnabled
+        isMultipleApproversBetaEnabled ||
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
+        isHRAdvancedModeEnabled
             ? approvalWorkflows
             : approvalWorkflows.filter((workflow) => workflow.isDefault);
 
@@ -518,11 +537,19 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         });
                         return;
                     }
-                    setWorkspaceApprovalMode(policy, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, {
-                        reportNextSteps: allReportNextSteps,
-                        transactionViolations,
-                        betas,
-                    });
+                    setWorkspaceApprovalMode(
+                        policy,
+                        policy?.owner ?? '',
+                        isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                        currentUserAccountID,
+                        currentUserEmail,
+                        {
+                            reportNextSteps: allReportNextSteps,
+                            transactionViolations,
+                            betas,
+                        },
+                        rulesCollection,
+                    );
                 },
                 subMenuItems: (
                     <>
@@ -559,10 +586,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         />
                         {displayedWorkflows.map((workflow) => {
                             const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
+                            // The first approver isn't unique once rule-based chains diverge, so anchor the key/edit route
+                            // on a member too (each member belongs to exactly one workflow).
+                            const firstMemberEmail = workflow.members.at(0)?.email ?? '';
 
                             return (
                                 <OfflineWithFeedback
-                                    key={firstApproverEmail}
+                                    key={`${firstApproverEmail}-${firstMemberEmail}`}
                                     pendingAction={workflow.pendingAction}
                                 >
                                     <ApprovalWorkflowSection
@@ -573,7 +603,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                 : () => {
                                                       // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
                                                       clearApprovalWorkflow();
-                                                      Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApproverEmail));
+                                                      Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApproverEmail, firstMemberEmail));
                                                   }
                                         }
                                         onShowAllMembersPress={
@@ -886,6 +916,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         withPaymentsReadOnlyFallback,
         withWorkflowsReadOnlyFallback,
         showReadOnlyModal,
+        rulesCollection,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
