@@ -230,7 +230,10 @@ const CONST = {
     TASK_TITLE_DISABLED_RULES: ['image'],
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],
-    CUSTOM_FIELD_KEYS: {customField1: 'employeeUserID', customField2: 'employeePayrollID'},
+    CUSTOM_FIELD_KEYS: {
+        customField1: 'employeeUserID',
+        customField2: 'employeePayrollID',
+    },
     WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
     ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
     ANIMATED_HIGHLIGHT_ENTRY_DURATION: 300,
@@ -302,6 +305,16 @@ const CONST = {
     // from concurrent navigation state mutations, but short enough to finish well before most users
     // tap submit. If the user submits before this fires, the fallback (non-pre-insert) path is used.
     PRE_INSERT_FULLSCREEN_DELAY: 300,
+    /**
+     * Controls when a fullscreen destination is placed behind an open RHP on narrow layout.
+     */
+    NARROW_DESTINATION_STRATEGY: {
+        /** Put the destination behind the RHP before submit, so closing the RHP shows an already-rendered screen. */
+        PRE_INSERT: 'preInsert',
+
+        /** Wait until submit to put the destination behind the RHP, avoiding early navigation changes. */
+        REVEAL: 'reveal',
+    },
     LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
 
@@ -976,14 +989,13 @@ const CONST = {
         BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
-        DATE_BOUND_MILEAGE_RATE: 'dateBoundMileageRate',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
-        CERTINIA: 'financialForceNewDot',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1069,7 +1081,10 @@ const CONST = {
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
                 DEFAULT: {input: 'k', modifierFlags: keyModifierShiftControl},
-                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_OS_MACOS]: {
+                    input: 'k',
+                    modifierFlags: keyModifierShiftCommand,
+                },
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -1110,8 +1125,14 @@ const CONST = {
             modifiers: ['CTRL'],
             trigger: {
                 DEFAULT: {input: keyInputEnter, modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
+                [PLATFORM_OS_MACOS]: {
+                    input: keyInputEnter,
+                    modifierFlags: keyModifierCommand,
+                },
+                [PLATFORM_IOS]: {
+                    input: keyInputEnter,
+                    modifierFlags: keyModifierCommand,
+                },
             },
         },
         COPY: {
@@ -1198,7 +1219,10 @@ const CONST = {
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
                 DEFAULT: {input: 'g', modifierFlags: keyModifierShiftControl},
-                [PLATFORM_OS_MACOS]: {input: 'g', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_OS_MACOS]: {
+                    input: 'g',
+                    modifierFlags: keyModifierShiftCommand,
+                },
                 [PLATFORM_IOS]: {input: 'g', modifierFlags: keyModifierShiftCommand},
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -1209,7 +1233,10 @@ const CONST = {
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
                 DEFAULT: {input: 'p', modifierFlags: keyModifierShiftControl},
-                [PLATFORM_OS_MACOS]: {input: 'p', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_OS_MACOS]: {
+                    input: 'p',
+                    modifierFlags: keyModifierShiftCommand,
+                },
                 [PLATFORM_IOS]: {input: 'p', modifierFlags: keyModifierShiftCommand},
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -2191,6 +2218,7 @@ const CONST = {
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
+        ATTRIBUTE_SEND_MESSAGE_SOURCE: 'send_message_source',
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
@@ -2271,6 +2299,46 @@ const CONST = {
             INVOICE: 'invoice',
             PER_DIEM: 'per_diem',
             SEND_MONEY: 'send_money',
+        },
+        SEND_MESSAGE_SOURCE: {
+            CONCIERGE_SIDE_PANEL: 'concierge_side_panel',
+            // Side Panel hosting the workspace admins chat (admin onboarding), not Concierge.
+            SIDE_PANEL: 'side_panel',
+            // Expense report, split single- vs multi-expense (only multi has a heavy transactions table). e/:id and
+            // search/r/:id render the same component, so they share this base rather than owning a `_search` value.
+            EXPENSE_REPORT_SINGLE: 'expense_report_single',
+            EXPENSE_REPORT_MULTI: 'expense_report_multi',
+            // Single-transaction expense thread (chat-type, expense parent).
+            EXPENSE_TRANSACTION_THREAD: 'expense_transaction_thread',
+            CONCIERGE: 'concierge',
+            REPORT_THREAD: 'report_thread',
+            INVOICE_ROOM: 'invoice_room',
+            WORKSPACE_ROOM: 'workspace_room',
+            POLICY_EXPENSE_CHAT: 'policy_expense_chat',
+            TASK_REPORT: 'task_report',
+            GROUP_CHAT: 'group_chat',
+            DIRECT_MESSAGE: 'direct_message',
+            SELF_DM: 'self_dm',
+            OTHER_CHAT: 'other_chat',
+        },
+        // Tab prefix on every send_message_source value. OTHER = a tab that doesn't host these surfaces
+        // (Workspaces) or an unresolved tab.
+        SEND_MESSAGE_SOURCE_TAB: {
+            HOME: 'home',
+            INBOX: 'inbox',
+            SPEND: 'spend',
+            SETTINGS: 'settings',
+            OTHER: 'other',
+        },
+        // Surface suffix, added for the RHP report routes (e/:id, search/r/:id, search/view/:id), e.g.
+        // `inbox_report_thread_rhp`. Central pane has no suffix; the Side Panel lives in the base.
+        SEND_MESSAGE_SOURCE_SURFACE: {
+            RHP: 'rhp',
+        },
+        // Extra suffix (alongside `_rhp`) marking that the RHP screen was drilled into from its parent expense
+        // report vs opened directly from a list, e.g. `spend_expense_transaction_thread_rhp_from_report`.
+        SEND_MESSAGE_SOURCE_RHP_ORIGIN: {
+            FROM_REPORT: 'from_report',
         },
         // Start type stamped on the navigate-to-reports spans: cold, warm on the first render (warm_first),
         // or warm on a cached re-visit (warm_subsequent). UNKNOWN is a fallback that signals a bug.
@@ -3723,6 +3791,11 @@ const CONST = {
             CATEGORIZE: 'categorize',
             SHARE: 'share',
         },
+        // Destination chosen from the track-expense "Submit" whisper on the Submit (submit2026) plan.
+        SUBMIT_DESTINATION: {
+            FRIEND: 'friend',
+            EMPLOYER: 'employer',
+        },
         DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
@@ -4166,9 +4239,7 @@ const CONST = {
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
             },
-            SUPPORTED_ONLY_ON_OLDDOT: {
-                FINANCIALFORCE: 'financialforce',
-            },
+            SUPPORTED_ONLY_ON_OLDDOT: {},
             UNSUPPORTED_NAMES: {
                 GENERIC_INDIRECT_CONNECTION: 'generic_indirect_connection',
             },
@@ -6013,6 +6084,17 @@ const CONST = {
         SMALL: 'small',
     },
 
+    BUTTON_VARIANT: {
+        SUCCESS: 'success',
+        DANGER: 'danger',
+    },
+
+    BUTTON_REMOVE_BORDER_RADIUS: {
+        LEFT: 'left',
+        RIGHT: 'right',
+        ALL: 'all',
+    },
+
     ICON_SIZE: {
         EXTRA_SMALL: 'extra-small',
         SMALL: 'small',
@@ -6632,44 +6714,184 @@ const CONST = {
          */
         get COLUMN_AVAILABILITY() {
             return {
-                RECEIPT: {column: this.TABLE_COLUMNS.RECEIPT, search: true, reportView: true},
-                DATE: {column: this.TABLE_COLUMNS.DATE, search: true, reportView: true},
-                STATUS: {column: this.TABLE_COLUMNS.STATUS, search: true, reportView: false},
-                SUBMITTED: {column: this.TABLE_COLUMNS.SUBMITTED, search: true, reportView: false},
-                APPROVED: {column: this.TABLE_COLUMNS.APPROVED, search: true, reportView: false},
-                POSTED: {column: this.TABLE_COLUMNS.POSTED, search: true, reportView: true},
-                EXPORTED: {column: this.TABLE_COLUMNS.EXPORTED, search: true, reportView: false},
-                MERCHANT: {column: this.TABLE_COLUMNS.MERCHANT, search: true, reportView: true},
-                DESCRIPTION: {column: this.TABLE_COLUMNS.DESCRIPTION, search: true, reportView: true},
-                FROM: {column: this.TABLE_COLUMNS.FROM, search: true, reportView: false},
+                RECEIPT: {
+                    column: this.TABLE_COLUMNS.RECEIPT,
+                    search: true,
+                    reportView: true,
+                },
+                DATE: {
+                    column: this.TABLE_COLUMNS.DATE,
+                    search: true,
+                    reportView: true,
+                },
+                STATUS: {
+                    column: this.TABLE_COLUMNS.STATUS,
+                    search: true,
+                    reportView: false,
+                },
+                SUBMITTED: {
+                    column: this.TABLE_COLUMNS.SUBMITTED,
+                    search: true,
+                    reportView: false,
+                },
+                APPROVED: {
+                    column: this.TABLE_COLUMNS.APPROVED,
+                    search: true,
+                    reportView: false,
+                },
+                POSTED: {
+                    column: this.TABLE_COLUMNS.POSTED,
+                    search: true,
+                    reportView: true,
+                },
+                EXPORTED: {
+                    column: this.TABLE_COLUMNS.EXPORTED,
+                    search: true,
+                    reportView: false,
+                },
+                MERCHANT: {
+                    column: this.TABLE_COLUMNS.MERCHANT,
+                    search: true,
+                    reportView: true,
+                },
+                DESCRIPTION: {
+                    column: this.TABLE_COLUMNS.DESCRIPTION,
+                    search: true,
+                    reportView: true,
+                },
+                FROM: {
+                    column: this.TABLE_COLUMNS.FROM,
+                    search: true,
+                    reportView: false,
+                },
                 TO: {column: this.TABLE_COLUMNS.TO, search: true, reportView: false},
-                POLICY_NAME: {column: this.TABLE_COLUMNS.POLICY_NAME, search: true, reportView: false},
-                CARD: {column: this.TABLE_COLUMNS.CARD, search: true, reportView: true},
-                CATEGORY: {column: this.TABLE_COLUMNS.CATEGORY, search: true, reportView: true},
-                CATEGORY_GL_CODE: {column: this.TABLE_COLUMNS.CATEGORY_GL_CODE, search: true, reportView: true},
-                ATTENDEES: {column: this.TABLE_COLUMNS.ATTENDEES, search: true, reportView: true},
-                TOTAL_PER_ATTENDEE: {column: this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, search: true, reportView: true},
+                POLICY_NAME: {
+                    column: this.TABLE_COLUMNS.POLICY_NAME,
+                    search: true,
+                    reportView: false,
+                },
+                CARD: {
+                    column: this.TABLE_COLUMNS.CARD,
+                    search: true,
+                    reportView: true,
+                },
+                CATEGORY: {
+                    column: this.TABLE_COLUMNS.CATEGORY,
+                    search: true,
+                    reportView: true,
+                },
+                CATEGORY_GL_CODE: {
+                    column: this.TABLE_COLUMNS.CATEGORY_GL_CODE,
+                    search: true,
+                    reportView: true,
+                },
+                ATTENDEES: {
+                    column: this.TABLE_COLUMNS.ATTENDEES,
+                    search: true,
+                    reportView: true,
+                },
+                TOTAL_PER_ATTENDEE: {
+                    column: this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
+                    search: true,
+                    reportView: true,
+                },
                 TAG: {column: this.TABLE_COLUMNS.TAG, search: true, reportView: true},
-                TAG_GL_CODE: {column: this.TABLE_COLUMNS.TAG_GL_CODE, search: true, reportView: true},
-                EXCHANGE_RATE: {column: this.TABLE_COLUMNS.EXCHANGE_RATE, search: true, reportView: true},
-                ORIGINAL_AMOUNT: {column: this.TABLE_COLUMNS.ORIGINAL_AMOUNT, search: true, reportView: true},
-                REPORT_ID: {column: this.TABLE_COLUMNS.REPORT_ID, search: true, reportView: false},
-                BASE_62_REPORT_ID: {column: this.TABLE_COLUMNS.BASE_62_REPORT_ID, search: true, reportView: false},
-                REIMBURSABLE: {column: this.TABLE_COLUMNS.REIMBURSABLE, search: true, reportView: true},
-                BILLABLE: {column: this.TABLE_COLUMNS.BILLABLE, search: true, reportView: true},
+                TAG_GL_CODE: {
+                    column: this.TABLE_COLUMNS.TAG_GL_CODE,
+                    search: true,
+                    reportView: true,
+                },
+                EXCHANGE_RATE: {
+                    column: this.TABLE_COLUMNS.EXCHANGE_RATE,
+                    search: true,
+                    reportView: true,
+                },
+                ORIGINAL_AMOUNT: {
+                    column: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+                    search: true,
+                    reportView: true,
+                },
+                REPORT_ID: {
+                    column: this.TABLE_COLUMNS.REPORT_ID,
+                    search: true,
+                    reportView: false,
+                },
+                BASE_62_REPORT_ID: {
+                    column: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
+                    search: true,
+                    reportView: false,
+                },
+                REIMBURSABLE: {
+                    column: this.TABLE_COLUMNS.REIMBURSABLE,
+                    search: true,
+                    reportView: true,
+                },
+                BILLABLE: {
+                    column: this.TABLE_COLUMNS.BILLABLE,
+                    search: true,
+                    reportView: true,
+                },
                 MCC: {column: this.TABLE_COLUMNS.MCC, search: true, reportView: true},
-                TAX_CODE: {column: this.TABLE_COLUMNS.TAX_CODE, search: true, reportView: true},
-                TAX_RATE: {column: this.TABLE_COLUMNS.TAX_RATE, search: true, reportView: true},
-                TAX_AMOUNT: {column: this.TABLE_COLUMNS.TAX_AMOUNT, search: true, reportView: true},
-                TITLE: {column: this.TABLE_COLUMNS.TITLE, search: true, reportView: false},
-                AMOUNT: {column: this.TABLE_COLUMNS.TOTAL_AMOUNT, search: true, reportView: true},
-                TOTAL: {column: this.TABLE_COLUMNS.TOTAL, search: false, reportView: true},
-                EXPORTED_TO: {column: this.TABLE_COLUMNS.EXPORTED_TO, search: true, reportView: false},
-                ACTION: {column: this.TABLE_COLUMNS.ACTION, search: true, reportView: false},
-                WITHDRAWAL_ID: {column: this.TABLE_COLUMNS.WITHDRAWAL_ID, search: true, reportView: true},
-                SUBMITTER_USER_ID: {column: this.TABLE_COLUMNS.SUBMITTER_USER_ID, search: true, reportView: true},
-                SUBMITTER_PAYROLL_ID: {column: this.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID, search: true, reportView: true},
-                ORDER_DEAL_NUMBERS: {column: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS, search: true, reportView: true},
+                TAX_CODE: {
+                    column: this.TABLE_COLUMNS.TAX_CODE,
+                    search: true,
+                    reportView: true,
+                },
+                TAX_RATE: {
+                    column: this.TABLE_COLUMNS.TAX_RATE,
+                    search: true,
+                    reportView: true,
+                },
+                TAX_AMOUNT: {
+                    column: this.TABLE_COLUMNS.TAX_AMOUNT,
+                    search: true,
+                    reportView: true,
+                },
+                TITLE: {
+                    column: this.TABLE_COLUMNS.TITLE,
+                    search: true,
+                    reportView: false,
+                },
+                AMOUNT: {
+                    column: this.TABLE_COLUMNS.TOTAL_AMOUNT,
+                    search: true,
+                    reportView: true,
+                },
+                TOTAL: {
+                    column: this.TABLE_COLUMNS.TOTAL,
+                    search: false,
+                    reportView: true,
+                },
+                EXPORTED_TO: {
+                    column: this.TABLE_COLUMNS.EXPORTED_TO,
+                    search: true,
+                    reportView: false,
+                },
+                ACTION: {
+                    column: this.TABLE_COLUMNS.ACTION,
+                    search: true,
+                    reportView: false,
+                },
+                WITHDRAWAL_ID: {
+                    column: this.TABLE_COLUMNS.WITHDRAWAL_ID,
+                    search: true,
+                    reportView: true,
+                },
+                SUBMITTER_USER_ID: {
+                    column: this.TABLE_COLUMNS.SUBMITTER_USER_ID,
+                    search: true,
+                    reportView: true,
+                },
+                SUBMITTER_PAYROLL_ID: {
+                    column: this.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+                    search: true,
+                    reportView: true,
+                },
+                ORDER_DEAL_NUMBERS: {
+                    column: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+                    search: true,
+                    reportView: true,
+                },
             };
         },
         get TYPE_CUSTOM_COLUMNS() {
@@ -6840,7 +7062,6 @@ const CONST = {
         },
         STATUS: {
             EXPENSE: {
-                ALL: '',
                 UNREPORTED: 'unreported',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
@@ -6850,7 +7071,6 @@ const CONST = {
                 DELETED: 'deleted',
             },
             EXPENSE_REPORT: {
-                ALL: '',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
@@ -6858,18 +7078,15 @@ const CONST = {
                 PAID: 'paid',
             },
             INVOICE: {
-                ALL: '',
                 OUTSTANDING: 'outstanding',
                 PAID: 'paid',
             },
             TRIP: {
-                ALL: '',
                 CURRENT: 'current',
                 PAST: 'past',
             },
             CHAT: {},
             TASK: {
-                ALL: '',
                 OUTSTANDING: 'outstanding',
                 COMPLETED: 'completed',
             },
@@ -6959,7 +7176,6 @@ const CONST = {
         },
         SYNTAX_ROOT_KEYS: {
             TYPE: 'type',
-            STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             VIEW: 'view',
@@ -7285,6 +7501,7 @@ const CONST = {
         SCREENS.SAML_SIGN_IN,
         SCREENS.VALIDATE_LOGIN,
         SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT,
+        SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT,
         SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT,
         SCREENS.MONEY_REQUEST.STEP_SCAN,
         SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP,
@@ -7820,6 +8037,10 @@ const CONST = {
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 
+    // Backend NVP name for the Submit migration modal. The Onyx key is prefixed with `nvp_`
+    // (ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN), but the API expects the unprefixed name.
+    SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME: 'submitMigrationModalShown',
+
     AI_FEATURES_PROMO_MODAL: 'aiFeaturesPromoModal',
 
     AI_FEATURES_PROMO_LEARN_MORE_URLS: {
@@ -7990,6 +8211,9 @@ const CONST = {
     SENTRY_LABEL: {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
+        },
+        ACCOUNT_MANAGER_BOOK_CALL: {
+            BUTTON: 'AccountManagerBookCallButton-Button',
         },
         HIGH_CONTRAST_MODE_SWITCHER: {
             TOGGLE: 'HighContrastModeSwitcher-Toggle',
@@ -8174,6 +8398,8 @@ const CONST = {
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
+            PARTICIPANTS_ROW: 'Report-ParticipantsRow',
+            ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
         },
         SIDEBAR: {
             SIGN_IN_BUTTON: 'Sidebar-SignInButton',
@@ -8524,6 +8750,9 @@ const CONST = {
                 MORE_DROPDOWN: 'WorkspaceTags-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTags-BulkActionsDropdown',
             },
+            REPORT_FIELDS: {
+                LIST_VALUE_ROW: 'WorkspaceReportFields-ListValueRow',
+            },
             TAXES: {
                 ROW: 'WorkspaceTaxes-Row',
                 ADD_BUTTON: 'WorkspaceTaxes-AddButton',
@@ -8847,6 +9076,12 @@ const CONST = {
         AI_FEATURES_PROMO_MODAL: {
             CONFIRM_BUTTON: 'AIFeaturesPromoModal-ConfirmButton',
             HELP_BUTTON: 'AIFeaturesPromoModal-HelpButton',
+        },
+    },
+
+    AGENTS: {
+        BULK_ACTION_TYPES: {
+            DELETE: 'delete',
         },
     },
 
