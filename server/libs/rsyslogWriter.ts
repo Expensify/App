@@ -64,22 +64,29 @@ function buildSockaddrUn(path: string): Uint8Array {
 }
 
 // Lazily open the socket on first log write.
-// Returns false if dlopen, socket(), or path encoding fails.
+// Returns false if dlopen, socket(), or path encoding fails (caller writes to stderr instead).
 function ensureSocket(): boolean {
     if (socketFd !== -1) {
         return true;
     }
 
-    libc ??= loadLibc();
-    const fd = libc.symbols.socket(AF_UNIX, SOCK_DGRAM, 0);
+    try {
+        libc ??= loadLibc();
+        const fd = libc.symbols.socket(AF_UNIX, SOCK_DGRAM, 0);
 
-    if (fd < 0) {
+        if (fd < 0) {
+            return false;
+        }
+
+        socketFd = fd;
+        sockaddr = buildSockaddrUn(getSocketPath());
+        return true;
+    } catch {
+        libc = undefined;
+        socketFd = -1;
+        sockaddr = undefined;
         return false;
     }
-
-    socketFd = fd;
-    sockaddr = buildSockaddrUn(getSocketPath());
-    return true;
 }
 
 /**
@@ -95,17 +102,27 @@ function writeRsyslog(line: string): boolean {
 
     const message = Buffer.from(line, 'utf8');
     // flags=0: no MSG_DONTWAIT etc. Bun passes `message` as the buf pointer and `sockaddr` as dest_addr.
-    const bytesSent = libc.symbols.sendto(socketFd, message, message.length, 0, sockaddr, sockaddr.length);
+    try {
+        const bytesSent = libc.symbols.sendto(socketFd, message, message.length, 0, sockaddr, sockaddr.length);
 
-    if (bytesSent < 0) {
-        // Drop the fd so the next write attempts a fresh socket (path or journald may have recovered).
-        libc.symbols.close(socketFd);
+        if (bytesSent < 0) {
+            libc.symbols.close(socketFd);
+            socketFd = -1;
+            process.stderr.write(`${line}\n`);
+            return false;
+        }
+
+        return true;
+    } catch {
+        try {
+            libc.symbols.close(socketFd);
+        } catch {
+            // Ignore close failures while already in the error path.
+        }
         socketFd = -1;
         process.stderr.write(`${line}\n`);
         return false;
     }
-
-    return true;
 }
 
 export default writeRsyslog;

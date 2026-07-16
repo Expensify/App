@@ -50,6 +50,7 @@ describe('Log', () => {
         stderrCapture.restore();
         delete process.env.VCR_LOG_DESTINATION;
         delete process.env.REQUEST_ID;
+        delete process.env.RSYSLOG_SOCKET_PATH;
     });
 
     test('exports the levels the CLI relies on', () => {
@@ -59,6 +60,16 @@ describe('Log', () => {
         expect(typeof log.alert).toBe('function');
         expect(typeof log.warn).toBe('function');
         expect(typeof log.hmmm).toBe('function');
+    });
+
+    test('falls back to stderr when rsyslog socket setup throws', () => {
+        delete process.env.VCR_LOG_DESTINATION;
+        process.env.RSYSLOG_SOCKET_PATH = 'x'.repeat(108);
+
+        const log = new Log(TEST_CONFIG);
+        log.info('render succeeded');
+
+        expect(stderrCapture.writes).toEqual([`<6>test-cli: ${REQUEST_ID} test-cli  !script! ?test? [info] render succeeded\n`]);
     });
 
     test('formats the prefix like Log.php with an empty email field', () => {
