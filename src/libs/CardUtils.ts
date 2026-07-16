@@ -1431,10 +1431,10 @@ function getProgramKeyForCard(card: Card | undefined): CardProgramKey {
 /**
  * A single `cards_{fundID}_Expensify Card` Onyx list holds every card for the feed regardless of program (the backend keys
  * Expensify Card settings/cards by fundID, not by country). This keeps only the cards belonging to `programKey`, preserving the
- * `cardList` meta entry. When no program is given, the list is returned unchanged.
+ * `cardList` meta entry.
  */
-function filterCardsListByProgram(cardsList: WorkspaceCardsList | undefined, programKey: CardProgramKey | undefined): WorkspaceCardsList | undefined {
-    if (!cardsList || !programKey) {
+function filterCardsListByProgram(cardsList: WorkspaceCardsList | undefined, programKey: CardProgramKey): WorkspaceCardsList | undefined {
+    if (!cardsList) {
         return cardsList;
     }
 

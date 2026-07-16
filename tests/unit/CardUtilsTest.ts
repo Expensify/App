@@ -4685,10 +4685,6 @@ describe('multi-program Expensify Card helpers', () => {
             // US program keeps the explicit US card and the legacy card (no feedCountry).
             expect(Object.keys(usOnly ?? {}).sort()).toEqual(['1', '3', 'cardList']);
         });
-
-        it('returns the list unchanged when no program is given', () => {
-            expect(filterCardsListByProgram(cardsList, undefined)).toBe(cardsList);
-        });
     });
 
     describe('getExpensifyCardProgramLabelSuffix', () => {
