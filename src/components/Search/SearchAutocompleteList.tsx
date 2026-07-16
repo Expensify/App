@@ -726,7 +726,6 @@ function SearchAutocompleteList({
             }}
             shouldSingleExecuteRowSelect
             onEndReached={canLoadMoreRecentReports ? loadMoreRecentReports : undefined}
-            onEndReachedThreshold={0.75}
             ref={setListRef}
             initialScrollIndex={0}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
