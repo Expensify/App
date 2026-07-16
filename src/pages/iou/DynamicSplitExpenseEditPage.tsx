@@ -58,6 +58,26 @@ import {View} from 'react-native';
 
 type DynamicSplitExpenseEditPageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT>;
 
+type SplitToggleRowProps = {
+    label: string;
+    isOn: boolean;
+    onToggle: (value: boolean) => void;
+};
+
+function SplitToggleRow({label, isOn, onToggle}: SplitToggleRowProps) {
+    const styles = useThemeStyles();
+    return (
+        <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}>
+            <Text>{label}</Text>
+            <Switch
+                accessibilityLabel={label}
+                isOn={isOn}
+                onToggle={onToggle}
+            />
+        </View>
+    );
+}
+
 function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) {
     const styles = useThemeStyles();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.path);
@@ -483,28 +503,18 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                             />
                         )}
                         {shouldShowReimbursable && (
-                            <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}>
-                                <Text>{translate('common.reimbursable')}</Text>
-                                <Switch
-                                    accessibilityLabel={translate('common.reimbursable')}
-                                    isOn={splitExpenseDraftTransaction?.reimbursable ?? true}
-                                    onToggle={(value) => {
-                                        updateSplitExpenseDraftField({reimbursable: value});
-                                    }}
-                                />
-                            </View>
+                            <SplitToggleRow
+                                label={translate('common.reimbursable')}
+                                isOn={splitExpenseDraftTransaction?.reimbursable ?? true}
+                                onToggle={(value) => updateSplitExpenseDraftField({reimbursable: value})}
+                            />
                         )}
                         {shouldShowBillable && (
-                            <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}>
-                                <Text>{translate('common.billable')}</Text>
-                                <Switch
-                                    accessibilityLabel={translate('common.billable')}
-                                    isOn={splitExpenseDraftTransaction?.billable ?? false}
-                                    onToggle={(value) => {
-                                        updateSplitExpenseDraftField({billable: value});
-                                    }}
-                                />
-                            </View>
+                            <SplitToggleRow
+                                label={translate('common.billable')}
+                                isOn={splitExpenseDraftTransaction?.billable ?? false}
+                                onToggle={(value) => updateSplitExpenseDraftField({billable: value})}
+                            />
                         )}
                         <MenuItemWithTopDescription
                             key={translate('common.report')}
