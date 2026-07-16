@@ -701,8 +701,8 @@ function createExpenseByType({
                 customUnitPolicyID,
                 personalDetails,
                 recentWaypoints,
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 // buildParticipantsPolicyTags is deprecated but still needed here until this call site is migrated to useOnyx (https://github.com/Expensify/App/issues/72721)
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 participantsPolicyTags: buildParticipantsPolicyTags(participants),
             };
             return createDistanceRequest(distanceParams);

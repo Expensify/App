@@ -206,6 +206,7 @@ export {
     getCurrentUserPersonalDetails,
     getRecentAttendees,
     // TODO: Replace buildParticipantsPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildParticipantsPolicyTags,
     // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
     getPolicyTagsData,
