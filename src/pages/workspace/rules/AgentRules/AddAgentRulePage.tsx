@@ -164,7 +164,7 @@ function AddAgentRulePage({
                     formID={ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM}
                     validate={validate}
                     onSubmit={saveRule}
-                    submitButtonText={isRulesRevampEnabled ? translate('workspace.rules.agentRules.nextButton') : translate('common.save')}
+                    submitButtonText={isRulesRevampEnabled ? translate('workspace.rules.agentRules.createRule') : translate('common.save')}
                     style={[styles.flex1, styles.ph5]}
                     shouldUseScrollView={shouldUseScrollableLayout}
                     submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}

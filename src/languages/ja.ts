@@ -7589,7 +7589,6 @@ ${reportName}`,
                 revampSubtitle: '必要なときに実行できる柔軟なルールを設定します。',
                 newRuleTitle: '新しいルール',
                 describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',
-                nextButton: '次へ',
                 gotIt: '了解しました',
             },
             tabs: {

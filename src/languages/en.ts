@@ -8012,7 +8012,7 @@ const translations = {
                 describeRuleTitle: 'Describe the rule for your AI agent to follow',
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
-                nextButton: 'Next',
+                createRule: 'Create rule',
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,

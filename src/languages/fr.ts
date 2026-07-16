@@ -7731,7 +7731,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 revampSubtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin.',
                 newRuleTitle: 'Nouvelle règle',
                 describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
-                nextButton: 'Suivant',
                 gotIt: 'Compris',
             },
             tabs: {

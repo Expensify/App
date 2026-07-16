@@ -7702,7 +7702,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 revampSubtitle: 'Beschreiben Sie flexible Regeln, die bei Bedarf ausgeführt werden.',
                 newRuleTitle: 'Neue Regel',
                 describeRuleForConcierge: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
-                nextButton: 'Weiter',
                 gotIt: 'Verstanden',
             },
             tabs: {

@@ -7663,7 +7663,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 revampSubtitle: 'Beschrijf flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
                 newRuleTitle: 'Nieuwe regel',
                 describeRuleForConcierge: 'Beschrijf je regel en Concierge bouwt hem voor je',
-                nextButton: 'Volgende',
                 gotIt: 'Begrepen',
             },
             tabs: {

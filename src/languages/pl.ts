@@ -7642,7 +7642,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 revampSubtitle: 'Opisuj elastyczne reguły, które uruchamiają się wtedy, kiedy tego potrzebujesz.',
                 newRuleTitle: 'Nowa reguła',
                 describeRuleForConcierge: 'Opisz swoją regułę, a Concierge ją utworzy',
-                nextButton: 'Dalej',
                 gotIt: 'Jasne',
             },
             tabs: {

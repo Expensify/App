@@ -7604,7 +7604,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 revampSubtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas.',
                 newRuleTitle: 'Nueva regla',
                 describeRuleForConcierge: 'Describe tu regla y Concierge la creará',
-                nextButton: 'Siguiente',
                 gotIt: 'Entendido',
             },
             tabs: {
