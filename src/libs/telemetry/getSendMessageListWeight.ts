@@ -25,4 +25,3 @@ function getSendMessageListWeight(reportActions: ReportActions, canUserPerformWr
 }
 
 export default getSendMessageListWeight;
-export type {SendMessageListWeight};
