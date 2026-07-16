@@ -31,6 +31,7 @@ describe('OnboardingGuard', () => {
         isAuthenticated: true,
         isLoading: false,
         currentUrl: '',
+        isSupportalSession: false,
     };
 
     beforeAll(() => {
@@ -77,6 +78,7 @@ describe('OnboardingGuard', () => {
                 isAuthenticated: true,
                 isLoading: false,
                 currentUrl: 'https://new.expensify.com/transition',
+                isSupportalSession: false,
             };
 
             // When the guard evaluates during the transition
@@ -546,11 +548,10 @@ describe('OnboardingGuard', () => {
 
     describe('supportal session', () => {
         it('should return ALLOW and skip onboarding during a supportal session', async () => {
-            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
             await waitForBatchedUpdates();
 
-            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+            const result = OnboardingGuard.evaluate(mockState, mockAction, {...authenticatedContext, isSupportalSession: true});
 
             expect(result.type).toBe('ALLOW');
         });

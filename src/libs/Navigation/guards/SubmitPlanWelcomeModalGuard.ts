@@ -5,7 +5,6 @@ import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
-import shouldSuppressPromotionalUI from '@libs/PromotionalUIUtils';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -20,6 +19,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import {isSupportalSessionSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
@@ -118,7 +118,7 @@ function isPolicyCreationRestricted(): boolean {
  */
 function navigateToSubmitPlanWelcomeModalIfReady() {
     if (
-        shouldSuppressPromotionalUI() ||
+        isSupportalSessionSelector(session) ||
         !session?.authToken ||
         isLoadingApp ||
         !hasLoadedApp ||
@@ -305,7 +305,7 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
             return {type: 'ALLOW'};
         }
 
-        if (shouldSuppressPromotionalUI() || !shouldShowSubmitPlanWelcomeModal()) {
+        if (isSupportalSessionSelector(session) || !shouldShowSubmitPlanWelcomeModal()) {
             return {type: 'ALLOW'};
         }
 

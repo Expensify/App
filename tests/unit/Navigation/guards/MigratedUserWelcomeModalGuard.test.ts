@@ -43,6 +43,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
         isAuthenticated: true,
         isLoading: false,
         currentUrl: '',
+        isSupportalSession: false,
     };
 
     beforeEach(async () => {
@@ -117,7 +118,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
     });
 
     it('should allow during a supportal session even when eligible for the migrated user welcome modal', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+        onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123, authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT}, false);
         await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
             nudgeMigration: {
                 timestamp: new Date(),

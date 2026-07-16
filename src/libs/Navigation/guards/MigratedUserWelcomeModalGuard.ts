@@ -1,7 +1,6 @@
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import shouldSuppressPromotionalUI from '@libs/PromotionalUIUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 
 import CONST from '@src/CONST';
@@ -17,6 +16,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
 import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
+import {isSupportalSessionSelector} from '@selectors/Session';
 import Onyx from 'react-native-onyx';
 
 import type {GuardResult, NavigationGuard} from './types';
@@ -45,7 +45,7 @@ function resetSessionFlag() {
  */
 function navigateToMigratedUserWelcomeModalIfReady() {
     if (
-        shouldSuppressPromotionalUI() ||
+        isSupportalSessionSelector(session) ||
         !session?.authToken ||
         isLoadingApp ||
         hasRedirectedToMigratedUserModal ||
@@ -146,7 +146,7 @@ const MigratedUserWelcomeModalGuard: NavigationGuard = {
         }
 
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
-            if (shouldSuppressPromotionalUI()) {
+            if (isSupportalSessionSelector(session)) {
                 return {type: 'ALLOW'};
             }
 

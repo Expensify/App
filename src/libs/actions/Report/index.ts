@@ -74,6 +74,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {isSupportAuthToken} from '@libs/Network/NetworkStore';
 import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -95,7 +96,6 @@ import {
     isSubmitAndClose,
 } from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
-import shouldSuppressPromotionalUI from '@libs/PromotionalUIUtils';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsFollowupUtils from '@libs/ReportActionFollowupUtils';
@@ -7195,7 +7195,7 @@ function updatePolicyIdForReportAndThreads(
 }
 
 function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean) {
-    if (isChangePolicyTrainingModalDismissed || shouldSuppressPromotionalUI()) {
+    if (isChangePolicyTrainingModalDismissed || isSupportAuthToken()) {
         return;
     }
 

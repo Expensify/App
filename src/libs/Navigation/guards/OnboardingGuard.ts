@@ -1,7 +1,6 @@
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
-import shouldSuppressPromotionalUI from '@libs/PromotionalUIUtils';
 
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 
@@ -200,7 +199,7 @@ const OnboardingGuard: NavigationGuard = {
             isSingleEntry ||
             isFirstTimeHybridAppTransition ||
             isNavigatingWithReplace ||
-            shouldSuppressPromotionalUI();
+            context.isSupportalSession;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
