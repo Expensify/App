@@ -851,6 +851,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 full: true,
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
                 shouldPlaySuccessSound: false,
+                isTrackIntentUser,
             });
 
             if (!wouldNavigateToUpgrade && !wouldNavigateToRestricted) {
@@ -888,6 +889,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         betas,
         delegateEmail,
         currentSearchKey,
+        isTrackIntentUser,
         personalDetails,
     ]);
 
@@ -1229,6 +1231,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         shouldPlaySuccessSound: false,
                         chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${payChatReportID}`],
                         delegateAccountID,
+                        isTrackIntentUser,
                     });
                     paidReportCount += 1;
                     continue;
@@ -1257,6 +1260,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     shouldPlaySuccessSound: false,
                     chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`],
                     delegateAccountID,
+                    isTrackIntentUser,
                 });
                 paidReportCount += 1;
             }
@@ -1301,6 +1305,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             currentSearchKey,
             searchResults?.data,
             delegateAccountID,
+            isTrackIntentUser,
         ],
     );
 
@@ -2003,6 +2008,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             currentUserLogin ?? '',
                             accountID,
                             transactionViolations,
+                            isTrackIntentUser,
                         );
                     }
                     clearSelectedTransactions();

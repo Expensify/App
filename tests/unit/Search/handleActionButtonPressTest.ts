@@ -355,6 +355,7 @@ describe('handleActionButtonPress', () => {
             chatReportActions: undefined,
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
@@ -378,6 +379,7 @@ describe('handleActionButtonPress', () => {
             chatReportActions: undefined,
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -401,6 +403,7 @@ describe('handleActionButtonPress', () => {
             chatReportActions: undefined,
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });

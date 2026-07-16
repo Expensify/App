@@ -226,6 +226,7 @@ type HandleActionButtonPressParams = {
     chatReportActions: OnyxEntry<ReportActions>;
     delegateEmail?: string;
     delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function handleActionButtonPress({
@@ -263,6 +264,7 @@ function handleActionButtonPress({
     chatReportActions,
     delegateEmail,
     delegateAccountID,
+    isTrackIntentUser,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -314,6 +316,7 @@ function handleActionButtonPress({
                 searchData,
                 chatReportActions,
                 delegateAccountID,
+                isTrackIntentUser,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -344,6 +347,7 @@ function handleActionButtonPress({
                 amountOwed,
                 iouReportCurrentNextStepDeprecated,
                 delegateEmail,
+                isTrackIntentUser,
                 ownerLogin: submitterLogin,
             });
             return;
@@ -519,6 +523,7 @@ type GetPayActionCallbackParams = {
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
     delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function getPayActionCallback({
@@ -546,6 +551,7 @@ function getPayActionCallback({
     searchData,
     chatReportActions,
     delegateAccountID,
+    isTrackIntentUser,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
@@ -594,6 +600,7 @@ function getPayActionCallback({
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
         delegateAccountID,
+        isTrackIntentUser,
     });
 }
 
@@ -612,6 +619,7 @@ type GetApproveActionCallbackParams = {
     amountOwed: OnyxEntry<number>;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     delegateEmail?: string;
+    isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
 };
 
@@ -630,6 +638,7 @@ function getApproveActionCallback({
     amountOwed,
     iouReportCurrentNextStepDeprecated,
     delegateEmail,
+    isTrackIntentUser,
     ownerLogin,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
@@ -657,6 +666,7 @@ function getApproveActionCallback({
         delegateEmail,
         full: true,
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
+        isTrackIntentUser,
     });
 }
 

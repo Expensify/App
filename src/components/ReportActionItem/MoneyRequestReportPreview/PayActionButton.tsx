@@ -18,6 +18,7 @@ import useReportTransactionViolations from '@hooks/useReportTransactionViolation
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {
     getReportOrDraftReport,
@@ -82,6 +83,7 @@ function PayActionButton() {
     );
 
     const [transactionViolations] = useReportTransactionViolations(transactions);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
@@ -116,6 +118,7 @@ function PayActionButton() {
                 full: true,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
+                isTrackIntentUser,
             });
         }
     };
@@ -151,6 +154,7 @@ function PayActionButton() {
                     defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),
                     chatReportActions: getChatReportActions(payAsBusiness),
                     delegateAccountID,
+                    isTrackIntentUser,
                 });
             } else {
                 payMoneyRequest({
@@ -173,6 +177,7 @@ function PayActionButton() {
                     onPaid: startAnimation,
                     chatReportActions: getChatReportActions(false),
                     delegateAccountID,
+                    isTrackIntentUser,
                 });
             }
         }

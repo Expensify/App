@@ -298,6 +298,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             chatReportActions,
             delegateEmail,
             delegateAccountID,
+            isTrackIntentUser,
         });
     }, [
         currentSearchHash,
@@ -337,6 +338,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         chatReportActions,
         delegateEmail,
         delegateAccountID,
+        isTrackIntentUser,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {

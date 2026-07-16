@@ -165,6 +165,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -261,6 +262,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
                         chatReportActions: undefined,
                         delegateAccountID: undefined,
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -438,6 +440,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -476,6 +479,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
                         chatReportActions: undefined,
                         delegateAccountID: undefined,
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -606,6 +610,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -645,6 +650,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
                         chatReportActions: undefined,
                         delegateAccountID: undefined,
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -701,6 +707,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 chatReportPolicy,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -849,7 +856,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
+                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, []);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -871,6 +878,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         chatReportPolicy: chatReportPolicyFromChat(partialPayChatReport),
                         chatReportActions: undefined,
                         delegateAccountID: undefined,
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -970,6 +978,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 amountOwed: 0,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
@@ -1009,6 +1018,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 chatReportPolicy: chatReportPolicyTrueTour,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1061,6 +1071,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 chatReportPolicy: chatReportPolicyFalseTour,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1158,7 +1169,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            markReportPaymentReceived(chatReport, reimbursedReport, undefined, currentUserAccountID, currentUserEmail, mockChatReportActions);
+            markReportPaymentReceived(chatReport, reimbursedReport, undefined, currentUserAccountID, currentUserEmail, mockChatReportActions, false);
             await waitForBatchedUpdates();
 
             const updatedChatReport = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -1229,6 +1240,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 chatReportPolicy: policy,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1297,6 +1309,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 chatReportPolicy: workspacePolicy,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1355,6 +1368,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 policy: workspacePolicy,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1393,6 +1407,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 chatReportPolicy: chatReportPolicyAmountZero,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1486,6 +1501,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1520,13 +1536,14 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
                         chatReportActions: undefined,
                         delegateAccountID: undefined,
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     if (chatReport && expenseReport) {
                         // And when the payment is cancelled
-                        cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true);
+                        cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -1614,6 +1631,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }
             await waitForBatchedUpdates();
@@ -1630,7 +1648,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             if (chatReport && expenseReport) {
                 mockFetch?.pause?.();
                 // And when the payment is cancelled
-                cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true);
+                cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false);
             }
             await waitForBatchedUpdates();
 
@@ -1712,7 +1730,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            cancelPayment(expenseReport, chatReport, policy, true, adminAccountID, adminEmail, false);
+            cancelPayment(expenseReport, chatReport, policy, true, adminAccountID, adminEmail, false, false);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
@@ -1785,7 +1803,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            cancelPayment(expenseReport, chatReport, policy, true, adminAccountID, adminEmail, false);
+            cancelPayment(expenseReport, chatReport, policy, true, adminAccountID, adminEmail, false, false);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
@@ -1865,6 +1883,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }
             await waitForBatchedUpdates();
@@ -1896,6 +1915,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     chatReportPolicy: chatReportPolicyFromChat(chatReport),
                     chatReportActions: undefined,
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }
             await waitForBatchedUpdates();
