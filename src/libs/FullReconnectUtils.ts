@@ -15,7 +15,10 @@ import DateUtils from './DateUtils';
  * so comparing them as strings is correct.
  */
 
-// subscribeToFullReconnect owns reacting to cutoff changes; this only exposes the current value.
+// The cutoff the client currently holds. Consumers that only need the value (not the change event,
+// which subscribeToFullReconnect owns) read it through getServerReconnectCutoff instead of opening
+// their own connection. Nothing in the UI shows it, so connectWithoutView is correct here. Do not
+// copy this into a component: use useOnyx there so the UI updates when the value changes.
 let currentServerReconnectCutoff = '';
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
