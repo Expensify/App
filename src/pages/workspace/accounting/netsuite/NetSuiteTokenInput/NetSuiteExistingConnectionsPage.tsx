@@ -27,7 +27,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
     const {reusablePoliciesConnectedTo: reusablePoliciesConnectedToNetSuite} = useReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, policyID);
 
     const menuItems = reusablePoliciesConnectedToNetSuite.map((policy) => {
-        const lastSuccessfulSyncDate = policy.connections?.netsuite.lastSyncDate;
+        const lastSuccessfulSyncDate = policy.connections?.netsuite?.lastSyncDate;
         const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
         return {
             title: policy.name,

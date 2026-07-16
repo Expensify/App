@@ -8,6 +8,7 @@ import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 
 import {isSafari} from '@libs/Browser';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -124,6 +125,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Callback fired synchronously when the user presses submit, before validation runs */
     onBeforeSubmit?: () => void;
 
+    /** Whether the confirm button should show a spinner immediately on press */
+    shouldShowLoadingImmediatelyOnPress?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
 };
@@ -138,13 +142,14 @@ function FormProvider({
     onSubmit,
     shouldTrimValues = true,
     allowHTML = false,
-    isLoading = false,
+    isLoading: isOnyxLoading = false,
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
     shouldHideFixErrorsAlert = false,
     keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
     onBeforeSubmit,
+    shouldShowLoadingImmediatelyOnPress = true,
     ref,
     ...rest
 }: FormProviderProps) {
@@ -280,10 +285,14 @@ function FormProvider({
         [touchedInputs],
     );
 
+    const isExternalLoading = !!formState?.isLoading || isOnyxLoading;
+    const {isLoading: isPressLoading, startWithLoading} = usePressLoading({isLoading: isExternalLoading});
+    const isLoading = shouldShowLoadingImmediatelyOnPress ? isPressLoading : isExternalLoading;
+
     const submit = useDebounceNonReactive(
         useCallback(() => {
             // Return early if the form is already submitting to avoid duplicate submission
-            if (!!formState?.isLoading || isLoading) {
+            if (isLoading) {
                 return;
             }
 
@@ -312,14 +321,36 @@ function FormProvider({
                 return;
             }
 
-            if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
-                KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
-            } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
-                KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
-            } else {
-                onSubmit(trimmedStringValues);
+            const runSubmit = () => {
+                if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
+                    KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
+                } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
+                    KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
+                } else {
+                    onSubmit(trimmedStringValues);
+                }
+            };
+
+            if (!shouldShowLoadingImmediatelyOnPress) {
+                runSubmit();
+                return;
             }
-        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior, onBeforeSubmit]),
+
+            startWithLoading(runSubmit);
+        }, [
+            enabledWhenOffline,
+            isLoading,
+            inputValues,
+            isOffline,
+            onSubmit,
+            onValidate,
+            shouldTrimValues,
+            hasServerError,
+            keyboardSubmitBehavior,
+            onBeforeSubmit,
+            shouldShowLoadingImmediatelyOnPress,
+            startWithLoading,
+        ]),
         1000,
         {leading: true, trailing: false},
     );

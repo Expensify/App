@@ -10,6 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import getTravelAcceptTermsRoute from '@libs/getTravelAcceptTermsRoute';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,6 +24,7 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
@@ -52,11 +54,11 @@ type BookTravelButtonProps = WithSentryLabel & {
     large?: boolean;
 };
 
-const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean, policyID?: string) => {
+const navigateToAcceptTerms = (acceptTermsRoute: Route, domain: string, isUserValidated?: boolean, policyID?: string) => {
     // Remove the previous provision session information if any is cached.
     cleanupTravelProvisioningSession();
     if (isUserValidated) {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, policyID)));
+        Navigation.navigate(acceptTermsRoute);
         return;
     }
     Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID, Navigation.getActiveRoute()));
@@ -169,11 +171,11 @@ function BookTravelButton({
         } else if (isPolicyProvisioned) {
             // Send the default so the Travel-access check runs against the workspace owner's domain, not the acting admin's.
             if (!isUserValidated) {
-                setTravelProvisioningNextStep(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID)));
+                setTravelProvisioningNextStep(getTravelAcceptTermsRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID, policy));
                 Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID, Navigation.getActiveRoute()));
                 return;
             }
-            navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN, true, activePolicyID ?? undefined);
+            navigateToAcceptTerms(getTravelAcceptTermsRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID, policy), CONST.TRAVEL.DEFAULT_DOMAIN, true, activePolicyID ?? undefined);
         } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             if (!isUserValidated) {
                 Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
@@ -207,7 +209,7 @@ function BookTravelButton({
                 // Determine where to redirect after OTP validation
                 const nextStep = isEmptyObject(policy?.address)
                     ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute())
-                    : createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, activePolicyID));
+                    : getTravelAcceptTermsRoute(domain, activePolicyID, policy);
                 setTravelProvisioningNextStep(nextStep);
                 Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
                 return;
@@ -216,7 +218,7 @@ function BookTravelButton({
                 // Spotnana requires an address anytime an entity is created for a policy
                 Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
             } else {
-                navigateToAcceptTerms(domain, !!isUserValidated, activePolicyID ?? undefined);
+                navigateToAcceptTerms(getTravelAcceptTermsRoute(domain, activePolicyID, policy), domain, !!isUserValidated, activePolicyID ?? undefined);
             }
         } else {
             const dynamicSuffix = hasPolicyIDInActiveRoute() ? DYNAMIC_ROUTES.TRAVEL_DOMAIN_SELECTOR.path : DYNAMIC_ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(activePolicyID);

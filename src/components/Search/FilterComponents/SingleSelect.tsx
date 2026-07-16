@@ -40,7 +40,11 @@ type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefi
     hasHeader?: boolean;
 };
 
-function SingleSelect<T extends string>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function SingleSelectImpl({
     value,
     items,
     isSearchable,
@@ -54,7 +58,7 @@ function SingleSelect<T extends string>({
     footer,
     allowDeselect,
     onChange,
-}: SingleSelectProps<T>) {
+}: SingleSelectProps<string>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [selectedItem, setSelectedItem] = useState(value);
@@ -93,7 +97,7 @@ function SingleSelect<T extends string>({
         };
     })();
 
-    const updateSelectedItem = (item: ListItem<T>) => {
+    const updateSelectedItem = (item: ListItem) => {
         const newItem = items.find((i) => i.value === item.keyForList);
         if (!newItem) {
             return;
@@ -124,7 +128,7 @@ function SingleSelect<T extends string>({
             hasHeader={hasHeader}
             hasTitle={hasTitle}
             isSearchable={isSearchable}
-            itemHeight={itemHeight ?? variables.optionRowHeight}
+            itemHeight={itemHeight ?? variables.optionRowHeightCompact}
         >
             <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
                 <SelectionList
@@ -136,7 +140,7 @@ function SingleSelect<T extends string>({
                     style={{
                         contentContainerStyle: [styles.pb0],
                         ...selectionListStyle,
-                        listItemWrapperStyle: [itemHeight !== undefined && {minHeight: itemHeight}, selectionListStyle?.listItemWrapperStyle],
+                        listItemWrapperStyle: [{minHeight: itemHeight ?? variables.optionRowHeightCompact}, selectionListStyle?.listItemWrapperStyle],
                     }}
                     shouldUpdateFocusedIndex={isSearchable}
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
@@ -146,6 +150,10 @@ function SingleSelect<T extends string>({
             </Activity>
         </ListFilterWrapper>
     );
+}
+
+function SingleSelect<T extends string>(props: SingleSelectProps<T>) {
+    return <SingleSelectImpl {...(props as SingleSelectProps<string>)} />;
 }
 
 export type {SingleSelectItem};

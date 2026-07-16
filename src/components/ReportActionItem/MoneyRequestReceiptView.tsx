@@ -36,6 +36,7 @@ import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
@@ -44,7 +45,6 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getCreationReportErrors,
     isInvoiceReport,
-    isReportInGroupPolicy,
     isTrackExpenseReportNew,
 } from '@libs/ReportUtils';
 import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
@@ -191,6 +191,9 @@ function MoneyRequestReceiptView({
     // While the receipt is regenerating (e.g. after an offline waypoint edit) the stored map is stale and can't be
     // redrawn locally, so don't surface the e-receipt overlay — the receipt box already shows the pending map.
     const canShowDistanceEReceipt = isMapDistanceRequest && !isPendingReceiptRegeneration;
+    // The Expand button opens the full-screen receipt on the stored map. While regeneration is pending that map is
+    // stale and can't be redrawn locally, so disable Expand for map distance requests until the refreshed receipt arrives.
+    const shouldDisableExpandReceipt = isMapDistanceRequest && isPendingReceiptRegeneration;
     const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
     const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
@@ -209,7 +212,6 @@ function MoneyRequestReceiptView({
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
 
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
-
     // Browsers don't fire mouseenter when an element mounts under the cursor
     useEffect(() => {
         if (isLoading) {
@@ -235,13 +237,22 @@ function MoneyRequestReceiptView({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
     const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
 
     const canEditReceipt =
         isEditable &&
-        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, isChatReportArchived, transaction, report: moneyRequestReport, policy});
+        canEditFieldOfMoneyRequest({
+            reportAction: parentReportAction,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+            isChatReportArchived,
+            reportNameValuePairs,
+            transaction,
+            report: moneyRequestReport,
+            policy,
+        });
 
     const onAttachmentFilesValidated = (files: FileObject[]) => {
         if (!report?.reportID) {
@@ -256,6 +267,7 @@ function MoneyRequestReceiptView({
             currentUserAccountID,
             timezone: currentUserTimezone,
             delegateAccountID,
+            conciergeReportID,
         });
     };
 
@@ -365,7 +377,7 @@ function MoneyRequestReceiptView({
         !isTransactionScanning &&
         (hasReceipt || !!receiptRequiredViolation || !!itemizedReceiptRequiredViolation || !!customRulesViolation) &&
         !!(receiptViolations.length || didReceiptScanSucceed) &&
-        isReportInGroupPolicy(report);
+        isGroupPolicyByType(policy?.type);
     const shouldShowReceiptAudit = !isInvoice && (shouldShowReceiptEmptyState || hasReceipt || hasReceiptUploadError);
 
     const fallbackReceiptError = useMemo(() => {
@@ -470,6 +482,7 @@ function MoneyRequestReceiptView({
                     isChatIOUReportArchived,
                     originalReportID,
                     true,
+                    policy,
                 );
                 return;
             }
@@ -544,7 +557,7 @@ function MoneyRequestReceiptView({
         }
         const source = URL.createObjectURL(file as Blob);
         replaceReceipt({
-            transactionID: linkedTransactionID,
+            transaction,
             file: file as File,
             source,
             transactionPolicy: policy,
@@ -727,7 +740,9 @@ function MoneyRequestReceiptView({
                                                     ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly || !canEditReceipt),
                                                 )
                                             }
+                                            disabled={shouldDisableExpandReceipt}
                                             style={styles.receiptActionButton}
+                                            disabledStyle={styles.buttonOpacityDisabled}
                                             hoverStyle={styles.buttonDefaultHovered}
                                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                                             role={CONST.ROLE.BUTTON}
