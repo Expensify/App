@@ -837,6 +837,7 @@
         "pnrs",
         "podspec",
         "podspecs",
+        "popen",
         "popen3",
         "positionMillis",
         "preauthorization",
