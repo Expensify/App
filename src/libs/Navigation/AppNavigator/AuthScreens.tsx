@@ -365,8 +365,9 @@ function AuthScreens() {
                         />
                         <RootStack.Screen
                             name={SCREENS.DYNAMIC_CARD_AUTHENTICATION}
-                            options={rootNavigatorScreenOptions.fullScreen}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
                             getComponent={loadDynamicCardAuthenticationPage}
+                            listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}

@@ -6750,6 +6750,16 @@ const dynamicStyles = (theme: ThemeColors) =>
             };
         },
 
+        getCardAuthenticationModalInnerView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flex: 1,
+                margin: shouldUseNarrowLayout ? 0 : 20,
+                borderRadius: shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge,
+                overflow: 'hidden',
+                boxShadow: shouldUseNarrowLayout ? undefined : theme.shadow,
+                backgroundColor: theme.componentBG,
+            }) satisfies ViewStyle,
+
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
         }),
