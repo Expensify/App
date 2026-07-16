@@ -43,8 +43,6 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
     const isPendingAddOrDelete = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || isPendingDeletion;
     const areActionsDisabled = isPendingAddOrDelete || item.accountID <= 0 || !item.login;
     const accessibilityLabel = [item.displayName, item.login].filter(Boolean).join(', ');
-    // A selected row uses `activeComponentBG`, which is the same color as the default button background, so the action
-    // buttons would blend into the row. Give them a contrasting background while the row is selected to keep them visible.
     const selectedButtonInnerStyle = item.selected ? styles.buttonDefaultHovered : undefined;
 
     const getSecondaryAvatarContainerStyle = (hovered: boolean) => [

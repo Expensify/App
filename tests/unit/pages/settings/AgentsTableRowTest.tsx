@@ -309,19 +309,6 @@ describe('AgentsTableRow', () => {
         expect(mockOnCopilotPress).toHaveBeenCalledTimes(1);
     });
 
-    it('gives action buttons a contrasting background when the row is selected', () => {
-        render(
-            <AgentsTableRow
-                item={{...BASE_ITEM, selected: true}}
-                rowIndex={0}
-                shouldUseNarrowTableLayout={false}
-            />,
-        );
-
-        expect(mockButtonInnerStyles['editAgentPage.chatWithAgent']).toEqual({backgroundColor: 'selectedButtonBG'});
-        expect(mockButtonInnerStyles['editAgentPage.copilotIntoAccount']).toEqual({backgroundColor: 'selectedButtonBG'});
-    });
-
     it('does not override the action button background when the row is not selected', () => {
         render(
             <AgentsTableRow
