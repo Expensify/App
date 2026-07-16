@@ -50,6 +50,28 @@ When a rate has a **Start date** or **End date**, Expensify uses it to apply the
 
 ---
 
+## How to set a Default category for Distance rates
+
+When **Categories** are enabled on the Workspace, you can set a **Default category** that is automatically applied to new Distance expenses.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
+2. Click **Distance rates**.
+3. Click **Settings**.
+4. Click **Default category**.
+5. Select the category you want to apply by default, or select **None** to clear the default category.
+
+When a **Default category** is set, it is applied automatically to new Distance expenses. When **None** is selected, no category is applied by default, and the **Default category** setting shows **None**.
+
+**Note:** The **Default category** setting only appears when **Categories** are enabled on the Workspace and at least one category is enabled. To enable Categories, [learn how to create expense categories](/articles/new-expensify/workspaces/Create-expense-categories).
+
+<!-- SCREENSHOT:
+Suggestion: Distance rates Settings page with the Default category row highlighted, and the category selector open showing the None option.
+Location: How to set a Default category for Distance rates
+Purpose: Show where the Default category setting appears and how to clear it with None.
+-->
+
+---
+
 ## How to remove Distance rates
 
 To prevent members from using a Distance rate, you can either disable it or delete it.
@@ -86,6 +108,10 @@ The **Tax reclaimable** amount represents the portion of the Distance rate that 
 ## What happens if I delete a Distance rate?
 
 Deleted Distance rates are permanently removed from the Workspace and cannot be restored. If you want to prevent members from using a rate without removing it permanently, disable the rate instead.
+
+## Can I remove the Default category for Distance rates?
+
+Yes. Open the **Default category** setting on the Distance rates **Settings** page and select **None**. No category is applied by default to new Distance expenses, and the setting shows **None**.
 
 ## Can I change the reimbursement rate for existing Distance expenses?
 
