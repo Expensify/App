@@ -16,7 +16,7 @@ buildscript {
         // "mapbox" indicates the usage of the Mapbox SDK.
         RNMapboxMapsImpl = "mapbox"
         reactNativeIncludedBuild = gradle.getIncludedBuilds().find { it.name == 'react-native' }
-        // This is our custom extension that we defined in scripts/artifacts-utils/android/PatchedArtifactsSettings.gradle
+        // This is our custom extension that we defined in gradleUtils/PatchedArtifactsSettings.gradle
         // It enables us to use custom artifacts of patched react-native
         patchedArtifactsConfig = project.gradle.settings.extensions.findByName('patchedArtifacts')
     }

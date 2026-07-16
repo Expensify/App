@@ -16,15 +16,6 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
-# Use prebuilt React Native Dependencies and Core by default. Set either to '0' to build from source.
-ENV['RCT_USE_RN_DEP'] = '1'
-ENV['RCT_USE_PREBUILT_RNCORE'] = '1'
-
-# Consume our patched React Native core prebuilt artifacts. Must be required after
-# react_native_pods.rb (which defines ReactNativeCoreUtils); setup runs before use_react_native! below.
-require_relative '../scripts/artifacts-utils/ios/patched_ios_artifacts.rb'
-PatchedIOSArtifacts.setup
-
 MIN_IOS_VERSION = '16.4'
 platform :ios, MIN_IOS_VERSION
 prepare_react_native_project!

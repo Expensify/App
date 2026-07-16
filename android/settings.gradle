@@ -6,7 +6,7 @@ plugins {
     id("com.facebook.react.settings")
     id("expo-autolinking-settings")
 }
-apply from: "${rootDir}/../scripts/artifacts-utils/android/PatchedArtifactsSettings.gradle"
+apply from: "${rootDir}/../gradleUtils/PatchedArtifactsSettings.gradle"
 
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand(['npx', 'rock', 'config', '-p', 'android']) }
 rootProject.name = 'NewExpensify'

@@ -53,8 +53,8 @@ jobs:
         if: ${{ inputs.ref_after != '' }}
         id: getOldPatchesHash
         run: |
-          echo "HYBRID_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
-          echo "STANDALONE_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
+          echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+          echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
 
       - name: Get previous react-native version
         if: ${{ inputs.ref_after != '' }}
@@ -71,8 +71,8 @@ jobs:
       - name: Get new patches hash
         id: getNewPatchesHash
         run: |
-          echo "HYBRID_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
-          echo "STANDALONE_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
+          echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+          echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
 
       - name: Get new react-native version
         if: ${{ inputs.ref_after != '' }}
