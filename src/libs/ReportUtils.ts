@@ -9388,8 +9388,7 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     allTransactions: OnyxCollection<Transaction>,
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
-    // Optional until SidebarUtils.ts and useOptimisticNextStep.ts callers are refactored to pass currentUserAccountID
-    // TODO: Optional until SidebarUtils.ts and useOptimisticNextStep.ts callers are refactored to pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
 ): ReportErrorsAndReportActionThatRequiresAttention {
     const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action));
@@ -10829,8 +10828,7 @@ function getReportActionWithSmartscanError(
     report: OnyxEntry<Report>,
     allTransactions: OnyxCollection<Transaction>,
     reports?: OnyxCollection<Report>,
-    // Optional until getAllReportActionsErrorsAndReportActionThatRequiresAttention makes its currentUserAccountID required
-    // TODO: Optional until getAllReportActionsErrorsAndReportActionThatRequiresAttention makes its currentUserAccountID required. Refactor issue: https://github.com/Expensify/App/issues/66408
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
 ): ReportAction | undefined {
     return reportActions.find((action) => {
@@ -10863,8 +10861,7 @@ function hasSmartscanError(
     report: OnyxEntry<Report>,
     allTransactions: OnyxCollection<Transaction>,
     reports?: OnyxCollection<Report>,
-    // Optional until getAllReportActionsErrorsAndReportActionThatRequiresAttention makes its currentUserAccountID required
-    // TODO: Optional until getAllReportActionsErrorsAndReportActionThatRequiresAttention makes its currentUserAccountID required. Refactor issue: https://github.com/Expensify/App/issues/66408
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
 ): boolean {
     return !!getReportActionWithSmartscanError(reportActions, report, allTransactions, reports, currentUserAccountID);
