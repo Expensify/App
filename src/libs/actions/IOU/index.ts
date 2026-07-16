@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -170,23 +170,6 @@ function getPolicyTags(): OnyxCollection<OnyxTypes.PolicyTagLists> {
 
 /**
  * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `buildParticipantsPolicyTags` from this file (https://github.com/Expensify/App/issues/72721)
- * All usages of this function should be replaced with params passed to the functions or useOnyx hook in React components.
- */
-function buildParticipantsPolicyTags(participants: Participant[]): OnyxTypes.ParticipantsPolicyTags {
-    return participants.reduce<OnyxTypes.ParticipantsPolicyTags>((acc, participant) => {
-        if (participant.policyID) {
-            const tags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`];
-            if (tags) {
-                acc[participant.policyID] = tags;
-            }
-        }
-        return acc;
-    }, {});
-}
-
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
  * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72721)
  * All usages of this function should be replaced with useOnyx hook in React components.
  */
@@ -205,8 +188,6 @@ export {
     getAllTransactionDrafts,
     getCurrentUserPersonalDetails,
     getRecentAttendees,
-    // TODO: Replace buildParticipantsPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-    buildParticipantsPolicyTags,
     // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
     getPolicyTagsData,
     getPolicyTags,

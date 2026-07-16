@@ -1,12 +1,4 @@
-import {buildParticipantsPolicyTags} from '@libs/actions/IOU';
-import {
-    getMoneyRequestParticipantOptions,
-    setCustomUnitRateID,
-    setMoneyRequestDistance,
-    setMoneyRequestMerchant,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestPendingFields,
-} from '@libs/actions/IOU/MoneyRequest';
+import {setCustomUnitRateID, setMoneyRequestDistance, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestPendingFields} from '@libs/actions/IOU/MoneyRequest';
 import {createDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -18,6 +10,7 @@ import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismiss
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints} from '@libs/TransactionUtils';
@@ -36,6 +29,7 @@ import type {
     IntroSelected,
     LastSelectedDistanceRates,
     OdometerDraft,
+    ParticipantsPolicyTags,
     PersonalDetailsList,
     Policy,
     PolicyTagLists,
@@ -45,7 +39,6 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -60,7 +53,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     transactionID: string;
     policyForMovingExpenses?: OnyxEntry<Policy>;
     transaction?: Transaction;
-    reportAttributesDerived?: Record<string, ReportAttributes>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     waypoints?: WaypointCollection;
     manualDistance?: number;
@@ -97,14 +89,14 @@ type MoneyRequestStepDistanceNavigationParams = {
     amountOwed: OnyxEntry<number>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
-    conciergeReportID: string | undefined;
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;
-    reportDraft: OnyxEntry<Report> | undefined;
     action: IOUAction;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: PolicyTagLists;
+    participants: Array<Participant | OptionData>;
+    participantsPolicyTags: ParticipantsPolicyTags;
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -156,7 +148,6 @@ function handleMoneyRequestStepDistanceNavigation({
     transaction,
     reportID,
     transactionID,
-    reportAttributesDerived,
     personalDetails,
     waypoints,
     manualDistance,
@@ -194,14 +185,14 @@ function handleMoneyRequestStepDistanceNavigation({
     amountOwed,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
-    conciergeReportID,
     optimisticTransactionID,
     optimisticChatReportID,
-    reportDraft,
     action,
     isTrackIntentUser,
     delegateAccountID,
     policyTagList,
+    participants,
+    participantsPolicyTags,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -227,18 +218,6 @@ function handleMoneyRequestStepDistanceNavigation({
     // to the confirm step.
     // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(
-            currentUserAccountID,
-            report,
-            policy,
-            personalDetails,
-            conciergeReportID,
-            isArchivedExpenseReport,
-            reportAttributesDerived,
-            reportDraft,
-            translate,
-        );
-
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {
             cancelSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
@@ -405,9 +384,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         },
                         isTrackIntentUser,
                         delegateAccountID,
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        // buildParticipantsPolicyTags is deprecated but still needed here until this call site is migrated to useOnyx (https://github.com/Expensify/App/issues/72721)
-                        participantsPolicyTags: buildParticipantsPolicyTags(participants),
+                        participantsPolicyTags,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

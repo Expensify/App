@@ -9,6 +9,7 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
+import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
@@ -19,7 +20,7 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
+import {getMoneyRequestParticipantOptions, setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
@@ -118,6 +119,20 @@ function IOURequestStepDistanceGPS({
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
+
+    const participants = getMoneyRequestParticipantOptions(
+        currentUserAccountIDParam,
+        report,
+        policy,
+        personalDetails,
+        conciergeReportID,
+        isArchived,
+        reportAttributesDerived,
+        reportDraft,
+        translate,
+    );
+    const participantsPolicyTags = useParticipantsPolicyTags(participants);
+
     const navigateToNextStep = () => {
         const gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
         const distance = getGPSConvertedDistance(gpsDraftDetails, unit);
@@ -136,7 +151,6 @@ function IOURequestStepDistanceGPS({
             transaction,
             reportID,
             transactionID,
-            reportAttributesDerived,
             personalDetails,
             waypoints,
             currentUserLogin: currentUserEmailParam,
@@ -167,13 +181,13 @@ function IOURequestStepDistanceGPS({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
-            conciergeReportID,
             optimisticTransactionID,
             optimisticChatReportID,
-            reportDraft,
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
+            participants,
+            participantsPolicyTags,
         });
     };
 

@@ -3,7 +3,9 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
+import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 
+import {getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {rand64} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 
@@ -152,6 +154,19 @@ function useOdometerNavigation({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
+    const participants = getMoneyRequestParticipantOptions(
+        currentUserAccountID,
+        report,
+        policy,
+        personalDetails,
+        conciergeReportID,
+        isArchived,
+        reportAttributesDerived,
+        reportDraft,
+        translate,
+    );
+    const participantsPolicyTags = useParticipantsPolicyTags(participants);
+
     const delegateAccountID = useDelegateAccountID();
 
     return ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
@@ -166,7 +181,6 @@ function useOdometerNavigation({
             transaction,
             reportID,
             transactionID,
-            reportAttributesDerived,
             personalDetails,
             currentUserLogin,
             currentUserAccountID,
@@ -198,13 +212,13 @@ function useOdometerNavigation({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
-            conciergeReportID,
             optimisticTransactionID,
             optimisticChatReportID,
-            reportDraft,
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
+            participants,
+            participantsPolicyTags,
         });
     };
 }

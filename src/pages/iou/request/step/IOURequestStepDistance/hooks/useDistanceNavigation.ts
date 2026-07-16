@@ -3,7 +3,9 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
+import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 
+import {getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {rand64} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 
@@ -150,6 +152,20 @@ function useDistanceNavigation({
 
     const delegateAccountID = useDelegateAccountID();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
+
+    const participants = getMoneyRequestParticipantOptions(
+        currentUserAccountID,
+        report,
+        policy,
+        personalDetails,
+        conciergeReportID,
+        isArchived,
+        reportAttributesDerived,
+        reportDraft,
+        translate,
+    );
+    const participantsPolicyTags = useParticipantsPolicyTags(participants);
+
     return () => {
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
@@ -162,7 +178,6 @@ function useDistanceNavigation({
             transaction,
             reportID,
             transactionID,
-            reportAttributesDerived,
             personalDetails,
             waypoints,
             currentUserLogin,
@@ -191,13 +206,13 @@ function useDistanceNavigation({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
-            conciergeReportID,
             optimisticTransactionID,
             optimisticChatReportID,
-            reportDraft,
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
+            participants,
+            participantsPolicyTags,
         });
     };
 }

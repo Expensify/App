@@ -12,6 +12,7 @@ import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy'
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
+import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -22,7 +23,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
+import {getMoneyRequestParticipantOptions, setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -204,6 +205,19 @@ function IOURequestStepDistanceManual({
 
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
 
+    const participants = getMoneyRequestParticipantOptions(
+        currentUserAccountIDParam,
+        report,
+        policy,
+        personalDetails,
+        conciergeReportID,
+        isArchived,
+        reportAttributesDerived,
+        reportDraft,
+        translate,
+    );
+    const participantsPolicyTags = useParticipantsPolicyTags(participants);
+
     const navigateToNextPage = (amount: string) => {
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
 
@@ -259,7 +273,6 @@ function IOURequestStepDistanceManual({
             transaction,
             reportID,
             transactionID,
-            reportAttributesDerived,
             personalDetails,
             manualDistance: distanceAsFloat,
             currentUserLogin: currentUserEmailParam,
@@ -288,14 +301,14 @@ function IOURequestStepDistanceManual({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
-            conciergeReportID,
             draftTransactionIDs,
             optimisticTransactionID,
             optimisticChatReportID,
-            reportDraft,
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
+            participants,
+            participantsPolicyTags,
         });
     };
 
