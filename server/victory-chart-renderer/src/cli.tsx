@@ -1,8 +1,7 @@
-import Log from '@libs/Log';
-
 import CLI from 'expensify-common/CLI';
 
 import loadChartFontsForCli from './loadChartFontsForCli';
+import log from './log';
 import parseChartXml from './parseChartXml';
 import renderChartToPng from './renderChartToPng';
 import resolveCanvasSize from './resolveCanvasSize';
@@ -30,13 +29,25 @@ const renderStartedAt = Date.now();
 try {
     const xmlString = cli.namedArgs['chart-xml'];
     const outPath = cli.namedArgs.out;
+
+    log.info('Victory chart render started', true, {
+        outPath,
+        xmlLength: xmlString.length,
+    });
+
     const tnode = parseChartXml(xmlString);
     const canvasSize = resolveCanvasSize(tnode);
     const fonts = await loadChartFontsForCli();
 
+    log.info('Victory chart render prepared', true, {
+        width: canvasSize.width,
+        height: canvasSize.height,
+        hasFontManager: fonts.fontManager !== null,
+    });
+
     await renderChartToPng(tnode, fonts, canvasSize, outPath);
 
-    Log.info('Victory chart rendered successfully', true, {
+    log.info('Victory chart rendered successfully', true, {
         outPath,
         width: canvasSize.width,
         height: canvasSize.height,
@@ -52,7 +63,7 @@ try {
     // Always surface a plain-text error on stderr for local/CLI visibility, independent of
     // whether the rsyslog socket is reachable in this environment.
     console.error(message);
-    Log.alert('Victory chart render failed', {
+    log.alert('Victory chart render failed', {
         message,
         stack,
         durationMs: Date.now() - renderStartedAt,
