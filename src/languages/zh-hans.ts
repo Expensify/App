@@ -118,7 +118,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rotate: '旋转',
         zoom: '缩放',
         password: '密码',
-        magicCode: '魔法验证码',
+        securityCode: '安全码',
         digits: '数字',
         twoFactorCode: '双重验证代码',
         workspaces: '工作区',
@@ -680,14 +680,14 @@ const translations: TranslationDeepObject<typeof en> = {
         enableQuickVerification: {biometrics: '使用面部或指纹即可进行快速、安全的验证，无需密码或验证码。', passkeys: '启用使用通行密钥进行快速、安全的验证，无需密码或验证码。'},
         revoke: {
             title: '面容/指纹和通行密钥',
-            explanation: '一个或多个设备已启用面容/指纹或通行密钥验证。撤销访问权限后，该设备下次验证时将需要输入魔法验证码。',
-            confirmationPrompt: '你确定吗？你下次在该设备上验证时需要使用魔法验证码。',
+            explanation: '一个或多个设备已启用面容/指纹或通行密钥验证。撤销访问后，该设备下次验证时将需要输入安全代码。',
+            confirmationPrompt: '确定吗？你下次在该设备上进行验证时需要安全码。',
             cta: '撤销访问权限',
             noDevices: '你还没有注册用于人脸 / 指纹或通行密钥验证的任何设备。如果你注册了设备，就可以在这里撤销其访问权限。',
             dismiss: '知道了',
             error: '请求失败。请稍后重试。',
             revoke: '撤销',
-            confirmationPromptAll: '您确定吗？您在任何设备上进行下一次验证时都需要输入魔法验证码。',
+            confirmationPromptAll: '确定吗？你在任何设备上进行下一次验证时都需要安全码。',
             ctaAll: '全部撤销',
             thisDevice: '此设备',
             otherDevices: (otherDeviceCount?: number) => {
@@ -695,8 +695,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `${displayCount} 个其他 ${otherDeviceCount === 1 ? '设备' : '设备'}`;
             },
-            confirmationPromptThisDevice: '确定要这样做吗？下次在此设备上进行验证时，您需要输入魔法验证码。',
-            confirmationPromptMultiple: '确定吗？你下次在这些设备上验证时需要输入魔法验证码。',
+            confirmationPromptThisDevice: '确定要这样做吗？此设备下次验证时需要安全码。',
+            confirmationPromptMultiple: '确定吗？下次在这些设备上进行验证时需要输入安全码。',
         },
         unsupportedDevice: {
             unsupportedDevice: '不支持的设备',
@@ -715,7 +715,7 @@ const translations: TranslationDeepObject<typeof en> = {
             你已成功登录！
         `),
         successfulSignInDescription: '返回到你最初的标签页继续操作。',
-        title: '这是你的验证码',
+        title: '这是您的安全验证码',
         description: Str.dedent(`
             请输入最初请求该代码的设备上显示的代码
         `),
@@ -725,7 +725,7 @@ const translations: TranslationDeepObject<typeof en> = {
         `),
         or: '，或',
         signInHere: '只需在这里登录',
-        expiredCodeTitle: '魔法验证码已过期',
+        expiredCodeTitle: '安全验证码已过期',
         expiredCodeDescription: '返回原始设备并请求新验证码',
         successfulNewCodeRequest: '验证码已发送，请查看您的设备。',
         tfaRequiredTitle: Str.dedent(`
@@ -767,7 +767,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: '只要你把理由说清楚，款项就能同样快地到你手中。',
         enterPassword: '请输入您的密码',
         welcomeNewFace: (login: string) => `${login}，很高兴在这里见到新面孔！`,
-        welcomeEnterMagicCode: (login: string) => `请输入发送到 ${login} 的魔法验证码。它应会在一两分钟内送达。`,
+        welcomeEnterMagicCode: (login: string) => `请输入发送到 ${login} 的安全代码。它应会在一两分钟内送达。`,
     },
     login: {
         hero: {
@@ -777,9 +777,9 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     samlSignIn: {
         welcomeSAMLEnabled: '继续使用单点登录登录：',
-        orContinueWithMagicCode: '你也可以使用魔法验证码登录',
+        orContinueWithMagicCode: '您也可以使用安全代码登录',
         useSingleSignOn: '使用单点登录',
-        useMagicCode: '使用魔法代码',
+        useMagicCode: '使用安全码',
         launching: '正在启动...',
         oneMoment: '请稍等，我们正在将您重定向到您公司的单点登录门户。',
     },
@@ -2022,15 +2022,15 @@ const translations: TranslationDeepObject<typeof en> = {
             `添加更多登录方式并向 Expensify 发送收据。<br/><br/>添加一个电子邮箱地址，以便将收据转发到 <a href="mailto:${email}">${email}</a>，或者添加一个电话号码，以短信方式将收据发送到 47777（仅限美国号码）。`,
         pleaseVerify: '请验证此联系方法。',
         getInTouch: '我们将通过此方式联系你。',
-        enterMagicCode: (contactMethod: string) => `请输入发送至 ${contactMethod} 的魔法验证码。它应会在一两分钟内送达。`,
+        enterMagicCode: (contactMethod: string) => `请输入发送至 ${contactMethod} 的安全验证码。它应会在一两分钟内送达。`,
         setAsDefault: '设为默认',
         yourDefaultContactMethod: '这是您当前的默认联系方式。要删除它，您需要先选择另一种联系方式并点击“设为默认”。',
         removeContactMethod: '移除联系方式',
         removeAreYouSure: '确定要移除此联系方法吗？此操作无法撤销。',
         failedNewContact: '添加此联系人方式失败。',
         genericFailureMessages: {
-            requestContactMethodValidateCode: '发送新的魔法验证码失败。请稍等片刻后重试。',
-            validateSecondaryLogin: '魔术验证码不正确或无效。请重试或请求新的验证码。',
+            requestContactMethodValidateCode: '发送新的安全验证码失败。请稍等片刻后重试。',
+            validateSecondaryLogin: '安全码不正确或无效。请重试或请求新代码。',
             deleteContactMethod: '删除联系方法失败。请联系 Concierge 获取帮助。',
             setDefaultContactMethod: '未能设置新的默认联系方式。请联系 Concierge 获取帮助。',
             addContactMethod: '添加此联系方法失败。请联系 Concierge 获取帮助。',
@@ -2192,11 +2192,8 @@ const translations: TranslationDeepObject<typeof en> = {
         accountValidate: {
             confirmMerge: '确定要合并账户吗？',
             lossOfUnsubmittedData: (login: string) => `合并您的账户后将无法撤销，并且会导致 <strong>${login}</strong> 的所有未提交报销被删除。`,
-            enterMagicCode: (login: string) => `要继续，请输入发送到 <strong>${login}</strong> 的魔法验证码。`,
-            errors: {
-                incorrectMagicCode: '魔术验证码不正确或无效。请重试或请求新的验证码。',
-                fallback: '出现问题。请稍后再试。',
-            },
+            enterMagicCode: (login: string) => `要继续，请输入发送到 <strong>${login}</strong> 的安全代码。`,
+            errors: {incorrectMagicCode: '安全码不正确或无效。请重试或请求新代码。', fallback: '出现问题。请稍后再试。'},
         },
         mergeSuccess: {
             accountsMerged: '账户已合并！',
@@ -2534,7 +2531,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `已添加到 ${platform} 钱包`,
         cardDetailsLoadingFailure: '加载卡片详情时出错。请检查您的网络连接，然后重试。',
         validateCardTitle: '让我们确认一下是你本人',
-        enterMagicCode: (contactMethod: string) => `请输入发送到 ${contactMethod} 的魔法验证码以查看您的卡片详情。验证码应会在一两分钟内送达。`,
+        enterMagicCode: (contactMethod: string) => `请输入发送到 ${contactMethod} 的安全代码以查看您的卡片详情。验证码应会在一两分钟内送达。`,
         unexpectedError: '尝试获取您的 Expensify 卡片详情时出错。请重试。',
         cardFraudAlert: {
             confirmButtonText: '是的，我愿意',
@@ -2949,7 +2946,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         license: `资金汇款服务由 ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）根据其<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">许可证</a>提供。`,
     },
     validateCodeForm: {
-        magicCodeNotReceived: '没有收到验证码？',
+        magicCodeNotReceived: '没有收到安全验证码？',
         avoidScamsMessage: '<strong>谨防诈骗。不要与任何人分享您的验证码。</strong> 我们的团队绝不会打电话、发短信或发送电子邮件向您索取此验证码。',
         enterAuthenticatorCode: '请输入您的认证器验证码',
         enterRecoveryCode: '请输入您的恢复代码',
@@ -2958,11 +2955,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         requestNewCodeAfterErrorOccurred: '请求新验证码',
         timeRemainingAnnouncement: ({timeRemaining}) => `剩余时间：${timeRemaining}秒`,
         timeExpiredAnnouncement: '时间已到期',
-        error: {
-            pleaseFillMagicCode: '请输入你的魔法验证码',
-            incorrectMagicCode: '魔术验证码不正确或无效。请重试或请求新的验证码。',
-            pleaseFillTwoFactorAuth: '请输入您的双重身份验证代码',
-        },
+        error: {pleaseFillMagicCode: '请输入您的安全码', incorrectMagicCode: '安全码不正确或无效。请重试或请求新代码。', pleaseFillTwoFactorAuth: '请输入您的双重身份验证代码'},
     },
     passwordForm: {
         pleaseFillOutAllFields: '请填写所有字段',
@@ -3058,10 +3051,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
             addWorkEmail: '添加工作邮箱',
         },
-        workEmailValidation: {
-            title: '验证你的工作邮箱',
-            magicCodeSent: (workEmail: string | undefined) => `请输入发送到 ${workEmail} 的验证码。它应会在一两分钟内送达。`,
-        },
+        workEmailValidation: {title: '验证你的工作邮箱', magicCodeSent: (workEmail: string | undefined) => `请输入发送到 ${workEmail} 的安全代码。邮件应会在一两分钟内送达。`},
         workEmailValidationError: {
             publicEmail: '请输入来自私有域的有效工作邮箱，例如：mitch@company.com',
             sameAsSignupEmail: '请输入与注册时不同的邮箱',
@@ -3385,11 +3375,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: '链接已重新发送',
-        weSentYouMagicSignInLink: (login: string, loginType: string) => `我已向 ${login} 发送了魔法登录链接。请检查你的 ${loginType} 以登录。`,
+        weSentYouMagicSignInLink: (login: string, loginType: string) => `我已向 ${login} 发送了一封安全登录链接。请检查你的 ${loginType} 以完成登录。`,
         resendLink: '重新发送链接',
     },
     unlinkLoginForm: {
-        toValidateLogin: (primaryLogin: string, secondaryLogin: string) => `若要验证 ${secondaryLogin}，请从 ${primaryLogin} 的账户设置中重新发送魔法验证码。`,
+        toValidateLogin: (primaryLogin: string, secondaryLogin: string) => `要验证 ${secondaryLogin}，请从 ${primaryLogin} 的账户设置中重新发送安全码。`,
         noLongerHaveAccess: (primaryLogin: string) => `如果你已无法访问 ${primaryLogin}，请先解除账户关联。`,
         unlink: '取消关联',
         linkSent: '链接已发送！',
@@ -3409,7 +3399,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `我们暂时无法向 ${login} 发送短信，因此已暂时停用该号码。请尝试验证您的号码：`,
-        validationSuccess: '您的号码已验证！点击下方发送新的魔法登录验证码。',
+        validationSuccess: '您的号码已验证！点击下方发送新的安全登录验证码。',
         validationFailed: ({
             timeData,
         }: {
@@ -9588,8 +9578,8 @@ ${reportName}`,
         removeCopilotConfirmation: '确定要移除这个副驾驶吗？',
         changeAccessLevel: '更改访问级别',
         makeSureItIsYou: '让我们确认一下是你本人',
-        enterMagicCode: (contactMethod: string) => `请输入发送到 ${contactMethod} 的验证码以添加副驾驶。验证码应会在一两分钟内送达。`,
-        enterMagicCodeUpdate: (contactMethod: string) => `请输入发送到 ${contactMethod} 的魔法验证码以更新您的副驾驶。`,
+        enterMagicCode: (contactMethod: string) => `请输入发送到 ${contactMethod} 的安全码以添加协助者。它应会在一两分钟内送达。`,
+        enterMagicCodeUpdate: (contactMethod: string) => `请输入发送到 ${contactMethod} 的安全验证码以更新您的副驾驶。`,
         notAllowed: '别急……',
         noAccessMessage: Str.dedent(`
             作为副驾驶，你无权访问此页面。抱歉！
