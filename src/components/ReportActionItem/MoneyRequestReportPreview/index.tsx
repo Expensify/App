@@ -17,6 +17,7 @@ import {createTransactionThreadReport, openReport, setOptimisticTransactionThrea
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -221,15 +222,23 @@ function MoneyRequestReportPreview({
                 // instead leaves the parent report frozen beneath it (freezeNonTopScreens), so hard-backing to that
                 // just-thawed, still-loading report drops the first transaction-row tap.
                 if (getPlatform() === CONST.PLATFORM.WEB) {
-                    // On mobile web, open the pressed expense directly in the RHP over the chat. Pushing the parent
-                    // report as a split screen first (so back stops on it) mounts a fresh, still-hydrating report and
-                    // then suspends it via react-freeze when the RHP opens — that wedges React concurrent rendering on
-                    // iOS Safari (the app freezes on a cold reload, and no frame/timeout reliably outruns the
-                    // hydration). Opening over the already-settled chat avoids it; back returns to the chat. (Native
-                    // still splices the report underneath for back -> report -> chat via openExpenseOverParentReport;
-                    // web can't do that without reintroducing the freeze.)
+                    // On mobile web, push the parent report first so it lands as its own browser-history entry (back
+                    // stops on the report, then the chat), then open the pressed expense in the RHP over it one
+                    // microtask later so the two navigations don't batch into a single history push. The report stays
+                    // live under the full-screen RHP because FreezeWrapper no longer freezes a split that has an RHP
+                    // over it, so it's never suspended mid-hydration (which used to wedge React concurrent rendering on
+                    // iOS Safari). Mirrors native's back -> report -> chat.
+                    const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
                     setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID));
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo}));
+                    Navigation.navigate(reportRoute);
+                    setNavigationActionToMicrotaskQueue(() => {
+                        // The user may have left the report during the microtask defer; don't open the expense over
+                        // whatever screen is now active.
+                        if (!Navigation.isActiveRoute(reportRoute)) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+                    });
                     return;
                 }
 
