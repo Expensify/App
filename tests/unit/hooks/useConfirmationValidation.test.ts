@@ -97,6 +97,7 @@ const baseParams = {
     isDistanceRequest: false,
     isDistanceRequestWithPendingRoute: false,
     isPerDiemRequest: false,
+    isMovingTransactionFromTrackExpense: false,
     isTimeRequest: false,
     routeError: undefined,
     isNewManualExpenseFlowEnabled: false,
