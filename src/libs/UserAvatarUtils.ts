@@ -44,6 +44,10 @@ type CommonAvatarArgsType = {
 type DefaultAvatarArgsType = CommonAvatarArgsType & {
     /** Existing avatar URL */
     avatarURL?: string;
+    /** The user's first name, when known (seeds letter-avatar initials ahead of the email) */
+    firstName?: string;
+    /** The user's last name, when known */
+    lastName?: string;
 };
 
 type GetAvatarArgsType = CommonAvatarArgsType & {
@@ -130,10 +134,12 @@ function getDefaultAvatarName({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail
  * @param args.accountID - The user's account ID
  * @param args.accountEmail - The user's email address (for consistency with backend logic, used for avatar calculation if provided)
  * @param args.avatarURL - Existing avatar URL (parsed to extract avatar number if available)
+ * @param args.firstName - The user's first name, when known (seeds the letter-avatar initials ahead of the email, matching the backend)
+ * @param args.lastName - The user's last name, when known
  * @returns The CloudFront CDN URL for the avatar image
  *
  */
-function getDefaultAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL}: DefaultAvatarArgsType): string {
+function getDefaultAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL, firstName, lastName}: DefaultAvatarArgsType): string {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE || accountEmail === CONST.EMAIL.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
@@ -141,9 +147,7 @@ function getDefaultAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail,
         return CONST.NOTIFICATIONS_ICON_URL;
     }
 
-    // The local default has no name to read initials from, so they come from the email. The backend emits
-    // name-based initials on the avatar URL, which the client parses instead of recomputing here.
-    const letterAvatarURL = getLetterAvatarURL(accountID, '', '', accountEmail ?? '');
+    const letterAvatarURL = getLetterAvatarURL(accountID, firstName ?? '', lastName ?? '', accountEmail ?? '');
     if (letterAvatarURL) {
         return letterAvatarURL;
     }

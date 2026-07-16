@@ -430,7 +430,10 @@ function updateAvatar(
  * Updates the color of the user's letter avatar. The backend also clears any uploaded
  * avatar image, since picking a letter color means using the letter avatar.
  */
-function updateAvatarStyle(color: LetterAvatarSchemeKey, currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'avatarStyle' | 'avatar' | 'fallbackIcon' | 'accountID' | 'email'>) {
+function updateAvatarStyle(
+    color: LetterAvatarSchemeKey,
+    currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'avatarStyle' | 'avatar' | 'fallbackIcon' | 'accountID' | 'email' | 'firstName' | 'lastName'>,
+) {
     if (!currentUserPersonalDetails.accountID) {
         return;
     }
@@ -451,6 +454,8 @@ function updateAvatarStyle(color: LetterAvatarSchemeKey, currentUserPersonalDeta
                         avatar: UserAvatarUtils.getDefaultAvatarURL({
                             accountID: currentUserPersonalDetails.accountID,
                             accountEmail: currentUserPersonalDetails.email,
+                            firstName: currentUserPersonalDetails.firstName,
+                            lastName: currentUserPersonalDetails.lastName,
                         }),
                         fallbackIcon: null,
                     }),
@@ -502,7 +507,7 @@ function updateAvatarStyle(color: LetterAvatarSchemeKey, currentUserPersonalDeta
 /**
  * Replaces the user's avatar image with a default avatar
  */
-function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID' | 'email'>) {
+function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID' | 'email' | 'firstName' | 'lastName'>) {
     if (!currentUserPersonalDetails.accountID) {
         return;
     }
@@ -511,6 +516,8 @@ function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetail
     const defaultAvatar = UserAvatarUtils.getDefaultAvatarURL({
         accountID: currentUserPersonalDetails.accountID,
         accountEmail: currentUserPersonalDetails.email,
+        firstName: currentUserPersonalDetails.firstName,
+        lastName: currentUserPersonalDetails.lastName,
     });
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [

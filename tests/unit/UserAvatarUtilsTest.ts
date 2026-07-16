@@ -190,6 +190,18 @@ describe('UserAvatarUtils', () => {
             expect(urlByID).not.toBe(urlByEmail);
         });
 
+        it('should build initials from the name ahead of the email when the name is known', () => {
+            const url = UserAvatarUtils.getDefaultAvatarURL({
+                accountID: 10,
+                accountEmail: 'john.doe@example.com',
+                firstName: 'Jane',
+                lastName: 'Smith',
+            });
+
+            expect(url).toContain('generated/letter/');
+            expect(url).toContain('/JS.png');
+        });
+
         it('should produce consistent avatar for same email', () => {
             const url1 = UserAvatarUtils.getDefaultAvatarURL({
                 accountID: 1,

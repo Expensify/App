@@ -71,6 +71,8 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
         avatarURL = getDefaultAvatarURL({
             accountID,
             accountEmail: currentUserPersonalDetails?.email,
+            firstName: currentUserPersonalDetails?.firstName,
+            lastName: currentUserPersonalDetails?.lastName,
         });
     } else {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
