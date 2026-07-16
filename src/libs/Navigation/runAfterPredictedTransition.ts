@@ -7,7 +7,9 @@ import type {CancelHandle} from './TransitionTracker';
 import navigationRef from './navigationRef';
 import TransitionTracker from './TransitionTracker';
 
-// Action types that never move the focused route, so they can never start a visual transition.
+// Action types to ignore when predicting an upcoming visual transition. SET_PARAMS/REPLACE_PARAMS/PRELOAD
+// never move the focused route. JUMP_TO can, but only tab navigators use it and they do not emit
+// transitionStart/transitionEnd, so waiting on TransitionTracker would never settle.
 const ACTION_TYPES_WITHOUT_TRANSITION: ReadonlySet<string> = new Set(['SET_PARAMS', 'REPLACE_PARAMS', 'PRELOAD', 'JUMP_TO']);
 
 let isTransitionPending = false;
@@ -19,8 +21,8 @@ let settleWaiters: Array<(shouldWait: boolean) => void> = [];
 function notifySettle(shouldWait: boolean): void {
     const waiters = settleWaiters;
     settleWaiters = [];
-    for (const resolve of waiters) {
-        resolve(shouldWait);
+    for (const onSettled of waiters) {
+        onSettled(shouldWait);
     }
 }
 
@@ -34,16 +36,16 @@ function clearPending(): void {
     notifySettle(false);
 }
 
-function waitForPredictionSettled(): Promise<boolean> {
+function whenPredictionSettled(onSettled: (shouldWait: boolean) => void): void {
     if (!isTransitionPending) {
-        return Promise.resolve(false);
+        onSettled(false);
+        return;
     }
     if (hasConfirmedFocusMove) {
-        return Promise.resolve(true);
+        onSettled(true);
+        return;
     }
-    return new Promise((resolve) => {
-        settleWaiters.push(resolve);
-    });
+    settleWaiters.push(onSettled);
 }
 
 navigationRef.addListener('__unsafe_action__', (event) => {
@@ -86,12 +88,6 @@ navigationRef.addListener('state', (event) => {
 
 TransitionTracker.onTransitionStart(clearPending);
 
-function settle(): Promise<void> {
-    return new Promise((resolve) => {
-        setTimeout(resolve, 0);
-    });
-}
-
 /**
  * Heuristic-aware drop-in for `TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true})`.
  * Call this right after or right before the navigation call whose transition should be waited on.
@@ -104,9 +100,9 @@ export default function runAfterPredictedTransition(callback: () => void | Promi
     let cancelled = false;
     let innerHandle: CancelHandle | null = null;
 
-    settle()
-        .then(() => waitForPredictionSettled())
-        .then((shouldWait) => {
+    // Yield one macrotask so a navigation dispatch in the same press handler can register first.
+    setTimeout(() => {
+        whenPredictionSettled((shouldWait) => {
             if (cancelled) {
                 return;
             }
@@ -115,6 +111,7 @@ export default function runAfterPredictedTransition(callback: () => void | Promi
                 waitForUpcomingTransition: shouldWait,
             });
         });
+    }, 0);
 
     return {
         cancel: () => {
