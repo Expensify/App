@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -442,24 +442,23 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                     <FixedFooter style={styles.mtAuto}>
                         {Number(splitExpensesList?.length) > 1 && (
                             <Button
-                                danger
-                                large
+                                variant="danger"
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 style={[styles.w100, styles.mb4]}
-                                text={translate('iou.removeSplit')}
                                 onPress={() => {
                                     removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID);
                                     Navigation.goBack(backPath);
                                 }}
-                                pressOnEnter
-                                enterKeyEventListenerPriority={1}
                                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.REMOVE_SPLIT_BUTTON}
-                            />
+                            >
+                                <Button.Text>{translate('iou.removeSplit')}</Button.Text>
+                                <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                            </Button>
                         )}
                         <Button
-                            success
-                            large
+                            variant="success"
+                            size={CONST.BUTTON_SIZE.LARGE}
                             style={[styles.w100]}
-                            text={translate('common.save')}
                             onPress={() => {
                                 updateSplitExpenseField(
                                     splitExpenseDraftTransaction,
@@ -472,10 +471,11 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                 );
                                 Navigation.goBack(backPath);
                             }}
-                            pressOnEnter
-                            enterKeyEventListenerPriority={1}
                             sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_SAVE_BUTTON}
-                        />
+                        >
+                            <Button.Text>{translate('common.save')}</Button.Text>
+                            <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                        </Button>
                     </FixedFooter>
                 </View>
             </FullPageNotFoundView>

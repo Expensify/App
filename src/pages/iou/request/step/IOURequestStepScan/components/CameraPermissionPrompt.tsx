@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ImageSVG from '@components/ImageSVG';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -35,17 +35,17 @@ function CameraPermissionPrompt({isInLandscapeMode, onPress}: CameraPermissionPr
                     height={CONST.RECEIPT.HAND_ICON_HEIGHT}
                     style={styles.pb5}
                 />
-
                 <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
                 <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                 <Button
-                    success
-                    text={translate('common.continue')}
+                    variant="success"
                     accessibilityLabel={translate('common.continue')}
                     style={[styles.p9, styles.pt5]}
                     onPress={onPress}
                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
-                />
+                >
+                    <Button.Text>{translate('common.continue')}</Button.Text>
+                </Button>
             </View>
         </ScrollView>
     );

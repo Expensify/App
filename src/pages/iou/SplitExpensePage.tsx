@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -471,15 +471,15 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             )}
             <Button
-                success
-                large
+                variant="success"
+                size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100]}
-                text={translate('common.save')}
                 onPress={onSaveSplitExpense}
-                pressOnEnter
-                enterKeyEventListenerPriority={1}
                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.SAVE_BUTTON}
-            />
+            >
+                <Button.Text>{translate('common.save')}</Button.Text>
+                <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+            </Button>
         </View>
     );
 

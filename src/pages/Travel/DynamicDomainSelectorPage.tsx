@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -108,12 +108,13 @@ function DynamicDomainSelectorPage({route}: DomainSelectorPageProps) {
                     footerContent={
                         <Button
                             isDisabled={!selectedDomain}
-                            success
-                            large
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             style={[styles.w100]}
                             onPress={provisionTravelForDomain}
-                            text={translate('common.continue')}
-                        />
+                        >
+                            <Button.Text>{translate('common.continue')}</Button.Text>
+                        </Button>
                     }
                 />
             </ScreenWrapper>

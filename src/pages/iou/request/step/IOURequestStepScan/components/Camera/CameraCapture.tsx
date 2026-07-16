@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -175,13 +175,14 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                                 <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                             )}
                             <Button
-                                success
-                                text={translate('common.continue')}
+                                variant="success"
                                 accessibilityLabel={translate('common.continue')}
                                 style={[styles.p9, styles.pt5]}
                                 onPress={capturePhoto}
                                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
-                            />
+                            >
+                                <Button.Text>{translate('common.continue')}</Button.Text>
+                            </Button>
                         </View>
                     )}
                     {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (
