@@ -388,7 +388,10 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     if (!isCreatedUsingMarkdown) {
-        if (isSearchTopmostFullScreenRoute()) {
+        const isSearchActive = isSearchTopmostFullScreenRoute();
+        const isParentReportVisible = isSearchActive && Navigation.getTopmostSearchReportID() === parentReportID;
+
+        if (isParentReportVisible) {
             Navigation.closeRHPFlow();
             clearOutTaskInfo();
         } else {
