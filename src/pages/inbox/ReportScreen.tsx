@@ -116,7 +116,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     return (
         <KeyboardGestureArea
             style={styles.flex1}
-            // offset={keyboardGestureAreaOffset}
+            offset={keyboardGestureAreaOffset}
             interpolator="ios"
             textInputNativeID={CONST.COMPOSER.NATIVE_ID}
             enableSwipeToDismiss={!isComposerFullSize}
