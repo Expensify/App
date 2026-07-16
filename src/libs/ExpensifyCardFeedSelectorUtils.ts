@@ -35,20 +35,7 @@ type ExpensifyCardFeedEntry = {
 
 /** A feed qualifies only when its settings NVP has a US or GB program block with a configured settlement bank account. */
 function hasConfiguredExpensifyCardFeed(settings: ExpensifyCardSettings | undefined): boolean {
-    if (!settings) {
-        return false;
-    }
-
-    // We only want to show feeds that have either a US or GB program.
-    // TRAVEL feeds do not show in the UI and are managed on the backend and CURRENT feeds are deprecated and should not be used to determine if a feed is configured or not.
-    for (const programKey of [CONST.COUNTRY.US, CONST.COUNTRY.GB] as const) {
-        const nested = settings[programKey];
-        if (nested && typeof nested === 'object' && !Array.isArray(nested) && nested.paymentBankAccountID != null) {
-            return true;
-        }
-    }
-
-    return false;
+    return getConfiguredExpensifyCardProgramKeys(settings).length > 0;
 }
 
 /**
