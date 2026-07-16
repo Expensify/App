@@ -1,15 +1,20 @@
 package com.expensify.chat
 
+import android.app.ActivityManager
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.res.Resources
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.Choreographer
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewTreeObserver
 import android.view.WindowInsets
 import android.view.WindowManager
 import com.expensify.chat.bootsplash.BootSplash
+import com.expensify.chat.bootsplash.BootSplashDialog
 import com.expensify.chat.intenthandler.IntentHandlerFactory
 import com.expensify.reactnativekeycommand.KeyCommandModule
 import com.facebook.react.ReactActivity
@@ -35,11 +40,13 @@ class MainActivity : ReactActivity() {
      * Returns the instance of the [ReactActivityDelegate]. Here we use a util class [ ] which allows you to easily enable Fabric and Concurrent React
      * (aka React 18) with two boolean flags.
      */
-    override fun createReactActivityDelegate() = ReactActivityDelegateWrapper(this, BuildConfig.IS_NEW_ARCHITECTURE_ENABLED, DefaultReactActivityDelegate(
-        this,
-        mainComponentName,  // If you opted-in for the New Architecture, we enable the Fabric Renderer.
-        fabricEnabled
-    ))
+    override fun createReactActivityDelegate() = ReactActivityDelegateWrapper(
+        this, BuildConfig.IS_NEW_ARCHITECTURE_ENABLED, DefaultReactActivityDelegate(
+            this,
+            mainComponentName,  // If you opted-in for the New Architecture, we enable the Fabric Renderer.
+            fabricEnabled
+        )
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         getSharedPreferences(APP_START_TIME_PREFERENCES, MODE_PRIVATE)
@@ -48,8 +55,6 @@ class MainActivity : ReactActivity() {
             .apply()
         BootSplash.init(this)
         super.onCreate(null)
-
-        // Keep sensitive data out of the recents snapshot the OS writes to disk.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             setRecentsScreenshotEnabled(false)
         }
@@ -76,9 +81,10 @@ class MainActivity : ReactActivity() {
         super.onNewIntent(intent)
 
         if (intent.hasCategory(Intent.CATEGORY_LAUNCHER)
-              && intent.getAction() != null
-              && intent.getAction().equals(Intent.ACTION_MAIN)) {
-             wasAppRelaunchedFromIcon = true
+            && intent.getAction() != null
+            && intent.getAction().equals(Intent.ACTION_MAIN)
+        ) {
+            wasAppRelaunchedFromIcon = true
         }
 
         setIntent(intent) // Must store the new intent unless getIntent() will return the old one
@@ -129,20 +135,91 @@ class MainActivity : ReactActivity() {
         super.onStart()
     }
 
-    // Below API 33 there is no setRecentsScreenshotEnabled, so FLAG_SECURE is set only
-    // while the activity is paused: the recents snapshot (taken after onPause) comes out
-    // blank, while user screenshots and screen sharing keep working in the foreground.
-    override fun onPause() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+    // it lets us tell "leaving the app" from "internal window"
+    private var isTopResumed = true
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            hidePrivacyDialog()
+        } else if (!isTopResumed) {
+            showPrivacyDialog()
         }
-        super.onPause()
+    }
+
+    override fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
+        super.onTopResumedActivityChanged(isTopResumedActivity)
+        isTopResumed = isTopResumedActivity
+        if (isTopResumedActivity) {
+            hidePrivacyDialog()
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            isTopResumed = true
         }
+    }
+
+    override fun onPause() {
+        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            isTopResumed = false
+        }
+        super.onPause()
+    }
+
+    override fun onApplyThemeResource(theme: Resources.Theme, resid: Int, first: Boolean) {
+        super.onApplyThemeResource(theme, resid, first)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            setTaskDescription(
+                ActivityManager.TaskDescription.Builder()
+                    .setBackgroundColor(getColor(R.color.bootsplash_background))
+                    .build()
+            )
+        }
+    }
+
+    override fun onDestroy() {
+        hidePrivacyDialog()
+        super.onDestroy()
+    }
+
+    private var privacyDialog: BootSplashDialog? = null
+
+    private fun showPrivacyDialog() {
+        if (privacyDialog != null || isFinishing || isDestroyed) {
+            return
+        }
+        val dialog = BootSplashDialog(this, R.style.BootTheme)
+        // When the user comes back the activity underneath regains focus
+        dialog.window?.setFlags(
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        )
+        // The default dialog fade-in would let the snapshot see the content underneath
+        dialog.window?.setWindowAnimations(0)
+        dialog.show()
+        privacyDialog = dialog
+
+        val decorView = dialog.window?.decorView ?: return
+        decorView.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                decorView.viewTreeObserver.removeOnPreDrawListener(this)
+                Choreographer.getInstance().postFrameCallback {
+                    if (privacyDialog === dialog) {
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                    }
+                }
+                return true
+            }
+        })
+    }
+
+    private fun hidePrivacyDialog() {
+        privacyDialog?.dismiss()
+        privacyDialog = null
     }
 }
