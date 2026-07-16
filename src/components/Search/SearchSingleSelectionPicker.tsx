@@ -5,10 +5,10 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {getNoneOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
@@ -53,17 +53,7 @@ function SearchSingleSelectionPicker({
     }, [initiallySelectedItem]);
 
     const searchLower = debouncedSearchTerm?.toLowerCase();
-    const noneItem =
-        allowNoneOption && translate('common.none').toLowerCase().includes(searchLower)
-            ? [
-                  {
-                      text: translate('common.none'),
-                      keyForList: CONST.SEARCH.NONE_OPTION_KEY,
-                      isSelected: !selectedItem?.value,
-                      value: '',
-                  },
-              ]
-            : [];
+    const noneItem = allowNoneOption ? getNoneOption(debouncedSearchTerm, !selectedItem?.value, translate) : [];
 
     const initiallySelectedItemSection =
         initiallySelectedItem?.name.toLowerCase().includes(searchLower) || initiallySelectedItem?.searchableText?.toLowerCase().includes(searchLower)

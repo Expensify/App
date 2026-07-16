@@ -10,7 +10,6 @@ import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -45,7 +44,7 @@ import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequ
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -53,17 +52,16 @@ import {policyTypeSelector} from '@selectors/Policy';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
-type DynamicSplitExpenseEditPageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT>;
+type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
 
-function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) {
+function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.path);
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const {currentSearchResults} = useSearchResultsContext();
 
-    const {reportID, transactionID, splitExpenseTransactionID = ''} = route.params;
+    const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`, undefined, [
@@ -300,12 +298,12 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     ) : null;
 
     return (
-        <ScreenWrapper testID="DynamicSplitExpenseEditPage">
+        <ScreenWrapper testID="SplitExpenseEditPage">
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction) || !isSplitAvailable}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
                         title={translate('iou.splitExpenseEditTitle', convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency), merchantToDisplay)}
-                        onBackButtonPress={() => Navigation.goBack(backPath)}
+                        onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <ScrollView>
                         <MenuItemWithTopDescription
@@ -447,7 +445,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                 style={[styles.w100, styles.mb4]}
                                 onPress={() => {
                                     removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID);
-                                    Navigation.goBack(backPath);
+                                    Navigation.goBack(backTo);
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.REMOVE_SPLIT_BUTTON}
                             >
@@ -469,7 +467,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                     isSelfDMSplit,
                                     personalPolicy?.outputCurrency,
                                 );
-                                Navigation.goBack(backPath);
+                                Navigation.goBack(backTo);
                             }}
                             sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_SAVE_BUTTON}
                         >
@@ -483,4 +481,4 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     );
 }
 
-export default DynamicSplitExpenseEditPage;
+export default SplitExpenseEditPage;
