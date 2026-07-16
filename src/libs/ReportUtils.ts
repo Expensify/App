@@ -9389,7 +9389,7 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
     // Optional until SidebarUtils.ts and useOptimisticNextStep.ts callers are refactored to pass currentUserAccountID
-    currentUserAccountID?: number,
+    // TODO: Optional until SidebarUtils.ts and useOptimisticNextStep.ts callers are refactored to pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
 ): ReportErrorsAndReportActionThatRequiresAttention {
     const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action));
     const reportActionErrors: ErrorFields = {};
