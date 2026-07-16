@@ -3,7 +3,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
-import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, isDeletedAction} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {
     generateIsEmptyReport,
@@ -560,6 +560,16 @@ export default createOnyxDerivedValueConfig({
             const childReportIDs = childReportIDsByChat.get(report.chatReportID) ?? [];
             childReportIDs.push(report.reportID);
             childReportIDsByChat.set(report.chatReportID, childReportIDs);
+
+            // When the child IOU's parent action in the chat is deleted (e.g. another user deleted the request
+            // while an optimistic pay was queued offline), the chat has no actionable surface for the error.
+            // Skip propagation so the parent DM row doesn't show a stale "Fix" for a request that no longer exists.
+            const parentReportAction = report.parentReportActionID
+                ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
+                : undefined;
+            if (isDeletedAction(parentReportAction)) {
+                continue;
+            }
 
             // If this is an IOU report and its calculated attributes have an error,
             // then we need to mark its parent chat report.
