@@ -55,6 +55,7 @@ function PersonalInfoPage() {
     const {isMagicCodeRequired, submitPersonalDetails, confirmPersonalDetailsWithMagicCode, closeMagicCodePrompt} = useWalletPhoneMagicCode();
 
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
+
     const submit = () => {
         const personalDetails: UpdatePersonalDetailsForWalletParams = {
             phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
@@ -67,7 +68,7 @@ function PersonalInfoPage() {
             dob: values?.[PERSONAL_INFO_STEP_KEYS.DOB] ?? '',
             ssn: values?.[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4] ?? '',
         };
-        submitPersonalDetails(personalDetails, walletAdditionalDetails?.phoneNumber);
+        submitPersonalDetails(personalDetails);
     };
 
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);

@@ -18,6 +18,7 @@ import {useEffect, useRef, useState} from 'react';
 function useWalletPhoneMagicCode() {
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const [formData] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
     // The details the user submitted, held while we prompt for a magic code to confirm a phone number change
     const submittedPersonalDetailsRef = useRef<UpdatePersonalDetailsForWalletParams | null>(null);
@@ -43,11 +44,12 @@ function useWalletPhoneMagicCode() {
     }, [formData?.isLoading, walletAdditionalDetails?.errorCode]);
 
     // Submits the personal details, first prompting for a magic code when an existing phone number is being changed.
-    const submitPersonalDetails = (personalDetails: UpdatePersonalDetailsForWalletParams, storedPhoneNumber: string | undefined) => {
+    const submitPersonalDetails = (personalDetails: UpdatePersonalDetailsForWalletParams) => {
         submittedPersonalDetailsRef.current = personalDetails;
 
         // The stored phone number keeps its country code, so normalize it the same way as the submitted one before
         // comparing, otherwise an unchanged phone would look like a change and wrongly prompt for a magic code.
+        const storedPhoneNumber = privatePersonalDetails?.phoneNumber;
         const normalizedStoredPhoneNumber = (storedPhoneNumber && parsePhoneNumber(storedPhoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '';
         const hasPhoneNumberChanged = !!normalizedStoredPhoneNumber && personalDetails.phoneNumber !== normalizedStoredPhoneNumber;
         if (hasPhoneNumberChanged) {
