@@ -129,7 +129,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
-import type {CompanyCardFeedWithDomainID, FundID} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -391,7 +391,7 @@ type DeleteWorkspaceActionParams = {
     lastAccessedWorkspacePolicyID: string | undefined;
     policyCardFeeds: CardFeeds | undefined;
     lastSelectedFeed: CompanyCardFeedWithDomainID | undefined;
-    lastSelectedExpensifyCardFeed: FundID | undefined;
+    lastSelectedExpensifyCardFeed: string | undefined;
     reportsToArchive: Report[];
     transactionViolations: OnyxCollection<TransactionViolations> | undefined;
     reimbursementAccountError: Errors | undefined;

@@ -4,6 +4,7 @@ import {
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
     isPolicyIDInLinkedExpensifyCardPolicyList,
+    parseCardFeedKey,
 } from '@libs/CardUtils';
 
 import CONST from '@src/CONST';
@@ -24,7 +25,8 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
 function useDefaultFundID(policyID: string | undefined) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
-    const [lastSelectedCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`);
+    const {fundID: lastSelectedFundID} = parseCardFeedKey(lastSelectedExpensifyCardFeed);
+    const [lastSelectedCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedFundID}`);
     const lastSelectedSettings = getCardSettings(lastSelectedCardSettings);
 
     const getDomainFundID = useCallback(
@@ -60,8 +62,8 @@ function useDefaultFundID(policyID: string | undefined) {
 
     const isFeedPendingDelete = lastSelectedCardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    if (lastSelectedExpensifyCardFeed && lastSelectedSettings?.paymentBankAccountID && !isFeedPendingDelete) {
-        return lastSelectedExpensifyCardFeed;
+    if (lastSelectedFundID && lastSelectedSettings?.paymentBankAccountID && !isFeedPendingDelete) {
+        return lastSelectedFundID;
     }
 
     if (domainFundID) {

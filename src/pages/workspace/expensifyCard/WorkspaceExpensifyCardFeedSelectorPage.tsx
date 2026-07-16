@@ -24,7 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearIssueNewCardFlow, clearIssueNewCardFormData, setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {getCardSettings, getConfiguredExpensifyCardProgramKeys, getExpensifyCardProgramCurrency} from '@libs/CardUtils';
+import {buildCardFeedKey, getCardSettings, getConfiguredExpensifyCardProgramKeys, getExpensifyCardProgramCurrency, parseCardFeedKey} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
@@ -77,7 +77,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const primaryContactMethod = usePrimaryContactMethod();
     const defaultFundID = useDefaultFundID(policyID);
-    const lastSelectedExpensifyCardFeedID = lastSelectedExpensifyCardFeed ?? defaultFundID;
+    const lastSelectedExpensifyCardFeedID = parseCardFeedKey(lastSelectedExpensifyCardFeed).fundID ?? defaultFundID;
     const selectedProgramKey = useSelectedExpensifyCardProgram(policyID, lastSelectedExpensifyCardFeedID);
     const [feedWithError, setFeedWithError] = useState<{fundID?: number; error?: Errors} | undefined>(undefined);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
@@ -142,17 +142,13 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policyID));
     };
 
-    // A feed provisioned with more than one program renders one row per program (see getAdminExpensifyCardFeedEntries),
-    // so the currently-selected row is identified by both the feed (fundID) and the program.
-    const getFeedRowKey = (fundID: number, programKey: CardProgramKey) => `${fundID}_${programKey}`;
-
     const toListItem = (entry: ExpensifyCardFeedEntry, isOtherWorkspaceSection: boolean): ExpensifyFeedListItem => {
         const isFeedPendingDelete = entry.settings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         const description = getExpensifyCardFeedDescription(entry.settings, policies, domains, entry.fundID, cardList);
         const hasMultiplePrograms = getConfiguredExpensifyCardProgramKeys(entry.settings).length > 1;
         const programSettings = getCardSettings(entry.settings, entry.programKey);
         const labelSuffix = hasMultiplePrograms ? `(${getExpensifyCardProgramCurrency(entry.programKey, programSettings?.country, programSettings?.currency)})` : '';
-        const rowKey = getFeedRowKey(entry.fundID, entry.programKey);
+        const rowKey = buildCardFeedKey(entry.fundID, entry.programKey);
         return {
             value: entry.fundID,
             programKey: entry.programKey,
@@ -277,7 +273,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                         onSelectRow={selectFeed}
                         data={primaryListData}
                         alternateNumberOfSupportedLines={2}
-                        initiallyFocusedItemKey={getFeedRowKey(lastSelectedExpensifyCardFeedID, selectedProgramKey)}
+                        initiallyFocusedItemKey={buildCardFeedKey(lastSelectedExpensifyCardFeedID, selectedProgramKey)}
                         addBottomSafeAreaPadding
                         listFooterContent={issueNewCardAndOtherFeedsFooter}
                         onDismissError={onDismissError}

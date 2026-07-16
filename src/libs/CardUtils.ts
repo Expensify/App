@@ -1488,6 +1488,52 @@ function getSelectableCardProgramKey(programKey: string | undefined): CardProgra
     return EXPENSIFY_CARD_ISSUABLE_PROGRAMS.find((issuableProgram) => issuableProgram === programKey);
 }
 
+/** Backend may nest linkedPolicyIDs under each program block (not only on the settings root). */
+const NESTED_EXPENSIFY_CARD_PROGRAM_KEYS: readonly CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB, CONST.TRAVEL.PROGRAM_TRAVEL_US];
+
+/**
+ * Narrows a value to a known Expensify Card program key (US, CURRENT, GB or TRAVEL_US), or undefined if it is none of them.
+ * This is the general narrowing used when parsing stored/serialized program values; use `getSelectableCardProgramKey` when
+ * you specifically need to restrict to the user-selectable programs (e.g. the workspace feed selector).
+ */
+function getCardProgramKeyFromValue(programKey: string | undefined): CardProgramKey | undefined {
+    return NESTED_EXPENSIFY_CARD_PROGRAM_KEYS.find((knownProgramKey) => knownProgramKey === programKey);
+}
+
+/**
+ * A single fund (fundID) can back more than one Expensify Card program (US/GB), so a feed is identified by the `fundID` and
+ * `programKey` together. This encodes that pair into the composite string stored in `LAST_SELECTED_EXPENSIFY_CARD_FEED`
+ * (and used as the feed-selector row key), e.g. `16_GB`.
+ */
+function buildCardFeedKey(fundID: number, programKey: CardProgramKey): string {
+    return `${fundID}_${programKey}`;
+}
+
+/**
+ * Parses the composite `LAST_SELECTED_EXPENSIFY_CARD_FEED` key (`fundID_programKey`, e.g. `16_GB`) back into its parts.
+ * The `programKey` is narrowed to any known program (US, CURRENT, GB, TRAVEL_US) — callers that need only user-selectable
+ * programs should narrow further with `getSelectableCardProgramKey`. Tolerates a bare numeric value (e.g. `16` from before
+ * the program was persisted with the feed) by returning an undefined `programKey`, letting callers fall back to the fund's
+ * first configured program. Only the first `_` is treated as the separator so program keys that themselves contain a `_`
+ * (e.g. `TRAVEL_US`) round-trip intact.
+ */
+function parseCardFeedKey(feedKey: string | number | undefined): {fundID: number | undefined; programKey: CardProgramKey | undefined} {
+    if (feedKey === undefined) {
+        return {fundID: undefined, programKey: undefined};
+    }
+
+    const feedKeyString = String(feedKey);
+    const separatorIndex = feedKeyString.indexOf('_');
+    const fundIDStr = separatorIndex === -1 ? feedKeyString : feedKeyString.slice(0, separatorIndex);
+    const programKeyStr = separatorIndex === -1 ? undefined : feedKeyString.slice(separatorIndex + 1);
+    const fundID = fundIDStr ? Number(fundIDStr) : NaN;
+
+    return {
+        fundID: Number.isNaN(fundID) ? undefined : fundID,
+        programKey: getCardProgramKeyFromValue(programKeyStr),
+    };
+}
+
 /**
  * Resolves which program's country a newly issued card should be routed to. A fund's settings can hold both a US and a
  * GB program, so pass the selected program's country when the EU/UK beta is on. Without the beta only US exists, so keep sending US explicitly.
@@ -1536,9 +1582,6 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
 function getCardSettingsForSelectedProgram(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey | undefined): NestedExpensifyCardSettings | undefined {
     return getCardSettings(cardSettings, programKey) ?? getCardSettings(cardSettings);
 }
-
-/** Backend may nest linkedPolicyIDs under each program block (not only on the settings root). */
-const NESTED_EXPENSIFY_CARD_PROGRAM_KEYS: readonly CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB, CONST.TRAVEL.PROGRAM_TRAVEL_US];
 
 function getNestedExpensifyCardProgramSettings(settings: ExpensifyCardSettings, key: CardProgramKey): ExpensifyCardSettingsBase | undefined {
     const nested = settings[key];
@@ -2183,6 +2226,9 @@ export {
     filterCardsListByProgram,
     getExpensifyCardProgramCurrency,
     getSelectableCardProgramKey,
+    getCardProgramKeyFromValue,
+    buildCardFeedKey,
+    parseCardFeedKey,
     getIssuedCardFeedCountry,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getLinkedPolicyIDsForExpensifyCardProgram,

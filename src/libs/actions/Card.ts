@@ -24,7 +24,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {buildCardFeedKey, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -1687,21 +1687,10 @@ function updateSelectedExpensifyCardFeed(feed: number, policyID: string | undefi
         return;
     }
 
-    // A single feed (fundID) can hold more than one program (US/GB). Persist the selected feed and program together so
-    // LAST_SELECTED_EXPENSIFY_CARD_PROGRAM always matches LAST_SELECTED_EXPENSIFY_CARD_FEED and the card list, currency
-    // and details resolve to the right program.
-    Onyx.update([
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`,
-            value: feed,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_PROGRAM}${policyID}`,
-            value: programKey,
-        },
-    ]);
+    // A single feed (fundID) can hold more than one program (US/GB), so the selection is stored as a `fundID_programKey`
+    // composite. Keeping both in one value makes it impossible for the feed and program to drift apart, so the card list,
+    // currency and details always resolve to the right program.
+    Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`, buildCardFeedKey(feed, programKey));
 }
 
 function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: number) {

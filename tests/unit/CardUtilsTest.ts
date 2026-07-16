@@ -9,6 +9,7 @@ import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
 import {
+    buildCardFeedKey,
     doesCardFeedExist,
     feedHasCards,
     filterAllInactiveCards,
@@ -27,6 +28,7 @@ import {
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getCardHintText,
+    getCardProgramKeyFromValue,
     getCardsByCardholderName,
     getCardSettings,
     getCompanyCardCustomName,
@@ -77,6 +79,7 @@ import {
     isUkEuExpensifyCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
+    parseCardFeedKey,
     sortCardsByCardholderName,
     splitCardFeedWithDomainID,
 } from '@src/libs/CardUtils';
@@ -4634,6 +4637,47 @@ describe('multi-program Expensify Card helpers', () => {
         it('returns undefined for undefined or unsupported values', () => {
             expect(getSelectableCardProgramKey(undefined)).toBeUndefined();
             expect(getSelectableCardProgramKey('CURRENT')).toBeUndefined();
+        });
+    });
+
+    describe('getCardProgramKeyFromValue', () => {
+        it('returns any known program key, including the non-selectable ones', () => {
+            expect(getCardProgramKeyFromValue(CONST.COUNTRY.US)).toBe(CONST.COUNTRY.US);
+            expect(getCardProgramKeyFromValue(CONST.COUNTRY.GB)).toBe(CONST.COUNTRY.GB);
+            expect(getCardProgramKeyFromValue(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT)).toBe(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT);
+            expect(getCardProgramKeyFromValue(CONST.TRAVEL.PROGRAM_TRAVEL_US)).toBe(CONST.TRAVEL.PROGRAM_TRAVEL_US);
+        });
+
+        it('returns undefined for undefined or unknown values', () => {
+            expect(getCardProgramKeyFromValue(undefined)).toBeUndefined();
+            expect(getCardProgramKeyFromValue('XX')).toBeUndefined();
+        });
+    });
+
+    describe('buildCardFeedKey / parseCardFeedKey', () => {
+        it('round-trips a fundID and program into and out of the composite value', () => {
+            const feed = buildCardFeedKey(16, CONST.COUNTRY.GB);
+            expect(feed).toBe('16_GB');
+            expect(parseCardFeedKey(feed)).toEqual({fundID: 16, programKey: CONST.COUNTRY.GB});
+        });
+
+        it('parses a legacy bare numeric value (stored before the program was persisted) with an undefined program', () => {
+            expect(parseCardFeedKey(16)).toEqual({fundID: 16, programKey: undefined});
+            expect(parseCardFeedKey('16')).toEqual({fundID: 16, programKey: undefined});
+        });
+
+        it('keeps any known program key (not only user-selectable ones)', () => {
+            expect(parseCardFeedKey('16_CURRENT')).toEqual({fundID: 16, programKey: CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT});
+            expect(parseCardFeedKey(`16_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`)).toEqual({fundID: 16, programKey: CONST.TRAVEL.PROGRAM_TRAVEL_US});
+        });
+
+        it('drops an unknown program key while keeping the fundID', () => {
+            expect(parseCardFeedKey('16_XX')).toEqual({fundID: 16, programKey: undefined});
+        });
+
+        it('returns undefined parts for an undefined or non-numeric fundID', () => {
+            expect(parseCardFeedKey(undefined)).toEqual({fundID: undefined, programKey: undefined});
+            expect(parseCardFeedKey('_GB')).toEqual({fundID: undefined, programKey: CONST.COUNTRY.GB});
         });
     });
 
