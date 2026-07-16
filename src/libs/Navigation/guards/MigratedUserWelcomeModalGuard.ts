@@ -146,7 +146,7 @@ const MigratedUserWelcomeModalGuard: NavigationGuard = {
         }
 
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
-            if (isSupportalSessionSelector(session)) {
+            if (context.isSupportalSession) {
                 return {type: 'ALLOW'};
             }
 

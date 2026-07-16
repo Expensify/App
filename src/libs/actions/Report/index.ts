@@ -74,7 +74,6 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import {isSupportAuthToken} from '@libs/Network/NetworkStore';
 import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -7195,7 +7194,7 @@ function updatePolicyIdForReportAndThreads(
 }
 
 function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean) {
-    if (isChangePolicyTrainingModalDismissed || isSupportAuthToken()) {
+    if (isChangePolicyTrainingModalDismissed) {
         return;
     }
 

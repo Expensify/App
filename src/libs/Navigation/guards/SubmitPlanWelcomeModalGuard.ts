@@ -305,7 +305,7 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
             return {type: 'ALLOW'};
         }
 
-        if (isSupportalSessionSelector(session) || !shouldShowSubmitPlanWelcomeModal()) {
+        if (context.isSupportalSession || !shouldShowSubmitPlanWelcomeModal()) {
             return {type: 'ALLOW'};
         }
 
