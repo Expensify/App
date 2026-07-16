@@ -2710,8 +2710,8 @@ const staticStyles = (theme: ThemeColors) =>
         htmlTableHeaderRow: {
             flexDirection: 'row',
             alignItems: 'center',
+            minHeight: variables.htmlTableHeaderRowMinHeight,
             paddingHorizontal: variables.tableRowPaddingHorizontal,
-            paddingVertical: variables.tableRowPaddingVertical,
             borderBottomWidth: 1,
             borderColor: theme.border,
         },
@@ -2742,7 +2742,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         htmlTableHeaderCellText: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeLabel,
+            fontSize: variables.fontSizeSmall,
         },
 
         borderBottom: {

@@ -136,6 +136,7 @@ export default {
     tableRowPaddingVertical: 8,
     tableRowPaddingHorizontal: 12,
     htmlTableRowMinHeight: 40,
+    htmlTableHeaderRowMinHeight: 30,
     htmlTableColumnMinWidth: 120,
     tableGroupRowPaddingVertical: 4,
     tableGroupRowHeight: 36,

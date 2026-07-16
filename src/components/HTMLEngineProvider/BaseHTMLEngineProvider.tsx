@@ -225,10 +225,12 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
         th: HTMLElementModel.fromCustomModel({
             tagName: 'th',
             contentModel: HTMLContentModel.block,
+            mixedUAStyles: styles.htmlTableHeaderCellText,
         }),
         td: HTMLElementModel.fromCustomModel({
             tagName: 'td',
             contentModel: HTMLContentModel.block,
+            mixedUAStyles: styles.htmlTableCellText,
         }),
         ...VICTORY_HTML_ELEMENT_MODELS,
     };
