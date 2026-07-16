@@ -155,7 +155,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     };
 
     /**
-     * Trigger the reset validateCode flow and ensure the 2FA input field is reset to avoid it being permanently hidden
+     * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
         userActionsResendValidateCode(credentials?.login ?? '');

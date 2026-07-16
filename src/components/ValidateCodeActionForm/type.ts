@@ -30,7 +30,7 @@ type ValidateCodeActionFormProps = {
     /** Function to clear error of the form */
     clearError: () => void;
 
-    /** Function is called when validateCode modal is mounted and on validateCode resend */
+    /** Function is called when validate code modal is mounted and on validateCode resend */
     sendValidateCode: () => void;
 
     /** If the validateCode has been resent previously */

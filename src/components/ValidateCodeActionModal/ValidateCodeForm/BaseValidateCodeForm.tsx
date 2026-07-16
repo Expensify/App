@@ -87,7 +87,7 @@ type ValidateCodeFormProps = {
     /** Text for the verify button  */
     submitButtonText?: string;
 
-    /** Function is called when validateCode modal is mounted and on validateCode resend */
+    /** Function is called when validate code modal is mounted and on validateCode resend */
     sendValidateCode: () => void;
 
     /** Whether the form is loading or not */
@@ -151,7 +151,7 @@ function BaseValidateCodeForm({
     const isFirstCountdownRunRef = useRef(true);
 
     const clearDefaultValidationCodeError = useCallback(() => {
-        // Clear "Failed to send validateCode" error
+        // Clear "Failed to send security code" error
 
         if (isEmptyObject(defaultValidateCodeError)) {
             return;
@@ -285,7 +285,7 @@ function BaseValidateCodeForm({
                 // Clear flow specific error
                 clearError();
 
-                // Clear "incorrect validateCode" error
+                // Clear "incorrect security code" error
                 clearValidateCodeActionError(validateCodeActionErrorField);
             }
         },
@@ -299,7 +299,7 @@ function BaseValidateCodeForm({
         // Clear flow specific error
         clearError();
 
-        // Clear "incorrect validateCode" error
+        // Clear "incorrect security code" error
         clearValidateCodeActionError(validateCodeActionErrorField);
 
         clearDefaultValidationCodeError();

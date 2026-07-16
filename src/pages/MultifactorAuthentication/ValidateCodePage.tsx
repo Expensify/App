@@ -74,11 +74,11 @@ function MultifactorAuthenticationValidateCodePage() {
     const errorMessage = getErrorMessage();
 
     function getErrorMessage() {
-        // Rate limit or other backend error when sending/resending the validateCode
+        // Rate limit or other backend error when sending/resending the validate code
         if (hasValidateCodeActionError) {
             return Object.values(validateCodeActionError).at(0);
         }
-        // Invalid validateCode submitted by the user
+        // Invalid validate code submitted by the user
         if (hasContinuableError) {
             return translate('validateCodeForm.error.incorrectMagicCode');
         }
@@ -156,7 +156,7 @@ function MultifactorAuthenticationValidateCodePage() {
         if (hasValidateCodeActionError) {
             clearValidateCodeActionError('actionVerified');
         }
-        addMFABreadcrumb('ValidateCode resend requested');
+        addMFABreadcrumb('Validate code resend requested');
         requestValidateCodeAction();
         inputRef.current?.clear();
         setInputCode('');
@@ -200,7 +200,7 @@ function MultifactorAuthenticationValidateCodePage() {
         // Clear errors before submit
         setFormError({});
 
-        // Set validateCode in state context - the process function will handle the rest
+        // Set validate code in state context - the process function will handle the rest
         dispatch({type: 'SET_VALIDATE_CODE', payload: inputCode});
     };
 

@@ -4,7 +4,7 @@ type RequestAuthenticationChallengeParams = {
     /** Challenge type: 'authentication' for signing existing keys, 'registration' for new key registration */
     challengeType: ChallengeType;
 
-    /** ValidateCode required for registration challenge type */
+    /** Validate code required for registration challenge type */
     validateCode?: string;
 };
 

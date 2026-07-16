@@ -20,7 +20,7 @@ type MultifactorAuthenticationState = {
     /** Continuable error - displayed on current screen without stopping the flow */
     continuableError: MFAError | undefined;
 
-    /** ValidateCode entered by user */
+    /** Validate code entered by user */
     validateCode: string | undefined;
 
     /** Challenge received from backend for registration (full object with user, rp, challenge) */

@@ -26,7 +26,7 @@ function ValidateLoginPage({
         // Wait till navigation becomes available
         Navigation.isNavigationReady().then(() => {
             if (session?.authToken && session?.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS) {
-                // If already signed in, do not show the validateCode if not on web,
+                // If already signed in, do not show the validate code if not on web,
                 // because we don't want to block the user with the interstitial page.
                 if (exitTo) {
                     handleExitToNavigation(exitTo);
