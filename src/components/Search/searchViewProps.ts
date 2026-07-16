@@ -4,16 +4,10 @@ import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRout
 import type {CardList} from '@src/types/onyx';
 
 import type React from 'react';
-import type {ForwardedRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {SearchColumnType, SearchQueryJSON} from './types';
-
-/** Imperative handle the router uses for highlight-driven scrolling. */
-type SearchListHandle = {
-    scrollToIndex: (index: number, animated?: boolean) => void;
-};
 
 /**
  * Props shared by every dedicated Search view. The router (`<Search>`) builds these once and spreads
@@ -67,9 +61,6 @@ type CommonSearchViewProps = {
 
     /** Outer container style for the list wrapper. */
     containerStyle: StyleProp<ViewStyle>;
-
-    /** Imperative handle for highlight-driven scrolling, set by the router. */
-    ref?: ForwardedRef<SearchListHandle>;
 };
 
 /** Extra props specific to the transaction views (expense/invoice/trip): attendee tracking and card rendering. */

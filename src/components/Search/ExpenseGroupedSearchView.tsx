@@ -14,7 +14,7 @@ import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
-import React, {useImperativeHandle, useState} from 'react';
+import React, {useState} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
@@ -93,7 +93,6 @@ function ExpenseGroupedSearchView({
     onScroll,
     contentContainerStyle,
     containerStyle,
-    ref,
 }: ExpenseGroupedSearchViewProps) {
     const {type, groupBy} = queryJSON;
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -153,26 +152,6 @@ function ExpenseGroupedSearchView({
     const isItemVisible = (item: SearchListItem) => !isRowDeleted(item) || isOffline;
     const firstVisibleIndex = listData.findIndex(isItemVisible);
     const lastVisibleIndex = listData.findLastIndex(isItemVisible);
-
-    // The router highlights by source-data index; remap it to the split-list index before scrolling.
-    useImperativeHandle(
-        ref,
-        () => ({
-            scrollToIndex: (index: number, animated = true) => {
-                if (!shouldSplit) {
-                    scrollToListIndex(index, animated);
-                    return;
-                }
-                const item = data.at(index);
-                if (!item) {
-                    return;
-                }
-                const splitIndex = item.keyForList ? listData.findIndex((listItem) => listItem.keyForList === `header_${item.keyForList}`) : -1;
-                scrollToListIndex(splitIndex !== -1 ? splitIndex : index, animated);
-            },
-        }),
-        [data, listData, shouldSplit, scrollToListIndex],
-    );
 
     const getItemType = (item: SearchListItem) => {
         if (!shouldSplit) {

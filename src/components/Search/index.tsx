@@ -1,6 +1,5 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
@@ -184,7 +183,6 @@ function Search({
 
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
-    const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
 
     const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
     const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {
@@ -1040,7 +1038,6 @@ function Search({
     const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const commonViewProps: CommonSearchViewProps = {
-        ref: searchListRef,
         queryJSON,
         data: stableSortedData,
         columns: columnsToShow,
