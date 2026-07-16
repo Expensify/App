@@ -16591,6 +16591,21 @@ describe('ReportUtils', () => {
             expect(result).toBe(false);
         });
 
+        it('should not treat the report as a concierge chat when conciergeReportID is undefined', () => {
+            // Given a chat that is not tied to the workspace and has no matching participants
+            const report: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: CONST.POLICY.ID_FAKE,
+            };
+
+            // When no conciergeReportID is available (e.g. Onyx value not loaded yet)
+            const result = doesReportBelongToWorkspace(report, [], policyID, undefined);
+
+            // Then the report must not be treated as the Concierge chat
+            expect(result).toBe(false);
+        });
+
         it('should return true for policy related report with matching policyID', () => {
             const policyReport: Report = {
                 reportID: 'policy-report-123',
