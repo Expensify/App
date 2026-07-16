@@ -1,21 +1,21 @@
 import useActionSheetAwareScrollViewRef from '@components/ActionSheetAwareScrollView/useActionSheetAwareScrollViewRef';
 
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+
 import React from 'react';
 import {KeyboardChatScrollView} from 'react-native-keyboard-controller';
 
 import type AnimatedActionSheetAwareScrollViewProps from './types';
 
 function AnimatedActionSheetAwareScrollView({children, ref, ...restProps}: AnimatedActionSheetAwareScrollViewProps) {
-    const {onRef, animatedRef} = useActionSheetAwareScrollViewRef(ref);
-
-    // usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});
+    const {onRef} = useActionSheetAwareScrollViewRef(ref);
+    const safeAreaPaddings = useSafeAreaPaddings();
 
     return (
         <KeyboardChatScrollView
             {...restProps}
             ref={onRef}
-            // automaticallyAdjustContentInsets={false}
-            // contentInsetAdjustmentBehavior="never"
+            offset={safeAreaPaddings.paddingBottom}
             keyboardDismissMode="interactive"
         >
             {children}

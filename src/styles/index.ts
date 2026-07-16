@@ -2295,6 +2295,7 @@ const staticStyles = (theme: ThemeColors) =>
         chatFooter: {
             paddingLeft: 20,
             paddingRight: 20,
+            paddingTop: 10,
             display: 'flex',
             backgroundColor: theme.appBG,
         },

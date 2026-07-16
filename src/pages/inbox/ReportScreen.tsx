@@ -1,11 +1,12 @@
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
+import {useKeyboardDismissibleFlatListActions, useKeyboardDismissibleFlatListState} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
@@ -24,6 +25,7 @@ import type {ViewStyle} from 'react-native';
 import {PortalHost} from '@gorhom/portal';
 import React from 'react';
 import {View} from 'react-native';
+import {KeyboardGestureArea, KeyboardStickyView} from 'react-native-keyboard-controller';
 
 import type ReportScreenNavigationProps from './types';
 
@@ -75,11 +77,15 @@ function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditM
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const {isInNarrowPaneModal} = useResponsiveLayout();
-    const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const viewportOffsetTop = useViewportOffsetTop();
-    const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
+    const safeAreaPaddings = useSafeAreaPaddings();
+    const {composerHeight} = useKeyboardDismissibleFlatListState();
+    const {onComposerLayout} = useKeyboardDismissibleFlatListActions();
+
+    const keyboardGestureAreaOffset = composerHeight - safeAreaPaddings.paddingBottom;
+
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`);
 
     const shouldDeferNonEssentials = useDeferNonEssentials(reportIDFromRoute);
 
@@ -110,10 +116,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     return (
         <KeyboardGestureArea
             style={styles.flex1}
-            offset={0}
+            // offset={keyboardGestureAreaOffset}
             interpolator="ios"
             textInputNativeID={CONST.COMPOSER.NATIVE_ID}
-            // enableSwipeToDismiss={!isComposerFullSize}
+            enableSwipeToDismiss={!isComposerFullSize}
         >
             <ReportScreenEditMessageProvider reportID={reportIDFromRoute}>
                 <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
@@ -122,7 +128,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             <ScreenWrapper
                                 navigation={navigation}
                                 style={screenWrapperStyle}
-                                shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
+                                shouldEnableKeyboardAvoidingView={false}
+                                shouldShowOfflineIndicator={false}
+                                shouldShowOfflineIndicatorInWideScreen={false}
+                                enableEdgeToEdgeBottomSafeAreaPadding
                                 testID={`report-screen-${reportIDFromRoute}`}
                             >
                                 {!shouldDeferNonEssentials && (
@@ -159,7 +168,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                                 testID="report-actions-view-wrapper"
                                                             >
                                                                 <ReportActions />
-                                                                {shouldDeferNonEssentials ? <ReportActionCompose.Placeholder /> : <ReportFooter />}
+                                                                <KeyboardStickyView
+                                                                    onLayout={onComposerLayout}
+                                                                    offset={{closed: 0, opened: safeAreaPaddings.paddingBottom}}
+                                                                >
+                                                                    {shouldDeferNonEssentials ? <ReportActionCompose.Placeholder /> : <ReportFooter />}
+                                                                </KeyboardStickyView>
                                                             </View>
                                                         </ConciergeDraftProvider>
                                                     </AgentZeroStatusProvider>
