@@ -4626,13 +4626,14 @@ describe('multi-program Expensify Card helpers', () => {
     const legacyCard = createMock<Card>({cardID: 3, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {}});
 
     describe('getSelectableCardProgramKey', () => {
-        it('returns GB when GB is stored', () => {
+        it('returns the program when a selectable one (US or GB) is stored', () => {
+            expect(getSelectableCardProgramKey(CONST.COUNTRY.US)).toBe(CONST.COUNTRY.US);
             expect(getSelectableCardProgramKey(CONST.COUNTRY.GB)).toBe(CONST.COUNTRY.GB);
         });
 
-        it('falls back to US for undefined or unsupported values', () => {
-            expect(getSelectableCardProgramKey(undefined)).toBe(CONST.COUNTRY.US);
-            expect(getSelectableCardProgramKey('CURRENT')).toBe(CONST.COUNTRY.US);
+        it('returns undefined for undefined or unsupported values', () => {
+            expect(getSelectableCardProgramKey(undefined)).toBeUndefined();
+            expect(getSelectableCardProgramKey('CURRENT')).toBeUndefined();
         });
     });
 

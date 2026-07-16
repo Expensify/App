@@ -18,11 +18,7 @@ function useSelectedExpensifyCardProgram(policyID: string | undefined, fundID: n
     const [lastSelectedExpensifyCardProgram] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_PROGRAM}${policyID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
 
-    if (lastSelectedExpensifyCardProgram) {
-        return getSelectableCardProgramKey(lastSelectedExpensifyCardProgram);
-    }
-
-    return getConfiguredExpensifyCardProgramKeys(cardSettings).at(0) ?? CONST.COUNTRY.US;
+    return getSelectableCardProgramKey(lastSelectedExpensifyCardProgram) ?? getConfiguredExpensifyCardProgramKeys(cardSettings).at(0) ?? CONST.COUNTRY.US;
 }
 
 export default useSelectedExpensifyCardProgram;

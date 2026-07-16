@@ -1403,6 +1403,9 @@ function getCardProgramKey(cardSettings: OnyxEntry<ExpensifyCardSettings>): Card
     });
 }
 
+/** The Expensify Card programs a user can issue into/select, in display order (US before GB). */
+const EXPENSIFY_CARD_ISSUABLE_PROGRAMS = [CONST.COUNTRY.US, CONST.COUNTRY.GB] as const;
+
 /**
  * A single settings NVP can hold more than one provisioned Expensify Card program (e.g. a domain with both a US and a GB feed).
  * The user-selectable programs are US and GB;
@@ -1413,8 +1416,7 @@ function getConfiguredExpensifyCardProgramKeys(cardSettings: OnyxEntry<Expensify
         return [];
     }
 
-    const selectableProgramKeys: CardProgramKey[] = [CONST.COUNTRY.US, CONST.COUNTRY.GB];
-    return selectableProgramKeys.filter((key) => {
+    return EXPENSIFY_CARD_ISSUABLE_PROGRAMS.filter((key) => {
         const nested = cardSettings[key];
         return nested != null && typeof nested === 'object' && !Array.isArray(nested) && nested.paymentBankAccountID != null;
     });
@@ -1480,10 +1482,10 @@ function getExpensifyCardProgramCurrency(programKey: CardProgramKey | undefined,
 
 /**
  * Narrows a stored program value (e.g. the `lastSelectedExpensifyCardProgram` Onyx string) to a selectable program key.
- * Only US and GB are user-selectable; anything else (including undefined) falls back to US so single-program feeds are unaffected.
+ * Only US and GB are user-selectable; anything else (including undefined) returns undefined for the caller to handle.
  */
-function getSelectableCardProgramKey(programKey: string | undefined): CardProgramKey {
-    return programKey === CONST.COUNTRY.GB ? CONST.COUNTRY.GB : CONST.COUNTRY.US;
+function getSelectableCardProgramKey(programKey: string | undefined): CardProgramKey | undefined {
+    return EXPENSIFY_CARD_ISSUABLE_PROGRAMS.find((issuableProgram) => issuableProgram === programKey);
 }
 
 /**
