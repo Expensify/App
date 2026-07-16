@@ -513,7 +513,6 @@ function startSplitBill({
     formatPhoneNumber,
     delegateAccountID,
 }: StartSplitBilActionParams) {
-    const formatPhone = formatPhoneNumber ?? ((n: string) => n);
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
     const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
@@ -772,7 +771,7 @@ function startSplitBill({
                         accountID,
                         // Disabling this line since participant.displayName can be an empty string
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: formatPhone(participant.displayName || email),
+                        displayName: formatPhoneNumber(participant.displayName || email),
                         // Disabling this line since participant.login can be an empty string
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         login: participant.login || participant.text,
@@ -1437,7 +1436,6 @@ function createSplitsAndOnyxData({
     isTrackIntentUser,
     formatPhoneNumber,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
-    const formatPhone = formatPhoneNumber ?? ((n: string) => n);
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
 
@@ -1819,7 +1817,7 @@ function createSplitsAndOnyxData({
                       accountID,
                       // Disabling this line since participant.displayName can be an empty string
                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                      displayName: formatPhone(participant.displayName || email),
+                      displayName: formatPhoneNumber(participant.displayName || email),
                       login: participant.login,
                       isOptimisticPersonalDetail: true,
                   },

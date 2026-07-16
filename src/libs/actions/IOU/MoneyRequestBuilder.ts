@@ -1,10 +1,9 @@
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
-
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
@@ -226,7 +225,6 @@ type MoneyRequestInformationParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
-    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 };
 
 type MoneyRequestOptimisticParams = {
@@ -1293,9 +1291,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         betas,
         delegateAccountID,
         isTrackIntentUser,
-        formatPhoneNumber,
     } = moneyRequestInformation;
-    const formatPhone = formatPhoneNumber ?? ((n: string) => n);
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
 
@@ -1618,7 +1614,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         ? {
               [payerAccountID]: {
                   accountID: payerAccountID,
-                  displayName: formatPhone(optimisticPersonalDetailDisplayName),
+                  displayName: formatPhoneNumber(optimisticPersonalDetailDisplayName),
                   firstName: optimisticPersonalDetailFirstName,
                   lastName: optimisticPersonalDetailLastName,
                   login: participant.login,

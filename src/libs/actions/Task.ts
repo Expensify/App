@@ -1102,7 +1102,6 @@ function getAssignee(
     translate: LocalizedTranslate,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): Assignee | undefined {
-    const formatPhone = formatPhoneNumber ?? ((n: string) => n);
     if (!assigneeAccountID) {
         return;
     }
@@ -1119,7 +1118,7 @@ function getAssignee(
 
     return {
         icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
-        displayName: formatPhone(PersonalDetailsUtils.temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+        displayName: formatPhoneNumber(PersonalDetailsUtils.temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
         subtitle: details.login ?? '',
     };
 }
@@ -1137,7 +1136,6 @@ function getShareDestination(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): ShareDestination {
-    const formatPhone = formatPhoneNumber ?? ((n: string) => n);
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
     const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report);
@@ -1147,7 +1145,7 @@ function getShareDestination(
         OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails),
         isMultipleParticipant,
         localeCompare,
-        formatPhone,
+        formatPhoneNumber,
     );
 
     let subtitle = '';
@@ -1156,12 +1154,12 @@ function getShareDestination(
 
         const displayName = personalDetails?.[participantAccountID]?.displayName ?? '';
         const login = personalDetails?.[participantAccountID]?.login ?? '';
-        subtitle = formatPhone(login || displayName);
+        subtitle = formatPhoneNumber(login || displayName);
     } else {
         subtitle = ReportUtils.getChatRoomSubtitle(report, policy, conciergeReportID, translate) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(report, formatPhone, translate, personalDetails, FallbackAvatar),
+        icons: ReportUtils.getIcons(report, formatPhoneNumber, translate, personalDetails, FallbackAvatar),
         displayName: getReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,

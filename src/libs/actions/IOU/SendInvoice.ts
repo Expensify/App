@@ -595,7 +595,6 @@ function getSendInvoiceInformation({
     delegateAccountID,
     formatPhoneNumber,
 }: SendInvoiceOptions): SendInvoiceInformation {
-    const formatPhone = formatPhoneNumber ?? ((n: string) => n);
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
@@ -664,7 +663,7 @@ function getSendInvoiceInformation({
         const receiverLogin = receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '';
         receiver = {
             accountID: receiverAccountID,
-            displayName: formatPhone(receiverLogin),
+            displayName: formatPhoneNumber(receiverLogin),
             login: receiverLogin,
             isOptimisticPersonalDetail: true,
         };
