@@ -1,3 +1,4 @@
+import AccountManagerBookCallButton from '@components/AccountManagerBookCallButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -96,6 +97,7 @@ function HelpPage() {
           }
         : null;
 
+    const accountManagerCalendarLink = account?.accountManagerCalendarLink;
     const accountManagerItem = accountManagerDetails
         ? {
               key: accountManagerDetails.login,
@@ -113,7 +115,17 @@ function HelpPage() {
                       betas,
                       personalDetails,
                   ),
-              shouldShowRightIcon: true,
+              shouldShowRightIcon: !accountManagerCalendarLink,
+              shouldShowRightComponent: !!accountManagerCalendarLink,
+
+              // Disable the row's accessibility grouping so screen readers can reach the nested Book a call button as its own element
+              shouldBeAccessible: !accountManagerCalendarLink,
+              rightComponent: accountManagerCalendarLink ? (
+                  <AccountManagerBookCallButton
+                      calendarLink={accountManagerCalendarLink}
+                      isNested
+                  />
+              ) : undefined,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_MANAGER,
           }

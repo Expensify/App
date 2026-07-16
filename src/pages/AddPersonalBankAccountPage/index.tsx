@@ -11,6 +11,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import Navigation, {navigationRef} from '@navigation/Navigation';
 
@@ -108,8 +109,24 @@ function AddPersonalBankAccountPage() {
                   plaidAccessToken: plaidData?.plaidAccessToken ?? '',
               };
         const finalPhoneNumber = personalBankAccount?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? '';
+
+        // When the Address substep is skipped (the profile already has a complete address), the flat
+        // addressStreet/addressCity/... keys that addPersonalBankAccount expects are never written to the form draft.
+        // Map the saved profile address (stored nested in the addresses array) to those flat keys so the address
+        // is still submitted. The form draft spread below wins, so a manually entered address still takes precedence.
+        const currentAddress = getCurrentAddress(privatePersonalDetails);
+        const [addressStreet, street2] = getStreetLines(currentAddress?.street);
+        // The unit/suite may be stored either embedded after a newline in `street` (extracted above) or in the
+        // separate `street2`/`addressLine2` fields; fall back to those so it isn't dropped, matching UpdatePersonalBankAccountPage.
+        const addressStreet2 = street2 ?? currentAddress?.street2 ?? currentAddress?.addressLine2;
         const accountData = {
             ...privatePersonalDetails,
+            addressStreet,
+            addressStreet2,
+            addressCity: currentAddress?.city,
+            addressState: currentAddress?.state,
+            addressZipCode: currentAddress?.zip,
+            country: currentAddress?.country,
             ...personalBankAccount,
             ...bankAccountWithToken,
             phoneNumber: formatE164PhoneNumber(finalPhoneNumber, countryCode),
