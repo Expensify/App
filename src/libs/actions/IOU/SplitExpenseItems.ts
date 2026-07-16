@@ -620,7 +620,7 @@ function updateSplitExpenseField(
                 reimbursable: transactionDetails?.reimbursable,
                 billable: transactionDetails?.billable,
                 taxCode: transactionDetails?.taxCode,
-                taxAmount: transactionDetails?.taxAmount,
+                taxAmount: Math.abs(transactionDetails?.taxAmount ?? 0),
                 taxValue: transactionDetails?.taxValue,
                 routes: splitExpenseDraftTransaction?.routes ?? undefined,
                 merchant: splitExpenseDraftTransaction?.modifiedMerchant ? splitExpenseDraftTransaction.modifiedMerchant : (splitExpenseDraftTransaction?.merchant ?? ''),
