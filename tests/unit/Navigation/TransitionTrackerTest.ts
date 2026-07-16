@@ -47,7 +47,7 @@ describe('TransitionTracker', () => {
                 });
             }).not.toThrow();
 
-            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A pending callback threw an error', {error});
+            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A callback/listener threw an error', {error});
             drainTransitions();
         });
 
@@ -60,7 +60,7 @@ describe('TransitionTracker', () => {
 
             await Promise.resolve();
 
-            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A pending async callback threw an error', {error});
+            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] An async callback/listener threw an error', {error});
             drainTransitions();
         });
 
