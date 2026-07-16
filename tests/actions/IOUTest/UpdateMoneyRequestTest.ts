@@ -1113,6 +1113,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updating the money request with distance and waypoints
             updateMoneyRequestDistance({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
@@ -1207,6 +1208,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updating the money request WITHOUT distance (only waypoints)
             updateMoneyRequestDistance({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
@@ -1325,6 +1327,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // First update: Add more waypoints to the expense
             updateMoneyRequestDistance({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
@@ -1401,6 +1404,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // Call with empty waypoints - should not crash
             updateMoneyRequestDistance({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
@@ -1448,6 +1452,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDistance({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transaction: fakeTransaction2,
                 transactionThreadReport,
                 parentReport,
@@ -1523,6 +1528,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updating reimbursable to the new value
             updateMoneyRequestReimbursable({
                 transactionID,
+                reportPolicyTags: undefined,
                 transactionThreadReport,
                 parentReport,
                 value: newValue,
@@ -1558,6 +1564,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updateMoneyRequestReimbursable is called with an undefined transactionID
             updateMoneyRequestReimbursable({
                 transactionID: undefined,
+                reportPolicyTags: undefined,
                 transactionThreadReport: {reportID: '1'},
                 parentReport: undefined,
                 value: true,
