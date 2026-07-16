@@ -26,8 +26,6 @@ import Onyx from 'react-native-onyx';
 import InboxTabSelector from './InboxTabSelector';
 import SidebarLinksData from './SidebarLinksData';
 
-// Reduce the report collection to a single boolean so the subscription only re-renders when reports
-// first appear (or the cache is emptied), rather than on every report update.
 const hasAnyReportSelector = (reports: OnyxCollection<Report>): boolean => Object.keys(reports ?? {}).length > 0;
 
 // Once the app finishes loading for the first time, we never show the skeleton again
@@ -51,9 +49,7 @@ function BaseSidebarScreen() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    // When report data is already cached in Onyx (e.g. after a deploy refresh or tab switch), skip the
-    // full-page skeleton and mount SidebarLinksData immediately. Its inner cache-aware gate
-    // (isLoadingReportData && !hasReportData) then handles any residual loading state without a flash.
+
     const [hasReportData = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: hasAnyReportSelector});
     const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading && !(hasReportData && hasLoadedApp);

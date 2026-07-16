@@ -85,10 +85,6 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     const shouldShowSkeletonForInitialLoad = !!isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
 
-    // Don't flash the app-load skeleton when report actions are already cached in Onyx. hasCachedReportActions
-    // is false on a genuinely cold load with no cached history: it excludes the synthetic CREATED action, and it
-    // also treats a lone real CREATED action as "no history" so a report whose messages have not been fetched yet
-    // still shows the skeleton (instead of just the creation row) while OpenReport is in flight.
     const shouldShowSkeletonForAppLoad = !!isLoadingApp && !isOffline && !hasCachedReportActions;
 
     // Show skeleton for the Concierge chat (side panel or main DM) until report
