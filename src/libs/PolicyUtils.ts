@@ -393,8 +393,9 @@ function getEligibleBankAccountShareRecipientEmails(policies: OnyxCollection<Pol
     }
 
     const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
+    const isOffline = getIsOffline();
     const activePolicies = getActivePolicies(policies, currentUserLogin).filter(
-        (policy) => shouldShowPolicy(policy, getIsOffline(), currentUserLogin) && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS),
+        (policy) => shouldShowPolicy(policy, isOffline, currentUserLogin) && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS),
     );
     const recipientEmails = new Set<string>();
     const shareesSet = new Set(currentBankAccount?.accountData?.sharees ?? []);
