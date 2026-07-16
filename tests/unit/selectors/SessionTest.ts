@@ -42,8 +42,8 @@ describe('isSupportalSessionSelector', () => {
         expect(isSupportalSessionSelector(session)).toBe(true);
     });
 
-    it('returns false for a regular authenticated session', () => {
-        const session: OnyxEntry<Session> = {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS, email: 'test@expensify.com'};
+    it('returns false for a non-supportal session', () => {
+        const session: OnyxEntry<Session> = {email: 'test@expensify.com'};
         expect(isSupportalSessionSelector(session)).toBe(false);
     });
 
