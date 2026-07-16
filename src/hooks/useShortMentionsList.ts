@@ -1,6 +1,9 @@
-import {useMemo} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import {getEmailDomain, isDomainPublic} from '@libs/LoginUtils';
+
+import {useMemo} from 'react';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 /**

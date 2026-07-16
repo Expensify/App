@@ -92,6 +92,8 @@ When **Allow** is selected, you configure **Allowed merchants** and **Allowed me
    - **Max amount:** Enter a maximum transaction amount.
    - **Restrict merchants:** Select **Off**, **Allow**, or **Block**. When you select **Allow** or **Block**, set the merchants and merchant types to allow or block.
 6. Click **Save rule**.
+   - **Permitted currencies:** Allow all currencies or restrict spending to specific currencies.
+7. Click **Save**.
 
 Spend rules take effect immediately and are applied to future transactions on the selected cards.
 

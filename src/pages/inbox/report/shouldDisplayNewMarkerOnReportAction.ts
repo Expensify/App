@@ -1,4 +1,5 @@
 import {isReportActionUnread, isReportPreviewAction, shouldHideNewMarker} from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -27,6 +28,8 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
     /** Whether the network is offline */
     isOffline: boolean;
 
+    /** The reportActionID of the current unread marker, if one exists */
+    prevUnreadMarkerReportActionID?: string | null;
     /** Whether the app window is focused */
     hasWindowFocus?: boolean;
 };
@@ -44,6 +47,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     prevSortedVisibleReportActionsObjects,
     isScrolledOverThreshold,
     isOffline,
+    prevUnreadMarkerReportActionID,
     hasWindowFocus = true,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
     const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
@@ -83,7 +87,13 @@ const shouldDisplayNewMarkerOnReportAction = ({
     const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic;
 
     if (isFromCurrentUser) {
-        return !shouldIgnoreUnreadForCurrentUserMessage;
+        // When an existing marker is being relocated (e.g. after the original unread message is deleted),
+        // allow the marker to land on a self-authored action.
+        // Otherwise, never anchor the "New" marker above a self-authored action on first open/re-entry.
+        if (prevUnreadMarkerReportActionID) {
+            return !shouldIgnoreUnreadForCurrentUserMessage;
+        }
+        return false;
     }
 
     return !isNewMessage || isScrolledOverThreshold || !hasWindowFocus;
@@ -119,6 +129,8 @@ type GetUnreadMarkerReportActionParams = {
     /** Whether the current user is anonymous — skips the scan entirely */
     isAnonymousUser?: boolean;
 
+    /** The reportActionID of the current unread marker, if one exists */
+    prevUnreadMarkerReportActionID?: string | null;
     /** Whether the app window is focused */
     hasWindowFocus?: boolean;
 };
@@ -137,6 +149,7 @@ const getUnreadMarkerReportAction = ({
     isOffline,
     isReversed,
     isAnonymousUser = false,
+    prevUnreadMarkerReportActionID,
     hasWindowFocus = true,
 }: GetUnreadMarkerReportActionParams): [string | null, number] => {
     if (isAnonymousUser) {
@@ -177,6 +190,7 @@ const getUnreadMarkerReportAction = ({
                 unreadMarkerTime,
                 isScrolledOverThreshold,
                 isOffline,
+                prevUnreadMarkerReportActionID,
                 hasWindowFocus,
             });
 

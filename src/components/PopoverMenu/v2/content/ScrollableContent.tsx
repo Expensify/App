@@ -1,15 +1,23 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import {useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
 import ScrollView from '@components/ScrollView';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import Log from '@libs/Log';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import BaseContent from './BaseContent';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+
 import type {BasePopoverProps} from './BaseContent';
+
+import BaseContent from './BaseContent';
 import useMaxHeightStyle from './useMaxHeightStyle';
 
 type ScrollableContentProps = BasePopoverProps & {

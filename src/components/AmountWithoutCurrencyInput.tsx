@@ -1,10 +1,15 @@
-import React, {useCallback, useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
+
 import getAmountInputKeyboard from '@libs/getAmountInputKeyboard';
 import {handleNegativeAmountFlipping, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
+
 import CONST from '@src/CONST';
-import TextInput from './TextInput';
+
+import React, {useCallback, useMemo} from 'react';
+
 import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
+
+import TextInput from './TextInput';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */

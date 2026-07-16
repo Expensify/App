@@ -1,9 +1,12 @@
-import type {NavigationState} from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
 import {clearGuards, createGuardContext, evaluateGuards, getRegisteredGuards, registerGuard} from '@libs/Navigation/guards';
 import type {GuardContext, NavigationGuard} from '@libs/Navigation/guards/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {NavigationState} from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
 
 describe('Navigation Guard System', () => {
     beforeAll(() => {

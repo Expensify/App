@@ -1,17 +1,26 @@
-import {delegateEmailSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+
 import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {delegateEmailSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
+import usePayChatReportActions from './usePayChatReportActions';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
 
@@ -35,13 +44,16 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
+    const getChatReportActions = usePayChatReportActions(chatReport, undefined);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
@@ -59,10 +71,16 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
 
         const animationCallback = () => onConfirm?.(full);
 
+        // moneyRequestReport/chatReport can be lightweight versions of the report (the report list drops fields
+        // like the last message text/time so it doesn't re-render on every new message). The pay/approve actions
+        // restore the report on failure by merging it back in, so we grab the full reports here to make sure the
+        // chat's last message comes back correctly if the payment fails.
+        const currentMoneyRequestReport = getReportOrDraftReport(moneyRequestReport?.reportID) ?? moneyRequestReport;
+        const currentChatReport = getReportOrDraftReport(chatReport?.reportID) ?? chatReport;
+
         if (isApprove) {
             approveMoneyRequest({
-                expenseReport: moneyRequestReport,
-                policy: activePolicy,
+                expenseReport: currentMoneyRequestReport,
                 currentUserAccountIDParam: currentUserDetails.accountID,
                 currentUserEmailParam: currentUserDetails.email ?? '',
                 hasViolations,
@@ -72,16 +90,18 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
+                ownerLogin,
                 full,
                 onApproved: animationCallback,
                 expenseReportPolicy: policy,
                 delegateEmail,
+                isTrackIntentUser,
             });
-        } else if (chatReport && paymentType) {
+        } else if (currentChatReport && paymentType) {
             payMoneyRequest({
                 paymentType,
-                chatReport,
-                iouReport: moneyRequestReport,
+                chatReport: currentChatReport,
+                iouReport: currentMoneyRequestReport,
                 introSelected,
                 iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
                 currentUserAccountID: currentUserDetails.accountID,
@@ -97,6 +117,8 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 ownerBillingGracePeriodEnd,
                 methodID,
                 onPaid: animationCallback,
+                chatReportActions: getChatReportActions(false),
+                isTrackIntentUser,
             });
         }
         onClose();

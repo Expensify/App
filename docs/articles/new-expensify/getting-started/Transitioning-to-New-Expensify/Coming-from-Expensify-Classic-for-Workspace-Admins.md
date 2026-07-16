@@ -17,7 +17,7 @@ If you want a curated tour of what's new, what's better, and how to take advanta
 
 If you'd like a guided walkthrough of common Workspace workflows in New Expensify, explore the interactive product tours:
 - [Launch the New Expensify interactive tour for web](https://expensify.storylane.io/share/qlgnexxbsdtp)
-- [Launch the New Expensify interactive tour for mobile](https://expensify.storylane.io/share/fgireksbt2oh)
+- [Launch the New Expensify interactive tour for mobile](https://expensify.storylane.io/share/em54uaq7wbgk)
 
 You can find additional training resources in [How to Access Expensify Training](/articles/new-expensify/getting-started/How-to-Access-Expensify-Training).
 

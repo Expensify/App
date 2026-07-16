@@ -1,6 +1,8 @@
-import {useMemo} from 'react';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
+
+import {useMemo} from 'react';
+
 import useOnyx from './useOnyx';
 
 /**

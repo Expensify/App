@@ -1,4 +1,12 @@
 const testFileExtension = 'ts?(x)';
+
+// Reassure runs only the performance tests, matched by the `.perf-test` suffix / `__perf__` folder,
+// which it passes to Jest as `--testMatch`. We detect that from the test-runner argv so we can leave
+// `performance` real for perf runs only: enabling Jest's modern fake timers globally also fakes
+// `performance`, and React's Scheduler captures that (frozen) clock once at module load, which zeroes
+// every React Profiler render duration — and thus every Reassure `[render]` measurement.
+const isPerfTestRun = process.argv.some((arg) => arg.includes('perf-test') || arg.includes('__perf__'));
+
 module.exports = {
     preset: 'jest-expo',
     collectCoverageFrom: ['<rootDir>/src/**/*.{ts,tsx,js,jsx}', '!<rootDir>/src/**/__mocks__/**', '!<rootDir>/src/**/tests/**', '!**/*.d.ts'],
@@ -19,17 +27,19 @@ module.exports = {
         '<rootDir>/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js',
     ],
     testPathIgnorePatterns: ['<rootDir>/node_modules'],
-    // .worktrees/ holds parallel git worktrees a developer may check out locally.
+    // .worktrees/ and .claude/worktrees/ hold parallel git worktrees a developer may check out locally.
     // Each one carries its own modules/hybrid-app/package.json, which trips
     // jest-haste-map's "duplicate package name" assertion. Skip them entirely.
-    modulePathIgnorePatterns: ['<rootDir>/.worktrees/'],
+    modulePathIgnorePatterns: ['<rootDir>/.worktrees/', '<rootDir>/.claude/worktrees/'],
     globals: {
         __DEV__: true,
         WebSocket: {},
     },
     fakeTimers: {
         enableGlobally: true,
-        doNotFake: ['nextTick'],
+        // `nextTick` is never faked because Onyx notifies its subscribers on process.nextTick.
+        // `performance` is left real only for perf runs (see isPerfTestRun above).
+        doNotFake: isPerfTestRun ? ['nextTick', 'performance'] : ['nextTick'],
     },
     testEnvironment: 'jsdom',
     setupFiles: ['<rootDir>/jest/setup.ts', './node_modules/@react-native-google-signin/google-signin/jest/build/setup.js'],

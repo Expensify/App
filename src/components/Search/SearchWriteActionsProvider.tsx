@@ -1,28 +1,32 @@
-import {useIsFocused} from '@react-navigation/native';
-import {deepEqual} from 'fast-equals';
-import React, {useEffect} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
+
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canRejectReportAction} from '@libs/ReportUtils';
 import {isGroupedItemArray, isReportActionListItemType, isTaskListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OutstandingReportsByPolicyIDDerivedValue, Report, SearchResults, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import {deepEqual} from 'fast-equals';
+import React, {useEffect} from 'react';
+
+import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
+
 import {useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchRowSelectionActionsContext} from './SearchContextDefinitions';
 import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
-import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 type SearchWriteActionsProviderProps = {
     /** The currently displayed (filtered, grouped) rows. Screen-derived; the provider cannot recompute it. */
@@ -93,8 +97,8 @@ type ReconcileSelectionParams = {
     /** Whether the app is running in production (affects split eligibility) */
     isProduction: boolean;
 
-    /** Set of archived report IDs, used for the change-report eligibility check */
-    archivedReportsIDSet: ArchivedReportsIDSet;
+    /** Report name-value pairs collection, used for the change-report eligibility archived check */
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 
     /** Derived outstanding reports per policy, used for the change-report eligibility check */
     outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
@@ -120,7 +124,7 @@ function useReconcileSelectionWithData({
     currentUserAccountID,
     selfDMReport,
     isProduction,
-    archivedReportsIDSet,
+    reportNameValuePairs,
     outstandingReportsByPolicyID,
 }: ReconcileSelectionParams) {
     const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
@@ -191,7 +195,7 @@ function useReconcileSelectionWithData({
                         originalItemTransaction,
                         currentUserLogin,
                         currentUserAccountID,
-                        archivedReportsIDSet,
+                        reportNameValuePairs,
                         outstandingReportsByPolicyID,
                         selfDMReport,
                         isProduction,
@@ -229,7 +233,7 @@ function useReconcileSelectionWithData({
                     originalItemTransaction,
                     currentUserLogin,
                     currentUserAccountID,
-                    archivedReportsIDSet,
+                    reportNameValuePairs,
                     outstandingReportsByPolicyID,
                     selfDMReport,
                     isProduction,
@@ -342,7 +346,7 @@ function SearchWriteActionsProvider({
     const {isProduction} = useEnvironment();
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
-    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const {applySelection} = useSearchSelectionActions();
 
@@ -371,7 +375,7 @@ function SearchWriteActionsProvider({
                         selectedTransactions,
                         currentUserLogin: currentUserEmail,
                         currentUserAccountID: accountID,
-                        archivedReportsIDSet,
+                        reportNameValuePairs,
                         outstandingReportsByPolicyID,
                         selfDMReport,
                         isProduction,
@@ -440,7 +444,7 @@ function SearchWriteActionsProvider({
                                     originalItemTransaction,
                                     currentUserLogin: currentUserEmail,
                                     currentUserAccountID: accountID,
-                                    archivedReportsIDSet,
+                                    reportNameValuePairs,
                                     outstandingReportsByPolicyID,
                                     selfDMReport,
                                     isProduction,
@@ -485,7 +489,7 @@ function SearchWriteActionsProvider({
                                 originalItemTransaction,
                                 currentUserLogin: currentUserEmail,
                                 currentUserAccountID: accountID,
-                                archivedReportsIDSet,
+                                reportNameValuePairs,
                                 outstandingReportsByPolicyID,
                                 selfDMReport,
                                 isProduction,
@@ -518,7 +522,7 @@ function SearchWriteActionsProvider({
                             originalItemTransaction,
                             currentUserLogin: currentUserEmail,
                             currentUserAccountID: accountID,
-                            archivedReportsIDSet,
+                            reportNameValuePairs,
                             outstandingReportsByPolicyID,
                             selfDMReport,
                             isProduction,
@@ -546,7 +550,7 @@ function SearchWriteActionsProvider({
         currentUserAccountID: accountID,
         selfDMReport,
         isProduction,
-        archivedReportsIDSet,
+        reportNameValuePairs,
         outstandingReportsByPolicyID,
     });
     useTurnOffSelectionModeWhenEmpty({isFocused, isMobileSelectionModeEnabled});

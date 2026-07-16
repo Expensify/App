@@ -1,13 +1,10 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
+
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -16,20 +13,27 @@ import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConcie
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
 import type {ReasoningEntry} from '@pages/inbox/AgentZeroStatusContext';
 import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActionItemMessageHeaderSender';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type ConciergeThinkingMessageProps = {
     /** The report for this thinking message */
-    report: OnyxEntry<Report>;
+    reportID: string;
 };
 
 /**
@@ -37,10 +41,9 @@ type ConciergeThinkingMessageProps = {
  * custom agents). The candidate set comes from the per-agent processing-indicator NVP, so each
  * bubble is attributed to the agent the server actually named — not a guessed persona.
  */
-function ConciergeThinkingMessage({report}: ConciergeThinkingMessageProps) {
+function ConciergeThinkingMessage({reportID}: ConciergeThinkingMessageProps) {
     const {candidateAgentIDs} = useAgentZeroStatus();
-    const shouldSuppress = useShouldSuppressConciergeIndicators(report?.reportID);
-    const reportID = report?.reportID;
+    const shouldSuppress = useShouldSuppressConciergeIndicators(reportID);
 
     if (shouldSuppress || !reportID || candidateAgentIDs.length === 0) {
         return null;
@@ -129,7 +132,7 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
     }));
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const displayName = getDisplayNameOrDefault(personalDetails?.[accountID]) ?? CONST.CONCIERGE_DISPLAY_NAME;
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], translate}) ?? CONST.CONCIERGE_DISPLAY_NAME;
     const actorIcon = personalDetails?.[accountID]?.avatar ? {source: personalDetails[accountID].avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;
 
     const handleToggle = () => {

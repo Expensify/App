@@ -1,14 +1,19 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import {shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
-import * as TransactionUtils from '../../src/libs/TransactionUtils';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
+
+import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -410,6 +415,7 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 policy: fakePolicy,
                 transactionChanges: {category},
+                personalPolicyOutputCurrency: undefined,
             });
 
             // Then the updated transaction should contain the tax from the matched rule
@@ -458,6 +464,7 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 policy: fakePolicy,
                 transactionChanges: {distance: newDistance},
+                personalPolicyOutputCurrency: undefined,
             });
 
             // Then: quantity should be updated
@@ -480,6 +487,100 @@ describe('TransactionUtils', () => {
             });
         });
 
+        it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
+            // A P2P distance expense (FAKE_P2P_ID) has no policy rate, so the mileage currency comes from the
+            // resolved personal-policy currency that getUpdatedTransaction forwards to getRate. getRateForP2P only
+            // returns that resolved currency when the default P2P rate is loaded, so seed it here.
+            await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, {rate: 30, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            await waitForBatchedUpdates();
+
+            try {
+                // transaction.currency is deliberately USD so a passing result proves the EUR came from
+                // personalPolicyOutputCurrency, not from the transaction itself.
+                const transaction = generateTransaction({
+                    currency: CONST.CURRENCY.USD,
+                    comment: {
+                        customUnit: {
+                            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 10,
+                        },
+                    },
+                });
+
+                const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                    transaction,
+                    isFromExpenseReport: false,
+                    policy: undefined,
+                    transactionChanges: {distance: 20},
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+
+                // Currency + merchant follow the threaded personal currency (EUR), and amount = 20 mi × 30¢ = 600.
+                // (The merchant shows the "EUR" code rather than the € glyph because the currency list isn't loaded in this unit test.)
+                expect(updatedTransaction.modifiedCurrency).toBe('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('0.30');
+                expect(updatedTransaction.modifiedAmount).toBe(600);
+            } finally {
+                await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, null);
+                await waitForBatchedUpdates();
+            }
+        });
+
+        it('uses the resolved personal-policy currency (not transaction.currency) when recalculating a P2P expense from edited waypoints', async () => {
+            // Regression: the waypoint/route branch used to format the merchant with transaction.currency and never set
+            // modifiedCurrency, so a P2P expense whose personal currency differs from transaction.currency would show a
+            // rate in the old currency for an amount computed in the new one (visible offline / before the server responds).
+            await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, {rate: 30, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            await waitForBatchedUpdates();
+
+            try {
+                const transaction = generateTransaction({
+                    currency: CONST.CURRENCY.USD,
+                    comment: {
+                        customUnit: {
+                            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 10,
+                        },
+                        waypoints: {waypoint0: {address: 'Old A'}, waypoint1: {address: 'Old B'}},
+                    },
+                });
+
+                // 32186.88 m ≈ 20 mi; at the EUR P2P rate of 30¢ the amount is 600.
+                const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                    transaction,
+                    isFromExpenseReport: false,
+                    policy: undefined,
+                    transactionChanges: {
+                        waypoints: {waypoint0: {address: 'New A'}, waypoint1: {address: 'New B'}},
+                        routes: {
+                            route0: {
+                                distance: 32186.88,
+                                geometry: {
+                                    coordinates: [
+                                        [0, 0],
+                                        [1, 1],
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+
+                // Merchant currency and modifiedCurrency both follow the EUR personal-policy rate, not the USD transaction currency.
+                expect(updatedTransaction.modifiedCurrency).toBe('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('0.30');
+                expect(updatedTransaction.modifiedAmount).toBe(600);
+            } finally {
+                await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, null);
+                await waitForBatchedUpdates();
+            }
+        });
+
         it('should negate modifiedAmount when isFromExpenseReport is true', () => {
             const transaction = generateTransaction();
             const newAmount = 500;
@@ -488,6 +589,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: true,
                 transactionChanges: {amount: newAmount},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(-newAmount);
@@ -501,6 +603,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: false,
                 transactionChanges: {amount: newAmount},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(newAmount);
@@ -513,6 +616,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: true,
                 transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.taxValue).toBe('5%');
@@ -527,6 +631,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: false,
                 transactionChanges: {taxValue: '5%'},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.taxValue).toBe('10%');
@@ -751,6 +856,7 @@ describe('TransactionUtils', () => {
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
                 [transaction1, transaction2],
                 undefined,
+                undefined,
                 policy,
                 transactionViolations,
                 CURRENT_USER_EMAIL,
@@ -869,6 +975,46 @@ describe('TransactionUtils', () => {
             });
             const merchant = TransactionUtils.getMerchant(transaction);
             expect(merchant).toBe('10.00 mi @ USD 1.00 / mi');
+        });
+    });
+
+    describe('getMerchantName', () => {
+        const translate = ((key: string) => key) as Parameters<typeof TransactionUtils.getMerchantName>[1];
+
+        it('should return the merchant for a valid merchant', () => {
+            const transaction = generateTransaction({merchant: 'Starbucks'});
+            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('Starbucks');
+        });
+
+        it('should normalize the DEFAULT_MERCHANT ("Expense") sentinel to an empty string', () => {
+            const transaction = generateTransaction({merchant: CONST.TRANSACTION.DEFAULT_MERCHANT});
+            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
+        });
+
+        it('should normalize the PARTIAL_TRANSACTION_MERCHANT ("(none)") sentinel to an empty string', () => {
+            const transaction = generateTransaction({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
+            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
+        });
+
+        it('should prefer modifiedMerchant over merchant', () => {
+            const transaction = generateTransaction({merchant: 'Original', modifiedMerchant: 'Modified'});
+            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('Modified');
+        });
+
+        it('should return the localized scanning label while a receipt is scanning', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING, source: 'receipt.jpg'},
+            });
+            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('iou.receiptStatusTitle');
+        });
+
+        it('should return an empty string for a receipt whose scan failed', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+            });
+            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
         });
     });
     describe('getTransactionPendingAction', () => {
@@ -1295,13 +1441,8 @@ describe('TransactionUtils', () => {
 
             expect(result).toBeDefined();
             expect(result?.email).toBe(OTHER_USER_EMAIL);
-            expect(result?.login).toBe(OTHER_USER_EMAIL);
             expect(result?.displayName).toBe(OTHER_USER_EMAIL);
-            expect(result?.accountID).toBe(SECOND_USER_ID);
-            expect(result?.text).toBe(OTHER_USER_EMAIL);
-            expect(result?.searchText).toBe(OTHER_USER_EMAIL);
             expect(result?.avatarUrl).toBe(avatar);
-            expect(result?.selected).toBe(true);
         });
 
         it('should return current user as attendee for unreported expense', () => {
@@ -1309,13 +1450,8 @@ describe('TransactionUtils', () => {
 
             expect(result).toBeDefined();
             expect(result?.email).toBe(CURRENT_USER_EMAIL);
-            expect(result?.login).toBe(CURRENT_USER_EMAIL);
             expect(result?.displayName).toBe(currentUserPersonalDetails.displayName);
-            expect(result?.accountID).toBe(CURRENT_USER_ID);
-            expect(result?.text).toBe(currentUserPersonalDetails.displayName);
-            expect(result?.searchText).toBe(currentUserPersonalDetails.displayName);
             expect(result?.avatarUrl).toBe('');
-            expect(result?.selected).toBe(true);
         });
     });
 
@@ -1369,19 +1505,13 @@ describe('TransactionUtils', () => {
             const attendees: Attendee[] = [
                 {
                     email: 'attendee1@example.com',
-                    login: 'attendee1@example.com',
                     displayName: 'Attendee One',
                     avatarUrl: '',
-                    accountID: 3,
-                    selected: true,
                 },
                 {
                     email: 'attendee2@example.com',
-                    login: 'attendee2@example.com',
                     displayName: 'Attendee Two',
                     avatarUrl: '',
-                    accountID: 4,
-                    selected: false,
                 },
             ];
             const transaction = generateTransaction({
@@ -1405,30 +1535,29 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getOriginalAttendees(transaction, {accountID: CURRENT_USER_ID, displayName: '', avatarUrl: '', selected: true});
+            const result = TransactionUtils.getOriginalAttendees(transaction, {email: CURRENT_USER_EMAIL, displayName: '', avatarUrl: ''});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
-            expect(result.at(0)?.selected).toBe(true);
+            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
         });
 
-        it('should normalize login-only attendees from comment', () => {
+        it('should normalize email-only attendees from comment', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
-                    attendees: [{displayName: '   ', login: '  login-only@example.com  ', avatarUrl: ''}],
+                    attendees: [{displayName: '   ', email: '  email-only@example.com  ', avatarUrl: ''}],
                 },
             });
 
             const result = TransactionUtils.getOriginalAttendees(transaction, undefined);
 
-            expect(result).toEqual([{displayName: 'login-only@example.com', login: 'login-only@example.com', avatarUrl: ''}]);
+            expect(result).toEqual([{displayName: 'email-only@example.com', email: 'email-only@example.com', avatarUrl: ''}]);
         });
 
         it('should handle attendees stored as a plain object', () => {
             const attendeesArray: Attendee[] = [
-                {email: 'attendee1@example.com', login: 'attendee1@example.com', displayName: 'Attendee One', avatarUrl: '', accountID: 3, selected: true},
-                {email: 'attendee2@example.com', login: 'attendee2@example.com', displayName: 'Attendee Two', avatarUrl: '', accountID: 4, selected: false},
+                {email: 'attendee1@example.com', displayName: 'Attendee One', avatarUrl: ''},
+                {email: 'attendee2@example.com', displayName: 'Attendee Two', avatarUrl: ''},
             ];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
@@ -1450,21 +1579,15 @@ describe('TransactionUtils', () => {
             const originalAttendees: Attendee[] = [
                 {
                     email: 'original@example.com',
-                    login: 'original@example.com',
                     displayName: 'Original Attendee',
                     avatarUrl: '',
-                    accountID: 5,
-                    selected: true,
                 },
             ];
             const modifiedAttendees: Attendee[] = [
                 {
                     email: 'modified@example.com',
-                    login: 'modified@example.com',
                     displayName: 'Modified Attendee',
                     avatarUrl: '',
-                    accountID: 6,
-                    selected: true,
                 },
             ];
             const transaction = generateTransaction({
@@ -1486,11 +1609,8 @@ describe('TransactionUtils', () => {
             const attendees: Attendee[] = [
                 {
                     email: 'attendee@example.com',
-                    login: 'attendee@example.com',
                     displayName: 'Attendee',
                     avatarUrl: '',
-                    accountID: 7,
-                    selected: true,
                 },
             ];
             const transaction = generateTransaction({
@@ -1513,11 +1633,10 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: '', selected: true});
+            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
-            expect(result.at(0)?.selected).toBe(true);
+            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
         });
 
         it('should return empty array when transaction has no reportID and no attendees', () => {
@@ -1537,11 +1656,8 @@ describe('TransactionUtils', () => {
             const originalAttendees: Attendee[] = [
                 {
                     email: 'original@example.com',
-                    login: 'original@example.com',
                     displayName: 'Original Attendee',
                     avatarUrl: '',
-                    accountID: 8,
-                    selected: true,
                 },
             ];
 
@@ -1553,11 +1669,11 @@ describe('TransactionUtils', () => {
                 modifiedAttendees: [],
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
 
             // When modifiedAttendees is empty array and no report owner fallback applies
             expect(result.length).toBe(1);
-            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
         });
 
         it('should normalize modified attendees with undefined email', () => {
@@ -1566,16 +1682,16 @@ describe('TransactionUtils', () => {
                 comment: {
                     attendees: [],
                 },
-                modifiedAttendees: [{displayName: '   ', login: '  edited@example.com  ', avatarUrl: ''}],
+                modifiedAttendees: [{displayName: '   ', email: '  edited@example.com  ', avatarUrl: ''}],
             });
 
             const result = TransactionUtils.getAttendees(transaction);
 
-            expect(result).toEqual([{displayName: 'edited@example.com', login: 'edited@example.com', avatarUrl: ''}]);
+            expect(result).toEqual([{displayName: 'edited@example.com', email: 'edited@example.com', avatarUrl: ''}]);
         });
 
         it('should handle comment attendees stored as a plain object', () => {
-            const attendeesArray: Attendee[] = [{email: 'attendee@example.com', login: 'attendee@example.com', displayName: 'Attendee', avatarUrl: '', accountID: 7, selected: true}];
+            const attendeesArray: Attendee[] = [{email: 'attendee@example.com', displayName: 'Attendee', avatarUrl: ''}];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
@@ -1590,9 +1706,7 @@ describe('TransactionUtils', () => {
         });
 
         it('should handle modifiedAttendees stored as a plain object', () => {
-            const modifiedAttendeesArray: Attendee[] = [
-                {email: 'modified@example.com', login: 'modified@example.com', displayName: 'Modified Attendee', avatarUrl: '', accountID: 6, selected: true},
-            ];
+            const modifiedAttendeesArray: Attendee[] = [{email: 'modified@example.com', displayName: 'Modified Attendee', avatarUrl: ''}];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
@@ -1615,10 +1729,10 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
         });
 
         it('should fall back to report owner when modifiedAttendees is an empty plain object', () => {
@@ -1630,10 +1744,10 @@ describe('TransactionUtils', () => {
                 modifiedAttendees: {} as unknown as Attendee[],
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
         });
     });
 
@@ -1642,40 +1756,40 @@ describe('TransactionUtils', () => {
 
         it('preserves insertion order when no localeCompare is provided', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees)).toBe('banana, apple');
         });
 
         it('returns attendees alphabetically regardless of insertion order (deploy blocker #89130)', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('apple, banana');
         });
 
         it('uses numeric-aware sort so "User 9" comes before "User 10"', () => {
             const attendees: Attendee[] = [
-                {email: '10@x.com', displayName: 'User 10', avatarUrl: '', login: '10@x.com'},
-                {email: '9@x.com', displayName: 'User 9', avatarUrl: '', login: '9@x.com'},
+                {email: '10@x.com', displayName: 'User 10', avatarUrl: ''},
+                {email: '9@x.com', displayName: 'User 9', avatarUrl: ''},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('User 9, User 10');
         });
 
         it('compares case-insensitively so the joined string matches pill order', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'Bob', avatarUrl: '', login: 'b@x.com'},
-                {email: 'a@x.com', displayName: 'alice', avatarUrl: '', login: 'a@x.com'},
+                {email: 'b@x.com', displayName: 'Bob', avatarUrl: ''},
+                {email: 'a@x.com', displayName: 'alice', avatarUrl: ''},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('alice, Bob');
         });
 
         it('strips the @expensify.sms domain so phone-login attendees render the same as in pills', () => {
             const attendees: Attendee[] = [
-                {displayName: '+15551234567@expensify.sms', avatarUrl: '', login: '+15551234567@expensify.sms'},
-                {displayName: 'Alice', avatarUrl: '', login: 'alice@x.com'},
+                {displayName: '+15551234567@expensify.sms', avatarUrl: ''},
+                {displayName: 'Alice', avatarUrl: ''},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('+15551234567, Alice');
         });
@@ -1686,8 +1800,8 @@ describe('TransactionUtils', () => {
 
         it('does not mutate the input array', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
             ];
             const snapshot = [...attendees];
             TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare);
@@ -2978,6 +3092,92 @@ describe('TransactionUtils', () => {
                 expect(result.keep.reimbursable).toBeUndefined();
                 expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
             });
+
+            it('should force reimbursable to false and not show the step when the reviewing (kept) transaction is a managed card', () => {
+                const managedCardTransaction = generateTransaction({
+                    reimbursable: false,
+                    managedCard: true,
+                });
+
+                const duplicates = [
+                    generateTransaction({
+                        reimbursable: true,
+                        managedCard: false,
+                    }),
+                ];
+
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                expect(result.keep.reimbursable).toBe(false);
+                expect(result.change.reimbursable).toBeUndefined();
+            });
+
+            it('should not force reimbursable to false when the reviewing (kept) transaction is a cash expense, even if a duplicate is a managed card', () => {
+                const cashTransaction = generateTransaction({
+                    reimbursable: true,
+                    managedCard: false,
+                });
+
+                const duplicates = [
+                    generateTransaction({
+                        reimbursable: false,
+                        managedCard: true,
+                    }),
+                ];
+
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, cashTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // The kept cash expense must not be silently converted to non-reimbursable; the differing values are
+                // surfaced as a review step instead.
+                expect(result.keep.reimbursable).toBeUndefined();
+                expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
+            });
+
+            it('should force reimbursable to false when the selected (kept) transaction is a managed card, even though the reviewing transaction is a cash expense', () => {
+                // Reproduces the back-navigation bug: the Review* pages recompute the step list from the thread's cash
+                // transaction (reviewingTransaction) while the kept transaction is the managed card (selectedTransactionID).
+                const managedCardTransactionID = 'managed-card-1';
+                const reviewingCashTransaction = generateTransaction({
+                    transactionID: 'cash-1',
+                    reimbursable: true,
+                    managedCard: false,
+                });
+
+                const duplicates = [
+                    generateTransaction({
+                        transactionID: managedCardTransactionID,
+                        reimbursable: false,
+                        managedCard: true,
+                    }),
+                ];
+
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, managedCardTransactionID, mockPolicy, undefined);
+
+                expect(result.keep.reimbursable).toBe(false);
+                expect(result.change.reimbursable).toBeUndefined();
+            });
+
+            it('should surface the reimbursable step when the selected (kept) transaction is a cash expense, even though a duplicate is a managed card', () => {
+                const cashTransactionID = 'cash-1';
+                const reviewingCashTransaction = generateTransaction({
+                    transactionID: cashTransactionID,
+                    reimbursable: true,
+                    managedCard: false,
+                });
+
+                const duplicates = [
+                    generateTransaction({
+                        transactionID: 'managed-card-1',
+                        reimbursable: false,
+                        managedCard: true,
+                    }),
+                ];
+
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, cashTransactionID, mockPolicy, undefined);
+
+                expect(result.keep.reimbursable).toBeUndefined();
+                expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
+            });
         });
 
         describe('selectedTransactionID parameter', () => {
@@ -3433,6 +3633,41 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('isPending', () => {
+        it('returns true for a BYOC pending transaction (non-Expensify Card with status Pending)', () => {
+            const transaction = generateTransaction({
+                status: CONST.TRANSACTION.STATUS.PENDING,
+                bank: 'chase',
+            });
+            expect(TransactionUtils.isPending(transaction)).toBe(true);
+        });
+
+        it('returns true for an Expensify Card pending transaction', () => {
+            const transaction = generateTransaction({
+                status: CONST.TRANSACTION.STATUS.PENDING,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+            });
+            expect(TransactionUtils.isPending(transaction)).toBe(true);
+        });
+
+        it('returns false for a posted transaction', () => {
+            const transaction = generateTransaction({
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: 'chase',
+            });
+            expect(TransactionUtils.isPending(transaction)).toBe(false);
+        });
+
+        it('returns false for a transaction with no status', () => {
+            const transaction = generateTransaction();
+            expect(TransactionUtils.isPending(transaction)).toBe(false);
+        });
+
+        it('returns false for undefined transaction', () => {
+            expect(TransactionUtils.isPending(undefined)).toBe(false);
+        });
+    });
+
     describe('shouldClearConvertedAmount', () => {
         it('returns false when destinationCurrency is undefined', () => {
             const transaction = generateTransaction({currency: 'USD'});
@@ -3625,5 +3860,99 @@ describe('TransactionUtils', () => {
             });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
         });
+    });
+});
+
+describe('getSupersededPendingCardTransactionIDs', () => {
+    function buildCardTransaction(transactionID: string, status: Transaction['status'], parentTransactionID = ''): Transaction {
+        return generateTransaction({
+            transactionID,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            status,
+            parentTransactionID,
+        });
+    }
+
+    it('marks the pending auth as superseded when its posted counterpart is present', () => {
+        const pending = buildCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
+        const posted = buildCardTransaction('clear1', CONST.TRANSACTION.STATUS.POSTED, 'auth1');
+
+        const result = TransactionUtils.getSupersededPendingCardTransactionIDs([pending, posted]);
+
+        expect([...result]).toEqual(['auth1']);
+    });
+
+    it('returns an empty set for a pending auth with no posted counterpart', () => {
+        const pending = buildCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
+
+        const result = TransactionUtils.getSupersededPendingCardTransactionIDs([pending]);
+
+        expect(result.size).toBe(0);
+    });
+
+    it('marks every pending auth in a chain as superseded', () => {
+        const rootAuth = buildCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
+        const incrementalAuth = buildCardTransaction('auth1b', CONST.TRANSACTION.STATUS.PENDING, 'auth1');
+        const posted = buildCardTransaction('clear1', CONST.TRANSACTION.STATUS.POSTED, 'auth1');
+
+        const result = TransactionUtils.getSupersededPendingCardTransactionIDs([rootAuth, incrementalAuth, posted]);
+
+        expect([...result].sort()).toEqual(['auth1', 'auth1b']);
+    });
+
+    it('does not supersede an unrelated non-card pending transaction', () => {
+        const cardPending = buildCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
+        const cardPosted = buildCardTransaction('clear1', CONST.TRANSACTION.STATUS.POSTED, 'auth1');
+        const manualPending = generateTransaction({transactionID: 'manual1', bank: '', status: CONST.TRANSACTION.STATUS.PENDING});
+
+        const result = TransactionUtils.getSupersededPendingCardTransactionIDs([cardPending, cardPosted, manualPending]);
+
+        expect([...result]).toEqual(['auth1']);
+    });
+
+    it('ignores split transactions linked via comment.originalTransactionID rather than parentTransactionID', () => {
+        const splitParent = generateTransaction({
+            transactionID: 'splitParent',
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            status: CONST.TRANSACTION.STATUS.PENDING,
+            comment: {originalTransactionID: 'splitParent'},
+        });
+        const splitChild = generateTransaction({
+            transactionID: 'splitChild',
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            comment: {originalTransactionID: 'splitParent'},
+        });
+
+        const result = TransactionUtils.getSupersededPendingCardTransactionIDs([splitParent, splitChild]);
+
+        expect(result.size).toBe(0);
+    });
+
+    it('does not mix unrelated card auth chains', () => {
+        const cardAPending = buildCardTransaction('authA', CONST.TRANSACTION.STATUS.PENDING);
+        const cardAPosted = buildCardTransaction('clearA', CONST.TRANSACTION.STATUS.POSTED, 'authA');
+        const cardBPending = buildCardTransaction('authB', CONST.TRANSACTION.STATUS.PENDING);
+
+        const result = TransactionUtils.getSupersededPendingCardTransactionIDs([cardAPending, cardAPosted, cardBPending]);
+
+        expect([...result]).toEqual(['authA']);
+    });
+});
+
+describe('doesMoneyRequestDraftHaveUserInput', () => {
+    it('returns false for an empty draft', () => {
+        expect(doesMoneyRequestDraftHaveUserInput(undefined)).toBe(false);
+        expect(doesMoneyRequestDraftHaveUserInput(generateTransaction())).toBe(false);
+    });
+
+    it('returns false when the draft only has empty waypoint placeholders', () => {
+        const transaction = generateTransaction({comment: {waypoints: {waypoint0: {}, waypoint1: {}}}});
+        expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(false);
+    });
+
+    it('returns true when the user entered a waypoint', () => {
+        const transaction = generateTransaction({comment: {waypoints: {waypoint0: {address: '350 5th Ave, New York', lat: 40.7484, lng: -73.9857}, waypoint1: {}}}});
+        expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(true);
     });
 });

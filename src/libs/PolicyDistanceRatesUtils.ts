@@ -1,11 +1,15 @@
-import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CustomUnit, Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import {replaceAllDigits} from './MoneyRequestUtils';
@@ -38,18 +42,6 @@ function validateTaxClaimableValue(values: FormOnyxValues<TaxReclaimableForm>, r
         errors.taxClaimableValue = translate('workspace.taxes.error.updateTaxClaimableFailureMessage');
     }
     return errors;
-}
-
-/**
- * Get the optimistic rate name in a way that matches BE logic
- * @param rates
- */
-function getOptimisticRateName(rates: Record<string, Rate>): string {
-    if (Object.keys(rates).length === 0) {
-        return CONST.CUSTOM_UNITS.DEFAULT_RATE;
-    }
-    const newRateCount = Object.values(rates).filter((rate) => rate.name?.startsWith(CONST.CUSTOM_UNITS.NEW_RATE)).length;
-    return newRateCount === 0 ? CONST.CUSTOM_UNITS.NEW_RATE : `${CONST.CUSTOM_UNITS.NEW_RATE} ${newRateCount}`;
 }
 
 function validateCreateDistanceRateForm(
@@ -190,4 +182,4 @@ function getRateStatus(rate: Rate): string {
     return CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE;
 }
 
-export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates, getRateStatus};
+export {validateRateValue, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates, getRateStatus};

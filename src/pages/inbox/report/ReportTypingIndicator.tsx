@@ -1,12 +1,16 @@
-import React, {memo, useMemo} from 'react';
 import Text from '@components/Text';
 import TextWithEllipsis from '@components/TextWithEllipsis';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {memo, useMemo} from 'react';
 
 type ReportTypingIndicatorProps = {
     reportID: string;

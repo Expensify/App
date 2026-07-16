@@ -1,9 +1,9 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import RenderHTML from '@components/RenderHTML';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     getAddedApprovalRuleMessage,
@@ -53,6 +53,7 @@ import {
     getUpdatedBudgetMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
+    getUpdatedCommuterExclusionsMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedManualApprovalThresholdMessage,
@@ -83,12 +84,18 @@ import {
     getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
 } from '@libs/ReportActionsUtils';
-import {getWorkspaceNameUpdatedMessage} from '@libs/ReportUtils';
+import {getPolicyChangeLogCopyMessage, getWorkspaceNameUpdatedMessage} from '@libs/ReportUtils';
 import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from '@libs/SpendRuleChangeLogUtils';
+
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type PolicyChangeLogMessageResult = string | {html: string};
 
@@ -98,6 +105,9 @@ type ResolverFn = (translate: LocaleContextProps['translate'], action: OnyxTypes
 const categoryResolver: ResolverFn = (translate, action, policy) => getWorkspaceCategoryUpdateMessage(translate, action, policy);
 const taxResolver: ResolverFn = (translate, action) => getWorkspaceTaxUpdateMessage(translate, action);
 const tagModificationResolver: ResolverFn = (translate, action) => getCleanedTagName(getWorkspaceTagUpdateMessage(translate, action));
+const copySettingsResolver: ResolverFn = (translate, action) => ({
+    html: `<comment><muted-text>${getPolicyChangeLogCopyMessage(translate, action)}</muted-text></comment>`,
+});
 
 const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     // Simple string translations
@@ -185,6 +195,7 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED]: (translate, action) => getUpdatedTimeEnabledMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE]: (translate, action) => getUpdatedTimeRateMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES]: (translate, action) => getUpdatedProhibitedExpensesMessage(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS]: (translate, action) => getUpdatedCommuterExclusionsMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE]: (translate, action) => getUpdatedReimbursementChoiceMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN]: (translate, action) => getSetAutoJoinMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE]: (translate, action) => getUpdatedDefaultTitleMessage(translate, action),
@@ -216,6 +227,25 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG]: tagModificationResolver,
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_MULTIPLE_TAGS]: tagModificationResolver,
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG]: tagModificationResolver,
+
+    // Policy copy settings
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RECEIPT_PARTNERS]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_HR]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAXES]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TIME_TRACKING]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_WORKFLOWS]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RULES]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CODING_RULES]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_DISTANCE]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_PER_DIEM]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_INVOICES]: copySettingsResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TRAVEL]: copySettingsResolver,
 };
 
 /**

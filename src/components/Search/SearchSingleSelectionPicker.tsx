@@ -1,14 +1,19 @@
-import React, {useEffect, useState} from 'react';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+
+import React, {useEffect, useState} from 'react';
+
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 type SearchSingleSelectionPickerItem = {
@@ -105,7 +110,7 @@ function SearchSingleSelectionPicker({
         }
         if (shouldAutoSave) {
             onSaveSelection(item.isSelected ? '' : item.value);
-            Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+            Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS);
             return;
         }
         if (!item.isSelected) {
@@ -119,7 +124,7 @@ function SearchSingleSelectionPicker({
 
     const applyChanges = () => {
         onSaveSelection(selectedItem?.value);
-        Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+        Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
     const footerContent = (

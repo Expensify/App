@@ -1,10 +1,15 @@
-import React, {useMemo} from 'react';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
+
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+
+import React, {useMemo} from 'react';
+
 import type DisplayNamesProps from './types';
 
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.

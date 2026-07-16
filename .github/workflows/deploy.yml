@@ -358,6 +358,26 @@ jobs:
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
+      - name: Setup 1Password CLI
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
+
+      - name: Load BrowserStack Automate credentials from 1Password
+        id: load-browserstack-automate
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          BROWSERSTACK_AUTOMATE: op://${{ vars.OP_VAULT }}/BROWSERSTACK_AUTOMATE/notesPlain
+
+      - name: Upload Android build to BrowserStack Automate
+        if: ${{ fromJSON(env.IS_APP_REPO) }}
+        run: curl -u "${{ steps.load-browserstack-automate.outputs.BROWSERSTACK_AUTOMATE }}" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@${{ steps.find-apk.outputs.APK_PATH }}"
+
   androidUploadApplause:
     name: Upload Android to Applause
     needs: [prep, androidBuild]
@@ -533,6 +553,8 @@ jobs:
       - name: Submit previous production build to 100%
         run: bundle exec fastlane ios complete_hybrid_rollout
         continue-on-error: true
+        env:
+          APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Submit production build for App Store review and a slow rollout
         run: bundle exec fastlane ios submit_hybrid_for_rollout
@@ -585,6 +607,26 @@ jobs:
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ steps.find-ipa.outputs.IPA_PATH }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Setup 1Password CLI
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
+
+      - name: Load BrowserStack Automate credentials from 1Password
+        id: load-browserstack-automate
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          BROWSERSTACK_AUTOMATE: op://${{ vars.OP_VAULT }}/BROWSERSTACK_AUTOMATE/notesPlain
+
+      - name: Upload iOS build to BrowserStack Automate
+        if: ${{ fromJSON(env.IS_APP_REPO) }}
+        run: curl -u "${{ steps.load-browserstack-automate.outputs.BROWSERSTACK_AUTOMATE }}" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@${{ steps.find-ipa.outputs.IPA_PATH }}"
 
   iosUploadApplause:
     name: Upload iOS to Applause
@@ -747,7 +789,22 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ failure() }}
-    needs: [androidBuild, androidUploadGooglePlay, androidUploadBrowserStack, androidUploadApplause, androidSubmit, iosBuild, iosUploadTestflight, iosUploadBrowserStack, iosUploadApplause, iosSubmit, webBuild, webDeploy, victoryChartRendererBuild]
+    needs:
+      [
+        androidBuild,
+        androidUploadGooglePlay,
+        androidUploadBrowserStack,
+        androidUploadApplause,
+        androidSubmit,
+        iosBuild,
+        iosUploadTestflight,
+        iosUploadBrowserStack,
+        iosUploadApplause,
+        iosSubmit,
+        webBuild,
+        webDeploy,
+        victoryChartRendererBuild,
+      ]
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
@@ -878,6 +935,35 @@ jobs:
           echo "IS_RELEASE_READY=$isReleaseReady" >> "$GITHUB_OUTPUT"
           echo "IS_RELEASE_READY is $isReleaseReady (VCR result: ${{ needs.victoryChartRendererBuild.result }})"
 
+  autoRetestRequestForCP:
+    name: File retest request for cherry-picked deploy-blocker fixes
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    # Only for a cherry-pick to staging, once every platform is on staging.
+    if: ${{ github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
+    needs: [prep, checkDeploymentSuccess]
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Load retest webhook from 1Password
+        id: loadWebhook
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SLACK_RETEST_WEBHOOK: op://${{ vars.OP_VAULT }}/Repository-Secrets/SLACK_RETEST_WEBHOOK
+
+      - name: File retest request
+        run: npx bun scripts/createRetestRequestForCP.ts --deploy-sha=${{ needs.prep.outputs.DEPLOY_SHA }} --deploy-tag=${{ needs.prep.outputs.TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          SLACK_RETEST_WEBHOOK: ${{ steps.loadWebhook.outputs.SLACK_RETEST_WEBHOOK }}
+
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
@@ -898,7 +984,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name:  🚀 Create release 🚀
+      - name: 🚀 Create release 🚀
         run: |
           # Check if the release already exists
           if gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" &> /dev/null; then
@@ -914,6 +1000,12 @@ jobs:
                 --generate-notes \
                 --verify-tag \
                 --target "${{ env.DEPLOY_ENV }}"; then
+                break
+              fi
+
+              # A transient GitHub error during create doesn't necessarily mean the release failed; it may have been created anyway, so a later "already exists" error means it's present.
+              if gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" &> /dev/null; then
+                echo "Release ${{ needs.prep.outputs.TAG }} exists despite a create error (likely a transient 502), treating as success."
                 break
               fi
               if [[ $i -lt $CREATE_MAX_RETRIES ]]; then
@@ -997,6 +1089,68 @@ jobs:
               }]
             }
 
+  # Upload the production-bound binary to Sentry for size analysis.
+  # - Cherry-pick deploys build native in this run, so we pull the .aab/.ipa from the build artifact.
+  # - Re-promotion deploys don't build native, so we download from the matching `<TAG>-staging`
+  #   GitHub Release populated during the staging deploy of that version.
+  androidUploadSentry:
+    name: Upload Android build to Sentry for size analysis
+    needs: [prep, androidBuild, checkDeploymentSuccess]
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    if: >-
+      ${{ always()
+          && needs.prep.outputs.DEPLOY_ENV == 'production'
+          && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
+    continue-on-error: true
+    timeout-minutes: 10
+    outputs:
+      SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Upload to Sentry for size analysis
+        id: sentry-upload
+        uses: ./.github/actions/composite/uploadSentrySizeAnalysis
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        with:
+          platform: Android
+          asset-name: Expensify-release.aab
+          artifact-name: androidBuild-artifact
+          staging-release-tag: ${{ needs.prep.outputs.TAG }}-staging
+          is-cherry-pick: ${{ needs.prep.outputs.IS_CHERRY_PICK }}
+
+  iosUploadSentry:
+    name: Upload iOS build to Sentry for size analysis
+    needs: [prep, iosBuild, checkDeploymentSuccess]
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    if: >-
+      ${{ always()
+          && needs.prep.outputs.DEPLOY_ENV == 'production'
+          && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
+    continue-on-error: true
+    timeout-minutes: 10
+    outputs:
+      SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Upload to Sentry for size analysis
+        id: sentry-upload
+        uses: ./.github/actions/composite/uploadSentrySizeAnalysis
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        with:
+          platform: iOS
+          asset-name: Expensify.ipa
+          artifact-name: iosBuild-artifact
+          staging-release-tag: ${{ needs.prep.outputs.TAG }}-staging
+          is-cherry-pick: ${{ needs.prep.outputs.IS_CHERRY_PICK }}
+
   # Why is this necessary for CP-to-prod? Consider this scenario:
   #   1. You close a checklist and we create a new staging version `9.0.34-0` and a new checklist
   #   2. You then CP a PR to production, and in the process create `9.0.35-0`
@@ -1066,7 +1220,7 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
-    needs: [prep, checkDeploymentSuccess, createRelease, androidBuild, iosBuild]
+    needs: [prep, checkDeploymentSuccess, createRelease, androidBuild, iosBuild, androidUploadSentry, iosUploadSentry]
     secrets: inherit
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
@@ -1074,5 +1228,5 @@ jobs:
       android: ${{ needs.checkDeploymentSuccess.outputs.ANDROID_RESULT }}
       ios: ${{ needs.checkDeploymentSuccess.outputs.IOS_RESULT }}
       web: ${{ needs.checkDeploymentSuccess.outputs.WEB_RESULT }}
-      android_sentry_url: ${{ needs.androidBuild.outputs.SENTRY_URL }}
-      ios_sentry_url: ${{ needs.iosBuild.outputs.SENTRY_URL }}
+      android_sentry_url: ${{ needs.androidUploadSentry.outputs.SENTRY_URL }}
+      ios_sentry_url: ${{ needs.iosUploadSentry.outputs.SENTRY_URL }}

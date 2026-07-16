@@ -1,17 +1,14 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import type {ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import type {IconSize} from '@components/EReceiptThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {ReceiptImageProps} from '@components/ReceiptImage';
 import ReceiptImage from '@components/ReceiptImage';
 import {useShowContextMenuState} from '@components/ShowContextMenuContext';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,11 +23,21 @@ import {
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import ReceiptPDFOverlay from './ReceiptPDFOverlay';
 
 type ReportActionItemImageProps = {
@@ -144,6 +151,7 @@ function ReportActionItemImage({
                     shouldHaveBorderRadius={shouldMapHaveBorderRadius}
                     interactive={false}
                     requireRouteToDisplayMap
+                    shouldDisplayCompass={false}
                 />
             </View>
         );

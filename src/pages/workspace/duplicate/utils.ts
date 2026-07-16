@@ -1,7 +1,11 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {getCorrectedAutoReportingFrequency, getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
+
 import {getAutoReportingFrequencyDisplayNames} from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
+
 import {isAuthenticationError, isConnectionUnverified} from '@userActions/connections';
+
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';

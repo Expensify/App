@@ -1,9 +1,14 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+
 import {isGroupEntry} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import type {SearchResults} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
 import SearchPageFooter from './SearchPageFooter';
 
@@ -18,7 +23,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
-    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true, areAllMatchingItemsSelected);
 
     const metadata = searchResults?.search;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});

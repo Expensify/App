@@ -1,4 +1,5 @@
 import React from 'react';
+
 import BaseOpenAppFailureModal from './BaseOpenAppFailureModal';
 
 /** Reloads the app to trigger OpenApp reconnection */

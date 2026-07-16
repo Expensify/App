@@ -1,19 +1,27 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
 import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
 import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
+
 import useOnyx from '@hooks/useOnyx';
+
 import Log from '@libs/Log';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isValidValidateCode} from '@libs/ValidationUtils';
+
 import {handleExitToNavigation, initAutoAuthState, signInWithValidateCode} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Session as SessionType} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useState} from 'react';
+
 import type ValidateLoginPageProps from './types';
 
 const autoAuthStateSelector = (session: OnyxEntry<SessionType>) => session?.autoAuthState;
@@ -40,7 +48,20 @@ function ValidateLoginPage({
     const effectiveAutoAuthState = hasInitialized ? autoAuthState : undefined;
     const autoAuthStateWithDefault = effectiveAutoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
     const is2FARequired = !!account?.requiresTwoFactorAuth;
-    const cachedAccountID = credentials?.accountID;
+    // A magic-link sign-in that needs 2FA completes on the sign-in page: it reuses the stored
+    // `credentials.validateCode`, and SignInPage renders the authenticator-code stage once
+    // `requiresTwoFactorAuth` + that code are present. Send the user there to enter their code instead
+    // of the informational "2FA required" modal, which is a dead end. Require the cached credentials to
+    // match THIS link — `signInWithValidateCode` only caches the code on a successful 2FA-required
+    // response, so a stale code left over from an earlier attempt can't redirect a later failed/expired
+    // link. `exitTo` deep links route here too; the effect keeps the deferred `exitTo` navigation
+    // pending so the user reaches their destination after 2FA completes.
+    const canCompleteTwoFactorOnSignIn =
+        is2FARequired &&
+        !isSignedIn &&
+        credentials?.validateCode === validateCode &&
+        credentials?.accountID === Number(accountID) &&
+        (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.FAILED);
     const isUserClickedSignIn = !login && isSignedIn && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
     const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo) && isValidValidateCode(validateCode);
     const isNavigatingToExitTo = isSignedIn && !!exitTo;
@@ -94,18 +115,35 @@ function ValidateLoginPage({
     );
 
     useEffect(() => {
-        if (!!login || !cachedAccountID || !is2FARequired) {
-            if (exitTo) {
-                handleExitToNavigation(exitTo);
-            }
-            return;
+        let ignore = false;
+        if (canCompleteTwoFactorOnSignIn) {
+            // Surface the sign-in page so its ValidateCodeForm renders the authenticator-code stage. navigate/goBack
+            // no-op from the public /v/ route, so reset the stack to TAB_NAVIGATOR (which hosts the public SignInPage).
+            // The "2FA required" modal stays rendered as the fallback so a failed hand-off shows it, not a blank screen.
+            Navigation.isNavigationReady().then(() => {
+                // Bail if the effect re-ran (e.g. `isSignedIn` flipped true) before this resolved, so a
+                // stale callback can't reset the stack out from under the new state.
+                if (ignore) {
+                    return;
+                }
+                navigationRef.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
+            });
         }
 
-        // The user clicked the option to sign in the current tab
-        Navigation.isNavigationReady().then(() => {
-            Navigation.goBack();
-        });
-    }, [login, cachedAccountID, is2FARequired, exitTo]);
+        // Register the deferred `exitTo` destination navigation while still unauthenticated.
+        // `handleExitToNavigation` waits for the authToken, so for a 2FA account it fires only after the
+        // user enters their code on the sign-in page above (the token lands and resolves the shared
+        // sign-in promise) — landing them on their destination instead of Home. For a non-2FA account
+        // it's the normal post-sign-in handoff. The `!isSignedIn` guard registers it once and never
+        // re-fires after sign-in, so the effect re-running can't queue a duplicate navigation.
+        if (exitTo && !isSignedIn) {
+            handleExitToNavigation(exitTo);
+        }
+
+        return () => {
+            ignore = true;
+        };
+    }, [canCompleteTwoFactorOnSignIn, exitTo, isSignedIn]);
 
     // waitForProtectedRoutes()/authToken can hang (lazy AuthScreens chunk fails, token
     // never lands). We can't recover the consumed code here, but surface a stuck sign-in to

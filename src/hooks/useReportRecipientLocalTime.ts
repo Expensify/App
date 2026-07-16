@@ -1,7 +1,10 @@
-import {canShowReportRecipientLocalTimeSelector} from '@selectors/Report';
-import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {canShowReportRecipientLocalTimeSelector} from '@selectors/Report';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 

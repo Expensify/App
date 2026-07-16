@@ -17,7 +17,7 @@ jobs:
     runs-on: blacksmith-8vcpu-ubuntu-2404
     env:
       CI: true
-      NODE_OPTIONS: "--experimental-vm-modules --max-old-space-size=8192"
+      NODE_OPTIONS: '--experimental-vm-modules --max-old-space-size=8192'
     strategy:
       fail-fast: false
       matrix:
@@ -39,7 +39,7 @@ jobs:
           # Per-shard key: each shard only instruments the ~1/8 of suites it runs, so a single
           # shared key freezes one shard's partial cache for all shards. The hash refreshes the
           # cache when dependencies or Babel config change; restore-keys warms it in between.
-          key: ${{ runner.os }}-jest-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'babel.config.js') }}
+          key: ${{ runner.os }}-jest-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js') }}
           restore-keys: ${{ runner.os }}-jest-${{ matrix.chunk }}-
 
       - name: Jest tests
