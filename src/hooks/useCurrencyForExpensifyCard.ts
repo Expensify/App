@@ -1,5 +1,5 @@
 import type {CardProgramKey} from '@libs/CardUtils';
-import {getCardOrFeedCurrency} from '@libs/CardUtils';
+import {getFeedCurrency} from '@libs/CardUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +21,7 @@ export default function useCurrencyForExpensifyCard({policyID, fundID, programKe
     // A fund's settings can also hold more than one program (US/GB), so pass the program to read its currency
     // so, for example, the US row shows USD even when a GB program is also provisioned on the same fund.
     if (fundID && cardSettings) {
-        return getCardOrFeedCurrency(undefined, cardSettings, programKey);
+        return getFeedCurrency(cardSettings, programKey);
     }
 
     // If no fund was provided, then use the policy currency, if available

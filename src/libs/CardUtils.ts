@@ -2004,24 +2004,35 @@ function getDisplayableThirdPartyCards(cardList: CardList | undefined, cardFeedE
 }
 
 /**
- * Determines the currency of the card and/or feed. Data sources are prioritized as follows:
- * 1. Card currency, if card is passed and has a currency set on it
+ * Determines the currency of a feed. Data sources are prioritized as follows:
+ * 1. Feed settings currency, if settings are passed and have a currency
+ * 2. Use USD for US program keys
+ * 3. For UK/EU feeds, default to GBP
+ * 4. Finally, if all else fails, fallback to USD
+ */
+function getFeedCurrency(cardSettings?: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): string {
+    const settings = getCardSettings(cardSettings, programKey);
+    return getExpensifyCardProgramCurrency(programKey, undefined, settings?.currency);
+}
+
+/**
+ * Determines the currency of a card. Data sources are prioritized as follows:
+ * 1. Card currency, if the card has a currency set on it
  * 2. Feed settings currency, if settings are passed and have a currency
  * 3. Use USD for US program keys
  * 4. For UK/EU feeds, determine currency based on card country, defaulting to GBP
  * 5. Finally, if all else fails, fallback to USD
  */
-function getCardOrFeedCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): string {
+function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
     // If currency is set on the card itself, use it.
     if (card?.nameValuePairs?.currency) {
         return card.nameValuePairs.currency;
     }
 
-    // If not, attempt to get currency from the card settings. A card's `feedCountry` is its own program key; fall back
-    // to the passed program when there is no card (e.g. a feed-level lookup).
-    const resolvedProgramKey = (card?.nameValuePairs?.feedCountry as CardProgramKey | undefined) ?? programKey;
-    const settings = getCardSettings(cardSettings, resolvedProgramKey);
-    return getExpensifyCardProgramCurrency(resolvedProgramKey, card?.nameValuePairs?.country, settings?.currency);
+    // If not, attempt to get currency from the card settings. A card's `feedCountry` is its own program key.
+    const programKey = card?.nameValuePairs?.feedCountry as CardProgramKey | undefined;
+    const settings = getCardSettings(cardSettings, programKey);
+    return getExpensifyCardProgramCurrency(programKey, card?.nameValuePairs?.country, settings?.currency);
 }
 
 /**
@@ -2223,7 +2234,8 @@ export {
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
     isExpiredCard,
-    getCardOrFeedCurrency,
+    getCardCurrency,
+    getFeedCurrency,
     getSelectedCardsSharedCurrency,
     getCardHintText,
     resolveTransactionCardFields,
