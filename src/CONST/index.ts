@@ -305,6 +305,16 @@ const CONST = {
     // from concurrent navigation state mutations, but short enough to finish well before most users
     // tap submit. If the user submits before this fires, the fallback (non-pre-insert) path is used.
     PRE_INSERT_FULLSCREEN_DELAY: 300,
+    /**
+     * Controls when a fullscreen destination is placed behind an open RHP on narrow layout.
+     */
+    NARROW_DESTINATION_STRATEGY: {
+        /** Put the destination behind the RHP before submit, so closing the RHP shows an already-rendered screen. */
+        PRE_INSERT: 'preInsert',
+
+        /** Wait until submit to put the destination behind the RHP, avoiding early navigation changes. */
+        REVEAL: 'reveal',
+    },
     LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
 
@@ -981,11 +991,11 @@ const CONST = {
         SUBMIT_2026: 'submit2026',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
-        CERTINIA: 'financialForceNewDot',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2208,6 +2218,7 @@ const CONST = {
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
+        ATTRIBUTE_SEND_MESSAGE_SOURCE: 'send_message_source',
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
@@ -2288,6 +2299,46 @@ const CONST = {
             INVOICE: 'invoice',
             PER_DIEM: 'per_diem',
             SEND_MONEY: 'send_money',
+        },
+        SEND_MESSAGE_SOURCE: {
+            CONCIERGE_SIDE_PANEL: 'concierge_side_panel',
+            // Side Panel hosting the workspace admins chat (admin onboarding), not Concierge.
+            SIDE_PANEL: 'side_panel',
+            // Expense report, split single- vs multi-expense (only multi has a heavy transactions table). e/:id and
+            // search/r/:id render the same component, so they share this base rather than owning a `_search` value.
+            EXPENSE_REPORT_SINGLE: 'expense_report_single',
+            EXPENSE_REPORT_MULTI: 'expense_report_multi',
+            // Single-transaction expense thread (chat-type, expense parent).
+            EXPENSE_TRANSACTION_THREAD: 'expense_transaction_thread',
+            CONCIERGE: 'concierge',
+            REPORT_THREAD: 'report_thread',
+            INVOICE_ROOM: 'invoice_room',
+            WORKSPACE_ROOM: 'workspace_room',
+            POLICY_EXPENSE_CHAT: 'policy_expense_chat',
+            TASK_REPORT: 'task_report',
+            GROUP_CHAT: 'group_chat',
+            DIRECT_MESSAGE: 'direct_message',
+            SELF_DM: 'self_dm',
+            OTHER_CHAT: 'other_chat',
+        },
+        // Tab prefix on every send_message_source value. OTHER = a tab that doesn't host these surfaces
+        // (Workspaces) or an unresolved tab.
+        SEND_MESSAGE_SOURCE_TAB: {
+            HOME: 'home',
+            INBOX: 'inbox',
+            SPEND: 'spend',
+            SETTINGS: 'settings',
+            OTHER: 'other',
+        },
+        // Surface suffix, added for the RHP report routes (e/:id, search/r/:id, search/view/:id), e.g.
+        // `inbox_report_thread_rhp`. Central pane has no suffix; the Side Panel lives in the base.
+        SEND_MESSAGE_SOURCE_SURFACE: {
+            RHP: 'rhp',
+        },
+        // Extra suffix (alongside `_rhp`) marking that the RHP screen was drilled into from its parent expense
+        // report vs opened directly from a list, e.g. `spend_expense_transaction_thread_rhp_from_report`.
+        SEND_MESSAGE_SOURCE_RHP_ORIGIN: {
+            FROM_REPORT: 'from_report',
         },
         // Start type stamped on the navigate-to-reports spans: cold, warm on the first render (warm_first),
         // or warm on a cached re-visit (warm_subsequent). UNKNOWN is a fallback that signals a bug.
@@ -4185,9 +4236,7 @@ const CONST = {
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
             },
-            SUPPORTED_ONLY_ON_OLDDOT: {
-                FINANCIALFORCE: 'financialforce',
-            },
+            SUPPORTED_ONLY_ON_OLDDOT: {},
             UNSUPPORTED_NAMES: {
                 GENERIC_INDIRECT_CONNECTION: 'generic_indirect_connection',
             },
@@ -7449,6 +7498,7 @@ const CONST = {
         SCREENS.SAML_SIGN_IN,
         SCREENS.VALIDATE_LOGIN,
         SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT,
+        SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT,
         SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT,
         SCREENS.MONEY_REQUEST.STEP_SCAN,
         SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP,
@@ -7984,6 +8034,10 @@ const CONST = {
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 
+    // Backend NVP name for the Submit migration modal. The Onyx key is prefixed with `nvp_`
+    // (ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN), but the API expects the unprefixed name.
+    SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME: 'submitMigrationModalShown',
+
     AI_FEATURES_PROMO_MODAL: 'aiFeaturesPromoModal',
 
     AI_FEATURES_PROMO_LEARN_MORE_URLS: {
@@ -8154,6 +8208,9 @@ const CONST = {
     SENTRY_LABEL: {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
+        },
+        ACCOUNT_MANAGER_BOOK_CALL: {
+            BUTTON: 'AccountManagerBookCallButton-Button',
         },
         HIGH_CONTRAST_MODE_SWITCHER: {
             TOGGLE: 'HighContrastModeSwitcher-Toggle',
@@ -8338,6 +8395,8 @@ const CONST = {
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
+            PARTICIPANTS_ROW: 'Report-ParticipantsRow',
+            ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
         },
         SIDEBAR: {
             SIGN_IN_BUTTON: 'Sidebar-SignInButton',
@@ -8688,6 +8747,9 @@ const CONST = {
                 MORE_DROPDOWN: 'WorkspaceTags-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTags-BulkActionsDropdown',
             },
+            REPORT_FIELDS: {
+                LIST_VALUE_ROW: 'WorkspaceReportFields-ListValueRow',
+            },
             TAXES: {
                 ROW: 'WorkspaceTaxes-Row',
                 ADD_BUTTON: 'WorkspaceTaxes-AddButton',
@@ -9011,6 +9073,12 @@ const CONST = {
         AI_FEATURES_PROMO_MODAL: {
             CONFIRM_BUTTON: 'AIFeaturesPromoModal-ConfirmButton',
             HELP_BUTTON: 'AIFeaturesPromoModal-HelpButton',
+        },
+    },
+
+    AGENTS: {
+        BULK_ACTION_TYPES: {
+            DELETE: 'delete',
         },
     },
 

@@ -256,14 +256,9 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
     comment: {
         attendees: [
             {
-                accountID: ACCOUNT_ID,
                 avatarUrl: '',
                 displayName: '',
                 email: ACCOUNT_LOGIN,
-                login: ACCOUNT_LOGIN,
-                reportID: REPORT_ID,
-                selected: true,
-                text: ACCOUNT_LOGIN,
             },
         ],
     },
