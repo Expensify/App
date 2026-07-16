@@ -891,7 +891,7 @@ const CONST = {
                 PROOF_OF_OWNERSHIP: 'proofOfBeneficialOwner',
                 COPY_OF_ID: 'copyOfIDForBeneficialOwner',
                 ADDRESS_PROOF: 'addressProofForBeneficialOwner',
-                CODICE_FISCALE: 'codiceFisclaleTaxID',
+                CODICE_FISCALE: 'codiceFiscaleTaxID',
                 FULL_NAME: 'fullName',
                 RESIDENTIAL_ADDRESS: 'residentialAddress',
             },
