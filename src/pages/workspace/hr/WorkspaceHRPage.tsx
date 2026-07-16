@@ -12,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMergeHRInitialSyncingModal from '@hooks/useMergeHRInitialSyncingModal';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -51,7 +50,6 @@ function WorkspaceHRPage({
 }: WorkspaceHRPageProps) {
     const {translate, getLocalDateFromDatetime, localeCompare} = useLocalize();
     const isFocused = useIsFocused();
-    const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -77,7 +75,6 @@ function WorkspaceHRPage({
         policy,
         connectionSyncProgress,
         getLocalDateFromDatetime,
-        isBetaEnabled,
         translate,
         policyID,
         gustoIcon: icons.GustoSquare,
