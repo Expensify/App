@@ -74,7 +74,7 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.M
                         </PressableWithFeedback>
                     );
                 })}
-                {isBetaEnabled(CONST.BETAS.DEFAULT_LETTER_AVATARS) &&
+                {letterAvatarOptions?.length > 0 &&
                     letterAvatarOptions.map(({id, colors}) => {
                         const isSelected = selectedID === id;
 
