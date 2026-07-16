@@ -2564,6 +2564,9 @@ const CONST = {
 
     VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
 
+    // Matches an opening or closing HTML tag that starts with a letter (e.g. <b>, </strong>, <br/>)
+    HTML_TAG_REGEX: /<\/?[a-z][^>]*>/i,
+
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
 
     PUSHER: {
@@ -6598,6 +6601,13 @@ const CONST = {
             TASK: 'task',
             TRIP: 'trip',
             CHAT: 'chat',
+        },
+        // Terminal lifecycle state of a search snapshot's most recent request. Written by the search action lifecycle
+        // (loading on request start, loaded/error on resolve) so the snapshot always has an explicit, mutually exclusive state.
+        SNAPSHOT_STATE: {
+            LOADING: 'loading',
+            LOADED: 'loaded',
+            ERROR: 'error',
         },
         ACTION_FILTERS: {
             SUBMIT: 'submit',
