@@ -1,11 +1,11 @@
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {SafeString} from 'expensify-common';
@@ -511,16 +511,19 @@ function resolveReportForMoneyRequest({
     transactionReport,
     routeReport,
     policy,
+    reportNameValuePairs,
 }: {
     transaction: OnyxEntry<Transaction>;
     transactionReport: OnyxEntry<Report>;
     routeReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
 }): OnyxEntry<Report> {
     if (transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return undefined;
     }
-    const canUseTransactionReport = !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, undefined, false);
+    const canUseTransactionReport =
+        !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, reportNameValuePairs, false);
     const shouldUseTransactionReport = !!transactionReport && (canUseTransactionReport || !routeReport);
     if (shouldUseTransactionReport) {
         return transactionReport;
