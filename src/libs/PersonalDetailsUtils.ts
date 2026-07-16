@@ -174,8 +174,9 @@ function getPersonalDetailsByID(accountID: number | undefined, personalDetailsLi
  * @param currentUserAccountID
  * @param shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
  * @returns - Array of personal detail objects
+ * @deprecated Don't use this. The only usage left is in deprecated NextStepUtils/buildNextStepNew which will be removed later.
  */
-function getPersonalDetailsByIDs({
+function deprecatedGetPersonalDetailsByIDs({
     accountIDs,
     currentUserAccountID,
     shouldChangeUserDisplayName = false,
@@ -204,7 +205,7 @@ function getPersonalDetailsByIDs({
     return result;
 }
 
-function newGetPersonalDetailsByIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+function getPersonalDetailsByIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
     if (!accountIDs) {
         return [];
     }
@@ -302,7 +303,7 @@ function getLoginByAccountID(accountID: number | undefined, personalDetails: Ony
  * @param personalDetailsList Record of user personal details, indexed by user id
  * @returns Array of logins according to passed accountIDs
  */
-function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string[] {
+function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList>): string[] {
     return (
         accountIDs?.reduce((foundLogins: string[], accountID) => {
             const currentLogin = getLoginByAccountID(accountID, personalDetailsList);
@@ -312,6 +313,13 @@ function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetails
             return foundLogins;
         }, []) ?? []
     );
+}
+
+/**
+ * @deprecated Don't use this. The only usage left is in deprecated NextStepUtils/buildNextStepNew which will be removed later.
+ */
+function deprecatedGetLoginsByAccountIDs(accountIDs: number[] | undefined): string[] {
+    return getLoginsByAccountIDs(accountIDs, allPersonalDetails);
 }
 
 /**
@@ -611,14 +619,17 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByID,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    deprecatedGetPersonalDetailsByIDs,
     getPersonalDetailsByIDs,
-    newGetPersonalDetailsByIDs,
     getParticipantsPersonalDetails,
     getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
     getPersonalDetailByEmail,
     getKnownAccountIDByLogin,
     getAccountIDsByLogins,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    deprecatedGetLoginsByAccountIDs,
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
     getCurrentAddress,
