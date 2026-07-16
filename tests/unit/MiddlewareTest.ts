@@ -630,6 +630,75 @@ describe('Middleware', () => {
             expect(personalDetails?.[settledAccountID]?.login).toBe(serverLogin);
         });
 
+        test('OpenReport does not restore the invited login when the response sets an explicitly empty one', async () => {
+            const optimisticReportID = '1234';
+            const optimisticAccountID = 999;
+            const settledAccountID = 333;
+            const invitedEmail = 'invited@example.com';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[optimisticAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [optimisticAccountID]: {
+                        accountID: optimisticAccountID,
+                        login: invitedEmail,
+                        isOptimisticPersonalDetail: true,
+                    },
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            SequentialQueue.push({
+                command: 'OpenReport',
+                data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678', emailList: invitedEmail},
+                requestIndex: 18,
+            });
+
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[settledAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [settledAccountID]: {
+                                accountID: settledAccountID,
+                                login: '',
+                            },
+                        },
+                    },
+                ],
+            });
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+            expect(personalDetails?.[settledAccountID]?.login).toBe('');
+        });
+
         test('OpenReport restores the invited login when the participant is already known without one from a server search', async () => {
             const optimisticReportID = '1234';
             const knownAccountID = 333;

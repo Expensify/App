@@ -70,7 +70,8 @@ function getRestoredPersonalDetails(
         }
         if (update.key === ONYXKEYS.PERSONAL_DETAILS_LIST && isRecord(update.value)) {
             for (const [accountID, detail] of Object.entries(update.value)) {
-                if (!isRecord(detail) || detail.login) {
+                // An explicit login in the response, even '', is respected; only an omitted key marks a candidate
+                if (!isRecord(detail) || 'login' in detail) {
                     continue;
                 }
                 missingLoginDetailIDs.add(accountID);
@@ -191,8 +192,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
                 });
             }
         }
-        // OpenPublicProfilePage can echo back an explicitly empty login for an account the client
-        // already knows a login for; drop that so it can't blank out the value we already have.
+        // OpenPublicProfilePage never populates login, so a login: '' from it is serializer noise — don't let it blank out a known login
         if (request?.command === READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE) {
             for (const update of response?.onyxData ?? []) {
                 if (update.key !== ONYXKEYS.PERSONAL_DETAILS_LIST || !isRecord(update.value)) {
