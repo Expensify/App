@@ -78,13 +78,21 @@ function DynamicSageIntacctDefaultVendorPage() {
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, isReimbursable],
     );
 
+    // Blank vendor only has a defined meaning for the non-reimbursable credit-card-charge path. The bill and reimbursable paths handle blank differently and re-tapping to clear them is out of scope here.
+    const canClearByReSelecting = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
+
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
-            const newValue = value === defaultVendor ? CLEAR_DEFAULT_VENDOR : value;
-            updateSageIntacctDefaultVendor(policyID, settingName, newValue, defaultVendor);
+            if (value === defaultVendor) {
+                if (canClearByReSelecting) {
+                    updateSageIntacctDefaultVendor(policyID, settingName, CLEAR_DEFAULT_VENDOR, defaultVendor);
+                }
+            } else {
+                updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
+            }
             goBack();
         },
-        [defaultVendor, policyID, settingName, goBack],
+        [defaultVendor, policyID, settingName, goBack, canClearByReSelecting],
     );
 
     const listEmptyContent = useMemo(

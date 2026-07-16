@@ -49,8 +49,9 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
 
     const selectVendor = useCallback(
         (row: CardListItem) => {
-            const newValue = row.value === nonReimbursableBillDefaultVendor ? (CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE as string) : row.value;
-            updateQuickbooksDesktopNonReimbursableBillDefaultVendor(policyID, newValue, nonReimbursableBillDefaultVendor);
+            if (row.value !== nonReimbursableBillDefaultVendor) {
+                updateQuickbooksDesktopNonReimbursableBillDefaultVendor(policyID, row.value, nonReimbursableBillDefaultVendor);
+            }
             Navigation.goBack();
         },
         [nonReimbursableBillDefaultVendor, policyID],
