@@ -1,12 +1,10 @@
-import {getProductMarketingAnnouncementVariant, getProductMarketingWindowDismissedKey, isProductMarketingAnnouncementDismissed} from '@libs/ProductMarketingWindowUtils';
+import {getProductMarketingAnnouncementVariant, isProductMarketingAnnouncementDismissed} from '@libs/ProductMarketingWindowUtils';
 import type {ProductMarketingAnnouncement} from '@libs/ProductMarketingWindowUtils';
 
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
 
 const activeAnnouncement: ProductMarketingAnnouncement = {
-    announcementID: 'activeAnnouncement-2026-07',
+    updateKey: 'productUpdateJuly2026',
     admin: {
         illustration: 'Rules',
         heading: 'productMarketingWindow.expensePolicyPdf.admin.heading',
@@ -23,45 +21,25 @@ const activeAnnouncement: ProductMarketingAnnouncement = {
     },
 };
 
-// A previously active announcement whose ID may still have a dismissal stored in the NVP.
-const OLDER_ANNOUNCEMENT_ID = 'olderAnnouncement-2026-06';
-
-function buildDismissedProductTraining(announcementIDs: string[]): DismissedProductTraining {
-    const dismissals: Record<string, {timestamp: string; dismissedMethod: 'click' | 'x'}> = {};
-    for (const announcementID of announcementIDs) {
-        dismissals[getProductMarketingWindowDismissedKey(announcementID)] = {timestamp: '2026-07-14 00:00:00.000', dismissedMethod: 'x'};
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixture: DismissedProductTraining models every tooltip key as required, but runtime Onyx data (and these tests) only need the marketing keys.
-    return dismissals as DismissedProductTraining;
-}
+const OLDER_UPDATE_KEY = 'productUpdateJune2026';
 
 describe('ProductMarketingWindowUtils', () => {
-    describe('getProductMarketingWindowDismissedKey', () => {
-        it('namespaces the dismissal key with the product marketing window prefix and the announcement ID', () => {
-            expect(getProductMarketingWindowDismissedKey('activeAnnouncement-2026-07')).toBe(`${CONST.PRODUCT_MARKETING_WINDOW.DISMISSED_KEY_PREFIX}activeAnnouncement-2026-07`);
-        });
-
-        it('builds different keys for different announcement IDs', () => {
-            expect(getProductMarketingWindowDismissedKey('a')).not.toBe(getProductMarketingWindowDismissedKey('b'));
-        });
-    });
-
     describe('isProductMarketingAnnouncementDismissed', () => {
         it('returns false when there is no announcement', () => {
-            expect(isProductMarketingAnnouncementDismissed(null, buildDismissedProductTraining([OLDER_ANNOUNCEMENT_ID]))).toBe(false);
+            expect(isProductMarketingAnnouncementDismissed(null, activeAnnouncement.updateKey)).toBe(false);
         });
 
-        it('returns false when nothing was dismissed yet', () => {
+        it('returns false when no update was dismissed yet', () => {
             expect(isProductMarketingAnnouncementDismissed(activeAnnouncement, undefined)).toBe(false);
-            expect(isProductMarketingAnnouncementDismissed(activeAnnouncement, buildDismissedProductTraining([]))).toBe(false);
+            expect(isProductMarketingAnnouncementDismissed(activeAnnouncement, '')).toBe(false);
         });
 
-        it('returns true when the announcement itself was dismissed', () => {
-            expect(isProductMarketingAnnouncementDismissed(activeAnnouncement, buildDismissedProductTraining([activeAnnouncement.announcementID]))).toBe(true);
+        it('returns true when the active update key matches the last dismissed key', () => {
+            expect(isProductMarketingAnnouncementDismissed(activeAnnouncement, activeAnnouncement.updateKey)).toBe(true);
         });
 
-        it('returns false when only a different announcement was dismissed', () => {
-            expect(isProductMarketingAnnouncementDismissed(activeAnnouncement, buildDismissedProductTraining([OLDER_ANNOUNCEMENT_ID]))).toBe(false);
+        it('returns false when the last dismissed key belongs to an older update', () => {
+            expect(isProductMarketingAnnouncementDismissed(activeAnnouncement, OLDER_UPDATE_KEY)).toBe(false);
         });
     });
 
@@ -80,16 +58,12 @@ describe('ProductMarketingWindowUtils', () => {
         });
 
         it('returns undefined once the active announcement is dismissed, without falling through to an older announcement', () => {
-            // The older announcement was never dismissed, but dismissing the single active announcement must not
-            // surface anything else — there is no queue of announcements to fall back to.
-            const dismissedProductTraining = buildDismissedProductTraining([activeAnnouncement.announcementID]);
-            expect(getProductMarketingAnnouncementVariant(activeAnnouncement, false, dismissedProductTraining)).toBeUndefined();
-            expect(getProductMarketingAnnouncementVariant(activeAnnouncement, true, dismissedProductTraining)).toBeUndefined();
+            expect(getProductMarketingAnnouncementVariant(activeAnnouncement, false, activeAnnouncement.updateKey)).toBeUndefined();
+            expect(getProductMarketingAnnouncementVariant(activeAnnouncement, true, activeAnnouncement.updateKey)).toBeUndefined();
         });
 
-        it('still returns the active announcement variant when only an older announcement was dismissed', () => {
-            const dismissedProductTraining = buildDismissedProductTraining([OLDER_ANNOUNCEMENT_ID]);
-            expect(getProductMarketingAnnouncementVariant(activeAnnouncement, false, dismissedProductTraining)).toBe(activeAnnouncement.member);
+        it('still returns the active announcement variant when an older update was dismissed', () => {
+            expect(getProductMarketingAnnouncementVariant(activeAnnouncement, false, OLDER_UPDATE_KEY)).toBe(activeAnnouncement.member);
         });
     });
 });

@@ -2,9 +2,9 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 
-import {dismissProductTraining} from '@libs/actions/Welcome';
+import {setNameValuePair} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
-import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, getProductMarketingAnnouncementVariant, getProductMarketingWindowDismissedKey} from '@libs/ProductMarketingWindowUtils';
+import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, getProductMarketingAnnouncementVariant} from '@libs/ProductMarketingWindowUtils';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -57,10 +57,9 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const [isModalCovering = false] = useOnyx(ONYXKEYS.MODAL, {selector: isModalCoveringSelector});
     // Anonymous sessions (logged-out visitors of public rooms) should never see product marketing.
     const [isAnonymousSession = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
-    // Copilots must not see (or permanently dismiss) the account owner's announcement, matching the other
-    // product training surfaces on this NVP (ProductTrainingContext, useAIFeaturesPromoModal).
+    // Copilots must not see (or permanently dismiss) the account owner's announcement.
     const [isActingAsDelegate = false, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
-    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [lastDismissedMarketingWindow, lastDismissedMarketingWindowMetadata] = useOnyx(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW);
     // On a fresh sign-in the cache reads above resolve instantly with empty values, so also wait for the OpenApp
     // response (which delivers the dismissal NVP and policies) before showing anything. Defaults to true so a
     // never-written key on a brand-new session is treated as still loading, mirroring useAIFeaturesPromoModal.
@@ -72,25 +71,27 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     // as soon as policies arrive for a first-time sign-in).
     const illustrationNames = announcement ? [announcement.admin.illustration, announcement.member.illustration] : [];
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
-    const variant = getProductMarketingAnnouncementVariant(announcement, !!hasActiveAdminPolicies, dismissedProductTraining);
+    const variant = getProductMarketingAnnouncementVariant(announcement, !!hasActiveAdminPolicies, lastDismissedMarketingWindow);
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
     // Wait for the dismissal NVP and the policy collection to load before showing anything, otherwise a
     // dismissed window would flash on cold start and admins would flash the member variant.
-    const isLoading = isLoadingOnyxValue(dismissedProductTrainingMetadata, hasActiveAdminPoliciesMetadata, isLoadingAppMetadata, accountMetadata) || isLoadingApp;
+    const isLoading = isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, hasActiveAdminPoliciesMetadata, isLoadingAppMetadata, accountMetadata) || isLoadingApp;
 
     if (!announcement || !variant || isLoading || isModalCovering || isAnonymousSession || isActingAsDelegate || isCoveredByCenteredModalScreen) {
         return null;
     }
 
-    const dismissedKey = getProductMarketingWindowDismissedKey(announcement.announcementID);
+    const persistDismissal = () => {
+        setNameValuePair(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, announcement.updateKey, lastDismissedMarketingWindow ?? '');
+    };
 
     const dismiss = () => {
-        dismissProductTraining(dismissedKey, true);
+        persistDismissal();
     };
 
     const completeCta = () => {
         // Record the dismissal before navigating so the window doesn't flash again during navigation.
-        dismissProductTraining(dismissedKey);
+        persistDismissal();
         Navigation.navigate(variant.getCtaRoute());
     };
 

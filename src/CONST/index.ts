@@ -8030,11 +8030,6 @@ const CONST = {
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
-    PRODUCT_MARKETING_WINDOW: {
-        // Dismissals are stored in the dismissed product training NVP under this prefix followed by the announcement ID,
-        // so each announcement is dismissed independently.
-        DISMISSED_KEY_PREFIX: 'productMarketingWindow:',
-    },
     SMART_BANNER_HEIGHT: 152,
 
     NAVIGATION_TESTS: {

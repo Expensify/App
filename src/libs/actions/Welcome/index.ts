@@ -190,8 +190,8 @@ function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
 
 function dismissProductTraining(elementName: string, isDismissedUsingCloseButton = false) {
     const date = new Date();
-    const dismissedMethod: 'click' | 'x' = isDismissedUsingCloseButton ? 'x' : 'click';
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING>> = [
+    const dismissedMethod = isDismissedUsingCloseButton ? 'x' : 'click';
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
