@@ -6,8 +6,8 @@ import Text from '@components/Text';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsLists from '@hooks/useCardsLists';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletExportToMultipleAccounts} from '@libs/actions/connections/Rillet';
@@ -21,7 +21,6 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -32,7 +31,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const [cardFeeds] = useCardFeeds(policyID);
-    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const [cardLists] = useCardsLists();
     const policyOwner = policy?.owner;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
@@ -45,7 +44,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
     const exportToMultipleAccounts = rilletConfig?.export?.exportToMultipleAccounts ?? false;
     const cardProgramsUsingCustomAccountsCount = Object.keys(rilletConfig?.export?.cardProgramAccounts ?? {}).length;
     const cardProgramsOfflineFeedbackKeys = Object.values(cardFeeds ?? {}).map((program) => `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`);
-    const cardsUsingCustomAccountsCount = getCardsUsingCustomExportCount(cardFeeds ?? {}, cardList ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
+    const cardsUsingCustomAccountsCount = getCardsUsingCustomExportCount(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
 
     const {isAccordionExpanded: isExportToMultipleAccountsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateExportToMultipleAccountsAccordionSection} =
         useAccordionAnimation(exportToMultipleAccounts);
@@ -151,16 +150,14 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                                 }
                             />
                         </OfflineWithFeedback>
-                        <OfflineWithFeedback
-                            pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardList ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT)}
-                        >
+                        <OfflineWithFeedback pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT)}>
                             <MenuItemWithTopDescription
                                 title={translate('workspace.rillet.cardAccount.countInfo', cardsUsingCustomAccountsCount.totalCount)}
                                 description={translate('workspace.rillet.cardAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
                                 shouldShowRightIcon
                                 brickRoadIndicator={
-                                    areCardsCustomExportInErrorFields(cardFeeds ?? {}, cardList ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT)
+                                    areCardsCustomExportInErrorFields(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT)
                                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                         : undefined
                                 }

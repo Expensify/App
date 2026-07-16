@@ -4,8 +4,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsLists from '@hooks/useCardsLists';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {areCardsCustomExportInErrorFields, getCardsCustomExportPendingAction, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
@@ -16,7 +16,6 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -27,12 +26,12 @@ function RilletCardAccount({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const [cardFeeds] = useCardFeeds(policyID);
-    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const [cardLists] = useCardsLists();
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
     const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
     const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
-    const cardsUsingCustomAccountsCount = getCardsUsingCustomExportCount(cardFeeds ?? {}, cardList ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
+    const cardsUsingCustomAccountsCount = getCardsUsingCustomExportCount(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
 
     return (
         <ConnectionLayout
@@ -63,7 +62,7 @@ function RilletCardAccount({policy}: WithPolicyConnectionsProps) {
                 return (
                     <OfflineWithFeedback
                         key={feedKey}
-                        pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardList ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT, feedKey)}
+                        pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardLists ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT, feedKey)}
                     >
                         <MenuItemWithTopDescription
                             title={cardProgramAccountDisplayName}
@@ -76,7 +75,7 @@ function RilletCardAccount({policy}: WithPolicyConnectionsProps) {
                             onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT_CARD_LIST.getRoute(policyID, feedWithDomainID)) : undefined)}
                             shouldShowRightIcon
                             brickRoadIndicator={
-                                areCardsCustomExportInErrorFields(cardFeeds ?? {}, cardList ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT, feedKey)
+                                areCardsCustomExportInErrorFields(cardFeeds ?? {}, cardLists ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT, feedKey)
                                     ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                     : undefined
                             }

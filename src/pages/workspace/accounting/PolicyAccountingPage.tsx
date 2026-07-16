@@ -18,6 +18,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsLists from '@hooks/useCardsLists';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
@@ -120,7 +121,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare']);
     const illustrations = useMemoizedLazyIllustrations(['Accounting']);
     const [cardFeeds] = useCardFeeds(policyID);
-    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const [cardLists] = useCardsLists();
 
     const canUseRilletIntegration = isBetaEnabled(CONST.BETAS.RILLET) || !!policy?.connections?.rillet;
     const accountingIntegrations = useMemo(
@@ -431,7 +432,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         undefined,
                         accountingIcons,
                         cardFeeds,
-                        cardList,
+                        cardLists,
                     );
                     if (!integrationData) {
                         return undefined;
@@ -515,7 +516,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX),
             accountingIcons,
             cardFeeds,
-            cardList,
+            cardLists,
         );
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
@@ -637,7 +638,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isBetaEnabled,
         accountingIcons,
         cardFeeds,
-        cardList,
+        cardLists,
         connectionSyncProgress?.stageInProgress,
         icons.Pencil,
         icons.ArrowRight,
@@ -697,7 +698,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     undefined,
                     accountingIcons,
                     cardFeeds,
-                    cardList,
+                    cardLists,
                 );
                 if (!integrationData) {
                     return undefined;
@@ -767,7 +768,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         popoverAnchorRefs,
         accountingIcons,
         cardFeeds,
-        cardList,
+        cardLists,
         canWriteAccounting,
         showReadOnlyModal,
     ]);
