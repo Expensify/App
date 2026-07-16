@@ -5593,19 +5593,34 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 label: 'Rekening voor verrekening van reiskostenfacturen',
                 description: 'Kies je vereffeningsrekening en we maken de betaling voor je aan in Rillet.',
             },
-            exportToMultipleAccounts: 'Instellen van exporteren naar meerdere rekeningen',
+            exportToMultipleAccounts: 'Export naar meerdere rekeningen instellen',
             cardProgramAccount: {
                 label: 'Kaartprogramma-account',
-                description: 'Overschrijf de werkruimte-account voor deze kaartprogramma’s.',
-                descriptionLevel2: 'Overschrijf de werkruimte-account voor dit kaartprogramma.',
-                countInfo: (customAccountsCount: number) =>
-                    !customAccountsCount ? 'Alle programma’s gebruiken de standaardrekening' : `${customAccountsCount} programma’s met aangepaste accounts`,
+                description: "Overschrijf de werkruimte-account voor deze kaartprogramma's.",
+                descriptionLevel2: 'Overschrijf het werkruimteaccount voor dit kaartprogramma.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle programma’s gebruiken de standaardrekening';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programma met aangepaste rekening`;
+                    }
+                    return `${customAccountsCount} programma's met aangepaste rekeningen`;
+                },
             },
             cardAccount: {
-                label: 'Rekening per kaart',
+                label: 'Account per kaart',
                 description: 'Overschrijf de programmarekening voor individuele kaarten.',
-                descriptionLevel2: 'Overschrijf de programmarekening voor deze kaarten.',
-                countInfo: (customAccountsCount: number) => (!customAccountsCount ? 'Alle kaarten gebruiken programma-accounts' : `${customAccountsCount} kaarten met aangepaste rekeningen`),
+                descriptionLevel2: 'Stel een andere programmarekening in voor deze kaarten.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle kaarten gebruiken programmarekeningen';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} kaart met aangepaste rekening`;
+                    }
+                    return `${customAccountsCount} kaarten met aangepaste rekeningen`;
+                },
             },
         },
         type: {

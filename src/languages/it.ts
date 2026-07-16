@@ -5603,19 +5603,34 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             settlementAccount: {label: 'Conto di regolamento Carta Expensify', description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in Rillet.'},
             syncTravelInvoicingSettlements: 'Sincronizza le liquidazioni di fatturazione viaggi',
             travelInvoicingSettlementAccount: {label: 'Conto di regolamento fatturazione viaggi', description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in Rillet.'},
-            exportToMultipleAccounts: 'Configura l’esportazione verso più conti',
+            exportToMultipleAccounts: 'Configura l’esportazione su più conti',
             cardProgramAccount: {
                 label: 'Conto del programma carta',
-                description: 'Sostituisci il conto della workspace per questi programmi di carte.',
-                descriptionLevel2: 'Sostituisci il conto spazio di lavoro per questo programma di carte.',
-                countInfo: (customAccountsCount: number) =>
-                    !customAccountsCount ? 'Tutti i programmi usano il conto predefinito' : `${customAccountsCount} programmi con conti personalizzati`,
+                description: 'Sostituisci il conto dell’area di lavoro per questi programmi di carta.',
+                descriptionLevel2: 'Ignora il conto della workspace per questo programma di carte.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Tutti i programmi usano il conto predefinito';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programma con conto personalizzato`;
+                    }
+                    return `${customAccountsCount} programmi con conti personalizzati`;
+                },
             },
             cardAccount: {
                 label: 'Conto per carta',
-                description: 'Sostituisci il conto del programma per le singole carte.',
-                descriptionLevel2: 'Sostituisci il conto programma per queste carte.',
-                countInfo: (customAccountsCount: number) => (!customAccountsCount ? 'Tutte le carte usano conti del programma' : `${customAccountsCount} carte con conti personalizzati`),
+                description: 'Ignora il conto del programma per le singole carte.',
+                descriptionLevel2: 'Ignora il conto del programma per queste carte.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Tutte le carte usano conti di programma';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} carta con conto personalizzato`;
+                    }
+                    return `${customAccountsCount} carte con conti personalizzati`;
+                },
             },
         },
         type: {
