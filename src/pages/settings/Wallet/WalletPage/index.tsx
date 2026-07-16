@@ -70,6 +70,7 @@ import {View} from 'react-native';
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
 
 import useWalletSectionIllustration from './useWalletSectionIllustration';
+import shouldOpenBankAccountByPolicy from './utils';
 
 const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
     Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
@@ -233,7 +234,7 @@ function WalletPage() {
             showLockedAccountModal();
             return;
         }
-        if (accountPolicyID) {
+        if (accountPolicyID && shouldOpenBankAccountByPolicy(accountData, allPolicies, currentUserLogin)) {
             navigateToBankAccountRoute({policyID: accountPolicyID, backTo: ROUTES.SETTINGS_WALLET});
             return;
         }
