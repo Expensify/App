@@ -513,10 +513,6 @@ function getRequireFieldsRuleValidationError(
     const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
 
     if (isEditing) {
-        if (!hasRequireFieldsRuleChanges(category, effectiveForm, touchedFields, clearedFields)) {
-            return translate('workspace.rules.requireFieldsRule.confirmErrorField');
-        }
-
         return '';
     }
 
@@ -949,6 +945,7 @@ export {
     getRequireFieldsRuleKey,
     getRequireFieldsRuleValidationError,
     getRequireFieldsTableData,
+    hasRequireFieldsRuleChanges,
     isRequireFieldsFieldCouplingDisabled,
     saveRequireFieldsRule,
 };

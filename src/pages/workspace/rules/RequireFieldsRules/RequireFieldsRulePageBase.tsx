@@ -31,6 +31,7 @@ import {
     getRequireFieldsFormFromCategory,
     getRequireFieldsRuleKey,
     getRequireFieldsRuleValidationError,
+    hasRequireFieldsRuleChanges,
     saveRequireFieldsRule,
 } from '@libs/RequireFieldsRulesUtils';
 import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
@@ -249,6 +250,11 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         const savedCategory = formToSave[INPUT_IDS.CATEGORY];
         const originalCategoryName = categoryName;
         const didChangeCategory = isEditing && !!originalCategoryName && !!savedCategory && savedCategory !== originalCategoryName;
+
+        if (isEditing && !didChangeCategory && !hasRequireFieldsRuleChanges(selectedCategory ?? category, formToSave, touchedFields, clearedFields)) {
+            Navigation.goBack();
+            return;
+        }
 
         if (didChangeCategory && originalCategoryName) {
             deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(originalCategoryName));
