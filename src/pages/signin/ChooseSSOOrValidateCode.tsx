@@ -27,10 +27,10 @@ import Terms from './Terms';
 
 type ChooseSSOOrValidateCodeProps = {
     /** Function that returns whether the user is using SAML or magic codes to log in */
-    setIsUsingMagicCode: (value: boolean) => void;
+    setIsUsingValidateCode: (value: boolean) => void;
 };
 
-function ChooseSSOOrValidateCode({setIsUsingMagicCode}: ChooseSSOOrValidateCodeProps) {
+function ChooseSSOOrValidateCode({setIsUsingValidateCode}: ChooseSSOOrValidateCodeProps) {
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
@@ -78,9 +78,9 @@ function ChooseSSOOrValidateCode({setIsUsingMagicCode}: ChooseSSOOrValidateCodeP
                     isLoading={account?.isLoading && account?.loadingForm === (account?.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)}
                     onPress={() => {
                         resendValidateCode(credentials?.login);
-                        setIsUsingMagicCode(true);
+                        setIsUsingValidateCode(true);
                     }}
-                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.MAGIC_CODE}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.VALIDATE_CODE}
                 />
                 {!!account && !isEmptyObject(account.errors) && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                 <ChangeExpensifyLoginLink onPress={() => clearSignInData()} />

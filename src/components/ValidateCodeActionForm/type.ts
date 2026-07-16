@@ -34,7 +34,7 @@ type ValidateCodeActionFormProps = {
     sendValidateCode: () => void;
 
     /** If the magic code has been resent previously */
-    hasMagicCodeBeenSent?: boolean;
+    hasValidateCodeBeenSent?: boolean;
 
     /** Whether the form is loading or not */
     isLoading?: boolean;

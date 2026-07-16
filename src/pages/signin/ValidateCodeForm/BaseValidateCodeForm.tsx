@@ -339,11 +339,11 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     ) : (
                         <ValidateCodeInput
                             autoComplete={autoComplete}
-                            ref={(magicCodeInput) => {
-                                if (!magicCodeInput) {
+                            ref={(validateCodeInput) => {
+                                if (!validateCodeInput) {
                                     return;
                                 }
-                                input2FARef.current = magicCodeInput;
+                                input2FARef.current = validateCodeInput;
                             }}
                             name="twoFactorAuthCode"
                             value={twoFactorAuthCode}
@@ -374,11 +374,11 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                 <View style={[styles.mv3]}>
                     <ValidateCodeInput
                         autoComplete={autoComplete}
-                        ref={(magicCodeInput) => {
-                            if (!magicCodeInput) {
+                        ref={(validateCodeInput) => {
+                            if (!validateCodeInput) {
                                 return;
                             }
-                            inputValidateCodeRef.current = magicCodeInput;
+                            inputValidateCodeRef.current = validateCodeInput;
                         }}
                         name="validateCode"
                         value={validateCode}

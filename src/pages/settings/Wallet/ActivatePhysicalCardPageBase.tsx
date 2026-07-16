@@ -93,7 +93,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
         setCanShowError(true);
         activateCardCodeInputRef.current?.blur();
 
-        if (lastFourDigits.replace(CONST.MAGIC_CODE_EMPTY_CHAR, '').length !== LAST_FOUR_DIGITS_LENGTH) {
+        if (lastFourDigits.replace(CONST.VALIDATE_CODE_EMPTY_CHAR, '').length !== LAST_FOUR_DIGITS_LENGTH) {
             setFormError(translate('activateCardPage.error.thatDidNotMatch'));
             return;
         }

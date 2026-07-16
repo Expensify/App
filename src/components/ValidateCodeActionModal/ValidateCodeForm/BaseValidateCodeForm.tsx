@@ -55,7 +55,7 @@ type ValidateCodeFormProps = {
     /** Forwarded inner ref */
     ref?: ForwardedRef<ValidateCodeFormHandle>;
 
-    hasMagicCodeBeenSent?: boolean;
+    hasValidateCodeBeenSent?: boolean;
 
     /** The pending action of magic code being sent
      * if not supplied, we will retrieve it from the validateCodeAction above: `validateCodeAction.pendingFields.validateCodeSent`
@@ -106,7 +106,7 @@ type ValidateCodeFormProps = {
 function BaseValidateCodeForm({
     autoComplete = CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE,
     ref = () => {},
-    hasMagicCodeBeenSent,
+    hasValidateCodeBeenSent,
     validateCodeActionErrorField,
     validatePendingAction,
     validateError,
@@ -145,8 +145,8 @@ function BaseValidateCodeForm({
     const defaultValidateCodeError = getLatestErrorField(validateCodeAction, 'actionVerified');
     // A request stamps `lastValidateCodeRequestedAt` and reverts it to null on failure, so a present timestamp with no in-flight request and no error means the code was sent successfully.
     const isCodeSentSuccessfully = !!lastValidateCodeRequestedAt && !validateCodeAction?.isLoading && isEmptyObject(defaultValidateCodeError);
-    // Flows that supply `hasMagicCodeBeenSent` track the magic code outside VALIDATE_ACTION_CODE; otherwise reflect whether a code was sent successfully.
-    const validateCodeSent = hasMagicCodeBeenSent ?? isCodeSentSuccessfully;
+    // Flows that supply `hasValidateCodeBeenSent` track the magic code outside VALIDATE_ACTION_CODE; otherwise reflect whether a code was sent successfully.
+    const validateCodeSent = hasValidateCodeBeenSent ?? isCodeSentSuccessfully;
     const countdownRef = useRef<ValidateCodeCountdownHandle | null>(null);
     const isFirstCountdownRunRef = useRef(true);
 
@@ -354,7 +354,7 @@ function BaseValidateCodeForm({
                 <View style={[styles.mt5, styles.flexRow, styles.renderHTML]}>
                     <ValidateCodeCountdown
                         ref={countdownRef}
-                        requestedAt={hasMagicCodeBeenSent !== undefined ? undefined : lastValidateCodeRequestedAt}
+                        requestedAt={hasValidateCodeBeenSent !== undefined ? undefined : lastValidateCodeRequestedAt}
                         onCountdownFinish={handleCountdownFinish}
                     />
                 </View>

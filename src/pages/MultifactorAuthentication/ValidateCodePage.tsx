@@ -235,7 +235,7 @@ function MultifactorAuthenticationValidateCodePage() {
                         errorText={canShowError && formError.inputCode ? translate(formError.inputCode) : ''}
                         hasError={hasError}
                         ref={inputRef}
-                        maxLength={CONST.MAGIC_CODE_LENGTH}
+                        maxLength={CONST.VALIDATE_CODE_LENGTH}
                     />
                     <MultifactorAuthenticationValidateCodeResendButton
                         ref={resendButtonRef}

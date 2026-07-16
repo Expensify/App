@@ -61,7 +61,7 @@ type RenderOption = {
     shouldShowSMSDeliveryFailurePage: boolean;
     shouldShowUnlinkLoginForm: boolean;
     shouldShowValidateCodeForm: boolean;
-    shouldShowChooseSSOOrMagicCode: boolean;
+    shouldShowChooseSSOOrValidateCode: boolean;
     shouldInitiateSAMLLogin: boolean;
     shouldShowWelcomeHeader: boolean;
     shouldShowWelcomeText: boolean;
@@ -73,7 +73,7 @@ type GetRenderOptionsParams = {
     hasValidateCode: boolean;
     account: OnyxEntry<Account>;
     isPrimaryLogin: boolean;
-    isUsingMagicCode: boolean;
+    isUsingValidateCode: boolean;
     hasInitiatedSAMLLogin: boolean;
     shouldShowAnotherLoginPageOpenedMessage: boolean;
     credentials: OnyxEntry<Credentials>;
@@ -86,7 +86,7 @@ type GetRenderOptionsParams = {
  * @param hasValidateCode
  * @param account
  * @param isPrimaryLogin
- * @param isUsingMagicCode
+ * @param isUsingValidateCode
  * @param hasInitiatedSAMLLogin
  * @param hasEmailDeliveryFailure
  * @param hasSMSDeliveryFailure
@@ -96,7 +96,7 @@ function getRenderOptions({
     hasValidateCode,
     account,
     isPrimaryLogin,
-    isUsingMagicCode,
+    isUsingValidateCode,
     hasInitiatedSAMLLogin,
     shouldShowAnotherLoginPageOpenedMessage,
     credentials,
@@ -113,7 +113,7 @@ function getRenderOptions({
     // Supportal sessions authenticate with a support auth token and must bypass SAML entirely, so we never
     // initiate SAML during a supportal session, even when the customer's account has SAML required.
     const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading && !isSupportalSession;
-    const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
+    const shouldShowChooseSSOOrValidateCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingValidateCode;
 
     // SAML required users may reload the login page after having already entered their login details, in which
     // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
@@ -125,8 +125,8 @@ function getRenderOptions({
     // Show the Welcome form if a user is signing up for a new account in a domain that is not controlled
     const shouldShouldSignUpWelcomeForm = !!credentials?.login && !isAccountValidated && !account?.accountExists && !account?.domainControlled;
     const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
-    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
-    const shouldShowSMSDeliveryFailurePage = !!(hasLogin && hasSMSDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin && account?.accountExists);
+    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrValidateCode && !shouldInitiateSAMLLogin;
+    const shouldShowSMSDeliveryFailurePage = !!(hasLogin && hasSMSDeliveryFailure && !shouldShowChooseSSOOrValidateCode && !shouldInitiateSAMLLogin && account?.accountExists);
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure && !hasSMSDeliveryFailure;
     const shouldShowValidateCodeForm =
         !shouldShouldSignUpWelcomeForm &&
@@ -135,11 +135,11 @@ function getRenderOptions({
         !isUnvalidatedSecondaryLogin &&
         !hasEmailDeliveryFailure &&
         !hasSMSDeliveryFailure &&
-        !shouldShowChooseSSOOrMagicCode &&
+        !shouldShowChooseSSOOrValidateCode &&
         !isSAMLRequired;
-    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin || shouldShouldSignUpWelcomeForm;
+    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrValidateCode || isUnvalidatedSecondaryLogin || shouldShouldSignUpWelcomeForm;
     const shouldShowWelcomeText =
-        shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || shouldShowAnotherLoginPageOpenedMessage || shouldShouldSignUpWelcomeForm;
+        shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrValidateCode || shouldShowAnotherLoginPageOpenedMessage || shouldShouldSignUpWelcomeForm;
 
     return {
         shouldShowLoginForm,
@@ -147,7 +147,7 @@ function getRenderOptions({
         shouldShowSMSDeliveryFailurePage,
         shouldShowUnlinkLoginForm: !shouldShouldSignUpWelcomeForm && isUnvalidatedSecondaryLogin,
         shouldShowValidateCodeForm,
-        shouldShowChooseSSOOrMagicCode,
+        shouldShowChooseSSOOrValidateCode,
         shouldInitiateSAMLLogin,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
@@ -180,7 +180,7 @@ function SignInPage({ref}: SignInPageProps) {
 
     /** This state is needed to keep track of whether the user has opted to use magic codes
      * instead of signing in via SAML when SAML is enabled and not required */
-    const [isUsingMagicCode, setIsUsingMagicCode] = useState(false);
+    const [isUsingValidateCode, setIsUsingValidateCode] = useState(false);
 
     /** This state is needed to keep track of whether the user has been directed to their SSO provider's login page and
      *  if we need to clear their sign in details so they can enter a login */
@@ -197,13 +197,13 @@ function SignInPage({ref}: SignInPageProps) {
         }
 
         // If we don't have a login set, reset the user's SAML login preferences
-        if (isUsingMagicCode) {
-            setIsUsingMagicCode(false);
+        if (isUsingValidateCode) {
+            setIsUsingValidateCode(false);
         }
         if (hasInitiatedSAMLLogin) {
             setHasInitiatedSAMLLogin(false);
         }
-    }, [credentials?.login, isUsingMagicCode, setIsUsingMagicCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
+    }, [credentials?.login, isUsingValidateCode, setIsUsingValidateCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
 
     const {
         shouldShowLoginForm,
@@ -211,7 +211,7 @@ function SignInPage({ref}: SignInPageProps) {
         shouldShowSMSDeliveryFailurePage,
         shouldShowUnlinkLoginForm,
         shouldShowValidateCodeForm,
-        shouldShowChooseSSOOrMagicCode,
+        shouldShowChooseSSOOrValidateCode,
         shouldInitiateSAMLLogin,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
@@ -221,7 +221,7 @@ function SignInPage({ref}: SignInPageProps) {
         hasValidateCode: !!credentials?.validateCode,
         account,
         isPrimaryLogin: !account?.primaryLogin || account.primaryLogin === credentials?.login,
-        isUsingMagicCode,
+        isUsingValidateCode,
         hasInitiatedSAMLLogin,
         shouldShowAnotherLoginPageOpenedMessage,
         credentials,
@@ -261,11 +261,11 @@ function SignInPage({ref}: SignInPageProps) {
                 ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', userLoginToDisplay)}`
                 : translate('welcomeText.welcomeEnterMagicCode', userLoginToDisplay);
         }
-    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage) {
+    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrValidateCode || shouldShowSMSDeliveryFailurePage) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
-        if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage) {
+        if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrValidateCode || shouldShowSMSDeliveryFailurePage) {
             welcomeText = '';
         }
     } else if (shouldShouldSignUpWelcomeForm) {
@@ -291,7 +291,7 @@ function SignInPage({ref}: SignInPageProps) {
         if (
             shouldShouldSignUpWelcomeForm ||
             (!shouldShowAnotherLoginPageOpenedMessage &&
-                (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage))
+                (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrValidateCode || shouldShowSMSDeliveryFailurePage))
         ) {
             clearSignInData();
             return true;
@@ -342,7 +342,7 @@ function SignInPage({ref}: SignInPageProps) {
                     {!shouldShowAnotherLoginPageOpenedMessage && (
                         <>
                             {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                            {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrValidateCode setIsUsingMagicCode={setIsUsingMagicCode} />}
+                            {shouldShowChooseSSOOrValidateCode && <ChooseSSOOrValidateCode setIsUsingValidateCode={setIsUsingValidateCode} />}
                             {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
                             {shouldShowSMSDeliveryFailurePage && <SMSDeliveryFailurePage />}
                         </>
