@@ -1,5 +1,5 @@
 import Growl from '@libs/Growl';
-import navigateAfterExpenseCreate, {navigateToTransactionThread} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import navigateAfterExpenseCreate, {navigateToCreatedExpense} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -16,7 +16,7 @@ const mockGetTrackingState = jest.fn<boolean, unknown[]>();
 // Declared but assigned after jest.mock hoisting - use require() to access the mock in tests
 let mockSetPendingSubmitFollowUpAction: jest.Mock;
 const mockGetCurrentSearchQueryJSON = jest.fn<undefined, []>();
-const mockGetReportTransactions = jest.fn<Transaction[], [string | undefined]>();
+const mockGetReportTransactions = jest.fn<Array<Partial<Transaction>>, [string | undefined]>();
 
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => () => mockIsReportTopmostSplitNavigator());
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute());
@@ -226,12 +226,12 @@ describe('navigateAfterExpenseCreate', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
-    describe('navigateToTransactionThread', () => {
+    describe('navigateToCreatedExpense', () => {
         it('should open the transaction thread in the Spend RHP when the user is on the Spend tab', async () => {
             mockIsReportTopmostSplitNavigator.mockReturnValue(false);
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
 
-            navigateToTransactionThread({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
+            navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledTimes(1);
@@ -243,7 +243,7 @@ describe('navigateAfterExpenseCreate', () => {
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
             mockGetIsNarrowLayout.mockReturnValue(true);
 
-            navigateToTransactionThread({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
+            navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
 
             expect(Navigation.navigate).toHaveBeenCalledTimes(1);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('thread-1', undefined, undefined, ''));
@@ -253,9 +253,9 @@ describe('navigateAfterExpenseCreate', () => {
             mockIsReportTopmostSplitNavigator.mockReturnValue(true);
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
             mockGetIsNarrowLayout.mockReturnValue(false);
-            mockGetReportTransactions.mockReturnValue([{transactionID: 'txn-1'}, {transactionID: 'txn-2'}] as Transaction[]);
+            mockGetReportTransactions.mockReturnValue([{transactionID: 'txn-1'}, {transactionID: 'txn-2'}]);
 
-            navigateToTransactionThread({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
+            navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenNthCalledWith(1, ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'iou-1', backTo: ''}));
@@ -266,9 +266,9 @@ describe('navigateAfterExpenseCreate', () => {
             mockIsReportTopmostSplitNavigator.mockReturnValue(true);
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
             mockGetIsNarrowLayout.mockReturnValue(false);
-            mockGetReportTransactions.mockReturnValue([{transactionID: 'txn-1'}] as Transaction[]);
+            mockGetReportTransactions.mockReturnValue([{transactionID: 'txn-1'}]);
 
-            navigateToTransactionThread({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
+            navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
 
             expect(Navigation.navigate).toHaveBeenCalledTimes(1);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'iou-1', backTo: ''}));
@@ -279,7 +279,7 @@ describe('navigateAfterExpenseCreate', () => {
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
             mockGetIsNarrowLayout.mockReturnValue(false);
 
-            navigateToTransactionThread({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: undefined});
+            navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: undefined});
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledTimes(1);

@@ -91,7 +91,7 @@ type ShowExpenseAddedGrowlParams = {
     buildTransactionThreadParams?: BuildTransactionThreadParams;
 };
 
-type NavigateToTransactionThreadParams = {
+type NavigateToCreatedExpenseParams = {
     /** The transaction thread report to open. */
     threadReportID: string;
 
@@ -103,7 +103,7 @@ type NavigateToTransactionThreadParams = {
 };
 
 /**
- * Navigates to a just-created transaction thread, choosing the destination from the surface the user
+ * Navigates to a just-created expense, choosing the destination from the surface the user
  * is currently looking at (they may have switched tabs while the growl was up)
  * - Spend tab: the transaction thread RHP within Spend (report shown underneath via the wide RHP)
  * - Inbox tab, narrow layout: the transaction thread as a full report view
@@ -111,7 +111,7 @@ type NavigateToTransactionThreadParams = {
  *   wide with the specific thread RHP stacked on top; a single-transaction report collapses to the thread itself
  * - Inbox tab, wide layout, tracked/unreported expense (no expense report): the transaction thread RHP directly
  */
-function navigateToTransactionThread({threadReportID, transactionID, iouReportID}: NavigateToTransactionThreadParams) {
+function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: NavigateToCreatedExpenseParams) {
     const backTo = Navigation.getActiveRoute();
     const openOnInbox = isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute();
 
@@ -229,7 +229,7 @@ function showExpenseAddedGrowl({
                 Log.warn('[showExpenseAddedGrowl] Unable to resolve transaction thread reportID on View press.');
                 return;
             }
-            navigateToTransactionThread({threadReportID, transactionID, iouReportID});
+            navigateToCreatedExpense({threadReportID, transactionID, iouReportID});
         };
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- imperative module (not a React component); no useLocalize hook available here
         Growl.success(growlMessage, CONST.GROWL.DURATION_WITH_ACTION, {label: translateLocal('common.view'), onPress: navigateToExpenseRHP});
@@ -398,5 +398,5 @@ function navigateAfterExpenseCreate({
 }
 
 export default navigateAfterExpenseCreate;
-export {surfaceExpenseCreatedFeedback, navigateToTransactionThread};
+export {surfaceExpenseCreatedFeedback, navigateToCreatedExpense};
 export type {BuildTransactionThreadParams};
