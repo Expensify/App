@@ -383,7 +383,9 @@ function MoneyRequestReceiptView({
     const shouldShowReceiptAudit = !isInvoice && (shouldShowReceiptEmptyState || hasReceipt || hasReceiptUploadError);
 
     const fallbackReceiptError = useMemo(() => {
-        if (hasReceiptUploadError || isEmptyObject(reportCreationError) || !hasReceipt || !transaction?.receipt) {
+        // Distance expenses always carry a generated map e-receipt, so they should not surface a receipt-upload
+        // error on a create/report failure - the transaction's own generic error should be shown instead.
+        if (hasReceiptUploadError || isEmptyObject(reportCreationError) || !hasReceipt || !transaction?.receipt || isDistanceRequest) {
             return {};
         }
 
@@ -392,7 +394,7 @@ function MoneyRequestReceiptView({
             source: transaction.receipt.source?.toString() ?? '',
             filename: transaction.receipt.filename ?? '',
         });
-    }, [hasReceiptUploadError, reportCreationError, hasReceipt, transaction]);
+    }, [hasReceiptUploadError, reportCreationError, hasReceipt, transaction, isDistanceRequest]);
 
     const errors = useMemo(() => {
         if (hasReceiptUploadError) {
