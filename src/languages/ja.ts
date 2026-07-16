@@ -1061,6 +1061,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'コントロールをカスタマイズして支出を効率化',
             setupRules: '支出ルールを設定',
             inviteAccountant: '会計士を招待',
+            configureApprovals: '承認ワークフローを設定',
             begin: '開始',
             done: '完了',
             createWorkspaceSubText: 'ワークスペースのセットアップを開始できます',
@@ -1073,6 +1074,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Concierge に問い合わせる',
             talkToAccountExecutive: 'アカウントエグゼクティブに相談する',
             forGuidedSetup: 'ガイド付きセットアップ用です。',
+            configureApprovalsSubText: 'レポート承認を定義する',
         },
         yourSpend: {
             title: 'あなたの支出',
@@ -2859,6 +2861,14 @@ ${date} の ${merchant} への ${amount}`,
         title: '担当者',
         subtitle: `<muted-text>エージェントがワークフローを代わりに処理するので、毎日の時間を数時間取り戻せます。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">詳しく見る</a>。</muted-text>`,
         findAgent: '担当者を探す',
+        deleteAgentsTitle: () => ({
+            one: 'エージェントを削除',
+            other: 'エージェントを削除',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'このエージェントを削除してもよろしいですか？この操作は元に戻せません。',
+            other: 'これらのエージェントを削除してもよろしいですか？この操作は元に戻せません。',
+        }),
         newAgent: '新しいエージェント',
         emptyAgents: {
             title: 'エージェントは作成されていません',
@@ -4427,6 +4437,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
             deleteOpenExpensifyCardsError: '御社にはまだ Expensify カードが残っています。削除するには、<concierge-link>Concierge までお問い合わせください</concierge-link>。',
+            deleteTravelInvoicingError: 'お客様の会社では、統合トラベル請求がまだ有効になっています。',
             outstandingBalanceWarning: '最後のワークスペースを削除する前に精算する必要がある未払残高があります。支払いを解決するには、サブスクリプション設定に移動してください。',
             settleBalance: 'サブスクリプションに移動',
             unavailable: '利用できないワークスペース',
@@ -7530,7 +7541,7 @@ ${reportName}`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'ブロック済み' : '許可されています'} ${shownCount > 1 ? 'カテゴリ' : 'カテゴリ'}: ${categories}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
-                defaultRuleSummary: 'アダルトサービス、ATM、ギャンブルなどを含むカテゴリ',
+                defaultRuleSummary: 'アダルトサービス、ATM、ギャンブル、送金を含むカテゴリ',
                 findRule: 'ルールを検索',
                 defaultSection: 'デフォルト',
                 customRulesSection: 'カスタムルール',
