@@ -5,6 +5,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 
 import {findLocalAvatarForURL} from '@libs/Avatars/AvatarLookup';
+import type * as AvatarLookup from '@libs/Avatars/AvatarLookup';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 
 import ShareCodePage from '@pages/ShareCodePage';
@@ -36,8 +37,7 @@ jest.mock('@components/ContextMenuItem', () => jest.fn(() => null));
 jest.mock('@components/MenuItem', () => jest.fn(() => null));
 
 jest.mock('@libs/Avatars/AvatarLookup', () => ({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    ...jest.requireActual('@libs/Avatars/AvatarLookup'),
+    ...jest.requireActual<typeof AvatarLookup>('@libs/Avatars/AvatarLookup'),
     findLocalAvatarForURL: jest.fn(),
 }));
 
