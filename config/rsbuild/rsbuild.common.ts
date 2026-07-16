@@ -5,7 +5,6 @@ import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import {rspack} from '@rspack/core';
-import {sentryWebpackPlugin} from '@sentry/webpack-plugin';
 import {execSync} from 'child_process';
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -296,10 +295,11 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
 /**
  * Get a production grade Rsbuild config for web
  */
-const getCommonConfiguration = ({file = '.env', platform = 'web', isDevServer = false}: Environment): RsbuildConfig => {
+const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevServer = false}: Environment): Promise<RsbuildConfig> => {
     const isDevelopment = file === '.env' || file === '.env.development';
     const shared = getSharedConfiguration({file, platform, isDevServer});
     const sharedRspackTool = shared.tools?.rspack;
+    const sentryWebpackPlugin = isDevelopment ? undefined : (await import('@sentry/webpack-plugin')).sentryWebpackPlugin;
 
     if (!isDevelopment) {
         const releaseName = `${process.env.npm_package_name}@${process.env.npm_package_version}`;
@@ -518,10 +518,10 @@ const getCommonConfiguration = ({file = '.env', platform = 'web', isDevServer = 
                           ]
                         : []),
                     ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
-                    // Upload source maps to Sentry
-                    ...(isDevelopment
-                        ? []
-                        : ([
+                    // Upload source maps to Sentry. @sentry/webpack-plugin is dynamically imported so dev
+                    // config evaluation does not load webpack's deprecated compat exports under Bun.
+                    ...(sentryWebpackPlugin
+                        ? ([
                               sentryWebpackPlugin({
                                   authToken: process.env.SENTRY_AUTH_TOKEN as string | undefined,
                                   org: 'expensify',
@@ -538,7 +538,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web', isDevServer = 
                                   debug: false,
                                   telemetry: false,
                               }),
-                          ] as RspackPluginInstance[])),
+                          ] as RspackPluginInstance[])
+                        : []),
                     // This allows us to interactively inspect JS bundle contents, loader/plugin timings, and duplicate packages
                     ...(process.env.ANALYZE_BUNDLE === 'true' ? [new RsdoctorRspackPlugin()] : []),
                 );
