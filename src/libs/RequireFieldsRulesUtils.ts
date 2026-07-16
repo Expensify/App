@@ -492,7 +492,25 @@ function getRequireFieldsPendingActionForCategory(category: PolicyCategory): Pen
     const fieldKeys = getRequireFieldsPendingFieldKeys(category);
     const pendingActions = fieldKeys.map((field) => category.pendingFields?.[field]).filter((pendingAction): pendingAction is PendingAction => !!pendingAction);
 
-    return pendingActions.find((pendingAction) => isPendingDeleteOrUpdate(pendingAction)) ?? pendingActions.at(0);
+    if (pendingActions.length === 0) {
+        return undefined;
+    }
+
+    // Clearing description/attendees (or a receipt override) marks that field as DELETE, but the
+    // category row should only be treated as a full rule delete when nothing else remains.
+    // Otherwise the table hides the row online and it looks like the rule was deleted + recreated.
+    const hasRemainingRequireFieldsRule = categoryHasAnyRequireFieldsRule(category);
+    const isFullRuleDelete = !hasRemainingRequireFieldsRule && pendingActions.every((pendingAction) => pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+    if (isFullRuleDelete) {
+        return CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    }
+
+    if (pendingActions.some((pendingAction) => isPendingDeleteOrUpdate(pendingAction))) {
+        return CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    }
+
+    return pendingActions.at(0);
 }
 
 function getRequireFieldsRuleValidationError(
