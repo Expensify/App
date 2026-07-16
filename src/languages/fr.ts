@@ -1081,6 +1081,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Personnalisez les contrôles et simplifiez les dépenses',
             setupRules: 'Configurer les règles de dépense',
             inviteAccountant: 'Inviter votre comptable',
+            configureApprovals: 'Configurer le flux d’approbation',
             begin: 'Commencer',
             done: 'Terminé',
             createWorkspaceSubText: 'Espace de travail prêt pour la configuration',
@@ -1093,6 +1094,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Parler à Concierge',
             talkToAccountExecutive: 'Parlez à votre chargé de compte',
             forGuidedSetup: 'pour la configuration guidée.',
+            configureApprovalsSubText: 'Définir les approbations de notes de frais',
         },
         yourSpend: {
             title: 'Vos dépenses',
@@ -2923,6 +2925,14 @@ ${amount} pour ${merchant} - ${date}`,
         title: 'Agents',
         subtitle: `<muted-text>Les agents gèrent vos workflows pour vous, afin que vous gagniez des heures dans votre journée. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">En savoir plus</a>.</muted-text>`,
         findAgent: 'Trouver un agent',
+        deleteAgentsTitle: () => ({
+            one: 'Supprimer l’agent',
+            other: 'Supprimer les agents',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Voulez-vous vraiment supprimer cet agent ? Cette action est irréversible.',
+            other: 'Voulez-vous vraiment supprimer ces agents ? Cette action est irréversible.',
+        }),
         newAgent: 'Nouvel agent',
         emptyAgents: {
             title: 'Aucun agent créé',
@@ -4509,6 +4519,7 @@ ${amount} pour ${merchant} - ${date}`,
             deleteConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ?',
             deleteWithCardsConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ? Cela supprimera tous les flux de cartes et les cartes assignées.',
             deleteOpenExpensifyCardsError: 'Votre entreprise a encore des Cartes Expensify. Veuillez <concierge-link>contacter Concierge</concierge-link> pour les supprimer.',
+            deleteTravelInvoicingError: 'Votre entreprise a toujours la facturation de voyages consolidée activée.',
             outstandingBalanceWarning:
                 'Vous avez un solde impayé qui doit être réglé avant de supprimer votre dernier espace de travail. Veuillez accéder à vos paramètres d’abonnement pour résoudre le paiement.',
             settleBalance: 'Aller à l’abonnement',
@@ -7691,7 +7702,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
-                defaultRuleSummary: 'Catégories incluant les services pour adultes, les distributeurs automatiques, les jeux d’argent, et...',
+                defaultRuleSummary: 'Catégories incluant les services pour adultes, les distributeurs automatiques, les jeux d’argent et les transferts d’argent',
                 findRule: 'Trouver une règle',
                 defaultSection: 'Par défaut',
                 customRulesSection: 'Règles personnalisées',
