@@ -81,6 +81,6 @@
     Firefox (#94571).
     ```
 
-- Upstream PR/issue: TODO — file against react-navigation (createMemoryHistory.tsx has the same 100ms timeout upstream)
-- E/App issue: [#94571](https://github.com/Expensify/App/issues/94571) + TODO — patch-tracking issue via [NewPatchTemplate](../../.github/ISSUE_TEMPLATE/NewPatchTemplate.md)
+- Upstream PR/issue: No upstream issue or PR will be created because this timeout adjustment is based on Firefox timing measured in Expensify's navigation flow and will be maintained as an App-specific patch.
+- E/App issue: [#94571](https://github.com/Expensify/App/issues/94571)
 - PR Introducing Patch: [#95980](https://github.com/Expensify/App/pull/95980)
