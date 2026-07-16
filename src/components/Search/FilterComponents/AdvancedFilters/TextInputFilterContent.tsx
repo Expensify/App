@@ -62,7 +62,7 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
             accessibilityLabel={label}
             role={CONST.ROLE.PRESENTATION}
             containerStyles={[styles.ph5]}
-            autoGrowHeight={shouldFillAvailableHeight}
+            autoGrowHeight={shouldFillAvailableHeight && !!value}
             maxAutoGrowHeight={maxAutoGrowHeight}
         />
     );
