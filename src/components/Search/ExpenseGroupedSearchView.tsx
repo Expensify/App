@@ -4,13 +4,14 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import getPlatform from '@libs/getPlatform';
-import {isTransactionGroupListItemType, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType, isTransactionMatchWithGroupItem, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import type {Transaction} from '@src/types/onyx';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
@@ -18,7 +19,7 @@ import React, {useState} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
-import type {SelectedTransactions} from './types';
+import type {SearchQueryJSON, SelectedTransactions} from './types';
 
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
@@ -64,6 +65,21 @@ function buildSplitGroupData(data: SearchListItem[], shouldSplitGroups: boolean)
     };
 }
 
+/** Maps each group's `keyForList` to the id of a newly-added transaction inside it, used to refetch the group's child snapshot. */
+function buildNewTransactionIDMap(data: SearchListItem[], newTransactions: Transaction[], groupBy: SearchQueryJSON['groupBy']) {
+    const map = new Map<string, string>();
+    if (newTransactions.length === 0) {
+        return map;
+    }
+    for (const item of data) {
+        const matchedTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
+        if (matchedTransactionID && item.keyForList) {
+            map.set(item.keyForList, matchedTransactionID);
+        }
+    }
+    return map;
+}
+
 /**
  * The grouped-expense Search list (expense search with a valid group-by).
  *
@@ -86,6 +102,7 @@ function ExpenseGroupedSearchView({
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
     hasLoadedAllTransactions,
+    newTransactions,
     onSelectRow,
     ListFooterComponent,
     onEndReached,
@@ -138,6 +155,8 @@ function ExpenseGroupedSearchView({
         handleSelectRow,
         scrollToListIndex,
     } = useSearchListViewState({data, listData, isMobileSelectionModeEnabled, onSelectRow});
+
+    const newTransactionIDByItemKey = buildNewTransactionIDMap(data, newTransactions, groupBy);
 
     // Selection is tracked per child transaction (plus empty groups), so flatten each group's transactions.
     const groupItems = data.filter(isTransactionGroupListItemType);
@@ -205,6 +224,7 @@ function ExpenseGroupedSearchView({
 
         if (isGroupChildrenContainerItem(item)) {
             const originalKey = (item.keyForList ?? '').replace('children_', '');
+            const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
             return (
                 <GroupChildrenContainer
                     item={item}
@@ -219,6 +239,7 @@ function ExpenseGroupedSearchView({
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     onUndelete={handleUndelete}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
+                    newTransactionID={containerNewTransactionID}
                     bankAccountList={bankAccountList}
                     cardFeeds={cardFeeds}
                     conciergeReportID={conciergeReportID}
@@ -227,6 +248,7 @@ function ExpenseGroupedSearchView({
         }
 
         // Non-split group rows: TransactionGroupListItem renders the whole group (header + children).
+        const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
         return (
             <AnimatedExitRow
                 shouldApplyAnimation={type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < listData.length - 1}
@@ -250,6 +272,7 @@ function ExpenseGroupedSearchView({
                     ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     onFocus={onFocus}
+                    newTransactionID={newTransactionID}
                     onUndelete={handleUndelete}
                     keyForList={item.keyForList}
                     isFirstItem={index === firstVisibleIndex}

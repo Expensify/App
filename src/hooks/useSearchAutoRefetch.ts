@@ -63,6 +63,17 @@ function useSearchAutoRefetch({
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
     const searchResultsData = searchResults?.data;
 
+    const prevTransactionsIDs = Object.keys(previousTransactions ?? {});
+    const newTransactions: Transaction[] = [];
+    if (prevTransactionsIDs.length > 0) {
+        const previousIDs = new Set(prevTransactionsIDs);
+        for (const [id, transaction] of Object.entries(transactions ?? {})) {
+            if (!previousIDs.has(id) && transaction) {
+                newTransactions.push(transaction);
+            }
+        }
+    }
+
     useEffect(() => {
         const previousTransactionIDsLocal = Object.keys(previousTransactions ?? {});
         const transactionsIDs = Object.keys(transactions ?? {});
@@ -145,6 +156,8 @@ function useSearchAutoRefetch({
 
         searchTriggeredRef.current = false;
     }, [searchResults?.search?.isLoading, searchResultsData]);
+
+    return {newTransactions};
 }
 
 function getTransactionIDFromValue(value: unknown): string | undefined {

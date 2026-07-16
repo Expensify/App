@@ -1,7 +1,7 @@
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 
-import type {CardList} from '@src/types/onyx';
+import type {CardList, Transaction} from '@src/types/onyx';
 
 import type React from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -40,6 +40,9 @@ type CommonSearchViewProps = {
 
     /** Whether everything has been loaded (gates the fully-checked select-all state). */
     hasLoadedAllTransactions?: boolean;
+
+    /** Transactions newly added since the previous render, used to refetch the matching expanded group's snapshot. */
+    newTransactions: Transaction[];
 
     /** The navigation handler for a row tap (owned by the router). */
     onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;

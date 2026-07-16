@@ -205,7 +205,7 @@ function Search({
         clearSelectedTransactions();
     }, [validGroupBy, prevValidGroupBy, clearSelectedTransactions]);
 
-    useSearchAutoRefetch({
+    const {newTransactions} = useSearchAutoRefetch({
         searchResults,
         transactions,
         previousTransactions,
@@ -1052,6 +1052,7 @@ function Search({
         ListFooterComponent: listFooterComponent,
         onLayout,
         isMobileSelectionModeEnabled,
+        newTransactions,
         hasLoadedAllTransactions,
         isActionColumnWide: isTask || hasDeletedTransaction,
     };

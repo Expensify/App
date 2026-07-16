@@ -478,6 +478,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         searchType?: SearchDataTypes;
         accountID?: number;
         columns?: SearchColumnType[];
+        newTransactionID?: string;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
@@ -548,6 +549,7 @@ type GroupChildrenContentProps = {
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     nonPersonalAndWorkspaceCards?: CardList;
     onUndelete?: (transaction: Transaction) => void;
+    newTransactionID?: string;
     bankAccountList?: OnyxEntry<BankAccountList>;
     cardFeeds?: OnyxCollection<CardFeeds>;
     conciergeReportID?: string;
