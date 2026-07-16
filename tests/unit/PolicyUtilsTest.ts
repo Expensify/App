@@ -1988,6 +1988,25 @@ describe('PolicyUtils', () => {
 
             expect(result).toHaveLength(0);
         });
+        it('should not fall back to the current user role when a recipient role is missing', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                        [approverEmail]: {email: approverEmail},
+                    },
+                },
+            };
+
+            const recipients = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            const hasEligibleRecipient = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+
+            expect(recipients).toHaveLength(0);
+            expect(hasEligibleRecipient).toBe(false);
+        });
         it('should not return Expensify guide when policy owner is not Expensify team', () => {
             const policies = {
                 '1': {

@@ -403,6 +403,7 @@ function getEligibleBankAccountShareRecipientEmails(policies: OnyxCollection<Pol
         for (const [email, employee] of Object.entries(policy.employeeList ?? {})) {
             if (
                 employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                !employee.role ||
                 !canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS) ||
                 email === currentUserLogin ||
                 recipientEmails.has(email) ||
