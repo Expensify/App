@@ -107,6 +107,12 @@ jest.mock('@components/OfflineWithFeedback', () => {
 // Records the `innerStyles` each labeled action button was rendered with, so tests can assert the selection styling.
 const mockButtonInnerStyles: Record<string, unknown> = {};
 
+// Wrapped in `jest.fn` so the React Compiler sees the recording as an opaque side effect rather than a
+// render-time mutation of a module-scoped object (which it rejects as "This value cannot be modified").
+const mockRecordButtonInnerStyles = jest.fn((accessibilityLabel: string, innerStyles: unknown) => {
+    mockButtonInnerStyles[accessibilityLabel] = innerStyles;
+});
+
 jest.mock('@components/ButtonComposed', () => {
     const {TouchableOpacity, Text} = jest.requireActual<typeof ReactNative>('react-native');
 
@@ -132,7 +138,7 @@ jest.mock('@components/ButtonComposed', () => {
         innerStyles?: ReactNative.StyleProp<ReactNative.ViewStyle>;
     }) {
         if (accessibilityLabel) {
-            mockButtonInnerStyles[accessibilityLabel] = innerStyles;
+            mockRecordButtonInnerStyles(accessibilityLabel, innerStyles);
         }
         return (
             <TouchableOpacity
